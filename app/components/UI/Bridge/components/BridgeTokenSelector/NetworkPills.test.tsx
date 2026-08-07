@@ -527,6 +527,81 @@ describe('NetworkPills', () => {
         payload: ['eip155:56', 'eip155:137', 'eip155:10', 'eip155:42161'],
       });
     });
+
+    it('keeps a session-pinned promoted chain after treatment ranking changes', () => {
+      const treatmentRanking = [
+        mockChainRanking[4],
+        mockChainRanking[5],
+        mockChainRanking[6],
+        mockChainRanking[0],
+        mockChainRanking[1],
+        mockChainRanking[2],
+        mockChainRanking[3],
+      ];
+      const pinnedVisibleChainIds = [
+        'eip155:56',
+        'eip155:137',
+        'eip155:10',
+        'eip155:42161',
+      ] as CaipChainId[];
+      // Live ranking would no longer include BNB in the top four.
+      const reorderedTreatmentRanking = [
+        mockChainRanking[4],
+        mockChainRanking[5],
+        mockChainRanking[6],
+        mockChainRanking[0],
+        mockChainRanking[2],
+        mockChainRanking[3],
+        mockChainRanking[1],
+      ];
+
+      jest.mocked(useABTest).mockReturnValue({
+        variant: { orderByValue: true },
+        variantName: 'treatment',
+        isActive: true,
+      });
+      jest.mocked(useChainValueOrder).mockReturnValue(treatmentRanking);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectAllowedChainRanking) {
+          return mockChainRanking;
+        }
+        if (selector === selectVisiblePillChainIds) {
+          return pinnedVisibleChainIds;
+        }
+        return undefined;
+      });
+
+      const { rerender, getByText, queryByText } = render(
+        <NetworkPills
+          selectedChainId={'eip155:56' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(getByText('BNB Chain')).toBeOnTheScreen();
+
+      mockDispatch.mockClear();
+      jest
+        .mocked(useChainValueOrder)
+        .mockReturnValue(reorderedTreatmentRanking);
+
+      rerender(
+        <NetworkPills
+          selectedChainId={'eip155:56' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(getByText('BNB Chain')).toBeOnTheScreen();
+      expect(queryByText('Bitcoin')).not.toBeOnTheScreen();
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'bridge/setVisiblePillChainIds',
+        }),
+      );
+    });
   });
 
   describe('watchlist filter', () => {

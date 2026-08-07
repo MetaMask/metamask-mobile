@@ -87,7 +87,9 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Visible pill chain IDs from Redux (shared across source/dest pickers).
-  // Falls back to first N from chainRanking on initial mount.
+  // Once set (out-of-list promotion), Redux is the session SSOT — holdings /
+  // treatment ranking updates must not change membership. While unset, fall
+  // back to the first N from the current chainRanking.
   const reduxVisibleChainIds = useSelector(selectVisiblePillChainIds);
   const visibleChainIds =
     reduxVisibleChainIds ?? getVisibleChainIds(chainRanking);
@@ -103,13 +105,14 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
 
   const remainingCount = chainRanking.length - visibleChains.length;
 
-  // When a non-visible network is selected (e.g. from the bottom sheet),
-  // push it to the first position and pop the last visible pill.
-  // Also scroll the pills to bring the selected network into view.
+  // On selection change only:
+  // - Out-of-list chain → pin [selected, ...current visible].slice(0, N) in
+  //   Redux for the Swaps session, then scroll to start.
+  // - Already visible → scroll only (do not rewrite Redux).
+  // - All (undefined) → scroll to start; keep any existing session pin.
   //
-  // Only `selectedChainId` is listed as a dependency because
-  // `visibleChainIds` is derived from Redux state that this effect updates;
-  // including it would cause an infinite update loop.
+  // Do not depend on chainRanking / visibleChainIds: that would re-scroll on
+  // routine holdings updates while Redux is still unset.
   useEffect(() => {
     if (!selectedChainId) {
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
@@ -119,7 +122,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
     const existingIndex = visibleChainIds.indexOf(selectedChainId);
 
     if (existingIndex === -1) {
-      // Non-visible network: push to front and scroll to start
+      // Session pin: promote selected to first for the rest of this Swaps session
       dispatch(
         setVisiblePillChainIds([
           selectedChainId,
@@ -127,12 +130,13 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
         ]),
       );
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
-    } else {
-      // Already visible: scroll to bring it into view
-      const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
-      scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
+      return;
     }
-  }, [selectedChainId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
+    scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- selection-only; Redux pins after promote
+  }, [selectedChainId]);
 
   const renderChainPill = (chain: ChainRankingEntry) => {
     // Only one pill may appear selected at a time (star, All, or one network).
