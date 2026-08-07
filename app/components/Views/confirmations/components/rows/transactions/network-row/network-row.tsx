@@ -3,15 +3,13 @@ import { StyleSheet, View } from 'react-native';
 import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import AvatarNetwork from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import InfoRow from '../../../UI/info-row';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const styles = StyleSheet.create({
   container: {
@@ -44,7 +42,7 @@ const NetworkRow = ({ chainId: chainIdProp, style }: NetworkRowProps) => {
             style={styles.avatar}
           />
         )}
-        <Text variant={TextVariant.BodyMD}>{networkName}</Text>
+        <Text variant={TextVariant.BodyMd}>{networkName}</Text>
       </View>
     </InfoRow>
   );

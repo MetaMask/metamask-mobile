@@ -25,9 +25,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../../../select
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import AvatarNetwork from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Text, {
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -77,7 +75,7 @@ export const InfoSectionOriginAndDetails = () => {
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
         {isExternalApp ? (
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('confirm.label.external_app')}
           </Text>
         ) : (
@@ -93,7 +91,7 @@ export const InfoSectionOriginAndDetails = () => {
               style={styles.avatarNetwork}
             />
           )}
-          <Text variant={TextVariant.BodyMD}>{networkConfiguration?.name}</Text>
+          <Text variant={TextVariant.BodyMd}>{networkConfiguration?.name}</Text>
         </View>
       </InfoRow>
       {isValidAddress(verifyingContract) && (

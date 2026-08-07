@@ -6,15 +6,14 @@ import {
 import { toCaipAssetType } from '@metamask/utils';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
+  Text,
+  TextVariant,
+  TextColor,
   Button,
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
@@ -65,7 +64,7 @@ export function CustomAmountBuy() {
   return (
     <Box alignItems={AlignItems.center} gap={20}>
       {message && (
-        <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+        <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
           {message}
         </Text>
       )}

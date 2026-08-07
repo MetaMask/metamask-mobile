@@ -6,10 +6,6 @@ import InfoRow, {
   InfoRowSkeleton,
   InfoRowVariant,
 } from '../../UI/info-row/info-row';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -20,6 +16,11 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { RootState } from '../../../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../../selectors/tokensController';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const TokenConversionRateRowTestIds = {
   CONTAINER: 'rate-row-container',
@@ -79,7 +80,7 @@ export function TokenConversionRateRow() {
       testID={TokenConversionRateRowTestIds.CONTAINER}
       rowVariant={InfoRowVariant.Small}
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {`1 ${inputTokenSymbol} = ${conversionRate} ${outputTokenSymbol}`}
       </Text>
     </InfoRow>

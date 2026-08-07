@@ -1,10 +1,12 @@
 import React from 'react';
 import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
-import Text, {
-  TextColor,
+import {
+  Text,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export interface TransactionDetailsRowProps {
   children: React.ReactNode;
@@ -20,7 +22,11 @@ export function TransactionDetailsRow({
       flexDirection={FlexDirection.Row}
       justifyContent={JustifyContent.spaceBetween}
     >
-      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {label}
       </Text>
       {children}

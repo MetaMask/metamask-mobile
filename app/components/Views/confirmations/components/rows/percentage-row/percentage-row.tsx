@@ -2,10 +2,6 @@ import React from 'react';
 import { StyleSheet, Linking } from 'react-native';
 import InfoRow from '../../UI/info-row';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
@@ -19,6 +15,11 @@ import {
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -72,7 +73,7 @@ export function PercentageRow() {
         </Text>
       }
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
         {MUSD_CONVERSION_APY}%
       </Text>
     </InfoRow>

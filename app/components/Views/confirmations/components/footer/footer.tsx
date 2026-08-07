@@ -11,10 +11,9 @@ import {
   ButtonSize,
   ButtonsAlignment,
   IconName,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
@@ -249,11 +248,11 @@ export const Footer = () => {
       {isStakingConfirmationBool && (
         <View style={styles.bottomTextContainer}>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part1')}
             </Text>
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               style={styles.linkText}
               onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
             >
@@ -261,12 +260,12 @@ export const Footer = () => {
             </Text>
           </View>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part2')}
               {'\n'}
             </Text>
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               style={styles.linkText}
               onPress={() =>
                 Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
@@ -274,7 +273,7 @@ export const Footer = () => {
             >
               {strings('confirm.staking_footer.risk_disclosure')}
             </Text>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part3')}
             </Text>
           </View>

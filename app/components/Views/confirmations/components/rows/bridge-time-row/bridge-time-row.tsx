@@ -1,10 +1,6 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import InfoRow from '../../UI/info-row';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -19,6 +15,11 @@ import {
 } from '@metamask/transaction-controller';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
@@ -56,8 +57,8 @@ export function BridgeTimeRow() {
       rowVariant={InfoRowVariant.Small}
     >
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
         testID={ConfirmationRowComponentIDs.BRIDGE_TIME}
       >
         {formattedSeconds}

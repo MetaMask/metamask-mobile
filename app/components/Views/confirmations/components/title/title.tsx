@@ -9,10 +9,6 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   EARN_CONTRACT_INTERACTION_TYPES,
@@ -40,6 +36,11 @@ import {
 import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
 import { TokenStandard } from '../../types/token';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const getApproveTitle = (approveTransactionData?: ApproveTransactionData) => {
   const { isRevoke, tokenStandard } = approveTransactionData ?? {};
@@ -254,14 +255,14 @@ const Title = () => {
 
   return (
     <View style={styles.titleContainer}>
-      <Text style={styles.title} variant={TextVariant.HeadingMD}>
+      <Text style={styles.title} variant={TextVariant.HeadingMd}>
         {title}
       </Text>
       {subTitle && (
         <Text
           style={styles.subTitle}
-          color={TextColor.Alternative}
-          variant={TextVariant.BodyMD}
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
         >
           {subTitle}
         </Text>

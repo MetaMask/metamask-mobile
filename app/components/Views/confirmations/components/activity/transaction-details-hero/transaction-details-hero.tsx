@@ -3,10 +3,6 @@ import { Image, StyleProp, StyleSheet, TextStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import { Box } from '../../../../../UI/Box/Box';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
@@ -53,6 +49,11 @@ import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../../locales/i18n';
 import MoneyIcon from '../../../../../../images/money.png';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const iconStyles = StyleSheet.create({
   moneyIcon: { width: 32, height: 32, borderRadius: 16 },
@@ -126,7 +127,7 @@ function TwoAssetHero({
         labelStyle={styles.youReceivedLabel}
         sign="+"
         data={receivedData}
-        amountColor={TextColor.Success}
+        amountColor={TextColor.SuccessDefault}
         iconOverride={isMusdToken(receivedData.address) && moneyIcon}
       />
     </Box>
@@ -150,7 +151,7 @@ function AssetLine({
 }) {
   return (
     <>
-      <Text color={TextColor.Alternative} style={labelStyle}>
+      <Text color={TextColor.TextAlternative} style={labelStyle}>
         {label}
       </Text>
       <Box
@@ -165,7 +166,7 @@ function AssetLine({
             symbol={data.symbol}
           />
         )}
-        <Text variant={TextVariant.DisplayMD} color={amountColor}>
+        <Text variant={TextVariant.DisplayMd} color={amountColor}>
           {sign}
           {data.fiatAmount}
         </Text>
@@ -262,8 +263,8 @@ export function TransactionDetailsHero() {
       >
         {icon}
         <Text
-          variant={TextVariant.DisplayMD}
-          color={showDepositPrefix ? TextColor.Success : undefined}
+          variant={TextVariant.DisplayMd}
+          color={showDepositPrefix ? TextColor.SuccessDefault : undefined}
         >
           {showDepositPrefix ? '+' : isMusdWithdrawSingleRow ? '-' : ''}
           {formatFiatPay(new BigNumber(heroAmount))}
@@ -288,7 +289,7 @@ export function TransactionDetailsHero() {
       gap={12}
       style={styles.container}
     >
-      <Text variant={TextVariant.DisplayLG}>{formattedAmount}</Text>
+      <Text variant={TextVariant.DisplayLg}>{formattedAmount}</Text>
     </Box>
   );
 }

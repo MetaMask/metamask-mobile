@@ -1,13 +1,12 @@
 import React, { useCallback } from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
 import { Hex } from '@metamask/utils';
 import {
+  Text,
+  TextVariant,
+  TextColor,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -263,15 +262,15 @@ function DeveloperButton({
   return (
     <>
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
         style={styles.heading}
       >
         {title}
       </Text>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={styles.desc}
       >
         {description}

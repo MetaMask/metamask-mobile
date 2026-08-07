@@ -21,6 +21,20 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = (...args: unknown[]) =>
+      args.reduce<Record<string, unknown>>((acc, arg) => {
+        if (typeof arg === 'object' && arg !== null) {
+          return { ...acc, ...(arg as Record<string, unknown>) };
+        }
+        return acc;
+      }, {});
+    return tw;
+  },
+}));
+
 jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
   const { View } = jest.requireActual('react-native');
   return {

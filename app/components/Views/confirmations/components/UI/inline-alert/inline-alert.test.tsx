@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { mockTheme } from '../../../../../../util/theme';
 import { Alert, Severity } from '../../../types/alerts';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
@@ -80,6 +81,7 @@ describe('InlineAlert', () => {
     const icon = getByTestId('inline-alert-icon');
 
     expect(icon.props.name).toBe(IconName.Danger);
+    expect(icon.props.color).toBe(mockTheme.colors.error.default);
   });
 
   it('renders with warning severity', () => {
@@ -87,6 +89,7 @@ describe('InlineAlert', () => {
     const icon = getByTestId('inline-alert-icon');
 
     expect(icon.props.name).toBe(IconName.Info);
+    expect(icon.props.color).toBe(mockTheme.colors.warning.default);
   });
 
   it('renders with info severity', () => {
@@ -94,6 +97,7 @@ describe('InlineAlert', () => {
     const icon = getByTestId('inline-alert-icon');
 
     expect(icon.props.name).toBe(IconName.Info);
+    expect(icon.props.color).toBe(mockTheme.colors.info.default);
   });
 
   it('renders with default severity', () => {
@@ -105,6 +109,7 @@ describe('InlineAlert', () => {
     const icon = getByTestId('inline-alert-icon');
 
     expect(icon.props.name).toBe(IconName.Info);
+    expect(icon.props.color).toBe(mockTheme.colors.info.default);
   });
 
   it('calls showAlertModal, setAlertKey and trackInlineAlertClicked when inline alert is clicked', () => {
