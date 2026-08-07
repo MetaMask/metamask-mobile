@@ -74,6 +74,8 @@ export const ConfirmAlertModalSelectorsIDs = {
 export const AlertModalSelectorsIDs = {
   ALERT_MODAL_CHECKBOX: 'alert-modal-checkbox',
   ALERT_MODAL_ACKNOWLEDGE_BUTTON: 'alert-modal-acknowledge-button',
+  ALERT_MODAL_CLOSE_BUTTON: 'alert-modal-close-button',
+  ALERT_MODAL_ACTION_BUTTON: 'alert-modal-action-button',
 } as const;
 
 export const AlertModalSelectorsText = {
