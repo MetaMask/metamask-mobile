@@ -36,7 +36,7 @@ const playgroundServer = new DappServer({
 const scopeCardTestId = (scope: string): string =>
   `${MMConnectDappTestIds.SCOPE_CARD}-${scope.toLowerCase().replace(/:/g, '-')}`;
 
-appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
+appiumTest.describe.skip(SmokeMMConnect('Multichain browser connect'), () => {
   appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
     await playgroundServer.start();

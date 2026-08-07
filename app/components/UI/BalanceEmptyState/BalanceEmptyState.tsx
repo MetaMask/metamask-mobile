@@ -22,6 +22,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../Ramp/constants/rampsBuyCufTags';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
@@ -43,7 +44,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const buttonClickData = useRampsButtonClickData();
 
   const handleAction = () => {
-    goToBuy();
+    goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
