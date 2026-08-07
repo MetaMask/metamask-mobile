@@ -163,7 +163,7 @@ import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactions
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
-import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
@@ -576,9 +576,10 @@ const SettingsFlow = () => {
   );
 };
 
-const UnmountOnBlurComponent = (children) => (
-  <UnmountOnBlur>{children}</UnmountOnBlur>
-);
+// Replaces `unmountOnBlur` (removed in React Navigation v7).
+const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
+const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
+const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -642,7 +643,8 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.BROWSER_VIEW,
-      unmountOnBlur: true,
+      // Required with `withUnmountOnTabBlur` — freezing blocks the unmount.
+      freezeOnBlur: false,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
@@ -654,7 +656,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
-      unmountOnBlur: true,
+      freezeOnBlur: false,
     },
     money: {
       tabBarIconKey: TabBarIconKey.Money,
@@ -671,7 +673,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
-      unmountOnBlur: true,
+      freezeOnBlur: false,
     },
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
@@ -691,12 +693,12 @@ const HomeTabs = () => {
       onLeave: () => {
         // End trending session when user switches to another tab
         TrendingFeedSessionManager.getInstance().endSession();
-        // Disable AppState listener to prevent phantom sessions when app backgrounds/foregrounds
-        // while user is on a different tab (since TrendingView stays mounted with unmountOnBlur: false)
+        // Disable AppState listener to prevent phantom sessions when app
+        // backgrounds/foregrounds while user is on a different tab (Explore
+        // stays mounted; Browser/Activity/Rewards use UnmountOnBlur layout).
         TrendingFeedSessionManager.getInstance().disableAppStateListener();
       },
       rootScreenName: Routes.TRENDING_VIEW,
-      unmountOnBlur: false,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -708,7 +710,6 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.SETTINGS_VIEW,
-      unmountOnBlur: true,
     },
   };
 
@@ -821,8 +822,7 @@ const HomeTabs = () => {
               ...options.browser,
               isHidden: true,
             }}
-            component={BrowserFlow}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+            component={BrowserFlowUnmountOnTabBlur}
           />
         </>
 
@@ -844,8 +844,7 @@ const HomeTabs = () => {
           <Tab.Screen
             name={Routes.TRANSACTIONS_VIEW}
             options={options.activity}
-            component={TransactionsHome}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+            component={TransactionsHomeUnmountOnTabBlur}
           />
         )}
 
@@ -853,8 +852,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
-          component={RewardsHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
+          component={RewardsHomeUnmountOnTabBlur}
         />
       </Tab.Navigator>
     </PredictPreviewSheetProvider>
