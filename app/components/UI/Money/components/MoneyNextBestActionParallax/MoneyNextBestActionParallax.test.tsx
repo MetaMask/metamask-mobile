@@ -302,6 +302,56 @@ describe('MoneyNextBestActionParallax', () => {
     expect(firstStep).toBeLessThan(settled);
   });
 
+  it('starts a new artboard from rest rather than the previous tilt', () => {
+    const { rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    holdTilt(1, 0);
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 2"
+        fallbackImage={fallbackImage}
+      />,
+    );
+    mockSetNumber.mockClear();
+    act(() => latestApplyTilt()(0, 0));
+
+    expect(lastValueFor('xValue')).toBe(PARALLAX_REST_VALUE);
+  });
+
+  it('starts from rest again after animation is disabled and resumed', () => {
+    const { rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    holdTilt(1, 0);
+    mockUseReduceMotion.mockReturnValue(true);
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+    mockUseReduceMotion.mockReturnValue(false);
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+    mockSetNumber.mockClear();
+    act(() => latestApplyTilt()(0, 0));
+
+    expect(lastValueFor('xValue')).toBe(PARALLAX_REST_VALUE);
+  });
+
   it('does not dispatch tilt values while the native Rive view is detached', () => {
     mockViewTag.mockReturnValue(null);
     render(

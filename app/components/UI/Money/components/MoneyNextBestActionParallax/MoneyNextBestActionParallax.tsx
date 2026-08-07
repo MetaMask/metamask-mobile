@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -69,6 +69,13 @@ const MoneyNextBestActionParallax = ({
   const smoothedTilt = useRef({ x: 0, y: 0 });
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
+
+  // The Rive view is remounted per artboard and whenever animation resumes,
+  // and a fresh one starts at the artboard's rest pose. Carrying the previous
+  // smoothed value across would jump it away from rest on the first sample.
+  useEffect(() => {
+    smoothedTilt.current = { x: 0, y: 0 };
+  }, [artboardName, animate]);
 
   const applyTilt = useCallback((x: number, y: number) => {
     const rive = riveRef.current;
