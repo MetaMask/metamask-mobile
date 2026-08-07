@@ -2,6 +2,7 @@
 export const PERPS_CUF_TAG = {
   FEATURE: 'feature',
   LIFECYCLE_CONTEXT: 'lifecycle_context',
+  LIFECYCLE_DETAIL: 'lifecycle_detail',
   VARIANT: 'variant',
   DIRECTION: 'direction',
   ORDER_TYPE: 'order_type',

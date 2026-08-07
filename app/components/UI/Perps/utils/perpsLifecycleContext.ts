@@ -1,4 +1,6 @@
 import { AppState, type AppStateStatus } from 'react-native';
+import performance from 'react-native-performance';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { TraceName } from '../../../../util/trace';
 
 /**
@@ -15,16 +17,36 @@ export const PERPS_LIFECYCLE_CONTEXT = {
 export type PerpsLifecycleContext =
   (typeof PERPS_LIFECYCLE_CONTEXT)[keyof typeof PERPS_LIFECYCLE_CONTEXT];
 
+export const PERPS_LIFECYCLE_DETAIL = {
+  COLD_PROCESS: 'cold_process',
+  WARM_FOREGROUND: 'warm_foreground',
+  BACKGROUND_SHORT: 'background_short',
+  BACKGROUND_RECONNECT: 'background_reconnect',
+  NETWORK_RECOVERY: 'network_recovery',
+  ACCOUNT_SWITCH: 'account_switch',
+} as const;
+
+export type PerpsLifecycleDetail =
+  (typeof PERPS_LIFECYCLE_DETAIL)[keyof typeof PERPS_LIFECYCLE_DETAIL];
+
 // Module load == process start.
 let currentContext: PerpsLifecycleContext =
   PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS;
+let currentDetail: PerpsLifecycleDetail = PERPS_LIFECYCLE_DETAIL.COLD_PROCESS;
 let hasEnteredForegroundOnce = false;
+let backgroundStartedAt: number | null = null;
 
 /** Update context from an AppState transition. Exported for tests. */
 export function handlePerpsAppStateChange(
   nextState: AppStateStatus,
   previousState: AppStateStatus,
+  now = performance.now(),
 ): void {
+  if (nextState === 'background' || nextState === 'inactive') {
+    backgroundStartedAt ??= now;
+    return;
+  }
+
   if (nextState !== 'active') {
     return;
   }
@@ -33,13 +55,31 @@ export function handlePerpsAppStateChange(
     (previousState === 'background' || previousState === 'inactive')
   ) {
     currentContext = PERPS_LIFECYCLE_CONTEXT.BACKGROUND_RESUME;
+    const backgroundDurationMs =
+      backgroundStartedAt === null
+        ? PERPS_CONSTANTS.ConnectionGracePeriodMs
+        : Math.max(0, now - backgroundStartedAt);
+    currentDetail =
+      backgroundDurationMs < PERPS_CONSTANTS.ConnectionGracePeriodMs
+        ? PERPS_LIFECYCLE_DETAIL.BACKGROUND_SHORT
+        : PERPS_LIFECYCLE_DETAIL.BACKGROUND_RECONNECT;
   }
+  backgroundStartedAt = null;
   hasEnteredForegroundOnce = true;
 }
 
 /** Mark the current foreground's first flow done; later flows read as warm. */
 export function markPerpsForegroundSettled(): void {
   currentContext = PERPS_LIFECYCLE_CONTEXT.WARM;
+  currentDetail = PERPS_LIFECYCLE_DETAIL.WARM_FOREGROUND;
+}
+
+export function markPerpsNetworkRecovery(): void {
+  currentDetail = PERPS_LIFECYCLE_DETAIL.NETWORK_RECOVERY;
+}
+
+export function markPerpsAccountSwitch(): void {
+  currentDetail = PERPS_LIFECYCLE_DETAIL.ACCOUNT_SWITCH;
 }
 
 /**
@@ -78,6 +118,10 @@ export function getPerpsLifecycleContext(): PerpsLifecycleContext {
   return currentContext;
 }
 
+export function getPerpsLifecycleDetail(): PerpsLifecycleDetail {
+  return currentDetail;
+}
+
 let subscription: { remove: () => void } | undefined;
 
 /** Subscribe to AppState so background_resume is detected. Idempotent. */
@@ -105,7 +149,9 @@ export function initPerpsLifecycleTracking(): () => void {
 /** Test-only reset. */
 export function resetPerpsLifecycleContextForTests(): void {
   currentContext = PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS;
+  currentDetail = PERPS_LIFECYCLE_DETAIL.COLD_PROCESS;
   hasEnteredForegroundOnce = false;
+  backgroundStartedAt = null;
   subscription?.remove();
   subscription = undefined;
 }
