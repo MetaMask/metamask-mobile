@@ -786,9 +786,15 @@ describe('BuildQuote View', () => {
         mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
       fireEvent.press(getByRoleButton(`${symbol}${initialAmount}`));
       fireEvent.press(getByRoleButton(`${symbol}${quickAmount}`));
+      expect(getByRoleButton(`${symbol}${quickAmount}`)).toBeOnTheScreen();
       expect(
-        screen.queryAllByRole('button', { name: `${symbol}${quickAmount}` }),
-      ).toHaveLength(2);
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByRole('button', {
+          name: `${symbol}${mockUseLimitsInitialValues?.limits?.quickAmounts?.[1]}`,
+        }),
+      ).not.toBeOnTheScreen();
     });
 
     it('validates the max limit', () => {
@@ -855,6 +861,7 @@ describe('BuildQuote View', () => {
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).toBeOnTheScreen();
 
+      fireEvent.press(getByRoleButton('1'));
       fireEvent.press(getByRoleButton('Done'));
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
@@ -862,6 +869,32 @@ describe('BuildQuote View', () => {
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).not.toBeOnTheScreen();
+    });
+
+    it('replaces quick amounts with Done confirm when an amount is entered', () => {
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+      const quickAmount =
+        mockUseLimitsInitialValues?.limits?.quickAmounts?.[0]?.toString();
+
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
+
+      expect(getByRoleButton(`${denomSymbol}${quickAmount}`)).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton('1'));
+
+      expect(
+        screen.queryByRole('button', {
+          name: `${denomSymbol}${quickAmount}`,
+        }),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('dismisses the amount keypad when hardware back is pressed', () => {
@@ -1148,10 +1181,53 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('25%'));
       expect(getByRoleButton(`0.25 ${symbol}`)).toBeTruthy();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByRole('button', { name: 'Max' }),
+      ).not.toBeOnTheScreen();
+    });
 
-      fireEvent.press(getByRoleButton(`0.25 ${symbol}`));
+    it('sets max amount from quick amount when amount is zero', () => {
+      render(BuildQuote);
+
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '1',
+        mockUseRampSDKValues.selectedAsset?.decimals || 18,
+      ) as BN4;
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
       fireEvent.press(getByRoleButton('Max'));
       expect(getByRoleButton(`1 ${symbol}`)).toBeTruthy();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('replaces quick amounts with Done confirm when a sell amount is entered', () => {
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '1',
+        mockUseRampSDKValues.selectedAsset?.decimals || 18,
+      ) as BN4;
+      render(BuildQuote);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      expect(getByRoleButton('25%')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByRoleButton('1'));
+
+      expect(
+        screen.queryByRole('button', { name: '25%' }),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('updates the amount input up to the max considering gas for native asset', () => {
