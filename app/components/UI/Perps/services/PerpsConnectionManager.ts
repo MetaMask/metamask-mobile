@@ -24,6 +24,7 @@ import {
   endPerpsCufTraceAfter,
   watchPerpsCufAnyPositions,
   clearPendingPerpsCufTraces,
+  buildPerpsCufStartTags,
 } from '../utils/perpsCufTrace';
 import {
   PERPS_CUF_TAG,
@@ -54,6 +55,14 @@ import {
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
+import {
+  markHomepagePerpsAccountSwitch,
+  markHomepagePerpsNetworkRecovery,
+} from '../utils/homepagePerformanceProbe';
+import {
+  markPerpsAccountSwitch,
+  markPerpsNetworkRecovery,
+} from '../utils/perpsLifecycleContext';
 
 interface ConnectOptions {
   source?: string;
@@ -148,6 +157,10 @@ class PerpsConnectionManagerClass {
           hasHip3Changed) &&
         this.isConnected
       ) {
+        if (hasAccountChanged) {
+          markHomepagePerpsAccountSwitch();
+          markPerpsAccountSwitch();
+        }
         DevLogger.log(
           hasHip3Changed
             ? '[DEX:WHITELIST] PerpsConnectionManager: HIP-3 config version CHANGED - triggering reconnection'
@@ -282,6 +295,8 @@ class PerpsConnectionManagerClass {
             // Claim the transition synchronously. NetInfo may emit duplicate
             // online notifications before asynchronous validation completes.
             this.wasOffline = false;
+            markHomepagePerpsNetworkRecovery();
+            markPerpsNetworkRecovery();
             DevLogger.log(
               'PerpsConnectionManager: Network restored - validating connection',
             );
@@ -884,6 +899,7 @@ class PerpsConnectionManagerClass {
           name: TraceName.PerpsConnectionEstablishment,
           id: traceId,
           op: TraceOperation.PerpsOperation,
+          tags: buildPerpsCufStartTags(),
         });
 
         DevLogger.log('PerpsConnectionManager: Initializing connection');
@@ -1135,6 +1151,7 @@ class PerpsConnectionManagerClass {
         name: TraceName.PerpsAccountSwitchReconnection,
         id: traceId,
         op: TraceOperation.PerpsOperation,
+        tags: buildPerpsCufStartTags(),
       });
 
       // Stage 1: Clean up existing connections and clear caches

@@ -58,6 +58,8 @@ import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
+import type { HomepagePerpsContentVariant } from '../../../../UI/Perps/utils/homepagePerformanceProbe';
+import { useHomepagePerpsVisiblePerformance } from './hooks/useHomepagePerpsVisiblePerformance';
 
 /**
  * PerpsSection — single "Perpetuals" section on the homepage.
@@ -85,22 +87,31 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const { track } = usePerpsEventTracking();
     const privacyMode = useSelector(selectPrivacyMode);
 
-    const { positions, isInitialLoading: positionsLoading } =
-      usePerpsLivePositions({
-        throttleMs: HOMEPAGE_THROTTLE_MS,
-      });
+    const {
+      positions,
+      isInitialLoading: positionsLoading,
+      latestDelivery: positionsDelivery,
+    } = usePerpsLivePositions({
+      throttleMs: HOMEPAGE_THROTTLE_MS,
+      includeDeliveryMetadata: true,
+    });
 
     const { account: perpsAccount, isInitialLoading: perpsAccountLoading } =
       usePerpsLiveAccount({
         throttleMs: HOMEPAGE_THROTTLE_MS,
       });
 
-    const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
+    const {
+      orders,
+      isInitialLoading: ordersLoading,
+      latestDelivery: ordersDelivery,
+    } = usePerpsLiveOrders({
       hideTpSl: true,
       // Orders are low-frequency user state. Deliver them immediately so a
       // reconnect's initial empty snapshot cannot hold the real order behind
       // the Homepage's five-second market-data throttle.
       throttleMs: 0,
+      includeDeliveryMetadata: true,
     });
 
     const hookLoading = positionsLoading || ordersLoading;
@@ -292,6 +303,32 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       ? displayPositions.length + displayOrders.length
       : 0;
 
+    const contentVariant: HomepagePerpsContentVariant = connectionError
+      ? 'error'
+      : displayPositions.length > 0 && displayOrders.length > 0
+        ? 'positions_and_orders'
+        : displayPositions.length > 0
+          ? 'positions'
+          : displayOrders.length > 0
+            ? 'orders'
+            : shouldShowPillsEmptyState
+              ? 'pills'
+              : showTrending
+                ? 'trending'
+                : 'empty';
+
+    const { contentViewRef, onContentViewportLayout } =
+      useHomepagePerpsVisiblePerformance({
+        willRender,
+        hasConnectionError: Boolean(connectionError),
+        contentVariant,
+        itemCount,
+        positionsCount: positions.length,
+        ordersCount: orders.length,
+        positionsDelivery,
+        ordersDelivery,
+      });
+
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender && !pillsEmptyFeedHidden ? sectionViewRef : null,
       isLoading: isLoadingSection,
@@ -324,12 +361,14 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               onPress={handleViewAllPerps}
               testID={homepageSectionTitleTestId(HomeSectionNames.PERPS)}
             />
-            <ErrorState
-              title={strings('homepage.error.unable_to_load', {
-                section: title.toLowerCase(),
-              })}
-              onRetry={() => reconnectWithNewContext({ force: true })}
-            />
+            <View ref={contentViewRef} onLayout={onContentViewportLayout}>
+              <ErrorState
+                title={strings('homepage.error.unable_to_load', {
+                  section: title.toLowerCase(),
+                })}
+                onRetry={() => reconnectWithNewContext({ force: true })}
+              />
+            </View>
           </Box>
         </View>
       );
@@ -351,56 +390,58 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           onPress={handleViewAllPerps}
           testID={homepageSectionTitleTestId(HomeSectionNames.PERPS)}
         />
-        <Box gap={3} paddingTop={shouldAddContentTopGap ? 3 : undefined}>
-          {showHomepageUnrealizedPnl && (
-            <HomepageSectionUnrealizedPnlRow
-              isLoading={perpsAccountLoading}
-              valueText={homepageUnrealizedPnl?.valueText}
-              tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
-              label={strings('perps.unrealized_pnl')}
-              testID="homepage-perps-unrealized-pnl"
-            />
-          )}
-          {showSkeleton || pendingTrending || hasItems ? (
-            showSkeleton || pendingTrending ? (
-              <SectionRow>
-                <PerpsPositionSkeleton />
-              </SectionRow>
+        <View ref={contentViewRef} onLayout={onContentViewportLayout}>
+          <Box gap={3} paddingTop={shouldAddContentTopGap ? 3 : undefined}>
+            {showHomepageUnrealizedPnl && (
+              <HomepageSectionUnrealizedPnlRow
+                isLoading={perpsAccountLoading}
+                valueText={homepageUnrealizedPnl?.valueText}
+                tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
+                label={strings('perps.unrealized_pnl')}
+                testID="homepage-perps-unrealized-pnl"
+              />
+            )}
+            {showSkeleton || pendingTrending || hasItems ? (
+              showSkeleton || pendingTrending ? (
+                <SectionRow>
+                  <PerpsPositionSkeleton />
+                </SectionRow>
+              ) : (
+                <Box testID="homepage-perps-positions">
+                  {displayPositions.map((position) => (
+                    <PerpsCard
+                      key={position.symbol}
+                      position={position}
+                      onPress={() => handlePositionPress(position)}
+                      testID={`perps-position-row-${position.symbol}`}
+                    />
+                  ))}
+                  {displayOrders.map((order) => (
+                    <PerpsCard
+                      key={order.orderId}
+                      order={order}
+                      testID={`perps-order-row-${order.orderId}`}
+                    />
+                  ))}
+                </Box>
+              )
+            ) : shouldShowPillsEmptyState ? (
+              <PerpsPillsRail
+                data={perpsPillsData}
+                isLoading={isPerpsPillsLoading}
+                onPressMarket={handleTrendingMarketPress}
+              />
             ) : (
-              <Box testID="homepage-perps-positions">
-                {displayPositions.map((position) => (
-                  <PerpsCard
-                    key={position.symbol}
-                    position={position}
-                    onPress={() => handlePositionPress(position)}
-                    testID={`perps-position-row-${position.symbol}`}
-                  />
-                ))}
-                {displayOrders.map((order) => (
-                  <PerpsCard
-                    key={order.orderId}
-                    order={order}
-                    testID={`perps-order-row-${order.orderId}`}
-                  />
-                ))}
-              </Box>
-            )
-          ) : shouldShowPillsEmptyState ? (
-            <PerpsPillsRail
-              data={perpsPillsData}
-              isLoading={isPerpsPillsLoading}
-              onPressMarket={handleTrendingMarketPress}
-            />
-          ) : (
-            <PerpsTrendingCarousel
-              markets={allCarouselMarkets}
-              watchlistSymbolSet={watchlistSymbolSet}
-              sparklines={sparklines}
-              onPressMarket={handleTrendingMarketPress}
-              onPressViewMore={handleViewMorePerps}
-            />
-          )}
-        </Box>
+              <PerpsTrendingCarousel
+                markets={allCarouselMarkets}
+                watchlistSymbolSet={watchlistSymbolSet}
+                sparklines={sparklines}
+                onPressMarket={handleTrendingMarketPress}
+                onPressViewMore={handleViewMorePerps}
+              />
+            )}
+          </Box>
+        </View>
       </>
     );
 
