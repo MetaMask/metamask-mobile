@@ -21,6 +21,7 @@ import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import { PERPS_CUF_TAG } from '../constants/perpsCufTags';
 import {
   PERPS_LIFECYCLE_CONTEXT,
+  PERPS_LIFECYCLE_DETAIL,
   resetPerpsLifecycleContextForTests,
 } from '../utils/perpsLifecycleContext';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
@@ -1186,7 +1187,7 @@ describe('PerpsStreamManager', () => {
     const expectedSharedTags = {
       [PERPS_CUF_TAG.FEATURE]: PERPS_CONSTANTS.FeatureName,
       [PERPS_CUF_TAG.LIFECYCLE_CONTEXT]: PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
-      [PERPS_CUF_TAG.LIFECYCLE_DETAIL]: PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+      [PERPS_CUF_TAG.LIFECYCLE_DETAIL]: PERPS_LIFECYCLE_DETAIL.COLD_PROCESS,
     };
 
     it('starts the first-price trace with shared CUF tags', () => {
