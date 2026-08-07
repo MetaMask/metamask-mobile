@@ -167,7 +167,6 @@ const PerpsProPositionCard = ({
 
   const pnlNum = parseFloat(position.unrealizedPnl);
   const roe = (parseFloat(position.returnOnEquity) || 0) * 100;
-  const pnlSeverity = pnlNum >= 0 ? TagSeverity.Success : TagSeverity.Danger;
 
   const directionLabel = isLong
     ? strings('perps.market.long')
@@ -270,7 +269,7 @@ const PerpsProPositionCard = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-4 px-2"
+            twClassName="gap-4 px-4 py-2"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -308,25 +307,47 @@ const PerpsProPositionCard = ({
                 </SensitiveText>
               </Box>
             </Box>
-            <Tag severity={privacyMode ? TagSeverity.Neutral : pnlSeverity}>
+            <Box twClassName="items-end gap-0">
               <SensitiveText
-                variant={TextVariant.BodyXs}
+                variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
+                color={
+                  privacyMode
+                    ? TextColor.TextDefault
+                    : pnlNum >= 0
+                      ? TextColor.SuccessDefault
+                      : TextColor.ErrorDefault
+                }
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID="pnl-text"
+              >
+                {formatPnl(pnlNum)}
+              </SensitiveText>
+              <SensitiveText
+                variant={TextVariant.BodySm}
+                color={
+                  privacyMode
+                    ? TextColor.TextDefault
+                    : pnlNum >= 0
+                      ? TextColor.SuccessDefault
+                      : TextColor.ErrorDefault
+                }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {`${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`}
+                {formatPercentage(roe, 1)}
               </SensitiveText>
-            </Tag>
+            </Box>
           </Box>
         </Pressable>
 
         {/* Summary: key figures in three columns */}
-        <Box twClassName="px-2">
+        <Box twClassName="px-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 rounded-xl border border-muted px-4 py-2"
+            twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
           >
             <Box twClassName="flex-1 gap-6">
               <KeyValueItem
@@ -396,7 +417,7 @@ const PerpsProPositionCard = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 px-2"
+          twClassName="gap-2 px-4"
         >
           <Button
             variant={ButtonVariant.Secondary}

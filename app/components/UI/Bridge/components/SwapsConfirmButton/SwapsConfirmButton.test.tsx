@@ -1279,7 +1279,7 @@ describe('SwapsConfirmButton', () => {
       });
 
       expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
-      expect(mockUpdateQuoteParams).toHaveBeenCalled();
+      expect(mockUpdateQuoteParams).toHaveBeenCalledWith({ isRefresh: true });
       // Should NOT call submitBridgeTx
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
