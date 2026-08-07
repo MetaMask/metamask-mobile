@@ -8611,7 +8611,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-twrnc-preset@npm:^0.8.0":
+"@metamask/design-system-twrnc-preset@npm:0.8.0":
   version: 0.8.0
   resolution: "@metamask/design-system-twrnc-preset@npm:0.8.0"
   dependencies:
@@ -8620,6 +8620,18 @@ __metadata:
     "@metamask/design-tokens": ^8.0.0
     react: ">=18.2.0"
   checksum: 10/51b13c5c501bb34692e8ee67a72c6fb28afbb0723ca8e51ce6f3689f90497ed5c6b2e359c7d756cb92fcfbfd09a88468ca14b33559faf7499cb5bf25677d944b
+  languageName: node
+  linkType: hard
+
+"@metamask/design-system-twrnc-preset@patch:@metamask/design-system-twrnc-preset@npm%3A0.8.0#~/.yarn/patches/@metamask-design-system-twrnc-preset-npm-0.8.0-f74683850e.patch":
+  version: 0.8.0
+  resolution: "@metamask/design-system-twrnc-preset@patch:@metamask/design-system-twrnc-preset@npm%3A0.8.0#~/.yarn/patches/@metamask-design-system-twrnc-preset-npm-0.8.0-f74683850e.patch::version=0.8.0&hash=33b526"
+  dependencies:
+    twrnc: "npm:^4.5.1"
+  peerDependencies:
+    "@metamask/design-tokens": ^8.0.0
+    react: ">=18.2.0"
+  checksum: 10/696b41e6d4b90363595706df10ac2a15b047ef01fea263fdeefe72505fc2f1d9607c63be7ed9274ee4e01ffc763725b2483d61170c584525d9c333723ac51e31
   languageName: node
   linkType: hard
 
@@ -36233,7 +36245,7 @@ __metadata:
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
     "@metamask/design-system-react-native": "npm:^0.39.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.8.0"
+    "@metamask/design-system-twrnc-preset": "patch:@metamask/design-system-twrnc-preset@npm%3A0.8.0#~/.yarn/patches/@metamask-design-system-twrnc-preset-npm-0.8.0-f74683850e.patch"
     "@metamask/design-tokens": "npm:^8.7.0"
     "@metamask/device-mcp": "npm:^0.3.0"
     "@metamask/earn-controller": "npm:^12.1.0"
