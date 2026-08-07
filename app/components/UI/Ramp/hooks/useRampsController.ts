@@ -30,6 +30,7 @@ export interface UseRampsControllerResult {
   // Selected provider
   selectedProvider: UseRampsProvidersResult['selectedProvider'];
   setSelectedProvider: UseRampsProvidersResult['setSelectedProvider'];
+  setSelectedProviderForAsset: UseRampsProvidersResult['setSelectedProviderForAsset'];
 
   // Providers
   providers: UseRampsProvidersResult['providers'];
@@ -124,6 +125,7 @@ export function useRampsController(): UseRampsControllerResult {
     providers,
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
     isLoading: providersLoading,
     error: providersError,
   } = useRampsProviders();
@@ -170,6 +172,7 @@ export function useRampsController(): UseRampsControllerResult {
 
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
 
     providers,
     providersLoading,

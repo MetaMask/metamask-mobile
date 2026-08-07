@@ -1332,31 +1332,8 @@ jobs:
           # See: https://github.com/MetaMask/metamask-mobile/pull/31217
           retention-days: 30
 
-  e2e-smoke-tests-android:
-    name: 'Android E2E Smoke Tests'
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux-runner job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: >-
-      ${{
-        inputs.runner_provider != 'bitrise' &&
-        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
-        !cancelled() &&
-        needs.build-android-apks.result == 'success' &&
-        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [get_requirements, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
-    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
-    with:
-      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+  # Detox Android E2E smoke workflow removed — tags fully migrated to Appium
+  # (run-appium-smoke-tests-android.yml).
 
   build-ios-apps:
     name: 'Build iOS Apps'
@@ -1392,28 +1369,8 @@ jobs:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
-  e2e-smoke-tests-ios:
-    name: 'iOS E2E Smoke Tests'
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.ios-tests-ready.result == 'success' &&
-        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
-    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
-    with:
-      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+  # Detox iOS E2E smoke workflow removed — tags fully migrated to Appium
+  # (run-appium-smoke-tests-ios.yml).
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
@@ -1749,8 +1706,6 @@ jobs:
       - sonar-cloud-quality-gate-status
       - build-android-apks
       - build-ios-apps
-      - e2e-smoke-tests-android
-      - e2e-smoke-tests-ios
       - appium-smoke-tests-android
       - appium-smoke-tests-ios
     steps:
@@ -1773,7 +1728,7 @@ jobs:
         with:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
-          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|appium-smoke-tests-android|appium-smoke-tests-ios)$'
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|appium-smoke-tests-android|appium-smoke-tests-ios)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 
