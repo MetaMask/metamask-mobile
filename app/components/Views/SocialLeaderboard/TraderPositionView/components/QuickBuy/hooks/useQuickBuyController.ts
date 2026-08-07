@@ -587,7 +587,8 @@ export function useQuickBuyController(
   // the displayed fiat balance and slider cap stay in sync with the option list
   // when `usePayWithTokens` refreshes rates without a balance string change
   // (Bugbot: "Stale rate with live balance"). In sell mode `sourceToken` is
-  // `positionToken` (already selector-driven), so the frozen value is live.
+  // `positionToken` (already selector-driven), so the display rate stays live;
+  // quote conversion is intentionally frozen via `sellQuoteExchangeRateRef`.
   //
   // Intentionally NOT used in `sourceTokenAmount` (the quote pipeline): a rate
   // tick must not churn quote requests — only balance changes do.
@@ -610,11 +611,18 @@ export function useQuickBuyController(
   // convert committed fiat into the quote request amount.
   const sellQuoteExchangeRateRef = useRef<number | undefined>(undefined);
   const sellQuoteSourceTokenKeyRef = useRef<string | undefined>(undefined);
+  const prevTradeModeForSellQuoteRef = useRef<QuickBuyTradeMode>(tradeMode);
   const positionTokenKey =
     positionToken?.address != null && positionToken.chainId != null
       ? getTokenKey(positionToken)
       : undefined;
-  if (positionTokenKey !== sellQuoteSourceTokenKeyRef.current) {
+  const didEnterSellMode =
+    prevTradeModeForSellQuoteRef.current !== 'sell' && tradeMode === 'sell';
+  prevTradeModeForSellQuoteRef.current = tradeMode;
+  if (
+    positionTokenKey !== sellQuoteSourceTokenKeyRef.current ||
+    didEnterSellMode
+  ) {
     sellQuoteSourceTokenKeyRef.current = positionTokenKey;
     sellQuoteExchangeRateRef.current = positionToken?.currencyExchangeRate;
   } else if (
