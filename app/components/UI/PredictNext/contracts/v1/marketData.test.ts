@@ -52,6 +52,19 @@ describe('Predict API canonical response parsers', () => {
     ]);
   });
 
+  it('rejects an event without markets', () => {
+    const input = {
+      venueId,
+      id: 'event-1',
+      title: 'Game outcome',
+      markets: [],
+    };
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response',
+    );
+  });
+
   it('rejects a market with two outcomes on the same side', () => {
     const input = {
       venueId,

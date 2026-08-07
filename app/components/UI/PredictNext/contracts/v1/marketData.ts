@@ -78,6 +78,12 @@ const eventSummarySchema = object({
   updatedAt: optional(timestamp),
 });
 
+const nonEmptyMarkets = refine(
+  array(marketSchema),
+  'NonEmptyMarkets',
+  (markets) => markets.length > 0,
+);
+
 const eventSchema = object({
   venueId,
   id: entityId,
@@ -87,7 +93,7 @@ const eventSchema = object({
   closesAt: optional(timestamp),
   updatedAt: optional(timestamp),
   description: optional(string()),
-  markets: array(marketSchema),
+  markets: nonEmptyMarkets,
 });
 
 const eventsParamsSchema = object({
