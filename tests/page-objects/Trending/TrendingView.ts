@@ -15,6 +15,7 @@ import {
 import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import TabBarComponent from '../wallet/TabBarComponent';
 import BrowserView from '../Browser/BrowserView';
+import PerpsMarketDetailsView from '../Perps/PerpsMarketDetailsView';
 
 class TrendingView {
   private activeScrollViewID: string = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
@@ -443,13 +444,7 @@ class TrendingView {
   }
 
   async verifyPerpDetailsVisible(): Promise<void> {
-    // Verify we are on Perps market details page by checking for the container
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByID('perps-market-details-view'),
-      {
-        description: 'Perps market details view should be visible',
-      },
-    );
+    await PerpsMarketDetailsView.isContainerDisplayed();
   }
 
   async verifyPredictionsTabsVisible(): Promise<void> {
