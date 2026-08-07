@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   PerpsMode,
@@ -11,7 +12,8 @@ import { usePerpsMode } from './usePerpsMode';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
-import { showPerpsModeFlash } from '../utils/perpsModeFlash';
+import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
+import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
@@ -26,7 +28,7 @@ export interface UsePerpsMarketHeaderActionsResult {
   handleBackPress: () => void;
   handleMarketListPress: () => void;
   handleFavoritePress: () => void;
-  handlePerpsModeChange: (nextMode: PerpsMode) => void;
+  handlePerpsModeChange: (nextMode: PerpsMode) => void | Promise<void>;
 }
 
 /**
@@ -47,7 +49,9 @@ export const usePerpsMarketHeaderActions = ({
     navigateToMarketListFromHeader,
     canGoBack,
   } = usePerpsNavigation();
+  const navigation = useNavigation();
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const { track } = usePerpsEventTracking();
   const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
     PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -108,11 +112,27 @@ export const usePerpsMarketHeaderActions = ({
   }, [symbol, isWatchlist, addToWatchlist, removeFromWatchlist]);
 
   const handlePerpsModeChange = useCallback(
-    (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode) => {
+      // The market-header pill owns the shimmer delay; this fires once it ends.
+      // The chooser gates every header toggle, so a user who reaches a market
+      // without ever seeing it gets the sheet here and it owns the switch.
+      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      });
+      if (openedChooser) {
+        return;
+      }
+
+      // Chooser already completed — flip immediately without the sheet.
       setPerpsMode(nextMode);
-      showPerpsModeFlash(nextMode);
+      // Drop Home so back cannot reveal the Lite hub while Pro is active
+      // (TAT-3612).
+      if (nextMode === PerpsMode.Pro) {
+        dropPerpsHomeFromStackHistory();
+      }
     },
-    [setPerpsMode],
+    [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );
 
   return {
