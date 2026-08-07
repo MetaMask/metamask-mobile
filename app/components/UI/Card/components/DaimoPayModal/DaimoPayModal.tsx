@@ -54,7 +54,7 @@ export interface DaimoPayModalParams {
 
 const baseStyles = StyleSheet.create({
   absoluteFill: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 });
 
