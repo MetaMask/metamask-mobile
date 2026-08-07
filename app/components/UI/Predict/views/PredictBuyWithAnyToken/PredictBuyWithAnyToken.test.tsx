@@ -152,6 +152,9 @@ jest.mock('./hooks/usePredictBuyInputState', () => ({
     mockUsePredictBuyInputState(...args),
 }));
 
+let mockBlockingPayAlertMessage: string | null = null;
+let mockHasBlockingPayAlerts = false;
+
 jest.mock('./hooks/usePredictBuyInfo', () => ({
   usePredictBuyInfo: () => ({
     toWin: 24,
@@ -162,15 +165,14 @@ jest.mock('./hooks/usePredictBuyInfo', () => ({
     depositFee: 3,
     rewardsFeeAmount: 5,
     totalPayForPredictBalance: 20,
-    hasBlockingPayAlerts: false,
-    blockingPayAlertMessage: null,
+    hasBlockingPayAlerts: mockHasBlockingPayAlerts,
+    blockingPayAlertMessage: mockBlockingPayAlertMessage,
   }),
 }));
 
 let mockIsCurrentTokenInsufficient = false;
 let mockHasAlternativeBalance = false;
 let mockIsPaymentSelectorNavigationLocked = false;
-let mockIsPayRouteUnavailable = false;
 const mockLockPaymentSelectorNavigation = jest.fn();
 
 jest.mock('./hooks/usePredictBuyConditions', () => ({
@@ -182,7 +184,6 @@ jest.mock('./hooks/usePredictBuyConditions', () => ({
     isBelowMinimum: false,
     isInsufficientBalance: false,
     isCurrentTokenInsufficient: mockIsCurrentTokenInsufficient,
-    isPayRouteUnavailable: mockIsPayRouteUnavailable,
     hasAlternativeBalance: mockHasAlternativeBalance,
     maxBetAmount: 50,
     isPaymentSelectorNavigationLocked: mockIsPaymentSelectorNavigationLocked,
@@ -446,7 +447,8 @@ describe('PredictBuyWithAnyToken', () => {
     mockIsCurrentTokenInsufficient = false;
     mockHasAlternativeBalance = false;
     mockIsPaymentSelectorNavigationLocked = false;
-    mockIsPayRouteUnavailable = false;
+    mockBlockingPayAlertMessage = null;
+    mockHasBlockingPayAlerts = false;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -994,9 +996,12 @@ describe('PredictBuyWithAnyToken', () => {
     });
   });
 
-  describe('no pay route available', () => {
-    it('surfaces the no-pay-token-quotes message via usePredictBuyError when no route is available', () => {
-      mockIsPayRouteUnavailable = true;
+  describe('blocking payment alerts', () => {
+    it('forwards the shared no-pay-token-quotes message to usePredictBuyError', () => {
+      mockHasBlockingPayAlerts = true;
+      mockBlockingPayAlertMessage = strings(
+        'alert_system.no_pay_token_quotes.message',
+      );
 
       renderWithProvider(<PredictBuyWithAnyToken />);
 
@@ -1006,16 +1011,6 @@ describe('PredictBuyWithAnyToken', () => {
             'alert_system.no_pay_token_quotes.message',
           ),
         }),
-      );
-    });
-
-    it('passes a null blocking message to usePredictBuyError when a pay route is available', () => {
-      mockIsPayRouteUnavailable = false;
-
-      renderWithProvider(<PredictBuyWithAnyToken />);
-
-      expect(mockUsePredictBuyError).toHaveBeenLastCalledWith(
-        expect.objectContaining({ blockingPayAlertMessage: null }),
       );
     });
   });

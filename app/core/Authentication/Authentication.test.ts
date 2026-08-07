@@ -1380,6 +1380,20 @@ describe('Authentication', () => {
         expect(fallbackMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
+      it('clears stored Transak provider token when creating a new wallet', async () => {
+        const createWalletDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: createWalletDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+
+        expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
+      });
+
       it('falls back to PASSWORD when biometric storePassword fails in newWalletAndRestore', async () => {
         const restoreMockDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -1421,9 +1435,29 @@ describe('Authentication', () => {
         expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
+      it('clears stored Transak provider token when restoring a wallet', async () => {
+        const restoreWalletDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: restoreWalletDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+          'test seed phrase',
+          true,
+        );
+
+        expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
+      });
+
       it('imports remaining QR sync secrets after primary vault restore', async () => {
         const Engine = jest.requireMock('../Engine');
         const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
+        Engine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
+          PRIMARY_ENTROPY_SOURCE,
+        );
 
         await Authentication.newWalletAndRestore(
           'password',

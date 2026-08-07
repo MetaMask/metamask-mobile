@@ -137,6 +137,8 @@ import { useABTest } from '../../../hooks';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { trackExploreSearchOpened } from '../TrendingView/search/analytics';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -877,6 +879,11 @@ const Wallet = ({
     });
   }, [navigation, trackEvent]);
 
+  const handleSearchPress = useCallback(() => {
+    trackExploreSearchOpened('home');
+    navigation.navigate(Routes.EXPLORE_SEARCH);
+  }, [navigation]);
+
   const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -1137,6 +1144,19 @@ const Wallet = ({
                       style={styles.headerActionButtonsContainer}
                       accessible={false}
                     >
+                      <ButtonIcon
+                        iconProps={{
+                          color: MMDSIconColor.IconDefault,
+                        }}
+                        onPress={handleSearchPress}
+                        iconName={MMDSIconName.Search}
+                        size={ButtonIconSize.Md}
+                        testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+                        accessibilityLabel={strings(
+                          'wallet.search_accessibility_label',
+                        )}
+                        hitSlop={touchAreaSlop}
+                      />
                       {isMoneyAccountVisible && (
                         <ButtonIcon
                           iconProps={{

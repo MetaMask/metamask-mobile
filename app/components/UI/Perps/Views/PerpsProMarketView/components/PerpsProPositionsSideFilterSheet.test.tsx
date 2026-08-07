@@ -56,7 +56,7 @@ describe('PerpsProPositionsSideFilterSheet', () => {
     expect(screen.getByText('Short')).toBeOnTheScreen();
   });
 
-  it('applies the selected side filter on save', () => {
+  it('applies the selected side filter immediately on selection', () => {
     render(
       <PerpsProPositionsSideFilterSheet
         isVisible
@@ -70,7 +70,6 @@ describe('PerpsProPositionsSideFilterSheet', () => {
     fireEvent.press(
       screen.getByTestId('positions-side-filter-sheet-option-long'),
     );
-    fireEvent.press(screen.getByTestId('positions-side-filter-sheet-apply'));
 
     expect(mockOnApply).toHaveBeenCalledWith('long');
     expect(mockOnClose).toHaveBeenCalled();
