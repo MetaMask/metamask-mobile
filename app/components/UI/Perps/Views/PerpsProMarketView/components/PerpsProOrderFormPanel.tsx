@@ -1,13 +1,14 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Modal, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
+import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
 import PerpsOrderTypeBottomSheetView from '../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
@@ -81,14 +82,15 @@ const PerpsProOrderFormPanel = ({
 
   const { styles } = useStyles(createStyles, {});
 
+  const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
+  const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
+  const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
+
   return (
     <Box
       testID={PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL}
       collapsable={false}
-      style={[
-        styles.panel,
-        !isOrderBookCollapsed && styles.panelWithBookSeparator,
-      ]}
+      style={styles.panel}
     >
       <PerpsProOrderForm
         direction={direction}
@@ -96,6 +98,7 @@ const PerpsProOrderFormPanel = ({
         isOrderBookCollapsed={isOrderBookCollapsed}
         onExpandOrderBook={onExpandOrderBook}
         marginModeLabel={strings('perps.pro_order_form.isolated')}
+        onMarginModePress={openMarginMode}
         leverageLabel={`${leverage}x`}
         onLeveragePress={onLeveragePress}
         orderType={orderType}
@@ -238,6 +241,19 @@ const PerpsProOrderFormPanel = ({
               onClose={closeEligibilityModal}
               contentKey={'geo_block'}
             />
+          </Modal>
+        </View>
+      )}
+      {isMarginModeVisible && (
+        <View>
+          <Modal
+            visible
+            transparent
+            animationType="fade"
+            statusBarTranslucent
+            onRequestClose={closeMarginMode}
+          >
+            <PerpsMarginModeBottomSheet isVisible onClose={closeMarginMode} />
           </Modal>
         </View>
       )}
