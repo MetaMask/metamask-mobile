@@ -11,6 +11,15 @@ function detoxRemoved(api: string): never {
   throw new Error(`${DETOX_REMOVED} (called ${api})`);
 }
 
+interface ScrollChain {
+  scroll: (
+    _amount?: number,
+    _direction?: string,
+    _startX?: number,
+    _startY?: number,
+  ) => Promise<void>;
+}
+
 interface Chain {
   toExist: () => Chain;
   toBeVisible: () => Chain;
@@ -20,6 +29,7 @@ interface Chain {
   toHaveId: (_id: string) => Chain;
   not: Chain;
   withTimeout: (_ms: number) => Promise<void>;
+  whileElement: (_element: unknown) => ScrollChain;
 }
 
 function createWaitForChain(api: string): Chain {
@@ -33,6 +43,9 @@ function createWaitForChain(api: string): Chain {
   chain.toHaveId = self;
   chain.not = chain;
   chain.withTimeout = async () => detoxRemoved(api);
+  chain.whileElement = () => ({
+    scroll: async () => detoxRemoved(`${api}.whileElement.scroll`),
+  });
   return chain;
 }
 
@@ -43,6 +56,15 @@ function createMatcherStub(api: string): DetoxMatcherStub {
     withDescendant: () => createMatcherStub(`${api}.withDescendant`),
     withAncestor: () => createMatcherStub(`${api}.withAncestor`),
     atIndex: () => detoxRemoved(`${api}.atIndex`),
+    getAttributes: async () => detoxRemoved(`${api}.getAttributes`),
+    scroll: async () => detoxRemoved(`${api}.scroll`),
+    tap: async () => detoxRemoved(`${api}.tap`),
+    longPress: async () => detoxRemoved(`${api}.longPress`),
+    typeText: async () => detoxRemoved(`${api}.typeText`),
+    replaceText: async () => detoxRemoved(`${api}.replaceText`),
+    clearText: async () => detoxRemoved(`${api}.clearText`),
+    swipe: async () => detoxRemoved(`${api}.swipe`),
+    multiTap: async () => detoxRemoved(`${api}.multiTap`),
   };
   return stub;
 }
@@ -52,6 +74,15 @@ interface DetoxMatcherStub {
   withDescendant: (..._args: unknown[]) => DetoxMatcherStub;
   withAncestor: (..._args: unknown[]) => DetoxMatcherStub;
   atIndex: (..._args: unknown[]) => never;
+  getAttributes: () => Promise<unknown>;
+  scroll: (..._args: unknown[]) => Promise<void>;
+  tap: (..._args: unknown[]) => Promise<void>;
+  longPress: (..._args: unknown[]) => Promise<void>;
+  typeText: (..._args: unknown[]) => Promise<void>;
+  replaceText: (..._args: unknown[]) => Promise<void>;
+  clearText: (..._args: unknown[]) => Promise<void>;
+  swipe: (..._args: unknown[]) => Promise<void>;
+  multiTap: (..._args: unknown[]) => Promise<void>;
 }
 
 export function waitFor(_element?: unknown): Chain {

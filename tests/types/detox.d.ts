@@ -1,31 +1,33 @@
 /**
  * Ambient Detox-shaped types kept for dual-framework page objects until Phase 3
  * Element API codemod (MMQA-2230). Runtime Detox package is removed.
+ *
+ * Must live under `declare global` because this file is a module (`export {}`).
  */
 
-declare namespace Detox {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type IndexableNativeElement = any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type NativeElement = any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type IndexableSystemElement = any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type SystemElement = any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type IndexableWebElement = any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type WebViewElement = any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type NativeMatcher = any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type DeviceLaunchAppConfig = any;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SecuredWebElementFacade = any;
-
 declare global {
+  namespace Detox {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type IndexableNativeElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type NativeElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type IndexableSystemElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type SystemElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type IndexableWebElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type WebViewElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type NativeMatcher = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type DeviceLaunchAppConfig = any;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type SecuredWebElementFacade = any;
+
   type DetoxElement = Promise<
     | Detox.IndexableNativeElement
     | Detox.NativeElement
