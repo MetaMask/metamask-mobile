@@ -20,10 +20,6 @@ const styleSheet = (_params: { theme: Theme }) =>
     flexRow: {
       flexDirection: 'row',
     },
-    flagText: {
-      marginVertical: 3,
-      marginHorizontal: 0,
-    },
   });
 
 export default styleSheet;

@@ -20,4 +20,5 @@ export const BuildQuoteSelectors = {
   INSUFFICIENT_BALANCE_ERROR: 'insufficient-balance-error',
   KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
   AMOUNT_KEYPAD_BOTTOM_SHEET: 'build-quote-amount-keypad-bottom-sheet',
+  AMOUNT_KEYPAD_CONFIRM_BUTTON: 'build-quote-amount-keypad-confirm-button',
 };
