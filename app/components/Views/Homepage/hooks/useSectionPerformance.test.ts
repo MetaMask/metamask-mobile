@@ -16,6 +16,11 @@ jest.mock('../../../../util/trace', () => ({
   },
 }));
 
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
+}));
+
 let mockPerfNowValue = 0;
 jest.mock('react-native-performance', () => ({
   now: jest.fn(() => mockPerfNowValue),
@@ -24,6 +29,9 @@ jest.mock('react-native-performance', () => ({
 const { trace: mockTrace, endTrace: mockEndTrace } = jest.requireMock(
   '../../../../util/trace',
 );
+const mockDevLoggerLog = jest.requireMock(
+  '../../../../core/SDKConnect/utils/DevLogger',
+).default.log as jest.Mock;
 const mockAddBreadcrumb = addBreadcrumb as jest.MockedFunction<
   typeof addBreadcrumb
 >;
@@ -181,7 +189,7 @@ describe('useSectionPerformance', () => {
       expect(fetchTraceCalls).toHaveLength(0);
     });
 
-    it('starts a fetch trace when isLoading starts as true', () => {
+    it('starts the data fetch span at mount when the section is still loading', () => {
       renderHook(() =>
         useSectionPerformance({ ...defaultConfig, isLoading: true }),
       );
@@ -190,12 +198,16 @@ describe('useSectionPerformance', () => {
         expect.objectContaining({
           name: TraceName.HomepageSectionDataFetch,
           op: TraceOperation.HomepageSectionPerformance,
-          tags: { section_id: HomeSectionNames.TOKENS },
+          tags: {
+            section_id: HomeSectionNames.TOKENS,
+            loading_at_span_open: true,
+            phase: 'mount',
+          },
         }),
       );
     });
 
-    it('ends the fetch trace when isLoading transitions from true to false', () => {
+    it('ends the data fetch span on the first render after loading completes', () => {
       const { rerender } = renderHook(
         ({ isLoading }) =>
           useSectionPerformance({ ...defaultConfig, isLoading }),
@@ -215,23 +227,89 @@ describe('useSectionPerformance', () => {
       );
     });
 
-    it('does not end the fetch trace if isLoading was never true', () => {
+    it('opens the data fetch span at mount when the section is already loaded', () => {
+      renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: false }),
+      );
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          op: TraceOperation.HomepageSectionPerformance,
+          tags: {
+            section_id: HomeSectionNames.TOKENS,
+            loading_at_span_open: false,
+            phase: 'mount',
+          },
+        }),
+      );
+    });
+
+    it('closes the data fetch span at mount when the section is already loaded', () => {
+      renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: false }),
+      );
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            success: true,
+            section_id: HomeSectionNames.TOKENS,
+          }),
+        }),
+      );
+    });
+
+    it('ignores a loading cycle that begins after mount', () => {
       const { rerender } = renderHook(
         ({ isLoading }) =>
           useSectionPerformance({ ...defaultConfig, isLoading }),
         { initialProps: { isLoading: false } },
       );
 
+      jest.clearAllMocks();
+
+      rerender({ isLoading: true });
+      rerender({ isLoading: false });
+
+      const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      const fetchEndCalls = (mockEndTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      expect(fetchTraceCalls).toHaveLength(0);
+      expect(fetchEndCalls).toHaveLength(0);
+    });
+
+    it('ends the data fetch span once on the first non-loading render', () => {
+      const { rerender } = renderHook(
+        ({ isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, isLoading }),
+        { initialProps: { isLoading: true } },
+      );
+
+      rerender({ isLoading: false });
       rerender({ isLoading: false });
 
       const fetchEndCalls = (mockEndTrace as jest.Mock).mock.calls.filter(
         (call: [{ name: string }]) =>
           call[0].name === TraceName.HomepageSectionDataFetch,
       );
-      expect(fetchEndCalls).toHaveLength(0);
+      expect(fetchEndCalls).toHaveLength(1);
+      expect(fetchEndCalls[0][0].data).toEqual(
+        expect.objectContaining({
+          success: true,
+          section_id: HomeSectionNames.TOKENS,
+          content_state: 'filled',
+        }),
+      );
     });
 
-    it('only tracks the first fetch cycle', () => {
+    it('ignores a second loading cycle after a cold mount span closed', () => {
       const { rerender } = renderHook(
         ({ isLoading }) =>
           useSectionPerformance({ ...defaultConfig, isLoading }),
@@ -241,7 +319,7 @@ describe('useSectionPerformance', () => {
       rerender({ isLoading: false });
       jest.clearAllMocks();
 
-      // Second loading cycle — should not start a new trace
+      // Second loading cycle — must not start a new span
       rerender({ isLoading: true });
 
       const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
@@ -249,6 +327,67 @@ describe('useSectionPerformance', () => {
           call[0].name === TraceName.HomepageSectionDataFetch,
       );
       expect(fetchTraceCalls).toHaveLength(0);
+    });
+
+    it('does not reopen the data fetch span when enabled toggles back on after the span closed', () => {
+      const { rerender } = renderHook(
+        ({ enabled, isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
+        { initialProps: { enabled: true, isLoading: true } },
+      );
+
+      rerender({ enabled: true, isLoading: false });
+      jest.clearAllMocks();
+
+      rerender({ enabled: false, isLoading: false });
+      rerender({ enabled: true, isLoading: true });
+
+      const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      expect(fetchTraceCalls).toHaveLength(0);
+    });
+
+    it('does not reopen the data fetch span when enabled toggles back on while still loading', () => {
+      const { rerender } = renderHook(
+        ({ enabled, isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
+        { initialProps: { enabled: true, isLoading: true } },
+      );
+
+      jest.clearAllMocks();
+
+      rerender({ enabled: false, isLoading: true });
+      rerender({ enabled: true, isLoading: true });
+
+      const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      expect(fetchTraceCalls).toHaveLength(0);
+    });
+
+    it('tags the span with the loading state at open when a flag enables the section after loading finished', () => {
+      const { rerender } = renderHook(
+        ({ enabled, isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
+        { initialProps: { enabled: false, isLoading: true } },
+      );
+
+      rerender({ enabled: false, isLoading: false });
+      rerender({ enabled: true, isLoading: false });
+
+      const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      expect(fetchTraceCalls).toHaveLength(1);
+      expect(fetchTraceCalls[0][0].tags).toEqual({
+        section_id: HomeSectionNames.TOKENS,
+        loading_at_span_open: false,
+        phase: 'enabled',
+      });
     });
 
     it('ends the fetch trace with failure on unmount if still loading', () => {
@@ -267,6 +406,93 @@ describe('useSectionPerformance', () => {
           }),
         }),
       );
+    });
+  });
+
+  // The validation recipe greps these exact strings out of Metro to prove the
+  // span boundary on a live device (artifacts/recipe.json). Pin the grammar
+  // here so a field rename cannot pass CI while silently voiding that proof.
+  describe('Data Fetch dev log grammar', () => {
+    it('logs the mount span open with the section and the loading state at open', () => {
+      renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: false }),
+      );
+
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch start section=tokens phase=mount loading_at_span_open=false',
+      );
+    });
+
+    it('logs the mount span open for a cold mount that is still loading', () => {
+      renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: true }),
+      );
+
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch start section=tokens phase=mount loading_at_span_open=true',
+      );
+    });
+
+    it('logs the span open with the enabled phase when a flag opens it after mount', () => {
+      const { rerender } = renderHook(
+        ({ enabled, isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
+        { initialProps: { enabled: false, isLoading: true } },
+      );
+
+      rerender({ enabled: false, isLoading: false });
+      rerender({ enabled: true, isLoading: false });
+
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch start section=tokens phase=enabled loading_at_span_open=false',
+      );
+    });
+
+    it('logs the span close with the success and content state', () => {
+      const { rerender } = renderHook(
+        ({ isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, isLoading }),
+        { initialProps: { isLoading: true } },
+      );
+
+      rerender({ isLoading: false });
+
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch end section=tokens success=true content_state=filled',
+      );
+    });
+
+    it('logs the aborted span close when the section unmounts while still loading', () => {
+      const { unmount } = renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: true }),
+      );
+
+      unmount();
+
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch end section=tokens success=false reason=unmounted',
+      );
+    });
+
+    it('logs the skipped reload once when loading restarts after the span closed', () => {
+      const { rerender } = renderHook(
+        ({ isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, isLoading }),
+        { initialProps: { isLoading: false } },
+      );
+
+      rerender({ isLoading: true });
+      rerender({ isLoading: false });
+      rerender({ isLoading: true });
+
+      const skipCalls = mockDevLoggerLog.mock.calls.filter((call: [string]) =>
+        call[0].includes('data_fetch skip'),
+      );
+      expect(skipCalls).toEqual([
+        [
+          '[homepage.section.performance] data_fetch skip section=tokens reason=post_mount_reload',
+        ],
+      ]);
     });
   });
 
