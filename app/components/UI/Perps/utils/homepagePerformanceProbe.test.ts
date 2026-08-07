@@ -2,8 +2,10 @@ import {
   createHomepagePerformanceDemand,
   getHomepagePerpsDiskCacheAgeMs,
   handleHomepagePerformanceAppStateChange,
+  isHomepagePerpsDeliveryFreshForDemand,
   markHomepagePerpsAccountSwitch,
   markHomepagePerpsDiskCacheHydrated,
+  markHomepagePerpsNavigateReturn,
   markHomepagePerpsNetworkRecovery,
   recordHomepagePerpsErrorFrame,
   recordHomepagePerpsVisibleFrame,
@@ -58,6 +60,7 @@ const mockPerformanceNow = jest.requireMock('react-native-performance').default
 const createDemand = (): HomepagePerformanceDemand => ({
   demandId: 'demand-1',
   startedAtMonotonicMs: 100,
+  lifecycleStartedAtMonotonicMs: 50,
   lifecycle: 'cold_disk_cache',
   firstVisibleRecorded: false,
   firstFreshVisibleRecorded: false,
@@ -100,6 +103,15 @@ describe('homepage visible performance telemetry', () => {
 
     expect(getHomepagePerpsDiskCacheAgeMs()).toBe(10_000);
     expect(createHomepagePerformanceDemand().lifecycle).toBe('cold_disk_cache');
+  });
+
+  it('uses a newer navigation lifecycle when it occurs before the first demand', () => {
+    markHomepagePerpsDiskCacheHydrated(
+      JSON.stringify({ entries: [{ timestamp: 95_000 }] }),
+    );
+    markHomepagePerpsNavigateReturn();
+
+    expect(createHomepagePerformanceDemand().lifecycle).toBe('navigate_return');
   });
 
   it.each([
@@ -241,6 +253,93 @@ describe('homepage visible performance telemetry', () => {
     );
     expect(traceNames).toContain('Homepage Perps Time To Fresh Visible Data');
     expect(traceNames).not.toContain('Homepage Perps Socket To Visible');
+  });
+
+  it('records resident fresh data as ready at demand without socket latency', () => {
+    const demand = createDemand();
+    const resident = (stream: 'positions' | 'orders') => ({
+      ...createDelivery(stream, 'fresh_socket', 80),
+      source: 'resident_state' as const,
+      originSource: 'fresh_socket' as const,
+    });
+
+    recordHomepagePerpsVisibleFrame({
+      demand,
+      deliveries: [resident('positions'), resident('orders')],
+      contentVariant: 'orders',
+      reactCommitAtMonotonicMs: 120,
+      frameCheckpointAtMonotonicMs: 140,
+    });
+
+    const freshCall = mockTrace.mock.calls.find(
+      (call: [{ name: string }]) =>
+        call[0].name === 'Homepage Perps Time To Fresh Visible Data',
+    );
+    expect(freshCall?.[0]).toEqual(
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          delivery_source: 'resident_state',
+          freshness_source: 'fresh_socket',
+          data_ready_at_demand: true,
+        }),
+      }),
+    );
+    expect(
+      mockTrace.mock.calls.some(
+        (call: [{ name: string }]) =>
+          call[0].name === 'Homepage Perps Socket To Visible',
+      ),
+    ).toBe(false);
+  });
+
+  it('waits for post-lifecycle socket data when resident state predates recovery', () => {
+    const demand = {
+      ...createDemand(),
+      lifecycle: 'network_recovery' as const,
+      lifecycleStartedAtMonotonicMs: 90,
+    };
+    const staleResident = (stream: 'positions' | 'orders') => ({
+      ...createDelivery(stream, 'fresh_socket', 80),
+      source: 'resident_state' as const,
+      originSource: 'fresh_socket' as const,
+      dataAgeMs: 216_000,
+    });
+
+    expect(
+      isHomepagePerpsDeliveryFreshForDemand(staleResident('orders'), demand),
+    ).toBe(false);
+    recordHomepagePerpsVisibleFrame({
+      demand,
+      deliveries: [staleResident('positions'), staleResident('orders')],
+      contentVariant: 'orders',
+      reactCommitAtMonotonicMs: 120,
+      frameCheckpointAtMonotonicMs: 140,
+    });
+
+    expect(
+      mockTrace.mock.calls.some(
+        (call: [{ name: string }]) =>
+          call[0].name === 'Homepage Perps Time To Fresh Visible Data',
+      ),
+    ).toBe(false);
+
+    recordHomepagePerpsVisibleFrame({
+      demand,
+      deliveries: [
+        createDelivery('positions', 'fresh_socket', 150),
+        createDelivery('orders', 'fresh_socket', 160),
+      ],
+      contentVariant: 'orders',
+      reactCommitAtMonotonicMs: 180,
+      frameCheckpointAtMonotonicMs: 200,
+    });
+
+    expect(
+      mockTrace.mock.calls.some(
+        (call: [{ name: string }]) =>
+          call[0].name === 'Homepage Perps Time To Fresh Visible Data',
+      ),
+    ).toBe(true);
   });
 
   it('records a visible connection error as an unsuccessful first-visible outcome', () => {

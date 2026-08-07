@@ -38,6 +38,8 @@ export interface HomepagePerpsDeliveryMetadata {
   deliveryId: string;
   stream: HomepagePerpsStream;
   source: HomepagePerpsDeliverySource;
+  /** Original source when this delivery wraps state already resident at demand. */
+  originSource?: HomepagePerpsDeliverySource;
   itemCount: number;
   receivedAtMonotonicMs: number;
   subscriberDeliveredAtMonotonicMs?: number;
@@ -49,6 +51,7 @@ export interface HomepagePerpsDeliveryMetadata {
 export interface HomepagePerformanceDemand {
   demandId: string;
   startedAtMonotonicMs: number;
+  lifecycleStartedAtMonotonicMs: number;
   lifecycle: HomepagePerformanceLifecycle;
   firstVisibleRecorded: boolean;
   firstFreshVisibleRecorded: boolean;
@@ -70,6 +73,7 @@ let diskCacheTimestampMs: number | null = null;
 let firstDemand = true;
 let accountGeneration = 0;
 let lifecycle: HomepagePerformanceLifecycle = 'cold_no_cache';
+let lifecycleStartedAtMonotonicMs = performance.now();
 let backgroundStartedAt: number | null = null;
 const lifecycleListeners = new Set<() => void>();
 
@@ -91,6 +95,7 @@ export const logHomepagePerformanceStage = (
       delivery_id: delivery.deliveryId,
       stream: delivery.stream,
       source: delivery.source,
+      ...(delivery.originSource && { origin_source: delivery.originSource }),
       item_count: delivery.itemCount,
       data_age_ms: Math.round(delivery.dataAgeMs),
       lifecycle: delivery.lifecycle,
@@ -121,11 +126,13 @@ export const handleHomepagePerformanceAppStateChange = (
   }
   if (nextState !== 'active' || backgroundStartedAt === null) return;
 
+  const foregroundedAt = performance.now();
   lifecycle =
-    performance.now() - backgroundStartedAt <
+    foregroundedAt - backgroundStartedAt <
     PERPS_CONSTANTS.ConnectionGracePeriodMs
       ? 'background_short'
       : 'background_reconnect';
+  lifecycleStartedAtMonotonicMs = foregroundedAt;
   backgroundStartedAt = null;
   notifyLifecycleChange();
 };
@@ -152,7 +159,10 @@ export const markHomepagePerpsDiskCacheHydrated = (rawValue: string) => {
   } catch {
     diskCacheTimestampMs = null;
   }
-  if (firstDemand) lifecycle = 'cold_disk_cache';
+  if (firstDemand) {
+    lifecycle = 'cold_disk_cache';
+    lifecycleStartedAtMonotonicMs = performance.now();
+  }
   logHomepagePerformanceStage('disk_cache_hydrated', undefined, {
     cache_age_ms: getHomepagePerpsDiskCacheAgeMs(),
   });
@@ -160,6 +170,7 @@ export const markHomepagePerpsDiskCacheHydrated = (rawValue: string) => {
 
 const setLifecycle = (next: HomepagePerformanceLifecycle) => {
   lifecycle = next;
+  lifecycleStartedAtMonotonicMs = performance.now();
   notifyLifecycleChange();
 };
 
@@ -207,6 +218,7 @@ export const createHomepagePerpsResidentDelivery = ({
     deliveryId: uuidv4(),
     stream,
     source: 'resident_state',
+    originSource: previousDelivery?.originSource ?? previousDelivery?.source,
     itemCount,
     receivedAtMonotonicMs: previousDelivery?.receivedAtMonotonicMs ?? now,
     dataAgeMs: previousDelivery
@@ -224,10 +236,8 @@ export const createHomepagePerformanceDemand =
     const demand = {
       demandId: uuidv4(),
       startedAtMonotonicMs: performance.now(),
-      lifecycle:
-        firstDemand && diskCacheTimestampMs !== null
-          ? ('cold_disk_cache' as const)
-          : lifecycle,
+      lifecycleStartedAtMonotonicMs,
+      lifecycle,
       firstVisibleRecorded: false,
       firstFreshVisibleRecorded: false,
       recordedFreshPipelineStreams: new Set<HomepagePerpsStream>(),
@@ -270,6 +280,15 @@ const hasBothStreams = (deliveries: HomepagePerpsDeliveryMetadata[]) => {
   const streams = new Set(deliveries.map(({ stream }) => stream));
   return streams.has('positions') && streams.has('orders');
 };
+
+export const isHomepagePerpsDeliveryFreshForDemand = (
+  delivery: HomepagePerpsDeliveryMetadata,
+  demand: HomepagePerformanceDemand,
+) =>
+  delivery.receivedAtMonotonicMs >= demand.lifecycleStartedAtMonotonicMs &&
+  (delivery.source === 'fresh_socket' ||
+    (delivery.source === 'resident_state' &&
+      delivery.originSource === 'fresh_socket'));
 
 export const recordHomepagePerpsVisibleFrame = ({
   demand,
@@ -315,7 +334,11 @@ export const recordHomepagePerpsVisibleFrame = ({
       },
     });
     demand.firstVisibleRecorded = true;
-    if (deliveries.some(({ source }) => source !== 'fresh_socket')) {
+    if (
+      deliveries.some(
+        (delivery) => !isHomepagePerpsDeliveryFreshForDemand(delivery, demand),
+      )
+    ) {
       demand.cachedVisibleAtMonotonicMs = frameCheckpointAtMonotonicMs;
       demand.cachedVisibleSource = deliverySource;
     }
@@ -352,14 +375,26 @@ export const recordHomepagePerpsVisibleFrame = ({
     });
   });
 
-  const allFresh = deliveries.every(({ source }) => source === 'fresh_socket');
+  const allFresh = deliveries.every((delivery) =>
+    isHomepagePerpsDeliveryFreshForDemand(delivery, demand),
+  );
   if (!allFresh || demand.firstFreshVisibleRecorded) return;
+
+  const allFreshFromCurrentDelivery = deliveries.every(
+    ({ source }) => source === 'fresh_socket',
+  );
 
   recordTrace({
     name: TraceName.HomepagePerpsTimeToFreshVisibleData,
     start: demand.startedAtMonotonicMs,
     end: frameCheckpointAtMonotonicMs,
-    tags: { ...tags, delivery_source: 'fresh_socket' },
+    tags: {
+      ...tags,
+      delivery_source: allFreshFromCurrentDelivery
+        ? 'fresh_socket'
+        : deliverySource,
+      freshness_source: 'fresh_socket',
+    },
     data: { success: true },
   });
   demand.firstFreshVisibleRecorded = true;
@@ -406,7 +441,10 @@ export const recordHomepagePerpsErrorFrame = ({
 export const markHomepagePerformanceFrameComplete = (
   delivery: HomepagePerpsDeliveryMetadata,
 ) => {
-  if (delivery.lifecycle === lifecycle) lifecycle = 'warm_foreground';
+  if (delivery.lifecycle === lifecycle) {
+    lifecycle = 'warm_foreground';
+    lifecycleStartedAtMonotonicMs = performance.now();
+  }
 };
 
 export const resetHomepagePerformanceProbeForTests = () => {
@@ -414,6 +452,7 @@ export const resetHomepagePerformanceProbeForTests = () => {
   firstDemand = true;
   accountGeneration = 0;
   lifecycle = 'cold_no_cache';
+  lifecycleStartedAtMonotonicMs = performance.now();
   backgroundStartedAt = null;
   lifecycleListeners.clear();
 };

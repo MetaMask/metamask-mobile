@@ -7,6 +7,7 @@ import {
   createHomepagePerformanceDemand,
   createHomepagePerpsResidentDelivery,
   handleHomepagePerformanceAppStateChange,
+  isHomepagePerpsDeliveryFreshForDemand,
   logHomepagePerformanceStage,
   markHomepagePerformanceFrameComplete,
   markHomepagePerpsNavigateReturn,
@@ -68,14 +69,17 @@ export const useHomepagePerpsVisiblePerformance = ({
     currentDemandRef.current = createHomepagePerformanceDemand();
   }, []);
 
+  const lostHomeFocusRef = useRef(false);
   useLayoutEffect(() => {
-    if (isVisible) {
-      startDemand();
-    } else {
-      currentDemandRef.current = undefined;
-      loggedCommitIdsRef.current.clear();
+    if (!isHomeFocused) {
+      lostHomeFocusRef.current = true;
+      return;
     }
-  }, [isVisible, startDemand]);
+    if (lostHomeFocusRef.current) {
+      lostHomeFocusRef.current = false;
+      markHomepagePerpsNavigateReturn();
+    }
+  }, [isHomeFocused]);
 
   const observeVisibleDeliveries = useCallback(
     (deliveries: (HomepagePerpsDeliveryMetadata | undefined)[]) => {
@@ -105,15 +109,32 @@ export const useHomepagePerpsVisiblePerformance = ({
         visible_item_count: itemCount,
       };
       newDeliveries.forEach((delivery) =>
-        logHomepagePerformanceStage('react_commit', delivery, detail),
+        logHomepagePerformanceStage('react_commit', delivery, {
+          ...detail,
+          data_ready_at_demand:
+            delivery.receivedAtMonotonicMs <= demand.startedAtMonotonicMs,
+          fresh_for_lifecycle: isHomepagePerpsDeliveryFreshForDemand(
+            delivery,
+            demand,
+          ),
+        }),
       );
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          if (currentDemandRef.current?.demandId !== demand.demandId) {
+            return;
+          }
           const frameCheckpointAtMonotonicMs = performance.now();
           newDeliveries.forEach((delivery) => {
             logHomepagePerformanceStage('next_frame_checkpoint', delivery, {
               ...detail,
+              data_ready_at_demand:
+                delivery.receivedAtMonotonicMs <= demand.startedAtMonotonicMs,
+              fresh_for_lifecycle: isHomepagePerpsDeliveryFreshForDemand(
+                delivery,
+                demand,
+              ),
               frame_checkpoint_monotonic_ms: Number(
                 frameCheckpointAtMonotonicMs.toFixed(3),
               ),
@@ -134,6 +155,9 @@ export const useHomepagePerpsVisiblePerformance = ({
   );
 
   const observeResidentState = useCallback(() => {
+    [positionsDelivery, ordersDelivery].forEach((delivery) => {
+      if (delivery) loggedCommitIdsRef.current.add(delivery.deliveryId);
+    });
     observeVisibleDeliveries([
       createHomepagePerpsResidentDelivery({
         stream: 'positions',
@@ -154,28 +178,31 @@ export const useHomepagePerpsVisiblePerformance = ({
     positionsDelivery,
   ]);
 
+  const startDemandWithResidentState = useCallback(() => {
+    startDemand();
+    observeResidentState();
+  }, [observeResidentState, startDemand]);
+
+  const wasVisibleRef = useRef(false);
+  useLayoutEffect(() => {
+    if (isVisible && !wasVisibleRef.current) {
+      startDemandWithResidentState();
+    } else if (!isVisible && wasVisibleRef.current) {
+      currentDemandRef.current = undefined;
+      loggedCommitIdsRef.current.clear();
+    }
+    wasVisibleRef.current = isVisible;
+  }, [isVisible, startDemandWithResidentState]);
+
   useEffect(
     () =>
       subscribeHomepagePerformanceLifecycleChange(() => {
-        if (isVisible) {
-          startDemand();
-          observeResidentState();
+        if (isVisible && currentDemandRef.current) {
+          startDemandWithResidentState();
         }
       }),
-    [isVisible, observeResidentState, startDemand],
+    [isVisible, startDemandWithResidentState],
   );
-
-  const lostHomeFocusRef = useRef(false);
-  useEffect(() => {
-    if (!isHomeFocused) {
-      lostHomeFocusRef.current = true;
-      return;
-    }
-    if (lostHomeFocusRef.current && isVisible) {
-      lostHomeFocusRef.current = false;
-      markHomepagePerpsNavigateReturn();
-    }
-  }, [isHomeFocused, isVisible]);
 
   useLayoutEffect(() => {
     observeVisibleDeliveries([positionsDelivery, ordersDelivery]);
