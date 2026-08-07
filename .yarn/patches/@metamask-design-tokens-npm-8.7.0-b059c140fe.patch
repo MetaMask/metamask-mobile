@@ -1,0 +1,24 @@
+diff --git a/dist/js/typography/fontFamilies.cjs b/dist/js/typography/fontFamilies.cjs
+index 6f3502174158da1a62e68f14ba55a555f4f42bf6..e2224f5f1c349e894309ef0abd89917aa2c52478 100644
+--- a/dist/js/typography/fontFamilies.cjs
++++ b/dist/js/typography/fontFamilies.cjs
+@@ -2,7 +2,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.fontFamilies = void 0;
+ exports.fontFamilies = {
+-    default: 'Geist',
++    default: 'Oswald',
+     accent: 'MMSans',
+     hero: 'MMPoly',
+ };
+diff --git a/dist/js/typography/fontFamilies.mjs b/dist/js/typography/fontFamilies.mjs
+index a11721d2511b3756a51cc2f2e19ec8ccd7cd350a..7533e0228f81f352100d8b146edd6a1b0a59c7f9 100644
+--- a/dist/js/typography/fontFamilies.mjs
++++ b/dist/js/typography/fontFamilies.mjs
+@@ -1,5 +1,5 @@
+ export const fontFamilies = {
+-    default: 'Geist',
++    default: 'Oswald',
+     accent: 'MMSans',
+     hero: 'MMPoly',
+ };

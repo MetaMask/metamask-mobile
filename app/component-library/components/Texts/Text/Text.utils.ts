@@ -4,10 +4,9 @@ import { FontWeight, FontStyle, TextVariant } from './Text.types';
 export const getFontFamily = (
   variant: TextVariant,
   fontWeight?: FontWeight,
-  fontStyle?: FontStyle,
+  _fontStyle?: FontStyle,
 ): string => {
   const resolvedWeight = fontWeight ?? typography[variant].fontWeight;
-  const resolvedStyle = fontStyle ?? 'normal';
 
   const weightToFontSuffix: Record<
     FontWeight,
@@ -27,7 +26,7 @@ export const getFontFamily = (
   };
 
   const fontSuffix = weightToFontSuffix[resolvedWeight as FontWeight];
-  const italicSuffix = resolvedStyle === 'italic' ? 'Italic' : '';
 
-  return `Geist-${fontSuffix}${italicSuffix}`;
+  // Oswald does not ship italic cuts in this app; ignore italic style.
+  return `Oswald-${fontSuffix}`;
 };

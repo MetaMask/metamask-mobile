@@ -164,7 +164,7 @@ exports[`SnapUIForm will render 1`] = `
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Oswald-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "height": 46,
@@ -221,7 +221,7 @@ exports[`SnapUIForm will render 1`] = `
                     [
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Oswald-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -350,7 +350,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Oswald-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -433,7 +433,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Oswald-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "height": 46,
@@ -468,7 +468,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Oswald-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -560,7 +560,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       style={
                         {
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Oswald-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -587,7 +587,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Oswald-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -663,7 +663,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       style={
                         {
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Oswald-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -751,7 +751,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       style={
                         {
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Oswald-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -780,7 +780,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Oswald-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -896,7 +896,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           style={
                             {
                               "color": "#131416",
-                              "fontFamily": "Geist-Medium",
+                              "fontFamily": "Oswald-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -924,7 +924,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                         style={
                           {
                             "color": "#131416",
-                            "fontFamily": "Geist-Medium",
+                            "fontFamily": "Oswald-Medium",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -971,7 +971,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Oswald-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1087,7 +1087,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           style={
                             {
                               "color": "#131416",
-                              "fontFamily": "Geist-Medium",
+                              "fontFamily": "Oswald-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -1102,7 +1102,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           style={
                             {
                               "color": "#66676a",
-                              "fontFamily": "Geist-Regular",
+                              "fontFamily": "Oswald-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -1130,7 +1130,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                         style={
                           {
                             "color": "#131416",
-                            "fontFamily": "Geist-Medium",
+                            "fontFamily": "Oswald-Medium",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -1146,7 +1146,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                         style={
                           {
                             "color": "#66676a",
-                            "fontFamily": "Geist-Regular",
+                            "fontFamily": "Oswald-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -1217,7 +1217,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Oswald-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,

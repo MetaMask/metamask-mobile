@@ -278,7 +278,7 @@ const AddCustomCollectible = ({
 
   // --- Styles ---
 
-  const baseInputFont = { fontFamily: 'Geist-Regular' };
+  const baseInputFont = { fontFamily: 'Oswald-Regular' };
 
   const getInputStyle = (hasError: boolean) =>
     tw.style(
