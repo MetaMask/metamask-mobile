@@ -48,17 +48,34 @@ jest.mock('@metamask/design-system-react-native', () => {
     View: typeof View;
   }>('react-native');
 
+  // Mirrors real Toaster: replace the imperative handle object every render.
   const MockToaster = ReactMock.forwardRef<ToasterRef, Record<string, never>>(
     (_props, ref) => {
-      const api: ToasterRef = {
-        showToast: (...args) => mockShowToast(...args),
-        closeToast: (...args) => mockCloseToast(...args),
+      const [, setRenderCount] = ReactMock.useState(0);
+      const innerRef = ReactMock.useRef<ToasterRef | null>(null);
+
+      innerRef.current = {
+        showToast: (...args) => {
+          mockShowToast(...args);
+          // Simulate Toaster state update → independent re-render.
+          setRenderCount((count) => count + 1);
+        },
+        closeToast: (...args) => {
+          mockCloseToast(...args);
+          setRenderCount((count) => count + 1);
+        },
       };
 
-      ReactMock.useImperativeHandle(ref, () => api);
+      ReactMock.useImperativeHandle(ref, () => innerRef.current as ToasterRef);
       ReactMock.useLayoutEffect(() => {
         if (ref && typeof ref !== 'function') {
           latestToasterRef = ref;
+        } else if (typeof ref === 'function') {
+          latestToasterRef = {
+            get current() {
+              return innerRef.current;
+            },
+          };
         }
       });
 
@@ -178,6 +195,39 @@ describe('ToasterOverlay', () => {
       ).toBeOnTheScreen();
     });
 
+    act(() => {
+      latestToasterRef?.current?.closeToast();
+    });
+
+    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      jest.advanceTimersByTime(TOAST_OVERLAY_ANIMATION_BUFFER_MS);
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID)).toBeNull();
+    });
+  });
+
+  it('keeps overlay scheduling after Toaster re-renders a fresh handle', async () => {
+    const { getByTestId, queryByTestId } = render(<ToasterOverlay />);
+
+    act(() => {
+      latestToasterRef?.current?.showToast({
+        title: 'Pinned',
+        hasNoTimeout: true,
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    // First showToast already forced a Toaster re-render (fresh handle).
+    // closeToast must still schedule overlay hide through the re-applied wrap.
     act(() => {
       latestToasterRef?.current?.closeToast();
     });
