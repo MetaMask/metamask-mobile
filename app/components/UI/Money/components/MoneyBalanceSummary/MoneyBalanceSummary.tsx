@@ -18,6 +18,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import TextShimmer from '../TextShimmer';
+import MoneyAnimatedBalance, {
+  MoneyBalanceMetricsWarmer,
+} from '../MoneyAnimatedBalance';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
@@ -41,6 +44,11 @@ interface MoneyBalanceSummaryProps {
    * balance is not pressable.
    */
   onBalancePress?: () => void;
+  /**
+   * Whether the balance renders as rolling digits. When disabled the balance
+   * is static text, which is also the path privacy mode always takes.
+   */
+  isBalanceAnimationEnabled?: boolean;
 }
 
 const MoneyBalanceSummary = ({
@@ -49,6 +57,7 @@ const MoneyBalanceSummary = ({
   onApyInfoPress,
   privacyMode = false,
   onBalancePress,
+  isBalanceAnimationEnabled = false,
 }: MoneyBalanceSummaryProps) => {
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
@@ -113,16 +122,25 @@ const MoneyBalanceSummary = ({
   const renderBalanceSlot = () => {
     switch (displayState.kind) {
       case 'balance':
+        if (privacyMode || !isBalanceAnimationEnabled) {
+          return wrapPressable(
+            <SensitiveText
+              variant={TextVariant.DisplayLg}
+              fontWeight={FontWeight.Bold}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Long}
+              testID={MoneyBalanceSummaryTestIds.BALANCE}
+            >
+              {displayState.value}
+            </SensitiveText>,
+          );
+        }
         return wrapPressable(
-          <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
+          <MoneyAnimatedBalance
+            amount={displayState.amount}
+            animated={displayState.animated}
             testID={MoneyBalanceSummaryTestIds.BALANCE}
-          >
-            {displayState.value}
-          </SensitiveText>,
+          />,
         );
       case 'noAccount':
         return (
@@ -158,6 +176,9 @@ const MoneyBalanceSummary = ({
   return (
     <Box twClassName="px-4 gap-1" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
       {renderBalanceSlot()}
+      {isBalanceAnimationEnabled && displayState.kind !== 'balance' && (
+        <MoneyBalanceMetricsWarmer />
+      )}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

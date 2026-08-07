@@ -368,7 +368,7 @@ describe('persistConfig', () => {
 
   describe('transforms', () => {
     it('have correct number of transforms', () => {
-      expect(persistConfig.transforms).toHaveLength(3);
+      expect(persistConfig.transforms).toHaveLength(4);
     });
 
     it('have user transform configured', () => {
@@ -393,6 +393,38 @@ describe('persistConfig', () => {
         unknown
       > & { whitelist?: string[] };
       expect(cardTransform.whitelist).toEqual(['card']);
+    });
+
+    it('has money balance transform configured', () => {
+      const moneyBalanceTransform = persistConfig.transforms[3] as Transform<
+        unknown,
+        unknown
+      > & { whitelist?: string[] };
+      expect(moneyBalanceTransform.whitelist).toEqual(['moneyBalance']);
+    });
+
+    it('does not carry the user-op signal across launches', () => {
+      const moneyBalanceTransform = persistConfig.transforms[3] as Transform<
+        { lastKnownBalance: null; hasPendingUserOp: boolean },
+        { lastKnownBalance: null }
+      >;
+
+      const persisted = moneyBalanceTransform.in(
+        { lastKnownBalance: null, hasPendingUserOp: true },
+        'moneyBalance',
+        {},
+      );
+      expect(persisted).not.toHaveProperty('hasPendingUserOp');
+
+      const rehydrated = moneyBalanceTransform.out(
+        persisted,
+        'moneyBalance',
+        {},
+      );
+      expect(rehydrated).toEqual({
+        lastKnownBalance: null,
+        hasPendingUserOp: false,
+      });
     });
   });
 

@@ -9,6 +9,8 @@ import { MoneyBalanceDisplayState } from '../../types';
 const balanceState = (value = '$0.00'): MoneyBalanceDisplayState => ({
   kind: 'balance',
   value,
+  amount: Number(value.replace(/[$,]/gu, '')),
+  animated: false,
 });
 const unavailableState = (
   lastKnownValue?: string,

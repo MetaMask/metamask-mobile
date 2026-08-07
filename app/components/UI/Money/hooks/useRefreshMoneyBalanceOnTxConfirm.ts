@@ -8,6 +8,10 @@ import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import {
+  clearMoneyBalanceUserOp,
+  markMoneyBalanceUserOp,
+} from '../../../../core/redux/slices/moneyBalance';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
   isMoneyAccountTx,
@@ -71,6 +75,10 @@ const refreshMoneyBalanceQueries = async (address: string) => {
     if (changed) return;
   }
 
+  // The balance never moved, so nothing will consume the signal that this
+  // transaction raised.
+  store.dispatch(clearMoneyBalanceUserOp());
+
   Logger.error(
     new Error(
       `${LOG_PREFIX} Balance unchanged after ${MAX_RETRIES} retries; awaiting 30s auto-poll`,
@@ -94,7 +102,10 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
         isPerpsPredictMoneyActivity(transactionMeta);
       if (!affectsMoneyBalance) return;
 
+      store.dispatch(markMoneyBalanceUserOp());
+
       refreshMoneyBalanceQueries(address).catch((error) => {
+        store.dispatch(clearMoneyBalanceUserOp());
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);
       });
     };

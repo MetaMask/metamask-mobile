@@ -4,6 +4,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
 import type { CardSliceState } from '../../core/redux/slices/card';
+import type { MoneyBalanceSliceState } from '../../core/redux/slices/moneyBalance';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
 import Device from '../../util/device';
@@ -201,6 +202,26 @@ const persistCardTransform = createTransform<
   { whitelist: ['card'] },
 );
 
+type PersistedMoneyBalanceState = Omit<
+  MoneyBalanceSliceState,
+  'hasPendingUserOp'
+>;
+
+const persistMoneyBalanceTransform = createTransform<
+  MoneyBalanceSliceState,
+  PersistedMoneyBalanceState
+>(
+  (inboundState) => {
+    const { hasPendingUserOp: _omitSession, ...state } = inboundState;
+    return state;
+  },
+  (outboundState) => ({
+    ...outboundState,
+    hasPendingUserOp: false,
+  }),
+  { whitelist: ['moneyBalance'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
@@ -218,6 +239,7 @@ const persistConfig = {
     persistUserTransform,
     persistOnboardingTransform,
     persistCardTransform,
+    persistMoneyBalanceTransform,
   ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {

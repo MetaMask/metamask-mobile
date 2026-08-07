@@ -112,6 +112,12 @@ export const RNRiveErrorType = {
   UnusedReferencedAssetError: 'UnusedReferencedAssetError',
 } as const;
 
+/** Mirrors the `AutoBind` data-binding descriptor factory from rive-react-native. */
+export const AutoBind = (value: boolean) => ({
+  type: 'autobind' as const,
+  value,
+});
+
 export const __getLastMockedMethods = (): RiveRef | undefined =>
   lastMockedMethods;
 
