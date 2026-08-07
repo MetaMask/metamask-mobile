@@ -30,14 +30,14 @@ export function isDiskSpaceSentryReport(report: SentryEvent): boolean {
 }
 
 function extractPersistKey(message: string): string {
-  const failedSetMatch = message.match(
-    /Failed to set item for (persist:[^\s]+)/,
+  const failedSetMatch = /Failed to set item for (persist:[^\s]+)/.exec(
+    message,
   );
   if (failedSetMatch) {
     return failedSetMatch[1];
   }
 
-  const pathMatch = message.match(/persistStore\/(persist-[^\s'"]+)/);
+  const pathMatch = /persistStore\/(persist-[^\s'"]+)/.exec(message);
   if (pathMatch) {
     return pathMatch[1].replace(/^persist-/, 'persist:');
   }
