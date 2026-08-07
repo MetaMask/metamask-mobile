@@ -439,8 +439,8 @@ describe('useTokenSelection', () => {
       rwaData: {
         instrumentType: 'stock',
         market: {
-          nextOpen: new Date().toISOString(),
-          nextClose: new Date(Date.now() + 86400000).toISOString(),
+          nextOpen: '2024-01-01T09:00:00.000Z',
+          nextClose: '2024-01-01T17:00:00.000Z',
         },
       },
     });
@@ -540,8 +540,8 @@ describe('useTokenSelection', () => {
         rwaData: {
           instrumentType: 'stock',
           market: {
-            nextOpen: new Date().toISOString(),
-            nextClose: new Date(Date.now() + 86400000).toISOString(),
+            nextOpen: '2024-01-01T09:00:00.000Z',
+            nextClose: '2024-01-01T17:00:00.000Z',
           },
         },
       });

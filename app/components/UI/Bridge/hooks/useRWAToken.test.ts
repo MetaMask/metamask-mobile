@@ -599,7 +599,8 @@ describe('isTokenInOffHoursAt', () => {
 
   it('returns false when token has no offhours field', () => {
     const t = token({ instrumentType: 'stock' } as BridgeToken['rwaData']);
-    expect(isTokenInOffHoursAt(t, true, Date.now())).toBe(false);
+    const FIXED_NOW = new Date('2024-01-01T14:00:00Z').getTime();
+    expect(isTokenInOffHoursAt(t, true, FIXED_NOW)).toBe(false);
   });
 
   it('returns false when offhours nextOpen is missing', () => {
