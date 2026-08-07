@@ -10,7 +10,12 @@ import {
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../../util/date';
-import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';
+import {
+  addCurrencySymbol,
+  renderFiat,
+} from '../../../../../../util/number/bigint';
+
+type CurrencyCode = Parameters<typeof renderFiat>[1];
 import { getOrderAmount } from '../../utils';
 import Text, {
   TextColor,
@@ -167,8 +172,8 @@ function OrderListItem({ order }: Props) {
           {order.amount == null
             ? '...'
             : addCurrencySymbol(
-                renderFiat(Number(order.amount), ''),
-                order.currency,
+                renderFiat(Number(order.amount), '' as CurrencyCode),
+                order.currency as CurrencyCode,
               )}
         </Text>
       </ListItemColumnEnd>

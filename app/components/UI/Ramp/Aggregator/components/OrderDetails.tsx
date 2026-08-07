@@ -18,7 +18,9 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../../../util/number';
+} from '../../../../../util/number/bigint';
+
+type CurrencyCode = Parameters<typeof renderFiat>[1];
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import { useLegacySwapsBlockExplorer } from '../../../Bridge/hooks/useLegacySwapsBlockExplorer';
 import Spinner from '../../../AnimatedSpinner';
@@ -320,7 +322,11 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
               style={styles.textCenter}
             >
               {currencySymbol}
-              {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
+              {renderFiat(
+                amountOut,
+                currency as CurrencyCode,
+                orderData.fiatCurrency.decimals,
+              )}
             </Text>
           ) : (
             <Text
@@ -481,7 +487,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                   currency ? (
                     <Text variant={TextVariant.BodySMBold}>
                       1 {order.cryptocurrency} @{' '}
-                      {renderFiat(exchangeRate, currency)}
+                      {renderFiat(exchangeRate, currency as CurrencyCode)}
                     </Text>
                   ) : (
                     <Text variant={TextVariant.BodySMBold}>...</Text>
@@ -511,7 +517,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                         order.orderType === OrderOrderTypeEnum.Buy
                           ? amountOut
                           : (amount as number),
-                        currency,
+                        currency as CurrencyCode,
                         orderData.fiatCurrency.decimals,
                       )}
                     </Text>
@@ -539,7 +545,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                       order.orderType === OrderOrderTypeEnum.Buy
                         ? (cryptoFee as number)
                         : orderData.totalFeesFiat,
-                      currency,
+                      currency as CurrencyCode,
                       orderData.fiatCurrency.decimals,
                     )}
                   </Text>
@@ -573,7 +579,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                       order.orderType === OrderOrderTypeEnum.Buy
                         ? (amount as number)
                         : amountOut,
-                      currency,
+                      currency as CurrencyCode,
                       orderData.fiatCurrency.decimals,
                     )}
                   </Text>

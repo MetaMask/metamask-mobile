@@ -34,7 +34,12 @@ import {
   type DisplayOrder,
 } from '../../../utils/displayOrder';
 import { toDateFormat } from '../../../../../../util/date';
-import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';
+import {
+  addCurrencySymbol,
+  renderFiat,
+} from '../../../../../../util/number/bigint';
+
+type CurrencyCode = Parameters<typeof renderFiat>[1];
 import Text, {
   TextColor,
   TextVariant,
@@ -164,8 +169,8 @@ function DisplayOrderListItem({
           {item.fiatAmount == null
             ? '...'
             : addCurrencySymbol(
-                renderFiat(Number(item.fiatAmount), ''),
-                item.fiatCurrencyCode,
+                renderFiat(Number(item.fiatAmount), '' as CurrencyCode),
+                item.fiatCurrencyCode as CurrencyCode,
               )}
         </Text>
       </ListItemColumnEnd>

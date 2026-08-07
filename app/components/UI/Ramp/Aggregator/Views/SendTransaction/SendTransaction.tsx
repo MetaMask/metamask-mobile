@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { HeaderStandard } from '@metamask/design-system-react-native';
-import BN4 from 'bnjs4';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import {
   TransactionParams,
@@ -48,10 +47,10 @@ import {
 } from '../../../../../../reducers/fiatOrders';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
-  addHexPrefix,
+  bigIntToHex,
   fromTokenMinimalUnitString,
   toTokenMinimalUnit,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/bigint';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { addTransaction } from '../../../../../../util/transaction-controller';
@@ -152,13 +151,11 @@ function SendTransaction() {
     try {
       setIsConfirming(true);
       let transactionParams: TransactionParams;
-      const amount = addHexPrefix(
-        new BN4(
-          toTokenMinimalUnit(
-            orderData.cryptoAmount || '0',
-            orderData.cryptoCurrency.decimals,
-          ).toString(),
-        ).toString('hex'),
+      const amount = bigIntToHex(
+        toTokenMinimalUnit(
+          orderData.cryptoAmount || '0',
+          orderData.cryptoCurrency.decimals,
+        ),
       );
       if (orderData.cryptoCurrency.address === NATIVE_ADDRESS) {
         transactionParams = {
