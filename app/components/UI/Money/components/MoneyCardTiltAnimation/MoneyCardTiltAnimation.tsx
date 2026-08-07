@@ -8,10 +8,11 @@ import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/feature
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import {
+  shapeCardTilt,
   pitchToParallaxValue,
   tiltToParallaxValue,
 } from '../../utils/parallax';
-import CardTiltAnimation from '../../../../../animations/card_tilt_v1.3.riv';
+import CardTiltAnimation from '../../../../../animations/card_tilt_v1.5.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styles from './MoneyCardTiltAnimation.styles';
@@ -20,23 +21,18 @@ import { MoneyCardTiltAnimationTestIds } from './MoneyCardTiltAnimation.testIds'
 const log = createProjectLogger('money-card-tilt');
 
 // -- Rive names ------------------------------------------------------------
-// These MUST match the names authored in card_tilt_v1.3.riv. If the Rive
+// These MUST match the names authored in card_tilt_v1.5.riv. If the Rive
 // designer renames any of these, update the constants here.
 //
-// The per-variant artboards are rendered directly (not through the `MainTilt`
-// wrapper with its `cardType` enum) so the component needs no imperative
-// setup calls that could race the native view's file load. The artboards
-// shipped here are single-axis (X only), but both `xValue` and `yValue` are
-// wired so a future both-axes asset works without code changes.
+// The per-variant artboards are rendered directly so the component needs no
+// imperative setup calls that could race the native view's file load. Each
+// board tilts on both axes, driven by `xValue` and `yValue`.
 
-/**
- * Artboard holding the virtual-card X tilt. The trailing space is authored
- * in the file.
- */
-const RIVE_ARTBOARD_DIGITAL = 'Card Tilt X - Digital ';
+/** Artboard holding the virtual-card tilt. */
+const RIVE_ARTBOARD_DIGITAL = 'CardTiltDigital';
 
-/** Artboard holding the metal-card X tilt. */
-const RIVE_ARTBOARD_METAL = 'Card Tilt X - Metal';
+/** Artboard holding the metal-card tilt. */
+const RIVE_ARTBOARD_METAL = 'CardTiltMetal';
 
 /** ViewModel numbers (0-100, rest 50) driving the tilt per axis. */
 const RIVE_PROPERTY_X = 'xValue';
@@ -67,8 +63,8 @@ const MoneyCardTiltAnimation = ({
     // viewTag() is null while the native Rive view is detached; dispatching
     // then throws "found null reactTag".
     if (!rive || rive.viewTag() === null) return;
-    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(x));
-    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
+    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(shapeCardTilt(x)));
+    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(shapeCardTilt(y)));
   }, []);
 
   useDeviceOrientation(applyTilt, { enabled: animate });

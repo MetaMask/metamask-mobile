@@ -398,6 +398,7 @@ const Routes = {
       TOOLTIP: 'PerpsTooltip',
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
       SELECT_PROVIDER: 'PerpsSelectProvider',
+      MODE_SELECTION: 'PerpsModeSelection',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -421,7 +422,6 @@ const Routes = {
     MARKET_DETAILS: 'PredictMarketDetails',
     POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
-    WORLD_CUP: 'PredictWorldCup',
     FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',

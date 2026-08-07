@@ -57,9 +57,9 @@ import {
 } from '../../../../Views/confirmations/constants/perps';
 import {
   useIsTransactionPayQuoteLoading,
-  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
@@ -87,6 +87,7 @@ import {
   PERPS_CONSTANTS,
   calculatePositionSize,
   getPerpsDisplaySymbol,
+  getTriggerExecution,
   type InputMethod,
   type OrderParams,
   type OrderType,
@@ -620,7 +621,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Deposit/bridge fees from transaction pay (when paying with custom token)
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
-  const payRequiredTokens = useTransactionPayRequiredTokens();
+  const isPayAmountStale = useIsTransactionPayAmountStale();
   const depositFeeUsd = useMemo(() => {
     if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -639,13 +640,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const undiscountedFeesToDisplay = hasCustomTokenSelected
     ? undiscountedEstimatedFees + depositFeeUsd
     : undiscountedEstimatedFees;
-  // The order amount reaches the pay controller through a chain of effects, so
-  // right after the pay token changes it still holds a zero amount, has no
-  // quote, and has not started loading. Without this the CTA is open for a few
-  // seconds and the deposit submits unfunded.
-  const isPayAmountStale = (payRequiredTokens ?? []).some(
-    (token) => !token.skipIfBalance && token.amountRaw === '0',
-  );
 
   const isPayStateNotReady = isPayTotalsLoading || isPayAmountStale;
 
@@ -1010,20 +1004,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     usePerpsOrderExecution({
       onSuccess: (_position) => {
         showToast(
-          PerpsToastOptions.orderManagement[orderForm.type].confirmed(
-            orderForm.direction,
-            positionSize,
-            orderForm.asset,
-          ),
+          PerpsToastOptions.orderManagement[
+            getTriggerExecution(orderForm.type)
+          ].confirmed(orderForm.direction, positionSize, orderForm.asset),
         );
       },
       onError: (error) => {
         // Error is already captured in usePerpsOrderExecution hook
         // No need to capture again here to avoid duplicate Sentry reports
         showToast(
-          PerpsToastOptions.orderManagement[orderForm.type].creationFailed(
-            error,
-          ),
+          PerpsToastOptions.orderManagement[
+            getTriggerExecution(orderForm.type)
+          ].creationFailed(error),
         );
       },
     });
@@ -1518,11 +1510,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         });
 
         showToast(
-          PerpsToastOptions.orderManagement[orderForm.type].submitted(
-            orderForm.direction,
-            positionSize,
-            orderForm.asset,
-          ),
+          PerpsToastOptions.orderManagement[
+            getTriggerExecution(orderForm.type)
+          ].submitted(orderForm.direction, positionSize, orderForm.asset),
         );
 
         // Check if TP/SL should be handled separately (for new positions or position flips)

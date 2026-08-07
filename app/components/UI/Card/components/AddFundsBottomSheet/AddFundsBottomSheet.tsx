@@ -32,6 +32,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../Ramp/constants/rampsBuyCufTags';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
@@ -88,7 +89,9 @@ const AddFundsBottomSheet: React.FC = () => {
         : undefined;
 
     closeBottomSheetAndNavigate(() => {
-      goToBuy(assetId ? { assetId } : undefined);
+      goToBuy(assetId ? { assetId } : undefined, {
+        surface: RAMPS_BUY_CUF_SURFACE.CARD,
+      });
     });
     trackEvent(
       createEventBuilder(

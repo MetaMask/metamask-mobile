@@ -311,7 +311,7 @@
     "warning_text_2": "removed",
     "warning_text_3": "if you proceed.",
     "warning_text_4": "You can ONLY recover them with your wallet’s Secret Recovery Phrase. MetaMask cannot help you recover it.",
-    "warning_proceed": "Remove wallet & proceed",
+    "warning_proceed": "Remove wallet and proceed",
     "warning_cancel": "Cancel",
     "step1": "Wallet setup",
     "step2": "Create password",
@@ -349,7 +349,7 @@
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
     "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
-    "description_bold": "Settings > Security & Privacy.",
+    "description_bold": "Settings > Security and Privacy.",
     "description_continued": "you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Learn more",
     "learn_how": "Learn how",
@@ -376,7 +376,7 @@
     "remind_later": "We’ll remind you later",
     "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy",
+    "setting_security_privacy": "Settings > Security and Privacy",
     "wallet_ready": "Your wallet is ready!"
   },
   "social_login_ios_user": {
@@ -421,7 +421,7 @@
     "step4": {
       "title": "Main menu",
       "content1": "You can access transaction history, settings, and support from this menu.",
-      "content2": "You can take more actions with your accounts & access MetaMask settings."
+      "content2": "You can take more actions with your accounts and access MetaMask settings."
     },
     "step5": {
       "title": "Explore the browser",
@@ -1310,6 +1310,9 @@
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
+      "selection_title": "Choose how you trade",
+      "lite_description": "One-tap longs or shorts. Simple by design.",
+      "pro_description": "Order book, advanced order types, and leverage.",
       "lite_transition_title": "Lite Mode",
       "pro_transition_title": "Pro Mode",
       "active_pill_accessibility_label": "Currently {{mode}} mode",
@@ -1524,9 +1527,13 @@
     "pro_order_form": {
       "isolated": "Isolated",
       "choose_order_type": "Choose order type",
-      "size_usd": "Size USD",
+      "size_usd": "Size (USD)",
+      "size_unit": "Size ({{unit}})",
+      "size_input_hint": "Enter order size in {{unit}}",
       "size_percentage": "Order size percentage",
+      "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "Switch size denomination",
+      "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
       "available_balance": "{{amount}} available",
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Est Liquidation",
@@ -1535,19 +1542,24 @@
       "close_keyboard": "Close keyboard"
     },
     "pro_positions_panel": {
+      "order_history": "Order history",
+      "close_count": "Close ({{count}})",
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",
       "orders_with_count": "Orders ({{count}})",
       "ticker_only": "{{ticker}} only",
+      "view_market_accessibility": "Switch to the {{symbol}} market",
       "positions_empty": "Your open positions will appear here.",
       "positions_empty_filtered": "No open {{ticker}} positions.",
       "positions_empty_long": "No long positions.",
       "positions_empty_short": "No short positions.",
       "orders_empty": "Your open orders will appear here.",
+      "orders_empty_filtered": "No open {{ticker}} orders.",
+      "orders_empty_long": "No long orders.",
+      "orders_empty_short": "No short orders.",
       "side_filter": {
         "all_sides": "All sides",
-        "all_types": "All types",
         "long": "Long",
         "short": "Short"
       },
@@ -1555,7 +1567,12 @@
         "position_value": "Position value",
         "unrealized_pnl": "Unrealized P&L",
         "funding_rate": "Funding rate",
-        "settings_accessibility": "Sort positions"
+        "order_value": "Order value",
+        "size": "Size",
+        "price": "Price",
+        "time": "Time",
+        "settings_accessibility": "Sort positions",
+        "orders_settings_accessibility": "Sort orders"
       },
       "card": {
         "entry_price": "Entry price",
@@ -1577,11 +1594,10 @@
         "reduce_only": "Reduce only",
         "tp_sl": "TP / SL",
         "trigger_condition": "Trigger condition",
-        "take_profit": "Take profit",
-        "stop": "Stop",
-        "open_limit": "Open limit",
-        "close_limit": "Close limit",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "edit_price": "Edit limit price",
+        "edit_size": "Edit size"
       }
     },
     "order": {
@@ -1657,13 +1673,18 @@
         "short": "Short {{asset}}"
       },
       "tpsl_modal": {
-        "title": "Take profit & stop loss",
+        "title": "Take profit and stop loss",
         "save": "Save",
         "current_price": "Current price: {{price}}",
         "on": "ON",
         "off": "OFF",
         "take_profit_helper": "Close position when price reaches this level",
         "stop_loss_helper": "Limit losses by closing position at this price"
+      },
+      "size_modal": {
+        "title": "Edit size",
+        "set": "Set",
+        "order_value": "Order value: {{value}}"
       },
       "limit_price_modal": {
         "title": "Set limit price",
@@ -1745,7 +1766,11 @@
       "order_cancelled_success": "{{detailedOrderType}} order cancelled",
       "pay_with_token_required": "Token selection required",
       "select_token_to_pay_with": "Please select a token to pay with before placing your order",
-      "initializing": "Initializing order..."
+      "initializing": "Initializing order...",
+      "updating_your_order": "Updating your order",
+      "order_updated": "Order updated",
+      "order_update_failed": "Failed to update order",
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
     },
     "slippage": {
       "config_title": "Set slippage",
@@ -1864,7 +1889,8 @@
       "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
-      "liquidation_distance": "Liquidation distance"
+      "liquidation_distance": "Liquidation distance",
+      "exceeds_available": "Amount exceeds available margin"
     },
     "tpsl": {
       "title": "Auto close",
@@ -1912,7 +1938,11 @@
       "order_not_found": "Order not found",
       "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
       "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
+      "exchangeAccountNotFound": "Add funds to your account before placing an order",
+      "exchangeMultiSigRequired": "This account needs its multi-signature signers to trade",
+      "exchangeInvalidNonce": "Something went wrong. Please try again.",
       "infoClientNotAvailable": "InfoClient not available after initialization",
+      "subscriptionClientNotAvailable": "SubscriptionClient not available after initialization",
       "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
       "failedToSubscribePosition": "Failed to subscribe to position updates",
       "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",
@@ -1944,7 +1974,18 @@
         "sizePositive": "Size must be a positive number",
         "pricePositive": "Price must be a positive number if provided",
         "unknownCoin": "Unknown coin: {{coin}}",
-        "limitPriceRequired": "Price is required for limit orders"
+        "limitPriceRequired": "Price is required for limit orders",
+        "triggerPriceRequired": "A trigger price is required for stop and take profit orders",
+        "triggerPricePositive": "Trigger price must be a positive number",
+        "triggerPriceNotSupported": "Market and limit orders can't have a trigger price",
+        "triggerTpslUnsupported": "Stop and take profit orders can't carry their own take profit or stop loss",
+        "tpslSizeInvalid": "Take profit and stop loss size must be positive and no larger than the order",
+        "tpslLinkageConflict": "Conflicting take profit and stop loss settings",
+        "tpslLinkageRequired": "Take profit and stop loss must be attached to the order or to the position",
+        "tpslPositionLinkageUnsupported": "Take profit and stop loss can only be attached to a position once the order has filled",
+        "timeInForceNotSupported": "Time in force can only be set on limit orders",
+        "editTriggerUnsupported": "Stop and take profit orders can't be edited. Cancel the order and place a new one.",
+        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again."
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -2192,7 +2233,7 @@
         "content": "A flat fee charged by the provider on each withdrawal."
       },
       "tp_sl": {
-        "title": "Take profit & stop loss",
+        "title": "Take profit and stop loss",
         "content": "Take profit (TP) automatically closes your position when you reach your target profit. Stop loss (SL) limits your losses by closing your position if the price moves against you."
       },
       "close_position_you_receive": {
@@ -2354,6 +2395,13 @@
       "error_title": "Failed to cancel orders",
       "error_message": "Failed to cancel {{count}} order(s)"
     },
+    "margin_mode": {
+      "title": "Choose margin mode",
+      "isolated_title": "Isolated",
+      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "cross_title": "Cross",
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
     "crossMargin": {
       "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
@@ -2379,7 +2427,8 @@
       "past_hour": "Past hour",
       "past_24_hours": "Past 24 hours",
       "time": "Time",
-      "apply": "Apply"
+      "apply": "Apply",
+      "clear": "Clear"
     },
     "provider_selector": {
       "title": "Select Provider"
@@ -2502,6 +2551,7 @@
       "size": "Size",
       "total": "Total",
       "spread": "Spread",
+      "spread_value": "Spread {{value}}",
       "loading": "Loading order book...",
       "no_data": "No order book data available",
       "error": "Failed to load order book",
@@ -2649,47 +2699,9 @@
       "events_in_total": "{{count}} events in total",
       "events_in_total_overflow": "{{count}}+ markets in total",
       "props_pill": "Props",
-      "championship_unavailable": "No championship market to show yet.",
-      "mens_world_cup_title": "Men's World Cup",
-      "mens_world_cup_events": "{{count}} men's world cup events",
-      "mens_world_cup_events_overflow": "{{count}}+ men's world cup events",
-      "winner_unavailable": "No World Cup markets to show yet."
+      "championship_unavailable": "No championship market to show yet."
     },
     "world_cup": {
-      "title": "World Cup",
-      "predictions_title": "World Cup predictions",
-      "banner_title": "World Cup 2026",
-      "banner_description": "Trade every match, every moment.",
-      "hub_banner_title": "$75K up for grabs",
-      "hub_banner_description": "Predict World Cup knockout games to win—join now",
-      "tabs": {
-        "all": "All",
-        "props": "Props",
-        "live": "Live",
-        "games": "Games"
-      },
-      "who_will_win": "Who will win the World Cup?",
-      "stages": {
-        "group_stage": "Group Stage",
-        "round_of_32": "Round of 32",
-        "round_of_16": "Round of 16",
-        "quarterfinals": "Quarter-finals",
-        "semifinals": "Semi-finals",
-        "third_place": "Third Place",
-        "final": "Final",
-        "group_a": "Group A",
-        "group_b": "Group B",
-        "group_c": "Group C",
-        "group_d": "Group D",
-        "group_e": "Group E",
-        "group_f": "Group F",
-        "group_g": "Group G",
-        "group_h": "Group H",
-        "group_i": "Group I",
-        "group_j": "Group J",
-        "group_k": "Group K",
-        "group_l": "Group L"
-      },
       "market_info": {
         "regulation_time_winner": {
           "title": "Regulation time winner"
@@ -3278,6 +3290,7 @@
   },
   "wallet": {
     "title": "Wallet",
+    "search_accessibility_label": "Search",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
@@ -3467,8 +3480,8 @@
     "perps_filter": {
       "title": "Perps",
       "trades": "Trades",
-      "order": "Order",
-      "fundings": "Fundings",
+      "order": "Orders",
+      "fundings": "Funding payments",
       "deposits": "Deposits"
     },
     "empty_state": {
@@ -3589,7 +3602,7 @@
     "description_content_1_legacy": "MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.",
     "description_content_2_legacy": "MetaMask will...",
     "action_description_1_legacy": "Always allow you to opt-out via Settings",
-    "action_description_2_legacy": "Send anonymized click & pageview events",
+    "action_description_2_legacy": "Send anonymized click and pageview events",
     "action_description_3_legacy": "collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)",
     "action_description_4_legacy": "collect your full IP address*",
     "action_description_5_legacy": "sell data. Ever!",
@@ -3928,9 +3941,9 @@
     "privacy_mode": "Privacy mode",
     "privacy_mode_desc": "Websites must request access to view your account information.",
     "nft_opensea_mode": "Enable OpenSea API",
-    "nft_opensea_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
+    "nft_opensea_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
     "nft_autodetect_mode": "Autodetect NFTs",
-    "nft_autodetect_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
+    "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "Show conversion on test networks",
     "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks.",
     "show_fiat_on_testnets_modal_title": "Be careful",
@@ -4146,8 +4159,8 @@
     "manage_sdk_connections_title": "Manage connections",
     "manage_sdk_connections_text": "Remove connections to sites and/or MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Buy & sell crypto",
-      "description": "Region & more...",
+      "title": "Buy and sell crypto",
+      "description": "Region and more...",
       "current_region": "Current region",
       "reset_region": "Reset region",
       "change_region": "Change region",
@@ -4221,7 +4234,7 @@
         "quote_tag_most_reliable": "Most reliable",
         "quote_unknown_provider": "Unknown provider",
         "start_headless_buy": "Start headless buy",
-        "replace_and_start_headless_buy": "Replace & start headless buy",
+        "replace_and_start_headless_buy": "Replace and start headless buy",
         "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
         "start_headless_buy_pending": "Headless session active — open BuildQuote",
         "cancel_headless_buy": "Cancel headless session",
@@ -6304,7 +6317,7 @@
     "debit_credit_card_required": "Debit or credit cards. Apple Cash is not supported.",
     "select_card_country": "Select the country where your card is registered (not where you are located).",
     "search_country": "Search for a country",
-    "wyre_countries": "55+ countries, fees & limits vary",
+    "wyre_countries": "55+ countries, fees and limits vary",
     "wyre_fees_us": "2.9% + $0.30 + gas fees ($5 minimum fee)",
     "wyre_fees_us_fee": "Fee of 2.9% + $0.30 + gas ($5 minimum)",
     "wyre_fees_outside_us_fee": "Fee of 3.9% + $0.30 + gas ($5 minimum)",
@@ -7198,11 +7211,11 @@
     "bluetooth_off": "Bluetooth is off",
     "bluetooth_off_message": "Please turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Ledger needs Bluetooth access to pair with your mobile device.",
-    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings & try again.",
+    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
     "location_access_blocked": "MetaMask needs location access permission to pair with your ledger.",
-    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings & try again.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings and try again.",
     "nearbyDevices_access_blocked": "MetaMask needs nearby devices permission to pair with your Ledger.",
-    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings & try again.",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "Error while scanning the device",
     "bluetooth_scanning_error_message": "Please make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Bluetooth connection failed",
@@ -7619,7 +7632,7 @@
     },
     "asset_overview": {
       "cta": {
-        "earn_apy": "{{apy}}% APY",
+        "earn_apy": "Get {{apy}}% APY",
         "start_earning": "Start earning",
         "current_apy_disclaimer": "Current APY, variable and not guaranteed."
       },
@@ -7682,6 +7695,7 @@
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
+      "link_error_different_card": "This wallet is already linked to a different MetaMask Card",
       "unlink_pending_title": "Unlinking your card",
       "unlink_success_title": "Your card was unlinked",
       "unlink_error": "Something went wrong unlinking your card",
@@ -8406,7 +8420,7 @@
     "continue": "Continue",
     "confirm_bridge": "Bridge",
     "confirm_swap": "Swap",
-    "terms_and_conditions": "Terms & Conditions",
+    "terms_and_conditions": "Terms and Conditions",
     "select_token": "Select token",
     "batch_sell_transaction_label": "Batch sell",
     "batch_sell_select_title": "Select up to 5 tokens",
@@ -9026,7 +9040,9 @@
       "sign_up": {
         "title": "Let's get started",
         "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "description_immersve": "We need a few details to set up your card.",
         "i_already_have_an_account": "I already have a MetaMask Card",
+        "i_already_have_an_account_immersve": "I already have an account",
         "email_label": "Email address",
         "password_label": "New password for MetaMask Card",
         "password_description": "Different from your MetaMask app unlock password. Must be at least 15 characters long.",
@@ -9037,9 +9053,14 @@
         "join_waitlist": "Join waitlist",
         "country_not_available": "Card sign-up isn't available in your country yet.",
         "account_label": "Account",
+        "account_label_immersve": "Card account",
         "account_description": "Your MetaMask Card will be associated with this account.",
+        "account_description_immersve": "Card purchases will be charged to this account.",
         "account_exists_toast": "You already have a card account.",
-        "card_program_label": "Card program (testing)"
+        "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
+        "clickwrap_and": " and ",
+        "clickwrap_suffix": ".",
+        "legal_docs_error": "Unable to load legal documents."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -9176,7 +9197,7 @@
         "coinme_terms_consent_2": "Coinme Terms of Service",
         "coinme_terms_consent_3": ".",
         "crb_consent_1": "I agree with Cross River Bank ",
-        "crb_consent_2": "Terms & Conditions",
+        "crb_consent_2": "Terms and Conditions",
         "crb_consent_3": ", ",
         "crb_consent_4": "Account Opening Disclosures",
         "crb_consent_5": ", ",
@@ -9342,6 +9363,7 @@
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
+        "legal_docs_error": "Unable to load legal documents.",
         "order_metal_card": "Metal Card",
         "order_metal_card_description": "Order your physical Metal Card now",
         "cashback": "{{cashbackPercentage}}% mUSD Back",
@@ -9509,7 +9531,8 @@
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
         "configuration_error": "Service is temporarily unavailable. Please try again later.",
-        "forbidden_error": "This action isn't available for your account."
+        "forbidden_error": "This action isn't available for your account.",
+        "money_account_linked_to_different_card": "This wallet is already linked to a different MetaMask Card. Unlink it from that card before linking it here."
       }
     },
     "card_forgot_password": {
@@ -10363,6 +10386,7 @@
     "convert_again": "Convert again",
     "wrap_again": "Wrap again",
     "unwrap_again": "Unwrap again",
+    "lend_again": "Lend again",
     "transaction_pending": "Transaction pending",
     "likely_to_confirm_in": "Likely to confirm in",
     "confirm_time_estimate": "< 30 sec",
@@ -10386,26 +10410,26 @@
       "description": "Return to the app to continue."
     },
     "show_cli_link_success": {
-      "title": "MetaMask Agent CLI link successful",
+      "title": "Agent CLI successfully linked",
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
-      "title": "Turn on notifications",
-      "description": "Get alerts for transactions from your CLI session.",
-      "turn_on_button": "Turn on",
-      "loading_title": "Turning on notifications",
-      "loading_description": "Give us a moment while we set things up.",
-      "enable_error": "Couldn't turn on notifications. Try again from Settings."
+      "title": "Never miss a transaction",
+      "description": "Get real-time alerts to review and approve transactions from your CLI session.",
+      "turn_on_button": "Enable notifications",
+      "preview_title": "Transaction request",
+      "preview_message": "Your agent needs approval on a new limit.",
+      "preview_timestamp": "now"
     },
     "show_otp": {
       "title": "Enter this code",
       "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
       "modal_title": "Link MetaMask Agent CLI",
       "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
-      "code_label": "ENTER THIS CODE IN THE CLI",
+      "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Expires in {{time}}",
       "expired": "Code expired",
-      "security_notice": "Securing the connection first. You'll authorize CLI access in the next step"
+      "security_notice": "Securing the connection"
     },
     "show_not_found": {
       "title": "Connection Not Found",
@@ -10471,7 +10495,7 @@
     "low_to_high": "Low to high",
     "apply": "Apply",
     "search_placeholder": "Search tokens, markets and URLs",
-    "quick_trade": "Quick Buy & Sell",
+    "quick_trade": "Quick Buy and Sell",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
@@ -10584,6 +10608,7 @@
       "bluetooth_connection_failed": "The connection to your device failed. Please try again",
       "camera_permission_denied": "Camera permission is required to scan QR codes. Please enable it in your device settings",
       "not_supported": "This operation is not supported",
+      "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
     },
     "error": {
@@ -10607,6 +10632,7 @@
       "nearby_devices_permission_denied": "Nearby Devices Permission Required",
       "scan_failed": "Scan Failed",
       "camera_permission_denied": "Camera Permission Required",
+      "unsupported_signature": "Signature not supported",
       "something_went_wrong": "Something went wrong"
     },
     "qr_scan_errors": {

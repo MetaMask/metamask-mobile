@@ -85,16 +85,16 @@ describe('MoneyCardTiltAnimation', () => {
     ).toBeNull();
   });
 
-  it('renders the digital X-tilt artboard for a virtual card', () => {
+  it('renders the digital tilt artboard for a virtual card', () => {
     render(<MoneyCardTiltAnimation isMetalCard={false} />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('Card Tilt X - Digital ');
+    expect(mockRiveProps.current?.artboardName).toBe('CardTiltDigital');
   });
 
-  it('renders the metal X-tilt artboard for a metal card', () => {
+  it('renders the metal tilt artboard for a metal card', () => {
     render(<MoneyCardTiltAnimation isMetalCard />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('Card Tilt X - Metal');
+    expect(mockRiveProps.current?.artboardName).toBe('CardTiltMetal');
   });
 
   it('renders the static image when the feature flag is disabled', () => {
@@ -190,10 +190,30 @@ describe('MoneyCardTiltAnimation', () => {
       y: number,
     ) => void;
 
-    act(() => applyTilt(0.5, 0.5));
+    act(() => applyTilt(1, 1));
 
-    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 75);
-    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 25);
+    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 100);
+    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 0);
+  });
+
+  it('drives a partial tilt past the raw curve reported by the hook', () => {
+    render(<MoneyCardTiltAnimation isMetalCard={false} />);
+
+    const applyTilt = mockUseDeviceOrientation.mock.calls[0][0] as (
+      x: number,
+      y: number,
+    ) => void;
+
+    act(() => applyTilt(0.5, 0));
+
+    // The hook reports an already-squared tilt, so 0.5 means the device is
+    // ~71% of the way through its travel. Mapping it straight through would
+    // under-read at 75; the shaping recovers the real angle.
+    const [, xValue] = mockSetNumber.mock.calls.find(
+      ([property]) => property === 'xValue',
+    ) as [string, number];
+    expect(xValue).toBeGreaterThan(75);
+    expect(xValue).toBeLessThan(100);
   });
 
   it('does not dispatch tilt values while the native Rive view is detached', () => {
