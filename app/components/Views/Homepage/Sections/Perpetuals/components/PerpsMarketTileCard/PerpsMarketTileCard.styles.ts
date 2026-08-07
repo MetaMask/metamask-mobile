@@ -38,7 +38,7 @@ const styleSheet = (params: {
       marginBottom: 16,
     },
     shimmerOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: theme.colors.icon.alternative,
       borderRadius: CARD_BORDER_RADIUS,
     },
