@@ -5880,8 +5880,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  'stable-tokens': {
-    name: 'stable-tokens',
+  stableTokens: {
+    name: 'stableTokens',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {},
