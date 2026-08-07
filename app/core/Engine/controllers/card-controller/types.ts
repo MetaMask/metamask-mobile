@@ -17,7 +17,10 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
-import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
+import type {
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+} from '@metamask/network-controller';
 import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
@@ -85,6 +88,7 @@ type CardControllerAllowedActions =
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction;
