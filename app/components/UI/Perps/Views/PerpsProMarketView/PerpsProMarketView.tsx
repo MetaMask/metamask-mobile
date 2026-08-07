@@ -26,8 +26,7 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import type { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, type ScrollView } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -290,10 +289,7 @@ const PerpsProMarketView = () => {
 
   if (!market?.symbol) {
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['top', 'bottom', 'left', 'right']}
-      >
+      <View style={styles.container}>
         <Box
           twClassName="flex-1 items-center justify-center px-4"
           testID={PerpsProMarketViewSelectorsIDs.ERROR}
@@ -302,7 +298,7 @@ const PerpsProMarketView = () => {
             {strings('perps.market.details.error_message')}
           </Text>
         </Box>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -316,9 +312,8 @@ const PerpsProMarketView = () => {
   })();
 
   return (
-    <SafeAreaView
+    <View
       style={styles.container}
-      edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
       <PerpsMarketHeader
@@ -421,7 +416,7 @@ const PerpsProMarketView = () => {
         isVisible={isBalanceSheetVisible}
         onClose={handleBalanceSheetClose}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
