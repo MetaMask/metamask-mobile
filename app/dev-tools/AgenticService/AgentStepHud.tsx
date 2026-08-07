@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from 'react-native-screens';
 
@@ -155,25 +155,30 @@ const AgentStepHudInner = () => {
         ? styles.badgeTextPass
         : styles.badgeTextRunning;
 
-  // FullWindowOverlay (iOS) renders the HUD in a UIWindow above every native
-  // layer — including native-stack modal screens (perps close-position/TPSL,
-  // etc.), which a plain absolute/zIndex View in the JS root cannot reach. On
-  // Android it is a passthrough, so root-level rendering is preserved.
-  return (
-    <FullWindowOverlay>
-      <View style={containerStyle} pointerEvents="none">
-        <Text style={styles.line}>
-          <Text style={[styles.badgeText, badgeTextStyle]}>{badge}</Text>
-          {intent ? `  ${intent}` : ''}
+  const content = (
+    <View testID="agent-step-hud" style={containerStyle} pointerEvents="none">
+      <Text style={styles.line}>
+        <Text style={[styles.badgeText, badgeTextStyle]}>{badge}</Text>
+        {intent ? `  ${intent}` : ''}
+      </Text>
+      {secondary.map((detail) => (
+        <Text key={detail} style={styles.secondary}>
+          {detail}
         </Text>
-        {secondary.map((detail) => (
-          <Text key={detail} style={styles.secondary}>
-            {detail}
-          </Text>
-        ))}
-      </View>
-    </FullWindowOverlay>
+      ))}
+    </View>
   );
+
+  // FullWindowOverlay is an iOS-only UIWindow bridge. Rendering it on Android
+  // warns on every step and can abort Fabric while the runtime is restarting.
+  if (Platform.OS === 'ios') {
+    return (
+      <FullWindowOverlay testID="agent-step-hud-ios-overlay">
+        {content}
+      </FullWindowOverlay>
+    );
+  }
+  return content;
 };
 
 // Outer guard — never calls hooks, so the __DEV__ early return is fine.

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import AgentStepHud, { emitStepHud } from './AgentStepHud';
 
 describe('AgentStepHud', () => {
@@ -113,5 +114,28 @@ describe('AgentStepHud', () => {
     });
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('does not mount the iOS FullWindowOverlay on Android', () => {
+    const originalOs = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    try {
+      const { getByTestId, queryByTestId } = render(<AgentStepHud />);
+
+      act(() => {
+        emitStepHud({ id: 'run 1/1', intent: 'Android lifecycle proof' });
+      });
+
+      expect(getByTestId('agent-step-hud')).toBeOnTheScreen();
+      expect(queryByTestId('agent-step-hud-ios-overlay')).toBeNull();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalOs,
+      });
+    }
   });
 });
