@@ -527,6 +527,61 @@ describe('NetworkPills', () => {
         payload: ['eip155:56', 'eip155:137', 'eip155:10', 'eip155:42161'],
       });
     });
+
+    it('keeps the selected chain visible when treatment ranking drops it from the top four', () => {
+      const initialTreatmentRanking = [
+        mockChainRanking[0],
+        mockChainRanking[1],
+        mockChainRanking[2],
+        mockChainRanking[3],
+        mockChainRanking[4],
+        mockChainRanking[5],
+        mockChainRanking[6],
+      ];
+      const reorderedTreatmentRanking = [
+        mockChainRanking[4],
+        mockChainRanking[5],
+        mockChainRanking[6],
+        mockChainRanking[1],
+        mockChainRanking[0],
+        mockChainRanking[2],
+        mockChainRanking[3],
+      ];
+      jest.mocked(useABTest).mockReturnValue({
+        variant: { orderByValue: true },
+        variantName: 'treatment',
+        isActive: true,
+      });
+      jest
+        .mocked(useChainValueOrder)
+        .mockReturnValue(initialTreatmentRanking);
+
+      const { rerender } = render(
+        <NetworkPills
+          selectedChainId={'eip155:1' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      mockDispatch.mockClear();
+      jest
+        .mocked(useChainValueOrder)
+        .mockReturnValue(reorderedTreatmentRanking);
+
+      rerender(
+        <NetworkPills
+          selectedChainId={'eip155:1' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setVisiblePillChainIds',
+        payload: ['eip155:1', 'eip155:137', 'eip155:10', 'eip155:42161'],
+      });
+    });
   });
 
   describe('watchlist filter', () => {
