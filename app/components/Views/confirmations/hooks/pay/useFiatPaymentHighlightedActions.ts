@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
-import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { formatDelayFromArray } from '../../../../UI/Ramp/Aggregator/utils';
 import {
   getFiatFunnelRampSurface,
@@ -11,6 +10,7 @@ import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
 import { HighlightedItem } from '../../types/token';
 import { getPaymentMethodDisplayName } from '../../utils/generic';
 
@@ -19,10 +19,13 @@ import { getPaymentMethodDisplayName } from '../../utils/generic';
  * the Pay-With modal. Returns `[]` when the fiat feature flag is off or no
  * payment methods are available. Selecting an item toggles
  * `fiatPayment.selectedPaymentMethodId` on the current transaction.
+ *
+ * Methods come from the headless deposit-asset context
+ * ({@link useFiatDepositPaymentMethods}), not the Buy-scoped catalog.
  */
 export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
   const { maxDelayMinutesForPaymentMethods } = useMMPayFiatConfig();
-  const { paymentMethods } = useRampsPaymentMethods();
+  const { paymentMethods } = useFiatDepositPaymentMethods();
   const fiatPayment = useTransactionPayFiatPayment();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';

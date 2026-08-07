@@ -2,18 +2,20 @@ import { renderHook } from '@testing-library/react-hooks';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
-import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
 import { useHasFiatProvider } from '../../../../UI/Ramp/hooks/useHasFiatProvider';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 jest.mock('./useMMPayFiatConfig');
-jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
+jest.mock('./useFiatDepositPaymentMethods');
 jest.mock('../../../../UI/Ramp/hooks/useHasFiatProvider');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
 describe('useIsFiatPaymentAvailable', () => {
   const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
-  const useRampsPaymentMethodsMock = jest.mocked(useRampsPaymentMethods);
+  const useFiatDepositPaymentMethodsMock = jest.mocked(
+    useFiatDepositPaymentMethods,
+  );
   const useHasFiatProviderMock = jest.mocked(useHasFiatProvider);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -27,11 +29,12 @@ describe('useIsFiatPaymentAvailable', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [TransactionType.perpsDeposit],
       maxDelayMinutesForPaymentMethods: 10,
+      assetPerTransactionType: {},
     });
 
-    useRampsPaymentMethodsMock.mockReturnValue({
+    useFiatDepositPaymentMethodsMock.mockReturnValue({
       paymentMethods: [{ id: 'apple-pay' }],
-    } as unknown as ReturnType<typeof useRampsPaymentMethods>);
+    } as unknown as ReturnType<typeof useFiatDepositPaymentMethods>);
 
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.perpsDeposit,
@@ -56,6 +59,7 @@ describe('useIsFiatPaymentAvailable', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [],
       maxDelayMinutesForPaymentMethods: 10,
+      assetPerTransactionType: {},
     });
 
     const { result } = renderHook(() => useIsFiatPaymentAvailable());
@@ -63,9 +67,9 @@ describe('useIsFiatPaymentAvailable', () => {
   });
 
   it('returns false when no payment methods exist', () => {
-    useRampsPaymentMethodsMock.mockReturnValue({
+    useFiatDepositPaymentMethodsMock.mockReturnValue({
       paymentMethods: [],
-    } as unknown as ReturnType<typeof useRampsPaymentMethods>);
+    } as unknown as ReturnType<typeof useFiatDepositPaymentMethods>);
 
     const { result } = renderHook(() => useIsFiatPaymentAvailable());
     expect(result.current).toBe(false);
@@ -89,6 +93,7 @@ describe('useIsFiatPaymentAvailable', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [TransactionType.predictDeposit],
       maxDelayMinutesForPaymentMethods: 10,
+      assetPerTransactionType: {},
     });
 
     useTransactionMetadataRequestMock.mockReturnValue({

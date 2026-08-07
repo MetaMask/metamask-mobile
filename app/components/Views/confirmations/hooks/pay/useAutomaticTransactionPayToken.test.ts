@@ -33,7 +33,7 @@ import {
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
-import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
@@ -50,7 +50,7 @@ jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useWithdrawTokenFilter');
-jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
+jest.mock('./useFiatDepositPaymentMethods');
 jest.mock('./useIsFiatPaymentAvailable');
 jest.mock('./useMMPayFiatConfig');
 jest.mock('../../../../../selectors/transactionController', () => ({
@@ -188,10 +188,10 @@ describe('useAutomaticTransactionPayToken', () => {
 
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
 
-    jest.mocked(useRampsPaymentMethods).mockReturnValue({
+    jest.mocked(useFiatDepositPaymentMethods).mockReturnValue({
       paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
+      suggestedPaymentMethod: null,
+      assetId: 'eip155:1/slip44:60',
       isLoading: false,
       isFetching: false,
       status: 'success',
@@ -203,6 +203,7 @@ describe('useAutomaticTransactionPayToken', () => {
     jest.mocked(useMMPayFiatConfig).mockReturnValue({
       enabledTransactionTypes: [],
       maxDelayMinutesForPaymentMethods: 10,
+      assetPerTransactionType: {},
     });
   });
 

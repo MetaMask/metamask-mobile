@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { type PaymentMethod } from '@metamask/ramps-controller';
-import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
+import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
 
 export function useTransactionPaySelectedFiatPaymentMethod():
   | PaymentMethod
   | undefined {
   const fiatPayment = useTransactionPayFiatPayment();
-  const { paymentMethods } = useRampsPaymentMethods();
+  const { paymentMethods } = useFiatDepositPaymentMethods();
 
   return useMemo(
     () =>

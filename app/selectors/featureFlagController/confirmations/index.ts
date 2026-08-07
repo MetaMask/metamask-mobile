@@ -98,9 +98,21 @@ export interface PayPostQuoteFlags {
   overrides?: Record<string, PayPostQuoteConfig>;
 }
 
+export interface MetaMaskPayFiatAsset {
+  address: Hex;
+  chainId: Hex;
+}
+
 export interface MetaMaskPayFiatFlags {
   enabledTransactionTypes: TransactionType[];
   maxDelayMinutesForPaymentMethods: number;
+  /**
+   * Per-transaction-type fiat deposit assets. Same shape TPC reads from
+   * `confirmations_pay_fiat.assetPerTransactionType` when quoting.
+   */
+  assetPerTransactionType: Partial<
+    Record<TransactionType, MetaMaskPayFiatAsset>
+  >;
 }
 
 export interface MetaMaskPayHardwareFlags {
@@ -337,6 +349,9 @@ export const selectMetaMaskPayFiatFlags = createSelector(
       maxDelayMinutesForPaymentMethods:
         (raw?.maxDelayMinutesForPaymentMethods as number) ??
         PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+      assetPerTransactionType:
+        (raw?.assetPerTransactionType as MetaMaskPayFiatFlags['assetPerTransactionType']) ??
+        {},
     };
   },
 );
