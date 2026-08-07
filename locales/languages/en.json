@@ -1071,7 +1071,7 @@
       "error": "Webview received error: {{code}}"
     },
     "notifications": {
-      "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+      "deposit_failed_title": "Deposit of {{currency}} has failed. Please try again, sorry for the inconvenience.",
       "deposit_failed_description": "Verify your payment method and card support",
       "deposit_cancelled_title": "Your deposit was cancelled",
       "deposit_cancelled_description": "You requested a cancellation of your deposit.",
@@ -1646,7 +1646,10 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
         "limit_price_far_warning": "Limit price is far from current market price",
-        "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time."
+        "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
+        "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
+        "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
+        "reduce_only_too_large": "Reduce only order is larger than your open position"
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -3394,7 +3397,7 @@
     "refresh_metadata": "Refresh metadata",
     "token_removal_issue_title": "Issue removing token.",
     "token_removal_issue_desc": "There was a problem when trying to remove the token. Try again.",
-    "collectible_removed_title": "Collectible removed!",
+    "collectible_removed_title": "Collectible removed",
     "collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
     "remove": "Hide",
     "cancel": "Cancel",
@@ -5789,7 +5792,7 @@
     "risks_1": "You lose it",
     "risks_2": "You forget where you put it",
     "risks_3": "Someone else finds it",
-    "other_options": "Other options: Doesn’t have to be paper!",
+    "other_options": "Other options: Doesn’t have to be paper.",
     "tips_title": "Tips:",
     "tips_1": "Store in bank vault",
     "tips_2": "Store in a safe",
@@ -5930,7 +5933,7 @@
     "proceed_anyway": "proceed anyway",
     "but_please_do_so_at_your_own_risk": "but please do so at your own risk.",
     "report_detection_problem": "Report a detection problem",
-    "share_on_twitter": "If you found this helpful, share on X!",
+    "share_on_twitter": "If you found this helpful, share on X.",
     "share_text": "MetaMask protected me from visiting a potentially harmful site: {{url}}. Stay safe!"
   },
   "notifications": {
@@ -6003,11 +6006,11 @@
     "erc1155_received": "Received NFT from {{address}}",
     "received_nft": "Received NFT from {{address}}",
     "pending_title": "Transaction submitted",
-    "pending_deposit_title": "Deposit in progress!",
-    "pending_withdrawal_title": "Withdrawal in progress!",
-    "cancelled_title": "Transaction cancelled!",
+    "pending_deposit_title": "Deposit in progress",
+    "pending_withdrawal_title": "Withdrawal in progress",
+    "cancelled_title": "Transaction cancelled",
     "success_title": "Transaction #{{nonce}} Complete!",
-    "speedup_title": "Speeding up #{{nonce}}!",
+    "speedup_title": "Speeding up #{{nonce}}",
     "success_deposit_title": "Deposit complete!",
     "success_withdrawal_title": "Withdrawal complete!",
     "error_title": "Oops, something went wrong :/",
@@ -6501,8 +6504,8 @@
     "something_went_wrong": "Oops, something went wrong",
     "report_this_issue": "Report this issue",
     "no_providers_available": "No providers available",
-    "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
-    "try_different_amount_to_sell_input": "Try choosing a different cash out destination or try to increase or reduce the amount you want to sell!",
+    "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy.",
+    "try_different_amount_to_sell_input": "Try choosing a different cash out destination or try to increase or reduce the amount you want to sell.",
     "webview_received_error": "WebView received error status code: {{code}}",
     "no_tokens_available_title": "No tokens available",
     "no_tokens_available": "There are currently no tokens available to purchase on {{network}} with the selected payment method.",
@@ -6555,7 +6558,7 @@
     },
     "order_details": {
       "details_main": "Order details",
-      "successful": "Order successful!",
+      "successful": "Order successful",
       "your": "Your",
       "available_in_account": "is now available in your account",
       "delayed_bank_transfer": "It make take a few days to see the cash in your bank account.",
@@ -6646,7 +6649,7 @@
     "notifications": {
       "purchase_pending_title": "Processing your purchase of {{cryptocurrency}}",
       "purchase_pending_description": "This should only take a few minutes...",
-      "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful!",
+      "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful",
       "purchase_completed_description": "Your {{cryptocurrency}} is now available",
       "purchase_failed_title": "Purchase of {{cryptocurrency}} failed",
       "purchase_failed_description": "Please try again momentarily",
@@ -7410,7 +7413,7 @@
     "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
     "learn_more": "Learn more",
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
+      "maintenance_message": "We're down for maintenance. We'll be back online soon."
     },
     "supply": "Supply",
     "deposit": "Deposit",
