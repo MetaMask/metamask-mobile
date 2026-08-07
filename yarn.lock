@@ -8570,6 +8570,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/design-system-shared@npm:^0.32.0":
+  version: 0.32.0
+  resolution: "@metamask/design-system-shared@npm:0.32.0"
+  dependencies:
+    "@metamask/utils": "npm:^11.11.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/17efdeb0787713dc00e0c9598d570648f93f90b325e1c37c7107a939a8ccb56d27d196c52997b5d8db1e2a888b3c9072a394885741ef033a11eba1c43aabc462
+  languageName: node
+  linkType: hard
+
 "@metamask/design-system-twrnc-preset@npm:^0.8.0":
   version: 0.8.0
   resolution: "@metamask/design-system-twrnc-preset@npm:0.8.0"
@@ -36097,6 +36108,7 @@ __metadata:
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
     "@metamask/design-system-react-native": "npm:^0.38.1"
+    "@metamask/design-system-shared": "npm:^0.32.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.8.0"
     "@metamask/design-tokens": "npm:^8.7.0"
     "@metamask/device-mcp": "npm:^0.3.0"
