@@ -502,6 +502,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_BOOK_EXPAND_BUTTON: 'perps-pro-market-order-book-expand',
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
   POSITIONS_PANEL_TABS: 'perps-pro-market-positions-panel-tabs',
+  POSITIONS_HISTORY_BUTTON: 'perps-pro-market-positions-history',
   POSITIONS_PANEL_TAB_POSITIONS:
     'perps-pro-market-positions-panel-tab-positions',
   POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
@@ -510,6 +511,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
   POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
   POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
+  ORDERS_SORT_SHEET: 'perps-pro-market-orders-sort-sheet',
   POSITIONS_LIST: 'perps-pro-market-positions-list',
   POSITIONS_CLOSE_ALL: 'perps-pro-market-positions-close-all',
   POSITION_CLOSE: 'perps-pro-market-position-close',
@@ -520,7 +522,11 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
+  ORDER_EDIT: 'perps-pro-market-order-edit',
+  ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
+  ORDER_SIZE_EDIT: 'perps-pro-market-order-size-edit',
   ORDER_ROW: 'perps-pro-market-order-row',
+  ORDER_TYPE: 'perps-pro-market-order-type',
 };
 
 // Helper for dynamic Pro position row test IDs
@@ -536,12 +542,20 @@ export const PerpsProOrderFormSelectorsIDs = {
   DIRECTION_LONG: 'perps-pro-order-form-direction-long',
   DIRECTION_SHORT: 'perps-pro-order-form-direction-short',
   LEVERAGE_BUTTON: 'perps-pro-order-form-leverage',
+  MARGIN_MODE_BUTTON: 'perps-pro-order-form-margin-mode',
   ORDER_TYPE_BUTTON: 'perps-pro-order-form-order-type',
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
+  LIMIT_PRICE_PREFIX: 'perps-pro-order-form-limit-price-prefix',
   MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
+  MARGIN_SETTINGS_ROW: 'perps-pro-order-form-margin-settings',
+  SIZE_CARD: 'perps-pro-order-form-size-card',
+  SIZE_FIELD: 'perps-pro-order-form-size-field',
   SIZE_INPUT: 'perps-pro-order-form-size-input',
+  SIZE_PREFIX: 'perps-pro-order-form-size-prefix',
   SIZE_SLIDER: 'perps-pro-order-form-size-slider',
+  SIZE_SLIDER_SECTION: 'perps-pro-order-form-size-slider-section',
   SIZE_UNIT_BUTTON: 'perps-pro-order-form-size-unit',
+  SIZE_UNIT_LABEL: 'perps-pro-order-form-size-unit-label',
   KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
   AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
   ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
@@ -568,6 +582,9 @@ export const PerpsMarketHeaderSelectorsIDs = {
   BACK_BUTTON: 'perps-market-header-back-button',
   ASSET_ICON: 'perps-market-header-asset-icon',
   ASSET_NAME: 'perps-market-header-asset-name',
+  /** Compact header price shown while scrolling (distinct from summary row). */
+  COMPACT_PRICE: 'perps-market-header-compact-price',
+  COMPACT_PRICE_CHANGE: 'perps-market-header-compact-price-change',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
   MORE_BUTTON: 'perps-market-header-more-button',
@@ -811,6 +828,11 @@ export const PerpsLimitPriceBottomSheetSelectorsIDs = {
   PRESET_PERCENT: 'perps-limit-price-preset-',
 };
 
+export const PerpsOrderSizeBottomSheetSelectorsIDs = {
+  SIZE_DISPLAY: 'perps-order-size-display',
+  CONFIRM_BUTTON: 'perps-order-size-confirm-button',
+};
+
 // ========================================
 // PERPS CLOSE POSITION VIEW SELECTORS
 // ========================================
@@ -837,6 +859,21 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-order-type-bottom-sheet-close',
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
+} as const;
+
+export const PerpsMarginModeBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-margin-mode-bottom-sheet',
+  CLOSE_BUTTON: 'perps-margin-mode-bottom-sheet-close',
+  ISOLATED_OPTION: 'perps-margin-mode-isolated',
+  CROSS_OPTION: 'perps-margin-mode-cross',
+} as const;
+
+export const PerpsLeverageBottomSheetSelectorsIDs = {
+  SLIDER: 'perps-leverage-slider',
+  SLIDER_INCOMING: 'perps-leverage-slider-incoming',
+  SLIDER_INCOMING_WRAP: 'perps-leverage-slider-incoming-wrap',
+  HELP_TEXT: 'perps-leverage-help-text',
+  QUICK_SELECT: 'leverage-quick-select',
 } as const;
 
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {
@@ -1020,11 +1057,16 @@ export const PerpsModeToggleSelectorsIDs = {
   PRO_SEGMENT: 'perps-mode-toggle-pro',
 } as const;
 
+export const PerpsModeSelectionBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-mode-selection-bottom-sheet',
+  TITLE: 'perps-mode-selection-bottom-sheet-title',
+  LITE_OPTION: 'perps-mode-selection-lite-option',
+  PRO_OPTION: 'perps-mode-selection-pro-option',
+  LITE_ICON: 'perps-mode-selection-lite-icon',
+  PRO_ICON: 'perps-mode-selection-pro-icon',
+  SELECTED_INDICATOR: 'perps-mode-selection-selected-indicator',
+} as const;
+
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================
-
-export const PerpsModeFlashSelectorsIDs = {
-  CONTAINER: 'perps-mode-flash',
-  TITLE: 'perps-mode-flash-title',
-} as const;

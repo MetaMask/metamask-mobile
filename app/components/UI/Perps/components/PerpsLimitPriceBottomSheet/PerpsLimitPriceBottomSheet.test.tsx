@@ -26,6 +26,10 @@ jest.mock('../../hooks/stream', () => ({
     bestBid: '2995',
     bestAsk: '3005',
   })),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: { spendableBalance: '1000' },
+    isInitialLoading: false,
+  })),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -587,6 +591,21 @@ describe('PerpsLimitPriceBottomSheet', () => {
       expect(
         screen.queryByText('perps.order.limit_price_modal.title'),
       ).toBeNull();
+    });
+
+    it('reseeds the keypad when the target order limit price changes while open', () => {
+      const { rerender } = render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="160.71" />,
+      );
+
+      fireEvent.press(screen.getByTestId('keypad-button-1'));
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('160.711');
+
+      rerender(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="200.5" />,
+      );
+
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('200.5');
     });
   });
 

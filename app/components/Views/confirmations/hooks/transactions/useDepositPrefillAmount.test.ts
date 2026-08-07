@@ -157,6 +157,8 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current).toEqual({
         prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
         enabled: false,
         isLoading: false,
         hasPrefilled: false,
@@ -192,6 +194,8 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(100);
+      expect(result.current.isLimitCapped).toBe(false);
     });
 
     it('computes 50% for non-stablecoin', () => {
@@ -203,6 +207,8 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(50);
+      expect(result.current.isLimitCapped).toBe(false);
     });
 
     it('caps at deposit limit when balance exceeds it', () => {
@@ -215,6 +221,8 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.prefillAmount).toBe('100000');
+      expect(result.current.percentage).toBe(100);
+      expect(result.current.isLimitCapped).toBe(true);
     });
 
     it('returns undefined when no payToken', () => {
