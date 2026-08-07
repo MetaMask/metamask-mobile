@@ -31,6 +31,7 @@ export interface PerpsProSortSheetProps<TField extends string> {
   options: readonly ProSortOption<TField>[];
   onApply: (next: ProSortConfig<TField>) => void;
   onClose: () => void;
+  onClear?: () => void;
   testID?: string;
 }
 
@@ -44,6 +45,7 @@ const PerpsProSortSheet = <TField extends string>({
   options,
   onApply,
   onClose,
+  onClear,
   testID = 'perps-pro-sort-sheet',
 }: PerpsProSortSheetProps<TField>) => {
   const [draftField, setDraftField] = useState<TField>(sortConfig.field);
@@ -79,6 +81,7 @@ const PerpsProSortSheet = <TField extends string>({
       title={strings('perps.sort.sort_by')}
       onClose={onClose}
       onApply={handleApply}
+      onClear={onClear}
       onOpen={resetDraft}
       testID={testID}
     >
