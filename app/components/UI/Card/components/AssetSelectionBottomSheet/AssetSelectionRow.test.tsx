@@ -6,22 +6,6 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 
-const mockTw = Object.assign(
-  jest.fn((className: string) => ({ className })),
-  {
-    style: jest.fn((...args: unknown[]) => {
-      const styles = args.filter(
-        (arg) => typeof arg === 'string' || typeof arg === 'boolean',
-      );
-      return { className: styles.join(' ') };
-    }),
-  },
-);
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => mockTw,
-}));
-
 jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon' })),
 }));
@@ -69,16 +53,15 @@ describe('AssetSelectionRow', () => {
     expect(getByText('$10.00')).toBeOnTheScreen();
   });
 
-  it('applies priority highlight class when isPriority is true', () => {
+  it('applies priority highlight styles when isPriority is true', () => {
     const item = createRowItem();
 
-    const { toJSON } = render(
+    const { getByTestId } = render(
       <AssetSelectionRow item={item} isPriority onPress={jest.fn()} />,
     );
 
-    expect(JSON.stringify(toJSON())).toContain(
-      'border-l-4 border-primary-default bg-background-muted',
-    );
+    const row = getByTestId(`asset-select-item-USDC-${item.caipChainId}`);
+    expect(row).toHaveStyle({ borderLeftWidth: 4 });
   });
 
   it('calls onPress with the token when the row is pressed', () => {

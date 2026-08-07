@@ -1,19 +1,17 @@
-import React, { useCallback } from 'react';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useCallback, useMemo } from 'react';
 import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Text,
-  TextVariant,
   AvatarToken,
   AvatarTokenSize,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  Box,
+  ListItemSelect,
+  ListItemVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { strings } from '../../../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { FundingStatus, type CardFundingToken } from '../../types';
@@ -50,114 +48,89 @@ const AssetSelectionRow: React.FC<AssetSelectionRowProps> = ({
   isPriority,
   onPress,
 }) => {
-  const tw = useTailwind();
   const { symbol: displaySymbol, iconSource } = getCardTokenDisplay(item);
   const titleText = item.isMoneyAccountEntry
     ? strings('card.card_spending_limit.money_account_label')
     : `${displaySymbol} on ${mapCaipChainIdToChainName(item.caipChainId)}`;
+  const fundingStatusText = getFundingStatusText(item.fundingStatus);
+  const showWalletAddress =
+    !item.isMoneyAccountEntry && Boolean(item.walletAddress);
 
   const handlePress = useCallback(() => {
     onPress(item);
   }, [item, onPress]);
 
-  return (
-    <Box
-      twClassName={
-        isPriority
-          ? 'border-l-4 border-primary-default bg-background-muted'
-          : ''
-      }
-    >
-      <ListItemSelect
-        onPress={handlePress}
-        testID={`asset-select-item-${displaySymbol}-${item.caipChainId}`}
+  const avatar = useMemo(() => {
+    if (item.isMoneyAccountEntry) {
+      return <MoneyBalanceIcon width={32} height={32} name="money-balance" />;
+    }
+
+    return (
+      <BadgeWrapper
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          item.caipChainId ? (
+            <BadgeNetwork
+              src={getNetworkImageSource({
+                chainId: safeFormatChainIdToHex(
+                  item.caipChainId,
+                ) as `0x${string}`,
+              })}
+            />
+          ) : null
+        }
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="flex-1"
+        <AvatarToken
+          name={displaySymbol}
+          src={iconSource as { uri?: string } | number}
+          size={AvatarTokenSize.Md}
+        />
+      </BadgeWrapper>
+    );
+  }, [displaySymbol, iconSource, item.caipChainId, item.isMoneyAccountEntry]);
+
+  const description = useMemo(() => {
+    if (!showWalletAddress) {
+      return fundingStatusText;
+    }
+
+    return (
+      <Box>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {fundingStatusText}
+        </Text>
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="mt-1"
+          numberOfLines={1}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="flex-1"
-          >
-            {item.isMoneyAccountEntry ? (
-              <MoneyBalanceIcon
-                style={tw.style('mr-3')}
-                width={32}
-                height={32}
-                name="money-balance"
-              />
-            ) : (
-              <BadgeWrapper
-                style={tw.style('mr-3')}
-                position={BadgeWrapperPosition.BottomRight}
-                badge={
-                  item.caipChainId ? (
-                    <BadgeNetwork
-                      src={getNetworkImageSource({
-                        chainId: safeFormatChainIdToHex(
-                          item.caipChainId,
-                        ) as `0x${string}`,
-                      })}
-                    />
-                  ) : null
-                }
-              >
-                <AvatarToken
-                  name={displaySymbol}
-                  src={iconSource as { uri?: string } | number}
-                  size={AvatarTokenSize.Md}
-                />
-              </BadgeWrapper>
-            )}
+          {truncateAddress(item.walletAddress, 6)}
+        </Text>
+      </Box>
+    );
+  }, [fundingStatusText, item.walletAddress, showWalletAddress]);
 
-            <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Center}>
-              <Text
-                variant={TextVariant.BodyMd}
-                style={tw.style('font-semibold')}
-              >
-                {titleText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                style={tw.style('font-medium text-text-alternative')}
-              >
-                {getFundingStatusText(item.fundingStatus)}
-              </Text>
-              {!item.isMoneyAccountEntry && item.walletAddress && (
-                <Text
-                  variant={TextVariant.BodyXs}
-                  style={tw.style('font-normal text-text-alternative mt-1')}
-                  numberOfLines={1}
-                >
-                  {truncateAddress(item.walletAddress, 6)}
-                </Text>
-              )}
-            </Box>
-          </Box>
-
-          <Box twClassName="items-end">
-            <Text
-              variant={TextVariant.BodySm}
-              style={tw.style('text-text-default font-medium')}
-            >
-              {item.balanceFiat}
-            </Text>
-            {!item.isMoneyAccountEntry && (
-              <Text
-                variant={TextVariant.BodyXs}
-                style={tw.style('text-text-alternative mt-1')}
-              >
-                {item.balance} {displaySymbol}
-              </Text>
-            )}
-          </Box>
-        </Box>
-      </ListItemSelect>
-    </Box>
+  return (
+    <ListItemSelect
+      avatar={avatar}
+      title={titleText}
+      description={description}
+      value={item.balanceFiat}
+      subvalue={
+        item.isMoneyAccountEntry
+          ? undefined
+          : `${item.balance} ${displaySymbol}`
+      }
+      variant={
+        showWalletAddress ? ListItemVariant.MultiLine : ListItemVariant.TwoLines
+      }
+      isSelected={isPriority}
+      showSelectedIcon={false}
+      onPress={handlePress}
+      testID={`asset-select-item-${displaySymbol}-${item.caipChainId}`}
+      twClassName={isPriority ? 'border-l-4 border-primary-default' : undefined}
+    />
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
-import { View, ActivityIndicator, type ScrollViewProps } from 'react-native';
+import { ActivityIndicator, type ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
@@ -9,13 +9,17 @@ import { FundingStatus, CardFundingToken } from '../../types';
 
 import { strings } from '../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import {
   ToastContext,
@@ -312,25 +316,26 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const renderBottomSheetContent = useCallback(() => {
     if (!cardHomeData?.delegationSettings) {
       return (
-        <View style={tw.style('items-center justify-center py-8')}>
+        <Box twClassName="items-center justify-center py-8">
           <ActivityIndicator
             size="large"
             color={theme.colors.primary.default}
           />
-        </View>
+        </Box>
       );
     }
 
     if (supportedTokensWithBalances.length === 0) {
       return (
-        <View style={tw.style('items-center justify-center py-8')}>
+        <Box twClassName="items-center justify-center py-8">
           <Text
             variant={TextVariant.BodySm}
-            style={tw.style('text-center text-text-alternative')}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
           >
             {strings('card.no_tokens_available')}
           </Text>
-        </View>
+        </Box>
       );
     }
 
@@ -340,7 +345,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
-        style={tw.style('max-h-[400px]')}
         renderScrollComponent={
           ScrollView as React.ComponentType<ScrollViewProps>
         }
@@ -349,7 +353,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
   }, [
     cardHomeData?.delegationSettings,
     supportedTokensWithBalances,
-    tw,
     theme,
     renderItem,
     keyExtractor,
@@ -358,17 +361,15 @@ const AssetSelectionBottomSheet: React.FC = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('card.select_asset')}
-        </Text>
+        {strings('card.select_asset')}
       </BottomSheetHeader>
-      <View style={tw.style('max-h-[400px]')}>
+      <Box style={tw.style('grow shrink flex-row min-h-[200px] max-h-[400px]')}>
         {renderBottomSheetContent()}
-      </View>
+      </Box>
     </BottomSheet>
   );
 };
