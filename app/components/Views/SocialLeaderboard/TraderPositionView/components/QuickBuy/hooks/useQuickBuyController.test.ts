@@ -3,7 +3,7 @@ import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { act, renderHook } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import Engine from '../../../../../../core/Engine';
+import Engine from '../../../../../../../core/Engine';
 import {
   selectBridgeFeatureFlags,
   selectDestAddress,
@@ -14,52 +14,52 @@ import {
   selectIsSlippageUserOverride,
   selectIsSubmittingTx,
   selectSlippage,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+} from '../../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../../selectors/accountsController';
+import { selectSourceWalletAddress } from '../../../../../../../selectors/bridge';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
-} from '../../../../../../selectors/currencyRateController';
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+} from '../../../../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../../../../selectors/networkController';
+import { selectShouldUseSmartTransaction } from '../../../../../../../selectors/smartTransactionsController';
 import {
   ImpactMoment,
   playErrorNotification,
   playImpact,
-} from '../../../../../../util/haptics';
-import Logger from '../../../../../../util/Logger';
-import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
-import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
-import { toAssetId } from '../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
+} from '../../../../../../../util/haptics';
+import Logger from '../../../../../../../util/Logger';
+import { useHasSufficientGas } from '../../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import useIsInsufficientBalance from '../../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../../../../../UI/Bridge/hooks/useLatestBalance';
+import { toAssetId } from '../../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { usePriceImpactViewData } from '../../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import {
   isSameAsset,
   selectDefaultSourceToken,
-} from '../../../utils/tokenSelection';
-import { useDestTokenExchangeRate } from './hooks/useDestTokenExchangeRate';
-import { usePayWithTokens } from './hooks/usePayWithTokens';
-import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
-import { useQuickBuyController } from './hooks/useQuickBuyController';
+} from '../../../../utils/tokenSelection';
+import { useDestTokenExchangeRate } from './useDestTokenExchangeRate';
+import { usePayWithTokens } from './usePayWithTokens';
+import { usePositionTokenBalance } from './usePositionTokenBalance';
+import { useQuickBuyController } from './useQuickBuyController';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
   type UseQuickBuyQuotesResult,
-} from './hooks/useQuickBuyQuotes';
-import { useQuickBuySetup } from './hooks/useQuickBuySetup';
-import { useReceiveTokens } from './hooks/useReceiveTokens';
-import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+} from './useQuickBuyQuotes';
+import { useQuickBuySetup } from './useQuickBuySetup';
+import { useReceiveTokens } from './useReceiveTokens';
+import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
 import {
   trackQuickBuyTrade,
   beginQuickBuySubmission,
   endQuickBuySubmission,
-} from './quickBuyTradeTracker';
-import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
-import { positionToQuickBuyTarget } from './types';
+} from '../quickBuyTradeTracker';
+import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
+import { positionToQuickBuyTarget } from '../types';
 
-jest.mock('../../../../../../util/Logger', () => ({
+jest.mock('../../../../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
@@ -84,17 +84,17 @@ const mockTrackPayWithSelected = jest.fn();
 const mockTrackReceiveTokenSelected = jest.fn();
 const mockTrackSlippageChanged = jest.fn();
 
-jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
+jest.mock('../../../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   toAssetId: jest.fn(
     () => 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
   ),
 }));
 
-jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
+jest.mock('../../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
 }));
 
-jest.mock('./hooks/useQuickBuyAnalytics', () => ({
+jest.mock('./useQuickBuyAnalytics', () => ({
   useQuickBuyAnalytics: () => ({
     refs: {
       dismissStageRef: { current: 'amount_selection' },
@@ -115,79 +115,85 @@ jest.mock('./hooks/useQuickBuyAnalytics', () => ({
   }),
 }));
 
-jest.mock('./hooks/useQuickBuySetup', () => ({
+jest.mock('./useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-jest.mock('./hooks/usePayWithTokens', () => ({
+jest.mock('./usePayWithTokens', () => ({
   usePayWithTokens: jest.fn(),
 }));
 
-jest.mock('./hooks/useReceiveTokens', () => ({
+jest.mock('./useReceiveTokens', () => ({
   useReceiveTokens: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock('./hooks/usePositionTokenBalance', () => ({
+jest.mock('./usePositionTokenBalance', () => ({
   usePositionTokenBalance: jest.fn().mockReturnValue(undefined),
 }));
 
-jest.mock('./hooks/useDestTokenExchangeRate', () => ({
+jest.mock('./useDestTokenExchangeRate', () => ({
   useDestTokenExchangeRate: jest.fn().mockReturnValue(undefined),
 }));
 
-jest.mock('./hooks/useQuickBuyQuotes', () => ({
+jest.mock('./useQuickBuyQuotes', () => ({
   useQuickBuyQuotes: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useLatestBalance', () => ({
+jest.mock('../../../../../../UI/Bridge/hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useInsufficientBalance', () => ({
+jest.mock('../../../../../../UI/Bridge/hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useHasSufficientGas', () => ({
+jest.mock('../../../../../../UI/Bridge/hooks/useHasSufficientGas', () => ({
   useHasSufficientGas: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useInitialSlippage', () => ({
+jest.mock('../../../../../../UI/Bridge/hooks/useInitialSlippage', () => ({
   useInitialSlippage: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useDisplayCurrencyValue', () => ({
+jest.mock('../../../../../../UI/Bridge/hooks/useDisplayCurrencyValue', () => ({
   useDisplayCurrencyValue: jest.fn(() => undefined),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useFormattedNetworkFee', () => ({
+jest.mock('../../../../../../UI/Bridge/hooks/useFormattedNetworkFee', () => ({
   useFormattedNetworkFee: jest.fn(() => '-'),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useRecipientInitialization', () => ({
-  useRecipientInitialization: jest.fn(),
-}));
+jest.mock(
+  '../../../../../../UI/Bridge/hooks/useRecipientInitialization',
+  () => ({
+    useRecipientInitialization: jest.fn(),
+  }),
+);
 
 jest.mock(
-  '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported',
+  '../../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported',
   () => ({
     useIsGasIncludedSTXSendBundleSupported: jest.fn(),
   }),
 );
 
-jest.mock('../../../../../../selectors/smartTransactionsController', () => ({
+jest.mock('../../../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn(),
 }));
 
-jest.mock('../../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
-  useRefreshSmartTransactionsLiveness: jest.fn(),
-}));
+jest.mock(
+  '../../../../../../hooks/useRefreshSmartTransactionsLiveness',
+  () => ({
+    useRefreshSmartTransactionsLiveness: jest.fn(),
+  }),
+);
 
-jest.mock('../../../../confirmations/hooks/gas/useGasFeeEstimates', () => ({
+jest.mock('../../../../../confirmations/hooks/gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: jest.fn(),
 }));
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
@@ -200,7 +206,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../../core/redux/slices/bridge', () => ({
+jest.mock('../../../../../../../core/redux/slices/bridge', () => ({
   setSourceAmount: jest.fn((v) => ({
     type: 'bridge/setSourceAmount',
     payload: v,
@@ -226,37 +232,37 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectBridgeFeatureFlags: jest.fn(),
 }));
 
-jest.mock('../../../../../../selectors/bridge', () => ({
+jest.mock('../../../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
-jest.mock('../../../../../../selectors/accountsController', () => ({
+jest.mock('../../../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 
-jest.mock('../../../../../../selectors/currencyRateController', () => ({
+jest.mock('../../../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
   selectCurrencyRates: jest.fn(),
 }));
 
-jest.mock('../../../../../../selectors/networkController', () => ({
+jest.mock('../../../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(),
 }));
 
-jest.mock('../../../../../../util/address', () => ({
+jest.mock('../../../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(() => false),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/usePriceImpactViewData', () => ({
+jest.mock('../../../../../../UI/Bridge/hooks/usePriceImpactViewData', () => ({
   usePriceImpactViewData: jest.fn(),
 }));
 
-jest.mock('../../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
 const mockShowToast = jest.fn();
-jest.mock('../../../../../../component-library/components/Toast', () => {
+jest.mock('../../../../../../../component-library/components/Toast', () => {
   const actualReact = jest.requireActual('react');
   return {
     __esModule: true,
@@ -273,7 +279,7 @@ jest.mock('../../../../../../component-library/components/Toast', () => {
   };
 });
 
-jest.mock('./quickBuyTradeTracker', () => ({
+jest.mock('../quickBuyTradeTracker', () => ({
   trackQuickBuyTrade: jest.fn(),
   getTrackedQuickBuyTrade: jest.fn(),
   getTrackedQuickBuyTradeIds: jest.fn(() => []),
@@ -282,23 +288,23 @@ jest.mock('./quickBuyTradeTracker', () => ({
   endQuickBuySubmission: jest.fn(),
 }));
 
-jest.mock('./quickBuyToastOptions', () => ({
+jest.mock('../quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
 }));
 
-jest.mock('./resolveQuickBuyTerminalToast', () => ({
+jest.mock('../resolveQuickBuyTerminalToast', () => ({
   resolveQuickBuyTerminalToast: jest.fn(),
 }));
 
-jest.mock('../../../../../../util/haptics', () => ({
+jest.mock('../../../../../../../util/haptics', () => ({
   playImpact: jest.fn(),
   playErrorNotification: jest.fn(),
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
 const mockTrack = jest.fn();
-jest.mock('../../../analytics', () => {
-  const actual = jest.requireActual('../../../analytics');
+jest.mock('../../../../analytics', () => {
+  const actual = jest.requireActual('../../../../analytics');
   return {
     ...actual,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
@@ -1680,7 +1686,7 @@ describe('useQuickBuyController', () => {
     it('is disabled when a hardware wallet sources from Solana', () => {
       (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
       const { isHardwareAccount } = jest.requireMock(
-        '../../../../../../util/address',
+        '../../../../../../../util/address',
       );
       isHardwareAccount.mockReturnValue(true);
 
