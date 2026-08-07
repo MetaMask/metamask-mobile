@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import LearnMoreBottomSheet from './LearnMoreBottomSheet';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './testIds';
+import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
 
 const mockOnClose = jest.fn();
 const mockNavigation = {
