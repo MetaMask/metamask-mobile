@@ -557,6 +557,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
     const scrollableElement =
       await AppiumGestureStrategy.resolveScrollableElement(scrollView);
 
+    // Cap scrolls so a missing target fails in tens of seconds instead of
+    // burning a 3-minute Playwright timeout (each miss is ~5s of findElement).
+    const maxScrolls = opts?.timeout
+      ? Math.max(3, Math.min(12, Math.ceil(opts.timeout / 5000)))
+      : 10;
+
     await PlaywrightGestures.scrollIntoView(el, {
       scrollParams: {
         direction: AppiumGestureStrategy.toScrollIntoViewDirection(
@@ -564,6 +570,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
         ),
       },
       scrollableElement,
+      maxScrolls,
     });
   }
 
