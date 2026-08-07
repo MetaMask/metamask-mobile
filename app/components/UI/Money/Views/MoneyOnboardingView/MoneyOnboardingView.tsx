@@ -61,6 +61,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
 import onboardingFlowV25Animation from '../../../../../animations/onboarding_flow_v25.riv';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -529,4 +530,36 @@ const MoneyOnboardingView = () => {
   );
 };
 
-export default MoneyOnboardingView;
+// Used in E2E and performance tests to complete the onboarding and redirect to the money home screen.
+const MoneyOnboardingViewE2E = () => {
+  const dispatch = useDispatch();
+
+  const navigation = useNavigation<AppNavigationProp>();
+
+  const navigateToMoneyHome = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
+
+  const completeOnboardingAndRedirect = useCallback(() => {
+    dispatch(setMoneyOnboardingSeen(true));
+    navigateToMoneyHome();
+  }, [dispatch, navigateToMoneyHome]);
+
+  useEffect(() => {
+    completeOnboardingAndRedirect();
+  }, [completeOnboardingAndRedirect]);
+
+  return null;
+};
+
+const MoneyOnboardingViewGate = () => {
+  if (isE2EOrPerformanceTest) {
+    return <MoneyOnboardingViewE2E />;
+  }
+  return <MoneyOnboardingView />;
+};
+
+export default MoneyOnboardingViewGate;

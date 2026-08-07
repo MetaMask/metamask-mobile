@@ -200,7 +200,6 @@ const MoneyHomeView = () => {
     },
   });
   const activityItems = buckets[MoneyActivityFilter.All];
-
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
