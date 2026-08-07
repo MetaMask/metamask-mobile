@@ -13,7 +13,6 @@ import {
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { getNavIntegration } from '../../../util/sentry/utils';
-import { getClient as getSentryClient } from '@sentry/react-native';
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -32,12 +31,6 @@ jest.mock('../../../util/sentry/utils', () => {
     getNavIntegration: jest.fn(() => mockIntegration),
   };
 });
-
-jest.mock('@sentry/react-native', () => ({
-  getClient: jest.fn(),
-}));
-
-const mockGetSentryClient = jest.mocked(getSentryClient);
 
 jest.mock('../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../util/theme');
@@ -101,10 +94,12 @@ describe('NavigationProvider', () => {
     expect(NavigationService.navigation).toHaveProperty('navigate');
   });
 
-  it('registers the navigation container with Sentry when the SDK is initialized', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockGetSentryClient.mockReturnValue({} as any);
-
+  it('always registers the navigation container with Sentry regardless of init timing', () => {
+    // registerNavigationContainer must be called unconditionally so that a
+    // NavigationProvider that mounts before the fire-and-forget setupSentry()
+    // finishes still wires up TTID/ui.load spans. E2E/test builds are handled
+    // inside getNavIntegration() itself, which returns a no-op stub when
+    // hasTestOverrides is true — there is no SDK-client guard here.
     render(
       <NavigationProvider>
         <View />
@@ -118,19 +113,6 @@ describe('NavigationProvider', () => {
     expect(mockIntegration.registerNavigationContainer).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: expect.any(Function) }),
     );
-  });
-
-  it('skips Sentry registration when the SDK is not initialized (E2E / test builds)', () => {
-    mockGetSentryClient.mockReturnValue(undefined);
-
-    render(
-      <NavigationProvider>
-        <View />
-      </NavigationProvider>,
-    );
-
-    const mockIntegration = jest.mocked(getNavIntegration)();
-    expect(mockIntegration.registerNavigationContainer).not.toHaveBeenCalled();
   });
 
   it('uses DefaultTheme with a transparent background', () => {
