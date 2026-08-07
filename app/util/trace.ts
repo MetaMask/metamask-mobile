@@ -264,6 +264,10 @@ export enum TraceName {
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
+  HomepagePerpsTimeToFirstVisibleContent = 'Homepage Perps Time To First Visible Content',
+  HomepagePerpsTimeToFreshVisibleData = 'Homepage Perps Time To Fresh Visible Data',
+  HomepagePerpsSocketToVisible = 'Homepage Perps Socket To Visible',
+  HomepagePerpsCachedToFreshVisible = 'Homepage Perps Cached To Fresh Visible',
   // Money Home Performance
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
@@ -330,6 +334,7 @@ export enum TraceOperation {
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  PerpsHomepagePerformance = 'perps.homepage.performance',
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',

@@ -38,6 +38,7 @@ import {
   markPerpsForegroundSettled,
   resetPerpsLifecycleContextForTests,
   PERPS_LIFECYCLE_CONTEXT,
+  PERPS_LIFECYCLE_DETAIL,
 } from './perpsLifecycleContext';
 
 jest.mock('../../../../util/trace', () => ({
@@ -99,6 +100,7 @@ describe('perpsCufTrace', () => {
           [PERPS_CUF_TAG.FEATURE]: PERPS_CONSTANTS.FeatureName,
           [PERPS_CUF_TAG.LIFECYCLE_CONTEXT]:
             PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+          [PERPS_CUF_TAG.LIFECYCLE_DETAIL]: PERPS_LIFECYCLE_DETAIL.COLD_PROCESS,
         }),
       }),
     );
@@ -127,6 +129,8 @@ describe('perpsCufTrace', () => {
         tags: {
           [PERPS_CUF_TAG.FEATURE]: PERPS_CONSTANTS.FeatureName,
           [PERPS_CUF_TAG.LIFECYCLE_CONTEXT]: PERPS_LIFECYCLE_CONTEXT.WARM,
+          [PERPS_CUF_TAG.LIFECYCLE_DETAIL]:
+            PERPS_LIFECYCLE_DETAIL.WARM_FOREGROUND,
           [PERPS_CUF_TAG.VARIANT]: PERPS_CUF_VARIANT.EMPTY,
         },
       }),

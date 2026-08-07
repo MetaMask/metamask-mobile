@@ -18,6 +18,7 @@ import {
 } from '../constants/perpsCufTags';
 import {
   getPerpsLifecycleContext,
+  getPerpsLifecycleDetail,
   settlePerpsForegroundOnSpan,
 } from './perpsLifecycleContext';
 
@@ -120,6 +121,7 @@ export function buildPerpsCufStartTags(
   return {
     [PERPS_CUF_TAG.FEATURE]: PERPS_CONSTANTS.FeatureName,
     [PERPS_CUF_TAG.LIFECYCLE_CONTEXT]: getPerpsLifecycleContext(),
+    [PERPS_CUF_TAG.LIFECYCLE_DETAIL]: getPerpsLifecycleDetail(),
     ...extra,
   };
 }
