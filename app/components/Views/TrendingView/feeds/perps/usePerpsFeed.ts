@@ -173,18 +173,14 @@ export const usePerpsFeed = ({
     return variant === 'macro' ? [...fused].sort(sortFn) : fused;
   }, [connectionContext?.error, markets, variant, query]);
 
-  // Only visible carousel tiles need candle sparklines; each symbol is a stream
-  // subscription (Hyperliquid). TileCarousel caps display at TILE_CAROUSEL_DEFAULT_MAX_TILES.
-  const symbols = useMemo(
+  // Only visible carousel tiles need sparklines. TileCarousel caps display at
+  // TILE_CAROUSEL_DEFAULT_MAX_TILES.
+  const sparklineMarkets = useMemo(
     () =>
-      withTileExtras
-        ? filtered
-            .slice(0, TILE_CAROUSEL_DEFAULT_MAX_TILES)
-            .map((m) => m.symbol)
-        : [],
+      withTileExtras ? filtered.slice(0, TILE_CAROUSEL_DEFAULT_MAX_TILES) : [],
     [filtered, withTileExtras],
   );
-  const { sparklines } = useHomepageSparklines(symbols);
+  const { sparklines } = useHomepageSparklines(sparklineMarkets);
   const watchlistSymbols =
     useSelector(selectPerpsWatchlistMarkets) ?? EMPTY_WATCHLIST_SYMBOLS;
 

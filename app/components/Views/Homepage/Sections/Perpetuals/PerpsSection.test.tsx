@@ -737,6 +737,28 @@ describe('PerpsSection', () => {
       expect(screen.getByText('SOL')).toBeOnTheScreen();
     });
 
+    it('refreshes the market list on pull-to-refresh when the trending carousel is showing', async () => {
+      const refresh = jest.fn().mockResolvedValue(undefined);
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh,
+        isRefreshing: false,
+      });
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} ref={ref} />,
+      );
+
+      await ref.current?.refresh();
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+    });
+
     it('does not show trending carousel when user has positions', () => {
       usePerpsLivePositions.mockReturnValue({
         positions: [makePosition()],
