@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../../../../util/theme';
@@ -119,10 +119,16 @@ function ErrorView({
     ctaOnPress?.();
   }, [ctaOnPress]);
 
+  // Track each ErrorView instance once. Extra SDK fields can mutate after the
+  // error is shown; the ref guard keeps analytics from firing repeatedly when
+  // those values change.
+  const hasTrackedErrorRef = useRef(false);
+
   useEffect(() => {
-    if (!sdk || isBuy === undefined) {
+    if (!sdk || isBuy === undefined || hasTrackedErrorRef.current) {
       return;
     }
+    hasTrackedErrorRef.current = true;
     trackEvent(isBuy ? 'ONRAMP_ERROR' : 'OFFRAMP_ERROR', {
       location,
       message: description,
@@ -135,11 +141,17 @@ function ErrorView({
         ? selectedAsset?.symbol
         : (selectedFiatCurrencyId as string),
     });
-    // Dependency array does not include extra data since it can mutate after the error
-    // is displayed. This is a safe guard to prevent the error from being tracked multiple
-    // times.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [description, location, trackEvent]);
+  }, [
+    sdk,
+    isBuy,
+    description,
+    location,
+    trackEvent,
+    selectedPaymentMethodId,
+    selectedRegion?.id,
+    selectedFiatCurrencyId,
+    selectedAsset?.symbol,
+  ]);
 
   return (
     <View style={styles.screen}>

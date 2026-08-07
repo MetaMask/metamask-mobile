@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   HeaderStandard,
   Text,
@@ -135,12 +141,18 @@ const V2BankDetails = () => {
     }
   }, [order, getDepositOrder, refreshOrder, handleLogoutError]);
 
+  const hasRefreshedCreatedOrderRef = useRef(false);
+
   useEffect(() => {
-    if (order?.status === RampsOrderStatus.Created && shouldUpdate) {
-      handleOnRefresh();
+    if (hasRefreshedCreatedOrderRef.current) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (order?.status !== RampsOrderStatus.Created || !shouldUpdate) {
+      return;
+    }
+    hasRefreshedCreatedOrderRef.current = true;
+    handleOnRefresh();
+  }, [order?.status, shouldUpdate, handleOnRefresh]);
 
   useEffect(() => {
     if (!order?.status) return;

@@ -263,12 +263,18 @@ const OrderDetails = () => {
     }
   }, [order, refreshOrder]);
 
+  const hasRefreshedPendingOrderRef = useRef(false);
+
   useEffect(() => {
-    if (isPending && !hasCallbackParams) {
-      handleOnRefresh();
+    if (hasRefreshedPendingOrderRef.current) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!isPending || hasCallbackParams) {
+      return;
+    }
+    hasRefreshedPendingOrderRef.current = true;
+    handleOnRefresh();
+  }, [isPending, hasCallbackParams, handleOnRefresh]);
 
   useEffect(() => {
     if (
