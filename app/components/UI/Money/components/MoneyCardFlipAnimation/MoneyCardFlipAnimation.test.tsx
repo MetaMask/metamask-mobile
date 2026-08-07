@@ -220,9 +220,12 @@ describe('MoneyCardFlipAnimation', () => {
         <MoneyCardFlipAnimation isMetalCard={false} shouldPlay={false} />,
       );
 
-      expect(
-        getByTestId(MoneyCardFlipAnimationTestIds.CONTAINER),
-      ).toBeOnTheScreen();
+      // The reserved size must match the played state, or releasing the hold
+      // shifts the sheet's contents.
+      expect(getByTestId(MoneyCardFlipAnimationTestIds.CONTAINER)).toHaveStyle({
+        width: 150,
+        aspectRatio: 620 / 400,
+      });
       expect(queryByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeNull();
       expect(
         queryByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
