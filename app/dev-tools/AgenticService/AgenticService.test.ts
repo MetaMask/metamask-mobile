@@ -4,6 +4,7 @@ import AgenticService, {
   findMeasurableStateNode,
   walkFiberRoots,
   tryScroll,
+  tryScrollNear,
   toAccountSummary,
   getFixtureMnemonicCount,
   getFixtureAccountNames,
@@ -119,6 +120,32 @@ jest.mock('../../core/Engine', () => ({
     PerpsController: {
       markTutorialCompleted: jest.fn(),
       getPositions: jest.fn().mockResolvedValue([]),
+      state: {
+        cachedMarketDataByProvider: { market: {} },
+        cachedUserDataByProvider: { user: {} },
+      },
+      update: jest.fn(
+        (
+          updater: (state: {
+            cachedMarketDataByProvider: Record<string, unknown>;
+            cachedUserDataByProvider: Record<string, unknown>;
+          }) => void,
+        ) =>
+          updater(
+            (
+              jest.requireMock('../../core/Engine') as {
+                context: {
+                  PerpsController: {
+                    state: {
+                      cachedMarketDataByProvider: Record<string, unknown>;
+                      cachedUserDataByProvider: Record<string, unknown>;
+                    };
+                  };
+                };
+              }
+            ).context.PerpsController.state,
+          ),
+      ),
     },
   },
   setSelectedAddress: jest.fn(),
@@ -148,6 +175,11 @@ jest.mock('../../components/UI/Perps/providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: () => ({
     clearAllChannels: (...args: unknown[]) => mockClearAllChannels(...args),
   }),
+}));
+
+jest.mock('../../components/UI/Perps/constants/perpsConfig', () => ({
+  PERPS_DISK_CACHE_MARKETS: 'PERPS_DISK_CACHE_MARKETS',
+  PERPS_DISK_CACHE_USER_DATA: 'PERPS_DISK_CACHE_USER_DATA_V2',
 }));
 
 // Authentication pulls in the full auth/keychain stack; stub the singleton.
@@ -208,12 +240,14 @@ jest.mock('../../store/storage-wrapper', () => {
   const storageWrapper = {
     getItem: jest.fn().mockResolvedValue(null),
     setItem: jest.fn().mockResolvedValue(undefined),
+    removeItem: jest.fn().mockResolvedValue(undefined),
   };
   return {
     __esModule: true,
     default: storageWrapper,
     getItem: storageWrapper.getItem,
     setItem: storageWrapper.setItem,
+    removeItem: storageWrapper.removeItem,
   };
 });
 jest.mock('../../constants/storage', () => ({
@@ -518,6 +552,55 @@ describe('tryScroll', () => {
   });
 });
 
+describe('tryScrollNear', () => {
+  it('walks from a list item to its scrollable ancestor', () => {
+    const scrollTo = jest.fn();
+    const scrollView = makeFiber({
+      stateNode: { scrollTo } as FiberNode['stateNode'],
+    });
+    const item = makeFiber({ testID: 'offscreen-item', return: scrollView });
+    scrollView.child = item;
+
+    expect(tryScrollNear(item, 600, true)).toBe(true);
+    expect(scrollTo).toHaveBeenCalledWith({ y: 600, animated: true });
+  });
+
+  it('still supports a testID placed directly on a scrollable subtree', () => {
+    const scrollToOffset = jest.fn();
+    const nativeList = makeFiber({
+      stateNode: { scrollToOffset } as FiberNode['stateNode'],
+    });
+    const anchor = makeFiber({ testID: 'list', child: nativeList });
+
+    expect(tryScrollNear(anchor, 300, false)).toBe(true);
+    expect(scrollToOffset).toHaveBeenCalledWith({
+      offset: 300,
+      animated: false,
+    });
+  });
+
+  it('prefers a vertical ancestor over a scrollable target subtree for into-view', () => {
+    const parentScrollTo = jest.fn();
+    const childScrollTo = jest.fn();
+    const scrollView = makeFiber({
+      stateNode: { scrollTo: parentScrollTo } as FiberNode['stateNode'],
+    });
+    const carousel = makeFiber({
+      stateNode: { scrollTo: childScrollTo } as FiberNode['stateNode'],
+    });
+    const item = makeFiber({
+      testID: 'products',
+      child: carousel,
+      return: scrollView,
+    });
+    scrollView.child = item;
+
+    expect(tryScrollNear(item, 600, true, true)).toBe(true);
+    expect(parentScrollTo).toHaveBeenCalledWith({ y: 600, animated: true });
+    expect(childScrollTo).not.toHaveBeenCalled();
+  });
+});
+
 // ─── AgenticService.install / __AGENTIC__ bridge tests ──────────────────────
 
 describe('AgenticService.install', () => {
@@ -601,6 +684,37 @@ describe('AgenticService.install', () => {
       suppressError: true,
     });
     expect(mockClearAllChannels).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears only Perps persistent performance caches', async () => {
+    const StorageWrapper = jest.requireMock('../../store/storage-wrapper');
+    StorageWrapper.removeItem.mockClear();
+    MockEngine.context.PerpsController.state.cachedMarketDataByProvider = {
+      market: {},
+    };
+    MockEngine.context.PerpsController.state.cachedUserDataByProvider = {
+      user: {},
+    };
+
+    await expect(bridge().clearPerpsPerformanceCaches()).resolves.toEqual({
+      ok: true,
+      clearedStorageKeys: [
+        'PERPS_DISK_CACHE_MARKETS',
+        'PERPS_DISK_CACHE_USER_DATA_V2',
+      ],
+      clearedControllerMarketEntries: 1,
+      clearedControllerUserEntries: 1,
+    });
+    expect(StorageWrapper.removeItem.mock.calls).toEqual([
+      ['PERPS_DISK_CACHE_MARKETS'],
+      ['PERPS_DISK_CACHE_USER_DATA_V2'],
+    ]);
+    expect(
+      MockEngine.context.PerpsController.state.cachedMarketDataByProvider,
+    ).toEqual({});
+    expect(
+      MockEngine.context.PerpsController.state.cachedUserDataByProvider,
+    ).toEqual({});
   });
 
   it('listAccounts returns mapped accounts', () => {
@@ -793,6 +907,29 @@ describe('AgenticService.install', () => {
 
       expect(result.ok).toBe(true);
       expect(scrollTo).toHaveBeenCalledWith({ y: 100, animated: false });
+    });
+
+    it('scrolls a testID child through its scrollable ancestor', () => {
+      const scrollTo = jest.fn();
+      const scrollView = makeFiber({
+        stateNode: { scrollTo } as FiberNode['stateNode'],
+      });
+      const anchor = makeFiber({
+        testID: 'offscreen-item',
+        return: scrollView,
+      });
+      scrollView.child = anchor;
+      installFiberHook(scrollView);
+
+      const result = bridge().scrollView({
+        testId: 'offscreen-item',
+        offset: 600,
+        animated: true,
+        intoView: true,
+      });
+
+      expect(result.ok).toBe(true);
+      expect(scrollTo).toHaveBeenCalledWith({ y: 600, animated: true });
     });
 
     it('returns error when no scrollable found', () => {

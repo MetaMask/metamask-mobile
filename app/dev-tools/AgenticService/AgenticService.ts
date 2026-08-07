@@ -51,6 +51,10 @@ import { emitStepHud } from './AgentStepHud';
 import { Wallet as EthersWallet } from 'ethers';
 import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
 import { getStreamManagerInstance } from '../../components/UI/Perps/providers/PerpsStreamManager';
+import {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+} from '../../components/UI/Perps/constants/perpsConfig';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -140,6 +144,7 @@ interface AgenticBridge {
     testId?: string;
     offset?: number;
     animated?: boolean;
+    intoView?: boolean;
   }) => {
     ok: boolean;
     error?: string;
@@ -212,6 +217,12 @@ interface AgenticBridge {
   showStep: (step: AgenticHudStep) => void;
   hideStep: () => void;
   refreshPerpsStreams: () => Promise<{ ok: boolean; positions: number }>;
+  clearPerpsPerformanceCaches: () => Promise<{
+    ok: boolean;
+    clearedStorageKeys: string[];
+    clearedControllerMarketEntries: number;
+    clearedControllerUserEntries: number;
+  }>;
   findFiberByTestId: (testId: string) => boolean;
   queryUiTarget: (options: {
     testId?: string;
@@ -802,6 +813,38 @@ function tryScroll(
   return false;
 }
 
+/**
+ * Scroll from a testID anchor without assuming the scrollable is rendered
+ * below that anchor. React Native list items are normally descendants of the
+ * ScrollView, so their nearest scrollable is on the fiber return path.
+ */
+function tryScrollNear(
+  anchor: FiberNode,
+  offset: number,
+  animated: boolean,
+  preferAncestor = false,
+): boolean {
+  if (!preferAncestor && tryScroll(anchor, offset, animated, false)) {
+    return true;
+  }
+
+  let current = anchor.return;
+  while (current) {
+    const stateNode = current.stateNode;
+    if (typeof stateNode?.scrollTo === 'function') {
+      stateNode.scrollTo({ y: offset, animated });
+      return true;
+    }
+    if (typeof stateNode?.scrollToOffset === 'function') {
+      stateNode.scrollToOffset({ offset, animated });
+      return true;
+    }
+    current = current.return;
+  }
+
+  return preferAncestor && tryScroll(anchor, offset, animated, false);
+}
+
 function targetMatches(
   fiber: FiberNode,
   options: { testId?: string; textContains?: string },
@@ -1241,24 +1284,32 @@ const AgenticService = {
           testId?: string;
           offset?: number;
           animated?: boolean;
+          intoView?: boolean;
         } = {},
       ) => {
         const {
           testId: scrollTestId,
           offset = 300,
           animated = false,
+          intoView = false,
         } = options;
         try {
           const found = walkFiberRoots((rootFiber) => {
             if (scrollTestId) {
               const anchor = findFiberByTestId(rootFiber, scrollTestId);
               if (!anchor) return false;
-              return tryScroll(anchor, offset, animated, false);
+              return tryScrollNear(anchor, offset, animated, intoView);
             }
             return tryScroll(rootFiber, offset, animated);
           });
           if (found)
-            return { ok: true, testId: scrollTestId, offset, animated };
+            return {
+              ok: true,
+              testId: scrollTestId,
+              offset,
+              animated,
+              intoView,
+            };
           return {
             ok: false,
             error: scrollTestId
@@ -1379,6 +1430,45 @@ const AgenticService = {
         return {
           ok: true,
           positions: Array.isArray(positions) ? positions.length : 0,
+        };
+      },
+      clearPerpsPerformanceCaches: async () => {
+        const controller = Engine.context.PerpsController as unknown as {
+          state: {
+            cachedMarketDataByProvider: Record<string, unknown>;
+            cachedUserDataByProvider: Record<string, unknown>;
+          };
+          update: (
+            updater: (state: {
+              cachedMarketDataByProvider: Record<string, unknown>;
+              cachedUserDataByProvider: Record<string, unknown>;
+            }) => void,
+          ) => void;
+        };
+        const clearedControllerMarketEntries = Object.keys(
+          controller.state.cachedMarketDataByProvider,
+        ).length;
+        const clearedControllerUserEntries = Object.keys(
+          controller.state.cachedUserDataByProvider,
+        ).length;
+        const clearedStorageKeys = [
+          PERPS_DISK_CACHE_MARKETS,
+          PERPS_DISK_CACHE_USER_DATA,
+        ];
+
+        await Promise.all(
+          clearedStorageKeys.map((key) => StorageWrapper.removeItem(key)),
+        );
+        controller.update((state) => {
+          state.cachedMarketDataByProvider = {};
+          state.cachedUserDataByProvider = {};
+        });
+
+        return {
+          ok: true,
+          clearedStorageKeys,
+          clearedControllerMarketEntries,
+          clearedControllerUserEntries,
         };
       },
       findFiberByTestId: (testId: string): boolean => {
@@ -1685,6 +1775,7 @@ export {
   findMeasurableStateNode,
   walkFiberRoots,
   tryScroll,
+  tryScrollNear,
   toAccountSummary,
 };
 export type { FiberNode, FiberRoot, ReactDevToolsHook, AgenticBridge };
