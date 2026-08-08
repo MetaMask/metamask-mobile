@@ -176,6 +176,20 @@ describe('OrderContent', () => {
     expect(screen.getByText('Failed')).toBeOnTheScreen();
   });
 
+  it('renders refund messaging for failed Transak sell orders', () => {
+    renderOrder({
+      ...mockOrder,
+      status: RampsOrderStatus.Failed,
+      orderType: 'SELL',
+    });
+
+    expect(
+      screen.getByText(
+        'Your crypto will be refunded to the original wallet address using the same token and network.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('renders cancelled status', () => {
     renderOrder({ ...mockOrder, status: RampsOrderStatus.Cancelled });
     expect(screen.getByText('Cancelled')).toBeOnTheScreen();

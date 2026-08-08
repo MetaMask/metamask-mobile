@@ -110,6 +110,11 @@ const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const orderData = order.data as Order;
+  const providerName = getProviderName(order.provider, order.data);
+  const shouldShowRefundMessage =
+    order.state === FIAT_ORDER_STATES.FAILED &&
+    order.orderType === OrderOrderTypeEnum.Sell &&
+    providerName.toLowerCase().includes('transak');
 
   switch (order.state) {
     case FIAT_ORDER_STATES.COMPLETED: {
@@ -148,6 +153,18 @@ const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
                 ? strings('fiat_on_ramp_aggregator.order_details.failed')
                 : strings('fiat_on_ramp_aggregator.order_details.cancelled')}
             </Text>
+
+            {shouldShowRefundMessage ? (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                style={styles.textCenter}
+              >
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.failed_sell_refund_description',
+                )}
+              </Text>
+            ) : null}
 
             {orderData.statusDescription ? (
               <Text
