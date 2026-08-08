@@ -1071,7 +1071,7 @@
       "error": "Webview gặp lỗi: {{code}}"
     },
     "notifications": {
-      "deposit_failed_title": "Nạp {{currency}} không thành công! Vui lòng thử lại, chúng tôi chân thành xin lỗi vì sự bất tiện này!",
+      "deposit_failed_title": "Deposit of {{currency}} has failed. Please try again, sorry for the inconvenience.",
       "deposit_failed_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
       "deposit_cancelled_title": "Lệnh nạp tiền của bạn đã bị hủy",
       "deposit_cancelled_description": "Bạn đã yêu cầu hủy lệnh nạp tiền.",
@@ -1310,6 +1310,9 @@
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
+      "selection_title": "Choose how you trade",
+      "lite_description": "One-tap longs or shorts. Simple by design.",
+      "pro_description": "Order book, advanced order types, and leverage.",
       "lite_transition_title": "Chế độ Lite",
       "pro_transition_title": "Chế độ Pro",
       "active_pill_accessibility_label": "Hiện đang ở chế độ {{mode}}",
@@ -1525,8 +1528,12 @@
       "isolated": "Ký quỹ cô lập",
       "choose_order_type": "Chọn loại lệnh",
       "size_usd": "Size (USD)",
+      "size_unit": "Size ({{unit}})",
+      "size_input_hint": "Enter order size in {{unit}}",
       "size_percentage": "Tỷ lệ kích thước lệnh",
+      "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "Chuyển đổi đơn vị kích thước",
+      "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
       "available_balance": "Có sẵn {{amount}}",
       "available_balance_unavailable": "-- khả dụng",
       "est_liquidation": "Giá thanh lý ước tính",
@@ -1535,6 +1542,8 @@
       "close_keyboard": "Đóng bàn phím"
     },
     "pro_positions_panel": {
+      "order_history": "Order history",
+      "close_count": "Close ({{count}})",
       "positions": "Vị thế",
       "positions_with_count": "Vị thế ({{count}})",
       "orders": "Lệnh",
@@ -1546,6 +1555,9 @@
       "positions_empty_long": "Không có vị thế mua khống.",
       "positions_empty_short": "Không có vị thế bán khống.",
       "orders_empty": "Các lệnh đang mở của bạn sẽ hiển thị tại đây.",
+      "orders_empty_filtered": "No open {{ticker}} orders.",
+      "orders_empty_long": "No long orders.",
+      "orders_empty_short": "No short orders.",
       "side_filter": {
         "all_sides": "Tất cả các hướng",
         "long": "Mua khống",
@@ -1555,7 +1567,12 @@
         "position_value": "Giá trị vị thế",
         "unrealized_pnl": "Lãi/Lỗ chưa thực hiện",
         "funding_rate": "Tỷ lệ tài trợ",
-        "settings_accessibility": "Sắp xếp vị thế"
+        "order_value": "Order value",
+        "size": "Size",
+        "price": "Price",
+        "time": "Time",
+        "settings_accessibility": "Sắp xếp vị thế",
+        "orders_settings_accessibility": "Sort orders"
       },
       "card": {
         "entry_price": "Giá vào lệnh",
@@ -1577,7 +1594,10 @@
         "reduce_only": "Chỉ giảm",
         "tp_sl": "Chốt lời/Cắt lỗ",
         "trigger_condition": "Điều kiện kích hoạt",
-        "cancel": "Hủy"
+        "cancel": "Hủy",
+        "edit": "Edit",
+        "edit_price": "Edit limit price",
+        "edit_size": "Edit size"
       }
     },
     "order": {
@@ -1626,7 +1646,10 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Cần đặt giá giới hạn trước khi thiết lập mức Chốt lời/Cắt lỗ",
         "only_hyperliquid_usdc": "Hiện tại chỉ hỗ trợ USDC trên Hyperliquid khi thực hiện thanh toán",
         "limit_price_far_warning": "Giá giới hạn cách xa giá thị trường hiện tại",
-        "oi_cap_reached": "Đã đạt giới hạn lãi suất mở. Không thể mở vị thế mới vào lúc này."
+        "oi_cap_reached": "Đã đạt giới hạn lãi suất mở. Không thể mở vị thế mới vào lúc này.",
+        "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
+        "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
+        "reduce_only_too_large": "Reduce only order is larger than your open position"
       },
       "error": {
         "placement_failed": "Đặt lệnh thất bại",
@@ -1660,6 +1683,11 @@
         "off": "TẮT",
         "take_profit_helper": "Đóng vị thế khi giá đạt đến mức này",
         "stop_loss_helper": "Giới hạn thua lỗ bằng cách đóng vị thế ở mức giá này"
+      },
+      "size_modal": {
+        "title": "Edit size",
+        "set": "Set",
+        "order_value": "Order value: {{value}}"
       },
       "limit_price_modal": {
         "title": "Đặt giá giới hạn",
@@ -1741,7 +1769,11 @@
       "order_cancelled_success": "Đã hủy lệnh {{detailedOrderType}}",
       "pay_with_token_required": "Cần phải chọn token",
       "select_token_to_pay_with": "Vui lòng chọn một token để thanh toán trước khi đặt hàng",
-      "initializing": "Đang khởi tạo đơn hàng..."
+      "initializing": "Đang khởi tạo đơn hàng...",
+      "updating_your_order": "Updating your order",
+      "order_updated": "Order updated",
+      "order_update_failed": "Failed to update order",
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
     },
     "slippage": {
       "config_title": "Đặt mức trượt giá",
@@ -1909,7 +1941,11 @@
       "order_not_found": "Không tìm thấy lệnh",
       "clientNotInitialized": "Máy trạm HyperLiquid SDK chưa được khởi tạo đúng cách",
       "exchangeClientNotAvailable": "ExchangeClient không khả dụng sau khi khởi tạo",
+      "exchangeAccountNotFound": "Add funds to your account before placing an order",
+      "exchangeMultiSigRequired": "This account needs its multi-signature signers to trade",
+      "exchangeInvalidNonce": "Something went wrong. Please try again.",
       "infoClientNotAvailable": "InfoClient không khả dụng sau khi khởi tạo",
+      "subscriptionClientNotAvailable": "SubscriptionClient not available after initialization",
       "subscriptionClientNotInitialized": "SubscriptionClient chưa được khởi tạo",
       "failedToSubscribePosition": "Không thể đăng ký cập nhật vị thế",
       "failedToUnsubscribePosition": "Không thể hủy đăng ký cập nhật vị thế",
@@ -1941,7 +1977,18 @@
         "sizePositive": "Kích thước phải là số dương",
         "pricePositive": "Giá phải là số dương nếu được cung cấp",
         "unknownCoin": "Đồng tiền không xác định: {{coin}}",
-        "limitPriceRequired": "Giá là bắt buộc đối với lệnh giới hạn"
+        "limitPriceRequired": "Giá là bắt buộc đối với lệnh giới hạn",
+        "triggerPriceRequired": "A trigger price is required for stop and take profit orders",
+        "triggerPricePositive": "Trigger price must be a positive number",
+        "triggerPriceNotSupported": "Market and limit orders can't have a trigger price",
+        "triggerTpslUnsupported": "Stop and take profit orders can't carry their own take profit or stop loss",
+        "tpslSizeInvalid": "Take profit and stop loss size must be positive and no larger than the order",
+        "tpslLinkageConflict": "Conflicting take profit and stop loss settings",
+        "tpslLinkageRequired": "Take profit and stop loss must be attached to the order or to the position",
+        "tpslPositionLinkageUnsupported": "Take profit and stop loss can only be attached to a position once the order has filled",
+        "timeInForceNotSupported": "Time in force can only be set on limit orders",
+        "editTriggerUnsupported": "Stop and take profit orders can't be edited. Cancel the order and place a new one.",
+        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again."
       },
       "networkToggleFailed": "Không thể chuyển đổi mạng: {{error}}",
       "accountBalanceFailed": "Không thể tải số dư tài khoản: {{error}}",
@@ -2351,6 +2398,13 @@
       "error_title": "Hủy lệnh thất bại",
       "error_message": "Không thể hủy {{count}} lệnh"
     },
+    "margin_mode": {
+      "title": "Choose margin mode",
+      "isolated_title": "Isolated",
+      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "cross_title": "Cross",
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
     "crossMargin": {
       "title": "Không hỗ trợ ký quỹ chéo",
       "message": "MetaMask Hợp đồng vĩnh cửu chỉ hỗ trợ giao dịch với ký quỹ riêng biệt. Bạn cần đóng vị thế ký quỹ chéo trước khi có thể giao dịch trên MetaMask.",
@@ -2376,7 +2430,8 @@
       "past_hour": "Trong giờ qua",
       "past_24_hours": "Trong 24 giờ qua",
       "time": "Thời gian",
-      "apply": "Áp dụng"
+      "apply": "Áp dụng",
+      "clear": "Clear"
     },
     "provider_selector": {
       "title": "Chọn nhà cung cấp"
@@ -2499,6 +2554,7 @@
       "size": "Kích thước",
       "total": "Tổng cộng",
       "spread": "Chênh lệch giá",
+      "spread_value": "Spread {{value}}",
       "loading": "Đang tải sổ lệnh...",
       "no_data": "Không có dữ liệu sổ lệnh",
       "error": "Tải sổ lệnh thất bại",
@@ -3237,6 +3293,7 @@
   },
   "wallet": {
     "title": "Ví",
+    "search_accessibility_label": "Search",
     "tokens": "Token",
     "view_all_nfts": "Xem tất cả NFT",
     "view_all_tokens": "Xem tất cả token",
@@ -3340,7 +3397,7 @@
     "refresh_metadata": "Làm mới metadata",
     "token_removal_issue_title": "Sự cố khi gỡ bỏ Token.",
     "token_removal_issue_desc": "Đã xảy ra sự cố khi cố gắng gỡ bỏ Token. Hãy thử lại.",
-    "collectible_removed_title": "Đã gỡ bỏ bộ sưu tập!",
+    "collectible_removed_title": "Collectible removed",
     "collectible_removed_desc": "Nếu đổi ý, bạn có thể thêm lại bằng cách chạm vào \"Nhập NFT\"",
     "remove": "Ẩn",
     "cancel": "Hủy",
@@ -3426,8 +3483,8 @@
     "perps_filter": {
       "title": "Vĩnh cửu",
       "trades": "Giao dịch",
-      "order": "Lệnh",
-      "fundings": "Tài trợ",
+      "order": "Orders",
+      "fundings": "Funding payments",
       "deposits": "Nạp tiền"
     },
     "empty_state": {
@@ -3922,15 +3979,15 @@
       "deselect_all": "Bỏ chọn tất cả",
       "select_accounts_title": "Tài khoản",
       "select_accounts_desc": "Chọn những tài khoản mà bạn muốn nhận thông báo.",
-      "wallet_activity_title": "Hoạt động ví",
-      "wallet_activity_desc": "Mua, bán, chuyển tiền, hoán đổi và phần thưởng",
-      "perps_title": "Hoạt động giao dịch",
+      "wallet_activity_title": "Wallet activity",
+      "wallet_activity_desc": "Buy, sells, transfers, swaps",
+      "perps_title": "Trading activity",
       "perps_desc": "Thay đổi vị thế hợp đồng vĩnh cửu, thanh lý, tỷ lệ tài trợ và cập nhật ký quỹ",
       "agentic_cli_title": "Agentic CLI",
       "agentic_cli_desc": "Yêu cầu kết nối CLI, phê duyệt và cập nhật phiên cho Agentic",
-      "social_ai_title": "Tín hiệu giao dịch",
-      "social_ai_desc": "Cập nhật từ các nhà giao dịch và tài sản mà bạn theo dõi, cùng với tin tức thị trường được tuyển chọn",
-      "marketing_title": "Cập nhật và Phần thưởng",
+      "social_ai_title": "Trading signals",
+      "social_ai_desc": "Updates from traders and assets you follow, plus curated market news",
+      "marketing_title": "Updates and rewards",
       "marketing_desc": "Cập nhật sản phẩm, thông báo tính năng và các bản phát hành mới",
       "marketing_disclaimer": "Khi bật tùy chọn này, bạn đồng ý nhận tin tức sản phẩm và các cập nhật tiếp thị từ MetaMask.",
       "customize_session_title": "Tùy chỉnh thông báo",
@@ -3947,7 +4004,7 @@
       "snaps_desc": "Tính năng và cập nhật mới",
       "products_announcements_title": "Thông báo sản phẩm",
       "products_announcements_desc": "Sản phẩm và tính năng mới",
-      "price_alerts_title": "Cảnh báo giá",
+      "price_alerts_title": "Price alerts",
       "price_alerts_desc": "Nhận thông báo dựa trên các cảnh báo mà bạn đã thiết lập cho giá của token"
     },
     "contacts_title": "Danh bạ",
@@ -5735,7 +5792,7 @@
     "risks_1": "Bạn làm mất nó",
     "risks_2": "Bạn quên đã cất ở đâu",
     "risks_3": "Ai đó tìm thấy",
-    "other_options": "Các lựa chọn khác: Không nhất thiết phải viết ra giấy!",
+    "other_options": "Other options: Doesn’t have to be paper.",
     "tips_title": "Gợi ý:",
     "tips_1": "Cất trong két sắt ngân hàng",
     "tips_2": "Cất trong két sắt",
@@ -5876,7 +5933,7 @@
     "proceed_anyway": "vẫn tiếp tục",
     "but_please_do_so_at_your_own_risk": "nhưng vui lòng tự chịu rủi ro.",
     "report_detection_problem": "Báo cáo sự cố phát hiện",
-    "share_on_twitter": "Nếu bạn thấy thông tin này hữu ích, hãy chia sẻ trên X!",
+    "share_on_twitter": "If you found this helpful, share on X.",
     "share_text": "MetaMask đã bảo vệ tôi trước việc truy cập vào một trang web có thể gây hại: {{url}}. Hãy đảm bảo an toàn!"
   },
   "notifications": {
@@ -5949,11 +6006,11 @@
     "erc1155_received": "Đã nhận được NFT từ {{address}}",
     "received_nft": "Đã nhận được NFT từ {{address}}",
     "pending_title": "Đã gửi giao dịch",
-    "pending_deposit_title": "Đang nạp tiền!",
-    "pending_withdrawal_title": "Đang rút tiền!",
-    "cancelled_title": "Đã hủy giao dịch!",
+    "pending_deposit_title": "Deposit in progress",
+    "pending_withdrawal_title": "Withdrawal in progress",
+    "cancelled_title": "Transaction cancelled",
     "success_title": "Giao dịch #{{nonce}} hoàn tất!",
-    "speedup_title": "Đang tăng tốc #{{nonce}}!",
+    "speedup_title": "Speeding up #{{nonce}}",
     "success_deposit_title": "Nạp tiền hoàn tất!",
     "success_withdrawal_title": "Rút tiền hoàn tất!",
     "error_title": "Rất tiếc, đã xảy ra lỗi :/",
@@ -6447,8 +6504,8 @@
     "something_went_wrong": "Rất tiếc, đã xảy ra lỗi",
     "report_this_issue": "Báo cáo sự cố này",
     "no_providers_available": "Hiện không có nhà cung cấp nào",
-    "try_different_amount_to_buy_input": "Hãy thử chọn một phương thức thanh toán khác hoặc cố gắng tăng hoặc giảm số lượng bạn muốn mua!",
-    "try_different_amount_to_sell_input": "Hãy thử chọn một điểm rút tiền khác hoặc thử tăng/giảm số tiền mà bạn muốn bán!",
+    "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy.",
+    "try_different_amount_to_sell_input": "Try choosing a different cash out destination or try to increase or reduce the amount you want to sell.",
     "webview_received_error": "WebView gặp lỗi có mã: {{code}}",
     "no_tokens_available_title": "Không có token khả dụng",
     "no_tokens_available": "Hiện không có token nào để mua trên {{network}} bằng phương thức thanh toán đã chọn.",
@@ -6501,7 +6558,7 @@
     },
     "order_details": {
       "details_main": "Chi tiết lệnh",
-      "successful": "Đặt lệnh thành công!",
+      "successful": "Order successful",
       "your": "Cụm từ khôi phục bí mật",
       "available_in_account": "hiện đã có trong tài khoản của bạn",
       "delayed_bank_transfer": "Có thể mất vài ngày để thấy tiền trong tài khoản ngân hàng của bạn.",
@@ -6592,7 +6649,7 @@
     "notifications": {
       "purchase_pending_title": "Đang xử lý giao dịch mua {{cryptocurrency}} của bạn",
       "purchase_pending_description": "Quá trình này chỉ mất vài phút...",
-      "purchase_completed_title": "Bạn đã mua {{amount}} {{cryptocurrency}} thành công!",
+      "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful",
       "purchase_completed_description": "{{cryptocurrency}} của bạn hiện đã có sẵn",
       "purchase_failed_title": "Giao dịch mua {{cryptocurrency}} đã thất bại",
       "purchase_failed_description": "Vui lòng thử lại sau ít phút",
@@ -7356,7 +7413,7 @@
     "your_bonus_tooltip_lifetime_bonus_desc": "Tổng khoản thưởng bạn đã nhận được kể từ khi bắt đầu.",
     "learn_more": "Tìm hiểu thêm",
     "service_interruption_banner": {
-      "maintenance_message": "Chúng tôi đang bảo trì. Chúng tôi sẽ sớm hoạt động trở lại!"
+      "maintenance_message": "We're down for maintenance. We'll be back online soon."
     },
     "supply": "Cung cấp",
     "deposit": "Nạp tiền",
@@ -7578,7 +7635,7 @@
     },
     "asset_overview": {
       "cta": {
-        "earn_apy": "APY {{apy}}%",
+        "earn_apy": "Get {{apy}}% APY",
         "start_earning": "Bắt đầu kiếm tiền",
         "current_apy_disclaimer": "APY hiện tại, có thể thay đổi và không được đảm bảo."
       },
@@ -7641,6 +7698,7 @@
       "link_pending_title": "Đang liên kết thẻ của bạn",
       "link_success_title": "Thẻ của bạn đã sẵn sàng để sử dụng",
       "link_error": "Đã xảy ra lỗi khi liên kết thẻ của bạn",
+      "link_error_different_card": "This wallet is already linked to a different MetaMask Card",
       "unlink_pending_title": "Đang hủy liên kết thẻ của bạn",
       "unlink_success_title": "Thẻ của bạn đã được hủy liên kết",
       "unlink_error": "Đã xảy ra lỗi khi hủy liên kết thẻ của bạn",
@@ -8985,7 +9043,9 @@
       "sign_up": {
         "title": "Bắt đầu nào",
         "description": "Tạo tài khoản với Crypto Life (CL) để thiết lập Thẻ MetaMask của bạn. MetaMask sẽ không xem hoặc lưu trữ dữ liệu cá nhân của bạn.",
+        "description_immersve": "We need a few details to set up your card.",
         "i_already_have_an_account": "Tôi đã có Thẻ MetaMask",
+        "i_already_have_an_account_immersve": "I already have an account",
         "email_label": "Địa chỉ email",
         "password_label": "Mật khẩu mới cho Thẻ MetaMask",
         "password_description": "Khác với mật khẩu mở khóa ứng dụng MetaMask của bạn. Phải có ít nhất 15 ký tự.",
@@ -8996,8 +9056,14 @@
         "join_waitlist": "Tham gia danh sách chờ",
         "country_not_available": "Đăng ký thẻ hiện chưa khả dụng tại quốc gia của bạn.",
         "account_label": "Tài khoản",
+        "account_label_immersve": "Card account",
         "account_description": "MetaMask Card của bạn sẽ được liên kết với tài khoản này.",
-        "account_exists_toast": "Bạn đã có một tài khoản thẻ."
+        "account_description_immersve": "Card purchases will be charged to this account.",
+        "account_exists_toast": "Bạn đã có một tài khoản thẻ.",
+        "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
+        "clickwrap_and": " and ",
+        "clickwrap_suffix": ".",
+        "legal_docs_error": "Unable to load legal documents."
       },
       "confirm_email": {
         "title": "Xác nhận email",
@@ -9300,6 +9366,7 @@
         "travel_title": "MetaMask Travel",
         "travel_description": "Đặt phòng khách sạn với mức giảm giá lên đến 70%",
         "card_tos_title": "Điều khoản và điều kiện",
+        "legal_docs_error": "Unable to load legal documents.",
         "order_metal_card": "Thẻ Metal",
         "order_metal_card_description": "Đặt hàng Thẻ Metal vật lý ngay",
         "cashback": "Hoàn tiền {{cashbackPercentage}}% bằng mUSD",
@@ -9467,7 +9534,8 @@
         "timeout_error": "Đã hết thời gian chờ yêu cầu. Vui lòng kiểm tra kết nối và thử lại.",
         "server_error": "Lỗi máy chủ. Vui lòng thử lại sau.",
         "configuration_error": "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau.",
-        "forbidden_error": "Hành động này không khả dụng đối với tài khoản của bạn."
+        "forbidden_error": "Hành động này không khả dụng đối với tài khoản của bạn.",
+        "money_account_linked_to_different_card": "This wallet is already linked to a different MetaMask Card. Unlink it from that card before linking it here."
       }
     },
     "card_forgot_password": {
@@ -10321,6 +10389,7 @@
     "convert_again": "Chuyển đổi lại",
     "wrap_again": "Bọc lại",
     "unwrap_again": "Hủy bọc lại",
+    "lend_again": "Lend again",
     "transaction_pending": "Giao dịch đang chờ xử lý",
     "likely_to_confirm_in": "Dự kiến sẽ được xác nhận trong",
     "confirm_time_estimate": "< 30 giây",
@@ -10344,26 +10413,26 @@
       "description": "Quay lại ứng dụng để tiếp tục."
     },
     "show_cli_link_success": {
-      "title": "Liên kết MetaMask Agent CLI thành công",
+      "title": "Agent CLI successfully linked",
       "description": "Quay lại CLI để tiếp tục."
     },
     "push_nudge": {
-      "title": "Bật thông báo",
-      "description": "Nhận thông báo về các giao dịch từ phiên CLI của bạn.",
-      "turn_on_button": "Bật",
-      "loading_title": "Đang bật thông báo",
-      "loading_description": "Vui lòng chờ trong giây lát trong lúc chúng tôi thiết lập.",
-      "enable_error": "Không thể bật thông báo. Hãy thử lại từ phần Cài đặt."
+      "title": "Never miss a transaction",
+      "description": "Get real-time alerts to review and approve transactions from your CLI session.",
+      "turn_on_button": "Enable notifications",
+      "preview_title": "Transaction request",
+      "preview_message": "Your agent needs approval on a new limit.",
+      "preview_timestamp": "now"
     },
     "show_otp": {
       "title": "Nhập mã này",
       "description": "Nhập {{otp}} vào {{dappName}} để hoàn tất kết nối. Mã này sẽ hết hạn sau {{seconds}} giây.",
       "modal_title": "Liên kết MetaMask Agent CLI",
       "modal_description": "Ghép nối MetaMask Mobile với MetaMask Agent CLI.",
-      "code_label": "NHẬP MÃ NÀY VÀO CLI",
+      "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Hết hạn sau {{time}}",
       "expired": "Mã đã hết hạn",
-      "security_notice": "Trước tiên, cần bảo mật kết nối. Bạn sẽ cấp quyền truy cập CLI ở bước tiếp theo"
+      "security_notice": "Securing the connection"
     },
     "show_not_found": {
       "title": "Không tìm thấy kết nối",
@@ -10542,6 +10611,7 @@
       "bluetooth_connection_failed": "Kết nối với thiết bị của bạn không thành công. Vui lòng thử lại",
       "camera_permission_denied": "Cần cấp quyền truy cập camera để quét mã QR. Vui lòng bật quyền này trong cài đặt thiết bị của bạn",
       "not_supported": "Thao tác này không được hỗ trợ",
+      "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "Đảm bảo {{device}} của bạn đã được thiết lập với Cụm từ khôi phục bí mật hoặc cụm mật khẩu cho tài khoản này"
     },
     "error": {
@@ -10565,6 +10635,7 @@
       "nearby_devices_permission_denied": "Yêu cầu quyền truy cập Thiết bị lân cận",
       "scan_failed": "Quét thất bại",
       "camera_permission_denied": "Yêu cầu quyền truy cập camera",
+      "unsupported_signature": "Signature not supported",
       "something_went_wrong": "Đã xảy ra sự cố"
     },
     "qr_scan_errors": {
