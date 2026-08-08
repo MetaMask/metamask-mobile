@@ -12,8 +12,7 @@ import Engine from '../../../core/Engine';
 export const ARC_USDC_ASSET_ID: CaipAssetType =
   'eip155:5042/erc20:0x3600000000000000000000000000000000000000';
 
-export const ARC_NATIVE_ASSET_ID: CaipAssetType =
-  'eip155:5042/erc20:0x0000000000000000000000000000000000000000';
+export const ARC_NATIVE_ASSET_ID: CaipAssetType = 'eip155:5042/slip44:5042';
 
 /**
  * Adds ERC-20 USDC on Arc for all EVM accounts that don't already have it,
