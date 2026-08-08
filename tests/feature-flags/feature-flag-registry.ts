@@ -3341,6 +3341,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  crossmintApplePayCheckout: {
+    name: 'crossmintApplePayCheckout',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   depositConfig: {
     name: 'depositConfig',
     type: FeatureFlagType.Remote,
