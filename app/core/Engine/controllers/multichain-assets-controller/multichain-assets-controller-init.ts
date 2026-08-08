@@ -23,6 +23,7 @@ export const multichainAssetsControllerInit: MessengerClientInitFunction<
   const controller = new MultichainAssetsController({
     messenger: controllerMessenger,
     state: multichainAssetsControllerState,
+    isDeprecated: () => true,
   });
 
   return { controller };

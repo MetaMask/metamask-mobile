@@ -76,6 +76,7 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
         // Error is logged but not thrown
       }
     },
+    isDeprecated: () => true,
   });
 
   return {

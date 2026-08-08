@@ -21,6 +21,7 @@ export const tokenRatesControllerInit: MessengerClientInitFunction<
     state: persistedState.TokenRatesController ?? { marketData: {} },
     interval: inMilliseconds(30, Duration.Minute),
     tokenPricesService: codefiTokenApiV2,
+    isDeprecated: () => true,
   });
 
   return {
