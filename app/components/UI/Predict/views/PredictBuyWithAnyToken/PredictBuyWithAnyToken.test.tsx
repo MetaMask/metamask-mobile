@@ -104,7 +104,16 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
     preview: {
       sharePrice: 0.62,
+      maxAmountSpent: 20,
       minAmountReceived: 24,
+      fees: {
+        metamaskFee: 0.4,
+        providerFee: 0.4,
+        marketFee: 0.2,
+        totalFee: 0.8,
+        totalFeePercentage: 4,
+        collector: '0x0',
+      },
     },
     error: null,
     isCalculating: mockIsPreviewCalculating,
@@ -131,6 +140,7 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
     availableBalance: 10,
     isBalanceLoading: false,
+    isPredictBalanceSelected: true,
   }),
 }));
 
@@ -469,7 +479,7 @@ describe('PredictBuyWithAnyToken', () => {
 
     expect(screen.getByTestId('predict-buy-preview-header')).toBeOnTheScreen();
     expect(screen.getByTestId('predict-buy-amount-section')).toHaveTextContent(
-      'Amount Section $10.00 placing-false',
+      'Amount Section $9.52 placing-false',
     );
     expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
       /disabled-false/,
@@ -512,7 +522,7 @@ describe('PredictBuyWithAnyToken', () => {
     renderWithProvider(<PredictBuyWithAnyToken />);
 
     expect(screen.getByTestId('predict-buy-amount-section')).toHaveTextContent(
-      'Amount Section $10.00 placing-true',
+      'Amount Section $9.52 placing-true',
     );
     expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
       /disabled-true/,

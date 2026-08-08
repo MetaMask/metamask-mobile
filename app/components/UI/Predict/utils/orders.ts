@@ -13,15 +13,23 @@ export function generateOrderId(): string {
 }
 
 export function calculateMaxBetAmount(
-  amount: number,
-  totalFeePercentage: number,
+  availableBalance: number,
+  preview?: OrderPreview | null,
 ): number {
-  if (totalFeePercentage === 0) {
-    return amount;
+  if (!Number.isFinite(availableBalance) || availableBalance <= 0) {
+    return 0;
   }
-  const maxBetAmount = amount * (1 - totalFeePercentage / 100);
-  // Round to 4 decimals (same as calculateFees in polymarket/utils.ts)
-  return Math.round(maxBetAmount * 10000) / 10000;
+
+  const fees = preview?.fees;
+  const serviceFeeRate = Math.max(fees?.totalFeePercentage ?? 0, 0) / 100;
+  const previewStake = preview?.maxAmountSpent ?? 0;
+  const marketFeeRate =
+    previewStake > 0 ? Math.max(fees?.marketFee ?? 0, 0) / previewStake : 0;
+  const maxBetAmount = availableBalance / (1 + serviceFeeRate + marketFeeRate);
+
+  // The keypad accepts cents, so floor rather than round to avoid exceeding
+  // the wallet balance after fees are added back to the stake.
+  return roundDownToCents(maxBetAmount);
 }
 
 export function roundUpToCents(amount: number): number {
