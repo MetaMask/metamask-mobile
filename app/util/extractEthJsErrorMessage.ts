@@ -1,3 +1,4 @@
+// trigger ci test
 const ethJsRpcSlug = 'Error: [ethjs-rpc] rpc error with payload ';
 const errorLabelPrefix = 'Error: ';
 
