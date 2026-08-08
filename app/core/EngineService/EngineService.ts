@@ -224,6 +224,8 @@ export class EngineService {
   private setupEnginePersistence = (initialState?: Record<string, unknown>) => {
     try {
       if (UntypedEngine.controllerMessenger) {
+        const persistController = createPersistController(200);
+
         BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
           const controllerName = eventName.split(':')[0];
 
@@ -237,9 +239,6 @@ export class EngineService {
             );
             return;
           }
-
-          // Create debounced persist function (reused for both initial and ongoing persistence)
-          const persistController = createPersistController(200);
 
           // Check if state changed during Engine.init()
           // Compare 1 level deep - check if any property of the filtered state differs

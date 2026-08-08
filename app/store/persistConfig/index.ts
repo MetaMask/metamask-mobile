@@ -132,31 +132,54 @@ export const ControllerStorage = {
 
 // Use the consolidated storage WITH AsyncStorage fallback for migration scenarios
 const MigratedStorage = createStorage(true);
+
+const pendingControllerWrites = new Map<string, unknown>();
+
+const flushPendingControllerWrites = debounce(async () => {
+  const batch = Array.from(pendingControllerWrites.entries());
+  pendingControllerWrites.clear();
+
+  await Promise.all(
+    batch.map(async ([controllerName, filteredState]) => {
+      try {
+        await ControllerStorage.setItem(
+          `persist:${controllerName}`,
+          JSON.stringify(filteredState),
+        );
+
+        Logger.log(`${controllerName} state persisted successfully`);
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: `Failed to persist ${controllerName} state`,
+        });
+      }
+    }),
+  );
+}, STORAGE_THROTTLE_DELAY);
+
+/**
+ * Queues a controller state write to be flushed with other pending writes.
+ */
+export function queueControllerPersist(
+  filteredState: unknown,
+  controllerName: string,
+): void {
+  pendingControllerWrites.set(controllerName, filteredState);
+  flushPendingControllerWrites();
+}
+
 /**
  * Creates a debounced controller persistence function.
  *
- * This utility handles saving controller state to individual filesystem storage files
- * with automatic debouncing to prevent excessive writes during rapid state changes.
+ * All controller writes share one debounced flush so rapid multi-controller
+ * updates coalesce into a single write window.
  *
  * @param debounceMs - Milliseconds to debounce persistence operations (default: 200ms)
  * @returns Debounced persistence function
  */
-export const createPersistController = (debounceMs: number = 200) =>
-  debounce(async (filteredState: unknown, controllerName: string) => {
-    try {
-      // Save the filtered state to filesystem storage
-      await ControllerStorage.setItem(
-        `persist:${controllerName}`,
-        JSON.stringify(filteredState),
-      );
-
-      Logger.log(`${controllerName} state persisted successfully`);
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to persist ${controllerName} state`,
-      });
-    }
-  }, debounceMs);
+export const createPersistController = (
+  _debounceMs: number = STORAGE_THROTTLE_DELAY,
+) => queueControllerPersist;
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
