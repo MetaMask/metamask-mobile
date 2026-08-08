@@ -1,0 +1,46 @@
+diff --git a/dist/typography.cjs b/dist/typography.cjs
+index e8220d2eecd63f95c727463a01c2be679e1028df..2c4bd2f42d90c1bc20e9845345e78f82ab8a59b7 100644
+--- a/dist/typography.cjs
++++ b/dist/typography.cjs
+@@ -104,12 +104,12 @@ exports.typographyTailwindConfig = {
+         ],
+     },
+     fontFamily: {
+-        'default-regular': 'Geist-Regular',
+-        'default-regular-italic': 'Geist-RegularItalic',
+-        'default-medium': 'Geist-Medium',
+-        'default-medium-italic': 'Geist-MediumItalic',
+-        'default-bold': 'Geist-SemiBold',
+-        'default-bold-italic': 'Geist-SemiBoldItalic',
++        'default-regular': 'Urbanist-Regular',
++        'default-regular-italic': 'Urbanist-Regular',
++        'default-medium': 'Urbanist-Medium',
++        'default-medium-italic': 'Urbanist-Medium',
++        'default-bold': 'Urbanist-SemiBold',
++        'default-bold-italic': 'Urbanist-SemiBold',
+         'accent-regular': 'MMSans-Regular',
+         'accent-medium': 'MMSans-Medium',
+         'accent-bold': 'MMSans-Bold',
+diff --git a/dist/typography.mjs b/dist/typography.mjs
+index 908003a3a3fcee2f5b50dc496120824260bc9b5e..390813e5dddddd27d4a464d8d768bc1aed997792 100644
+--- a/dist/typography.mjs
++++ b/dist/typography.mjs
+@@ -101,12 +101,12 @@ export const typographyTailwindConfig = {
+         ],
+     },
+     fontFamily: {
+-        'default-regular': 'Geist-Regular',
+-        'default-regular-italic': 'Geist-RegularItalic',
+-        'default-medium': 'Geist-Medium',
+-        'default-medium-italic': 'Geist-MediumItalic',
+-        'default-bold': 'Geist-SemiBold',
+-        'default-bold-italic': 'Geist-SemiBoldItalic',
++        'default-regular': 'Urbanist-Regular',
++        'default-regular-italic': 'Urbanist-Regular',
++        'default-medium': 'Urbanist-Medium',
++        'default-medium-italic': 'Urbanist-Medium',
++        'default-bold': 'Urbanist-SemiBold',
++        'default-bold-italic': 'Urbanist-SemiBold',
+         'accent-regular': 'MMSans-Regular',
+         'accent-medium': 'MMSans-Medium',
+         'accent-bold': 'MMSans-Bold',

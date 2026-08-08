@@ -2,28 +2,16 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "app/fonts/Geist-SemiBoldItalic.otf",
-      "sha1": "bbbda4921114ab99f8af88f06fd0cbe54c3c2d04"
+      "path": "app/fonts/Urbanist-SemiBold.ttf",
+      "sha1": "3ca7f3dbb6ab4a1421bcae991d491f57b28c36a0"
     },
     {
-      "path": "app/fonts/Geist-SemiBold.otf",
-      "sha1": "5aa18555f9d712446d2e8f786adbe3582e3cb199"
+      "path": "app/fonts/Urbanist-Medium.ttf",
+      "sha1": "f68fbe2907f0f54404642cdb9a11ff626301a130"
     },
     {
-      "path": "app/fonts/Geist-MediumItalic.otf",
-      "sha1": "5f1ba7a59a89db9a70a046aa7b6d38345e79eb5c"
-    },
-    {
-      "path": "app/fonts/Geist-Medium.otf",
-      "sha1": "ebfe71219b8c2b9ebcc5642ab71ddd2078aa1508"
-    },
-    {
-      "path": "app/fonts/Geist-RegularItalic.otf",
-      "sha1": "2b8792d447b7ab520850cdf5f123cce79f639a5a"
-    },
-    {
-      "path": "app/fonts/Geist-Regular.otf",
-      "sha1": "39f145abcdd04b4e1824fc6bbd1cb370344db90c"
+      "path": "app/fonts/Urbanist-Regular.ttf",
+      "sha1": "d2e596224a2ea7c2c7eb9f6edbb79664d6f3c1da"
     },
     {
       "path": "app/fonts/MMPoly-Regular.otf",

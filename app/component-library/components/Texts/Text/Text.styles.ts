@@ -5,7 +5,7 @@ import { StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { TextColor, TextVariant } from './Text.types';
+import { FontStyle, FontWeight, TextColor, TextVariant } from './Text.types';
 import { getFontFamily } from './Text.utils';
 
 /**
@@ -60,17 +60,32 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     default:
       textColor = color;
   }
-  const { fontWeight, ...variantObject } =
+  const { fontWeight: _variantFontWeight, ...variantObject } =
     theme.typography[variant as TextVariant];
 
-  const fontObject = {
+  // Custom RN fonts are per-file families (Urbanist-Regular/Medium/SemiBold).
+  // Applying fontWeight alongside those names makes iOS fall back to the system font.
+  const {
+    fontWeight: styleFontWeight,
+    fontStyle: styleFontStyle,
+    ...styleWithoutWeight
+  } = (style ?? {}) as TextStyle;
+
+  const fontObject: TextStyle = {
     ...variantObject,
     color: textColor,
-    fontFamily: getFontFamily(variant, style?.fontWeight, style?.fontStyle),
+    fontFamily: getFontFamily(
+      variant,
+      styleFontWeight != null
+        ? (String(styleFontWeight) as FontWeight)
+        : undefined,
+      styleFontStyle as FontStyle | undefined,
+    ),
+    ...styleWithoutWeight,
   };
 
   return StyleSheet.create({
-    base: Object.assign(fontObject, style) as TextStyle,
+    base: fontObject,
   });
 };
 
