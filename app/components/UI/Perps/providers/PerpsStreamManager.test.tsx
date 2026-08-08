@@ -4608,14 +4608,14 @@ describe('PerpsStreamManager', () => {
       } as Order,
     ];
 
-    const mockPositions = [
+    const mockPositions: Position[] = [
       {
         symbol: 'BTC',
-        side: 'long',
         size: '1',
         entryPrice: '50000',
-        markPrice: '51000',
+        positionValue: '51000',
         unrealizedPnl: '1000',
+        marginUsed: '5000',
         leverage: { type: 'cross', value: 10 },
         liquidationPrice: '45000',
         maxLeverage: 50,
@@ -4727,7 +4727,7 @@ describe('PerpsStreamManager', () => {
       act(() => controllerCallback?.([]));
       expect(callback).toHaveBeenCalledTimes(2);
 
-      act(() => controllerCallback?.(mockPositions as Position[]));
+      act(() => controllerCallback?.(mockPositions));
       expect(callback).toHaveBeenCalledTimes(2);
 
       act(() => jest.advanceTimersByTime(100));
