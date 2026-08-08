@@ -18,6 +18,7 @@ jest.mock('@metamask/perps-controller', () => {
       MARKETS_FAILED: 'MARKETS_FAILED',
       UNKNOWN_ERROR: 'UNKNOWN_ERROR',
       ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
+      ORDER_SIZE_MIN: 'ORDER_SIZE_MIN',
       IOC_CANCEL: 'IOC_CANCEL',
       CONNECTION_TIMEOUT: 'CONNECTION_TIMEOUT',
       WITHDRAW_INSUFFICIENT_BALANCE: 'WITHDRAW_INSUFFICIENT_BALANCE',
@@ -395,6 +396,51 @@ describe('handlePerpsError', () => {
         'perps.errors.providerNotAvailable',
         {
           providerId: 'Unknown',
+        },
+      );
+    });
+  });
+
+  describe('with ORDER_SIZE_MIN error', () => {
+    it('uses amount from context', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+        context: { amount: '25' },
+      });
+
+      expect(result).toBe('perps.order.validation.minimum_amount [amount:25]');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.order.validation.minimum_amount',
+        {
+          amount: '25',
+        },
+      );
+    });
+
+    it('falls back to the default minimum order size when amount is not provided', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+      });
+
+      // Should never leak the raw `{{amount}}` placeholder to users
+      expect(result).toBe('perps.order.validation.minimum_amount [amount:10]');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.order.validation.minimum_amount',
+        {
+          amount: '10',
+        },
+      );
+    });
+
+    it('falls back to the default minimum order size for Error object without amount', () => {
+      const error = new Error(PERPS_ERROR_CODES.ORDER_SIZE_MIN);
+      const result = handlePerpsError({ error });
+
+      expect(result).toBe('perps.order.validation.minimum_amount [amount:10]');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.order.validation.minimum_amount',
+        {
+          amount: '10',
         },
       );
     });
