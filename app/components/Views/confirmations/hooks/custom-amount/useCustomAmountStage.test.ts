@@ -91,12 +91,14 @@ describe('useCustomAmountStage', () => {
       const { result } = runHook();
 
       expect(result.current.stage).toBe(CustomAmountStage.AmountInput);
+      expect(result.current.isAmountUpdating).toBe(false);
     });
 
     it('starts in Loading for an add-mUSD intent', () => {
       const { result } = runHook({ isAddMusdIntent: true });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(true);
     });
 
     it('starts in Loading when deposit prefill is enabled', () => {
@@ -132,6 +134,7 @@ describe('useCustomAmountStage', () => {
       const { result } = runDerived();
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(false);
     });
 
     it('derives ShowTotals once quotes are present', () => {
@@ -184,6 +187,7 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(true);
     });
   });
 
@@ -234,6 +238,19 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(true);
+    });
+
+    it('reports quote fetching rather than an amount update when quotes are already loading', () => {
+      setupState({ isQuotesLoading: true });
+      const { result } = runHook();
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(false);
     });
 
     it('clears a Loading commit immediately when the current amount was prefetched', () => {
@@ -322,6 +339,7 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(false);
     });
   });
 
@@ -337,6 +355,7 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(view.result.current.stage).toBe(CustomAmountStage.ShowTotals);
+      expect(view.result.current.isAmountUpdating).toBe(false);
     });
 
     it('never derives NoQuote even after a settled empty fetch', () => {
