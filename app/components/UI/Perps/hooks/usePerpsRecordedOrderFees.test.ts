@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import type { OrderFill } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
 import { usePerpsMarketFills } from './usePerpsMarketFills';
 import { usePerpsRecordedOrderFees } from './usePerpsRecordedOrderFees';
 
@@ -10,6 +10,8 @@ jest.mock('./usePerpsMarketFills', () => ({
 const mockUsePerpsMarketFills = usePerpsMarketFills as jest.MockedFunction<
   typeof usePerpsMarketFills
 >;
+
+const NOW = new Date('2026-08-07T12:00:00.000Z').getTime();
 
 const createFill = (overrides: Partial<OrderFill> = {}): OrderFill => ({
   orderId: 'order-1',
@@ -51,14 +53,23 @@ const setMarketFills = ({
 describe('usePerpsRecordedOrderFees', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Date, 'now').mockReturnValue(NOW);
     setMarketFills();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('returns the recorded fee for one matching fill', () => {
     setMarketFills({ fills: [createFill({ fee: '1.25' })] });
 
     const { result } = renderHook(() =>
-      usePerpsRecordedOrderFees('order-1', 'BTC'),
+      usePerpsRecordedOrderFees(
+        'order-1',
+        'BTC',
+        NOW - PERPS_CONSTANTS.FillsLookbackMs - 1,
+      ),
     );
 
     expect(result.current).toEqual({
@@ -78,7 +89,7 @@ describe('usePerpsRecordedOrderFees', () => {
     });
 
     const { result } = renderHook(() =>
-      usePerpsRecordedOrderFees('order-1', 'BTC'),
+      usePerpsRecordedOrderFees('order-1', 'BTC', NOW),
     );
 
     expect(result.current.totalFee).toBe(0.6);
@@ -93,7 +104,7 @@ describe('usePerpsRecordedOrderFees', () => {
     });
 
     const { result } = renderHook(() =>
-      usePerpsRecordedOrderFees('order-1', 'BTC'),
+      usePerpsRecordedOrderFees('order-1', 'BTC', NOW),
     );
 
     expect(result.current.totalFee).toBe(1.25);
@@ -107,7 +118,7 @@ describe('usePerpsRecordedOrderFees', () => {
     });
 
     const { result } = renderHook(() =>
-      usePerpsRecordedOrderFees(undefined, 'BTC'),
+      usePerpsRecordedOrderFees(undefined, 'BTC', NOW),
     );
 
     expect(result.current).toEqual({
@@ -117,11 +128,39 @@ describe('usePerpsRecordedOrderFees', () => {
     });
   });
 
-  it('returns zero after fill history loads without matching fills', () => {
+  it('returns zero for a covered order without matching fills', () => {
     setMarketFills({ fills: [createFill({ orderId: 'other-order' })] });
 
     const { result } = renderHook(() =>
-      usePerpsRecordedOrderFees('order-1', 'BTC'),
+      usePerpsRecordedOrderFees(
+        'order-1',
+        'BTC',
+        NOW - PERPS_CONSTANTS.FillsLookbackMs + 1,
+      ),
+    );
+
+    expect(result.current.totalFee).toBe(0);
+  });
+
+  it('withholds the total for an order older than fill history', () => {
+    const { result } = renderHook(() =>
+      usePerpsRecordedOrderFees(
+        'order-1',
+        'BTC',
+        NOW - PERPS_CONSTANTS.FillsLookbackMs - 1,
+      ),
+    );
+
+    expect(result.current.totalFee).toBeUndefined();
+  });
+
+  it('returns zero at the fill-history boundary without matching fills', () => {
+    const { result } = renderHook(() =>
+      usePerpsRecordedOrderFees(
+        'order-1',
+        'BTC',
+        NOW - PERPS_CONSTANTS.FillsLookbackMs,
+      ),
     );
 
     expect(result.current.totalFee).toBe(0);
@@ -134,7 +173,7 @@ describe('usePerpsRecordedOrderFees', () => {
     });
 
     const { result } = renderHook(() =>
-      usePerpsRecordedOrderFees('order-1', 'BTC'),
+      usePerpsRecordedOrderFees('order-1', 'BTC', NOW),
     );
 
     expect(result.current).toEqual({
@@ -151,7 +190,7 @@ describe('usePerpsRecordedOrderFees', () => {
     });
 
     const { result } = renderHook(() =>
-      usePerpsRecordedOrderFees('order-1', 'BTC'),
+      usePerpsRecordedOrderFees('order-1', 'BTC', NOW),
     );
 
     expect(result.current).toEqual({

@@ -204,7 +204,11 @@ function OrderDetails({
     totalFee,
     isLoading: isFeeLoading,
     hasError: hasFeeError,
-  } = usePerpsRecordedOrderFees(order?.orderId, transaction.asset);
+  } = usePerpsRecordedOrderFees(
+    order?.orderId,
+    transaction.asset,
+    transaction.timestamp,
+  );
   const totalFeeValue =
     isFeeLoading || hasFeeError || totalFee === undefined
       ? '—'
