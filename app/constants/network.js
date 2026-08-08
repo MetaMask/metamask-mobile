@@ -69,6 +69,7 @@ export const NETWORKS_CHAIN_ID = {
   NOMINA: toHex('166'),
   TEMPO_MAINNET: toHex('4217'),
   TEMPO_TESTNET_MODERATO: toHex('42431'),
+  EBCHAIN: toHex('8721'),
   ARC: toHex('5042'),
   ROBINHOOD: toHex('4663'),
   STABLE: toHex('988'),
