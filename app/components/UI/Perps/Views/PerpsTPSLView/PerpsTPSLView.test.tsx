@@ -2,9 +2,19 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
 import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
-import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsTPSLViewSelector,
+  PerpsTPSLViewSelectorsIDs,
+} from '../../Perps.testIds';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
   ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
@@ -546,6 +556,80 @@ describe('PerpsTPSLView', () => {
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
+    it('plays PageNavigation on back when enableHaptics is true', async () => {
+      mockRouteParams = { ...defaultRouteParams, enableHaptics: true };
+      renderView();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
+        );
+      });
+
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('does not play a haptic on back when enableHaptics is omitted', async () => {
+      renderView();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
+        );
+      });
+
+      expect(playImpact).not.toHaveBeenCalled();
+      expect(playSelection).not.toHaveBeenCalled();
+    });
+
+    it('plays selection when a take-profit preset is pressed with enableHaptics', async () => {
+      mockRouteParams = { ...defaultRouteParams, enableHaptics: true };
+      renderView();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            getPerpsTPSLViewSelector.takeProfitPercentageButton(10),
+          ),
+        );
+      });
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      expect(
+        defaultMockReturn.buttons.handleTakeProfitPercentageButton,
+      ).toHaveBeenCalledWith(10);
+    });
+
+    it('plays PrimaryCTA on Set when enableHaptics is true', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockRouteParams = {
+        ...defaultRouteParams,
+        onConfirm: mockOnConfirm,
+        enableHaptics: true,
+      };
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3,150.00',
+          stopLossPrice: '$2,850.00',
+        },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+      expect(mockOnConfirm).toHaveBeenCalled();
+    });
+
     it('calls onConfirm with hook values when Set button pressed', async () => {
       const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
@@ -582,6 +666,7 @@ describe('PerpsTPSLView', () => {
           entryPrice: 3000,
         }),
       );
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('calls onConfirm with undefined when values are empty', async () => {

@@ -408,6 +408,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
     );
 
+    playSelection();
     onConfirm(tempLeverage, inputMethod);
     onClose();
   }, [

@@ -55,5 +55,11 @@ export interface PerpsModeToggleProps {
    */
   source?: string;
 
+  /**
+   * When true, fires selection haptics on a meaningful mode change.
+   * Defaults off so Lite entry points stay silent.
+   */
+  enableHaptics?: boolean;
+
   testID?: string;
 }
