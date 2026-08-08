@@ -896,6 +896,110 @@ describe('MultichainNonEvm Selectors', () => {
         expect(tronToken.accountType).toBe(accountMain.type);
       });
     });
+
+    it('excludes Tron mainnet tokens with empty symbol (unresolved metadata)', () => {
+      jest.isolateModules(() => {
+        // eslint-disable-next-line prefer-const
+        let mockEvmTokensByChain: Record<string, unknown> | undefined;
+        // eslint-disable-next-line prefer-const
+        let mockSelectedGroupAccounts: InternalAccount[] | undefined;
+
+        jest.doMock('./evm', () => ({
+          selectAccountTokensAcrossChainsForAddress: () => mockEvmTokensByChain,
+        }));
+
+        jest.doMock('../multichainAccounts/accounts', () => ({
+          selectSelectedInternalAccountByScope: () => () => ({
+            address: '0xMockEvmAddress',
+          }),
+        }));
+
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: () =>
+            mockSelectedGroupAccounts,
+        }));
+
+        const { selectAccountTokensAcrossChainsUnified } =
+          jest.requireActual('./multichain');
+
+        const tronMainnetChainId = TrxScope.Mainnet;
+        const tronMainnetAssetId =
+          `${tronMainnetChainId}/slip44:195` as CaipAssetType;
+        const tronUnresolvedAssetId =
+          `${tronMainnetChainId}/slip44:unresolved` as CaipAssetType;
+
+        const accountMain = {
+          id: 'account-main',
+          type: 'main-account-type',
+        } as unknown as InternalAccount;
+
+        mockEvmTokensByChain = {};
+        mockSelectedGroupAccounts = [accountMain];
+
+        const state = {
+          engine: {
+            backgroundState: {
+              MultichainBalancesController: {
+                balances: {
+                  [accountMain.id]: {
+                    [tronMainnetAssetId]: {
+                      amount: '10',
+                      unit: 'TRX',
+                    },
+                    [tronUnresolvedAssetId]: {
+                      amount: '0',
+                      unit: '',
+                    },
+                  },
+                },
+              },
+              MultichainAssetsController: {
+                accountsAssets: {
+                  [accountMain.id]: [
+                    tronMainnetAssetId,
+                    tronUnresolvedAssetId,
+                  ] as CaipAssetType[],
+                },
+                assetsMetadata: {
+                  [tronMainnetAssetId]: {
+                    name: 'Tron',
+                    symbol: 'TRX',
+                    fungible: true,
+                    units: [
+                      {
+                        name: tronMainnetAssetId,
+                        symbol: 'TRX',
+                        decimals: 6,
+                      },
+                    ],
+                  },
+                  // tronUnresolvedAssetId intentionally has no metadata entry,
+                  // simulating an asset whose metadata has not yet loaded.
+                },
+                allIgnoredAssets: {},
+              },
+              MultichainAssetsRatesController: {
+                conversionRates: {},
+                assetsRates: {
+                  [tronMainnetAssetId]: {
+                    rate: '1',
+                    conversionTime: 0,
+                  },
+                },
+                historicalPrices: {},
+              },
+            },
+          },
+        } as unknown as RootState;
+
+        const result = selectAccountTokensAcrossChainsUnified(state);
+
+        // Only the canonical TRX token should appear; the unresolved asset
+        // (empty symbol) must be excluded so the Earn list has no blank rows.
+        expect(result[tronMainnetChainId]).toHaveLength(1);
+        expect(result[tronMainnetChainId][0].symbol).toBe('TRX');
+      });
+    });
   });
 
   describe('selectSolanaAccountTransactions', () => {
