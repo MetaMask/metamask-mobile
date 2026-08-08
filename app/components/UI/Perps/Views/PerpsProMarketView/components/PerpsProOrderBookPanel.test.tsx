@@ -5,11 +5,18 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import type { OrderBookData } from '../../../hooks/stream/usePerpsLiveOrderBook';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../util/haptics';
 
 const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
 const mockSaveGrouping = jest.fn();
 const mockSavedGroupingBySymbol: Record<string, number | undefined> = {};
+
+jest.mock('../../../../../../util/haptics');
 
 jest.mock('../../../hooks/stream/usePerpsLiveOrderBook', () => ({
   usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
@@ -209,10 +216,12 @@ describe('PerpsProOrderBookPanel', () => {
 
     fireEvent.press(getByTestId(`${testID}-bid-row-0`));
     expect(onSelectPrice).toHaveBeenCalledWith('50000');
+    expect(playSelection).toHaveBeenCalledTimes(1);
 
     fireEvent.press(getByTestId(`${testID}-ask-row-0`));
     // Asks render farthest-to-closest, so ask-row-0 is the deepest ask (50200).
     expect(onSelectPrice).toHaveBeenLastCalledWith('50200');
+    expect(playSelection).toHaveBeenCalledTimes(2);
   });
 
   it('renders static, non-interactive rows when onSelectPrice is omitted', () => {
@@ -242,6 +251,18 @@ describe('PerpsProOrderBookPanel', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
     );
     expect(onCollapse).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+  });
+
+  it('plays selection when the settings icon opens the config sheet', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('positions collapse at the leading edge and settings at the trailing edge', () => {

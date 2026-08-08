@@ -8,12 +8,15 @@ import {
 import PerpsModeToggle from './PerpsModeToggle';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { playSelection } from '../../../../../util/haptics';
 import { GLOW_TOTAL_MS } from './PerpsModeSwitchPill';
 
 const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: { mode?: string }) => {
@@ -145,6 +148,7 @@ jest.mock('react-native-linear-gradient', () => {
 describe('PerpsModeToggle', () => {
   beforeEach(() => {
     mockTrack.mockClear();
+    jest.mocked(playSelection).mockClear();
   });
 
   afterEach(() => {
@@ -235,6 +239,44 @@ describe('PerpsModeToggle', () => {
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
+  it('plays a selection haptic when enableHaptics is true and mode changes', () => {
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Lite}
+        onChange={jest.fn()}
+        enableHaptics
+      />,
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not play a haptic when enableHaptics is omitted', () => {
+    const { getByTestId } = render(
+      <PerpsModeToggle mode={PerpsMode.Lite} onChange={jest.fn()} />,
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(playSelection).not.toHaveBeenCalled();
+  });
+
+  it('does not play a haptic when re-selecting the already active mode with enableHaptics', () => {
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Lite}
+        onChange={jest.fn()}
+        enableHaptics
+      />,
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    expect(playSelection).not.toHaveBeenCalled();
+  });
+
   it('renders only the active mode as a single pill in the active variant', () => {
     const { getByTestId, queryByTestId, getAllByText } = render(
       <PerpsModeToggle
@@ -284,6 +326,31 @@ describe('PerpsModeToggle', () => {
           PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       },
     );
+  });
+
+  it('plays a selection haptic immediately on active-pill press when enableHaptics is true', () => {
+    jest.useFakeTimers();
+    const onChange = jest.fn();
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Pro}
+        onChange={onChange}
+        variant="active"
+        enableHaptics
+      />,
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(onChange).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+    });
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('exposes VoiceOver label and hint for the active Pro pill', () => {

@@ -8,6 +8,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Modal, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../util/haptics';
 
 export interface PerpsProPositionsOptionSheetProps {
   isVisible: boolean;
@@ -33,6 +34,7 @@ const PerpsProPositionsOptionSheet = ({
   testID = 'perps-pro-positions-option-sheet',
   children,
 }: PerpsProPositionsOptionSheetProps) => {
+  const { playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const wasVisibleRef = useRef(false);
 
@@ -53,9 +55,19 @@ const PerpsProPositionsOptionSheet = ({
   }, [onClose]);
 
   const handleApply = useCallback(() => {
+    playSelection().catch(() => undefined);
     onApply();
     handleClose();
-  }, [handleClose, onApply]);
+  }, [handleClose, onApply, playSelection]);
+
+  const handleClear = useCallback(() => {
+    if (!onClear) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onClear();
+    handleClose();
+  }, [handleClose, onClear, playSelection]);
 
   const primaryButtonProps = useMemo(
     () => ({
@@ -71,14 +83,11 @@ const PerpsProPositionsOptionSheet = ({
       onClear
         ? {
             children: strings('perps.sort.clear'),
-            onPress: () => {
-              onClear();
-              handleClose();
-            },
+            onPress: handleClear,
             testID: `${testID}-clear`,
           }
         : undefined,
-    [handleClose, onClear, testID],
+    [handleClear, onClear, testID],
   );
 
   if (!isVisible) {

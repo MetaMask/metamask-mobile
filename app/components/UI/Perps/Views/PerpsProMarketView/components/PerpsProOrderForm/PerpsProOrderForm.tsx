@@ -22,7 +22,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   InputAccessoryView,
   Keyboard,
@@ -30,6 +30,7 @@ import {
   Pressable,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -326,7 +327,70 @@ const PerpsProOrderForm = ({
   isPlaceOrderLoading = false,
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
+  const { playImpact, playSelection } = useHaptics();
   const isLong = direction === 'long';
+
+  const handleDirectionChange = useCallback(
+    (value: string) => {
+      const nextDirection = value as PerpsProOrderDirection;
+      if (nextDirection === direction) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      onDirectionChange(nextDirection);
+    },
+    [direction, onDirectionChange, playSelection],
+  );
+
+  const handleMarginModePress = useCallback(() => {
+    if (!onMarginModePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onMarginModePress();
+  }, [onMarginModePress, playSelection]);
+
+  const handleLeveragePress = useCallback(() => {
+    if (!onLeveragePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onLeveragePress();
+  }, [onLeveragePress, playSelection]);
+
+  const handleOrderTypeButtonPress = useCallback(() => {
+    playSelection().catch(() => undefined);
+    onOrderTypeButtonPress();
+  }, [onOrderTypeButtonPress, playSelection]);
+
+  const handleUseMidPricePress = useCallback(() => {
+    if (!onUseMidPricePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onUseMidPricePress();
+  }, [onUseMidPricePress, playSelection]);
+
+  const handleReduceOnlyChange = useCallback(
+    (value: boolean) => {
+      playSelection().catch(() => undefined);
+      onReduceOnlyChange(value);
+    },
+    [onReduceOnlyChange, playSelection],
+  );
+
+  const handleTPSLPress = useCallback(() => {
+    if (!onTPSLPress) {
+      return;
+    }
+    playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    onTPSLPress();
+  }, [onTPSLPress, playImpact]);
+
+  const handlePlaceOrderPress = useCallback(() => {
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    onPlaceOrderPress();
+  }, [onPlaceOrderPress, playImpact]);
 
   return (
     <>
@@ -343,9 +407,7 @@ const PerpsProOrderForm = ({
           >
             <SegmentedControl
               value={direction}
-              onChange={(value) =>
-                onDirectionChange(value as PerpsProOrderDirection)
-              }
+              onChange={handleDirectionChange}
               isFullWidth
               twClassName="flex-1"
               size={ButtonBaseSize.Sm}
@@ -400,7 +462,7 @@ const PerpsProOrderForm = ({
           >
             <ButtonBase
               size={ButtonBaseSize.Sm}
-              onPress={onMarginModePress}
+              onPress={handleMarginModePress}
               isDisabled={!onMarginModePress}
               twClassName="h-8 rounded-lg bg-muted px-2"
               testID={ids.MARGIN_MODE_BUTTON}
@@ -409,7 +471,7 @@ const PerpsProOrderForm = ({
             </ButtonBase>
             <ButtonBase
               size={ButtonBaseSize.Sm}
-              onPress={onLeveragePress}
+              onPress={handleLeveragePress}
               isDisabled={!onLeveragePress}
               twClassName="rounded-lg bg-muted px-2"
               testID={ids.LEVERAGE_BUTTON}
@@ -419,7 +481,7 @@ const PerpsProOrderForm = ({
           </Box>
           <Box twClassName="overflow-hidden rounded-xl border border-muted bg-muted">
             <ButtonBase
-              onPress={onOrderTypeButtonPress}
+              onPress={handleOrderTypeButtonPress}
               twClassName="h-12 w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
@@ -456,7 +518,7 @@ const PerpsProOrderForm = ({
                   <Box twClassName="h-full shrink-0 justify-center">
                     <ButtonBase
                       size={ButtonBaseSize.Sm}
-                      onPress={onUseMidPricePress}
+                      onPress={handleUseMidPricePress}
                       isDisabled={!onUseMidPricePress}
                       twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
                       contentWrapperProps={{ twClassName: 'justify-end' }}
@@ -488,14 +550,14 @@ const PerpsProOrderForm = ({
           <ReduceOnlyRow
             label={strings('perps.order.reduce_only')}
             isSelected={reduceOnly}
-            onChange={onReduceOnlyChange}
+            onChange={handleReduceOnlyChange}
             testID={ids.REDUCE_ONLY}
           />
           {!reduceOnly ? (
             <TPSLRow
               label={strings('perps.pro_order_form.tpsl')}
               isSelected={isTPSLConfigured}
-              onPress={onTPSLPress}
+              onPress={onTPSLPress ? handleTPSLPress : undefined}
               testID={ids.TPSL}
             />
           ) : null}
@@ -510,7 +572,7 @@ const PerpsProOrderForm = ({
             isFullWidth
             isDisabled={isPlaceOrderDisabled}
             isLoading={isPlaceOrderLoading}
-            onPress={onPlaceOrderPress}
+            onPress={handlePlaceOrderPress}
             testID={ids.PLACE_ORDER_BUTTON}
           >
             {placeOrderLabel}

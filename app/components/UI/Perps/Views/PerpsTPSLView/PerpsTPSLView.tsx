@@ -41,6 +41,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import Keypad from '../../../../../components/Base/Keypad';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -113,6 +114,7 @@ const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
   const tw = useTailwind();
+  const { playImpact, playSelection } = useHaptics();
 
   // Extract params from navigation route
   const {
@@ -127,6 +129,7 @@ const PerpsTPSLView: React.FC = () => {
     limitPrice,
     amount,
     szDecimals,
+    enableHaptics = false,
     onConfirm,
   } = route.params;
 
@@ -309,8 +312,11 @@ const PerpsTPSLView: React.FC = () => {
 
   // Handle back button press
   const handleBack = useCallback(() => {
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
     navigation.goBack();
-  }, [navigation]);
+  }, [enableHaptics, navigation, playImpact]);
 
   const scrollFocusedSectionIntoView = useCallback((inputType: string) => {
     const sectionRef =
@@ -497,6 +503,10 @@ const PerpsTPSLView: React.FC = () => {
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    }
+
     setIsUpdating(true);
     try {
       // Pass tracking data to avoid duplicate position fetch in controller
@@ -544,25 +554,81 @@ const PerpsTPSLView: React.FC = () => {
     formattedStopLossPercentage,
     isEditingExistingPosition,
     effectiveEntryPrice,
+    enableHaptics,
+    playImpact,
   ]);
 
   const confirmDisabled = !hasChanges || !isValid || isUpdating;
   const inputsDisabled = isUpdating;
+
+  const handleTakeProfitPresetPress = useCallback(
+    (percentage: number) => {
+      if (inputsDisabled) {
+        return;
+      }
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+      handleTakeProfitPercentageButton(percentage);
+    },
+    [
+      enableHaptics,
+      handleTakeProfitPercentageButton,
+      inputsDisabled,
+      playSelection,
+    ],
+  );
+
+  const handleStopLossPresetPress = useCallback(
+    (percentage: number) => {
+      if (inputsDisabled) {
+        return;
+      }
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+      handleStopLossPercentageButton(percentage);
+    },
+    [
+      enableHaptics,
+      handleStopLossPercentageButton,
+      inputsDisabled,
+      playSelection,
+    ],
+  );
 
   // Wrapper handlers to dismiss keyboard before clearing
   const handleTakeProfitClear = useCallback(() => {
     if (focusedInput) {
       dismissKeypad();
     }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
     handleTakeProfitOff();
-  }, [focusedInput, dismissKeypad, handleTakeProfitOff]);
+  }, [
+    focusedInput,
+    dismissKeypad,
+    enableHaptics,
+    handleTakeProfitOff,
+    playSelection,
+  ]);
 
   const handleStopLossClear = useCallback(() => {
     if (focusedInput) {
       dismissKeypad();
     }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
     handleStopLossOff();
-  }, [focusedInput, dismissKeypad, handleStopLossOff]);
+  }, [
+    focusedInput,
+    dismissKeypad,
+    enableHaptics,
+    handleStopLossOff,
+    playSelection,
+  ]);
 
   const cancelButtonProps = useMemo(
     () => ({
@@ -736,7 +802,7 @@ const PerpsTPSLView: React.FC = () => {
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Md}
                     twClassName="flex-1"
-                    onPress={() => handleTakeProfitPercentageButton(percentage)}
+                    onPress={() => handleTakeProfitPresetPress(percentage)}
                     testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
                       percentage,
                     )}
@@ -864,7 +930,7 @@ const PerpsTPSLView: React.FC = () => {
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Md}
                     twClassName="flex-1"
-                    onPress={() => handleStopLossPercentageButton(percentage)}
+                    onPress={() => handleStopLossPresetPress(percentage)}
                     testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
                       percentage,
                     )}

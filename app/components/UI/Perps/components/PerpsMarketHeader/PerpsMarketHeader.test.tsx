@@ -12,8 +12,15 @@ import {
 import PerpsMarketHeader from './PerpsMarketHeader';
 import { createProMarketHeaderTestIDs } from './perpsMarketHeaderTestIds';
 import { GLOW_TOTAL_MS } from '../PerpsModeToggle/PerpsModeSwitchPill';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 
 jest.mock('../../providers/PerpsStreamManager');
+
+jest.mock('../../../../../util/haptics');
 
 const mockMarket: PerpsMarketData = {
   symbol: 'BTC',
@@ -45,6 +52,11 @@ const renderHeader = (
   );
 
 describe('PerpsMarketHeader', () => {
+  beforeEach(() => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+  });
+
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -105,6 +117,30 @@ describe('PerpsMarketHeader', () => {
     );
 
     expect(onBackPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays PageNavigation when back is pressed with enableHaptics', () => {
+    const onBackPress = jest.fn();
+    const { getByTestId } = renderHeader({ onBackPress, enableHaptics: true });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+    expect(onBackPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not play a haptic on back press when enableHaptics is omitted', () => {
+    const onBackPress = jest.fn();
+    const { getByTestId } = renderHeader({ onBackPress });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+
+    expect(playImpact).not.toHaveBeenCalled();
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('omits the back button when onBackPress is not provided', () => {
@@ -170,6 +206,55 @@ describe('PerpsMarketHeader', () => {
     );
 
     expect(onFavoritePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays selection when favorite is pressed with enableHaptics', () => {
+    const onFavoritePress = jest.fn();
+    const { getByTestId } = renderHeader({
+      onFavoritePress,
+      enableHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays PageNavigation when wallet is pressed with enableHaptics', () => {
+    const onWalletPress = jest.fn();
+    const { getByTestId } = renderHeader({
+      onWalletPress,
+      enableHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    );
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+  });
+
+  it('plays selection immediately on mode-pill press when enableHaptics is true', () => {
+    jest.useFakeTimers();
+    const onModeChange = jest.fn();
+    const { getByTestId } = renderHeader({
+      onModeChange,
+      enableHaptics: true,
+    });
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(onModeChange).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+    });
+
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('renders the filled star when the market is favorited', () => {

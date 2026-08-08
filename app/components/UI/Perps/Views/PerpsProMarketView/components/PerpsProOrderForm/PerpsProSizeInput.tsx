@@ -17,6 +17,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useRef } from 'react';
 import { Platform, type TextInput } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
@@ -56,6 +57,7 @@ const PerpsProSizeInput = ({
   onAddFundsPress,
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
+  const { playSelection } = useHaptics();
   const inputRef = useRef<TextInput>(null);
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
@@ -78,9 +80,15 @@ const PerpsProSizeInput = ({
       return;
     }
 
+    playSelection().catch(() => undefined);
     onToggleDenomination?.();
     focusInput();
-  }, [canPressDenominationToggle, focusInput, onToggleDenomination]);
+  }, [
+    canPressDenominationToggle,
+    focusInput,
+    onToggleDenomination,
+    playSelection,
+  ]);
 
   return (
     <Box

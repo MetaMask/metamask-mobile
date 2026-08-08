@@ -326,6 +326,7 @@ const PerpsProMarketView = () => {
         onFavoritePress={handleFavoritePress}
         isFavorite={isWatchlist}
         onModeChange={handlePerpsModeChange}
+        enableHaptics
         scrollY={scrollY}
         priceSectionHeight={titleSectionHeightSv}
       />

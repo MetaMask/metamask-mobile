@@ -38,6 +38,11 @@ export interface PerpsMarketHeaderProps {
   mode?: PerpsMode;
   onModeChange?: (mode: PerpsMode) => void;
   /**
+   * When true, fires catalog haptics for header gestures and the mode pill.
+   * Defaults off so Lite market headers stay silent.
+   */
+  enableHaptics?: boolean;
+  /**
    * Scroll offset from the parent's `Animated.ScrollView`, shared via
    * `useHeaderStandardAnimated()`. Drives the subtitle/price crossfade.
    */
