@@ -8,6 +8,7 @@ import React, {
 import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
@@ -22,7 +23,9 @@ import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAcc
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
-import AccountListFooter from './AccountListFooter';
+import AccountListFooter, {
+  abandonCreateMultichainAccountTrace,
+} from './AccountListFooter';
 
 import {
   MultichainAccountSelectorListProps,
@@ -97,6 +100,20 @@ const MultichainAccountSelectorList = ({
   const selectedIdSet = useMemo(
     () => new Set(selectedAccountGroups.map((g) => g.id)),
     [selectedAccountGroups],
+  );
+
+  // Abandon in-flight CreateMultichainAccount spans when the hosting screen
+  // loses focus. Kept here (not in AccountListFooter) because the footer is a
+  // FlashList cell with removeClippedSubviews and can unmount while creation
+  // continues. Clears span ownership so a stale footer finally cannot end a
+  // newer create's pending span.
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        abandonCreateMultichainAccountTrace();
+      },
+      [],
+    ),
   );
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
