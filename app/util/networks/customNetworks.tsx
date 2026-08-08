@@ -205,7 +205,6 @@ export const PopularList = [
     ticker: 'EBC',
     rpcPrefs: {
       blockExplorerUrl: 'https://ebcscan.net',
-      imageUrl: 'EBC',
     },
   },
   {
