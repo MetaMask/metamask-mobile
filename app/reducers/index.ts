@@ -32,6 +32,8 @@ import cronjobControllerReducer from '../core/redux/slices/cronjobController';
 import networkConnectionBannerReducer, {
   NetworkConnectionBannerState,
 } from './networkConnectionBanner';
+import socialLeaderboardReducer from './socialLeaderboard';
+import { SocialLeaderboardState } from './socialLeaderboard/types';
 
 import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
@@ -137,6 +139,7 @@ export interface RootState {
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   networkConnectionBanner: NetworkConnectionBannerState;
+  socialLeaderboard: SocialLeaderboardState;
   attribution: StateFromReducer<typeof attributionReducer>;
   headlessOrderContexts: StateFromReducer<typeof headlessOrderContextsReducer>;
   terminalOrderAnalytics: StateFromReducer<
@@ -185,6 +188,7 @@ const baseReducers = {
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
   networkConnectionBanner: networkConnectionBannerReducer,
+  socialLeaderboard: socialLeaderboardReducer,
 };
 
 if (isTestEnvironment) {

@@ -1,8 +1,18 @@
 import type { Position } from '@metamask/social-controllers';
 
-export type OpenSortKey = 'value' | 'pnl' | 'recent';
-export type ClosedSortKey = 'value' | 'pnl' | 'recent';
-export type SortKey = OpenSortKey | ClosedSortKey;
+// Sort key types live in the store layer so the reducer never imports from
+// app/components/Views (ADR-0020). Re-exported here to keep existing imports
+// (and the UI -> store direction) working.
+export type {
+  OpenSortKey,
+  ClosedSortKey,
+  SortKey,
+} from '../../../../../reducers/socialLeaderboard/types';
+import type {
+  OpenSortKey,
+  ClosedSortKey,
+  SortKey,
+} from '../../../../../reducers/socialLeaderboard/types';
 
 export const OPEN_SORT_CYCLE: readonly OpenSortKey[] = [
   'value',

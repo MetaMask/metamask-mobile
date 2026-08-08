@@ -1064,6 +1064,67 @@ describe('TraderProfileView', () => {
       expect(mockPlaySelection).toHaveBeenCalledTimes(2);
     });
 
+    it('reads the Open tab sort selection from redux state', () => {
+      renderWithProvider(<TraderProfileView />, {
+        state: {
+          socialLeaderboard: {
+            positionSort: { open: 'recent', closed: 'value' },
+          },
+        },
+      });
+
+      expect(screen.getByText('Recent')).toBeOnTheScreen();
+    });
+
+    it('reads the Closed tab sort selection from redux state', () => {
+      mockPositionsResult.closedPositions = fixtureClosedPositions;
+      renderWithProvider(<TraderProfileView />, {
+        state: {
+          socialLeaderboard: {
+            positionSort: { open: 'value', closed: 'pnl' },
+          },
+        },
+      });
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
+      );
+
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
+    });
+
+    it('writes the Open tab sort selection to redux on tap', () => {
+      const { store } = renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
+      expect(store.getState().socialLeaderboard.positionSort.open).toBe('pnl');
+    });
+
+    it('persists the sort selection across a remount', () => {
+      const { store, unmount } = renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Recent')).toBeOnTheScreen();
+
+      const persisted = {
+        socialLeaderboard: store.getState().socialLeaderboard,
+      };
+      unmount();
+
+      renderWithProvider(<TraderProfileView />, { state: persisted });
+
+      expect(screen.getByText('Recent')).toBeOnTheScreen();
+    });
+
     it('hides the sort button when positions list is empty', () => {
       mockPositionsResult.openPositions = [];
       renderWithProvider(<TraderProfileView />);
