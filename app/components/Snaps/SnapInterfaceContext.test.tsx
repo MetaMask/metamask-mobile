@@ -81,14 +81,26 @@ describe('SnapInterfaceContext', () => {
     });
 
     it('handles input focus state', () => {
+      let currentInitialState = mockInitialState;
+      const focusWrapper = ({ children }: { children: React.ReactNode }) => (
+        <SnapInterfaceContextProvider
+          interfaceId={mockInterfaceId}
+          snapId={mockSnapId}
+          initialState={currentInitialState}
+        >
+          {children}
+        </SnapInterfaceContextProvider>
+      );
+
       const { result, rerender } = renderHook(() => useSnapInterfaceContext(), {
-        wrapper,
+        wrapper: focusWrapper,
       });
 
       act(() => {
         result.current.setCurrentFocusedInput('testInput');
       });
 
+      currentInitialState = { ...mockInitialState };
       rerender();
 
       expect(result.current.focusedInput).toBe('testInput');
