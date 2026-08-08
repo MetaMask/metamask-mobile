@@ -1,57 +1,34 @@
-/* eslint-disable @metamask/design-tokens/color-no-hex*/
-
 /**
  * Common styles and variables
  */
 
 import { TextStyle, ViewStyle } from 'react-native';
+import { customColors, staticColors } from './colors';
 
 /**
- * Map of color names to HEX values
+ * Map of color names — sources hex values from `app/styles/colors.ts`.
+ * Add new custom colors there, not here.
  */
 export const colors = {
   blackTransparent: 'rgba(0, 0, 0, 0.5)',
   whiteTransparent: 'rgba(255, 255, 255, 0.7)',
-  white: '#FFFFFF',
+  white: staticColors.white,
   transparent: 'transparent',
   overlay: 'rgba(242, 244, 246, 0.33)',
-  // Do not change the values of applePay tokens unless noted by
-  // https://developer.apple.com/design/human-interface-guidelines/apple-pay
-  applePayBlack: '#000000',
-  applePayWhite: '#FFFFFF',
-  telegramBlue: '#29B6F6',
-  btnBlack: '#1C1E21',
-  btnBlackText: '#FFFFFF',
+  applePayBlack: staticColors.applePayBlack,
+  applePayWhite: staticColors.applePayWhite,
+  telegramBlue: staticColors.telegramBlue,
+  btnBlack: staticColors.btnBlack,
+  btnBlackText: staticColors.btnBlackText,
   btnBlackInverse: 'rgba(60, 77, 157, 0.1)',
-  modalScrollButton: '#ECEEFF',
-  gettingStartedPageBackgroundColor: '#EAC2FF',
-  gettingStartedTextColor: '#3D065F',
-  gettingStartedPageBackgroundColorLightMode: '#FFF2EB',
-  // Provider iframe backgrounds — these colors are set by each provider and
-  // outside our control. We match them in the checkout BottomSheet so the
-  // native chrome feels seamless with the embedded webview. Update only if
-  // a provider changes their iframe theme colors.
-  transakCheckoutDark: '#1a1a1a',
-  moonpayCheckoutDark: '#131416',
-  banxaCheckoutDark: '#0D0D0F',
-};
-
-export const onboardingCarouselColors: Record<
-  string,
-  { color: string; background: string }
-> = {
-  one: {
-    color: '#190066',
-    background: '#E5FFC3',
-  },
-  two: {
-    color: '#3D065F',
-    background: '#FFA680',
-  },
-  three: {
-    color: '#190066',
-    background: '#CCE7FF',
-  },
+  modalScrollButton: staticColors.modalScrollButton,
+  gettingStartedPageBackgroundColor: customColors.dark.gettingStartedBackground,
+  gettingStartedTextColor: customColors.light.gettingStartedText,
+  gettingStartedPageBackgroundColorLightMode:
+    customColors.light.gettingStartedBackground,
+  transakCheckoutDark: staticColors.transakCheckoutDark,
+  moonpayCheckoutDark: staticColors.moonpayCheckoutDark,
+  banxaCheckoutDark: staticColors.banxaCheckoutDark,
 };
 
 /**

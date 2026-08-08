@@ -14,18 +14,18 @@ import {
   resolveDarkTheme,
   brandColor,
 } from '@metamask/design-tokens';
+import { customColors, CustomColorSet } from '../../styles/colors';
 import Device from '../device';
 import { isPureBlackEnabled } from './pureBlackPreview';
 
 const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
 
 /**
- * Darker success green used in light mode for better contrast on charts,
- * price indicators, and action buttons. The design-system token
- * `success.default` is too faint against a light background.
+ * Darker success green for light mode — sourced from the central custom
+ * color registry (`app/styles/colors.ts`). No hex literal lives here.
  */
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-export const LIGHT_MODE_SUCCESS_GREEN = '#00881A';
+export const LIGHT_MODE_SUCCESS_GREEN =
+  customColors[AppThemeKey.light].successGreen;
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -227,3 +227,20 @@ export const useAssetFromTheme = (light: any, dark: any) => {
 
   return asset;
 };
+
+/**
+ * Returns the custom color set for the active theme.
+ *
+ * Prefer design-system tokens (`useTheme().colors`) over these values.
+ * Only reach for `useCustomColors()` when no token exists — see
+ * `app/styles/colors.ts` for the full registry and rationale per entry.
+ *
+ * For class components or non-hook contexts, index `customColors` directly:
+ * `customColors[theme.themeAppearance]`
+ */
+export const useCustomColors = (): CustomColorSet => {
+  const { themeAppearance } = useTheme();
+  return customColors[themeAppearance];
+};
+
+export { customColors } from '../../styles/colors';
