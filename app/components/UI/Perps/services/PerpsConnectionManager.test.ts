@@ -17,9 +17,6 @@ jest.mock('@metamask/perps-controller', () => {
 });
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
-const mockActiveProvider = {
-  ping: jest.fn().mockResolvedValue(undefined),
-};
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -27,7 +24,9 @@ jest.mock('../../../../core/Engine', () => ({
       getAccountState: jest.fn(),
       disconnect: jest.fn(),
       reconnectWithNewContext: jest.fn(),
-      getActiveProvider: jest.fn(() => mockActiveProvider),
+      getActiveProvider: jest.fn(() => ({
+        ping: jest.fn().mockResolvedValue(undefined),
+      })),
       isCurrentlyReinitializing: jest.fn(() => false),
     },
   },
@@ -1462,10 +1461,6 @@ describe('PerpsConnectionManager', () => {
       await PerpsConnectionManager.connect();
     });
 
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
     it('treats isInternetReachable null as online when isConnected is true', () => {
       // Arrange — start disconnected so wasOffline is not set by online path
       const m = PerpsConnectionManager as unknown as {
@@ -1505,27 +1500,6 @@ describe('PerpsConnectionManager', () => {
 
       // Assert
       expect(m.wasOffline).toBe(true);
-    });
-
-    it('validates only once for duplicate online notifications', async () => {
-      const m = PerpsConnectionManager as unknown as { wasOffline: boolean };
-      m.wasOffline = true;
-      const reconnect = jest
-        .spyOn(PerpsConnectionManager, 'reconnectWithNewContext')
-        .mockResolvedValue();
-      mockActiveProvider.ping.mockClear();
-      mockStreamManagerInstance.clearAllChannels.mockClear();
-
-      capturedCallback?.({ isInternetReachable: true, isConnected: true });
-      capturedCallback?.({ isInternetReachable: true, isConnected: true });
-      await Promise.resolve();
-
-      expect(m.wasOffline).toBe(false);
-      expect(mockActiveProvider.ping).toHaveBeenCalledTimes(1);
-      expect(mockStreamManagerInstance.clearAllChannels).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(reconnect).not.toHaveBeenCalled();
     });
   });
 

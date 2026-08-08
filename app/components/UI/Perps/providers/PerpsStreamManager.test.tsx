@@ -4499,30 +4499,6 @@ describe('PerpsStreamManager', () => {
       pricesDisconnect.mockRestore();
     });
 
-    it('delivers the first fresh positions update immediately after reconnect', () => {
-      const controllerCallbacks: ((positions: Position[]) => void)[] = [];
-      mockSubscribeToPositions.mockImplementation(
-        (params: { callback: (positions: Position[]) => void }) => {
-          controllerCallbacks.push(params.callback);
-          return jest.fn();
-        },
-      );
-      const callback = jest.fn();
-
-      testStreamManager.positions.subscribe({ callback, throttleMs: 100 });
-
-      act(() => controllerCallbacks[0]([]));
-      expect(callback).toHaveBeenCalledTimes(1);
-
-      act(() => controllerCallbacks[0]([]));
-      expect(callback).toHaveBeenCalledTimes(1);
-
-      testStreamManager.clearAllChannels();
-
-      act(() => controllerCallbacks[controllerCallbacks.length - 1]([]));
-      expect(callback).toHaveBeenCalledTimes(2);
-    });
-
     it('recreates prewarmed price subscription when no direct price subscribers are active', async () => {
       const firstUnsubscribe = jest.fn();
       const secondUnsubscribe = jest.fn();
@@ -4639,8 +4615,6 @@ describe('PerpsStreamManager', () => {
         size: '1',
         entryPrice: '50000',
         markPrice: '51000',
-        positionValue: '51000',
-        marginUsed: '5100',
         unrealizedPnl: '1000',
         leverage: { type: 'cross', value: 10 },
         liquidationPrice: '45000',

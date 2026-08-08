@@ -439,11 +439,6 @@ abstract class StreamChannel<T> {
    */
   public reconnect() {
     this.disconnect();
-    // Subscribers survive reconnect(). Rearm their first-update exemption so
-    // the first fresh snapshot from the new socket is delivered immediately.
-    this.subscribers.forEach((subscriber) => {
-      subscriber.hasReceivedFirstUpdate = false;
-    });
     // Re-establish connection if there are active subscribers
     if (this.subscribers.size > 0) {
       this.connect();
