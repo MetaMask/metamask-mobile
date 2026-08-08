@@ -1253,7 +1253,8 @@
       "long": "Long",
       "short": "Short",
       "opened": "Opened",
-      "closed_action": "Closed"
+      "closed_action": "Closed",
+      "reset_chart_zoom_accessibility_label": "Reset chart zoom"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",

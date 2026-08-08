@@ -4597,8 +4597,10 @@ function handleFocusTime(payload) {
         return;
     const centerSec = payload.timeMs / 1000;
     const current = readVisibleRangeSec(chart);
-    // Already comfortably visible → don't move (caller pulses separately).
-    if (current) {
+    // Already comfortably visible → don't move (caller pulses separately). The
+    // reset-to-fit button passes \`force\` to skip this: it must restore the
+    // default range even when its center is currently on screen.
+    if (current && !payload.force) {
         const inset = (current.to - current.from) * VISIBLE_INSET;
         if (centerSec >= current.from + inset && centerSec <= current.to - inset) {
             return;

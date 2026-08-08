@@ -328,6 +328,15 @@ const TraderPositionView = () => {
     // Legacy (perp) chart scrub: price readout not wired for the SVG chart.
   }, []);
 
+  // Tapping the pill-row "fit" button resets the chart zoom/pan to its default
+  // fit range. Bumping the nonce is picked up by TraderAdvancedChart, which
+  // re-frames the viewport imperatively (the same default framing computed on
+  // first render — wrapping the trades, extended to now for open positions).
+  const [resetRangeNonce, setResetRangeNonce] = useState(0);
+  const handleResetChartRange = useCallback(() => {
+    setResetRangeNonce((nonce) => nonce + 1);
+  }, []);
+
   // Crosshair % change reported by the spot AdvancedChart while scrubbing.
   // Overrides the header percent until the crosshair leaves the chart.
   const [scrubPercent, setScrubPercent] = useState<number | null>(null);
@@ -757,6 +766,8 @@ const TraderPositionView = () => {
                   isPerp={isPerp}
                   activeTimePeriod={activeTimePeriod}
                   shouldAutoRequestTimePeriod={isTimePeriodAutoSelected}
+                  isClosed={isClosed}
+                  resetRangeNonce={resetRangeNonce}
                   onScrubPercentChange={setScrubPercent}
                   focusRequest={focusRequest}
                   onRequestTimePeriod={handleRequestFocusTimePeriod}
@@ -768,6 +779,12 @@ const TraderPositionView = () => {
                   timePeriods={timePeriods}
                   activeTimePeriod={activeTimePeriod}
                   onSelectPeriod={setActiveTimePeriod}
+                  onResetRange={
+                    chartAssetId || isPerp ? handleResetChartRange : undefined
+                  }
+                  resetRangeTestID={
+                    TraderPositionViewSelectorsIDs.CHART_FIT_BUTTON
+                  }
                 />
               </View>
 

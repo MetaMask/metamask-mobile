@@ -65,6 +65,21 @@ describe('TraderPositionChartSection', () => {
     expect(getByTestId('price-chart-mock')).toBeOnTheScreen();
   });
 
+  it('forwards isClosed and resetRangeNonce to the advanced chart', () => {
+    render(
+      <TraderPositionChartSection
+        {...defaultProps}
+        assetId="eip155:8453/erc20:0x1"
+        isClosed
+        resetRangeNonce={3}
+      />,
+    );
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({ isClosed: true, resetRangeNonce: 3 }),
+    );
+  });
+
   it('forwards scrollPassthrough to the advanced chart', () => {
     render(
       <TraderPositionChartSection

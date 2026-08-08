@@ -15,6 +15,7 @@ export const TraderPositionViewSelectorsIDs = {
   COPY_TOKEN_ADDRESS_BUTTON: 'trader-position-view-copy-token-address-button',
   TOKEN_INFO_ROW: 'trader-position-view-token-info-row',
   PINNED_CHART_OVERLAY: 'trader-position-view-pinned-chart-overlay',
+  CHART_FIT_BUTTON: 'trader-position-view-chart-fit-button',
   STICKY_DAY_HEADER: 'trader-position-view-sticky-day-header',
   SKELETON: 'trader-position-skeleton',
   FALLBACK: 'trader-position-fallback',

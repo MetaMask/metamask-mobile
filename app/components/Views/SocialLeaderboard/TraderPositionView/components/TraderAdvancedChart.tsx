@@ -206,6 +206,19 @@ export interface TraderAdvancedChartProps {
   activeTimePeriod: TimePeriod;
   /** Allow automatic period widening when the current interval lacks trade-date candles. */
   shouldAutoRequestTimePeriod?: boolean;
+  /**
+   * Whether the position is closed. Closed positions frame the first→last trade
+   * (the final trade is the meaningful right edge); open positions extend the
+   * initial viewport's right edge to the latest candle ("now") so the still-live
+   * price action stays on screen. Defaults to `false` (open).
+   */
+  isClosed?: boolean;
+  /**
+   * Increment to reset the chart zoom/pan back to its default fit range. Each
+   * change re-frames the viewport to `[visibleFromMs, visibleToMs]` via the
+   * imperative focus. Left unset (or `0`) it never fires.
+   */
+  resetRangeNonce?: number;
   /** Trades to render as open/close circles. */
   trades: readonly Trade[];
   /** When set, the chart slides to center this trade's time (see {@link TradeFocusRequest}). */
@@ -249,6 +262,8 @@ const TraderAdvancedChart = ({
   isPerp = false,
   activeTimePeriod,
   shouldAutoRequestTimePeriod = false,
+  isClosed = false,
+  resetRangeNonce,
   trades,
   focusRequest,
   onRequestTimePeriod,
@@ -264,6 +279,7 @@ const TraderAdvancedChart = ({
   const vsCurrency = CHART_VS_CURRENCY;
   const chartRef = useRef<AdvancedChartRef>(null);
   const handledFocusNonceRef = useRef<number | null>(null);
+  const handledResetNonceRef = useRef<number | undefined>(resetRangeNonce);
 
   const timeRange = SOCIAL_PERIOD_TO_TIME_RANGE[activeTimePeriod];
   const config = TIME_RANGE_CONFIGS[timeRange];
@@ -519,12 +535,18 @@ const TraderAdvancedChart = ({
     // candles can still be paginated in, so a position older than the first
     // page is still framed once the WebView datafeed pages it into view.
     const canPaginateOlder = !isPerp && Boolean(ohlcvPagination?.hasMore);
+    // Open positions are still live, so extend the right edge to the latest
+    // candle ("now") — framing only to `maxT + pad` would cut off the ongoing
+    // price action (the last trade can be weeks before the newest candle).
+    // Closed positions wrap to their final trade, so keep the trade-framed `to`.
+    // The final `Math.min(..., lastBarTime)` still never overshoots the data.
+    const effectiveTo = isClosed ? to : Math.max(to, lastBarTime);
     return {
       visibleFromMs:
         allTradeTimeRange && canPaginateOlder
           ? from
           : Math.max(from, firstBarTime),
-      visibleToMs: Math.min(to, lastBarTime),
+      visibleToMs: Math.min(effectiveTo, lastBarTime),
     };
   }, [
     lastBarTime,
@@ -533,6 +555,7 @@ const TraderAdvancedChart = ({
     framingMarkers,
     config.durationMs,
     isPerp,
+    isClosed,
     ohlcvPagination,
   ]);
 
@@ -617,6 +640,31 @@ const TraderAdvancedChart = ({
     onRequestTimePeriod,
     shouldFallback,
   ]);
+
+  // Reset-to-fit: when `resetRangeNonce` changes (the pill-row fit button was
+  // tapped) re-frame the viewport back to the default fit range. The declarative
+  // `visibleFromMs/To` props don't change after a user pan/zoom, so we drive the
+  // reset imperatively — focus the range's midpoint at its full span, which
+  // reproduces `[visibleFromMs, visibleToMs]` (open positions end at now). The
+  // nonce guard fires exactly once per tap.
+  useEffect(() => {
+    if (resetRangeNonce == null) return;
+    if (handledResetNonceRef.current === resetRangeNonce) return;
+    handledResetNonceRef.current = resetRangeNonce;
+
+    if (shouldFallback || visibleFromMs == null || visibleToMs == null) return;
+    const spanMs = visibleToMs - visibleFromMs;
+    if (!(spanMs > 0)) return;
+
+    // `force` bypasses focusTime's "already visible → don't move" guard so the
+    // reset always re-frames to the full default range, even when the range's
+    // center is currently on screen (e.g. after zooming into the middle).
+    chartRef.current?.focusTime((visibleFromMs + visibleToMs) / 2, {
+      spanMs,
+      animate: true,
+      force: true,
+    });
+  }, [resetRangeNonce, shouldFallback, visibleFromMs, visibleToMs]);
 
   if (shouldFallback) {
     return (
