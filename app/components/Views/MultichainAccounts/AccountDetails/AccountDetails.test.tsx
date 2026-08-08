@@ -9,7 +9,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { formatAddress } from '../../../../util/address';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 
 jest.mock('../../confirmations/hooks/7702/useEIP7702Networks', () => ({
   useEIP7702Networks: jest.fn().mockReturnValue({

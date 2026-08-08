@@ -22,6 +22,14 @@ jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenSortConfig: jest.fn(),
+    },
+  },
+}));
+
 // Mock Tokens component to avoid complex Redux state setup
 jest.mock('../../UI/Tokens', () => {
   const React = jest.requireActual('react');
@@ -59,13 +67,13 @@ describe('TokensFullView', () => {
 
   it('renders header with title and back button', () => {
     // Arrange
-    const { getByTestId } = renderScreen(TokensFullView, {
+    const { getByTestId, getByText } = renderScreen(TokensFullView, {
       name: 'TokensFullView',
     });
 
     // Act & Assert
-    expect(getByTestId('header')).toBeOnTheScreen();
-    expect(getByTestId('header-title')).toBeOnTheScreen();
+    expect(getByTestId('back-button')).toBeOnTheScreen();
+    expect(getByText('Tokens')).toBeOnTheScreen();
     expect(getByTestId('tokens-component')).toBeOnTheScreen();
   });
 

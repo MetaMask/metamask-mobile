@@ -24,17 +24,18 @@ const createStyles = (params: { theme: Theme }) =>
     discountBanner: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: params.theme.colors.warning.muted,
-      paddingHorizontal: 12,
+      backgroundColor: params.theme.colors.background.muted,
+      paddingLeft: 12,
+      paddingRight: 8,
       paddingVertical: 8,
-      borderRadius: 8,
+      borderRadius: 4,
       marginBottom: 12,
       gap: 8,
     },
     feeValueContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 4,
     },
     strikethroughText: {
       textDecorationLine: 'line-through',

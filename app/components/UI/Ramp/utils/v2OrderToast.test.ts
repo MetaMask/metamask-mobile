@@ -1,4 +1,5 @@
 import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import {
   buildV2OrderToastOptions,
@@ -82,7 +83,7 @@ describe('v2OrderToast', () => {
 
     it('returns toast options for COMPLETED state with success icon', () => {
       (strings as jest.Mock)
-        .mockReturnValueOnce('Your purchase of 100.5 USDC was successful!')
+        .mockReturnValueOnce('Your purchase of 100.5 USDC was successful')
         .mockReturnValueOnce('Your USDC is now available');
 
       const params: V2OrderToastParams = {
@@ -95,11 +96,13 @@ describe('v2OrderToast', () => {
       const result = buildV2OrderToastOptions(params);
 
       expect(result).not.toBeNull();
-      expect(result?.variant).toBe(ToastVariants.Plain);
+      expect(result?.variant).toBe(ToastVariants.Icon);
       expect(result?.hasNoTimeout).toBe(false);
-      expect(result?.startAccessory).toBeDefined();
+      if (result?.variant === ToastVariants.Icon) {
+        expect(result.iconName).toBe(IconName.Confirmation);
+      }
       expect(result?.labelOptions?.[0]?.label).toBe(
-        'Your purchase of 100.5 USDC was successful!',
+        'Your purchase of 100.5 USDC was successful',
       );
       expect(result?.labelOptions?.[0]?.isBold).toBe(true);
       expect(result?.descriptionOptions?.description).toBe(
@@ -122,9 +125,11 @@ describe('v2OrderToast', () => {
       const result = buildV2OrderToastOptions(params);
 
       expect(result).not.toBeNull();
-      expect(result?.variant).toBe(ToastVariants.Plain);
+      expect(result?.variant).toBe(ToastVariants.Icon);
       expect(result?.hasNoTimeout).toBe(false);
-      expect(result?.startAccessory).toBeDefined();
+      if (result?.variant === ToastVariants.Icon) {
+        expect(result.iconName).toBe(IconName.Warning);
+      }
       expect(result?.labelOptions?.[0]?.label).toBe('Purchase of BTC failed');
       expect(result?.labelOptions?.[0]?.isBold).toBe(true);
       expect(result?.descriptionOptions?.description).toBe(
@@ -146,9 +151,11 @@ describe('v2OrderToast', () => {
       const result = buildV2OrderToastOptions(params);
 
       expect(result).not.toBeNull();
-      expect(result?.variant).toBe(ToastVariants.Plain);
+      expect(result?.variant).toBe(ToastVariants.Icon);
       expect(result?.hasNoTimeout).toBe(false);
-      expect(result?.startAccessory).toBeDefined();
+      if (result?.variant === ToastVariants.Icon) {
+        expect(result.iconName).toBe(IconName.Warning);
+      }
       expect(result?.labelOptions?.[0]?.label).toBe(
         'Your purchase was cancelled',
       );
@@ -172,7 +179,7 @@ describe('v2OrderToast', () => {
 
     it('handles missing cryptoAmount for Completed status', () => {
       (strings as jest.Mock)
-        .mockReturnValueOnce('Your purchase of  ETH was successful!')
+        .mockReturnValueOnce('Your purchase of  ETH was successful')
         .mockReturnValueOnce('Your ETH is now available');
 
       const params: V2OrderToastParams = {
@@ -185,7 +192,7 @@ describe('v2OrderToast', () => {
 
       expect(result).not.toBeNull();
       expect(result?.labelOptions?.[0]?.label).toBe(
-        'Your purchase of  ETH was successful!',
+        'Your purchase of  ETH was successful',
       );
     });
   });
@@ -193,7 +200,7 @@ describe('v2OrderToast', () => {
   describe('showV2OrderToast', () => {
     it('calls ToastService.showToast with valid toast options', () => {
       (strings as jest.Mock)
-        .mockReturnValueOnce('Your purchase of 1.5 ETH was successful!')
+        .mockReturnValueOnce('Your purchase of 1.5 ETH was successful')
         .mockReturnValueOnce('Your ETH is now available');
 
       const params: V2OrderToastParams = {
@@ -207,8 +214,10 @@ describe('v2OrderToast', () => {
 
       expect(mockToastService.showToast).toHaveBeenCalledTimes(1);
       const callArg = mockToastService.showToast.mock.calls[0][0];
-      expect(callArg.variant).toBe(ToastVariants.Plain);
-      expect(callArg.startAccessory).toBeDefined();
+      expect(callArg.variant).toBe(ToastVariants.Icon);
+      if (callArg.variant === ToastVariants.Icon) {
+        expect(callArg.iconName).toBe(IconName.Confirmation);
+      }
     });
 
     it('does not call ToastService.showToast for Created status', () => {

@@ -5,12 +5,13 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
+import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -20,7 +21,7 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
 import { useStyles } from '../../../../hooks/useStyles';
-import { getStakingNavbar } from '../../../Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   MetaMetricsEvents,
@@ -73,7 +74,7 @@ const Steps = {
 };
 
 const EarnLendingDepositConfirmationView = () => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { params } =
     useRoute<EarnLendingDepositConfirmationViewProps['route']>();
@@ -88,10 +89,17 @@ const EarnLendingDepositConfirmationView = () => {
     allowanceMinimalTokenUnit,
   } = params;
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  getStakingNavbar(strings('earn.supply'), navigation, theme.colors);
+  const headerTitle = useMemo(() => {
+    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
+    return `${strings('earn.supply')} ${tokenLabel}`;
+  }, [token?.ticker, token?.symbol, token?.name]);
+
+  const handleHeaderBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
@@ -221,18 +229,8 @@ const EarnLendingDepositConfirmationView = () => {
         .addProperties(getTrackEventProperties('deposit'))
         .build(),
     );
-
-    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
-    const title = `${strings('earn.supply')} ${tokenLabel}`;
-
-    navigation.setOptions(
-      getStakingNavbar(title, navigation, theme.colors, {
-        hasCancelButton: false,
-        backgroundColor: theme.colors.background.default,
-      }),
-    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, theme.colors]);
+  }, []);
 
   const emitTxMetaMetric = useCallback(
     (txType: TransactionType) =>
@@ -418,7 +416,7 @@ const EarnLendingDepositConfirmationView = () => {
           });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+            navigateToActivityAfterConfirmation(navigation);
           }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -793,6 +791,14 @@ const EarnLendingDepositConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
+      <HeaderStandard
+        title={headerTitle}
+        onBack={handleHeaderBackPress}
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+        }}
+        includesTopInset
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}

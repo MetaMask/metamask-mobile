@@ -8,9 +8,15 @@ import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket } from '../../types';
-import PredictBuyPreview from './PredictBuyPreview';
+import PredictBuyPreview, {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
+} from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
+import {
+  PredictEventValues,
+  PredictDismissalMethod,
+} from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock Engine
@@ -248,14 +254,6 @@ const initialState = {
 };
 
 describe('PredictBuyPreview', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -302,6 +300,29 @@ describe('PredictBuyPreview', () => {
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
       expect(screen.getByText('To win')).toBeOnTheScreen();
       expect(screen.getByText('$120.00')).toBeOnTheScreen();
+    });
+
+    it('tracks the initiated buy event using the ask (buyPrice), not the mid', () => {
+      const Engine = jest.requireMock('../../../../../core/Engine');
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          // Wide spread: mid 0.63 but ask 0.92.
+          outcomeToken: {
+            id: 'outcome-token-789',
+            title: 'Yes',
+            price: 0.63,
+            buyPrice: 0.92,
+          },
+        },
+      });
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(
+        Engine.context.PredictController.trackPredictOrderEvent,
+      ).toHaveBeenCalledWith(expect.objectContaining({ sharePrice: 0.92 }));
     });
 
     it('displays disclaimer text when done button is pressed', () => {
@@ -2069,6 +2090,47 @@ describe('PredictBuyPreview', () => {
       // Separator should not be present when groupItemTitle is empty
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
     });
+
+    it('renders provider-normalized moneyline team picks', () => {
+      const moneylineMarket: PredictMarket = {
+        ...mockMarket,
+        title: 'Korea Republic vs. Czechia',
+        outcomes: [
+          {
+            ...mockMarket.outcomes[0],
+            title: 'Korea Republic vs. Czechia',
+            groupItemTitle: 'Korea Republic',
+            image: 'https://example.com/korea.png',
+            sportsMarketType: 'moneyline',
+            tokens: [
+              {
+                id: 'outcome-token-789',
+                title: 'Yes',
+                shortTitle: 'KOR',
+                price: 0.5,
+              },
+            ],
+          },
+        ],
+      };
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          market: moneylineMarket,
+          outcome: moneylineMarket.outcomes[0],
+          outcomeToken: moneylineMarket.outcomes[0].tokens[0],
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(screen.getByText('Korea Republic')).toBeOnTheScreen();
+      expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
+      expect(screen.queryByText('Korea Republic at 50¢')).not.toBeOnTheScreen();
+    });
   });
 
   describe('outcome token color', () => {
@@ -2169,6 +2231,33 @@ describe('PredictBuyPreview', () => {
       ).toBeOnTheScreen();
     });
 
+    it('tracks initiated trade transaction with explore entry point', () => {
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const trackPredictOrderEvent =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../../../../../core/Engine').context.PredictController
+          .trackPredictOrderEvent;
+
+      expect(trackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analyticsProperties: expect.objectContaining({
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+          }),
+        }),
+      );
+    });
+
     it('handles undefined entryPoint with fallback', () => {
       const routeWithoutEntryPoint = {
         ...mockRoute,
@@ -2191,7 +2280,7 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('renderBottomContent visibility', () => {
-    it('returns null when isInputFocused is true', () => {
+    it('returns null when keypad is open', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
 
@@ -2203,7 +2292,7 @@ describe('PredictBuyPreview', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders bottom content when isInputFocused is false', () => {
+    it('renders bottom content when keypad is closed', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
 
@@ -2527,6 +2616,48 @@ describe('PredictBuyPreview', () => {
       fireEvent.press($20Button);
 
       expect(screen.getByText('To win')).toBeOnTheScreen();
+    });
+  });
+
+  describe('dismiss tracking in screen mode', () => {
+    const trackBetslipDismissed =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('../../../../../core/Engine').context.PredictController
+        .trackBetslipDismissed;
+
+    beforeEach(() => {
+      predictBuyPreviewDismissedViaBackRef.current = false;
+      predictBuyPreviewOrderInitiatedRef.current = false;
+    });
+
+    it('does not track back-button dismissal when order was already initiated', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      // Set after mount — the mount effect resets it to false
+      predictBuyPreviewOrderInitiatedRef.current = true;
+      trackBetslipDismissed.mockClear();
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('tracks back-button dismissal when no order was initiated', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+      predictBuyPreviewOrderInitiatedRef.current = false;
+      trackBetslipDismissed.mockClear();
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+        }),
+      );
     });
   });
 });

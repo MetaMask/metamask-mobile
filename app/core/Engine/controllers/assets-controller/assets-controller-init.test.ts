@@ -3,18 +3,22 @@ import {
   getAssetsControllerMessenger,
   getAssetsControllerInitMessenger,
   type AssetsControllerInitMessenger,
-  type AssetsControllerMessenger,
 } from '../../messengers/assets-controller';
 import type { MessengerClientInitRequest } from '../../types';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { assetsControllerInit } from './assets-controller-init';
-import { AssetsController } from '@metamask/assets-controller';
+import {
+  AssetsController,
+  AssetsControllerMessenger,
+} from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import {
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { store } from '../../../../store';
+import { trace } from '../../../../util/trace';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('@metamask/assets-controller');
 jest.mock('@metamask/core-backend', () => ({
@@ -27,6 +31,10 @@ jest.mock('../../../../store', () => ({
   store: {
     getState: jest.fn(),
   },
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn((_req, fn) => (fn ? fn('traced-context') : undefined)),
 }));
 
 const mockRemoteFeatureFlagController = {
@@ -48,6 +56,7 @@ interface RemoteFeatureFlagState {
       enabled: boolean;
       featureVersion: string | null;
       minimumVersion: string | null;
+      tracesEnabled?: boolean;
     }
   >;
 }
@@ -144,6 +153,11 @@ describe('assetsControllerInit', () => {
     jest.mocked(store.getState).mockReturnValue({
       settings: { basicFunctionalityEnabled: true },
       onboarding: { completedOnboarding: false },
+      engine: {
+        backgroundState: {
+          KeyringController: { isUnlocked: true },
+        },
+      },
     } as ReturnType<typeof store.getState>);
   });
 
@@ -175,6 +189,7 @@ describe('assetsControllerInit', () => {
           enabled: true,
         },
         trace: expect.any(Function),
+        tempMigrateAssetsInfoMetadataAssets3346: expect.any(Function),
       }),
     );
   });
@@ -257,7 +272,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when feature version does not match', () => {
+    it('returns true when feature version does not match while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: {
           remoteFeatureFlags: {
@@ -279,7 +294,49 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when RemoteFeatureFlagController:getState throws', () => {
+    it('returns false when the keyring is locked, regardless of feature flag', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: false },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const requestMock = getInitRequestMock();
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isEnabled = constructorCall.isEnabled as () => boolean;
+
+      expect(isEnabled()).toBe(false);
+    });
+
+    it('returns true when keyring is unlocked and feature flag is enabled', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: true },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const requestMock = getInitRequestMock();
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isEnabled = constructorCall.isEnabled as () => boolean;
+
+      expect(isEnabled()).toBe(true);
+    });
+
+    it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagGetStateThrows: true,
       });
@@ -293,7 +350,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when feature flag is undefined', () => {
+    it('returns true when feature flag is undefined while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: { remoteFeatureFlags: {} },
       });
@@ -397,6 +454,71 @@ describe('assetsControllerInit', () => {
     });
   });
 
+  describe('tempMigrateAssetsInfoMetadataAssets3346', () => {
+    it('returns the persisted TokensController and AccountsController state', () => {
+      const requestMock = getInitRequestMock();
+      const mockTokensControllerState = {
+        allTokens: {
+          '0x64': {
+            '0x0000000000000000000000000000000000000001': [
+              {
+                address: '0x0000000000000000000000000000000000000002',
+                symbol: 'TST',
+                decimals: 18,
+              },
+            ],
+          },
+        },
+        allIgnoredTokens: {},
+      };
+      const mockAccountsControllerState = {
+        internalAccounts: {
+          accounts: {
+            'account-id-1': createMockInternalAccount(
+              '0x0000000000000000000000000000000000000001',
+              'Account 1',
+            ),
+          },
+          selectedAccount: 'account-id-1',
+        },
+      };
+      requestMock.persistedState = {
+        TokensController: mockTokensControllerState,
+        AccountsController: mockAccountsControllerState,
+      } as typeof requestMock.persistedState;
+
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const getMigrationState =
+        constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
+
+      expect(getMigrationState).toBeDefined();
+      expect(getMigrationState?.()).toStrictEqual({
+        TokensController: mockTokensControllerState,
+        AccountsController: mockAccountsControllerState,
+      });
+    });
+
+    it('returns undefined slices when no legacy state is persisted', () => {
+      const requestMock = getInitRequestMock();
+      requestMock.persistedState = {};
+
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const getMigrationState =
+        constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
+
+      expect(getMigrationState?.()).toStrictEqual({
+        TokensController: undefined,
+        AccountsController: undefined,
+      });
+    });
+  });
+
   describe('isBasicFunctionality', () => {
     it('returns true when basicFunctionalityEnabled is true, regardless of onboarding state', () => {
       jest.mocked(store.getState).mockReturnValue({
@@ -430,6 +552,57 @@ describe('assetsControllerInit', () => {
         | undefined;
       expect(isBasicFunctionality).toBeDefined();
       expect(isBasicFunctionality?.()).toBe(false);
+    });
+  });
+
+  describe('trace feature flag (assetsUnifyState.tracesEnabled)', () => {
+    it('skips Sentry tracing when tracesEnabled is absent / off', async () => {
+      assetsControllerInit(getInitRequestMock());
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace;
+      if (!traceCallback) {
+        throw new Error('Expected trace callback to be defined');
+      }
+
+      const fn = jest.fn(() => 'result');
+      await expect(
+        traceCallback({ name: 'AssetsControllerFirstInitFetch' }, fn),
+      ).resolves.toBe('result');
+
+      expect(fn).toHaveBeenCalledWith();
+      expect(trace).not.toHaveBeenCalled();
+    });
+
+    it('forwards to util/trace when assetsUnifyState.tracesEnabled is on', async () => {
+      assetsControllerInit(
+        getInitRequestMock({
+          remoteFeatureFlagState: {
+            remoteFeatureFlags: {
+              [ASSETS_UNIFY_STATE_FLAG]: {
+                enabled: true,
+                featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+                minimumVersion: '7.60.0',
+                tracesEnabled: true,
+              },
+            },
+          },
+        }),
+      );
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace;
+      if (!traceCallback) {
+        throw new Error('Expected trace callback to be defined');
+      }
+
+      const fn = jest.fn(() => 'result');
+      await expect(
+        traceCallback({ name: 'AssetsControllerFirstInitFetch' }, fn),
+      ).resolves.toBe('result');
+
+      expect(trace).toHaveBeenCalled();
+      expect(fn).toHaveBeenCalledWith('traced-context');
     });
   });
 });

@@ -3,6 +3,8 @@ enum ExtendedKeyringTypes {
   hd = 'HD Key Tree',
   qr = 'QR Hardware Wallet Device',
   ledger = 'Ledger Hardware',
+  oneKey = 'OneKey Hardware',
+  money = 'Money Keyring',
 }
 
 export default ExtendedKeyringTypes;

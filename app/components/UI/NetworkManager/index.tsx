@@ -1,8 +1,10 @@
 // third party dependencies
 import { View } from 'react-native';
+import { HeaderStandard, Text } from '@metamask/design-system-react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from '@tommasini/react-native-scrollable-tab-view';
@@ -18,7 +20,6 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { strings } from '../../../../locales/i18n';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
@@ -30,7 +31,6 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Text from '../../../component-library/components/Texts/Text';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import AccountAction from '../../Views/AccountAction';
 import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
@@ -80,10 +80,10 @@ const NetworkManager = () => {
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
   const initialTabIndexRef = useRef<number | null>(null);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
 
   const enabledNetworks = useMemo(() => {
@@ -296,11 +296,11 @@ const NetworkManager = () => {
       NetworkController.removeNetwork(chainId);
       disableNetwork(showConfirmDeleteModal.caipChainId);
 
-      addTraitsToUser(removeItemFromChainIdList(chainId));
+      identify(removeItemFromChainIdList(chainId));
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork, addTraitsToUser]);
+  }, [showConfirmDeleteModal, disableNetwork, identify]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
@@ -351,7 +351,7 @@ const NetworkManager = () => {
         shouldNavigateBack
       >
         <View style={containerStyle}>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('wallet.networks')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
           />

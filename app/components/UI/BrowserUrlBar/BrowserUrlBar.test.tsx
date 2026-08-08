@@ -273,7 +273,7 @@ describe('BrowserUrlBar', () => {
       { state: mockInitialState },
     );
 
-    const urlText = getByText('https://example.com');
+    const urlText = getByText('https://example.com/');
 
     // Press the URL text to trigger the focus callback
     fireEvent.press(urlText);
@@ -341,6 +341,33 @@ describe('BrowserUrlBar', () => {
 
         // Assert
         expect(setIsUrlBarFocusedMock).toHaveBeenCalledWith(false);
+      });
+    });
+
+    describe('dismissEditing method', () => {
+      it('unfocuses without calling onCancel', () => {
+        const onCancelMock = jest.fn();
+        const onBlurMock = jest.fn();
+        const setIsUrlBarFocusedMock = jest.fn();
+        const props = {
+          ...defaultProps,
+          onCancel: onCancelMock,
+          onBlur: onBlurMock,
+          setIsUrlBarFocused: setIsUrlBarFocusedMock,
+          isUrlBarFocused: true,
+        };
+
+        renderWithProvider(<BrowserUrlBar {...props} ref={urlBarRef} />, {
+          state: mockInitialState,
+        });
+
+        act(() => {
+          urlBarRef.current?.dismissEditing();
+        });
+
+        expect(setIsUrlBarFocusedMock).toHaveBeenCalledWith(false);
+        expect(onBlurMock).toHaveBeenCalledTimes(1);
+        expect(onCancelMock).not.toHaveBeenCalled();
       });
     });
 
@@ -575,6 +602,55 @@ describe('BrowserUrlBar', () => {
         const cancelText = getByText('Cancel');
         expect(cancelText).toBeDefined();
       });
+    });
+  });
+
+  describe('URL fragment display', () => {
+    it('strips fragment from displayed URL when fragment is large', () => {
+      const baseUrl = 'https://example.com/page';
+      const urlWithLargeFragment = `${baseUrl}#${'A'.repeat(200)}other-domain.com`;
+      const props = {
+        ...propsWithoutUrlBarFocused,
+        activeUrl: urlWithLargeFragment,
+      };
+
+      const { queryByText, getByText } = renderWithProvider(
+        <BrowserUrlBar {...props} />,
+        { state: mockInitialState },
+      );
+
+      // Fragment should not appear in the URL bar
+      expect(queryByText(urlWithLargeFragment)).toBeNull();
+      // Origin + path should be displayed instead
+      expect(getByText(baseUrl)).toBeDefined();
+    });
+
+    it('displays URL without fragment when fragment is present', () => {
+      const props = {
+        ...propsWithoutUrlBarFocused,
+        activeUrl: 'https://example.com/page?q=1#section',
+      };
+
+      const { getByText, queryByText } = renderWithProvider(
+        <BrowserUrlBar {...props} />,
+        { state: mockInitialState },
+      );
+
+      expect(getByText('https://example.com/page?q=1')).toBeDefined();
+      expect(queryByText('https://example.com/page?q=1#section')).toBeNull();
+    });
+
+    it('displays URL unchanged when no fragment is present', () => {
+      const props = {
+        ...propsWithoutUrlBarFocused,
+        activeUrl: 'https://example.com/page',
+      };
+
+      const { getByText } = renderWithProvider(<BrowserUrlBar {...props} />, {
+        state: mockInitialState,
+      });
+
+      expect(getByText('https://example.com/page')).toBeDefined();
     });
   });
 

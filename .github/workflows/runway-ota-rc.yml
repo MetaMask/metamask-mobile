@@ -22,6 +22,7 @@ on:
         type: string
 
 permissions:
+  actions: read # required by slack-rc-notification.yml
   contents: read
   pull-requests: read
   id-token: write # required by push-eas-update.yml

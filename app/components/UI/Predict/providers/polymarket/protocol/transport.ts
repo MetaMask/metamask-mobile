@@ -34,6 +34,7 @@ export async function submitProtocolClobOrder({
   const url = `${CLOB_RELAYER}/order`;
   const requestHeaders = normalizeRelayerHeaders(headers);
 
+  requestHeaders['Content-Type'] = 'application/json';
   requestHeaders['X-Clob-Version'] = protocol.transport.clobVersionHeader;
 
   const body = {

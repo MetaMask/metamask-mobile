@@ -16,6 +16,7 @@ export enum OAuthErrorType {
   GoogleLoginUserDisabledOneTapFeature = 10015,
   GoogleLoginOneTapFailure = 10016,
   GoogleLoginNoProviderDependencies = 10017,
+  TelegramLoginError = 10018,
 }
 
 export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
@@ -39,7 +40,26 @@ export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
   [OAuthErrorType.GoogleLoginOneTapFailure]: 'Google login one tap failure',
   [OAuthErrorType.GoogleLoginNoProviderDependencies]:
     'Google login credential provider not available',
+  [OAuthErrorType.TelegramLoginError]: 'Telegram login error',
 } as const;
+
+/**
+ * Returns true when an OAuth provider error message indicates the user aborted
+ * sign-in (cancel, dismiss, close) rather than a server or configuration failure.
+ */
+export function isOAuthUserCancellationMessage(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('the user canceled the authorization attempt') ||
+    normalized.includes('authorization error error 1001') ||
+    normalized.includes('err_request_canceled') ||
+    /user\s+cancel/.test(normalized) ||
+    /\bcanceled\b/.test(normalized) ||
+    /\bcancelled\b/.test(normalized) ||
+    /16:\s*\[.*\]\s*cancel/.test(normalized) ||
+    /\bdismiss/.test(normalized)
+  );
+}
 
 export class OAuthError extends Error {
   public readonly code: OAuthErrorType;
@@ -61,4 +81,32 @@ export class OAuthError extends Error {
     this.code = code;
     this.data = data || {};
   }
+}
+
+/**
+ * Returns true when a social login attempt ended because the user closed or
+ * cancelled the provider UI before completing authentication.
+ */
+export function isSocialLoginAuthSessionDismissed(error: unknown): boolean {
+  if (!(error instanceof OAuthError)) {
+    return false;
+  }
+
+  if (
+    error.code === OAuthErrorType.UserCancelled ||
+    error.code === OAuthErrorType.UserDismissed
+  ) {
+    return true;
+  }
+
+  if (
+    error.code === OAuthErrorType.GoogleLoginError ||
+    error.code === OAuthErrorType.AppleLoginError ||
+    error.code === OAuthErrorType.UnknownError ||
+    error.code === OAuthErrorType.GoogleLoginOneTapFailure
+  ) {
+    return isOAuthUserCancellationMessage(error.message);
+  }
+
+  return false;
 }

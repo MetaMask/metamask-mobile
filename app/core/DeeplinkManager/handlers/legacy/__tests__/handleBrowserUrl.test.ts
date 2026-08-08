@@ -1,5 +1,9 @@
-import handleBrowserUrl from '../handleBrowserUrl';
+import handleBrowserUrl, {
+  createBrowserDeeplinkIntent,
+} from '../handleBrowserUrl';
 import { InteractionManager } from 'react-native';
+import Routes from '../../../../../constants/navigation/Routes';
+import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
 
 jest.mock('react-native', () => ({
   InteractionManager: {
@@ -24,5 +28,26 @@ describe('handleBrowserUrl', () => {
     handleBrowserUrl({ url: testUrl, callback });
 
     expect(mockRunAfterInteractions).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it('creates a browser tab startup intent', () => {
+    const intent = createBrowserDeeplinkIntent({
+      url: 'https://test.com',
+    });
+
+    expect(intent).toEqual({
+      target: {
+        type: 'home-tab',
+        routeName: Routes.BROWSER.HOME,
+        params: {
+          screen: Routes.BROWSER.VIEW,
+          params: {
+            newTabUrl: 'https://test.com',
+            linkType: EXTERNAL_LINK_TYPE,
+            timestamp: expect.any(Number),
+          },
+        },
+      },
+    });
   });
 });

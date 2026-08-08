@@ -1,7 +1,10 @@
 import { createSelector, type Selector } from 'reselect';
 import { memoize } from 'lodash';
 import { RootState } from '../reducers';
-import { selectIsWalletBlocked as coreSelectIsWalletBlocked } from '@metamask/compliance-controller';
+import {
+  selectAreAnyWalletsBlocked as coreSelectAreAnyWalletsBlocked,
+  selectIsWalletBlocked as coreSelectIsWalletBlocked,
+} from '@metamask/compliance-controller';
 
 const selectComplianceControllerState = (state: RootState) =>
   state.engine.backgroundState.ComplianceController;
@@ -30,15 +33,12 @@ export const selectIsWalletBlocked = (
 
 /**
  * Memoized factory: same address set (order-independent) returns the same selector instance.
- * Inner loop uses coreSelectIsWalletBlocked(addr)(state) because (state) here is the
- * compliance controller slice, not root state.
  */
 const getSelectAreAnyWalletsBlocked = memoize(
   (addresses: string[]) =>
-    createSelector(selectComplianceControllerState, (state) => {
-      if (!state || addresses.length === 0) return false;
-      return addresses.some((addr) => coreSelectIsWalletBlocked(addr)(state));
-    }),
+    createSelector(selectComplianceControllerState, (state) =>
+      state ? coreSelectAreAnyWalletsBlocked(addresses)(state) : false,
+    ),
   (addresses: string[]) =>
     [...addresses].sort((a, b) => a.localeCompare(b)).join(','),
 );

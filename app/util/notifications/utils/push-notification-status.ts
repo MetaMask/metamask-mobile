@@ -1,4 +1,7 @@
-import FCMService from '../services/FCMService';
+import {
+  isPushPermissionGranted,
+  isPushPermissionPromptable,
+} from '../services/NotificationService';
 
 export interface PushNotificationStatus {
   controllerIsPushEnabled: boolean;
@@ -6,29 +9,48 @@ export interface PushNotificationStatus {
   nativeOsPermissionEnabled: boolean | null;
 }
 
+export interface NativePushPermissionStatus {
+  nativeOsPermissionEnabled: boolean;
+  nativeOsPermissionPromptable: boolean;
+}
+
 interface ResolvePushNotificationStatusOptions {
   controllerIsPushEnabled: boolean;
 }
 
+export const resolveNativePushPermissionStatus =
+  async (): Promise<NativePushPermissionStatus> => {
+    const nativeOsPermissionEnabled = await isPushPermissionGranted().catch(
+      () => false,
+    );
+
+    if (nativeOsPermissionEnabled) {
+      return {
+        nativeOsPermissionEnabled,
+        nativeOsPermissionPromptable: false,
+      };
+    }
+
+    const nativeOsPermissionPromptable =
+      await isPushPermissionPromptable().catch(() => false);
+
+    return {
+      nativeOsPermissionEnabled,
+      nativeOsPermissionPromptable,
+    };
+  };
+
+export const resolveNativePushPermissionEnabled = async (): Promise<boolean> =>
+  await isPushPermissionGranted().catch(() => false);
+
 export const resolvePushNotificationStatus = async ({
   controllerIsPushEnabled,
 }: ResolvePushNotificationStatusOptions): Promise<PushNotificationStatus> => {
-  if (!controllerIsPushEnabled) {
-    return {
-      controllerIsPushEnabled,
-      effectivePushEnabled: false,
-      nativeOsPermissionEnabled: null,
-    };
-  }
-
-  const nativeOsPermissionEnabled =
-    await FCMService.isPushNotificationsEnabled()
-      .then(Boolean)
-      .catch(() => false);
+  const nativeOsPermissionEnabled = await resolveNativePushPermissionEnabled();
 
   return {
     controllerIsPushEnabled,
-    effectivePushEnabled: nativeOsPermissionEnabled,
+    effectivePushEnabled: controllerIsPushEnabled && nativeOsPermissionEnabled,
     nativeOsPermissionEnabled,
   };
 };

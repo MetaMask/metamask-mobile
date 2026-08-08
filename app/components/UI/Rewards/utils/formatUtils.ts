@@ -331,13 +331,64 @@ export const validateEmail = (email: string): boolean => {
  * @example formatUsd('11500.000000') // '$11,500.00'
  * @example formatUsd(12500.5)        // '$12,500.50'
  */
-export const formatUsd = (value: string | number): string =>
-  formatFiat(new BigNumber(value), 'USD');
+export const formatUsd = (
+  value: string | number | null | undefined,
+): string => {
+  const fiatAmount = new BigNumber(value ?? NaN);
+
+  if (!fiatAmount.isFinite()) {
+    return '—';
+  }
+
+  return formatFiat(fiatAmount, 'USD');
+};
+
+interface FormatCompactValueOptions {
+  maximumFractionDigits?: number;
+  billionSuffix?: string;
+  millionSuffix?: string;
+  thousandSuffix?: string;
+}
+
+/**
+ * Formats a number in compact notation without a currency symbol.
+ * Implemented manually because Hermes does not support `notation: 'compact'`.
+ *
+ * @example formatCompactValue(750000)  // '750K'
+ * @example formatCompactValue(5750000) // '5.75M'
+ * @example formatCompactValue(1500000000) // '1.5B'
+ * @example formatCompactValue(233.208062) // '233.21'
+ */
+export const formatCompactValue = (
+  value: number,
+  options?: FormatCompactValueOptions,
+): string => {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  const maximumFractionDigits = options?.maximumFractionDigits ?? 2;
+  const billionSuffix = options?.billionSuffix ?? 'B';
+  const millionSuffix = options?.millionSuffix ?? 'M';
+  const thousandSuffix = options?.thousandSuffix ?? 'K';
+  const formatValue = (compact: number) =>
+    `${Number(compact.toFixed(maximumFractionDigits))}`;
+
+  if (abs >= 1_000_000_000) {
+    return `${sign}${formatValue(abs / 1_000_000_000)}${billionSuffix}`;
+  }
+  if (abs >= 1_000_000) {
+    return `${sign}${formatValue(abs / 1_000_000)}${millionSuffix}`;
+  }
+  if (abs >= 1_000) {
+    return `${sign}${formatValue(abs / 1_000)}${thousandSuffix}`;
+  }
+  return `${sign}${formatValue(abs)}`;
+};
 
 /**
  * Formats a USD amount in compact notation (e.g. $1.5M, $350K).
  * Implemented manually because Hermes does not support `notation: 'compact'`.
  *
+ * @example formatCompactUsd(1500000000) // '$1.5B'
  * @example formatCompactUsd(1500000) // '$1.5M'
  * @example formatCompactUsd(6000000) // '$6M'
  * @example formatCompactUsd(25000)   // '$25K'
@@ -350,18 +401,11 @@ export const formatCompactUsd = (
   const abs = Math.abs(value);
   const sign = value < 0 ? '-' : '';
   const maximumFractionDigits = options?.maximumFractionDigits ?? 1;
-  const formatCompactValue = (compact: number) =>
-    `${Number(compact.toFixed(maximumFractionDigits))}`;
+  const compactValue = formatCompactValue(abs, {
+    maximumFractionDigits,
+  });
 
-  if (abs >= 1_000_000) {
-    const compact = abs / 1_000_000;
-    return `${sign}$${formatCompactValue(compact)}M`;
-  }
-  if (abs >= 1_000) {
-    const compact = abs / 1_000;
-    return `${sign}$${formatCompactValue(compact)}K`;
-  }
-  return `${sign}$${abs}`;
+  return `${sign}$${compactValue}`;
 };
 
 /**

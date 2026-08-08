@@ -118,6 +118,32 @@ describe('useTransactionPayAvailableTokens', () => {
     );
   });
 
+  it('returns hasTokens false when all tokens are disabled', () => {
+    const disabledToken = { ...TOKEN_MOCK, disabled: true };
+    jest.mocked(getAvailableTokens).mockReturnValue([disabledToken]);
+
+    const { result } = renderHookWithProvider(useTransactionPayAvailableTokens);
+
+    expect(result.current.availableTokens).toHaveLength(1);
+    expect(result.current.hasTokens).toBe(false);
+  });
+
+  it('returns hasTokens true when at least one token is not disabled', () => {
+    const disabledToken = { ...TOKEN_MOCK, disabled: true };
+    const enabledToken = {
+      ...TOKEN_MOCK,
+      address: '0xEnabled',
+      disabled: false,
+    };
+    jest
+      .mocked(getAvailableTokens)
+      .mockReturnValue([disabledToken, enabledToken]);
+
+    const { result } = renderHookWithProvider(useTransactionPayAvailableTokens);
+
+    expect(result.current.hasTokens).toBe(true);
+  });
+
   it('passes default blocklist when transaction type has no override', () => {
     const defaultBlocked = {
       chainIds: ['0x1'],

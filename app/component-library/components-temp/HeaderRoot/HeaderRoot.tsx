@@ -18,6 +18,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Internal dependencies.
 import { HeaderRootProps } from './HeaderRoot.types';
 
+/**
+ * @deprecated Please update your code to use `HeaderRoot` from `@metamask/design-system-react-native`.
+ */
 const HeaderRoot: React.FC<HeaderRootProps> = ({
   children,
   title,

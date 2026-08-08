@@ -85,7 +85,7 @@ jest.mock('react-native', () => {
 
 const mockPaymentMethods = [
   {
-    id: '/payments/debit-credit-card-1',
+    id: 'debit-credit-card-1',
     paymentType: 'debit-credit-card',
     name: 'Debit or Credit',
     score: 90,
@@ -97,7 +97,7 @@ const mockPaymentMethods = [
       'Card purchases may take a few minutes to complete.',
   },
   {
-    id: '/payments/debit-credit-card-2',
+    id: 'debit-credit-card-2',
     paymentType: 'debit-credit-card',
     name: 'Debit or Credit',
     score: 90,
@@ -111,7 +111,7 @@ const mockPaymentMethods = [
 ];
 
 const mockSelectedProvider = {
-  id: '/providers/transak',
+  id: 'transak',
   name: 'Transak',
   environmentType: 'PRODUCTION',
   description: 'Test provider',
@@ -128,7 +128,7 @@ const mockSelectedProvider = {
 const mockProviders = [
   mockSelectedProvider,
   {
-    id: '/providers/moonpay',
+    id: 'moonpay',
     name: 'MoonPay',
     environmentType: 'PRODUCTION',
     description: 'Test provider 2',
@@ -154,6 +154,7 @@ const defaultControllerReturn = {
   paymentMethodsError: null,
   selectedPaymentMethod: mockPaymentMethods[0],
   setSelectedProvider: mockSetSelectedProvider,
+  setSelectedProviderForAsset: jest.fn(),
   setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
   userRegion: { regionCode: 'us', country: { currency: 'USD' } },
   selectedToken: {
@@ -259,9 +260,14 @@ describe('PaymentSelectionModal', () => {
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
-    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampProviderSelectionModal',
+        params: { amount: 100 },
+      }),
+    );
   });
 
   it('navigates to provider selection when change provider is pressed while payment methods are loading', () => {
@@ -279,9 +285,14 @@ describe('PaymentSelectionModal', () => {
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
-    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampProviderSelectionModal',
+        params: { amount: 100 },
+      }),
+    );
   });
 
   it('does not navigate to provider selection when change provider is pressed and there is a payment method error', async () => {
@@ -352,19 +363,16 @@ describe('PaymentSelectionModal', () => {
       walletAddress: '0x123',
       assetId: 'eip155:1/slip44:60',
       redirectUrl: expect.stringContaining('/regions/fake-callback'),
-      providers: ['/providers/transak'],
-      paymentMethods: [
-        '/payments/debit-credit-card-1',
-        '/payments/debit-credit-card-2',
-      ],
+      providers: ['transak'],
+      paymentMethods: ['debit-credit-card-1', 'debit-credit-card-2'],
     });
   });
 
-  it('keeps payment method visible when only custom-action quote matches', () => {
+  it('keeps payment method visible when only custom-action quote matches and greys out the rest', () => {
     const customActionQuote = {
-      provider: '/providers/transak',
+      provider: 'transak',
       quote: {
-        paymentMethod: '/payments/debit-credit-card-1',
+        paymentMethod: 'debit-credit-card-1',
         isCustomAction: true,
       },
     };
@@ -382,10 +390,126 @@ describe('PaymentSelectionModal', () => {
     const { queryAllByText, queryByText } = renderWithProvider(
       PaymentSelectionModal,
     );
-    // debit-credit-card-1 matches the custom-action quote → visible.
-    // debit-credit-card-2 has no matching quote → filtered out.
-    expect(queryAllByText('Debit or Credit').length).toBe(1);
+    // Both methods render. debit-credit-card-1 matches the custom-action quote,
+    // debit-credit-card-2 has no matching quote → disabled with fallback subtitle.
+    expect(queryAllByText('Debit or Credit').length).toBe(2);
     expect(queryByText('fiat_on_ramp.no_payment_methods_available')).toBeNull();
+    expect(queryAllByText('fiat_on_ramp.quote_unavailable').length).toBe(1);
+  });
+
+  it('disables payment methods without a success quote and shows the provider error message', () => {
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [],
+        error: [
+          {
+            provider: 'transak',
+            error: 'Minimum purchase is 25 USD',
+          },
+        ],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { queryAllByText, queryByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+
+    expect(queryAllByText('Debit or Credit').length).toBe(2);
+    expect(queryAllByText('Minimum purchase is 25 USD').length).toBe(2);
+    expect(queryByText('fiat_on_ramp.no_payment_methods_available')).toBeNull();
+  });
+
+  it('shows a generic message instead of a non-limit provider error', () => {
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [],
+        error: [
+          {
+            provider: 'transak',
+            error: '[object Object]',
+          },
+        ],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { queryByText, queryAllByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+
+    expect(queryByText('[object Object]')).toBeNull();
+    expect(queryAllByText('fiat_on_ramp.quote_unavailable').length).toBe(2);
+  });
+
+  it('ignores errors from other providers when sourcing the disabled subtitle', () => {
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [],
+        error: [
+          {
+            provider: 'moonpay',
+            error: 'Should not be shown',
+          },
+        ],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { queryByText, queryAllByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+
+    expect(queryByText('Should not be shown')).toBeNull();
+    expect(queryAllByText('fiat_on_ramp.quote_unavailable').length).toBe(2);
+  });
+
+  it('does not disable payment methods while quotes are loading', () => {
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: null,
+      loading: true,
+    }));
+
+    const { queryAllByText, queryByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+
+    expect(queryAllByText('Debit or Credit').length).toBe(2);
+    expect(queryByText('fiat_on_ramp.quote_unavailable')).toBeNull();
+  });
+
+  it('does not invoke onPaymentMethodSelect when a disabled row is pressed', async () => {
+    const onPaymentMethodSelect = jest.fn();
+    mockUseParams.mockReturnValue({ onPaymentMethodSelect });
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [],
+        error: [{ provider: 'transak', error: 'Amount below minimum' }],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { getAllByText } = renderWithProvider(PaymentSelectionModal);
+
+    fireEvent.press(getAllByText('Debit or Credit')[0]);
+
+    await waitFor(() => {
+      expect(onPaymentMethodSelect).not.toHaveBeenCalled();
+      expect(mockSetSelectedPaymentMethod).not.toHaveBeenCalled();
+    });
   });
 
   it('does not use custom-action quote amount for price preview', () => {
@@ -393,9 +517,9 @@ describe('PaymentSelectionModal', () => {
     // find accepted custom-action quotes. It should be filtered out and no
     // price text should render for the row.
     const customActionQuote = {
-      provider: '/providers/transak',
+      provider: 'transak',
       quote: {
-        paymentMethod: '/payments/debit-credit-card-1',
+        paymentMethod: 'debit-credit-card-1',
         amountOut: 0.12345,
         amountOutInFiat: 67.89,
         isCustomAction: true,

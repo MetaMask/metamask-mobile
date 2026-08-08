@@ -1,7 +1,12 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import TokenDetailsList from './';
 import { ToastContext } from '../../../../../component-library/components/Toast';
+
+const mockSetString = jest.fn();
+jest.mock('../../../../../core/ClipboardManager', () => ({
+  setString: (...args: unknown[]) => mockSetString(...args),
+}));
 
 const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
@@ -15,10 +20,10 @@ const mockTokenDetails = {
   tokenList: 'Metamask, Coinmarketcap',
 };
 
-const renderComponent = () =>
+const renderComponent = (props?: { onCopyAddress?: () => void }) =>
   render(
     <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      <TokenDetailsList tokenDetails={mockTokenDetails} />
+      <TokenDetailsList tokenDetails={mockTokenDetails} {...props} />
     </ToastContext.Provider>,
   );
 
@@ -37,5 +42,18 @@ describe('TokenDetails', () => {
     expect(getByText('18')).toBeOnTheScreen();
     expect(getByText('Token list')).toBeOnTheScreen();
     expect(getByText('Metamask, Coinmarketcap')).toBeOnTheScreen();
+  });
+
+  it('calls onCopyAddress when contract address is tapped', async () => {
+    mockSetString.mockResolvedValue(undefined);
+    const mockOnCopyAddress = jest.fn();
+    const { getByText } = renderComponent({
+      onCopyAddress: mockOnCopyAddress,
+    });
+
+    fireEvent.press(getByText('0x935E7...05477'));
+    await waitFor(() => {
+      expect(mockOnCopyAddress).toHaveBeenCalledTimes(1);
+    });
   });
 });

@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import Engine from '../../../../../../core/Engine';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -22,9 +23,11 @@ import { BigNumber } from 'bignumber.js';
 import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useConfirmationContext } from '../../../context/confirmation-context';
+import { RootState } from '../../../../../../reducers';
 
 export interface PredictClaimFooterProps {
-  onPress: () => void;
+  onPress: () => void | Promise<void>;
   onError: (error?: Error) => void;
 }
 
@@ -34,22 +37,48 @@ export function PredictClaimFooter({
 }: PredictClaimFooterProps) {
   const transactionMetadata = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
+  const { setIsConfirmationSubmitting } = useConfirmationContext();
 
   const address = transactionMetadata?.txParams.from;
+  const transactionId = transactionMetadata?.id;
 
-  const wonPositions = useSelector(
-    selectPredictWonPositions({
-      address: address ?? '0x',
-    }),
+  const wonPositions = useSelector((state: RootState) =>
+    selectPredictWonPositions(state, address ?? '0x'),
   );
 
   const hasNoPositions = !address || !wonPositions?.length;
 
+  const hasTrackedNoPositions = useRef(false);
+
   useEffect(() => {
     if (hasNoPositions) {
+      // Resolution-lag is the dominant claim failure mode (PRED-963). Route the
+      // failure through the controller so it shares the per-attempt idempotency
+      // guard with the transaction-status terminal event (preventing a
+      // duplicate/contradictory `user_rejected` or `succeeded` for the same
+      // claim). Render-level ref avoids re-firing on re-renders.
+      if (!hasTrackedNoPositions.current) {
+        hasTrackedNoPositions.current = true;
+        Engine.context.PredictController?.trackClaimResolutionLagFailure?.({
+          transactionId,
+          address,
+        });
+      }
+
       onError(new Error('Tried to claim but no positions were won'));
     }
-  }, [hasNoPositions, onError]);
+  }, [hasNoPositions, onError, address, transactionId]);
+
+  const handlePress = useCallback(async () => {
+    setIsConfirmationSubmitting(true);
+
+    try {
+      await onPress();
+    } catch (error) {
+      setIsConfirmationSubmitting(false);
+      throw error;
+    }
+  }, [onPress, setIsConfirmationSubmitting]);
 
   if (hasNoPositions) {
     return null;
@@ -64,7 +93,7 @@ export function PredictClaimFooter({
       )}
       <ButtonHero
         testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
-        onPress={onPress}
+        onPress={handlePress}
         size={ButtonBaseSize.Lg}
         isFullWidth
       >

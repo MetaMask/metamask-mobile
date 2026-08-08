@@ -1,5 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, Platform, Settings } from 'react-native';
 
 // RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
 // libraries (notably `@metamask/design-system-react-native`'s `BottomSheet`)
@@ -35,8 +35,8 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  isE2E,
-  isTest,
+  hasTestOverrides,
+  isTestEnvironment,
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
@@ -78,15 +78,23 @@ require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-com
 //   "// ReadableStream is injected by Metro as a global"
 import 'expo';
 
+// Compression Streams for Hyperliquid `fastAssetCtxs`.
+// Official @nktkas/hyperliquid RN docs require DecompressionStream on Hermes.
+// We only add this package: Web Streams come from Metro (`expo/virtual/streams`
+// is prepended before any module), TextDecoder from Expo winter above. Kept
+// next to `expo` for readability.
+// @see https://nktkas.gitbook.io/hyperliquid (React Native tab)
+import 'compression-streams-polyfill';
+
 // Log early if running in E2E mode to help diagnose accidental js.env flags
-if (isE2E) {
+if (hasTestOverrides) {
   // eslint-disable-next-line no-console
   console.warn(
-    '[E2E MODE] App running with isE2E=true. If unexpected, check your .js.env and unset IS_TEST or METAMASK_ENVIRONMENT=e2e.',
+    '[E2E MODE] App running with hasTestOverrides=true. If unexpected, check your .js.env and unset HAS_TEST_OVERRIDES',
   );
   // eslint-disable-next-line no-console
   console.warn(
-    `IS_TEST=${process.env.IS_TEST || 'unset'} METAMASK_ENVIRONMENT=${
+    `HAS_TEST_OVERRIDES=${process.env.HAS_TEST_OVERRIDES || 'unset'} METAMASK_ENVIRONMENT=${
       process.env.METAMASK_ENVIRONMENT || 'unset'
     }`,
   );
@@ -106,11 +114,16 @@ if (isE2E) {
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
 //          Example: App connects to localhost:12345, adb reverse maps it to host port 30002.
 //          See FixtureHelper.ts for the port mapping implementation.
-if (isTest) {
+if (isTestEnvironment) {
   const raw = LaunchArguments.value();
+
+  // Priority: LaunchArgs (Detox) → NSUserDefaults (mm CLI daemon) → hardcoded fallback
+  const nsDefaults =
+    Platform.OS === 'ios' ? Settings.get('fixtureServerPort') : undefined;
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
-    : FALLBACK_FIXTURE_SERVER_PORT;
+    : (nsDefaults ?? FALLBACK_FIXTURE_SERVER_PORT);
+
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
@@ -158,14 +171,23 @@ global.crypto = {
 
 process.browser = false;
 
-// EventTarget polyfills for Hyperliquid SDK WebSocket support
+// EventTarget / Event polyfills for Hyperliquid SDK WebSocket support.
+// React Native's WebSocket extends RN's internal EventTarget, whose
+// dispatchEvent validates `event instanceof RNEvent`. The event-target-shim
+// package provides a *different* Event class that fails this check, causing
+// "parameter 1 is not of type 'Event'" TypeErrors when @nktkas/rews dispatches
+// CloseEvent on the native WebSocket. Use RN's own classes so all instanceof
+// checks pass consistently.
 if (
   typeof global.EventTarget === 'undefined' ||
   typeof global.Event === 'undefined'
 ) {
-  const { Event, EventTarget } = require('event-target-shim');
-  global.EventTarget = EventTarget;
-  global.Event = Event;
+  // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export Event/EventTarget at the top level
+  global.Event =
+    require('react-native/src/private/webapis/dom/events/Event').default;
+  // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export EventTarget at the top level
+  global.EventTarget =
+    require('react-native/src/private/webapis/dom/events/EventTarget').default;
 }
 
 if (typeof global.CustomEvent === 'undefined') {
@@ -178,29 +200,17 @@ if (typeof global.CustomEvent === 'undefined') {
 }
 
 // CloseEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
-// React Native/Hermes does not provide CloseEvent as a global constructor
 if (typeof global.CloseEvent === 'undefined') {
-  global.CloseEvent = function (type, params) {
-    params = params || {};
-    const event = new global.Event(type, params);
-    event.code = params.code ?? 0;
-    event.reason = params.reason ?? '';
-    event.wasClean = params.wasClean ?? false;
-    return event;
-  };
+  // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export CloseEvent at the top level
+  global.CloseEvent =
+    require('react-native/src/private/webapis/websockets/events/CloseEvent').default;
 }
 
 // MessageEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
-// React Native/Hermes does not provide MessageEvent as a global constructor
 if (typeof global.MessageEvent === 'undefined') {
-  global.MessageEvent = function (type, params) {
-    params = params || {};
-    const event = new global.Event(type, params);
-    event.data = params.data ?? null;
-    event.origin = params.origin ?? '';
-    event.lastEventId = params.lastEventId ?? '';
-    return event;
-  };
+  // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export MessageEvent at the top level
+  global.MessageEvent =
+    require('react-native/src/private/webapis/html/events/MessageEvent').default;
 }
 
 class AbortError extends Error {
@@ -246,17 +256,6 @@ if (typeof global.AbortSignal.timeout === 'undefined') {
   };
 }
 
-if (typeof global.Promise.withResolvers === 'undefined') {
-  global.Promise.withResolvers = function () {
-    let resolve, reject;
-    const promise = new Promise((res, rej) => {
-      resolve = res;
-      reject = rej;
-    });
-    return { promise, resolve, reject };
-  };
-}
-
 // global.location = global.location || { port: 80 }
 const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });
@@ -266,7 +265,7 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : '';
 }
 
-if (enableApiCallLogs || isTest) {
+if (enableApiCallLogs || isTestEnvironment) {
   (async () => {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
@@ -315,6 +314,15 @@ if (enableApiCallLogs || isTest) {
       }
     }
 
+    // Capture the fetch installed by NitroFetchSetup. This shim's synchronous
+    // import (index.js) runs before NitroFetchSetup, so `originalFetch` above
+    // was captured as RN's pre-nitro fetch. By the time this async IIFE resumes
+    // (after the health-check await), NitroFetchSetup has replaced global.fetch
+    // with nitro-fetch AND global.Headers with nitro's Headers. Routing app
+    // requests through nitro-fetch is required: RN's pre-nitro fetch cannot read
+    // a NitroHeaders instance and silently drops headers like Content-Type,
+    // which makes HyperLiquid reject perps orders/candles with a 415.
+    const installedFetch = global.fetch;
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {
       // Extract URL string from Request or URL objects
@@ -331,11 +339,11 @@ if (enableApiCallLogs || isTest) {
       }
 
       return isMockServerAvailable
-        ? originalFetch(
+        ? installedFetch(
             `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
             options,
-          ).catch(() => originalFetch(url, options))
-        : originalFetch(url, options);
+          ).catch(() => installedFetch(url, options))
+        : installedFetch(url, options);
     };
 
     if (isMockServerAvailable) {

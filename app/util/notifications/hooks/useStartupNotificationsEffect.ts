@@ -2,15 +2,11 @@ import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsSignedIn } from '../../../selectors/identity';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
-import {
-  selectHomepageSectionsV1Enabled,
-  selectWalletHomeOnboardingStepsEnabled,
-} from '../../../selectors/featureFlagController/homepage';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import {
   getIsNotificationEnabledByDefaultFeatureFlag,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
@@ -22,11 +18,12 @@ import {
   hasNotificationSubscriptionExpired,
   hasUserTurnedOffNotificationsOnce,
 } from '../constants/notification-storage-keys';
+import { hasNotificationPreferences } from '../../../actions/notification/helpers';
 
-const showPushNush = { nudgeEnablePush: true };
+const silentPushCheck = { nudgeEnablePush: false };
 
 const useEnableAndRefresh = () => {
-  const { enableNotifications } = useEnableNotifications(showPushNush);
+  const { enableNotifications } = useEnableNotifications(silentPushCheck);
   const { listNotifications } = useListNotifications();
   return useCallback(
     async (shouldEnable = true) => {
@@ -35,6 +32,22 @@ const useEnableAndRefresh = () => {
     },
     [enableNotifications, listNotifications],
   );
+};
+
+const shouldEnableNotificationsOnStartup = async () => {
+  if (await hasNotificationSubscriptionExpired()) {
+    return true;
+  }
+
+  try {
+    return !(await hasNotificationPreferences());
+  } catch (error) {
+    Logger.error(
+      error instanceof Error ? error : new Error(String(error)),
+      'Failed to check notification preferences initialization',
+    );
+    return false;
+  }
 };
 
 const useNotificationStartupSelectors = () => {
@@ -73,7 +86,7 @@ export function useRegisterAndFetchNotifications() {
     const run = async () => {
       try {
         if (isUnlocked && isBasicFunctionalityEnabled && notificationsEnabled) {
-          await enableAndRefresh(await hasNotificationSubscriptionExpired());
+          await enableAndRefresh(await shouldEnableNotificationsOnStartup());
         }
       } catch (error) {
         const errorMessage =
@@ -103,12 +116,6 @@ export function useEnableNotificationsByDefaultEffect() {
   const isNotificationsEnabledByDefaultFeatureFlag = useSelector(
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
-  const homepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
-  const walletHomeOnboardingStepsRemoteEnabled = useSelector(
-    selectWalletHomeOnboardingStepsEnabled,
-  );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
@@ -119,12 +126,8 @@ export function useEnableNotificationsByDefaultEffect() {
     const run = async () => {
       try {
         const isWalletHomePostOnboardingChecklistActive =
-          homepageSectionsV1Enabled &&
-          walletHomeOnboardingStepsRemoteEnabled &&
           shouldShowWalletHomeOnboardingSteps;
 
-        // Wallet home post-onboarding (empty-balance checklist) ends with a dedicated
-        // notifications step — skip startup auto-enable + push nudge to avoid asking twice.
         if (isWalletHomePostOnboardingChecklistActive) {
           return;
         }
@@ -147,14 +150,12 @@ export function useEnableNotificationsByDefaultEffect() {
     run();
   }, [
     enableAndRefresh,
-    homepageSectionsV1Enabled,
     isBasicFunctionalityEnabled,
     isNotificationsEnabledByDefaultFeatureFlag,
     isUnlocked,
     notificationsEnabled,
     notificationsFlagEnabled,
     shouldShowWalletHomeOnboardingSteps,
-    walletHomeOnboardingStepsRemoteEnabled,
   ]);
 }
 

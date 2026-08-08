@@ -106,6 +106,7 @@ function getAlertNames(alerts: Alert[]): string[] {
 }
 
 const ALERTS_NAME_METRICS: AlertNameMetrics = {
+  [AlertKeys.AddressPoisoning]: 'address_poisoning',
   [AlertKeys.AddressTrustSignalMalicious]: 'address_trust_signal_malicious',
   [AlertKeys.AddressTrustSignalWarning]: 'address_trust_signal_warning',
   [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals',
@@ -134,6 +135,8 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.TokenContractAddress]: 'token_contract_address',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
+  [AlertKeys.FiatBuyAmountLimit]: 'fiat_buy_amount_limit',
+  [AlertKeys.DepositLimit]: 'deposit_limit',
 };
 
 function getAlertName(alertKey: string): string {

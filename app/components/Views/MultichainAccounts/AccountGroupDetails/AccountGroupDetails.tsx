@@ -3,27 +3,27 @@ import { BackHandler, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../UI/Box/box.types';
-import { Box } from '../../../UI/Box/Box';
-import Icon, {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  ButtonIconSize,
+  FontWeight,
+  HeaderBase,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import HeaderBase from '../../../../component-library/components/HeaderBase';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../hooks/useStyles';
 import { AccountDetailsIds } from '../AccountDetails.testIds';
 import { useSelector } from 'react-redux';
@@ -45,7 +45,9 @@ import {
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
+import { AddressListViewedSource } from '../../../../util/analytics/addressListViewedTracking';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import {
   endTrace,
@@ -55,6 +57,10 @@ import {
 } from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
+import {
+  getAvatarAccountVariant,
+  type AccountAvatarVariant,
+} from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 
 interface AccountGroupDetailsRouteParams {
   accountGroup: AccountGroupObject;
@@ -63,7 +69,7 @@ interface AccountGroupDetailsRouteParams {
 export const AccountGroupDetails = () => {
   const route =
     useRoute<RouteProp<{ params: AccountGroupDetailsRouteParams }, 'params'>>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { accountGroup: initialAccountGroup } = route.params;
   const { id } = initialAccountGroup;
 
@@ -75,9 +81,12 @@ export const AccountGroupDetails = () => {
   const { metadata, type, accounts } = accountGroup;
   const groupName = useMemo(() => metadata.name, [metadata.name]);
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector(selectAvatarAccountType);
+  const accountAvatarVariant = useMemo(
+    () => getAvatarAccountVariant(accountAvatarType as AccountAvatarVariant),
+    [accountAvatarType],
+  );
   const selectIconSeedAddress = React.useMemo(
     () => selectIconSeedAddressByAccountGroupId(id),
     [id],
@@ -127,12 +136,14 @@ export const AccountGroupDetails = () => {
       },
     });
 
-    navigation.navigate(
-      ...createAddressListNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createAddressListNavigationDetails({
         groupId: id,
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           metadata.name
         }`,
+        source: AddressListViewedSource.ACCOUNT_DETAILS,
         onLoad: () => {
           endTrace({ name: TraceName.ShowAccountAddressList });
         },
@@ -166,17 +177,16 @@ export const AccountGroupDetails = () => {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
       <HeaderBase
+        includesTopInset
         style={styles.header}
-        startAccessory={
-          <ButtonLink
-            testID={AccountDetailsIds.BACK_BUTTON}
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
-            onPress={() => navigation.goBack()}
-          />
-        }
+        startButtonIconProps={{
+          testID: AccountDetailsIds.BACK_BUTTON,
+          iconName: IconName.ArrowLeft,
+          size: ButtonIconSize.Md,
+          onPress: () => navigation.goBack(),
+        }}
       >
         {groupName}
       </HeaderBase>
@@ -185,15 +195,14 @@ export const AccountGroupDetails = () => {
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
       >
         <Box
-          flexDirection={FlexDirection.Row}
-          justifyContent={JustifyContent.center}
-          style={styles.avatar}
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Center}
+          marginBottom={8}
         >
-          <Avatar
-            variant={AvatarVariant.Account}
-            size={AvatarSize.Xl}
-            accountAddress={iconSeedAddress}
-            type={accountAvatarType}
+          <AvatarAccount
+            variant={accountAvatarVariant}
+            size={AvatarAccountSize.Xl}
+            address={iconSeedAddress}
             testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR}
           />
         </Box>
@@ -202,17 +211,18 @@ export const AccountGroupDetails = () => {
           testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
           onPress={handleEditAccountName}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('multichain_accounts.account_details.account_name')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
             <Text
               style={styles.groupNameText}
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -221,7 +231,7 @@ export const AccountGroupDetails = () => {
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Md}
-              color={colors.text.alternative}
+              color={IconColor.IconAlternative}
             />
           </Box>
         </TouchableOpacity>
@@ -230,15 +240,19 @@ export const AccountGroupDetails = () => {
           testID={AccountDetailsIds.NETWORKS_LINK}
           onPress={navigateToAddressList}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('multichain_accounts.account_details.networks')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+            <Text
+              style={styles.text}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+            >
               {`${internalAccountsSpreadByScopes.length} ${strings(
                 'multichain_accounts.address_list.addresses',
               )}`}
@@ -246,7 +260,7 @@ export const AccountGroupDetails = () => {
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Md}
-              color={colors.text.alternative}
+              color={IconColor.IconAlternative}
             />
           </Box>
         </TouchableOpacity>
@@ -255,8 +269,9 @@ export const AccountGroupDetails = () => {
             style={styles.privateKeys}
             testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
             onPress={() => {
-              navigation.navigate(
-                ...createPrivateKeyListNavigationDetails({
+              navigateWithDetails(
+                navigation,
+                createPrivateKeyListNavigationDetails({
                   groupId: id,
                   title: strings(
                     'multichain_accounts.account_details.private_keys',
@@ -265,15 +280,19 @@ export const AccountGroupDetails = () => {
               );
             }}
           >
-            <Text variant={TextVariant.BodyMDMedium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('multichain_accounts.account_details.private_keys')}
             </Text>
             <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
             >
-              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              <Text
+                style={styles.text}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+              >
                 {strings(
                   'multichain_accounts.account_details.unlock_to_reveal',
                 )}
@@ -281,7 +300,7 @@ export const AccountGroupDetails = () => {
               <Icon
                 name={IconName.ArrowRight}
                 size={IconSize.Md}
-                color={colors.text.alternative}
+                color={IconColor.IconAlternative}
               />
             </Box>
           </TouchableOpacity>
@@ -291,21 +310,25 @@ export const AccountGroupDetails = () => {
           testID={AccountDetailsIds.SMART_ACCOUNT_LINK}
           onPress={navigateToSmartAccount}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('multichain_accounts.account_details.smart_account')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+            <Text
+              style={styles.text}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+            >
               {strings('multichain_accounts.account_details.set_up')}
             </Text>
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Md}
-              color={colors.text.alternative}
+              color={IconColor.IconAlternative}
             />
           </Box>
         </TouchableOpacity>

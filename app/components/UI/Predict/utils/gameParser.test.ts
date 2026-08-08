@@ -9,6 +9,7 @@ import {
   mapApiTeamToPredictTeam,
   buildGameData,
   extractNeededTeamsFromEvents,
+  getLeagueTeamOrder,
 } from './gameParser';
 import {
   PolymarketApiEvent,
@@ -49,6 +50,27 @@ const createMockEvent = (
 });
 
 describe('gameParser', () => {
+  describe('getLeagueTeamOrder', () => {
+    it('returns home-away for tennis leagues', () => {
+      expect(getLeagueTeamOrder('atp')).toBe('home-away');
+      expect(getLeagueTeamOrder('wta')).toBe('home-away');
+      expect(getLeagueTeamOrder('itf')).toBe('home-away');
+    });
+
+    it.each(['cs2', 'lol', 'dota2', 'val', 'r6siege'] as const)(
+      'returns home-away for %s',
+      (league) => {
+        const result = getLeagueTeamOrder(league);
+
+        expect(result).toBe('home-away');
+      },
+    );
+
+    it('returns away-home for US sports leagues', () => {
+      expect(getLeagueTeamOrder('nfl')).toBe('away-home');
+    });
+  });
+
   describe('getEventLeague', () => {
     it('returns "nfl" for event with nfl tag, games tag, and valid slug', () => {
       const event = createMockEvent();
@@ -57,6 +79,140 @@ describe('gameParser', () => {
 
       expect(result).toBe('nfl');
     });
+
+    it.each([
+      ['wnba', 'wnba-tor-min-2026-05-21', 'wnba'],
+      ['mlb', 'mlb-cle-det-2026-05-21', 'mlb'],
+      ['nhl', 'nhl-mon-car-2026-05-21', 'nhl'],
+      ['uel', 'uel-ars-rom-2026-05-21', 'uel'],
+      ['col', 'col-che-bet-2026-05-21', 'europa-conference-league'],
+      ['fl1', 'fl1-psg-lyo-2026-05-21', 'ligue-1'],
+      ['ere', 'ere-aja-psv-2026-05-21', 'ere'],
+      ['bra', 'bra-fla-pal-2026-05-21', 'brazil-serie-a'],
+      ['por', 'por-ben-por-2026-05-21', 'primeira-liga'],
+      ['bel1', 'bel1-clu-gen-2026-05-21', 'bel1'],
+      ['elc', 'elc-lee-sou-2026-05-21', 'efl-championship'],
+      ['lib', 'lib-riv-boc-2026-05-21', 'lib'],
+      ['kbo', 'kbo-kiw-doo-2026-04-09', 'kbo'],
+      ['npb', 'npb-tok-chu-2026-06-26', 'npb'],
+      ['cpbl', 'cpbl-chi-uni-2026-06-27', 'cpbl'],
+      ['shl', 'shl-fro-fbk-2026-01-12', 'shl'],
+      ['khl', 'khl-ska-csk-2026-01-12', 'khl'],
+      ['cehl', 'cehl-par-kom-2026-01-12', 'cehl'],
+      ['dehl', 'dehl-ber-mun-2026-01-12', 'dehl'],
+      ['cfb', 'cfb-isu-ksu-2025-08-23', 'cfb'],
+      ['cfl', 'cfl-bc-wpg-2026-07-30', 'cfl'],
+      ['atp', 'atp-darderi-minaur-2026-05-21', 'atp'],
+      ['wta', 'wta-tan-fruhvir-2026-05-22', 'wta'],
+      ['itf', 'itf-par-saigo-2026-05-21', 'itf'],
+    ] as const)(
+      'returns "%s" for supported league slug and tag',
+      (league, slug, configuredTagSlug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            {
+              id: '1',
+              label: league.toUpperCase(),
+              slug: configuredTagSlug ?? league,
+            },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        });
+
+        const result = getEventLeague(event);
+
+        expect(result).toBe(league);
+      },
+    );
+
+    it.each([
+      ['cs2', 'cs2-g1-newvis-2026-07-28', 'counter-strike-2'],
+      ['lol', 'lol-bar-gxp-2026-07-28', 'league-of-legends'],
+      ['dota2', 'dota2-pr1-nemiga-2026-07-28', 'dota-2'],
+      ['val', 'val-bar2-kc1-2026-07-28', 'valorant'],
+      ['r6siege', 'r6siege-sr-aiu-2026-08-04', 'rainbow-six-siege'],
+    ] as const)(
+      'returns "%s" for its esports tag and slug',
+      (league, slug, tagSlug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            { id: '1', label: tagSlug, slug: tagSlug },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        });
+
+        const result = getEventLeague(event);
+
+        expect(result).toBe(league);
+      },
+    );
+
+    it('returns tennis league from provider metadata when league tag is missing', () => {
+      const event = createMockEvent({
+        slug: 'wta-sasnovi-ribera-2026-05-22',
+        tags: [
+          { id: '1', label: 'Tennis', slug: 'tennis' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        series: [
+          {
+            id: 'series-1',
+            slug: 'wta',
+            title: 'WTA',
+            recurrence: 'daily',
+          },
+        ],
+        teams: [
+          createMockApiTeam({
+            id: 'team-1',
+            abbreviation: 'sasnovi',
+            league: 'wta',
+          }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'ribera',
+            league: 'wta',
+          }),
+        ],
+      });
+
+      const result = getEventLeague(event);
+
+      expect(result).toBe('wta');
+    });
+
+    it.each([
+      ['cs2', 'cs2-g1-newvis-2026-07-28', 'counter-strike'],
+      ['lol', 'lol-bar-gxp-2026-07-28', 'league-of-legends'],
+      ['dota2', 'dota2-pr1-nemiga-2026-07-28', 'dota-2'],
+      ['val', 'val-bar2-kc1-2026-07-28', 'valorant'],
+      ['r6siege', 'r6siege-sr-aiu-2026-08-04', 'rainbow-six-siege'],
+    ] as const)(
+      'returns "%s" from its provider series alias',
+      (league, slug, seriesSlug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            { id: '1', label: 'Esports', slug: 'esports' },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+          series: [
+            {
+              id: 'series-1',
+              slug: seriesSlug,
+              title: seriesSlug,
+              recurrence: 'daily',
+            },
+          ],
+        });
+
+        const result = getEventLeague(event);
+
+        expect(result).toBe(league);
+      },
+    );
 
     it('returns null when missing nfl tag', () => {
       const event = createMockEvent({
@@ -110,6 +266,35 @@ describe('gameParser', () => {
 
       expect(result).toBe('epl');
     });
+
+    it.each([
+      ['cs2', 'csgo', 'cs2-g1-newvis-2026-07-28-map-props'],
+      ['val', 'valorant', 'val-bar2-kc1-2026-07-28-map-props'],
+    ] as const)(
+      'infers "%s" from its provider team alias for suffixed events',
+      (league, teamLeague, slug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [{ id: '2', label: 'Games', slug: 'games' }],
+          teams: [
+            createMockApiTeam({
+              id: 'team-1',
+              abbreviation: 'home',
+              league: teamLeague,
+            }),
+            createMockApiTeam({
+              id: 'team-2',
+              abbreviation: 'away',
+              league: teamLeague,
+            }),
+          ],
+        });
+
+        const result = getEventLeague(event, [league]);
+
+        expect(result).toBe(league);
+      },
+    );
 
     it('returns null for suffixed child events when extended markets are disabled', () => {
       const event = createMockEvent({
@@ -208,6 +393,49 @@ describe('gameParser', () => {
       });
     });
 
+    it.each([
+      ['wnba', 'wnba-tor-min-2026-05-21', 'tor', 'min'],
+      ['mlb', 'mlb-cle-det-2026-05-21', 'cle', 'det'],
+      ['nhl', 'nhl-mon-car-2026-05-21', 'mon', 'car'],
+      ['uel', 'uel-ars-rom-2026-05-21', 'rom', 'ars'],
+      ['col', 'col-che-bet-2026-05-21', 'bet', 'che'],
+      ['fl1', 'fl1-psg-lyo-2026-05-21', 'lyo', 'psg'],
+      ['ere', 'ere-aja-psv-2026-05-21', 'psv', 'aja'],
+      ['bra', 'bra-fla-pal-2026-05-21', 'pal', 'fla'],
+      ['por', 'por-ben-por-2026-05-21', 'por', 'ben'],
+      ['bel1', 'bel1-clu-gen-2026-05-21', 'gen', 'clu'],
+      ['elc', 'elc-lee-sou-2026-05-21', 'sou', 'lee'],
+      ['lib', 'lib-riv-boc-2026-05-21', 'boc', 'riv'],
+      ['kbo', 'kbo-kiw-doo-2026-04-09', 'kiw', 'doo'],
+      ['npb', 'npb-tok-chu-2026-06-26', 'chu', 'tok'],
+      ['cpbl', 'cpbl-chi-uni-2026-06-27', 'uni', 'chi'],
+      ['shl', 'shl-fro-fbk-2026-01-12', 'fbk', 'fro'],
+      ['khl', 'khl-ska-csk-2026-01-12', 'csk', 'ska'],
+      ['cehl', 'cehl-par-kom-2026-01-12', 'kom', 'par'],
+      ['dehl', 'dehl-ber-mun-2026-01-12', 'mun', 'ber'],
+      ['cfb', 'cfb-isu-ksu-2025-08-23', 'isu', 'ksu'],
+      ['cfl', 'cfl-bc-wpg-2026-07-30', 'bc', 'wpg'],
+      ['atp', 'atp-darderi-minaur-2026-05-21', 'minaur', 'darderi'],
+      ['wta', 'wta-tan-fruhvir-2026-05-22', 'fruhvir', 'tan'],
+      ['itf', 'itf-par-saigo-2026-05-21', 'saigo', 'par'],
+      ['cs2', 'cs2-g1-newvis-2026-07-28', 'newvis', 'g1'],
+      ['lol', 'lol-bar-gxp-2026-07-28', 'gxp', 'bar'],
+      ['dota2', 'dota2-pr1-nemiga-2026-07-28', 'nemiga', 'pr1'],
+      ['val', 'val-bar2-kc1-2026-07-28', 'kc1', 'bar2'],
+      ['r6siege', 'r6siege-sr-aiu-2026-08-04', 'aiu', 'sr'],
+    ] as const)(
+      'extracts participants from valid %s slug',
+      (league, slug, awayAbbreviation, homeAbbreviation) => {
+        const result = parseGameSlugTeams(slug, league);
+
+        expect(result).toEqual({
+          awayAbbreviation,
+          homeAbbreviation,
+          dateString: slug.slice(-10),
+        });
+      },
+    );
+
     it('returns null for non-NFL slug', () => {
       const result = parseGameSlugTeams('some-other-event', 'nfl');
 
@@ -280,6 +508,39 @@ describe('gameParser', () => {
 
     it('returns "ongoing" when period is Q1', () => {
       const event = createMockEvent({ period: 'Q1' });
+
+      const result = getGameStatus(event);
+
+      expect(result).toBe('ongoing');
+    });
+
+    it('returns "scheduled" for an unstarted esports series', () => {
+      const event = createMockEvent({
+        score: '000-000|0-0|Bo3',
+        period: '0/3',
+      });
+
+      const result = getGameStatus(event);
+
+      expect(result).toBe('scheduled');
+    });
+
+    it('returns "ongoing" when an esports series is live', () => {
+      const event = createMockEvent({
+        score: '000-000|0-0|Bo3',
+        period: '0/3',
+        live: true,
+      });
+
+      const result = getGameStatus(event);
+
+      expect(result).toBe('ongoing');
+    });
+
+    it('returns "ongoing" for an active esports map', () => {
+      const event = createMockEvent({
+        score: '007-005|0-0|Bo3',
+      });
 
       const result = getGameStatus(event);
 
@@ -489,6 +750,129 @@ describe('gameParser', () => {
       expect(result?.awayTeam).toEqual(awayTeam);
     });
 
+    it('uses embedded provider teams when cache lookup misses', () => {
+      const homeTeam = createMockApiTeam({
+        id: 'team-g1',
+        name: 'GenOne',
+        abbreviation: 'g1',
+        league: 'csgo',
+      });
+      const awayTeam = createMockApiTeam({
+        id: 'team-newvis',
+        name: 'NEW VISION',
+        abbreviation: 'newvis',
+        league: 'csgo',
+      });
+      const event = createMockEvent({
+        gameId: 'game-cs2-123',
+        slug: 'cs2-g1-newvis-2026-07-28',
+        teams: [homeTeam, awayTeam],
+      });
+      const emptyTeamLookup = () => undefined;
+
+      const result = buildGameData(event, 'cs2', emptyTeamLookup);
+
+      expect(result?.homeTeam).toEqual(mapApiTeamToPredictTeam(homeTeam));
+      expect(result?.awayTeam).toEqual(mapApiTeamToPredictTeam(awayTeam));
+    });
+
+    it('prefers cached ball-sport teams over embedded event teams', () => {
+      const embeddedHome = createMockApiTeam({
+        id: 'embedded-den',
+        name: 'Embedded Broncos',
+        abbreviation: 'DEN',
+        league: 'nfl',
+      });
+      const embeddedAway = createMockApiTeam({
+        id: 'embedded-sea',
+        name: 'Embedded Seahawks',
+        abbreviation: 'SEA',
+        league: 'nfl',
+      });
+      const event = createMockEvent({
+        gameId: 'game-123',
+        teams: [embeddedHome, embeddedAway],
+      });
+
+      const result = buildGameData(event, 'nfl', teamLookup);
+
+      expect(result?.homeTeam).toEqual(denTeam);
+      expect(result?.awayTeam).toEqual(seaTeam);
+    });
+
+    it('returns null for ball sports when neither cache nor embedded teams resolve', () => {
+      const event = createMockEvent({
+        gameId: 'game-123',
+        slug: 'nfl-xyz-abc-2025-01-12',
+        teams: [
+          createMockApiTeam({
+            id: 'unrelated',
+            abbreviation: 'OTHER',
+            league: 'nba',
+          }),
+        ],
+      });
+
+      const result = buildGameData(event, 'nfl', teamLookup);
+
+      expect(result).toBeNull();
+    });
+
+    it('builds ATP game scores from completed sets won', () => {
+      const homeTeam: PredictSportTeam = {
+        id: 'team-home',
+        name: 'Yibing Wu',
+        logo: 'https://example.com/wu.png',
+        abbreviation: 'wu',
+        color: TEST_HEX_COLORS.PURE_RED,
+        alias: 'Y. Wu',
+      };
+
+      const awayTeam: PredictSportTeam = {
+        id: 'team-away',
+        name: 'Novak Djokovic',
+        logo: 'https://example.com/djokovic.png',
+        abbreviation: 'djokovi',
+        color: TEST_HEX_COLORS.PURE_BLUE,
+        alias: 'N. Djokovic',
+      };
+
+      const atpTeamLookup = (
+        league: PredictSportsLeague,
+        abbr: string,
+      ): PredictSportTeam | undefined => {
+        if (league !== 'atp') return undefined;
+        const teams: Record<string, PredictSportTeam> = {
+          wu: homeTeam,
+          djokovi: awayTeam,
+        };
+        return teams[abbr.toLowerCase()];
+      };
+
+      const event = createMockEvent({
+        gameId: 'game-atp-123',
+        slug: 'atp-wu-djokovi-2026-06-29',
+        title: 'Yibing Wu vs Novak Djokovic',
+        tags: [
+          { id: '1', label: 'ATP', slug: 'atp' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        score: '4-6, 7-5, 4-6, 3-2',
+        period: 'S4',
+        live: true,
+      });
+
+      const result = buildGameData(event, 'atp', atpTeamLookup);
+
+      expect(result?.score).toEqual({
+        away: 2,
+        home: 1,
+        raw: '4-6, 7-5, 4-6, 3-2',
+      });
+      expect(result?.homeTeam).toEqual(homeTeam);
+      expect(result?.awayTeam).toEqual(awayTeam);
+    });
+
     it('returns null when gameId is missing', () => {
       const event = createMockEvent({ gameId: undefined });
 
@@ -618,6 +1002,89 @@ describe('gameParser', () => {
 
       expect(result).toEqual({ away: 42, home: 35, raw: '42-35' });
     });
+
+    it.each<PredictSportsLeague>(['cs2', 'lol', 'dota2', 'val', 'r6siege'])(
+      'parses the series score for %s',
+      (league) => {
+        const result = parseScore('007-005|1-0|Bo3', league);
+
+        expect(result).toEqual({
+          away: 0,
+          home: 1,
+          raw: '007-005|1-0|Bo3',
+        });
+      },
+    );
+
+    it('preserves a zero-zero esports series score', () => {
+      const result = parseScore('000-000|0-0|Bo3', 'lol');
+
+      expect(result).toEqual({
+        away: 0,
+        home: 0,
+        raw: '000-000|0-0|Bo3',
+      });
+    });
+
+    it('parses esports scores without a trailing BoN series length', () => {
+      const result = parseScore('007-005|1-0', 'cs2');
+
+      expect(result).toEqual({
+        away: 0,
+        home: 1,
+        raw: '007-005|1-0',
+      });
+    });
+
+    it.each([
+      'invalid|1-0|Bo3',
+      '007-005|invalid|Bo3',
+      '007-005|1-0|3',
+      '007-005',
+      '007-005|1-0|Bo3|extra',
+    ])('returns null for malformed esports score %s', (score) => {
+      expect(parseScore(score, 'cs2')).toBeNull();
+    });
+
+    it('parses ATP scores as completed sets won', () => {
+      const result = parseScore('4-6, 7-5, 4-6, 3-2', 'atp');
+
+      expect(result).toEqual({
+        away: 2,
+        home: 1,
+        raw: '4-6, 7-5, 4-6, 3-2',
+      });
+    });
+
+    it('ignores incomplete ATP sets when counting sets won', () => {
+      const result = parseScore('6-4, 2-3', 'atp');
+
+      expect(result).toEqual({
+        away: 0,
+        home: 1,
+        raw: '6-4, 2-3',
+      });
+    });
+
+    it('parses WTA scores as completed sets won', () => {
+      const result = parseScore('6-3, 4-6, 2-1', 'wta');
+
+      expect(result).toEqual({
+        away: 1,
+        home: 1,
+        raw: '6-3, 4-6, 2-1',
+      });
+    });
+
+    it('counts completed ATP tiebreak sets toward sets won', () => {
+      const result = parseScore('7-6(7-4), 3-6, 3-5', 'atp');
+
+      expect(result).toEqual({
+        away: 1,
+        home: 1,
+        raw: '7-6(7-4), 3-6, 3-5',
+      });
+    });
   });
 
   describe('extractNeededTeamsFromEvents', () => {
@@ -654,6 +1121,96 @@ describe('gameParser', () => {
 
       expect(result.get('nfl')).toEqual(['sea', 'den']);
       expect(result.get('nba')).toEqual(['lal', 'bos']);
+    });
+
+    it('extracts teams from newly supported league events', () => {
+      const events = [
+        ['wnba', 'wnba-tor-min-2026-05-21'],
+        ['mlb', 'mlb-cle-det-2026-05-21'],
+        ['nhl', 'nhl-mon-car-2026-05-21'],
+        ['atp', 'atp-darderi-minaur-2026-05-21'],
+        ['wta', 'wta-tan-fruhvir-2026-05-22'],
+        ['itf', 'itf-par-saigo-2026-05-21'],
+      ].map(([league, slug], index) =>
+        createMockEvent({
+          id: `event-${index}`,
+          slug,
+          tags: [
+            {
+              id: `${index}-league`,
+              label: league.toUpperCase(),
+              slug: league,
+            },
+            { id: `${index}-games`, label: 'Games', slug: 'games' },
+          ],
+        }),
+      );
+
+      const result = extractNeededTeamsFromEvents(events, [
+        'wnba',
+        'mlb',
+        'nhl',
+        'atp',
+        'wta',
+        'itf',
+      ]);
+
+      expect(result.get('wnba')).toEqual(['tor', 'min']);
+      expect(result.get('mlb')).toEqual(['cle', 'det']);
+      expect(result.get('nhl')).toEqual(['mon', 'car']);
+      expect(result.get('atp')).toEqual(['minaur', 'darderi']);
+      expect(result.get('wta')).toEqual(['fruhvir', 'tan']);
+      expect(result.get('itf')).toEqual(['saigo', 'par']);
+    });
+
+    it.each([
+      ['cs2', 'cs2-g1-newvis-2026-07-28', 'counter-strike-2', ['newvis', 'g1']],
+      ['lol', 'lol-bar-gxp-2026-07-28', 'league-of-legends', ['gxp', 'bar']],
+      ['dota2', 'dota2-pr1-nemiga-2026-07-28', 'dota-2', ['nemiga', 'pr1']],
+      ['val', 'val-bar2-kc1-2026-07-28', 'valorant', ['kc1', 'bar2']],
+      [
+        'r6siege',
+        'r6siege-sr-aiu-2026-08-04',
+        'rainbow-six-siege',
+        ['aiu', 'sr'],
+      ],
+    ] as const)(
+      'extracts teams from %s events',
+      (league, slug, tagSlug, expectedTeams) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            { id: '1', label: tagSlug, slug: tagSlug },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        });
+
+        const result = extractNeededTeamsFromEvents([event], [league]);
+
+        expect(result.get(league)).toEqual(expectedTeams);
+      },
+    );
+
+    it('extracts tennis teams when provider metadata supplies the league without a league tag', () => {
+      const event = createMockEvent({
+        slug: 'wta-sasnovi-ribera-2026-05-22',
+        tags: [
+          { id: '1', label: 'Tennis', slug: 'tennis' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        series: [
+          {
+            id: 'series-1',
+            slug: 'wta',
+            title: 'WTA',
+            recurrence: 'daily',
+          },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents([event], ['wta']);
+
+      expect(result.get('wta')).toEqual(['ribera', 'sasnovi']);
     });
 
     it('deduplicates team abbreviations across events', () => {

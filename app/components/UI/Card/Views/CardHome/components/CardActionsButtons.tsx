@@ -14,6 +14,7 @@ interface CardActionsButtonsProps {
   actions: CardAction[];
   isLoading: boolean;
   isSwapEnabled: boolean;
+  isMoneyAccountEntry?: boolean;
   onAddFunds: () => void;
   onEnableCard: () => void;
 }
@@ -22,6 +23,7 @@ const CardActionsButtons = ({
   actions,
   isLoading,
   isSwapEnabled,
+  isMoneyAccountEntry = false,
   onAddFunds,
   onEnableCard,
 }: CardActionsButtonsProps) => {
@@ -64,7 +66,7 @@ const CardActionsButtons = ({
       size={ButtonSize.Lg}
       onPress={onAddFunds}
       isFullWidth
-      isDisabled={!isSwapEnabled}
+      isDisabled={!isSwapEnabled && !isMoneyAccountEntry}
       testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
     >
       {strings('card.card_home.add_funds')}

@@ -2,15 +2,46 @@ import {
   type TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { isMusdOnMoneyAccountChain } from '../../Earn/constants/musd';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from '../utils/moneyTransactionGuards';
+
+const ERC20_TRANSFER_TYPES: TransactionType[] = [
+  TransactionType.tokenMethodTransfer,
+  TransactionType.tokenMethodTransferFrom,
+];
+
+/**
+ * True when the transaction is an ERC-20 transfer of mUSD on a chain where
+ * the Money Account is active (currently Monad only — see
+ * {@link MUSD_MONEY_ACCOUNT_CHAIN_IDS}). `transferInformation` is only
+ * populated by incoming-transaction polling; for locally-signed sends we
+ * fall back to `txParams.to`, which for ERC-20 transfer types is always the
+ * token contract.
+ */
+export function isMusdErc20Transfer(tx: TransactionMeta): boolean {
+  if (!tx.type || !ERC20_TRANSFER_TYPES.includes(tx.type)) return false;
+  return (
+    isMusdOnMoneyAccountChain(
+      tx.transferInformation?.contractAddress,
+      tx.chainId,
+    ) || isMusdOnMoneyAccountChain(tx.txParams?.to, tx.chainId)
+  );
+}
 
 export function isMoneyActivityDeposit(tx: TransactionMeta): boolean {
   const t = tx.type;
   if (
     t === TransactionType.incoming ||
-    t === TransactionType.moneyAccountDeposit
+    t === TransactionType.moneyAccountDeposit ||
+    isMusdErc20Transfer(tx) ||
+    isPerpsPredictMoneyWithdraw(tx)
   ) {
     return true;
   }
+
   // EIP-7702 batch deposits: moneyAccountDeposit sits in nestedTransactions
   return (
     tx.nestedTransactions?.some(
@@ -23,7 +54,8 @@ export function isMoneyActivityTransfer(tx: TransactionMeta): boolean {
   const t = tx.type;
   if (
     t === TransactionType.moneyAccountWithdraw ||
-    t === TransactionType.simpleSend
+    t === TransactionType.simpleSend ||
+    isPerpsPredictMoneyDeposit(tx)
   ) {
     return true;
   }

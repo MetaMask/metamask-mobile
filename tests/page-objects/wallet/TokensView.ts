@@ -5,17 +5,39 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import NetworkManager from './NetworkManager';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+  PlatformDetector,
+  encapsulatedAction,
+} from '../../framework';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import Assertions from '../../framework/Assertions';
 
 class TokensView {
-  get networkFilter(): DetoxElement {
+  get networkFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  earnCtaForToken(tokenSymbol: string): DetoxElement {
-    return Matchers.getElementIDWithAncestor(
-      SECONDARY_BALANCE_BUTTON_TEST_ID,
-      getAssetTestId(tokenSymbol),
-    );
+  earnCtaForToken(tokenSymbol: string): EncapsulatedElementType {
+    const assetTestId = getAssetTestId(tokenSymbol);
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementIDWithAncestor(
+          SECONDARY_BALANCE_BUTTON_TEST_ID,
+          assetTestId,
+        ),
+      appium: {
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[@name='${assetTestId}']/descendant::*[@name='${SECONDARY_BALANCE_BUTTON_TEST_ID}']`,
+          ),
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[@resource-id='${assetTestId}' or contains(@resource-id,'${assetTestId}')]/descendant::*[@resource-id='${SECONDARY_BALANCE_BUTTON_TEST_ID}' or contains(@resource-id,'${SECONDARY_BALANCE_BUTTON_TEST_ID}')]`,
+          ),
+      },
+    });
   }
 
   async tapNetworkFilter(): Promise<void> {
@@ -32,6 +54,51 @@ class TokensView {
     await Gestures.waitAndTap(this.earnCtaForToken('USDC'), {
       checkStability: true,
       elemDescription: 'Earn CTA on USDC token row',
+    });
+  }
+
+  /**
+   * Wait for a token row to display a non-zero balance.
+   * Useful when the balance is seeded on an Anvil fork and the app needs
+   * time to refresh from the chain before the UI reflects it.
+   */
+  async waitForTokenBalance(
+    tokenSymbol: string,
+    timeout = 30000,
+  ): Promise<void> {
+    const assetTestId = getAssetTestId(tokenSymbol);
+    await encapsulatedAction({
+      detox: async () => {
+        const zeroBalance = element(
+          by.text(`0 ${tokenSymbol}`).withAncestor(by.id(assetTestId)),
+        );
+        await waitFor(zeroBalance).not.toBeVisible().withTimeout(timeout);
+      },
+      appium: async () => {
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByID(assetTestId),
+          {
+            timeout,
+            description: `${tokenSymbol} token row`,
+          },
+        );
+
+        const zeroBalanceText = `0 ${tokenSymbol}`;
+        const zeroBalanceXPath = PlatformDetector.isIOS()
+          ? `//*[@name='${assetTestId}']/descendant::*[@label='${zeroBalanceText}' or @name='${zeroBalanceText}' or @value='${zeroBalanceText}']`
+          : `//*[@resource-id='${assetTestId}' or contains(@resource-id,'${assetTestId}')]/descendant::*[@text='${zeroBalanceText}']`;
+
+        await Assertions.expectElementToNotBeVisible(
+          encapsulated({
+            appium: () =>
+              PlaywrightMatchers.getElementByXPath(zeroBalanceXPath),
+          }),
+          {
+            timeout,
+            description: `${tokenSymbol} balance should be non-zero`,
+          },
+        );
+      },
     });
   }
 

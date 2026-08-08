@@ -7,18 +7,22 @@ import {
 import Engine from '../core/Engine';
 
 /**
- * Gets detailed phishing test results for an origin using the dapp scanning API
- * @param {string} origin - URL origin or hostname to check
- * @returns {PhishingDetectorResult} Phishing test result object - result is true if the site is UNSAFE
+ * Gets detailed phishing test results for a URL using the dapp scanning API.
+ *
+ * Callers should pass the complete URL (including path) so path-aware blocklist
+ * entries on shared-host domains can be evaluated correctly.
+ *
+ * @param url - Full URL, origin, or hostname to check
+ * @returns Phishing test result object — `result` is true if the site is UNSAFE
  */
 export const getPhishingTestResultAsync = async (
-  origin: string,
+  url: string,
 ): Promise<PhishingDetectorResult> => {
   const { PhishingController } = Engine.context as {
     PhishingController: PhishingControllerClass;
   };
 
-  const scanResult = await PhishingController.scanUrl(origin);
+  const scanResult = await PhishingController.scanUrl(url);
   return {
     // result is true if site is UNSAFE (Block action)
     result:

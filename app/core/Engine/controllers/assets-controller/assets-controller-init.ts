@@ -2,22 +2,27 @@ import { createApiPlatformClient } from '@metamask/core-backend';
 import { getVersion } from 'react-native-device-info';
 import {
   AssetsController,
+  AssetsControllerMessenger,
   type AssetsControllerOptions,
 } from '@metamask/assets-controller';
+import type {
+  TraceCallback as ControllerTraceCallback,
+  TraceContext as ControllerTraceContext,
+  TraceRequest as ControllerTraceRequest,
+} from '@metamask/controller-utils';
 import {
   isAssetsUnifyStateFeatureEnabled,
+  isAssetsUnifyStateTracesEnabled,
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import type { MessengerClientInitFunction } from '../../types';
-import {
-  type AssetsControllerMessenger,
-  type AssetsControllerInitMessenger,
-} from '../../messengers/assets-controller';
+import { type AssetsControllerInitMessenger } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
-import { trace } from '../../../../util/trace';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
+import { trace, type TraceRequest } from '../../../../util/trace';
 
 type QueryApiClient = AssetsControllerOptions['queryApiClient'];
 
@@ -81,6 +86,73 @@ function getApiClient(
 }
 
 /**
+ * Whether AssetsController Sentry tracing is enabled via
+ * `assetsUnifyState.tracesEnabled` (requires unify itself to be enabled).
+ *
+ * @param initMessenger - The initialization messenger.
+ * @returns True when tracing should run, false otherwise.
+ */
+function isAssetsControllerTracesEnabled(
+  initMessenger: AssetsControllerInitMessenger,
+): boolean {
+  try {
+    const { remoteFeatureFlags } = initMessenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+    return isAssetsUnifyStateTracesEnabled(
+      remoteFeatureFlags?.[ASSETS_UNIFY_STATE_FLAG],
+      ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Adapter that wraps mobile's synchronous {@link trace} into the async
+ * {@link ControllerTraceCallback} signature expected by AssetsController.
+ *
+ * @param req - The controller trace request.
+ * @param fn - Optional work to run inside the span.
+ * @returns The result of `fn`, resolved as a Promise.
+ */
+const traceAsControllerCallback: ControllerTraceCallback = <Result>(
+  req: ControllerTraceRequest,
+  fn?: (ctx?: ControllerTraceContext) => Result,
+): Promise<Result> => {
+  // Controller TraceContext is `unknown`; mobile TraceContext is a Sentry Span.
+  const taggedRequest: TraceRequest = {
+    ...req,
+    name: req.name as TraceRequest['name'],
+    parentContext: req.parentContext as TraceRequest['parentContext'],
+  };
+  return Promise.resolve(
+    fn ? trace(taggedRequest, fn) : trace(taggedRequest),
+  ) as Promise<Result>;
+};
+
+/**
+ * Trace callback gated by `assetsUnifyState.tracesEnabled`.
+ * When the flag is off, runs `fn` (if provided) without creating a Sentry span.
+ *
+ * @param initMessenger - The initialization messenger used to read the flag.
+ * @returns A {@link ControllerTraceCallback} suitable for AssetsController.
+ */
+function createAssetsControllerTrace(
+  initMessenger: AssetsControllerInitMessenger,
+): ControllerTraceCallback {
+  return <Result>(
+    req: ControllerTraceRequest,
+    fn?: (ctx?: ControllerTraceContext) => Result,
+  ): Promise<Result> => {
+    if (!isAssetsControllerTracesEnabled(initMessenger)) {
+      return Promise.resolve(fn?.() as Result);
+    }
+    return traceAsControllerCallback(req, fn);
+  };
+}
+
+/**
  * Init function for the AssetsController.
  *
  * @param request - The request object.
@@ -108,6 +180,9 @@ export const assetsControllerInit: MessengerClientInitFunction<
    */
   const isEnabled = (): boolean => {
     try {
+      if (!selectIsUnlocked(store.getState())) {
+        return false;
+      }
       const remoteFeatureFlagState = initMessenger.call(
         'RemoteFeatureFlagController:getState',
       );
@@ -148,9 +223,13 @@ export const assetsControllerInit: MessengerClientInitFunction<
       pollInterval: 30_000,
       enabled: true,
     },
-    // @ts-expect-error: Type of `TraceRequest` is different.
-    trace,
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
+    trace: createAssetsControllerTrace(initMessenger),
+    // TEMPORARY (ASSETS-3346): legacy state slices used to heal wiped `assetsInfo` metadata.
+    tempMigrateAssetsInfoMetadataAssets3346: () => ({
+      TokensController: persistedState?.TokensController,
+      AccountsController: persistedState?.AccountsController,
+    }),
   });
 
   return { controller };

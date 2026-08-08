@@ -4,7 +4,6 @@ import { StackActions } from '@react-navigation/native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
-import { AddAccountBottomSheetSelectorsIDs } from '../AddAccountActions/AddAccountBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -200,7 +199,7 @@ describe('AccountSelector', () => {
     it('renders the component with account list', () => {
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -217,7 +216,7 @@ describe('AccountSelector', () => {
     it('renders add wallet button by default', () => {
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -234,7 +233,7 @@ describe('AccountSelector', () => {
     it('displays "Add wallet" text on the button', () => {
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -250,7 +249,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -284,7 +283,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -304,7 +303,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -329,7 +328,7 @@ describe('AccountSelector', () => {
 
       const { unmount } = renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -350,7 +349,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -370,7 +369,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -394,7 +393,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={routeWithDisabledButton} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
       );
 
@@ -414,7 +413,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={routeWithEnabledButton} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
       );
 
@@ -427,7 +426,7 @@ describe('AccountSelector', () => {
     it('shows add button when disableAddAccountButton is undefined', () => {
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -453,7 +452,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={routeWithNavigation} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
       );
 
@@ -471,33 +470,6 @@ describe('AccountSelector', () => {
 
       jest.useFakeTimers();
     });
-
-    it('navigates directly to AddAccountActions when specified', () => {
-      jest.useRealTimers();
-
-      const routeWithNavigation: AccountSelectorProps['route'] = {
-        params: {
-          ...defaultRouteParams,
-          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
-        },
-      };
-
-      renderScreen(
-        () => <AccountSelector route={routeWithNavigation} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-      );
-
-      // Should be on the add account actions screen
-      // AddAccountActions shows "Add Ethereum account" button
-      expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-        ),
-      ).toBeOnTheScreen();
-
-      jest.useFakeTimers();
-    });
   });
 
   describe('Account Selection', () => {
@@ -506,7 +478,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -535,7 +507,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -570,7 +542,7 @@ describe('AccountSelector', () => {
       // Redux state change.
       renderScreen(
         () => <AccountSelector route={routeWithCallback} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -605,7 +577,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -635,7 +607,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params: paramsWithoutCallback }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         paramsWithoutCallback,
       );
@@ -668,7 +640,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -711,7 +683,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -748,7 +720,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -784,7 +756,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -821,7 +793,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         () => <AccountSelector route={{ params }} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         params,
       );
@@ -856,7 +828,7 @@ describe('AccountSelector', () => {
 
       const { store } = renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: stateWithReload },
         mockRoute.params,
       );
@@ -873,7 +845,7 @@ describe('AccountSelector', () => {
 
       const { store } = renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -888,59 +860,13 @@ describe('AccountSelector', () => {
     });
   });
 
-  describe('Sub-screen back navigation', () => {
-    it('returns from the AddAccountActions sub-screen to the main account selector when the modal back arrow is pressed', async () => {
-      jest.useRealTimers();
-
-      const routeWithAddAccounts: AccountSelectorProps['route'] = {
-        params: {
-          ...defaultRouteParams,
-          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
-        },
-      };
-
-      renderScreen(
-        () => <AccountSelector route={routeWithAddAccounts} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-      );
-
-      expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-        ),
-      ).toBeOnTheScreen();
-
-      const backArrows = screen.getAllByTestId(
-        CommonSelectorsIDs.BACK_ARROW_BUTTON,
-      );
-      expect(backArrows.length).toBeGreaterThanOrEqual(2);
-      fireEvent.press(backArrows[backArrows.length - 1]);
-
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId(
-            AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-          ),
-        ).not.toBeOnTheScreen();
-      });
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-
-      expect(mockGoBack).not.toHaveBeenCalled();
-
-      jest.useFakeTimers();
-    });
-  });
-
   describe('Screen Navigation', () => {
     it('navigates to AddWallet page when button is pressed', () => {
       jest.useRealTimers();
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: mockState },
         mockRoute.params,
       );
@@ -970,7 +896,7 @@ describe('AccountSelector', () => {
 
       renderScreen(
         AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
         { state: emptyState },
         mockRoute.params,
       );

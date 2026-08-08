@@ -8,6 +8,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   FontWeight,
   Text,
   TextColor,
@@ -16,7 +17,7 @@ import {
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { selectPerformanceMetrics } from '../../../../core/redux/slices/performance';
 import { useDispatch, useSelector } from 'react-redux';
-import { isTest } from '../../../../util/test/utils';
+import { isTestEnvironment } from '../../../../util/test/utils';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import Share from 'react-native-share';
 import {
@@ -29,7 +30,6 @@ import {
   setIsDaimoDemo,
 } from '../../../../core/redux/slices/card';
 import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
@@ -185,7 +185,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
   );
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.experimental_title')}
         onBack={handleBack}
         backButtonProps={{
@@ -197,7 +197,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
       <ScrollView style={styles.content}>
         {renderWalletConnectSettings()}
         {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
-        {isTest && renderPerformanceSettings()}
+        {isTestEnvironment && renderPerformanceSettings()}
       </ScrollView>
     </SafeAreaView>
   );

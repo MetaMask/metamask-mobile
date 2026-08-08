@@ -41,15 +41,18 @@ describe('useDismissOnPaymentChange', () => {
     useTransactionPayFiatPayment,
   );
   const goBackMock = jest.fn();
+  const isFocusedMock = jest.fn().mockReturnValue(true);
   const setPayTokenMock: jest.MockedFn<
     ReturnType<typeof useTransactionPayToken>['setPayToken']
   > = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
+    isFocusedMock.mockReturnValue(true);
 
     useNavigationMock.mockReturnValue({
       goBack: goBackMock,
+      isFocused: isFocusedMock,
     } as never);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -133,6 +136,21 @@ describe('useDismissOnPaymentChange', () => {
 
       expect(goBackMock).toHaveBeenCalledTimes(1);
     });
+
+    it('does not dismiss on pay token changes when pay token dismissal is disabled', () => {
+      const { rerender } = renderHook(() =>
+        useDismissOnPaymentChange({ dismissOnPayTokenChange: false }),
+      );
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: TOKEN_B,
+        setPayToken: setPayTokenMock,
+      });
+
+      rerender();
+
+      expect(goBackMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('fiat selection changes', () => {
@@ -173,6 +191,20 @@ describe('useDismissOnPaymentChange', () => {
 
       useTransactionPayFiatPaymentMock.mockReturnValue({
         selectedPaymentMethodId: undefined,
+      });
+
+      rerender();
+
+      expect(goBackMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('still dismisses on fiat selection changes when pay token dismissal is disabled', () => {
+      const { rerender } = renderHook(() =>
+        useDismissOnPaymentChange({ dismissOnPayTokenChange: false }),
+      );
+
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-card',
       });
 
       rerender();
@@ -266,6 +298,42 @@ describe('useDismissOnPaymentChange', () => {
       rerender();
 
       expect(goBackMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('focus guard (defers dismissal when an overlapping route is on top)', () => {
+    it('does not call goBack when the screen is not focused even if the pay token changes', () => {
+      isFocusedMock.mockReturnValue(false);
+
+      const { rerender } = renderHook(() => useDismissOnPaymentChange());
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: TOKEN_B,
+        setPayToken: setPayTokenMock,
+      });
+
+      rerender();
+
+      expect(goBackMock).not.toHaveBeenCalled();
+    });
+
+    it('latches when defeating an unfocused change, so it does not re-fire after re-focus', () => {
+      isFocusedMock.mockReturnValue(false);
+
+      const { rerender } = renderHook(() => useDismissOnPaymentChange());
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: TOKEN_B,
+        setPayToken: setPayTokenMock,
+      });
+
+      rerender();
+
+      isFocusedMock.mockReturnValue(true);
+
+      rerender();
+
+      expect(goBackMock).not.toHaveBeenCalled();
     });
   });
 });

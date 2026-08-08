@@ -15,11 +15,6 @@ const mockedValidate =
 describe('isMoneyAccountEnabled', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT;
-  });
-
-  afterEach(() => {
-    delete process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT;
   });
 
   it('returns true when remote flag is enabled and version requirement is met', () => {
@@ -42,16 +37,7 @@ describe('isMoneyAccountEnabled', () => {
     expect(result).toBe(false);
   });
 
-  it('falls back to local env var when remote flag returns undefined', () => {
-    mockedValidate.mockReturnValue(undefined);
-    process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT = 'true';
-
-    const result = isMoneyAccountEnabled({});
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when both remote and local flags are unavailable', () => {
+  it('returns false when remote flag returns undefined', () => {
     mockedValidate.mockReturnValue(undefined);
 
     const result = isMoneyAccountEnabled({});

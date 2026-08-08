@@ -49,6 +49,7 @@ const attemptMultiCallClaimTransaction = async (
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
     networkClientId,
     origin: ORIGIN_METAMASK,
+    isInternal: true,
     type: TransactionType.stakingClaim,
   });
 };
@@ -94,6 +95,7 @@ const attemptSingleClaimTransaction = async (
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
     networkClientId,
     origin: ORIGIN_METAMASK,
+    isInternal: true,
     type: TransactionType.stakingClaim,
   });
 };

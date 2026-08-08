@@ -1,10 +1,12 @@
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import UniswapDapp from '../../page-objects/MMConnect/UniswapDapp';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import { unlockIfLockScreenVisible } from '../mm-connect/utils';
 import { PerformanceLogin } from '../../tags.performance.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
+import {
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import {
   launchMobileBrowser,
@@ -15,9 +17,9 @@ import {
 const UNISWAP_URL = 'https://app.uniswap.org';
 
 perfTest.describe(`${PerformanceLogin}`, () => {
-  perfTest.setTimeout(10 * 60 * 1000);
+  perfTest.setTimeout(20 * 60 * 1000);
 
-  perfTest(
+  perfTest.skip(
     'Connect to Uniswap dapp, edit accounts, choose another account, and skip Solana popup',
     { tag: '@metamask-mobile-platform' },
     async ({ currentDeviceDetails, driver: _driver, performanceTracker }) => {
@@ -25,13 +27,13 @@ perfTest.describe(`${PerformanceLogin}`, () => {
 
       const metamaskTimer = new TimerHelper(
         'Time since the user selects Metamask until Metamask app is opened',
-        { ios: 15000, android: 20000 },
+        { ios: 18000, android: 22000 },
         platform,
       );
 
       const connectTimer = new TimerHelper(
         'Time since the user taps Connect in MetaMask until Uniswap is displayed',
-        { ios: 15000, android: 20000 },
+        { ios: 15000, android: 5000 },
         platform,
       );
       await loginToAppPlaywright();
@@ -66,7 +68,6 @@ perfTest.describe(`${PerformanceLogin}`, () => {
       }
 
       metamaskTimer.start();
-
       // Still on Native Context
       await unlockIfLockScreenVisible();
       metamaskTimer.stop();

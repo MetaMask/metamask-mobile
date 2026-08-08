@@ -5,21 +5,50 @@ import {
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Utilities from '../../../framework/Utilities';
+import {
+  EncapsulatedElementType,
+  asPlaywrightElement,
+  asDetoxElement,
+} from '../../../framework';
+import { encapsulatedAction } from '../../../framework/encapsulatedAction';
+import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
+import PlaywrightGestures from '../../../framework/PlaywrightGestures';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
+import { FrameworkDetector } from '../../../framework/FrameworkDetector';
+import type { UnifiedGestureOptions } from '../../../framework/GestureStrategy';
+
+/**
+ * Appium iOS: XCTest often reports `isDisplayed() === false` on native-stack
+ * card screens (RevealPrivateCredential after #33670) even when the element
+ * exists. Skip displayed checks and tap by testID (same pattern as
+ * AccountDetails.tapBackButton / SrpQuizModal).
+ */
+const iosAppiumTapOptions = (description: string): UnifiedGestureOptions => {
+  const skipDisplayedChecks =
+    FrameworkDetector.isAppium() && PlatformDetector.isIOS();
+  return {
+    description,
+    checkForDisplayed: !skipDisplayedChecks,
+    // When XCTest lies about displayed, enabled checks can also stall the tap.
+    checkForEnabled: !skipDisplayedChecks,
+  };
+};
 
 class RevealSecretRecoveryPhrase {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
     );
   }
 
-  get passwordWarning(): DetoxElement {
+  get passwordWarning(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
     );
   }
 
-  get passwordInputToRevealCredential(): DetoxElement {
+  get passwordInputToRevealCredential(): EncapsulatedElementType {
     return Matchers.getElementByLabel(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
     );
@@ -36,64 +65,95 @@ class RevealSecretRecoveryPhrase {
       RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT,
     );
   }
+
   get tabScrollViewQRCodeIdentifier(): Promise<DetoxMatcher> {
     return Matchers.getIdentifier(
       RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE,
     );
   }
 
-  get revealSecretRecoveryPhraseButton(): DetoxElement {
+  get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
     );
   }
 
-  get revealCredentialCopyToClipboardButton(): DetoxElement {
+  get revealCredentialCopyToClipboardButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
     );
   }
 
-  get revealCredentialQRCodeTab(): DetoxElement {
+  get revealCredentialQRCodeTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
     );
   }
 
-  get revealCredentialQRCodeImage(): DetoxElement {
+  get revealCredentialQRCodeImage(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
     );
   }
 
-  get doneButton(): DetoxElement {
+  get doneButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
     );
   }
 
-  get confirmButton(): DetoxElement {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
     );
   }
 
   async enterPasswordToRevealSecretCredential(password: string): Promise<void> {
-    // Wait for password screen to be ready (e.g. after navigation or quiz on iOS/Android CI)
-    await Utilities.waitForElementToBeVisible(
-      this.passwordInputToRevealCredential,
-      15000,
-    );
-    await Gestures.typeText(this.passwordInputToRevealCredential, password, {
-      hideKeyboard: true,
-      elemDescription: 'Password input to reveal credential',
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.waitForElementToBeVisible(
+          asDetoxElement(this.passwordInputToRevealCredential),
+          15000,
+        );
+        await Gestures.typeText(
+          asDetoxElement(this.passwordInputToRevealCredential),
+          password,
+          {
+            hideKeyboard: true,
+            elemDescription: 'Password input to reveal credential',
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(this.passwordInputToRevealCredential),
+          {
+            timeout: 15000,
+            description: 'Password input to reveal credential',
+          },
+        );
+        const textToType = PlatformDetector.isIOS()
+          ? `${password}\n`
+          : password;
+        await UnifiedGestures.typeText(
+          this.passwordInputToRevealCredential,
+          textToType,
+          {
+            description: 'Password input to reveal credential',
+          },
+        );
+        if (PlatformDetector.isAndroid()) {
+          await PlaywrightGestures.hideKeyboard();
+        }
+      },
     });
   }
 
   async tapConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
-      elemDescription: 'Confirm button to reveal credential',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.confirmButton,
+      iosAppiumTapOptions('Confirm button to reveal credential'),
+    );
   }
 
   /**
@@ -102,10 +162,20 @@ class RevealSecretRecoveryPhrase {
    */
   async isUnlocked(): Promise<boolean> {
     try {
-      await Utilities.waitForElementToBeVisible(
-        this.revealSecretRecoveryPhraseButton,
-        3000,
-      );
+      await encapsulatedAction({
+        detox: async () => {
+          await Utilities.waitForElementToBeVisible(
+            asDetoxElement(this.revealSecretRecoveryPhraseButton),
+            3000,
+          );
+        },
+        appium: async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            await asPlaywrightElement(this.revealSecretRecoveryPhraseButton),
+            { timeout: 3000 },
+          );
+        },
+      });
       return true;
     } catch {
       return false;
@@ -113,51 +183,59 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapToReveal(): Promise<void> {
-    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
-      elemDescription: 'Reveal secret recovery phrase button',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.revealSecretRecoveryPhraseButton,
+      iosAppiumTapOptions('Reveal secret recovery phrase button'),
+    );
   }
 
   async tapToCopyCredentialToClipboard() {
-    await Gestures.tap(this.revealCredentialCopyToClipboardButton, {
-      elemDescription: 'Reveal credential copy to clipboard button',
-    });
+    await UnifiedGestures.tap(
+      this.revealCredentialCopyToClipboardButton,
+      iosAppiumTapOptions('Reveal credential copy to clipboard button'),
+    );
   }
 
   async tapToRevealPrivateCredentialQRCode(): Promise<void> {
-    await Gestures.tap(this.revealCredentialQRCodeTab, {
-      elemDescription: 'Reveal credential QR code tab',
-    });
+    await UnifiedGestures.tap(
+      this.revealCredentialQRCodeTab,
+      iosAppiumTapOptions('Reveal credential QR code tab'),
+    );
   }
 
   async scrollToDone(): Promise<void> {
-    await Gestures.scrollToElement(this.doneButton, this.scrollViewIdentifier, {
-      elemDescription: 'Done button',
-    });
+    await UnifiedGestures.scrollToElement(
+      this.doneButton,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID,
+      {
+        description: 'Done button',
+      },
+    );
   }
 
   async tapDoneButton(): Promise<void> {
-    await Gestures.waitAndTap(this.doneButton, {
-      elemDescription: 'Done button',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.doneButton,
+      iosAppiumTapOptions('Done button'),
+    );
   }
 
   async scrollToCopyToClipboardButton(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.revealCredentialCopyToClipboardButton,
-      this.tabScrollViewTextIdentifier,
+      RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT,
       {
-        elemDescription: 'Copy to clipboard button',
+        description: 'Copy to clipboard button',
       },
     );
   }
 
   async scrollToQR(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.revealCredentialQRCodeImage,
-      this.tabScrollViewQRCodeIdentifier,
+      RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE,
       {
-        elemDescription: 'QR code',
+        description: 'QR code',
       },
     );
   }

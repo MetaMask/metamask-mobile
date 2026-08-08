@@ -71,6 +71,7 @@ const attemptUnstakeTransaction =
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         type: TransactionType.stakingUnstake,
       });
     } catch (e) {

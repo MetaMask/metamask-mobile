@@ -18,12 +18,12 @@ describe('PredictKeypad', () => {
     mockOnChange = null;
   });
   const defaultProps = {
-    isInputFocused: true,
+    isKeypadOpen: true,
     currentValue: 1,
     currentValueUSDString: '1.00',
     setCurrentValue: jest.fn(),
     setCurrentValueUSDString: jest.fn(),
-    setIsInputFocused: jest.fn(),
+    setIsKeypadOpen: jest.fn(),
   };
 
   beforeEach(() => {
@@ -35,32 +35,26 @@ describe('PredictKeypad', () => {
   });
 
   describe('Rendering', () => {
-    it('renders keypad when input is focused', () => {
-      // Arrange
-      const props = { ...defaultProps, isInputFocused: true };
+    it('renders keypad when keypad is open', () => {
+      const props = { ...defaultProps, isKeypadOpen: true };
 
-      // Act
       const { getByText } = render(<PredictKeypad {...props} />);
 
-      // Assert
-      expect(getByText('$20')).toBeTruthy();
-      expect(getByText('$50')).toBeTruthy();
-      expect(getByText('$100')).toBeTruthy();
-      expect(getByText('Done')).toBeTruthy();
+      expect(getByText('$20')).toBeOnTheScreen();
+      expect(getByText('$50')).toBeOnTheScreen();
+      expect(getByText('$100')).toBeOnTheScreen();
+      expect(getByText('Done')).toBeOnTheScreen();
     });
 
-    it('does not render keypad when input is not focused', () => {
-      // Arrange
-      const props = { ...defaultProps, isInputFocused: false };
+    it('does not render keypad when keypad is closed', () => {
+      const props = { ...defaultProps, isKeypadOpen: false };
 
-      // Act
       const { queryByText } = render(<PredictKeypad {...props} />);
 
-      // Assert
-      expect(queryByText('$20')).toBeNull();
-      expect(queryByText('$50')).toBeNull();
-      expect(queryByText('$100')).toBeNull();
-      expect(queryByText('Done')).toBeNull();
+      expect(queryByText('$20')).not.toBeOnTheScreen();
+      expect(queryByText('$50')).not.toBeOnTheScreen();
+      expect(queryByText('$100')).not.toBeOnTheScreen();
+      expect(queryByText('Done')).not.toBeOnTheScreen();
     });
   });
 
@@ -117,7 +111,7 @@ describe('PredictKeypad', () => {
       fireEvent.press(getByText('Done'));
 
       // Assert
-      expect(props.setIsInputFocused).toHaveBeenCalledWith(false);
+      expect(props.setIsKeypadOpen).toHaveBeenCalledWith(false);
     });
 
     it('exposes handleAmountPress handler through ref', () => {
@@ -130,7 +124,7 @@ describe('PredictKeypad', () => {
       ref.current?.handleAmountPress();
 
       // Assert
-      expect(props.setIsInputFocused).toHaveBeenCalledWith(true);
+      expect(props.setIsKeypadOpen).toHaveBeenCalledWith(true);
     });
 
     it('exposes handleKeypadAmountPress handler through ref', () => {
@@ -157,7 +151,7 @@ describe('PredictKeypad', () => {
       ref.current?.handleDonePress();
 
       // Assert
-      expect(props.setIsInputFocused).toHaveBeenCalledWith(false);
+      expect(props.setIsKeypadOpen).toHaveBeenCalledWith(false);
     });
   });
 
@@ -184,7 +178,7 @@ describe('PredictKeypad', () => {
 
       expect(props.setCurrentValueUSDString).toHaveBeenCalledWith('25');
       expect(props.setCurrentValue).toHaveBeenCalledWith(25);
-      expect(props.setIsInputFocused).toHaveBeenCalledWith(false);
+      expect(props.setIsKeypadOpen).toHaveBeenCalledWith(false);
     });
 
     it('handles empty string after removing decimal point', () => {
@@ -212,7 +206,7 @@ describe('PredictKeypad', () => {
       ref.current?.handleDonePress();
 
       expect(props.setCurrentValueUSDString).not.toHaveBeenCalled();
-      expect(props.setIsInputFocused).toHaveBeenCalledWith(false);
+      expect(props.setIsKeypadOpen).toHaveBeenCalledWith(false);
     });
   });
 

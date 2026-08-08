@@ -22,7 +22,7 @@ Storybook uses the same entry point as our main app (`index.js`), so you'll need
    ```javascript
    // AppRegistry.registerComponent(name, () =>
    //   // Disable Sentry for E2E tests
-   //   isE2E ? Root : Sentry.wrap(Root),
+   //   hasTestOverrides ? Root : Sentry.wrap(Root),
    // );
    ```
 
@@ -55,7 +55,7 @@ When you're done with Storybook:
    ```javascript
    AppRegistry.registerComponent(name, () =>
      // Disable Sentry for E2E tests
-     isE2E ? Root : Sentry.wrap(Root),
+     hasTestOverrides ? Root : Sentry.wrap(Root),
    );
    ```
 

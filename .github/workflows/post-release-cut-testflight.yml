@@ -1,0 +1,99 @@
+##############################################################################################
+#
+# Post-Release-Cut TestFlight Build
+#
+# Fires when a version-bump/X.Y.Z PR merges into main (the Thursday release cut).
+#
+# Strategy: instead of building from main (version x+1) and immediately submitting for
+# external review — which blocks any future x+1 uploads while Apple reviews — we compute
+# an x+2 version, pass it as version to the build, and apply it locally on each
+# build runner without ever pushing a branch. This gives Apple a full week to review while
+# main (x+1) can receive any number of internal builds without interference.
+#
+# Timeline:
+#   Thursday:  release/x cut, main bumps to x+1
+#              → build checks out main, bumps inline to x+2, submits for external review
+#   +1 week:   Apple approves x+2 → external testers receive it
+#              Next release cut fires (x+1 → release/x+1, main bumps to x+2)
+#
+# Follows up the version bump made by merge-version-bump-pr.yml.
+#
+# Triggered by push to main (not pull_request) so the run's OIDC subject is
+# refs/heads/main, which the TestFlight AWS role trusts — a pull_request run's subject
+# (repo:...:pull_request) is rejected by the IAM trust policy. The release cut is the
+# only thing that changes package.json's version on main, so a changed version == cut.
+#
+##############################################################################################
+name: Post-Release-Cut TestFlight Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  compute-version:
+    runs-on: ubuntu-latest
+    outputs:
+      next-version: ${{ steps.version.outputs.next }}
+      bumped: ${{ steps.version.outputs.bumped }}
+    steps:
+      - name: Checkout pushed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+
+      - name: Compute x+2 version
+        id: version
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          git show HEAD~1:package.json > /tmp/prev-package.json
+          PREV=$(node -p "require('/tmp/prev-package.json').version")
+          if [ "$CURRENT" = "$PREV" ]; then
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            echo "Version unchanged ($CURRENT) — not a release cut, skipping."
+            exit 0
+          fi
+          MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+          MINOR=$(echo "$CURRENT" | cut -d. -f2)
+          NEXT="${MAJOR}.$((MINOR + 1)).0"
+          echo "bumped=true" >> "$GITHUB_OUTPUT"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Release cut $PREV → $CURRENT → TestFlight version: $NEXT"
+
+  generate-build-version:
+    needs: [compute-version]
+    if: needs.compute-version.outputs.bumped == 'true'
+    uses: ./.github/workflows/generate-build-version.yml
+
+  build:
+    name: Build iOS (exp)
+    needs: [compute-version, generate-build-version]
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-exp
+      platform: ios
+      source_branch: main
+      version: ${{ needs.compute-version.outputs.next-version }}
+      build_number: ${{ needs.generate-build-version.outputs.build-version }}
+    secrets: inherit
+
+  upload-ios-testflight:
+    needs: [compute-version, build]
+    uses: ./.github/workflows/upload-to-testflight.yml
+    with:
+      environment: exp
+      testflight_group: 'MetaMask BETA & Release Candidates'
+      source_branch: main
+      build_name: main-exp
+      build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
+      build_version: ${{ needs.build.outputs.semantic_version }}
+      build_number: ${{ needs.build.outputs.ios_version_code }}
+      distribute_external: true
+    secrets: inherit

@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { useTokensFeed } from './useTokensFeed';
 
@@ -47,6 +48,7 @@ describe('useTokensFeed', () => {
       loadMore: mockLoadMore,
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
   });
 
@@ -99,6 +101,29 @@ describe('useTokensFeed', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       searchQuery: 'sol',
       enableDebounce: false,
+      filterLowQuality: true,
+      sortBy: undefined,
+      sortTrendingTokensOptions: undefined,
+    });
+  });
+
+  it('passes timeOption into request and local price-change sorting options', () => {
+    renderHook(() =>
+      useTokensFeed({
+        timeOption: TimeOption.OneHour,
+      }),
+    );
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      searchQuery: undefined,
+      enableDebounce: false,
+      filterLowQuality: true,
+      sortBy: 'h1_trending',
+      sortTrendingTokensOptions: {
+        option: 'price_change',
+        direction: 'descending',
+        timeOption: TimeOption.OneHour,
+      },
     });
   });
 
@@ -111,6 +136,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: true,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
@@ -128,6 +154,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: true,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() => useTokensFeed({ query: undefined }));
@@ -145,11 +172,44 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: true,
         hasNextPage: true,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
 
       expect(result.current.isLoadingMore).toBe(true);
+    });
+
+    it('forwards totalCount from useTrendingSearch when query is present', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: 2101,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
+
+      expect(result.current.totalCount).toBe(2101);
+    });
+
+    it('suppresses totalCount when query is absent', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: 2101,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: undefined }));
+
+      expect(result.current.totalCount).toBeUndefined();
     });
   });
 
@@ -206,6 +266,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
     });
 
@@ -242,6 +303,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>
@@ -259,6 +321,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>
@@ -276,6 +339,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>

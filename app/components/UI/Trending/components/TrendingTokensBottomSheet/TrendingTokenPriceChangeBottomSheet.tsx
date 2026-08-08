@@ -1,5 +1,11 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import { TrendingTokensBottomSheetTestIds } from './TrendingTokensBottomSheet.testIds';
+import {
+  HeaderStandard,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
@@ -15,11 +21,6 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
 
 export enum PriceChangeOption {
   PriceChange = 'price_change',
@@ -147,7 +148,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={handleSheetClose}
-      testID="trending-token-price-change-bottom-sheet"
+      testID={TrendingTokensBottomSheetTestIds.PRICE_CHANGE}
     >
       <HeaderStandard
         title={strings('trending.sort_by')}
@@ -261,12 +262,14 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       </View>
       <View style={optionStyles.buttonContainer}>
         <Button
-          variant={ButtonVariants.Primary}
-          label={strings('trending.apply')}
+          variant={ButtonVariant.Primary}
           onPress={handleApply}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-        />
+          isFullWidth
+          testID="apply-button"
+        >
+          {strings('trending.apply')}
+        </Button>
       </View>
     </BottomSheet>
   );

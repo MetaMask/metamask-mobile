@@ -11,6 +11,7 @@ import {
   HardwareWalletStateSetters,
 } from './useHardwareWalletStateManager';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
+import Logger from '../../../util/Logger';
 
 interface UseDeviceConnectionFlowOptions {
   refs: HardwareWalletRefs;
@@ -127,24 +128,28 @@ export const useDeviceConnectionFlow = ({
       targetDeviceId: string,
     ): Promise<boolean> => {
       const isReady = await adapter.ensureDeviceReady(targetDeviceId);
+      Logger.log('[HW-SendBundle] adapter.ensureDeviceReady returned', {
+        isReady,
+        walletType: adapter.walletType,
+        hasResolve: Boolean(pendingReadyResolveRef?.current),
+        hasCallback: Boolean(connectionSuccessCallbackRef.current),
+      });
       if (isReady) {
         adapter.markFlowComplete();
-        // QR submit flow should not show the intermediate "connected/success"
-        // modal before awaiting-confirmation. For QR, readiness still happens
-        // first, but the caller (executeHardwareWalletOperation) immediately
-        // transitions to AwaitingConfirmation after this promise resolves.
-        if (adapter.walletType === HardwareWalletType.Qr) {
-          const resolvePending = pendingReadyResolveRef.current;
-          if (resolvePending) {
-            pendingReadyResolveRef.current = null;
-            connectionSuccessCallbackRef.current = null;
-            resolvePending(true);
-          }
-        } else {
-          updateConnectionState({
-            status: ConnectionStatus.Ready,
-            deviceId: targetDeviceId,
-          });
+        // Resolve the blocking promise immediately when the adapter reports
+        // ready — same as QR. Previously, Ledger relied on the bottom sheet's
+        // "Continue" button (handleConnectionSuccess) to resolve the promise,
+        // but that callback never fires when the sheet is suppressed by
+        // screens that render their own signing UI (HardwareWalletsSwaps).
+        updateConnectionState({
+          status: ConnectionStatus.Ready,
+          deviceId: targetDeviceId,
+        });
+        const resolvePending = pendingReadyResolveRef.current;
+        if (resolvePending) {
+          pendingReadyResolveRef.current = null;
+          connectionSuccessCallbackRef.current = null;
+          resolvePending(true);
         }
       } else {
         DevLogger.log(

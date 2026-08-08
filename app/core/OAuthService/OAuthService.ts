@@ -1,6 +1,12 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
-import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+  TraceContext,
+} from '../../util/trace';
 import { whenEngineReady } from '../../util/analytics/whenEngineReady';
 import { isE2EMockOAuth } from '../../util/environment';
 
@@ -8,7 +14,6 @@ import {
   HandleOAuthLoginResult,
   AuthConnection,
   AuthResponse,
-  OAuthUserInfo,
   OAuthLoginResultType,
   LoginHandlerResult,
 } from './OAuthInterface';
@@ -26,7 +31,11 @@ import {
   GoogleWebGID,
 } from './OAuthLoginHandlers/constants';
 import { QAMockOAuthService } from './QAMockOAuthService';
-import { OAuthError, OAuthErrorType } from './error';
+import {
+  OAuthError,
+  OAuthErrorType,
+  isSocialLoginAuthSessionDismissed,
+} from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
@@ -37,6 +46,7 @@ import {
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import { trackSocialLoginFailed } from './socialLoginAnalytics';
 import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
@@ -64,7 +74,7 @@ export interface OAuthServiceConfig {
 
 const getAuthConnectionIdFromClientId = (params: {
   clientId: string;
-  authConnection: SeedlessAuthConnection;
+  authConnection: AuthConnection;
   authConnectionConfig: OAuthServiceConfig['authConnectionConfig'];
 }): { authConnectionId: string; groupedAuthConnectionId?: string } => {
   const { clientId, authConnection, authConnectionConfig } = params;
@@ -130,7 +140,7 @@ export class OAuthService {
 
   handleSeedlessAuthenticate = async (
     data: AuthResponse,
-    authConnection: SeedlessAuthConnection,
+    authConnection: AuthConnection,
     clientId: string,
   ): Promise<HandleOAuthLoginResult> => {
     try {
@@ -149,6 +159,13 @@ export class OAuthService {
         authConnection,
         authConnectionConfig: this.config.authConnectionConfig,
       });
+
+      if (!authConnectionConfig) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          `No auth connection config found for ${authConnection}`,
+        );
+      }
 
       const refreshToken = data.refresh_token;
       const revokeToken = data.revoke_token;
@@ -172,7 +189,7 @@ export class OAuthService {
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
-          authConnection,
+          authConnection: authConnection as unknown as SeedlessAuthConnection,
           authConnectionId: authConnectionConfig.authConnectionId,
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
@@ -209,7 +226,7 @@ export class OAuthService {
 
     const result = await this.handleSeedlessAuthenticate(
       data,
-      loginHandler.authConnection as SeedlessAuthConnection,
+      loginHandler.authConnection,
       loginHandler.options.clientId,
     );
 
@@ -244,11 +261,15 @@ export class OAuthService {
   #handleOAuthLoginProductionPath = async (
     loginHandler: BaseLoginHandler,
     web3AuthNetwork: Web3AuthNetwork,
+    parentTraceContext?: TraceContext,
   ): Promise<HandleOAuthLoginResult> => {
     try {
       let data: AuthResponse, handleCodeFlowResult: HandleOAuthLoginResult;
 
-      const result = await this.#executeProviderLogin(loginHandler);
+      const result = await this.#executeProviderLogin(
+        loginHandler,
+        parentTraceContext,
+      );
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: before getAuthToken');
@@ -259,6 +280,7 @@ export class OAuthService {
           trace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             op: TraceOperation.OnboardingSecurityOp,
+            parentContext: parentTraceContext,
           });
           data = await loginHandler.getAuthTokens(
             { ...result, web3AuthNetwork },
@@ -276,13 +298,15 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
             op: TraceOperation.OnboardingError,
             tags: { errorMessage },
+            parentContext: parentTraceContext,
           });
           endTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
           });
 
-          this.#trackSocialLoginFailure({
+          trackSocialLoginFailed({
             authConnection,
+            isRehydration: this.localState.userClickedRehydration,
             errorCategory: 'get_auth_tokens',
             error,
           });
@@ -295,11 +319,7 @@ export class OAuthService {
           });
         }
 
-        const jwtPayload = JSON.parse(
-          loginHandler.decodeIdToken(data.id_token),
-        ) as Partial<OAuthUserInfo>;
-        const userId = jwtPayload.sub ?? '';
-        const accountName = jwtPayload.email ?? '';
+        const { userId, accountName } = loginHandler.getUserInfo(data);
 
         this.updateLocalState({
           userId,
@@ -311,6 +331,7 @@ export class OAuthService {
           trace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             op: TraceOperation.OnboardingSecurityOp,
+            parentContext: parentTraceContext,
           });
           handleCodeFlowResult = await this.handleSeedlessAuthenticate(
             data,
@@ -326,13 +347,15 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
             op: TraceOperation.OnboardingError,
             tags: { errorMessage },
+            parentContext: parentTraceContext,
           });
           endTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
           });
 
-          this.#trackSocialLoginFailure({
+          trackSocialLoginFailed({
             authConnection,
+            isRehydration: this.localState.userClickedRehydration,
             errorCategory: 'seedless_auth',
             error,
           });
@@ -376,52 +399,41 @@ export class OAuthService {
     }
   };
 
-  #trackSocialLoginFailure = ({
+  #trackSocialLoginAuthBrowserDismissed = ({
     authConnection,
-    errorCategory,
-    error,
+    elapsedMs,
   }: {
     authConnection: AuthConnection;
-    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
-    error: unknown;
+    elapsedMs: number;
   }) => {
-    const isUserCancelled =
-      error instanceof OAuthError &&
-      (error.code === OAuthErrorType.UserCancelled ||
-        error.code === OAuthErrorType.UserDismissed);
-
-    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
-    if (this.localState.userClickedRehydration !== undefined) {
-      userClickedRehydration = this.localState.userClickedRehydration
-        ? 'true'
-        : 'false';
-    }
+    const isRehydration = this.localState.userClickedRehydration === true;
+    const properties = {
+      auth_connection: authConnection,
+      account_type: getSocialAccountType(authConnection, isRehydration),
+      surface: isRehydration ? 'rehydration' : 'onboarding',
+      elapsed_ms: elapsedMs,
+    };
 
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
+        MetaMetricsEvents.SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED,
       )
-        .addProperties({
-          account_type: getSocialAccountType(
-            authConnection,
-            this.localState.userClickedRehydration === true,
-          ),
-          is_rehydration: userClickedRehydration,
-          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
-          error_category: errorCategory,
-        })
+        .addProperties(properties)
         .build(),
     );
   };
 
   #executeProviderLogin = async (
     loginHandler: BaseLoginHandler,
+    parentTraceContext?: TraceContext,
   ): Promise<LoginHandlerResult> => {
     let providerLoginSuccess = false;
+    const providerLoginStartedAt = Date.now();
     try {
       trace({
         name: TraceName.OnboardingOAuthProviderLogin,
         op: TraceOperation.OnboardingSecurityOp,
+        parentContext: parentTraceContext,
       });
       const loginResult = await loginHandler.login();
       if (!loginResult) {
@@ -447,15 +459,24 @@ export class OAuthService {
           name: TraceName.OnboardingOAuthProviderLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
+          parentContext: parentTraceContext,
         });
         endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
       }
 
-      this.#trackSocialLoginFailure({
-        authConnection: loginHandler.authConnection,
-        errorCategory: 'provider_login',
-        error,
-      });
+      if (isSocialLoginAuthSessionDismissed(error)) {
+        this.#trackSocialLoginAuthBrowserDismissed({
+          authConnection: loginHandler.authConnection,
+          elapsedMs: Date.now() - providerLoginStartedAt,
+        });
+      } else {
+        trackSocialLoginFailed({
+          authConnection: loginHandler.authConnection,
+          isRehydration: this.localState.userClickedRehydration,
+          errorCategory: 'provider_login',
+          error,
+        });
+      }
 
       throw error;
     } finally {
@@ -478,6 +499,11 @@ export class OAuthService {
   handleOAuthLogin = async (
     loginHandler: BaseLoginHandler,
     userClickedRehydration: boolean,
+    // Optional onboarding trace context supplied by the UI. When present, the
+    // provider-login / get-auth-tokens / seedless-authenticate spans nest under
+    // it (the social-login attempt) instead of surfacing as disconnected root
+    // transactions in Sentry. Omitted by callers outside onboarding.
+    parentTraceContext?: TraceContext,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
@@ -497,6 +523,7 @@ export class OAuthService {
     return await this.#handleOAuthLoginProductionPath(
       loginHandler,
       web3AuthNetwork,
+      parentTraceContext,
     );
   };
 
@@ -527,31 +554,33 @@ export class OAuthService {
     });
   };
 
-  private getAccessToken = (): string | undefined =>
-    Engine.context.SeedlessOnboardingController.state?.accessToken;
-
-  updateMarketingOptInStatus = async (
-    marketingOptIn: boolean,
-  ): Promise<void> => {
-    const accessToken = this.getAccessToken();
+  private async getValidAccessToken(): Promise<string> {
+    await whenEngineReady();
+    const accessToken =
+      await Engine.context.SeedlessOnboardingController.getAccessToken();
 
     if (!accessToken) {
       throw new Error('No access token found. User must be authenticated.');
     }
 
+    return accessToken;
+  }
+
+  updateMarketingOptInStatus = async (
+    marketingOptIn: boolean,
+  ): Promise<void> => {
+    const accessToken = await this.getValidAccessToken();
     const requestBody: MarketingOptInRequest = {
       opt_in_status: marketingOptIn,
     };
 
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify(requestBody),
     });
 
@@ -566,21 +595,14 @@ export class OAuthService {
   };
 
   getMarketingOptInStatus = async (): Promise<MarketingOptInResponse> => {
-    const accessToken = this.getAccessToken();
-
-    if (!accessToken) {
-      throw new Error('No access token found. User must be authenticated.');
-    }
-
+    const accessToken = await this.getValidAccessToken();
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
     const response = await fetch(url, {
       method: 'GET',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (!response.ok) {

@@ -1,16 +1,9 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import ListItemMultiSelect from '../../../../../component-library/components/List/ListItemMultiSelect';
 import { Image } from 'react-native';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { strings } from '../../../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useAssetFromTheme } from '../../../../../util/theme';
 import emptyStateDefiLight from '../../../../../images/empty-state-defi-light.png';
@@ -18,13 +11,14 @@ import emptyStateDefiDark from '../../../../../images/empty-state-defi-dark.png'
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { ImportAsset } from '../../utils/utils';
+import AddAssetTokenRow from '../AddAssetTokenRow/AddAssetTokenRow';
 
 interface Props {
   /**
@@ -44,10 +38,6 @@ interface Props {
    */
   searchQuery: string;
   /**
-   * ChainID of the network
-   */
-  chainId: string;
-  /**
    * Symbol of the network
    */
   ticker?: string;
@@ -65,17 +55,69 @@ interface Props {
   isLoading?: boolean;
 }
 
+interface SearchTokenResultRowProps {
+  item: ImportAsset;
+  isSelected: boolean;
+  isAlreadyAdded: boolean;
+  networkName?: string;
+  onSelect: (asset: ImportAsset) => void;
+}
+
+const getTokenSearchRowKey = (token: ImportAsset) =>
+  `${token.chainId}-${token.address.toLowerCase()}`;
+
+const SearchTokenResultRow = React.memo(
+  ({
+    item,
+    isSelected,
+    isAlreadyAdded,
+    networkName,
+    onSelect,
+  }: SearchTokenResultRowProps) => {
+    const tw = useTailwind();
+    const isDisabled = isAlreadyAdded;
+
+    return (
+      <ListItemMultiSelect
+        isSelected={isSelected || isAlreadyAdded}
+        isDisabled={isDisabled}
+        gap={20}
+        style={tw.style('flex-1 py-0')}
+        onPress={() => !isDisabled && onSelect(item)}
+        testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
+      >
+        <AddAssetTokenRow asset={item} networkName={networkName} />
+      </ListItemMultiSelect>
+    );
+  },
+);
+
 const TokenSkeleton = () => {
   const tw = useTailwind();
 
   return (
-    <ListItemMultiSelect isDisabled style={tw.style('flex-1 py-2.5')}>
-      <Box twClassName="flex-col items-start px-0.5">
-        <Skeleton width={40} height={40} style={tw.style('rounded-[20px]')} />
-      </Box>
-      <Box twClassName="flex-1 justify-center px-1">
-        <Skeleton width={120} height={20} style={tw.style('mb-2')} />
-        <Skeleton width={60} height={16} />
+    <ListItemMultiSelect isDisabled gap={20} style={tw.style('flex-1 py-0')}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="flex-1 h-16"
+      >
+        <Box twClassName="relative">
+          <Skeleton width={40} height={40} style={tw.style('rounded-[20px]')} />
+          <Skeleton
+            width={20}
+            height={20}
+            style={tw.style('absolute -bottom-1 -right-1 rounded-[10px]')}
+          />
+        </Box>
+        <Box twClassName="flex-1 ml-5 justify-center">
+          <Skeleton width={160} height={20} style={tw.style('rounded-md')} />
+          <Skeleton
+            width={64}
+            height={16}
+            style={tw.style('mt-1 rounded-md')}
+          />
+        </Box>
       </Box>
     </ListItemMultiSelect>
   );
@@ -94,6 +136,36 @@ const SearchTokenResults = ({
   const tokensImage = useAssetFromTheme(
     emptyStateDefiLight,
     emptyStateDefiDark,
+  );
+
+  const selectedAddresses = useMemo(
+    () => new Set(selectedAsset.map((token) => token.address)),
+    [selectedAsset],
+  );
+
+  const keyExtractor = useCallback(
+    (item: ImportAsset) => getTokenSearchRowKey(item),
+    [],
+  );
+
+  const renderItem = useCallback<ListRenderItem<ImportAsset>>(
+    ({ item }) => {
+      const { address } = item;
+      const isSelected = selectedAddresses.has(address);
+      const isAlreadyAdded =
+        alreadyAddedTokens?.has(address.toLowerCase()) ?? false;
+
+      return (
+        <SearchTokenResultRow
+          item={item}
+          isSelected={isSelected}
+          isAlreadyAdded={isAlreadyAdded}
+          networkName={networkName}
+          onSelect={handleSelectAsset}
+        />
+      );
+    },
+    [selectedAddresses, alreadyAddedTokens, networkName, handleSelectAsset],
   );
 
   // Show skeleton loaders when loading
@@ -131,56 +203,8 @@ const SearchTokenResults = ({
   return (
     <FlashList
       data={searchResults}
-      renderItem={({ item, index }) => {
-        const { symbol, name, address, image } = item || {};
-        const isOnSelected = selectedAsset.some(
-          (token) => token.address === address,
-        );
-        const isSelected = selectedAsset && isOnSelected;
-
-        // Check if token is already added
-        const isAlreadyAdded = alreadyAddedTokens?.has(address.toLowerCase());
-        const isDisabled = isAlreadyAdded;
-
-        return (
-          <ListItemMultiSelect
-            isSelected={isSelected || isAlreadyAdded}
-            isDisabled={isDisabled}
-            style={tw.style('flex-1 py-2.5')}
-            key={`search-result-${index}`}
-            onPress={() => !isDisabled && handleSelectAsset(item)}
-            testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
-          >
-            <Box twClassName="flex-col items-start px-0.5">
-              <BadgeWrapper
-                badgePosition={BadgePosition.BottomRight}
-                badgeElement={
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={NetworkBadgeSource(
-                      item?.chainId as `0x${string}`,
-                    )}
-                    name={networkName}
-                  />
-                }
-              >
-                {image && (
-                  <AvatarToken
-                    name={symbol}
-                    imageSource={{ uri: image }}
-                    size={AvatarSize.Lg}
-                  />
-                )}
-              </BadgeWrapper>
-            </Box>
-            <Box twClassName="flex-1 justify-center px-1">
-              <Text variant={TextVariant.BodyLg}>{name}</Text>
-              <Text variant={TextVariant.BodyMd}>{symbol}</Text>
-            </Box>
-          </ListItemMultiSelect>
-        );
-      }}
-      keyExtractor={(_, index) => `token-search-row-${index}`}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
     />
   );
 };

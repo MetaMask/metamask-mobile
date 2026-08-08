@@ -1,9 +1,9 @@
-// Pure-black preview token override. MUST be first — mutates upstream
-// design-tokens before the twrnc preset imports them. See file for details.
-import './app/util/theme/preBootPureBlack';
-
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
+
+// Native C++ networking (nitro-fetch + nitro-websockets). Must run after shim.
+import './app/core/NitroFetchSetup';
+import './app/core/NitroWebSocketSetup';
 
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
@@ -32,7 +32,7 @@ import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
-import { isE2E } from './app/util/test/utils.js';
+import { hasTestOverrides } from './app/util/test/utils.js';
 import { Performance } from './app/core/Performance';
 import {
   handleCustomError,
@@ -123,7 +123,7 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  */
 AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
-  isE2E ? Root : Sentry.wrap(Root),
+  hasTestOverrides ? Root : Sentry.wrap(Root),
 );
 
 function setupGlobalErrorHandler() {

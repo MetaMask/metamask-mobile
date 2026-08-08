@@ -3,12 +3,12 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-  useContext,
   useLayoutEffect,
 } from 'react';
 import { TextInput, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -26,12 +26,12 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  toast,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import {
   useParams,
@@ -69,13 +69,12 @@ const hasPrivateKeyAvailable = (account: InternalAccount) =>
  * @returns {JSX.Element} The rendered component.
  */
 export const PrivateKeyList = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { groupId, title } = useParams<PrivateKeyListParams>();
   const tw = useTailwind();
   const theme = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
 
-  const { toastRef } = useContext(ToastContext);
   const [password, setPassword] = useState<string>('');
   const [wrongPassword, setWrongPassword] = useState<boolean>(false);
   const [reveal, setReveal] = useState<boolean>(false);
@@ -125,7 +124,7 @@ export const PrivateKeyList = () => {
     await Promise.all(
       pkAccounts.map(async (account: InternalAccount) => {
         const pk = await KeyringController.exportAccount(
-          password,
+          { password },
           account.address,
         );
         privateKeyMap[account.id] = pk;
@@ -184,17 +183,19 @@ export const PrivateKeyList = () => {
         networkName={item.networkName}
         address={item.account.address}
         copyParams={{
-          toastMessage: strings('multichain_accounts.private_key_list.copied'),
-          toastRef,
           callback: async () => {
             await ClipboardManager.setStringExpire(
               privateKeys[item.account.id],
             );
+            toast({
+              title: strings('multichain_accounts.private_key_list.copied'),
+              hasNoTimeout: false,
+            });
           },
         }}
       />
     ),
-    [privateKeys, toastRef],
+    [privateKeys],
   );
 
   const privateKeyBannerDescription = useMemo(

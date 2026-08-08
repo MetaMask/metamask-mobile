@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { isCaipChainId } from '@metamask/utils';
-import { TextColor } from '@metamask/design-system-react-native';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import {
   getCaipChainIdFromAssetId,
@@ -19,6 +18,7 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import { useTrendingTokenPress } from '../../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { CRYPTO_MOVERS_HOME_FILTER_CONTEXT } from '../search-utils';
+import { formatPercentChange } from '../formatPercentChange';
 import ExplorePill from '../../components/ExplorePill';
 
 const LOGO_SIZE = 24;
@@ -26,6 +26,8 @@ const LOGO_SIZE = 24;
 interface CryptoMoversPillItemProps {
   token: TrendingAsset;
   index: number;
+  timeOption?: TimeOption;
+  tokenDetailsSource?: TokenDetailsSource;
   /** Called synchronously before the card's press handler fires. */
   onCardPress?: () => void;
 }
@@ -33,13 +35,15 @@ interface CryptoMoversPillItemProps {
 const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   token,
   index,
+  timeOption = TimeOption.TwentyFourHours,
+  tokenDetailsSource = TokenDetailsSource.ExploreNowMovers,
   onCardPress,
 }) => {
   const { onPress: defaultOnPress } = useTrendingTokenPress({
     token,
     index,
     filterContext: CRYPTO_MOVERS_HOME_FILTER_CONTEXT,
-    tokenDetailsSource: TokenDetailsSource.ExploreNowMovers,
+    tokenDetailsSource,
   });
 
   const onPress = React.useCallback(async () => {
@@ -54,31 +58,9 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   }, [token.assetId]);
 
   const { changeLabel, changeTextColor } = useMemo(() => {
-    const key = getPriceChangeFieldKey(TimeOption.TwentyFourHours);
-    const raw = token.priceChangePct?.[key];
-    const n = raw !== undefined && raw !== null ? parseFloat(String(raw)) : NaN;
-    if (isNaN(n)) {
-      return {
-        changeLabel: undefined as string | undefined,
-        changeTextColor: TextColor.TextAlternative,
-      };
-    }
-    if (n === 0) {
-      return {
-        changeLabel: '0.00%',
-        changeTextColor: TextColor.TextAlternative,
-      };
-    }
-    return {
-      changeLabel: `${n > 0 ? '+' : ''}${n.toFixed(2)}%`,
-      changeTextColor:
-        n > 0
-          ? TextColor.SuccessDefault
-          : n < 0
-            ? TextColor.ErrorDefault
-            : TextColor.TextAlternative,
-    };
-  }, [token.priceChangePct]);
+    const key = getPriceChangeFieldKey(timeOption);
+    return formatPercentChange(token.priceChangePct?.[key]);
+  }, [timeOption, token.priceChangePct]);
 
   const leading = useMemo(
     () => (

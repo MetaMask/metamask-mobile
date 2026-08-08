@@ -1,8 +1,7 @@
 import Braze, { Banner } from '@braze/react-native-sdk';
 import I18n, { I18nEvents } from '../../../locales/i18n';
 import Logger from '../../util/Logger';
-import { isE2E } from '../../util/test/utils';
-import Engine from '../Engine/Engine';
+import { hasTestOverrides } from '../../util/test/utils';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import { ALL_BRAZE_BANNER_PLACEMENT_IDS } from './constants';
 import {
@@ -32,24 +31,19 @@ export function getBrazePlugin(): BrazePlugin {
 }
 
 /**
- * Resolve the profile ID from the current session and forward it to the
- * Braze Segment plugin so all subsequent identify / track / flush calls
- * are attributed to this identity.
+ * Forward a canonical profile ID to the Braze Segment plugin so all subsequent
+ * identify / track / flush calls are attributed to this identity.
  *
  * Skipped during E2E so CI does not create Braze profiles from mocked
  * identity sessions.
  */
-export async function setBrazeUser(): Promise<void> {
-  if (isE2E) {
+export function setBrazeUser(canonicalProfileId: string): void {
+  if (hasTestOverrides) {
     return;
   }
 
   try {
-    const { AuthenticationController } = Engine.context;
-    const sessionProfile = await AuthenticationController.getSessionProfile();
-    if (sessionProfile?.profileId) {
-      getBrazePlugin().setBrazeProfileId(sessionProfile.profileId);
-    }
+    getBrazePlugin().setBrazeProfileId(canonicalProfileId);
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to set Braze user');
   }
@@ -60,12 +54,18 @@ export async function setBrazeUser(): Promise<void> {
  * Call on sign-out to stop attributing events to the previous user.
  */
 export function clearBrazeUser(): void {
-  if (isE2E) {
+  if (hasTestOverrides) {
     return;
   }
 
   getBrazePlugin().setBrazeProfileId(undefined);
-  Logger.log('[Braze] Cleared Braze user identity');
+  try {
+    Braze.wipeData();
+    Braze.enableSDK();
+    Logger.log('[Braze] Cleared Braze user identity and local SDK data');
+  } catch (error) {
+    Logger.error(error as Error, '[Braze] Failed to clear local SDK data');
+  }
 }
 
 /**

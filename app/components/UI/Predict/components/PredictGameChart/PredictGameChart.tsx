@@ -8,7 +8,13 @@ import React, {
 import { PredictGameStatus, PredictPriceHistoryInterval } from '../../types';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isDrawCapableLeague } from '../../constants/sports';
+import { usePredictGame } from '../../hooks/usePredictGame';
+import {
+  getPrimaryMoneylineOutcomes,
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
 import { useTheme } from '../../../../../util/theme';
 import PredictGameChartContent from './PredictGameChartContent';
 import {
@@ -67,43 +73,62 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   market,
   testID,
 }) => {
-  const game = market.game;
+  const { game } = usePredictGame(market, { live: false });
   const { colors } = useTheme();
   const gameStatus = game?.status;
   const isGameEnded = gameStatus === 'ended';
   const isGameOngoing = gameStatus === 'ongoing';
+  const moneylineOutcomes = useMemo(
+    () => getPrimaryMoneylineOutcomes(market.outcomes),
+    [market.outcomes],
+  );
+  const drawButtonResolution = useMemo(() => {
+    if (!game || !isDrawCapableMarket({ game, outcomes: market.outcomes })) {
+      return null;
+    }
+
+    const resolution = resolvePredictSportCardButtons({
+      outcomes: market.outcomes,
+      game,
+      showDraw: true,
+    });
+
+    return resolution.home && resolution.draw && resolution.away
+      ? resolution
+      : null;
+  }, [game, market.outcomes]);
 
   const tokenIds = useMemo(() => {
-    if (
-      game?.league &&
-      isDrawCapableLeague(game.league) &&
-      market.outcomes.length >= 3
-    ) {
-      return [...market.outcomes]
-        .sort(
-          (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-        )
-        .map((o) => o.tokens[0]?.id)
-        .filter((id): id is string => Boolean(id));
+    if (drawButtonResolution) {
+      return [
+        drawButtonResolution.home?.token.id,
+        drawButtonResolution.draw?.token.id,
+        drawButtonResolution.away?.token.id,
+      ].filter((id): id is string => Boolean(id));
     }
-    const tokens = market.outcomes[0]?.tokens ?? [];
+    const tokens = moneylineOutcomes[0]?.tokens ?? [];
     return tokens.map((t) => t.id);
-  }, [market.outcomes, game?.league]);
+  }, [moneylineOutcomes, drawButtonResolution]);
 
   const seriesConfig: GameChartSeriesConfig[] | null = useMemo(() => {
     if (!game) return null;
-    if (isDrawCapableLeague(game.league) && market.outcomes.length >= 3) {
+    if (drawButtonResolution) {
       return [
         { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
         { label: 'DRAW', color: colors.icon.muted },
         { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
       ];
     }
-    return [
-      { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
-      { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
-    ];
-  }, [game, market.outcomes.length, colors.icon.muted]);
+    const orderedTeams =
+      getLeagueTeamOrder(game.league) === 'home-away'
+        ? [game.homeTeam, game.awayTeam]
+        : [game.awayTeam, game.homeTeam];
+
+    return orderedTeams.map((team) => ({
+      label: team.abbreviation,
+      color: team.color,
+    }));
+  }, [game, drawButtonResolution, colors.icon.muted]);
 
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(() =>
     getDefaultTimeframe(gameStatus),

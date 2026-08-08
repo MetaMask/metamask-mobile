@@ -63,4 +63,5 @@ export type PerpsTooltipContentKey =
   | 'after_hours_trading'
   | 'oracle_price'
   | 'spread'
-  | 'pay_with';
+  | 'pay_with'
+  | 'slippage';

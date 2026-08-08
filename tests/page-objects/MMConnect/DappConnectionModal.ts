@@ -7,10 +7,11 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { getDriver } from '../../framework/PlaywrightUtilities';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
-import { ConnectedAccountsSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectedAccountModal.testIds';
-import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
-import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
+import {
+  ConnectedAccountModalSelectorsText,
+  ConnectedAccountsSelectorsIDs,
+} from '../../../app/components/Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { sleep } from '../../framework';
 
 class DappConnectionModal {
@@ -50,8 +51,9 @@ class DappConnectionModal {
   get permissionsTabButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '//android.view.ViewGroup[@content-desc="Permissions"]',
+        PlaywrightMatchers.getElementByText(
+          ConnectedAccountModalSelectorsText.PERMISSION_LINK,
+          true,
         ),
     });
   }
@@ -59,50 +61,72 @@ class DappConnectionModal {
   get editNetworksButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '(//android.widget.TextView[@text="Edit"])[2]',
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
         ),
     });
   }
 
   get updateNetworksButton(): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '//android.widget.Button[@content-desc="Update"]',
-        ),
+      appium: () => PlaywrightMatchers.getElementByText('Update', true),
     });
   }
 
   getAccountButton(accountName: string): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `//android.widget.TextView[@resource-id="${AccountCellIds.ADDRESS}" and @text="${accountName}"]`,
-        ),
+      appium: () => PlaywrightMatchers.getElementByText(accountName, true),
     });
   }
 
   getNetworkButton(networkName: string): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `//android.widget.TextView[@resource-id="${CellComponentSelectorsIDs.BASE_TITLE}" and @text="${networkName}"]`,
-        ),
+      appium: () => PlaywrightMatchers.getElementByText(networkName, true),
     });
   }
 
   async tapConnectButton({
     shouldCooldown = false,
     timeToCooldown = 1000,
+    timeout = 15_000,
   }: {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
+    timeout?: number;
   } = {}): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.connectButton);
+    await UnifiedGestures.waitAndTap(this.connectButton, { timeout });
     if (shouldCooldown) {
       await sleep(timeToCooldown);
     }
+  }
+
+  /** Waits for the "Return to app" success toast to appear then dismiss. */
+  async waitForReturnToAppToastToDismiss(): Promise<void> {
+    const toastText = 'Return to the app to continue.';
+    const isVisible = async () =>
+      (await PlaywrightMatchers.countElementsByText(toastText)) > 0;
+
+    const appearDeadline = Date.now() + 30_000;
+    let appeared = false;
+    while (Date.now() < appearDeadline) {
+      if (await isVisible()) {
+        appeared = true;
+        break;
+      }
+      await sleep(250);
+    }
+    if (!appeared) {
+      throw new Error(`"${toastText}" toast did not appear within 30000ms`);
+    }
+
+    const dismissDeadline = Date.now() + 15_000;
+    while (Date.now() < dismissDeadline) {
+      if (!(await isVisible())) {
+        return;
+      }
+      await sleep(250);
+    }
+    throw new Error(`"${toastText}" toast did not dismiss within 15000ms`);
   }
 
   async tapEditAccountsButton(): Promise<void> {

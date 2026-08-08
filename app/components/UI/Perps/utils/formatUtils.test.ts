@@ -15,11 +15,13 @@ import {
   truncateToTwoDecimals,
   parsePercentageString,
   formatTransactionDate,
+  formatProOrderCardTimestamp,
   formatDateSection,
   formatFundingRate,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+  formatPerpsPrice,
 } from './formatUtils';
 import {
   countSignificantFigures,
@@ -1063,6 +1065,20 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatProOrderCardTimestamp', () => {
+    it('formats order placement time in Figma pro-card style', () => {
+      // Local timezone-aware: construct from Date parts so the assertion is stable.
+      const date = new Date(2026, 3, 6, 19, 13, 54);
+      expect(formatProOrderCardTimestamp(date.getTime())).toBe(
+        '06 Apr 26 • 19:13:54',
+      );
+    });
+
+    it('returns empty string for invalid timestamps', () => {
+      expect(formatProOrderCardTimestamp(Number.NaN)).toBe('');
+    });
+  });
+
   describe('Real-world price formatting examples', () => {
     // All price test cases consolidated into a single array for parameterized testing
     const allPrices = [
@@ -1410,6 +1426,37 @@ describe('formatUtils', () => {
     });
 
     describe('PRICE_RANGES_UNIVERSAL (comprehensive formatting)', () => {
+      describe('formatPerpsPrice', () => {
+        it('uses market-aware Hyperliquid price precision when szDecimals is known', () => {
+          expect(formatPerpsPrice('2.1946', { szDecimals: 2 })).toBe('$2.1946');
+        });
+
+        it('returns market-aware price without currency symbol when requested', () => {
+          expect(
+            formatPerpsPrice('2.1946', {
+              szDecimals: 2,
+              includeCurrencySymbol: false,
+            }),
+          ).toBe('2.1946');
+        });
+
+        it('falls back to universal price ranges when szDecimals is null', () => {
+          expect(formatPerpsPrice(95123.45, { szDecimals: null })).toBe(
+            '$95,123',
+          );
+        });
+
+        it('falls back to universal price ranges when Hyperliquid formatting rejects the price', () => {
+          expect(formatPerpsPrice('not-a-price', { szDecimals: 2 })).toBe(
+            '$---',
+          );
+        });
+
+        it('falls back to universal price ranges when szDecimals is unknown', () => {
+          expect(formatPerpsPrice(95123.45)).toBe('$95,123');
+        });
+      });
+
       it('should format high-value BTC prices without decimals (> $10k)', () => {
         // BTC at $126k - no decimals for cleaner display
         expect(

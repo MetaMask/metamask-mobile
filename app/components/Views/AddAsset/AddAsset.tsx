@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -7,12 +8,12 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useParams } from '../../../util/navigation/navUtils';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet/NetworkListBottomSheet';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TokenView from './Views/TokenView/TokenView';
@@ -26,7 +27,7 @@ export interface AddAssetParams {
 }
 
 const AddAsset = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { assetType, collectibleContract } = useParams<AddAssetParams>();
 
   const tw = useTailwind();
@@ -48,22 +49,6 @@ const AddAsset = () => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const renderNetworkSelector = useCallback(
-    () => (
-      <NetworkListBottomSheet
-        selectedNetwork={selectedNetwork}
-        setSelectedNetwork={async (network) => {
-          setSelectedNetwork(network);
-        }}
-        setOpenNetworkSelector={setOpenNetworkSelector}
-        sheetRef={sheetRef}
-        displayEvmNetworksOnly={assetType === 'collectible'}
-      />
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [openNetworkSelector, networkConfigurations, selectedNetwork, assetType],
-  );
-
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
@@ -71,7 +56,7 @@ const AddAsset = () => {
       testID={`add-${assetType}-screen`}
     >
       {/* Header */}
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings(
           `add_asset.${assetType === 'token' ? 'title' : 'title_nft'}`,
         )}
@@ -95,7 +80,15 @@ const AddAsset = () => {
         />
       )}
 
-      {openNetworkSelector ? renderNetworkSelector() : null}
+      {openNetworkSelector ? (
+        <NetworkListBottomSheet
+          selectedNetwork={selectedNetwork}
+          setSelectedNetwork={setSelectedNetwork}
+          setOpenNetworkSelector={setOpenNetworkSelector}
+          sheetRef={sheetRef}
+          displayEvmNetworksOnly={assetType === 'collectible'}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

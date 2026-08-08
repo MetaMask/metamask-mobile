@@ -142,6 +142,57 @@ const createMockDrawCapableGameMarket = (): PredictMarket => {
   });
 };
 
+const createMockEsportsDrawMarket = (): PredictMarket => {
+  const homeOutcome = createMockOutcome({
+    id: 'outcome-home',
+    sportsMarketType: 'moneyline',
+    groupItemTitle: 'Nigma',
+    negRisk: true,
+    tokens: [{ id: 'token-home', title: 'Yes', price: 0.44 }],
+  });
+  const drawOutcome = createMockOutcome({
+    id: 'outcome-draw',
+    sportsMarketType: 'moneyline',
+    groupItemTitle: 'Draw',
+    negRisk: true,
+    tokens: [{ id: 'token-draw', title: 'Yes', price: 0.22 }],
+  });
+  const awayOutcome = createMockOutcome({
+    id: 'outcome-away',
+    sportsMarketType: 'moneyline',
+    groupItemTitle: '1win',
+    negRisk: true,
+    tokens: [{ id: 'token-away', title: 'Yes', price: 0.34 }],
+  });
+
+  return createMockMarket({
+    outcomes: [awayOutcome, drawOutcome, homeOutcome],
+    game: {
+      id: 'game-dota2-1',
+      startTime: '2024-12-15T13:00:00Z',
+      status: 'ongoing',
+      league: 'dota2',
+      elapsed: null,
+      period: '0/2',
+      score: { away: 0, home: 0, raw: '000-000|0-0|Bo2' },
+      awayTeam: {
+        id: '1win',
+        name: '1win',
+        logo: 'https://example.com/1win.png',
+        abbreviation: '1WIN',
+        color: TEST_HEX_COLORS.TEAM_SEA,
+      },
+      homeTeam: {
+        id: 'nigma',
+        name: 'Nigma',
+        logo: 'https://example.com/nigma.png',
+        abbreviation: 'NIGMA',
+        color: TEST_HEX_COLORS.TEAM_DEN,
+      },
+    },
+  });
+};
+
 const createDefaultProps = (overrides = {}) => ({
   market: createMockMarket(),
   outcome: createMockOutcome(),
@@ -316,6 +367,80 @@ describe('PredictActionButtons', () => {
       expect(screen.getAllByText('35¢')).toHaveLength(1);
     });
 
+    it('uses token-matched teams when a game moneyline returns home-away tokens', () => {
+      const outcome = createMockOutcome({
+        sportsMarketType: 'moneyline',
+        tokens: [
+          {
+            id: 'token-ivashka',
+            title: 'Ilya Ivashka',
+            shortTitle: 'IVASHKA',
+            price: 0.63,
+          },
+          {
+            id: 'token-stewart',
+            title: 'Hamish Stewart',
+            shortTitle: 'STEWART',
+            price: 0.38,
+          },
+        ],
+      });
+      const market = createMockMarket({
+        outcomes: [outcome],
+        game: {
+          id: 'game-atp-1',
+          startTime: '2026-05-22T07:30:00Z',
+          status: 'scheduled',
+          league: 'atp',
+          elapsed: null,
+          period: null,
+          score: null,
+          awayTeam: {
+            id: 'stewart',
+            name: 'Hamish Stewart',
+            logo: 'https://example.com/stewart.png',
+            abbreviation: 'STEWART',
+            color: TEST_HEX_COLORS.TEAM_SEA,
+            alias: 'H. Stewart',
+          },
+          homeTeam: {
+            id: 'ivashka',
+            name: 'Ilya Ivashka',
+            logo: 'https://example.com/ivashka.png',
+            abbreviation: 'IVASHKA',
+            color: TEST_HEX_COLORS.TEAM_DEN,
+            alias: 'I. Ivashka',
+          },
+        },
+      });
+
+      const mockOnBetPress = jest.fn();
+      const props = createDefaultProps({
+        market,
+        outcome,
+        onBetPress: mockOnBetPress,
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('IVASHKA')).toBeOnTheScreen();
+      expect(screen.getByText('STEWART')).toBeOnTheScreen();
+      expect(screen.getAllByText('63¢')).toHaveLength(1);
+      expect(screen.getAllByText('38¢')).toHaveLength(1);
+
+      fireEvent.press(screen.getByTestId('action-buttons-bet-yes'));
+      fireEvent.press(screen.getByTestId('action-buttons-bet-no'));
+
+      expect(mockOnBetPress).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ id: 'token-ivashka' }),
+      );
+      expect(mockOnBetPress).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ id: 'token-stewart' }),
+      );
+    });
+
     it('calls onBetPress with correct token for away team', () => {
       const mockOnBetPress = jest.fn();
       const outcome = createMockOutcome();
@@ -377,6 +502,140 @@ describe('PredictActionButtons', () => {
 
       expect(mockOnBetPress).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'token-draw' }),
+      );
+    });
+
+    it('routes explicit esports draw buttons to distinct neg-risk tokens', () => {
+      const market = createMockEsportsDrawMarket();
+      const mockOnBetPress = jest.fn();
+      const props = createDefaultProps({
+        market,
+        outcome: market.outcomes[0],
+        onBetPress: mockOnBetPress,
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('NIGMA')).toBeOnTheScreen();
+      expect(screen.getByText('DRAW')).toBeOnTheScreen();
+      expect(screen.getByText('1WIN')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('action-buttons-bet-yes'));
+      fireEvent.press(screen.getByTestId('action-buttons-bet-draw'));
+      fireEvent.press(screen.getByTestId('action-buttons-bet-no'));
+
+      expect(mockOnBetPress).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ id: 'token-home' }),
+      );
+      expect(mockOnBetPress).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ id: 'token-draw' }),
+      );
+      expect(mockOnBetPress).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({ id: 'token-away' }),
+      );
+    });
+
+    it('renders combined esports moneyline draw tokens', () => {
+      const outcome = createMockOutcome({
+        sportsMarketType: 'moneyline',
+        tokens: [
+          { id: 'token-home', title: 'Nigma', price: 0.44 },
+          { id: 'token-draw', title: 'Draw', price: 0.22 },
+          { id: 'token-away', title: '1win', price: 0.34 },
+        ],
+      });
+      const market = createMockMarket({
+        outcomes: [outcome],
+        game: {
+          ...(createMockEsportsDrawMarket().game as NonNullable<
+            PredictMarket['game']
+          >),
+        },
+      });
+      const props = createDefaultProps({
+        market,
+        outcome,
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('NIGMA')).toBeOnTheScreen();
+      expect(screen.getByText('DRAW')).toBeOnTheScreen();
+      expect(screen.getByText('1WIN')).toBeOnTheScreen();
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-draw', 'token-away'],
+        { enabled: true },
+      );
+    });
+
+    it('renders two-way esports moneylines without a draw button', () => {
+      const market = createMockEsportsDrawMarket();
+      const twoWayOutcome = createMockOutcome({
+        sportsMarketType: 'moneyline',
+        tokens: [
+          { id: 'token-home', title: 'Nigma', price: 0.58 },
+          { id: 'token-away', title: '1win', price: 0.42 },
+        ],
+      });
+      const props = createDefaultProps({
+        market: createMockMarket({
+          ...market,
+          outcomes: [twoWayOutcome],
+        }),
+        outcome: twoWayOutcome,
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('NIGMA')).toBeOnTheScreen();
+      expect(screen.getByText('1WIN')).toBeOnTheScreen();
+      expect(screen.queryByText('DRAW')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('action-buttons-bet-draw')).toBeNull();
+    });
+
+    it('ignores extended non-moneyline outcomes for draw-capable leagues', () => {
+      const market = createMockDrawCapableGameMarket();
+      const [awayOutcome, drawOutcome, homeOutcome] = market.outcomes;
+      const extendedMarket = {
+        ...market,
+        outcomes: [
+          createMockOutcome({
+            id: 'outcome-spread',
+            sportsMarketType: 'spreads',
+            groupItemThreshold: -2.5,
+            tokens: [{ id: 'token-spread', title: 'Spread', price: 0.16 }],
+          }),
+          { ...awayOutcome, sportsMarketType: 'moneyline' },
+          createMockOutcome({
+            id: 'outcome-halftime',
+            sportsMarketType: 'soccer_halftime_result',
+            groupItemThreshold: 1,
+            tokens: [{ id: 'token-halftime', title: 'Draw', price: 0.2 }],
+          }),
+          { ...drawOutcome, sportsMarketType: 'moneyline' },
+          { ...homeOutcome, sportsMarketType: 'moneyline' },
+        ],
+      };
+
+      const props = createDefaultProps({
+        market: extendedMarket,
+        outcome: extendedMarket.outcomes[0],
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('ARS')).toBeOnTheScreen();
+      expect(screen.getByText('DRAW')).toBeOnTheScreen();
+      expect(screen.getByText('PSG')).toBeOnTheScreen();
+      expect(screen.getAllByText('42¢')).toHaveLength(1);
+      expect(screen.getAllByText('30¢')).toHaveLength(1);
+      expect(screen.getAllByText('28¢')).toHaveLength(1);
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-draw', 'token-away'],
+        { enabled: true },
       );
     });
   });

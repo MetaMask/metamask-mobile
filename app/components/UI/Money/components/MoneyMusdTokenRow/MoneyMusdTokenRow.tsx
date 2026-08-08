@@ -10,6 +10,8 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -30,42 +32,75 @@ interface MoneyMusdTokenRowProps {
    * sheet (MUSD-487).
    */
   onAddPress?: () => void;
+  /**
+   * Formatted fiat value of the user's spendable mUSD balance (e.g. "$1.00").
+   * When provided, the subtitle reads "{balance} • mUSD"; when omitted, the
+   * subtitle falls back to just the symbol.
+   */
+  balance?: string;
+  /** Whether the balance should be masked. */
+  privacyMode?: boolean;
 }
 
-const MoneyMusdTokenRow = ({ onPress, onAddPress }: MoneyMusdTokenRowProps) => (
-  <Pressable onPress={onPress} testID={MoneyMusdTokenRowTestIds.CONTAINER}>
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="px-4 py-3 gap-4"
-    >
-      <AvatarToken
-        name={MUSD_TOKEN.symbol}
-        src={MUSD_TOKEN.imageSource as ImageOrSvgSrc}
-        size={AvatarTokenSize.Md}
-      />
-      <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {MUSD_TOKEN.name}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          {MUSD_TOKEN.symbol}
-        </Text>
-      </Box>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Md}
-        onPress={onAddPress}
-        testID={MoneyMusdTokenRowTestIds.ADD_BUTTON}
+const MoneyMusdTokenRow = ({
+  onPress,
+  onAddPress,
+  balance,
+  privacyMode = false,
+}: MoneyMusdTokenRowProps) => {
+  const subtitle = balance
+    ? `${balance} • ${MUSD_TOKEN.symbol}`
+    : MUSD_TOKEN.symbol;
+
+  return (
+    <Pressable onPress={onPress} testID={MoneyMusdTokenRowTestIds.CONTAINER}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="px-4 py-3 gap-4"
       >
-        {strings('money.musd_row.add')}
-      </Button>
-    </Box>
-  </Pressable>
-);
+        <AvatarToken
+          name={MUSD_TOKEN.symbol}
+          src={MUSD_TOKEN.imageSource as ImageOrSvgSrc}
+          size={AvatarTokenSize.Lg}
+        />
+        <Box twClassName="flex-1">
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {MUSD_TOKEN.name}
+          </Text>
+          {balance ? (
+            <SensitiveText
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={MoneyMusdTokenRowTestIds.SUBTITLE}
+            >
+              {subtitle}
+            </SensitiveText>
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              testID={MoneyMusdTokenRowTestIds.SUBTITLE}
+            >
+              {subtitle}
+            </Text>
+          )}
+        </Box>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          onPress={onAddPress}
+          testID={MoneyMusdTokenRowTestIds.ADD_BUTTON}
+        >
+          {strings('money.musd_row.add')}
+        </Button>
+      </Box>
+    </Pressable>
+  );
+};
 
 export default MoneyMusdTokenRow;

@@ -1,15 +1,21 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
+import { ethers } from 'ethers';
 import { numberToHex, type Hex, type Json } from '@metamask/utils';
 import {
   TransactionType,
-  WalletDevice,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import Logger from '../../../../util/Logger';
+import ReduxService from '../../../redux';
+import type { RootState } from '../../../../reducers';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import {
   CARD_CONTROLLER_NAME,
   DEFAULT_CARD_PROVIDER_ID,
+  type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
+  type FetchCardHomeDataOptions,
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
 import {
@@ -23,22 +29,36 @@ import {
   type CardAuthStep,
   type CardAuthTokens,
   type CardCredentials,
+  type CardContactDetails,
+  type CardCreateResult,
   type CardDetails,
   type CardFundingAsset,
-  type CardFundingConfig,
+  type CardFundingSourceResult,
   type CardHomeData,
   type CardProviderCapabilities,
   type CardSecureView,
   type CardSecureViewParams,
+  type CardSensitiveDetails,
+  type CardSpendingPrerequisitesParams,
+  type CardSpendingPrerequisitesResult,
   type CashbackWalletResponse,
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type CreditWalletResponse,
+  type CreditWithdrawEstimationResponse,
+  type CreditWithdrawParams,
+  type CreditWithdrawResponse,
   type DelegationChallengeResponse,
   type FundingApprovalParams,
   type ICardProvider,
+  isCardAuthTokenError,
+  CardProviderIds,
+  type CardProviderId,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
+import { CardOnboardingStore } from './CardOnboardingStore';
+import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
@@ -46,7 +66,19 @@ import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
 } from './utils/awaitTransactionConfirmed';
-import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
+import {
+  isMoneyAccountDelegatedForCard,
+  resolveMoneyAccountCardToken,
+} from './utils/moneyAccountCardToken';
+import {
+  getVedaTokenConfig,
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../components/UI/Card/util/vedaToken';
+import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
+import { readErc20AllowanceAndBalance } from '../../../../components/UI/Card/util/onChainAllowance';
+import { toCardFundingToken } from '../../../../components/UI/Card/util/toCardTokenAllowance';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
@@ -54,9 +86,28 @@ import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import {
+  deriveCountryProviderMap,
+  getProviderForCountry,
+} from './provider-map';
+import {
+  ImmersveProvider,
+  type CardResumeInfo,
+} from './providers/ImmersveProvider';
+import { CardService } from './services/CardService';
+import { CardApiError } from './services/BaanxService';
+import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
+const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
+const PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY =
+  'pendingMoneyAccountCardRegistration';
+
+interface PendingMoneyAccountCardRegistration {
+  cardId: string;
+  moneyAccountAddress: string;
+}
 
 const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
@@ -73,6 +124,12 @@ const metadata: StateMetadata<CardControllerState> = {
   },
   isAuthenticated: {
     persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
+  lastUnauthenticatedReason: {
+    persist: false,
     includeInDebugSnapshot: true,
     includeInStateLogs: true,
     usedInUi: true,
@@ -101,16 +158,24 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  moneyAccountCardLinkInProgress: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
 };
 
 export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
+  lastUnauthenticatedReason: null,
   cardholderAccounts: [],
   providerData: {},
   cardHomeData: null,
   cardHomeDataStatus: 'idle',
+  moneyAccountCardLinkInProgress: false,
 };
 
 /**
@@ -126,23 +191,27 @@ export class CardController extends BaseController<
   CardControllerState,
   CardControllerMessenger
 > {
-  private readonly providers: Record<string, ICardProvider>;
+  private readonly providers: Partial<Record<CardProviderId, ICardProvider>>;
+  private readonly cardService: CardService;
   private currentSession: CardAuthSession | null = null;
   private refreshPromise: Promise<CardAuthTokens | null> | null = null;
   #cardholderCheckTimer: ReturnType<typeof setTimeout> | undefined;
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
-  private linkMoneyAccountCardInFlight = false;
+  private resetInProgress = false;
+  #lastFetchedAt = 0;
 
   constructor({
     messenger,
     state,
     providers,
+    cardService,
   }: {
     messenger: CardControllerMessenger;
     state?: Partial<CardControllerState>;
-    providers: Record<string, ICardProvider>;
+    providers: Partial<Record<CardProviderId, ICardProvider>>;
+    cardService: CardService;
   }) {
     super({
       name: CARD_CONTROLLER_NAME,
@@ -154,12 +223,18 @@ export class CardController extends BaseController<
       },
     });
     this.providers = providers;
+    this.cardService = cardService;
+    try {
+      this.previousEvmAddress = this.#getSelectedEvmAddress();
+    } catch {
+      this.previousEvmAddress = null;
+    }
     this.#subscribeToEvents();
   }
 
   #subscribeToEvents(): void {
-    // On app unlock: run both cardholder check AND session verification
     this.messenger.subscribe('KeyringController:unlock', () => {
+      if (this.resetInProgress) return;
       this.#triggerCardholderCheck();
       this.validateAndRefreshSession().catch((error) =>
         Logger.error(error as Error, {
@@ -175,6 +250,7 @@ export class CardController extends BaseController<
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
+        if (this.resetInProgress) return;
         this.#triggerCardholderCheck();
         this.#handleAccountSwitch();
       },
@@ -192,14 +268,18 @@ export class CardController extends BaseController<
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
       (_cardFeatureKey: string) => {
+        if (this.resetInProgress) return;
         this.#handleCardFeatureFlagChange();
       },
       (state) => JSON.stringify(state.remoteFeatureFlags?.cardFeature ?? {}),
     );
   }
 
-  #fetchCardHomeDataWithLogging(method: string): void {
-    this.fetchCardHomeData().catch((error) =>
+  #fetchCardHomeDataWithLogging(
+    method: string,
+    options: FetchCardHomeDataOptions = {},
+  ): void {
+    this.fetchCardHomeData(options).catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card' },
         context: {
@@ -210,17 +290,20 @@ export class CardController extends BaseController<
     );
   }
 
+  #invalidateAndClear(): void {
+    this.invalidateFetch();
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataStatus = 'idle';
+    });
+  }
+
   #handleAccountSwitch(): void {
     const currentAddress = this.#getSelectedEvmAddress();
 
     if (currentAddress !== this.previousEvmAddress) {
       this.previousEvmAddress = currentAddress;
-      this.invalidateFetch();
-      this.update((s) => {
-        s.cardHomeData = null;
-        s.cardHomeDataStatus = 'idle';
-      });
-      this.#fetchCardHomeDataWithLogging('#handleAccountSwitch');
+      this.#invalidateAndClear();
     }
   }
 
@@ -228,12 +311,7 @@ export class CardController extends BaseController<
     const currentAddress = this.#getSelectedEvmAddress();
     if (!currentAddress) return;
 
-    this.invalidateFetch();
-    this.update((s) => {
-      s.cardHomeData = null;
-      s.cardHomeDataStatus = 'idle';
-    });
-    this.#fetchCardHomeDataWithLogging('#handleCardFeatureFlagChange');
+    this.#invalidateAndClear();
   }
 
   #triggerCardholderCheck(): void {
@@ -302,6 +380,51 @@ export class CardController extends BaseController<
         location,
       };
     });
+  }
+
+  setSelectedCountry(country: string): void {
+    const providerId = this.#resolveProviderForCountry(country);
+    const providerChanged =
+      Boolean(providerId) && providerId !== this.state.activeProviderId;
+
+    this.update((s) => {
+      s.selectedCountry = country;
+      if (providerId) {
+        s.activeProviderId = providerId;
+      }
+    });
+
+    if (providerChanged) {
+      this.#invalidateAndClear();
+    }
+  }
+
+  #resolveProviderForCountry(country: string): CardProviderId {
+    const featureState = this.messenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+
+    const cardFeature = resolveCardFeatureFlag(
+      featureState.remoteFeatureFlags?.cardFeature as
+        | CardFeatureFlag
+        | undefined,
+    );
+
+    if (cardFeature.immersve?.enabled) {
+      const immersveCountries = cardFeature.immersveCountries ?? [];
+      const map = deriveCountryProviderMap(
+        Object.fromEntries(
+          immersveCountries.map((c) => [c, true] as [string, boolean]),
+        ),
+        CardProviderIds.Immersve,
+      );
+      const provider = getProviderForCountry(country, map);
+      if (provider) {
+        return provider;
+      }
+    }
+
+    return DEFAULT_CARD_PROVIDER_ID;
   }
 
   /**
@@ -389,9 +512,20 @@ export class CardController extends BaseController<
     return provider;
   }
 
-  private markUnauthenticated(): void {
+  private markUnauthenticated(
+    reason: CardUnauthenticatedReason | null = null,
+  ): void {
     this.update((s) => {
       s.isAuthenticated = false;
+      s.lastUnauthenticatedReason = reason;
+    });
+  }
+
+  clearLastUnauthenticatedReason(): void {
+    if (!this.state.lastUnauthenticatedReason) return;
+
+    this.update((s) => {
+      s.lastUnauthenticatedReason = null;
     });
   }
 
@@ -403,7 +537,17 @@ export class CardController extends BaseController<
    * request (same ??= pattern as refreshPromise). A generation counter
    * ensures stale responses (from a previous account or session) are dropped.
    */
-  async fetchCardHomeData(): Promise<void> {
+  async fetchCardHomeData(
+    options: FetchCardHomeDataOptions = {},
+  ): Promise<void> {
+    const { force = false } = options;
+    if (
+      !force &&
+      this.#lastFetchedAt > 0 &&
+      Date.now() - this.#lastFetchedAt < CARD_HOME_DATA_FRESH_MS
+    ) {
+      return;
+    }
     this.fetchCardHomeDataPromise ??= this.#doFetchCardHomeData(
       this.fetchGeneration,
     ).finally(() => {
@@ -414,7 +558,13 @@ export class CardController extends BaseController<
 
   async #doFetchCardHomeData(generation: number): Promise<void> {
     const address = this.#getSelectedEvmAddress();
-    if (!address) return;
+    if (!address) {
+      this.update((s) => {
+        s.cardHomeDataStatus = 'error';
+      });
+      this.#lastFetchedAt = Date.now();
+      return;
+    }
 
     this.update((s) => {
       s.cardHomeDataStatus = 'loading';
@@ -427,6 +577,7 @@ export class CardController extends BaseController<
             data as unknown as Record<string, Json>;
           s.cardHomeDataStatus = 'success';
         });
+        this.#lastFetchedAt = Date.now();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
@@ -440,6 +591,7 @@ export class CardController extends BaseController<
         this.update((s) => {
           s.cardHomeDataStatus = 'error';
         });
+        this.#lastFetchedAt = Date.now();
       }
     }
   }
@@ -452,6 +604,7 @@ export class CardController extends BaseController<
   private invalidateFetch(): void {
     this.fetchGeneration++;
     this.fetchCardHomeDataPromise = null;
+    this.#lastFetchedAt = 0;
   }
 
   #getSelectedEvmAddress(): string | null {
@@ -471,8 +624,11 @@ export class CardController extends BaseController<
     }
   }
 
-  async initiateAuth(country: string): Promise<void> {
-    this.currentSession = await this.getActiveProvider().initiateAuth(country);
+  async initiateAuth(country: string, address?: string): Promise<void> {
+    this.currentSession = await this.getActiveProvider().initiateAuth(
+      country,
+      address ? { address } : undefined,
+    );
   }
 
   getCurrentAuthStep(): CardAuthStep | null {
@@ -490,7 +646,13 @@ export class CardController extends BaseController<
     }
 
     const provider = this.getActiveProvider();
-    const pid = this.state.activeProviderId as string;
+    const pid = this.state.activeProviderId;
+    if (!pid) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'submitCredentials: no active provider',
+      );
+    }
     const result = await provider.submitCredentials(
       this.currentSession,
       credentials,
@@ -507,6 +669,7 @@ export class CardController extends BaseController<
 
     if (result.done && result.tokenSet) {
       const { tokenSet } = result;
+
       const stored = await CardTokenStore.set(pid, tokenSet);
       if (!stored) {
         Logger.error(new Error('Token store write failed after auth'), {
@@ -519,6 +682,7 @@ export class CardController extends BaseController<
       }
       this.update((s) => {
         s.isAuthenticated = true;
+        s.lastUnauthenticatedReason = null;
         s.cardHomeData = null;
         s.cardHomeDataStatus = 'idle';
         (s.providerData as unknown as Record<string, Record<string, string>>)[
@@ -559,17 +723,106 @@ export class CardController extends BaseController<
       }
     }
 
+    await this.#clearLocalSession();
+  }
+
+  /**
+   * Local session teardown shared by logout() and #handleSessionExpired().
+   * Clears stored tokens, drops in-flight fetches, and resets auth state.
+   * Does NOT call the provider's remote logout endpoint.
+   */
+  async #clearLocalSession(
+    reason: CardUnauthenticatedReason | null = null,
+  ): Promise<void> {
+    const pid = this.state.activeProviderId;
     this.currentSession = null;
     await this.clearTokens();
     this.invalidateFetch();
     this.update((s) => {
       s.isAuthenticated = false;
+      s.lastUnauthenticatedReason = reason;
       s.cardHomeData = null;
       s.cardHomeDataStatus = 'idle';
-      (s.providerData as unknown as Record<string, Record<string, string>>)[
-        pid
-      ] = {};
+      if (pid) {
+        (s.providerData as unknown as Record<string, Record<string, string>>)[
+          pid
+        ] = {};
+      }
     });
+  }
+
+  /**
+   * Forced logout for an unrecoverable session.
+   */
+  async #handleSessionExpired(
+    reason: CardUnauthenticatedReason | null = null,
+  ): Promise<void> {
+    await this.#clearLocalSession(reason);
+    this.#fetchCardHomeDataWithLogging('#handleSessionExpired');
+  }
+
+  /**
+   * Toggles reset mode. While enabled, the controller ignores its reactive
+   * triggers.
+   * @param value - Whether to set reset in progress
+   */
+  setResetInProgress(value: boolean): void {
+    this.resetInProgress = value;
+  }
+
+  /**
+   * Wipes all Card data, returning it to a fresh-install state. Used by the
+   * app reset / delete-wallet flow (see Authentication.resetWalletState).
+   * @returns {Promise<void>}
+   */
+  async resetAll(): Promise<void> {
+    try {
+      const providerIds = Object.keys(this.providers) as CardProviderId[];
+      for (const pid of providerIds) {
+        try {
+          const tokens = await CardTokenStore.get(pid);
+          if (tokens) {
+            try {
+              await this.providers[pid]?.logout(tokens);
+            } catch (error) {
+              Logger.error(error as Error, {
+                tags: { feature: 'card', provider: pid },
+                context: {
+                  name: 'CardController',
+                  data: { method: 'resetAll/providerLogout' },
+                },
+              });
+            }
+          }
+          await CardTokenStore.remove(pid);
+          await CardOnboardingStore.remove(pid);
+        } catch (error) {
+          Logger.error(error as Error, {
+            tags: { feature: 'card', provider: pid },
+            context: {
+              name: 'CardController',
+              data: { method: 'resetAll/providerCleanup' },
+            },
+          });
+        }
+      }
+
+      this.currentSession = null;
+      this.refreshPromise = null;
+      this.invalidateFetch();
+      if (this.#cardholderCheckTimer !== undefined) {
+        clearTimeout(this.#cardholderCheckTimer);
+        this.#cardholderCheckTimer = undefined;
+      }
+      this.update(() => ({ ...defaultCardControllerState }));
+
+      ReduxService.store.dispatch(resetCardState());
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: { name: 'CardController', data: { method: 'resetAll' } },
+      });
+    }
   }
 
   async validateAndRefreshSession(): Promise<{
@@ -577,12 +830,6 @@ export class CardController extends BaseController<
     location?: string;
   }> {
     const tokens = await this.getValidTokens();
-
-    // Always fetch card home data regardless of auth state: authenticated users
-    // get full card data, unauthenticated users get on-chain asset state.
-    this.#fetchCardHomeDataWithLogging(
-      'validateAndRefreshSession/fetchCardHomeData',
-    );
 
     if (!tokens) return { isAuthenticated: false };
     return { isAuthenticated: true, location: tokens.location };
@@ -601,7 +848,7 @@ export class CardController extends BaseController<
 
     const tokens = await CardTokenStore.get(pid);
     if (!tokens) {
-      this.markUnauthenticated();
+      this.markUnauthenticated(this.state.lastUnauthenticatedReason);
       return null;
     }
 
@@ -622,7 +869,7 @@ export class CardController extends BaseController<
 
     // expired
     await this.clearTokens();
-    this.markUnauthenticated();
+    this.markUnauthenticated(null);
     return null;
   }
 
@@ -651,15 +898,89 @@ export class CardController extends BaseController<
         tags: { feature: 'card', provider: pid },
         context: { name: 'CardController', data: { method: '#doRefresh' } },
       });
-      await this.clearTokens();
-      this.markUnauthenticated();
+      if (
+        error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.InvalidCredentials
+      ) {
+        await this.#handleSessionExpired();
+      }
       return null;
     }
+  }
+
+  /**
+   * Forces a token refresh regardless of local clock validity.
+   */
+  async #forceRefresh(
+    rejected: CardAuthTokens,
+  ): Promise<CardAuthTokens | null> {
+    const pid = this.state.activeProviderId;
+    if (!pid) return null;
+
+    const tokens = await CardTokenStore.get(pid);
+    if (!tokens) {
+      this.markUnauthenticated(this.state.lastUnauthenticatedReason);
+      return null;
+    }
+
+    // Another caller may have refreshed while this request was in flight.
+    if (tokens.accessToken !== rejected.accessToken) {
+      return tokens;
+    }
+
+    if (!tokens.refreshToken) {
+      // 401 with no refresh token to fall back on — session unrecoverable.
+      await this.#handleSessionExpired('onboarding_token_revoked');
+      return null;
+    }
+
+    this.refreshPromise ??= this.#doRefresh(pid, tokens).finally(() => {
+      this.refreshPromise = null;
+    });
+    return this.refreshPromise;
+  }
+
+  /**
+   * Runs an authenticated provider operation with a single 401-retry.
+   */
+  async #executeWithAuthRetry<T>(
+    tokens: CardAuthTokens,
+    operation: (validTokens: CardAuthTokens) => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await operation(tokens);
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) throw error;
+
+      const fresh = await this.#forceRefresh(tokens);
+      if (!fresh) throw error;
+
+      try {
+        return await operation(fresh);
+      } catch (retryError) {
+        if (isCardAuthTokenError(retryError)) {
+          await this.#handleSessionExpired();
+        }
+        throw retryError;
+      }
+    }
+  }
+
+  /**
+   * requireValidTokens + #executeWithAuthRetry: the standard wrapper for
+   * every authenticated provider pass-through.
+   */
+  async #withAuthRetry<T>(
+    operation: (validTokens: CardAuthTokens) => Promise<T>,
+  ): Promise<T> {
+    const tokens = await this.requireValidTokens();
+    return this.#executeWithAuthRetry(tokens, operation);
   }
 
   #markAuthenticatedWithLocation(pid: string, location: string): void {
     this.update((s) => {
       s.isAuthenticated = true;
+      s.lastUnauthenticatedReason = null;
       (s.providerData as unknown as Record<string, Record<string, string>>)[
         pid
       ] = {
@@ -680,11 +1001,61 @@ export class CardController extends BaseController<
 
   async getCardHomeData(address: string): Promise<CardHomeData> {
     const tokens = await this.getValidTokens();
-    if (tokens) {
-      return this.getActiveProvider().getCardHomeData(address, tokens);
-    }
     const provider = this.getActiveProvider();
-    return provider.getOnChainAssets?.(address) ?? emptyCardHomeData();
+    if (tokens) {
+      return this.#executeWithAuthRetry(tokens, (validTokens) =>
+        provider.getCardHomeData(address, validTokens),
+      );
+    }
+
+    const onChainProvider =
+      provider.getOnChainAssets != null
+        ? provider
+        : this.providers[DEFAULT_CARD_PROVIDER_ID];
+    return (
+      (await onChainProvider?.getOnChainAssets?.(address)) ??
+      emptyCardHomeData()
+    );
+  }
+
+  #restoreCardHomeDataAfterOptimisticFailure(
+    previous: CardHomeData | null,
+  ): void {
+    if (!this.state.isAuthenticated) return;
+
+    this.update((s) => {
+      (s as unknown as CardControllerState).cardHomeData =
+        previous as unknown as Record<string, Json>;
+    });
+  }
+
+  async #refreshCardAfterStatusChange(method: string): Promise<void> {
+    try {
+      const freshCard = await this.#withAuthRetry((tokens) =>
+        this.getActiveProvider().getCardDetails(tokens),
+      );
+      const current = this.state.cardHomeData as unknown as CardHomeData | null;
+      if (freshCard && current) {
+        this.update((s) => {
+          (s as unknown as CardControllerState).cardHomeData = {
+            ...current,
+            card: freshCard,
+          } as unknown as Record<string, Json>;
+        });
+      }
+    } catch (refreshError) {
+      if (!this.state.isAuthenticated) {
+        throw refreshError;
+      }
+
+      Logger.error(refreshError as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method },
+        },
+      });
+    }
   }
 
   async freezeCard(cardId: string): Promise<void> {
@@ -698,35 +1069,12 @@ export class CardController extends BaseController<
       });
     }
     try {
-      const tokens = await this.requireValidTokens();
-      await this.getActiveProvider().freezeCard(cardId, tokens);
-      try {
-        const freshCard = await this.getActiveProvider().getCardDetails(tokens);
-        const current = this.state
-          .cardHomeData as unknown as CardHomeData | null;
-        if (freshCard && current) {
-          this.update((s) => {
-            (s as unknown as CardControllerState).cardHomeData = {
-              ...current,
-              card: freshCard,
-            } as unknown as Record<string, Json>;
-          });
-        }
-      } catch (refreshError) {
-        // Optimistic update already applied; log so we know the refresh failed.
-        Logger.error(refreshError as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: 'freezeCard/refresh' },
-          },
-        });
-      }
+      await this.#withAuthRetry((tokens) =>
+        this.getActiveProvider().freezeCard(cardId, tokens),
+      );
+      await this.#refreshCardAfterStatusChange('freezeCard/refresh');
     } catch (error) {
-      this.update((s) => {
-        (s as unknown as CardControllerState).cardHomeData =
-          previous as unknown as Record<string, Json>;
-      });
+      this.#restoreCardHomeDataAfterOptimisticFailure(previous);
       throw error;
     }
   }
@@ -742,43 +1090,21 @@ export class CardController extends BaseController<
       });
     }
     try {
-      const tokens = await this.requireValidTokens();
-      await this.getActiveProvider().unfreezeCard(cardId, tokens);
-      try {
-        const freshCard = await this.getActiveProvider().getCardDetails(tokens);
-        const current = this.state
-          .cardHomeData as unknown as CardHomeData | null;
-        if (freshCard && current) {
-          this.update((s) => {
-            (s as unknown as CardControllerState).cardHomeData = {
-              ...current,
-              card: freshCard,
-            } as unknown as Record<string, Json>;
-          });
-        }
-      } catch (refreshError) {
-        // Optimistic update already applied; log so we know the refresh failed.
-        Logger.error(refreshError as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: 'unfreezeCard/refresh' },
-          },
-        });
-      }
+      await this.#withAuthRetry((tokens) =>
+        this.getActiveProvider().unfreezeCard(cardId, tokens),
+      );
+      await this.#refreshCardAfterStatusChange('unfreezeCard/refresh');
     } catch (error) {
-      this.update((s) => {
-        (s as unknown as CardControllerState).cardHomeData =
-          previous as unknown as Record<string, Json>;
-      });
+      this.#restoreCardHomeDataAfterOptimisticFailure(previous);
       throw error;
     }
   }
 
   async refreshCardStatus(): Promise<CardDetails | null> {
     try {
-      const tokens = await this.requireValidTokens();
-      return this.getActiveProvider().getCardDetails(tokens);
+      return await this.#withAuthRetry((tokens) =>
+        this.getActiveProvider().getCardDetails(tokens),
+      );
     } catch {
       return null;
     }
@@ -787,39 +1113,146 @@ export class CardController extends BaseController<
   async getCardDetailsView(
     params: CardSecureViewParams,
   ): Promise<CardSecureView> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.getCardDetailsView) {
+    const getCardDetailsView = provider.getCardDetailsView?.bind(provider);
+    if (!getCardDetailsView) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Card details view not supported',
       );
     }
-    return provider.getCardDetailsView(tokens, params);
+    return this.#withAuthRetry((tokens) => getCardDetailsView(tokens, params));
   }
 
   async getCardPinView(params: CardSecureViewParams): Promise<CardSecureView> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.getCardPinView) {
+    const getCardPinView = provider.getCardPinView?.bind(provider);
+    if (!getCardPinView) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Card PIN view not supported',
       );
     }
-    return provider.getCardPinView(tokens, params);
+    return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
   }
 
-  async getFundingConfig(): Promise<CardFundingConfig> {
-    const tokens = await this.requireValidTokens();
+  async getCardSensitiveDetails(): Promise<CardSensitiveDetails> {
     const provider = this.getActiveProvider();
-    if (!provider.getFundingConfig) {
+    const getCardSensitiveDetails =
+      provider.getCardSensitiveDetails?.bind(provider);
+    if (!getCardSensitiveDetails) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
-        'Funding config not supported',
+        'Card sensitive details not supported',
       );
     }
-    return provider.getFundingConfig(tokens);
+    return this.#withAuthRetry((tokens) => getCardSensitiveDetails(tokens));
+  }
+
+  async createFundingSource(): Promise<CardFundingSourceResult> {
+    const provider = this.getActiveProvider();
+    const createFundingSource = provider.createFundingSource?.bind(provider);
+    if (!createFundingSource) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Funding source creation not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => createFundingSource(tokens));
+  }
+
+  async getFundingSources(): Promise<CardFundingSourceResult[]> {
+    const provider = this.getActiveProvider();
+    const getFundingSources = provider.getFundingSources?.bind(provider);
+    if (!getFundingSources) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Listing funding sources not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getFundingSources(tokens));
+  }
+
+  async getResumeCardInfo(): Promise<CardResumeInfo | null> {
+    const provider = this.providers[CardProviderIds.Immersve];
+    if (!(provider instanceof ImmersveProvider)) {
+      return null;
+    }
+    return this.#withAuthRetry((tokens) => provider.getResumeCardInfo(tokens));
+  }
+
+  /**
+   * Fetches supported regions + legal documents via MetaMask Card API.
+   * Unauthenticated; usable during SignUp before provider SIWE/login.
+   */
+  async getSupportedRegions(
+    providerId: CardProviderId,
+  ): Promise<CardApiSupportedRegionsResponse> {
+    try {
+      return await this.cardService.getSupportedRegions(providerId);
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 502) {
+        throw new CardProviderError(
+          CardProviderErrorCode.ServerError,
+          'Supported regions are temporarily unavailable',
+          502,
+        );
+      }
+      if (error instanceof CardApiError) {
+        throw new CardProviderError(
+          error.statusCode === 0
+            ? CardProviderErrorCode.Network
+            : CardProviderErrorCode.Unknown,
+          error.message,
+          error.statusCode,
+        );
+      }
+      throw error;
+    }
+  }
+
+  async getSpendingPrerequisites(
+    fundingSourceId: string,
+    params: CardSpendingPrerequisitesParams,
+  ): Promise<CardSpendingPrerequisitesResult> {
+    const provider = this.getActiveProvider();
+    const getSpendingPrerequisites =
+      provider.getSpendingPrerequisites?.bind(provider);
+    if (!getSpendingPrerequisites) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Spending prerequisites not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      getSpendingPrerequisites(fundingSourceId, params, tokens),
+    );
+  }
+
+  async createCard(fundingSourceId: string): Promise<CardCreateResult> {
+    const provider = this.getActiveProvider();
+    const createCard = provider.createCard?.bind(provider);
+    if (!createCard) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card creation not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => createCard(fundingSourceId, tokens));
+  }
+
+  async patchContactDetails(details: CardContactDetails): Promise<void> {
+    const provider = this.getActiveProvider();
+    const patchContactDetails = provider.patchContactDetails?.bind(provider);
+    if (!patchContactDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Contact details update not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      patchContactDetails(details, tokens),
+    );
   }
 
   async updateAssetPriority(
@@ -844,34 +1277,33 @@ export class CardController extends BaseController<
       });
     }
     try {
-      const tokens = await this.requireValidTokens();
       const provider = this.getActiveProvider();
-      if (!provider.updateAssetPriority) {
+      const updateAssetPriority = provider.updateAssetPriority?.bind(provider);
+      if (!updateAssetPriority) {
         throw new CardProviderError(
           CardProviderErrorCode.Unknown,
           'Asset priority not supported',
         );
       }
-      await provider.updateAssetPriority(asset, allAssets, tokens);
+      await this.#withAuthRetry((tokens) =>
+        updateAssetPriority(asset, allAssets, tokens),
+      );
     } catch (error) {
-      this.update((s) => {
-        (s as unknown as CardControllerState).cardHomeData =
-          previous as unknown as Record<string, Json>;
-      });
+      this.#restoreCardHomeDataAfterOptimisticFailure(previous);
       throw error;
     }
   }
 
   async approveFunding(params: FundingApprovalParams): Promise<void> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.approveFunding) {
+    const approveFunding = provider.approveFunding?.bind(provider);
+    if (!approveFunding) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Funding approval not supported',
       );
     }
-    return provider.approveFunding(params, tokens);
+    return this.#withAuthRetry((tokens) => approveFunding(params, tokens));
   }
 
   async fetchDelegationChallenge(params: {
@@ -879,15 +1311,18 @@ export class CardController extends BaseController<
     address: string;
     faucet?: boolean;
   }): Promise<DelegationChallengeResponse> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.fetchDelegationChallenge) {
+    const fetchDelegationChallenge =
+      provider.fetchDelegationChallenge?.bind(provider);
+    if (!fetchDelegationChallenge) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Delegation challenge not supported',
       );
     }
-    return provider.fetchDelegationChallenge(params, tokens);
+    return this.#withAuthRetry((tokens) =>
+      fetchDelegationChallenge(params, tokens),
+    );
   }
 
   /**
@@ -914,9 +1349,20 @@ export class CardController extends BaseController<
   /**
    * Links a primary Money Account to Card by approving a Monad USDC allowance
    * to the active provider's delegation contract and completing the provider's
-   * funding flow. The approval transaction is submitted with
-   * `requireApproval: false` so it never opens the Confirmations modal — this
-   * is the background linkage path UI hooks consume.
+   * funding flow. The approval transaction is submitted via
+   * `TransactionController:addTransactionBatch` with `requireApproval: false`
+   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal
+   * and the money account doesn't pay MON gas — Sentinel sponsors the relayer
+   * fee. This is the background linkage path UI hooks consume.
+   *
+   * Pre-flight enforces one invariant before submission: the Monad gas
+   * sponsorship feature flag must be enabled (the relay must accept
+   * sponsorship for this chain).
+   *
+   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`:
+   * when the Money Account has no existing delegation, the hook auto-signs a
+   * 7702 authorization and bundles it in the same Sentinel relay request as
+   * the approve. No separate upgrade step is required here.
    *
    * Race-safe by construction: subscribes to
    * `TransactionController:transactionConfirmed` BEFORE submitting the
@@ -932,19 +1378,298 @@ export class CardController extends BaseController<
     moneyAccountAddress: string;
     delegationAmountHuman: string;
   }): Promise<void> {
-    if (this.linkMoneyAccountCardInFlight) {
+    if (this.state.moneyAccountCardLinkInProgress) {
       throw new CardLinkageInProgressError();
     }
-    this.linkMoneyAccountCardInFlight = true;
+    this.update((state) => {
+      state.moneyAccountCardLinkInProgress = true;
+    });
     try {
       await this.#linkMoneyAccountCardUnsafe(params);
     } finally {
-      this.linkMoneyAccountCardInFlight = false;
+      this.update((state) => {
+        state.moneyAccountCardLinkInProgress = false;
+      });
     }
   }
 
   isLinkageInProgress(): boolean {
-    return this.linkMoneyAccountCardInFlight;
+    return this.state.moneyAccountCardLinkInProgress;
+  }
+
+  /**
+   * Cross-device guardrail: detects whether the primary Money Account is
+   * already linked to a DIFFERENT card account than the one the given tokens
+   * authenticate.
+   *
+   * The server-side registration (`GET /v1/wallet/external`) is scoped to the
+   * authenticated card user, so a link created on another device under a
+   * different card login is invisible to this session. The on-chain Monad
+   * allowance from the Money Account to the delegation contract, however, is
+   * globally observable. A non-zero allowance combined with the Money Account
+   * being absent from this session's funding wallets means the Money Account
+   * is delegated to another card account, unless this controller recorded
+   * that the same card confirmed the approval but failed to complete provider
+   * registration. That card-bound marker allows a safe retry without letting
+   * a different card bypass the guardrail.
+   *
+   * Fail-open by design: any error in the check (RPC unreachable, wallet
+   * fetch failure) resolves to `false` so a degraded network never blocks
+   * linking. Returns `false` immediately when there is no primary Money
+   * Account or the provider exposes no Monad delegation config (e.g.
+   * Immersve), since the guardrail is then irrelevant.
+   *
+   * Only the LINK flow enforces this check (product decision): logging in
+   * to a second card is allowed; creating a second link is not.
+   *
+   * @param tokens - Auth tokens for the card session being checked.
+   */
+  async #detectMoneyAccountCardConflict(
+    tokens: CardAuthTokens,
+  ): Promise<{ hasConflict: boolean; cardId?: string }> {
+    let stage = 'select_money_account';
+    try {
+      const moneyAccountAddress = selectPrimaryMoneyAccount(
+        ReduxService.store.getState() as RootState,
+      )?.address;
+      if (!moneyAccountAddress) {
+        Logger.log(
+          'CardController: Money Account card conflict check skipped — no primary Money Account',
+        );
+        return { hasConflict: false };
+      }
+
+      stage = 'fetch_card_home_data';
+      const provider = this.getActiveProvider();
+      const homeData = await provider.getCardHomeData(
+        moneyAccountAddress,
+        tokens,
+      );
+      const cardId = homeData.card?.id;
+
+      stage = 'resolve_veda_config';
+      const vedaConfig = getVedaTokenConfig(homeData.delegationSettings);
+      if (!vedaConfig?.delegationContract) {
+        Logger.log(
+          'CardController: Money Account card conflict check skipped — no Monad delegation config',
+          { hasDelegationSettings: Boolean(homeData.delegationSettings) },
+        );
+        return { hasConflict: false, cardId };
+      }
+
+      // Money Account registered on THIS card session — same card owns the
+      // link (re-login on the original card, or a spending-cap update).
+      const fundingTokens = homeData.fundingAssets.map((asset) =>
+        toCardFundingToken(asset),
+      );
+      if (
+        isMoneyAccountDelegatedForCard({
+          fundingTokens,
+          moneyAccountAddress,
+          vedaConfig,
+        })
+      ) {
+        Logger.log(
+          'CardController: Money Account card conflict check — delegated to this card session, no conflict',
+        );
+        return { hasConflict: false, cardId };
+      }
+
+      if (
+        cardId &&
+        this.#isPendingRegistrationForCurrentCard(cardId, moneyAccountAddress)
+      ) {
+        Logger.log(
+          'CardController: Money Account card conflict check — retrying pending registration for this card, no conflict',
+        );
+        return { hasConflict: false, cardId };
+      }
+
+      stage = 'read_on_chain_allowance';
+      const allowance = await this.#readMoneyAccountDelegationAllowance({
+        caipChainId: vedaConfig.caipChainId,
+        tokenAddress: vedaConfig.address,
+        owner: moneyAccountAddress,
+        spender: vedaConfig.delegationContract,
+        decimals: vedaConfig.decimals,
+      });
+      const allowanceFloat = parseFloat(allowance);
+      const hasConflict = Number.isFinite(allowanceFloat) && allowanceFloat > 0;
+      Logger.log(
+        'CardController: Money Account card conflict check — on-chain allowance read',
+        {
+          allowance,
+          hasConflict,
+          caipChainId: vedaConfig.caipChainId,
+          token: vedaConfig.address,
+          owner: moneyAccountAddress,
+          spender: vedaConfig.delegationContract,
+        },
+      );
+      return { hasConflict, cardId };
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: 'detectMoneyAccountCardConflict', stage },
+        },
+      });
+      return { hasConflict: false };
+    }
+  }
+
+  #isPendingRegistrationForCurrentCard(
+    cardId: string,
+    moneyAccountAddress: string,
+  ): boolean {
+    const providerId = this.state.activeProviderId;
+    if (!providerId) return false;
+
+    const pendingValue =
+      this.state.providerData[providerId]?.[
+        PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY
+      ];
+    if (
+      !pendingValue ||
+      typeof pendingValue !== 'object' ||
+      Array.isArray(pendingValue)
+    ) {
+      return false;
+    }
+    const pending =
+      pendingValue as unknown as PendingMoneyAccountCardRegistration;
+    return (
+      typeof pending.cardId === 'string' &&
+      typeof pending.moneyAccountAddress === 'string' &&
+      pending.cardId === cardId &&
+      pending.moneyAccountAddress.toLowerCase() ===
+        moneyAccountAddress.toLowerCase()
+    );
+  }
+
+  #setPendingRegistrationForCurrentCard(
+    cardId: string,
+    moneyAccountAddress: string,
+  ): void {
+    const providerId = this.state.activeProviderId;
+    if (!providerId) return;
+
+    const providerData = this.state.providerData[providerId] ?? {};
+    const nextProviderData: CardControllerState['providerData'] = {
+      ...this.state.providerData,
+      [providerId]: {
+        ...providerData,
+        [PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY]: {
+          cardId,
+          moneyAccountAddress,
+        },
+      },
+    };
+    this.update(() => ({
+      ...this.state,
+      providerData: nextProviderData,
+    }));
+  }
+
+  #clearPendingRegistrationForCurrentCard(): void {
+    const providerId = this.state.activeProviderId;
+    if (!providerId) return;
+
+    const providerData = this.state.providerData[providerId];
+    if (!providerData) return;
+
+    const {
+      [PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY]: _pendingRegistration,
+      ...remainingProviderData
+    } = providerData;
+    const nextProviderData: CardControllerState['providerData'] = {
+      ...this.state.providerData,
+      [providerId]: remainingProviderData,
+    };
+    this.update(() => ({
+      ...this.state,
+      providerData: nextProviderData,
+    }));
+  }
+
+  /**
+   * Reads the Money Account's ERC-20 allowance to the delegation contract.
+   *
+   * Tries the dedicated Monad RPC first (the pattern every other Card
+   * on-chain read uses — `StaticJsonRpcProvider` with `skipFetchSetup`,
+   * required in React Native), then falls back to the app's own network
+   * client. Throws only when every provider fails, so the caller's
+   * fail-open handling still applies.
+   */
+  async #readMoneyAccountDelegationAllowance(params: {
+    caipChainId: string;
+    tokenAddress: string;
+    owner: string;
+    spender: string;
+    decimals: number;
+  }): Promise<string> {
+    const { caipChainId, tokenAddress, owner, spender, decimals } = params;
+    const chainNumber = Number.parseInt(caipChainId.split(':')[1] ?? '', 10);
+
+    const providers: ethers.providers.Provider[] = [];
+    const rpcUrl = cardNetworkInfos[MONEY_ACCOUNT_DELEGATION_NETWORK]?.rpcUrl;
+    // An Infura URL without a project ID ends in `/v3/` — unusable.
+    if (rpcUrl && !rpcUrl.endsWith('/v3/') && Number.isFinite(chainNumber)) {
+      providers.push(
+        new ethers.providers.StaticJsonRpcProvider(
+          { url: rpcUrl, skipFetchSetup: true },
+          { name: MONEY_ACCOUNT_DELEGATION_NETWORK, chainId: chainNumber },
+        ),
+      );
+    }
+    try {
+      providers.push(this.#getEthersProviderForCaipChainId(caipChainId));
+    } catch {
+      // Monad not configured in NetworkController — static RPC remains.
+    }
+
+    let lastError: unknown;
+    for (const provider of providers) {
+      try {
+        const { allowance } = await readErc20AllowanceAndBalance(
+          provider,
+          tokenAddress,
+          owner,
+          spender,
+          decimals,
+        );
+        return allowance;
+      } catch (error) {
+        lastError = error;
+        Logger.log(
+          'CardController: delegation allowance read failed, trying next provider',
+          { message: (error as Error)?.message },
+        );
+      }
+    }
+    throw (
+      (lastError as Error) ??
+      new Error('No RPC provider available for the delegation allowance read')
+    );
+  }
+
+  #getEthersProviderForCaipChainId(
+    caipChainId: string,
+  ): ethers.providers.Web3Provider {
+    const chainNumber = parseInt(caipChainId.split(':')[1] ?? '143', 10);
+    const hexChainId = numberToHex(chainNumber) as Hex;
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      hexChainId,
+    );
+    const networkClient = this.messenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
+    return new ethers.providers.Web3Provider(
+      networkClient.provider as unknown as ethers.providers.ExternalProvider,
+    );
   }
 
   async #linkMoneyAccountCardUnsafe(params: {
@@ -972,6 +1697,7 @@ export class CardController extends BaseController<
       );
     }
 
+    // Fail fast before any transaction work when there is no usable session.
     const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
     if (
@@ -985,6 +1711,30 @@ export class CardController extends BaseController<
       );
     }
 
+    // Pre-flight: refuse to link when the Money Account is already delegated
+    // on-chain to a different card account (linked from another device under
+    // another card login). Never blocks unlink/revoke (amount "0") so users
+    // can always take an allowance down.
+    const delegationAmountFloat = parseFloat(delegationAmountHuman);
+    let currentCardId: string | undefined;
+    if (Number.isFinite(delegationAmountFloat) && delegationAmountFloat > 0) {
+      Logger.log(
+        'CardController: running Money Account card conflict check (link)',
+      );
+      const conflictResult = await this.#detectMoneyAccountCardConflict(tokens);
+      currentCardId = conflictResult.cardId;
+      Logger.log(
+        'CardController: Money Account card conflict check (link) result',
+        { hasConflict: conflictResult.hasConflict },
+      );
+      if (conflictResult.hasConflict) {
+        throw new CardProviderError(
+          CardProviderErrorCode.MoneyAccountLinkedToDifferentCard,
+          'Money Account is already linked to a different card account',
+        );
+      }
+    }
+
     const cardToken = await this.#resolveMoneyAccountCardTokenOrRefetch();
     if (!cardToken) {
       throw new CardProviderError(
@@ -992,26 +1742,6 @@ export class CardController extends BaseController<
         'Money Account Card spending token unavailable',
       );
     }
-
-    const { delegationToken, nonce } = await provider.fetchDelegationChallenge(
-      { network: 'monad', address: fromAddress },
-      tokens,
-    );
-
-    const signatureMessage = this.generateCardDelegationSignatureMessage({
-      network: 'monad',
-      address: fromAddress,
-      nonce,
-      caipChainId: cardToken.caipChainId ?? 'eip155:143',
-    });
-
-    const sigHash = await this.messenger.call(
-      'KeyringController:signPersonalMessage',
-      {
-        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
-        from: fromAddress,
-      },
-    );
 
     const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
     if (!tokenAddress) {
@@ -1046,39 +1776,105 @@ export class CardController extends BaseController<
       hexChainId,
     );
 
-    const { txHash } = await awaitTransactionConfirmed({
-      messenger: this
-        .messenger as unknown as AwaitTransactionConfirmedMessenger,
-      submit: () =>
-        this.messenger.call(
-          'TransactionController:addTransaction',
-          { from: fromAddress, to: tokenAddress, data },
-          {
-            networkClientId,
-            origin: TransactionTypes.MMM_CARD,
-            type: TransactionType.tokenMethodApprove,
-            deviceConfirmedOn: WalletDevice.MM_MOBILE,
-            requireApproval: false,
-          },
-        ),
+    // Pre-flight 1: Monad gas sponsorship feature flag must be on. The card
+    // link approve is submitted with `isGasFeeSponsored: true`, so if the
+    // server-side sponsorship is disabled we must refuse before the relay
+    // call — otherwise the publish hook would reject and the user would see
+    // a generic link-failed toast with no actionable reason.
+    const isMonadSponsorshipEnabled = getGasFeesSponsoredNetworkEnabled(
+      ReduxService.store.getState() as RootState,
+    )(hexChainId);
+    if (!isMonadSponsorshipEnabled) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Monad gas sponsorship unavailable',
+      );
+    }
+
+    // Public wrappers carry the 401 refresh-retry; the transaction flow in
+    // between can outlive the access token that passed the guard above.
+    const { delegationToken, nonce } = await this.fetchDelegationChallenge({
+      network: 'monad',
+      address: fromAddress,
     });
 
-    await provider.approveFunding(
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: 'monad',
+      address: fromAddress,
+      nonce,
+      caipChainId: cardToken.caipChainId ?? 'eip155:143',
+    });
+
+    const sigHash = await this.messenger.call(
+      'KeyringController:signPersonalMessage',
       {
-        address: fromAddress,
-        network: 'monad',
-        currency: 'usdc',
-        amount: delegationAmountHuman,
-        txHash,
-        sigHash,
-        sigMessage: signatureMessage,
-        token: delegationToken,
+        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
+        from: fromAddress,
       },
-      tokens,
     );
 
+    const { transactionMeta: confirmedMeta } = await awaitTransactionConfirmed({
+      messenger: this
+        .messenger as unknown as AwaitTransactionConfirmedMessenger,
+      submit: async () => {
+        const { batchId } = await this.messenger.call(
+          'TransactionController:addTransactionBatch',
+          {
+            from: fromAddress as Hex,
+            networkClientId,
+            origin: TransactionTypes.MMM_CARD,
+            requireApproval: false,
+            disableHook: true,
+            disableSequential: true,
+            isGasFeeSponsored: true,
+            transactions: [
+              {
+                params: {
+                  to: tokenAddress as Hex,
+                  data: data as Hex,
+                  value: '0x0' as Hex,
+                },
+                type: TransactionType.tokenMethodApprove,
+              },
+            ],
+          },
+        );
+
+        const innerTx = await this.#findInnerTxForBatch(batchId);
+        return {
+          result: Promise.resolve(''),
+          transactionMeta: innerTx,
+        };
+      },
+    });
+
+    const txHash = confirmedMeta.hash ?? '';
+
+    // The approval is now globally visible on-chain, but the provider has not
+    // registered it yet. Persist which card initiated it so a failed
+    // post-approval can be retried by this card without being mistaken for a
+    // cross-device conflict. A different card ID cannot use this exception.
+    if (currentCardId) {
+      this.#setPendingRegistrationForCurrentCard(
+        currentCardId,
+        moneyAccountAddress,
+      );
+    }
+
+    await this.approveFunding({
+      address: fromAddress,
+      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+      currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+      amount: delegationAmountHuman,
+      txHash,
+      sigHash,
+      sigMessage: signatureMessage,
+      token: delegationToken,
+    });
+    this.#clearPendingRegistrationForCurrentCard();
+
     try {
-      await this.fetchCardHomeData();
+      await this.fetchCardHomeData({ force: true });
     } catch (error) {
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
@@ -1095,8 +1891,39 @@ export class CardController extends BaseController<
     const existing = fromState();
     if (existing) return existing;
 
-    await this.fetchCardHomeData();
+    await this.fetchCardHomeData({ force: true });
     return fromState();
+  }
+
+  /**
+   * Resolves the inner `TransactionMeta` created by `addTransactionBatch` for
+   * a given `batchId`. `addTransactionBatch` returns only the batch id, but
+   * `awaitTransactionConfirmed` needs the inner transaction id to match the
+   * `transactionConfirmed` event. Polls the TransactionController state with
+   * a small bounded retry — the inner tx is emitted into state synchronously
+   * during the batch add path, so this almost always resolves on the first
+   * read; the retry exists purely to absorb micro-task ordering with the
+   * batch-id resolution.
+   */
+  async #findInnerTxForBatch(batchId: string): Promise<TransactionMeta> {
+    const MAX_RETRIES = 5;
+    const RETRY_DELAY_MS = 50;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const { transactions } = this.messenger.call(
+        'TransactionController:getState',
+      );
+      const match = transactions.find((tx) => tx.batchId === batchId);
+      if (match) return match;
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, RETRY_DELAY_MS),
+        );
+      }
+    }
+    throw new CardProviderError(
+      CardProviderErrorCode.Unknown,
+      `Could not find inner transaction for batch ${batchId}`,
+    );
   }
 
   // -- Push Provisioning --
@@ -1104,15 +1931,18 @@ export class CardController extends BaseController<
   async createGoogleWalletProvisioningRequest(): Promise<{
     opaquePaymentCard: string;
   }> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.createGoogleWalletProvisioningRequest) {
+    const createGoogleWalletProvisioningRequest =
+      provider.createGoogleWalletProvisioningRequest?.bind(provider);
+    if (!createGoogleWalletProvisioningRequest) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Google Wallet provisioning not supported',
       );
     }
-    return provider.createGoogleWalletProvisioningRequest(tokens);
+    return this.#withAuthRetry((tokens) =>
+      createGoogleWalletProvisioningRequest(tokens),
+    );
   }
 
   async createApplePayProvisioningRequest(params: {
@@ -1125,54 +1955,101 @@ export class CardController extends BaseController<
     activationData: string;
     ephemeralPublicKey: string;
   }> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.createApplePayProvisioningRequest) {
+    const createApplePayProvisioningRequest =
+      provider.createApplePayProvisioningRequest?.bind(provider);
+    if (!createApplePayProvisioningRequest) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Apple Pay provisioning not supported',
       );
     }
-    return provider.createApplePayProvisioningRequest(params, tokens);
+    return this.#withAuthRetry((tokens) =>
+      createApplePayProvisioningRequest(params, tokens),
+    );
   }
 
   // -- Cashback --
 
   async getCashbackWallet(): Promise<CashbackWalletResponse> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.getCashbackWallet) {
+    const getCashbackWallet = provider.getCashbackWallet?.bind(provider);
+    if (!getCashbackWallet) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Cashback not supported',
       );
     }
-    return provider.getCashbackWallet(tokens);
+    return this.#withAuthRetry((tokens) => getCashbackWallet(tokens));
   }
 
   async getCashbackWithdrawEstimation(): Promise<CashbackWithdrawEstimationResponse> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.getCashbackWithdrawEstimation) {
+    const getCashbackWithdrawEstimation =
+      provider.getCashbackWithdrawEstimation?.bind(provider);
+    if (!getCashbackWithdrawEstimation) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Cashback not supported',
       );
     }
-    return provider.getCashbackWithdrawEstimation(tokens);
+    return this.#withAuthRetry((tokens) =>
+      getCashbackWithdrawEstimation(tokens),
+    );
   }
 
   async withdrawCashback(
     params: CashbackWithdrawParams,
   ): Promise<CashbackWithdrawResponse> {
-    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (!provider.withdrawCashback) {
+    const withdrawCashback = provider.withdrawCashback?.bind(provider);
+    if (!withdrawCashback) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Cashback withdrawal not supported',
       );
     }
-    return provider.withdrawCashback(params, tokens);
+    return this.#withAuthRetry((tokens) => withdrawCashback(params, tokens));
+  }
+
+  // -- Credit --
+
+  async getCreditWallet(): Promise<CreditWalletResponse> {
+    const provider = this.getActiveProvider();
+    const getCreditWallet = provider.getCreditWallet?.bind(provider);
+    if (!getCreditWallet) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCreditWallet(tokens));
+  }
+
+  async getCreditWithdrawEstimation(): Promise<CreditWithdrawEstimationResponse> {
+    const provider = this.getActiveProvider();
+    const getCreditWithdrawEstimation =
+      provider.getCreditWithdrawEstimation?.bind(provider);
+    if (!getCreditWithdrawEstimation) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCreditWithdrawEstimation(tokens));
+  }
+
+  async withdrawCredit(
+    params: CreditWithdrawParams,
+  ): Promise<CreditWithdrawResponse> {
+    const provider = this.getActiveProvider();
+    const withdrawCredit = provider.withdrawCredit?.bind(provider);
+    if (!withdrawCredit) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit withdrawal not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => withdrawCredit(params, tokens));
   }
 }

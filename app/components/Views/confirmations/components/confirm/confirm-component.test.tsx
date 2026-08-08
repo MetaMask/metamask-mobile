@@ -1,6 +1,6 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
-import { ScrollView } from 'react-native';
+import { BackHandler, ScrollView } from 'react-native';
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -296,6 +296,39 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-default')).toBeDefined();
   });
 
+  it('prevents dismissing the loading state before an approval request exists', () => {
+    const removeBackHandler = jest.fn();
+    jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({
+      remove: removeBackHandler,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      gestureEnabled: false,
+    });
+
+    expect(BackHandler.addEventListener).toHaveBeenCalledWith(
+      'hardwareBackPress',
+      expect.any(Function),
+    );
+
+    const backHandlerCallback = jest.mocked(BackHandler.addEventListener).mock
+      .calls[0][1];
+
+    expect(backHandlerCallback()).toBe(true);
+  });
+
   it('displays alternate loader if specified', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.CustomAmount,
@@ -334,6 +367,46 @@ describe('Confirm', () => {
     });
 
     expect(getByTestId('confirm-loader-predict-claim')).toBeDefined();
+  });
+
+  it('displays AdvancedCustomAmount loader when specified', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(getByTestId('confirm-loader-advanced-custom-amount')).toBeDefined();
+  });
+
+  it('displays PrefillCustomAmount loader when specified', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.PrefillCustomAmount,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(getByTestId('confirm-loader-prefill-custom-amount')).toBeDefined();
   });
 
   it('displays Transfer loader when specified', () => {
@@ -404,6 +477,35 @@ describe('Confirm', () => {
     );
 
     const loaderContainer = getByTestId('confirm-loader-predict-claim');
+    const scrollViews = UNSAFE_queryAllByType(ScrollView);
+
+    expect(loaderContainer).toBeDefined();
+    expect(scrollViews.length).toBeGreaterThan(0);
+  });
+
+  it('renders InfoLoader for AdvancedCustomAmount loader', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId, UNSAFE_queryAllByType } = renderWithProvider(
+      <Confirm />,
+      {
+        state: stateWithoutRequest,
+      },
+    );
+
+    const loaderContainer = getByTestId(
+      'confirm-loader-advanced-custom-amount',
+    );
     const scrollViews = UNSAFE_queryAllByType(ScrollView);
 
     expect(loaderContainer).toBeDefined();

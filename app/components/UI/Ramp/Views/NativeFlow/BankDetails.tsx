@@ -14,22 +14,22 @@ import {
 } from '@metamask/design-system-react-native';
 import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
+import styleSheet from './BankDetails.styles';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../locales/i18n';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
-import BankDetailRow from '../../Deposit/components/BankDetailRow';
+import BankDetailRow from '../../components/BankDetailRow';
 import {
   RampsOrderStatus,
   type TransakDepositOrder,
-  normalizeProviderCode,
 } from '@metamask/ramps-controller';
 import { useTheme } from '../../../../../util/theme';
-import PrivacySection from '../../Deposit/components/PrivacySection';
+import PrivacySection from '../../components/PrivacySection';
 import useAnalytics from '../../hooks/useAnalytics';
 
 import Logger from '../../../../../util/Logger';
@@ -39,6 +39,9 @@ import { selectTokens } from '../../../../../selectors/rampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useSelector } from 'react-redux';
+import { endOpenRampsBuyCufChildrenByName } from '../../utils/rampsBuyCufTrace';
+import { RAMPS_BUY_CUF_TAG } from '../../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../../util/trace';
 import { BANK_DETAILS_TEST_IDS } from './BankDetails.testIds';
 import { isHttpUnauthorized } from '../../utils/isHttpUnauthorized';
 
@@ -58,7 +61,7 @@ const TERMINAL_STATUSES = new Set([
  * and fetches deposit-specific data (paymentDetails) from TransakService.
  */
 const V2BankDetails = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const {
@@ -115,7 +118,7 @@ const V2BankDetails = () => {
         setDepositOrder(updatedDepositOrder);
       }
 
-      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
+      const providerCode = order.provider?.id ?? '';
       await refreshOrder(
         providerCode,
         order.providerOrderId,
@@ -145,6 +148,10 @@ const V2BankDetails = () => {
       TERMINAL_STATUSES.has(order.status) ||
       order.status === RampsOrderStatus.Pending
     ) {
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId: order.providerOrderId,
+      });
       // @ts-expect-error navigation prop mismatch
       navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
         orderId: order.providerOrderId,
@@ -233,6 +240,7 @@ const V2BankDetails = () => {
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
+        provider_order_id: order.providerOrderId,
         amount_source: Number(order.fiatAmount),
         amount_destination: Number(order.cryptoAmount),
         exchange_rate: Number(order.exchangeRate),

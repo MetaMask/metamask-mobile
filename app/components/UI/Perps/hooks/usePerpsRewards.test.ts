@@ -33,6 +33,7 @@ describe('usePerpsRewards', () => {
     protocolFee: 45,
     metamaskFee: 0,
     totalFee: 45,
+    undiscountedTotalFee: 45,
     isLoadingMetamaskFee: false,
     error: null,
     estimatedPoints: undefined,

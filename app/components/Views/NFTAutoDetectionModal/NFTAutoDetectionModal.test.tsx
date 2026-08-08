@@ -3,7 +3,7 @@ import NFTAutoDetectionModal from './NFTAutoDetectionModal';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
@@ -42,9 +42,9 @@ const initialState = {
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 const mockTrackEvent = jest.fn();
-const mockAddTraitsToUser = jest.fn();
+const mockIdentify = jest.fn();
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const renderComponent = (state: DeepPartial<RootState> = {}) =>
   renderWithProvider(
@@ -60,7 +60,7 @@ describe('NFT Auto detection modal', () => {
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
-        addTraitsToUser: mockAddTraitsToUser,
+        identify: mockIdentify,
       }),
     );
   });
@@ -89,7 +89,7 @@ describe('NFT Auto detection modal', () => {
     expect(setUseNftDetectionSpy).toHaveBeenCalled();
     expect(setDisplayNftMediaSpy).toHaveBeenCalled();
 
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+    expect(mockIdentify).toHaveBeenCalledWith({
       'Enable OpenSea API': 'ON',
       'NFT Autodetection': 'ON',
     });
@@ -103,7 +103,7 @@ describe('NFT Auto detection modal', () => {
     expect(setUseNftDetectionSpy).toHaveBeenCalled();
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
 
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+    expect(mockIdentify).toHaveBeenCalledWith({
       'NFT Autodetection': 'ON',
     });
   });
@@ -116,6 +116,6 @@ describe('NFT Auto detection modal', () => {
     expect(setUseNftDetectionSpy).not.toHaveBeenCalled();
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
 
-    expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+    expect(mockIdentify).not.toHaveBeenCalled();
   });
 });

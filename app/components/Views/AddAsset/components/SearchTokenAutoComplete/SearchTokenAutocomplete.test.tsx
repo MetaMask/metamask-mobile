@@ -15,7 +15,6 @@ import {
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import {
   convertTrendingAssetsToImporAssets,
   ImportAsset,
@@ -35,28 +34,8 @@ const mockAddCustomAsset = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
-    TokensController: {
-      addTokens: jest.fn().mockResolvedValue(undefined),
-    },
-    MultichainAssetsController: {
-      addAssets: jest.fn().mockResolvedValue(undefined),
-    },
     AssetsController: {
       addCustomAsset: jest.fn(),
-    },
-    NetworkController: {
-      state: {
-        networkConfigurationsByChainId: {
-          '0x1': {
-            chainId: '0x1',
-            rpcEndpoints: [{ networkClientId: 'mainnet' }],
-            defaultRpcEndpointIndex: 0,
-          },
-        },
-      },
-    },
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
     },
   },
 }));
@@ -64,13 +43,6 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock('../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   toAssetId: jest.fn(),
 }));
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/assetsUnifyState',
-  () => ({
-    selectIsAssetsUnifyStateEnabled: jest.fn(),
-  }),
-);
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => ({
@@ -105,16 +77,6 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   ),
 }));
 
-jest.mock('../../../../../selectors/tokensController', () => ({
-  ...jest.requireActual('../../../../../selectors/tokensController'),
-  selectTokensByChainIdAndAddress: jest.fn(() => ({})),
-}));
-
-jest.mock('../../../../../selectors/multichain/multichain', () => ({
-  ...jest.requireActual('../../../../../selectors/multichain/multichain'),
-  selectMultichainAssets: jest.fn(() => ({})),
-}));
-
 jest.mock(
   '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
   () => ({
@@ -141,9 +103,6 @@ const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
 const mockConvertTokens = jest.mocked(convertTrendingAssetsToImporAssets);
 const mockToAssetId = jest.mocked(toAssetId);
-const mockSelectIsAssetsUnifyStateEnabled = jest.mocked(
-  selectIsAssetsUnifyStateEnabled,
-);
 
 // --- Test data ---
 
@@ -199,6 +158,7 @@ const setupWithTokenResults = () => {
     loadMore: jest.fn(),
     isLoadingMore: false,
     hasNextPage: false,
+    totalCount: undefined,
   } as ReturnType<typeof useTrendingSearch>);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockConvertTokens.mockReturnValue([mockImportAset as any]);
@@ -239,8 +199,10 @@ describe('SearchTokenAutocomplete', () => {
     });
     mockBuild.mockReturnValue({ event: 'mock-event' });
     mockIsNonEvmChainId.mockReturnValue(false);
-    mockSelectInternalAccountByScope.mockReturnValue(null);
-    mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(false);
+    mockSelectInternalAccountByScope.mockReturnValue({
+      id: 'evm-account-id',
+      address: '0xabc',
+    });
     mockToAssetId.mockReturnValue(
       'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678' as CaipAssetType,
     );
@@ -251,14 +213,9 @@ describe('SearchTokenAutocomplete', () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     } as ReturnType<typeof useTrendingSearch>);
     mockConvertTokens.mockReturnValue([]);
-    (Engine.context.TokensController.addTokens as jest.Mock).mockResolvedValue(
-      undefined,
-    );
-    (
-      Engine.context.MultichainAssetsController.addAssets as jest.Mock
-    ).mockResolvedValue(undefined);
     mockAddCustomAsset.mockResolvedValue(undefined);
     (Engine.context.AssetsController.addCustomAsset as jest.Mock) =
       mockAddCustomAsset;
@@ -422,77 +379,6 @@ describe('SearchTokenAutocomplete', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('addTokenList calls TokensController.addTokens for EVM chains', async () => {
-    setupWithTokenResults();
-
-    const utils = renderComponent();
-    selectTokenAndPressNext(utils);
-
-    const [, params] = mockNavigation.navigate.mock.calls[0];
-    await params.addTokenList();
-
-    expect(Engine.context.TokensController.addTokens).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({ address: mockImportAset.address }),
-      ]),
-      'mainnet',
-    );
-    expect(
-      Engine.context.MultichainAssetsController.addAssets,
-    ).not.toHaveBeenCalled();
-  });
-
-  it('addTokenList calls MultichainAssetsController.addAssets for non-EVM chains', async () => {
-    const solanaChainId =
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as SupportedCaipChainId;
-
-    const mockNonEvmToken = {
-      address: 'solana-address-123',
-      symbol: 'SOL',
-      name: 'Solana',
-      decimals: 9,
-      chainId: solanaChainId,
-      image: 'https://example.com/sol.png',
-      assetId: `${solanaChainId}/slip44:501`,
-    };
-
-    mockIsNonEvmChainId.mockReturnValue(true);
-    mockSelectInternalAccountByScope.mockReturnValue({
-      id: 'non-evm-account-id',
-      address: 'non-evm-address',
-    });
-
-    mockUseTrendingSearch.mockReturnValue({
-      data: [
-        {
-          ...mockTrendingResult,
-          assetId: `${solanaChainId}/slip44:501`,
-          symbol: 'SOL',
-          name: 'Solana',
-          decimals: 9,
-        },
-      ],
-      isLoading: false,
-      refetch: jest.fn(),
-      loadMore: jest.fn(),
-      isLoadingMore: false,
-      hasNextPage: false,
-    } as ReturnType<typeof useTrendingSearch>);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);
-
-    const utils = renderComponent({ selectedChainId: solanaChainId });
-    selectTokenAndPressNext(utils);
-
-    const [, params] = mockNavigation.navigate.mock.calls[0];
-    await params.addTokenList();
-
-    expect(
-      Engine.context.MultichainAssetsController.addAssets,
-    ).toHaveBeenCalledWith(['solana-address-123'], 'non-evm-account-id');
-    expect(Engine.context.TokensController.addTokens).not.toHaveBeenCalled();
-  });
-
   describe('addTokens - EVM chain', () => {
     it('disables the Next button when selectedChainId is null (no tokens to add)', () => {
       setupWithTokenResults();
@@ -505,43 +391,8 @@ describe('SearchTokenAutocomplete', () => {
       ).toBeDisabled();
     });
 
-    it('returns early when network config is not found for the chain', async () => {
+    it('calls AssetsController.addCustomAsset for each selected token', async () => {
       setupWithTokenResults();
-
-      const utils = renderComponent({ selectedChainId: '0x89' as Hex });
-      selectTokenAndPressNext(utils);
-
-      const [, params] = mockNavigation.navigate.mock.calls[0];
-      await params.addTokenList();
-
-      expect(Engine.context.TokensController.addTokens).not.toHaveBeenCalled();
-      // TOKEN_IMPORT_CLICKED fires from goToConfirmAddToken; TOKEN_ADDED must not fire
-      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.TOKEN_ADDED,
-      );
-    });
-
-    it('does not call AssetsController when isAssetsUnifyStateEnabled is false', async () => {
-      setupWithTokenResults();
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(false);
-
-      const utils = renderComponent();
-      selectTokenAndPressNext(utils);
-
-      const [, params] = mockNavigation.navigate.mock.calls[0];
-      await params.addTokenList();
-
-      expect(Engine.context.TokensController.addTokens).toHaveBeenCalled();
-      expect(mockAddCustomAsset).not.toHaveBeenCalled();
-    });
-
-    it('calls AssetsController.addCustomAsset for each token when isAssetsUnifyStateEnabled is true', async () => {
-      setupWithTokenResults();
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
-      mockSelectInternalAccountByScope.mockReturnValue({
-        id: 'evm-account-id',
-        address: '0xabc',
-      });
       const expectedCaipAssetType =
         'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678' as CaipAssetType;
       mockToAssetId.mockReturnValue(expectedCaipAssetType);
@@ -552,10 +403,12 @@ describe('SearchTokenAutocomplete', () => {
       const [, params] = mockNavigation.navigate.mock.calls[0];
       await params.addTokenList();
 
-      expect(Engine.context.TokensController.addTokens).toHaveBeenCalled();
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         expectedCaipAssetType,
+        expect.objectContaining({
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+        }),
       );
     });
 
@@ -577,13 +430,9 @@ describe('SearchTokenAutocomplete', () => {
         loadMore: jest.fn(),
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       } as ReturnType<typeof useTrendingSearch>);
 
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
-      mockSelectInternalAccountByScope.mockReturnValue({
-        id: 'evm-account-id',
-        address: '0xabc',
-      });
       const caipAsset1 =
         'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678' as CaipAssetType;
       const caipAsset2 =
@@ -608,16 +457,21 @@ describe('SearchTokenAutocomplete', () => {
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         caipAsset1,
+        expect.objectContaining({
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+        }),
       );
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         caipAsset2,
+        expect.objectContaining({
+          address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+        }),
       );
     });
 
-    it('logs warning and still tracks analytics when no EVM account found for AssetsController', async () => {
+    it('returns early without adding or TOKEN_ADDED when no account found', async () => {
       setupWithTokenResults();
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
       mockSelectInternalAccountByScope.mockReturnValue(null);
 
       const utils = renderComponent();
@@ -627,16 +481,13 @@ describe('SearchTokenAutocomplete', () => {
       await params.addTokenList();
 
       expect(mockAddCustomAsset).not.toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_ADDED,
+      );
     });
 
     it('logs error but still tracks analytics when addCustomAsset throws', async () => {
       setupWithTokenResults();
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
-      mockSelectInternalAccountByScope.mockReturnValue({
-        id: 'evm-account-id',
-        address: '0xabc',
-      });
       mockAddCustomAsset.mockRejectedValue(new Error('contract error'));
 
       const utils = renderComponent();
@@ -651,11 +502,6 @@ describe('SearchTokenAutocomplete', () => {
 
     it('skips assets where toAssetId returns undefined', async () => {
       setupWithTokenResults();
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
-      mockSelectInternalAccountByScope.mockReturnValue({
-        id: 'evm-account-id',
-        address: '0xabc',
-      });
       mockToAssetId.mockReturnValue(undefined);
 
       const utils = renderComponent();
@@ -687,8 +533,10 @@ describe('SearchTokenAutocomplete', () => {
     const solanaChainId =
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as SupportedCaipChainId;
 
+    const solanaAddress =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y';
     const mockNonEvmToken = {
-      address: 'solana-address-123',
+      address: solanaAddress,
       symbol: 'SOL',
       name: 'Solana',
       decimals: 9,
@@ -706,12 +554,13 @@ describe('SearchTokenAutocomplete', () => {
         loadMore: jest.fn(),
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       } as ReturnType<typeof useTrendingSearch>);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);
     });
 
-    it('returns early and skips addAssets and analytics when no account found', async () => {
+    it('returns early without adding or TOKEN_ADDED when no account found', async () => {
       mockSelectInternalAccountByScope.mockReturnValue(null);
 
       const utils = renderComponent({ selectedChainId: solanaChainId });
@@ -720,16 +569,13 @@ describe('SearchTokenAutocomplete', () => {
       const [, params] = mockNavigation.navigate.mock.calls[0];
       await params.addTokenList();
 
-      expect(
-        Engine.context.MultichainAssetsController.addAssets,
-      ).not.toHaveBeenCalled();
-      // TOKEN_IMPORT_CLICKED fires from goToConfirmAddToken; TOKEN_ADDED must not fire
+      expect(mockAddCustomAsset).not.toHaveBeenCalled();
       expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.TOKEN_ADDED,
       );
     });
 
-    it('tracks analytics after successful non-EVM asset addition', async () => {
+    it('calls AssetsController.addCustomAsset and tracks analytics', async () => {
       mockSelectInternalAccountByScope.mockReturnValue({
         id: 'non-evm-account-id',
         address: 'non-evm-address',
@@ -741,28 +587,121 @@ describe('SearchTokenAutocomplete', () => {
       const [, params] = mockNavigation.navigate.mock.calls[0];
       await params.addTokenList();
 
-      expect(
-        Engine.context.MultichainAssetsController.addAssets,
-      ).toHaveBeenCalled();
+      expect(mockAddCustomAsset).toHaveBeenCalledWith(
+        'non-evm-account-id',
+        solanaAddress,
+        expect.objectContaining({ address: solanaAddress }),
+      );
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({ event: 'mock-event' }),
       );
     });
+  });
 
-    it('does not call AssetsController.addCustomAsset for non-EVM chains', async () => {
-      mockSelectInternalAccountByScope.mockReturnValue({
-        id: 'non-evm-account-id',
-        address: 'non-evm-address',
+  describe('already added tokens from AssetsController', () => {
+    const assetId =
+      'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678' as CaipAssetType;
+
+    it('disables a token present in customAssets', () => {
+      setupWithTokenResults();
+
+      const stateWithCustomAsset = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AssetsController: {
+              customAssets: {
+                'evm-account-id': [assetId],
+              },
+              assetsBalance: {},
+              assetPreferences: {},
+              assetsInfo: {},
+              assetsPrice: {},
+              selectedCurrency: 'usd',
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderComponent({
+        state: stateWithCustomAsset as typeof mockInitialState,
       });
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
 
-      const utils = renderComponent({ selectedChainId: solanaChainId });
-      selectTokenAndPressNext(utils);
+      expect(
+        getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+      ).toBeDisabled();
+    });
 
-      const [, params] = mockNavigation.navigate.mock.calls[0];
-      await params.addTokenList();
+    it('keeps a hidden token selectable so it can be re-imported', () => {
+      setupWithTokenResults();
 
-      expect(mockAddCustomAsset).not.toHaveBeenCalled();
+      const stateWithHiddenAsset = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AssetsController: {
+              customAssets: {},
+              assetsBalance: {
+                'evm-account-id': {
+                  [assetId]: { amount: '1' },
+                },
+              },
+              assetPreferences: {
+                [assetId]: { hidden: true },
+              },
+              assetsInfo: {},
+              assetsPrice: {},
+              selectedCurrency: 'usd',
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderComponent({
+        state: stateWithHiddenAsset as typeof mockInitialState,
+      });
+
+      expect(
+        getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+      ).not.toBeDisabled();
+    });
+  });
+
+  describe('Arc USDC ERC-20 filtering', () => {
+    const ARC_CHAIN_ID = '0x13b2' as Hex;
+    const ARC_ERC20_ADDRESS = '0x3600000000000000000000000000000000000000';
+    const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+    const arcErc20Token = {
+      address: ARC_ERC20_ADDRESS,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: ARC_CHAIN_ID,
+      image: '',
+    };
+    const arcNativeToken = {
+      address: NATIVE_ADDRESS,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 18,
+      chainId: ARC_CHAIN_ID,
+      image: '',
+    };
+
+    it('hides Arc USDC ERC-20 from search results on Arc chain', () => {
+      mockConvertTokens.mockReturnValue([arcErc20Token, arcNativeToken]);
+
+      const { queryAllByTestId } = renderComponent({
+        selectedChainId: ARC_CHAIN_ID,
+      });
+
+      const results = queryAllByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      );
+      expect(results).toHaveLength(1);
     });
   });
 });

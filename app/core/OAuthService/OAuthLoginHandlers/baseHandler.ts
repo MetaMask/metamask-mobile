@@ -1,9 +1,11 @@
 import {
   AuthConnection,
+  OAuthLoginUserInfo,
   AuthRequestParams,
   AuthResponse,
   HandleFlowParams,
   LoginHandlerResult,
+  OAuthUserInfo,
 } from '../OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../error';
 import {
@@ -155,6 +157,23 @@ export abstract class BaseLoginHandler {
     // the browser replacement for atob is https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array/fromBase64
     // which is not supported in all chrome yet
     return bytesToString(toByteArray(base64String));
+  }
+
+  /**
+   * Convert the auth token response into local account identity metadata.
+   *
+   * Providers can override this when their display name is not carried by the
+   * final id_token, such as Telegram's backend-mediated token flow.
+   */
+  getUserInfo(authResponse: AuthResponse): OAuthLoginUserInfo {
+    const jwtPayload = JSON.parse(
+      this.decodeIdToken(authResponse.id_token),
+    ) as Partial<OAuthUserInfo>;
+
+    return {
+      userId: jwtPayload.sub ?? '',
+      accountName: authResponse.account_name ?? jwtPayload.email ?? '',
+    };
   }
 
   /**

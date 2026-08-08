@@ -66,6 +66,7 @@ const Tab: React.FC<TabProps> = ({
           fontWeight={
             isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
           }
+          testID={testID ? `${testID}-label` : undefined}
           twClassName={
             isDisabled
               ? 'text-muted'

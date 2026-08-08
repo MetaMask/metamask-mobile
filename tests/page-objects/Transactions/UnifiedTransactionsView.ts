@@ -1,9 +1,10 @@
 import Matchers from '../../framework/Matchers';
 import { UnifiedTransactionsViewSelectorsIDs } from '../../../app/components/Views/UnifiedTransactionsView/UnifiedTransactionsView.testIds';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 class UnifiedTransactionsView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       UnifiedTransactionsViewSelectorsIDs.CONTAINER,
     );

@@ -99,9 +99,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
-  const { colors } = useTheme();
+  const theme = useTheme();
 
-  const styles = styleSheet(colors);
+  const styles = styleSheet(theme);
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId),

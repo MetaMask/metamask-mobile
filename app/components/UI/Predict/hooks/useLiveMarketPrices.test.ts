@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { useLiveMarketPrices } from './useLiveMarketPrices';
+import {
+  __resetLiveMarketPricesCacheForTest,
+  useLiveMarketPrices,
+} from './useLiveMarketPrices';
 import Engine from '../../../../core/Engine';
 import { PriceUpdate } from '../types';
 
@@ -7,6 +10,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       subscribeToMarketPrices: jest.fn(),
+      subscribeToConnectionStatus: jest.fn(),
       getConnectionStatus: jest.fn(),
     },
   },
@@ -15,23 +19,42 @@ jest.mock('../../../../core/Engine', () => ({
 describe('useLiveMarketPrices', () => {
   const mockSubscribeToMarketPrices = Engine.context.PredictController
     .subscribeToMarketPrices as jest.Mock;
+  const mockSubscribeToConnectionStatus = Engine.context.PredictController
+    .subscribeToConnectionStatus as jest.Mock;
   const mockGetConnectionStatus = Engine.context.PredictController
     .getConnectionStatus as jest.Mock;
   const mockUnsubscribe = jest.fn();
+  const mockUnsubscribeStatus = jest.fn();
+  // Captured connection-status callbacks so tests can push transitions the way
+  // WebSocketManager would.
+  let statusCallbacks: ((status: {
+    sportsConnected: boolean;
+    marketConnected: boolean;
+  }) => void)[] = [];
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    __resetLiveMarketPricesCacheForTest();
+    statusCallbacks = [];
 
     mockSubscribeToMarketPrices.mockReturnValue(mockUnsubscribe);
     mockGetConnectionStatus.mockReturnValue({
       sportsConnected: false,
       marketConnected: true,
     });
+    // Mirror the real subscription: register the callback and invoke it once
+    // immediately with the current status.
+    mockSubscribeToConnectionStatus.mockImplementation((callback) => {
+      statusCallbacks.push(callback);
+      callback(mockGetConnectionStatus());
+      return mockUnsubscribeStatus;
+    });
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   describe('subscription management', () => {
@@ -225,7 +248,7 @@ describe('useLiveMarketPrices', () => {
   });
 
   describe('connection status', () => {
-    it('reflects connected status from PredictController', () => {
+    it('reflects connected status from the initial subscription push', () => {
       mockGetConnectionStatus.mockReturnValue({
         sportsConnected: false,
         marketConnected: true,
@@ -236,7 +259,7 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.isConnected).toBe(true);
     });
 
-    it('reflects disconnected status from PredictController', () => {
+    it('reflects disconnected status from the initial subscription push', () => {
       mockGetConnectionStatus.mockReturnValue({
         sportsConnected: false,
         marketConnected: false,
@@ -247,23 +270,50 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.isConnected).toBe(false);
     });
 
-    it('updates connection status on interval', () => {
-      mockGetConnectionStatus
-        .mockReturnValueOnce({ sportsConnected: false, marketConnected: true })
-        .mockReturnValueOnce({
-          sportsConnected: false,
-          marketConnected: false,
-        });
+    it('updates connection status when the subscription pushes a transition', () => {
+      mockGetConnectionStatus.mockReturnValue({
+        sportsConnected: false,
+        marketConnected: true,
+      });
 
       const { result } = renderHook(() => useLiveMarketPrices(['token1']));
 
       expect(result.current.isConnected).toBe(true);
 
       act(() => {
-        jest.advanceTimersByTime(1000);
+        statusCallbacks.forEach((cb) =>
+          cb({ sportsConnected: false, marketConnected: false }),
+        );
       });
 
       expect(result.current.isConnected).toBe(false);
+    });
+
+    it('does not create a polling timer for connection status', () => {
+      const setIntervalSpy = jest.spyOn(global, 'setInterval');
+
+      renderHook(() => useLiveMarketPrices(['token1']));
+
+      expect(setIntervalSpy).not.toHaveBeenCalled();
+      setIntervalSpy.mockRestore();
+    });
+
+    it('shares one subscription mechanism across many mounted instances', () => {
+      renderHook(() => useLiveMarketPrices(['token1']));
+      renderHook(() => useLiveMarketPrices(['token2']));
+      renderHook(() => useLiveMarketPrices(['token3']));
+
+      // One registration per hook, all through the single shared subscription
+      // (WebSocketManager keeps a single source; no per-instance timers).
+      expect(mockSubscribeToConnectionStatus).toHaveBeenCalledTimes(3);
+    });
+
+    it('unsubscribes from connection status on unmount', () => {
+      const { unmount } = renderHook(() => useLiveMarketPrices(['token1']));
+
+      unmount();
+
+      expect(mockUnsubscribeStatus).toHaveBeenCalled();
     });
   });
 
@@ -280,7 +330,7 @@ describe('useLiveMarketPrices', () => {
       expect(result.current.lastUpdateTime).toBeNull();
     });
 
-    it('resets state when disabled', () => {
+    it('keeps cached prices when disabled so same-token resubscribe does not flicker', () => {
       let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
       mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
@@ -302,11 +352,12 @@ describe('useLiveMarketPrices', () => {
 
       rerender({ enabled: false });
 
-      expect(result.current.prices.size).toBe(0);
+      expect(result.current.prices.size).toBe(1);
+      expect(result.current.getPrice('token1')?.price).toBe(0.75);
       expect(result.current.isConnected).toBe(false);
     });
 
-    it('resets lastUpdateTime when tokenIds change to different valid value', () => {
+    it('removes prices for tokens that are no longer selected', () => {
       let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
       mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
         capturedCallback = callback;
@@ -331,8 +382,35 @@ describe('useLiveMarketPrices', () => {
 
       rerender({ tokenIds: ['token2'] });
 
-      expect(result.current.lastUpdateTime).toBeNull();
       expect(result.current.prices.size).toBe(0);
+      expect(result.current.getPrice('token1')).toBeUndefined();
+    });
+
+    it('seeds a new hook instance from the last live update cache', () => {
+      let capturedCallback: (updates: PriceUpdate[]) => void = jest.fn();
+      mockSubscribeToMarketPrices.mockImplementation((_, callback) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const first = renderHook(() => useLiveMarketPrices(['token1']));
+
+      act(() => {
+        capturedCallback([
+          { tokenId: 'token1', price: 0.75, bestBid: 0.74, bestAsk: 0.76 },
+        ]);
+      });
+
+      first.unmount();
+
+      const second = renderHook(() => useLiveMarketPrices(['token1']));
+
+      expect(second.result.current.getPrice('token1')).toEqual({
+        tokenId: 'token1',
+        price: 0.75,
+        bestBid: 0.74,
+        bestAsk: 0.76,
+      });
     });
 
     it('differentiates tokenIds with commas that could otherwise collide', () => {

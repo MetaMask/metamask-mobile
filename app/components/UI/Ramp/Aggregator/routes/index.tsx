@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Quotes from '../Views/Quotes';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
@@ -10,52 +10,62 @@ import FiatSelectorModal from '../components/FiatSelectorModal';
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import { colors } from '../../../../../styles/common';
 import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
 import RegionSelectorModal from '../components/RegionSelectorModal';
 import UnsupportedRegionModal from '../components/UnsupportedRegionModal';
 import SettingsModal from '../Views/Modals/Settings';
-import { clearStackNavigatorOptions } from '../../../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../../constants/navigation/clearStackNavigatorOptions';
+import type {
+  RampAggregatorRootParamList,
+  RampAggregatorScreensStackParamList,
+  RampModalsNavigationParamList,
+} from '../../types/navigation';
 
-const Stack = createStackNavigator();
-const ModalsStack = createStackNavigator();
+const ScreensStack =
+  createNativeStackNavigator<RampAggregatorScreensStackParamList>();
+const RootStack = createNativeStackNavigator<RampAggregatorRootParamList>();
+const ModalsStack = createNativeStackNavigator<RampModalsNavigationParamList>();
+
+const overlayScreenOptions = {
+  ...clearNativeStackNavigatorOptions,
+  ...transparentModalScreenOptions,
+  gestureEnabled: false,
+};
 
 const MainRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.RAMP.BUILD_QUOTE}>
-    <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
-    <Stack.Screen
+  <ScreensStack.Navigator initialRouteName={Routes.RAMP.BUILD_QUOTE}>
+    <ScreensStack.Screen
+      name={Routes.RAMP.BUILD_QUOTE}
+      component={BuildQuote}
+      options={{ headerShown: false }}
+    />
+    <ScreensStack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
       component={BuildQuote}
-      options={{ animationEnabled: false }}
+      options={{ animation: 'none', headerShown: false }}
     />
-    <Stack.Screen
+    <ScreensStack.Screen
       name={Routes.RAMP.QUOTES}
       component={Quotes}
-      options={{
-        headerShown: false,
-        cardStyle: { backgroundColor: colors.transparent },
-        animationEnabled: false,
-        gestureEnabled: false,
-        detachPreviousScreen: false,
-      }}
+      options={overlayScreenOptions}
     />
-    <Stack.Screen
+    <ScreensStack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={CheckoutWebView}
-      options={{
-        headerShown: false,
-        cardStyle: { backgroundColor: colors.transparent },
-        animationEnabled: false,
-        gestureEnabled: false,
-        detachPreviousScreen: false,
-      }}
+      options={overlayScreenOptions}
     />
-  </Stack.Navigator>
+  </ScreensStack.Navigator>
 );
 
 const RampModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearNativeStackNavigatorOptions,
+      presentation: 'modal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
@@ -91,20 +101,20 @@ const RampModalsRoutes = () => (
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator
+    <RootStack.Navigator
       initialRouteName={Routes.RAMP.ID}
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
-      <Stack.Screen
+      <RootStack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
+      <RootStack.Screen
         name={Routes.RAMP.MODALS.ID}
         component={RampModalsRoutes}
         options={{
-          ...clearStackNavigatorOptions,
-          detachPreviousScreen: false,
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
         }}
       />
-    </Stack.Navigator>
+    </RootStack.Navigator>
   </RampSDKProvider>
 );
 

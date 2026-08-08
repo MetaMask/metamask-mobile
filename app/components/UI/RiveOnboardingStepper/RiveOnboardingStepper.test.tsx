@@ -181,6 +181,43 @@ describe('RiveOnboardingStepper', () => {
     });
   });
 
+  describe('When Rive animation is disabled', () => {
+    it('does not mount the Rive animation', () => {
+      const { queryByTestId } = render(
+        <RiveOnboardingStepper {...defaultProps} enableRiveAnimation={false} />,
+      );
+      expect(
+        queryByTestId(RiveOnboardingStepperTestIds.RIVE_ANIMATION),
+      ).toBeNull();
+    });
+
+    it('reveals content without waiting for Rive onPlay', () => {
+      const { getByTestId } = render(
+        <RiveOnboardingStepper {...defaultProps} enableRiveAnimation={false} />,
+      );
+      // The content is gated behind onPlay when Rive is on; with it off the
+      // footer button must be visible (not opacity-0) immediately.
+      expect(getByTestId(RiveOnboardingStepperTestIds.TITLE)).toBeOnTheScreen();
+      expect(
+        getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON),
+      ).toBeVisible();
+    });
+
+    it('advances steps on Continue without firing a Rive trigger', () => {
+      const onStepChange = jest.fn();
+      const { getByTestId } = render(
+        <RiveOnboardingStepper
+          {...defaultProps}
+          enableRiveAnimation={false}
+          onStepChange={onStepChange}
+        />,
+      );
+      fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON));
+      expect(onStepChange).toHaveBeenCalledWith(1);
+      expect(__mockRiveFireState).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Close button', () => {
     it('does not render close button when onClose is not provided', () => {
       const { queryByTestId } = render(

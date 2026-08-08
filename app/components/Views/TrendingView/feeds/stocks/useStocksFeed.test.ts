@@ -9,6 +9,7 @@ jest.mock('../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
 
 const mockUseRwaTokens = jest.mocked(useRwaTokens);
 const mockRefetch = jest.fn();
+const mockLoadMore = jest.fn();
 
 const makeAsset = (assetId: string, symbol: string): TrendingAsset =>
   ({
@@ -27,6 +28,10 @@ const arrangeRwaTokens = (assets = ALL_RWA_ASSETS) => {
   mockUseRwaTokens.mockReturnValue({
     data: assets,
     isLoading: false,
+    isLoadingMore: false,
+    hasNextPage: false,
+    totalCount: assets.length,
+    loadMore: mockLoadMore,
     refetch: mockRefetch,
   });
 };
@@ -51,6 +56,31 @@ describe('useStocksFeed', () => {
         expect.objectContaining({ searchQuery: undefined }),
       );
     });
+
+    it('requests Ethereum only from the RWA API', () => {
+      renderHook(() => useStocksFeed());
+
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ chainIds: ['eip155:1'] }),
+      );
+    });
+
+    it('passes pageSize to useRwaTokens when provided', () => {
+      renderHook(() => useStocksFeed({ pageSize: 3 }));
+
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ pageSize: 3 }),
+      );
+    });
+
+    it('exposes pagination metadata for full-view pagination', () => {
+      const { result } = renderHook(() => useStocksFeed());
+
+      expect(result.current.loadMore).toBe(mockLoadMore);
+      expect(result.current.isLoadingMore).toBe(false);
+      expect(result.current.hasMore).toBe(false);
+      expect(result.current.totalCount).toBe(ALL_RWA_ASSETS.length);
+    });
   });
 
   describe('query path (omni-search)', () => {
@@ -67,9 +97,17 @@ describe('useStocksFeed', () => {
     });
 
     it('passes the query through to useRwaTokens as searchQuery', () => {
-      renderHook(() => useStocksFeed({ query: 'OUSG' }));
+      renderHook(() => useStocksFeed({ query: ' OUSG ' }));
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
         expect.objectContaining({ searchQuery: 'OUSG' }),
+      );
+    });
+
+    it('does not restrict chainIds when searching', () => {
+      renderHook(() => useStocksFeed({ query: 'OUSG' }));
+
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ chainIds: undefined }),
       );
     });
 
@@ -78,14 +116,24 @@ describe('useStocksFeed', () => {
       const symbols = result.current.data.map((d) => d.symbol);
       expect(symbols).toEqual(['OUSG', 'BUIDL']);
       expect(symbols).not.toContain('bOUSG');
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          searchQuery: undefined,
+          chainIds: ['eip155:1'],
+        }),
+      );
     });
   });
 
-  describe('loading and refetch passthrough', () => {
+  describe('loading, refetch, and pagination passthrough', () => {
     it('forwards isLoading from useRwaTokens', () => {
       mockUseRwaTokens.mockReturnValue({
         data: [],
         isLoading: true,
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: 0,
+        loadMore: mockLoadMore,
         refetch: mockRefetch,
       });
       const { result } = renderHook(() => useStocksFeed());
@@ -95,6 +143,25 @@ describe('useStocksFeed', () => {
     it('forwards refetch from useRwaTokens', () => {
       const { result } = renderHook(() => useStocksFeed());
       expect(result.current.refetch).toBe(mockRefetch);
+    });
+
+    it('forwards pagination state from useRwaTokens when searching', () => {
+      mockUseRwaTokens.mockReturnValue({
+        data: ALL_RWA_ASSETS,
+        isLoading: false,
+        isLoadingMore: true,
+        hasNextPage: true,
+        totalCount: 10,
+        loadMore: mockLoadMore,
+        refetch: mockRefetch,
+      });
+
+      const { result } = renderHook(() => useStocksFeed({ query: 'OUSG' }));
+
+      expect(result.current.isLoadingMore).toBe(true);
+      expect(result.current.hasMore).toBe(true);
+      expect(result.current.totalCount).toBe(10);
+      expect(result.current.loadMore).toBe(mockLoadMore);
     });
   });
 });

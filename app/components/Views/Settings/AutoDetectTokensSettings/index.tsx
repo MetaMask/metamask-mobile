@@ -26,20 +26,20 @@ const AutoDetectTokensSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-  const { addTraitsToUser } = useAnalytics();
+  const { identify } = useAnalytics();
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
 
   const toggleTokenDetection = useCallback(
     (value: boolean) => {
       Engine.context.PreferencesController.setUseTokenDetection(value);
-      addTraitsToUser({
+      identify({
         [UserProfileProperty.TOKEN_DETECTION]: value
           ? UserProfileProperty.ON
           : UserProfileProperty.OFF,
       });
     },
-    [addTraitsToUser],
+    [identify],
   );
 
   return (

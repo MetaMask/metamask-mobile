@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -8,61 +9,44 @@ import React, {
 } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  Box,
+  BoxFlexDirection,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
 import NftGridItemBottomSheet from '../../../../UI/NftGrid/NftGridItemBottomSheet';
+import NftSkeletonCell from '../../../../UI/NftGrid/NftSkeletonCell';
+import { isNftFetchingProgressSelector } from '../../../../../reducers/collectibles';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
-import { CollectiblesEmptyState } from '../../../../UI/CollectiblesEmptyState/CollectiblesEmptyState';
 import { useNftDetection } from '../../../../hooks/useNftDetection';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
-import { isNftFetchingProgressSelector } from '../../../../../reducers/collectibles';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
+import { useHomepageScrollContext } from '../../context/HomepageScrollContext';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { Nft } from '@metamask/assets-controllers';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+
+const NFT_DETECTION_THROTTLE_MS = 300_000; // 5 minutes
 
 const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
 
 const styles = StyleSheet.create({
-  sectionGap: { gap: 12 },
   flex1: { flex: 1 },
 });
-
-const NftSkeletonRow = () => {
-  const { colors } = useTheme();
-  const tw = useTailwind();
-
-  return (
-    <SkeletonPlaceholder
-      backgroundColor={colors.background.section}
-      highlightColor={colors.background.subsection}
-    >
-      <View style={tw.style('flex-row gap-3')}>
-        {Array.from({ length: NFTS_PER_ROW }, (_, index) => (
-          <View key={index} style={tw.style('flex-1')}>
-            <View style={tw.style('w-full aspect-square rounded-xl mb-3')} />
-            <View style={tw.style('h-4 rounded-lg mb-1 w-[60%]')} />
-            <View style={tw.style('h-3.5 rounded-md w-full')} />
-          </View>
-        ))}
-      </View>
-    </SkeletonPlaceholder>
-  );
-};
 
 interface NFTsSectionProps {
   sectionIndex: number;
@@ -72,41 +56,69 @@ interface NFTsSectionProps {
 const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
-    const navigation = useNavigation();
-    const { trackEvent, createEventBuilder } = useAnalytics();
+    const navigation = useNavigation<AppNavigationProp>();
     const ownedNfts = useOwnedNfts();
     const hasNfts = ownedNfts.length > 0;
-    const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
-    const { onRefresh } = useNftRefresh();
-    const { detectNfts, abortDetection } = useNftDetection();
-    const hasLoadedOnceRef = useRef(false);
-    const isSilentDetectionRef = useRef(false);
-
-    useFocusEffect(
-      useCallback(() => {
-        isSilentDetectionRef.current = hasLoadedOnceRef.current;
-
-        detectNfts()
-          .catch(() => {
-            // AbortError is expected when detection is cancelled on blur
-          })
-          .finally(() => {
-            hasLoadedOnceRef.current = true;
-            isSilentDetectionRef.current = false;
-          });
-
-        return () => {
-          abortDetection();
-          isSilentDetectionRef.current = false;
-        };
-      }, [detectNfts, abortDetection]),
+    const isDetecting = useSelector(isNftFetchingProgressSelector);
+    const selectedAddress = useSelector(
+      selectSelectedInternalAccountFormattedAddress,
     );
-
-    const showSkeleton = isNftFetchingProgress && !isSilentDetectionRef.current;
+    const { onRefresh } = useNftRefresh();
+    const { detectNfts } = useNftDetection();
+    const detectNftsRef = useRef(detectNfts);
+    detectNftsRef.current = detectNfts;
 
     const title = strings('homepage.sections.nfts');
 
     useImperativeHandle(ref, () => ({ refresh: onRefresh }), [onRefresh]);
+
+    // Track whether this section is scrolled into the viewport (≥30% visible).
+    // Detection is deferred until the user actually scrolls down to this section.
+    const { isVisible, onLayout: onViewportLayout } = useSectionViewportVisible(
+      sectionViewRef,
+      { isLoading: false },
+    );
+    const { visitId } = useHomepageScrollContext();
+
+    const lastDetectionRef = useRef<number | null>(null);
+    const prevAddressRef = useRef(selectedAddress);
+    // Read via refs to avoid making them deps of the detection effect, which would
+    // cause the effect to re-run when NFTs load in and reset the throttle prematurely.
+    const hasNftsRef = useRef(hasNfts);
+    hasNftsRef.current = hasNfts;
+    const [hasDetected, setHasDetected] = useState(hasNfts);
+
+    // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
+    // Deferred detection — only runs when the section has scrolled into the viewport.
+    // selectedAddress is in deps so an account switch immediately clears the throttle
+    // and re-checks visibility (in case the section is already in view after switching).
+    // visitId re-evaluates on re-focus when the section is already visible.
+    useEffect(() => {
+      if (prevAddressRef.current !== selectedAddress) {
+        prevAddressRef.current = selectedAddress;
+        lastDetectionRef.current = null;
+        setHasDetected(hasNftsRef.current);
+        onViewportLayout();
+      }
+
+      if (!isVisible) {
+        return;
+      }
+
+      const now = Date.now();
+      if (
+        lastDetectionRef.current !== null &&
+        now - lastDetectionRef.current < NFT_DETECTION_THROTTLE_MS
+      ) {
+        return;
+      }
+
+      lastDetectionRef.current = now;
+      setHasDetected(true);
+      detectNftsRef.current(true, false).catch(() => {
+        // detection errors are non-fatal
+      });
+    }, [isVisible, visitId, selectedAddress, onViewportLayout]);
 
     const displayNfts = useMemo(
       () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),
@@ -132,92 +144,90 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       setLongPressedNft(nft);
     }, []);
 
-    const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
-
-    const handleImportNfts = useCallback(() => {
-      setIsAddNFTEnabled(false);
-      navigation.navigate('AddAsset', { assetType: 'collectible' });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES)
-          .addProperties({ action: 'Wallet View', name: 'Add Collectibles' })
-          .build(),
-      );
-      setTimeout(() => setIsAddNFTEnabled(true), 1000);
-    }, [navigation, trackEvent, createEventBuilder]);
-
-    // Pass null while loading so the hook uses the immediate-fire path and
-    // does not fire from viewport visibility with stale itemCount/isEmpty.
-    const isLoadingSection = isNftFetchingProgress && !hasNfts;
-    const willRender = !isLoadingSection;
-
-    const { onLayout } = useHomeViewedEvent({
-      sectionRef: willRender ? sectionViewRef : null,
-      isLoading: isLoadingSection,
+    const { onLayout: onViewedLayout } = useHomeViewedEvent({
+      sectionRef: hasNfts ? sectionViewRef : null,
+      isLoading: isDetecting,
       sectionName: HomeSectionNames.NFTS,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: !hasNfts,
       itemCount: ownedNfts.length,
+      fireImmediateWhenNoView: false,
     });
 
     useSectionPerformance({
       sectionId: HomeSectionNames.NFTS,
-      contentReady: !isLoadingSection,
+      contentReady: hasNfts,
       isEmpty: !hasNfts,
-      isLoading: isLoadingSection,
+      isLoading: isDetecting,
+      enabled: true,
     });
 
+    const onLayout = useCallback(() => {
+      onViewportLayout();
+      onViewedLayout();
+    }, [onViewportLayout, onViewedLayout]);
+
+    // Hide only after detection has run and found nothing.
+    // Before detection runs, keep the View mounted so useSectionViewportVisible
+    // can measure it and trigger detection.
+    if (!hasNfts && hasDetected && !isDetecting) {
+      return null;
+    }
+
+    const isLoading = !hasNfts;
+
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAllNfts}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('nfts')}
-        />
-        {hasNfts ? (
-          <SectionRow gap={3}>
-            {nftRows.map((row, rowIndex) => (
-              <Box
-                key={`nft-row-${rowIndex}`}
-                flexDirection={BoxFlexDirection.Row}
-                gap={3}
-              >
-                {row.map((nft) => (
-                  <View
-                    key={`${nft.address}-${nft.tokenId}`}
-                    style={styles.flex1}
-                  >
-                    <NftGridItem
-                      item={nft}
-                      onLongPress={handleLongPress}
-                      source="mobile-nft-list"
-                    />
-                  </View>
-                ))}
-                {/* Add empty boxes to maintain grid alignment for incomplete rows */}
-                {row.length < NFTS_PER_ROW &&
-                  Array.from({ length: NFTS_PER_ROW - row.length }).map(
-                    (__, i) => (
-                      <Box
-                        key={`empty-${rowIndex}-${i}`}
-                        twClassName="flex-1"
-                      />
-                    ),
-                  )}
-              </Box>
-            ))}
-          </SectionRow>
-        ) : showSkeleton ? (
-          <SectionRow>
-            <NftSkeletonRow />
-          </SectionRow>
-        ) : (
-          <CollectiblesEmptyState
-            onAction={handleImportNfts}
-            actionButtonProps={{ isDisabled: !isAddNFTEnabled }}
-            twClassName="mx-auto mt-2"
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <Box paddingBottom={3}>
+          <SectionDivider />
+          <SectionHeader
+            title={title}
+            isInteractive={hasNfts}
+            onPress={hasNfts ? handleViewAllNfts : undefined}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('nfts')}
           />
-        )}
+          <SectionRow gap={3}>
+            {isLoading ? (
+              <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+                <NftSkeletonCell animated={isDetecting} />
+                <NftSkeletonCell animated={isDetecting} />
+                <NftSkeletonCell animated={isDetecting} />
+              </Box>
+            ) : (
+              nftRows.map((row, rowIndex) => (
+                <Box
+                  key={`nft-row-${rowIndex}`}
+                  flexDirection={BoxFlexDirection.Row}
+                  gap={3}
+                >
+                  {row.map((nft) => (
+                    <View
+                      key={`${nft.address}-${nft.tokenId}`}
+                      style={styles.flex1}
+                    >
+                      <NftGridItem
+                        item={nft}
+                        onLongPress={handleLongPress}
+                        source="mobile-nft-list"
+                      />
+                    </View>
+                  ))}
+                  {/* Empty boxes maintain grid alignment for incomplete rows */}
+                  {row.length < NFTS_PER_ROW &&
+                    Array.from({ length: NFTS_PER_ROW - row.length }).map(
+                      (__, i) => (
+                        <Box
+                          key={`empty-${rowIndex}-${i}`}
+                          twClassName="flex-1"
+                        />
+                      ),
+                    )}
+                </Box>
+              ))
+            )}
+          </SectionRow>
+        </Box>
         <NftGridItemBottomSheet
           isVisible={longPressedNft !== null}
           onClose={() => setLongPressedNft(null)}

@@ -13,9 +13,19 @@ import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { mockTheme } from '../../../../util/theme';
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    // useContext is stubbed below for ToastContext only; keep useTheme on
+    // mockTheme so colors.success.default is defined in toast callbacks.
+    useTheme: () => actual.mockTheme,
+  };
+});
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
@@ -183,7 +193,8 @@ describe('usePredictPlaceOrder', () => {
       expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: ToastVariants.Icon,
-          iconName: IconName.Check,
+          iconName: IconName.Confirmation,
+          iconColor: mockTheme.colors.success.default,
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('Prediction placed'),
@@ -223,6 +234,14 @@ describe('usePredictPlaceOrder', () => {
         preview: createMockOrderPreview({
           side: Side.SELL,
           minAmountReceived: 150,
+          fees: {
+            metamaskFee: 4.5,
+            providerFee: 1.5,
+            marketFee: 1,
+            totalFee: 6,
+            totalFeePercentage: 4,
+            collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+          },
         }),
       };
       const { result } = renderHook(() => usePredictPlaceOrder());
@@ -236,11 +255,16 @@ describe('usePredictPlaceOrder', () => {
       expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: ToastVariants.Icon,
-          iconName: IconName.Check,
+          iconName: IconName.Confirmation,
+          iconColor: mockTheme.colors.success.default,
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('Cashed out'),
               isBold: true,
+            }),
+            expect.objectContaining({
+              label: '143.00 added to your balance',
+              isBold: false,
             }),
           ]),
           hasNoTimeout: false,
@@ -743,6 +767,36 @@ describe('usePredictPlaceOrder', () => {
       expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
       expect(mockDeposit).not.toHaveBeenCalled();
       expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('loading state', () => {
+    it('sets loading state before the pre-submit balance refetch resolves', async () => {
+      let resolveBalance: (value: { data: number }) => void = () => undefined;
+      mockRefetchBalance.mockReturnValue(
+        new Promise((resolve) => {
+          resolveBalance = resolve;
+        }),
+      );
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let pendingOrder: Promise<PlaceOrderOutcome> | undefined;
+      act(() => {
+        pendingOrder = result.current.placeOrder(mockOrderParams);
+      });
+      const isLoadingDuringRefetch = result.current.isLoading;
+      const refetchCallsDuringRefetch = mockRefetchBalance.mock.calls.length;
+      const orderCallsDuringRefetch = mockPlaceOrder.mock.calls.length;
+      await act(async () => {
+        resolveBalance({ data: 1000 });
+        await pendingOrder;
+      });
+
+      expect(refetchCallsDuringRefetch).toBe(1);
+      expect(orderCallsDuringRefetch).toBe(0);
+      expect(isLoadingDuringRefetch).toBe(true);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 

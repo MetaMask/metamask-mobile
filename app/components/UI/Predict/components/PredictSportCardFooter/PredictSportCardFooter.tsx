@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -7,13 +8,10 @@ import {
   PredictMarketStatus,
   PredictOutcomeToken,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictPicksForCard } from '../PredictPicks';
@@ -39,19 +37,9 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   onBuyButtonPress,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,
@@ -112,11 +100,15 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        // Claims are aggregate; market attribution is derived controller-side.
+        await claim({
+          entryPoint:
+            resolvedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [executeGuardedAction, claim]);
+  }, [executeGuardedAction, claim, resolvedEntryPoint]);
 
   const hasPositions = positions.length > 0;
   const hasClaimablePositions = claimablePositions.length > 0;

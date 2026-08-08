@@ -23,6 +23,17 @@ export enum AccountType {
   ImportedGoogle = 'imported_google',
   MetamaskApple = 'metamask_apple',
   ImportedApple = 'imported_apple',
+  MetamaskTelegram = 'metamask_telegram',
+  ImportedTelegram = 'imported_telegram',
+}
+
+/**
+ * High-level onboarding path for Sentry journey filtering.
+ * Attached to Onboarding - Overall Journey as `onboarding.method`.
+ */
+export enum OnboardingMethod {
+  Social = 'social',
+  Srp = 'srp',
 }
 
 export const WalletCreationErrorCtaType = {
@@ -46,6 +57,10 @@ const socialAccountTypeMap: Record<
     new: AccountType.MetamaskApple,
     existing: AccountType.ImportedApple,
   },
+  telegram: {
+    new: AccountType.MetamaskTelegram,
+    existing: AccountType.ImportedTelegram,
+  },
 };
 
 export function getSocialAccountType(
@@ -63,6 +78,7 @@ export enum ONBOARDING_SUCCESS_FLOW {
   BACKED_UP_SRP = 'backedUpSRP',
   NO_BACKED_UP_SRP = 'noBackedUpSRP',
   IMPORT_FROM_SEED_PHRASE = 'importFromSeedPhrase',
+  SEEDLESS_ONBOARDING = 'seedlessOnboarding',
   SETTINGS_BACKUP = 'settingsBackup',
   REMINDER_BACKUP = 'reminderBackup',
 }

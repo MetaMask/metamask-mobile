@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 import {
   FontWeight,
@@ -21,6 +22,7 @@ import {
 import styleSheet from './SmartAccount.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { TouchableOpacity } from 'react-native';
 
 interface SmartAccountDetailsProps {
@@ -29,7 +31,7 @@ interface SmartAccountDetailsProps {
 
 export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const onSmartAccountPress = useCallback(() => {
     navigation.navigate('SmartAccountDetails', { account });

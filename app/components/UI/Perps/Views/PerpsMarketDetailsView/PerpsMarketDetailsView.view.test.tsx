@@ -6,7 +6,13 @@
  */
 import '../../../../../../tests/component-view/mocks';
 import type { ComponentType } from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
 import {
   MOCK_PERPS_MARKET_INSIGHTS_REPORT,
@@ -33,6 +39,7 @@ import {
   getPerpsCandlePeriodSelector,
   getPerpsCandlePeriodBottomSheetSelector,
 } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const CANDLE_SELECTOR_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector` as const;
@@ -104,14 +111,14 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens market-hours tooltip when info button is pressed for equity markets', async () => {
+  it('opens market-hours tooltip when info button is pressed for stock markets', async () => {
     renderPerpsMarketDetailsView({
       initialParams: {
         market: {
           symbol: 'AAPL',
           name: 'Apple',
           maxLeverage: '10x',
-          marketType: 'equity',
+          marketType: 'stock',
           price: '$200',
           change24h: '$0',
           change24hPercent: '0%',
@@ -355,6 +362,7 @@ describe('PerpsMarketDetailsView', () => {
           price: '2800',
           markPrice: '2800',
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
       stream.emitPositions([]);
@@ -431,7 +439,7 @@ describe('PerpsMarketDetailsView', () => {
             symbol: 'AAPL',
             name: 'Apple',
             maxLeverage: '10x',
-            marketType: 'equity',
+            marketType: 'stock',
             price: '$200',
             change24h: '$0',
             change24hPercent: '0%',
@@ -484,21 +492,46 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
-          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
         ),
       ).toBeOnTheScreen();
     });
 
-    it('renders header and title section with market title', async () => {
+    it('renders header with full asset name and market pair subtitle', async () => {
       renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
-      expect(screen.getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.SUBTITLE),
+      ).toHaveTextContent('ETH-USD perp');
     });
 
-    it('renders title section with price when market has no maxLeverage', async () => {
+    it('renders live price, 24h change, and fullscreen button inside the market summary row', async () => {
+      renderEligibleNoPositionPerpsDetails();
+
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
+      );
+
+      expect(
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the market summary price when the market has no maxLeverage', async () => {
       renderPerpsMarketDetailsView({
         initialParams: {
           market: {
@@ -508,11 +541,20 @@ describe('PerpsMarketDetailsView', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
           },
         },
         streamOverrides: {
           positions: [],
-          marketData: [{ symbol: 'BTC', name: 'Bitcoin', maxLeverage: '50x' }],
+          marketData: [
+            {
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              maxLeverage: '50x',
+              volume: '$1M',
+              openInterest: '$500K',
+            },
+          ],
         },
         overrides: {
           engine: {
@@ -526,31 +568,16 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
-      expect(
-        await screen.findByTestId(
-          PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        await screen.findByTestId(
-          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_TITLE_SECTION,
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('title section onLayout sets header height for scroll animation', async () => {
-      renderEligibleNoPositionPerpsDetails();
-
-      const titleSectionWrapper = await screen.findByTestId(
-        PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
       );
-      fireEvent(titleSectionWrapper, 'layout', {
-        nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
-      });
-
-      expect(titleSectionWrapper).toBeOnTheScreen();
       expect(
-        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -558,7 +585,7 @@ describe('PerpsMarketDetailsView', () => {
       renderEligibleNoPositionPerpsDetails();
 
       const fullscreenButton = await screen.findByTestId(
-        `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 
@@ -837,6 +864,98 @@ describe('PerpsMarketDetailsView', () => {
           MarketInsightsSelectorsIDs.FEEDBACK_BOTTOM_SHEET,
         ),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('About section', () => {
+    const aboutDescription =
+      'Ethereum is a decentralized smart contract platform. It powers DeFi, NFTs, and a large ecosystem of applications secured by proof of stake.';
+
+    it('shows About with Read more when the market has a description, then expands on press', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        initialParams: {
+          market: createEthMarketForViews({
+            description: aboutDescription,
+          }),
+        },
+        streamOverrides: {
+          positions: [],
+          marketData: [
+            createEthMarketForViews({ description: aboutDescription }),
+          ],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.market.about_asset', { assetName: 'Ethereum' }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION,
+        ),
+      ).toHaveTextContent(aboutDescription);
+
+      // Measure text reports more than 3 lines → Read more becomes available.
+      fireEvent(
+        screen.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION}-measure`,
+        ),
+        'textLayout',
+        {
+          nativeEvent: {
+            lines: [
+              { text: 'line 1' },
+              { text: 'line 2' },
+              { text: 'line 3' },
+              { text: 'line 4' },
+            ],
+          },
+        },
+      );
+
+      const readMore = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE,
+      );
+      fireEvent.press(readMore);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(
+            PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION)
+          .props.numberOfLines,
+      ).toBeUndefined();
+    });
+
+    it('does not show About when the market has no description', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        initialParams: {
+          market: createEthMarketForViews(),
+        },
+        streamOverrides: {
+          positions: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
+      ).not.toBeOnTheScreen();
     });
   });
 });

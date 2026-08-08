@@ -27,7 +27,11 @@ import {
   type GasFeeEstimates,
 } from '@metamask/transaction-controller';
 import { LedgerReplacementTxTypes } from '../../UI/LedgerModals/LedgerTransactionModal';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import {
+  createQRSigningTransactionModalNavDetails,
+  QRSignMode,
+} from '../../UI/QRHardware/QRSigningTransactionModal';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const mockNavigate = jest.fn();
 
@@ -46,9 +50,19 @@ jest.mock('../../../util/conversions', () => ({
   decGWEIToHexWEI: jest.fn(),
 }));
 
-jest.mock('../../../util/number', () => ({
+jest.mock('../../../util/number/bigint', () => ({
   addHexPrefix: jest.fn(),
 }));
+
+const mockGetGasValuesForReplacement = jest.fn();
+jest.mock('../../../util/confirmation/gas', () => {
+  const actual = jest.requireActual('../../../util/confirmation/gas');
+  return {
+    ...actual,
+    getGasValuesForReplacement: (...args: unknown[]) =>
+      mockGetGasValuesForReplacement(...args),
+  };
+});
 
 jest.mock('../../../util/transaction-controller', () => ({
   speedUpTransaction: jest.fn(),
@@ -63,6 +77,10 @@ jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
   createQRSigningTransactionModalNavDetails: jest
     .fn()
     .mockReturnValue(['QRSigningModal', {}]),
+  QRSignMode: {
+    SpeedUp: 'speedup',
+    Cancel: 'cancel',
+  },
 }));
 
 jest.mock('@metamask/rpc-errors', () => ({
@@ -108,7 +126,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 import { decGWEIToHexWEI } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
+import { addHexPrefix } from '../../../util/number/bigint';
 import {
   speedUpTransaction as speedUpTx,
   getPreviousGasFromController,
@@ -157,6 +175,10 @@ describe('useUnifiedTxActions', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockGetGasValuesForReplacement.mockImplementation(
+      jest.requireActual('../../../util/confirmation/gas')
+        .getGasValuesForReplacement,
+    );
     engineContext.TransactionController.getTransactions = jest.fn(() => []);
     mockShowToast.mockClear();
 
@@ -369,6 +391,29 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.speedUpIsOpen).toBe(false);
       expect(result.current.speedUpTxId).toBe('8');
       expect(result.current.existingTx).toBe(tx);
+    });
+
+    it('shows toast when gas value computation fails', async () => {
+      mockGetGasValuesForReplacement.mockImplementationOnce(() => {
+        throw new Error('gas computation failed');
+      });
+
+      const { result } = renderUnifiedTxActions();
+      const tx = { id: 'gas-fail' } as unknown as TransactionMeta;
+
+      act(() => result.current.onSpeedUpAction(true, tx));
+      await act(async () => {
+        await result.current.speedUpTransaction();
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          descriptionOptions: {
+            description: 'gas computation failed',
+          },
+        }),
+      );
+      expect(result.current.speedUpIsOpen).toBe(false);
     });
 
     it('uses GasFeeController estimates when type is missing', async () => {
@@ -1000,6 +1045,73 @@ describe('useUnifiedTxActions', () => {
           expect(result.current.cancelIsOpen).toBe(false);
           expect(result.current.cancelTxId).toBeNull();
           expect(result.current.existingTx).toBeNull();
+        });
+      });
+
+      describe('QR hardware account transactions', () => {
+        beforeEach(() => {
+          (isHardwareAccount as jest.Mock).mockImplementation(
+            (_address: string, keyringTypes?: string[]) =>
+              Boolean(keyringTypes?.includes(ExtendedKeyringTypes.qr)),
+          );
+        });
+
+        afterEach(() => {
+          (isHardwareAccount as jest.Mock).mockReturnValue(false);
+        });
+
+        it('passes speed-up transaction id to QR signing modal and closes gas modal', async () => {
+          const { result } = renderUnifiedTxActions();
+          const tx = { id: 'qr-speedup-1' } as unknown as TransactionMeta;
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction({
+              maxFeePerGas: '0xaa',
+              maxPriorityFeePerGas: '0xbb',
+            });
+          });
+
+          expect(
+            createQRSigningTransactionModalNavDetails,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              transactionId: 'qr-speedup-1',
+              signMode: QRSignMode.SpeedUp,
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith('QRSigningModal', {});
+          expect(result.current.speedUpIsOpen).toBe(false);
+          expect(result.current.speedUpTxId).toBeNull();
+          expect(speedUpTx).not.toHaveBeenCalled();
+        });
+
+        it('passes cancel transaction id to QR signing modal and closes gas modal', async () => {
+          const { result } = renderUnifiedTxActions();
+          const tx = { id: 'qr-cancel-1' } as unknown as TransactionMeta;
+
+          act(() => result.current.onCancelAction(true, tx));
+          await act(async () => {
+            await result.current.cancelTransaction({
+              maxFeePerGas: '0x11',
+              maxPriorityFeePerGas: '0x22',
+            });
+          });
+
+          expect(
+            createQRSigningTransactionModalNavDetails,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              transactionId: 'qr-cancel-1',
+              signMode: QRSignMode.Cancel,
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith('QRSigningModal', {});
+          expect(result.current.cancelIsOpen).toBe(false);
+          expect(result.current.cancelTxId).toBeNull();
+          expect(
+            engineContext.TransactionController.stopTransaction,
+          ).not.toHaveBeenCalled();
         });
       });
     });

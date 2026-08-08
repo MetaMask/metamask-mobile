@@ -5,12 +5,10 @@ import {
   enableAccounts,
   disableAccounts,
   fetchAccountNotificationSettings,
-  toggleFeatureAnnouncements,
 } from '../../../actions/notification/helpers';
 
 import { debounce } from 'lodash';
 import {
-  selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
   selectIsMetaMaskPushNotificationsLoading,
   selectIsUpdatingMetamaskNotifications,
@@ -48,31 +46,6 @@ export function useNotificationsToggle() {
     data,
     loading,
     error: enableError || disableError,
-  };
-}
-
-export function useFeatureAnnouncementToggle() {
-  const { listNotifications } = useListNotifications();
-  const isEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
-  const data = useSelector(selectIsFeatureAnnouncementsEnabled);
-  const switchFeatureAnnouncements = useCallback(
-    async (val: boolean) => {
-      assertIsFeatureEnabled();
-      if (!isEnabled) {
-        return;
-      }
-
-      await toggleFeatureAnnouncements(val);
-
-      // Refetch notifications
-      debounce(listNotifications)();
-    },
-    [isEnabled, listNotifications],
-  );
-
-  return {
-    data,
-    switchFeatureAnnouncements,
   };
 }
 

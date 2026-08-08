@@ -7,7 +7,7 @@ import {
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePredictMarketData } from './usePredictMarketData';
-import { PredictMarket, Recurrence } from '../types';
+import { PredictMarket, PredictOutcome, Recurrence } from '../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock dependencies
@@ -130,6 +130,32 @@ describe('usePredictMarketData', () => {
     },
   ];
 
+  const createOutcome = (id: string, price: number): PredictOutcome => ({
+    ...mockMarketData[0].outcomes[0],
+    id,
+    title: id,
+    tokens: [
+      {
+        ...mockMarketData[0].outcomes[0].tokens[0],
+        id: `${id}-token`,
+        price,
+      },
+    ],
+  });
+
+  const createMarket = (
+    id: string,
+    outcomes = [createOutcome(`${id}-outcome`, 0.5)],
+    overrides: Partial<PredictMarket> = {},
+  ): PredictMarket => ({
+    ...mockMarketData[0],
+    id,
+    slug: id,
+    title: id,
+    outcomes,
+    ...overrides,
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -245,6 +271,64 @@ describe('usePredictMarketData', () => {
       rawMarkets.slice(0, 18).map((market) => market.id),
     );
     expect(result.current.hasMore).toBe(true);
+  });
+
+  it('filters stale markets and keeps pagination metadata unchanged', async () => {
+    const staleMarket = createMarket('stale-market', [
+      createOutcome('stale-high', 0.99),
+      createOutcome('stale-low', 0.01),
+    ]);
+    const liveMarket = createMarket('live-market');
+    const partialMarket = createMarket('partial-market', [
+      createOutcome('partial-dead', 0.99),
+      createOutcome('partial-live', 0.45),
+    ]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [staleMarket, liveMarket, partialMarket],
+      nextCursor: 'next-cursor',
+    });
+
+    const { result } = renderHook(() => usePredictMarketData({ pageSize: 20 }));
+
+    await waitFor(() => {
+      expect(result.current.isFetching).toBe(false);
+    });
+
+    expect(result.current.marketData.map((market) => market.id)).toEqual([
+      'live-market',
+      'partial-market',
+    ]);
+    expect(result.current.marketData[1].outcomes).toEqual([
+      createOutcome('partial-live', 0.45),
+    ]);
+    expect(result.current.hasMore).toBe(true);
+  });
+
+  it('keeps highlighted stale markets pinned before live markets', async () => {
+    const liveMarket = createMarket('live-market');
+    const highlightedMarket = createMarket(
+      'highlighted-market',
+      [createOutcome('highlighted-dead', 0.99)],
+      { isHighlighted: true },
+    );
+    mockGetMarkets.mockResolvedValue({
+      markets: [liveMarket, highlightedMarket],
+      nextCursor: null,
+    });
+
+    const { result } = renderHook(() => usePredictMarketData());
+
+    await waitFor(() => {
+      expect(result.current.isFetching).toBe(false);
+    });
+
+    expect(result.current.marketData.map((market) => market.id)).toEqual([
+      'highlighted-market',
+      'live-market',
+    ]);
+    expect(result.current.marketData[0].outcomes).toEqual([
+      createOutcome('highlighted-dead', 0.99),
+    ]);
   });
 
   it('uses raw page offsets when loading more after child cards are filtered', async () => {

@@ -1,0 +1,418 @@
+# Appium Smoke Tests — Android
+#
+# Fans out one reusable job per Appium smoke tag. Add a matching job below.
+# Invoked from ci.yml when build-android-apks succeeds (PR + main).
+
+name: Appium Smoke Tests (Android)
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAccounts"] or ["ALL"])'
+        required: false
+        type: string
+        default: '["ALL"]'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector'
+        required: false
+        type: string
+        default: '["ALL"]'
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  appium-accounts-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-accounts-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeAccounts
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-perps-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokePerps'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-perps-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokePerps
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-predictions-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokePredictions'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-predictions-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokePredictions
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-seedless-onboarding-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-seedless-onboarding-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeSeedlessOnboarding
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-snaps-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeSnaps'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4, 5, 6]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-snaps-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeSnaps
+      split_number: ${{ matrix.split }}
+      total_splits: 6
+      # Session reuse + soft reload: denser shards; drop toward 25 after one green main.
+      test-timeout-minutes: 30
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-network-abstractions-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-network-abstractions-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeNetworkAbstractions
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-wallet-platform-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-wallet-platform-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeWalletPlatform
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-swap-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeSwap'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-swap-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeSwap
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 30
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-stake-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeStake'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-stake-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeStake
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  # appium-mmconnect-android-smoke:
+  #   if: >-
+  #     ${{
+  #       !cancelled() &&
+  #       (contains(fromJson(inputs.selected_tags), 'ALL') ||
+  #        contains(fromJson(inputs.selected_tags), 'SmokeMMConnect'))
+  #     }}
+  #   strategy:
+  #     matrix:
+  #       split: [1]
+  #     fail-fast: false
+  #   uses: ./.github/workflows/run-appium-e2e-workflow.yml
+  #   with:
+  #     test-suite-name: appium-mmconnect-android-smoke-${{ matrix.split }}
+  #     platform: android
+  #     test_suite_tag: SmokeMMConnect
+  #     split_number: ${{ matrix.split }}
+  #     total_splits: 1
+  #     test-timeout-minutes: 35
+  #     android-tag: google_apis
+  #     build_type: ${{ inputs.build_type }}
+  #     metamask_environment: ${{ inputs.metamask_environment }}
+  #     runner_provider: ${{ inputs.runner_provider }}
+  #   secrets: inherit
+
+  appium-money-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeMoney'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-money-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeMoney
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-browser-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeBrowser'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-browser-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeBrowser
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-confirmations-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeConfirmations'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-confirmations-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeConfirmations
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 35
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-multichain-api-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-multichain-api-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeMultiChainAPI
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-network-expansion-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeNetworkExpansion'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-network-expansion-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeNetworkExpansion
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit

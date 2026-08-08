@@ -8,10 +8,15 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
-import { hasTransactionType } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../pay/useTransactionPayData';
+import { getTotalPayFeesUsd } from '../../utils/transaction-pay';
 
 export function useInsufficientPredictBalanceAlert({
   pendingAmount,
@@ -21,6 +26,9 @@ export function useInsufficientPredictBalanceAlert({
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { amountPrecise } = useTokenAmount();
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
+  const totals = useTransactionPayTotals();
+  const quotes = useTransactionPayQuotes();
+  const hasQuotes = Boolean(quotes?.length);
 
   const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
@@ -28,12 +36,38 @@ export function useInsufficientPredictBalanceAlert({
     TransactionType.predictWithdraw,
   ]);
 
-  const isInsufficient = useMemo(
-    () =>
-      isPredictWithdraw &&
-      new BigNumber(predictBalanceHuman ?? '0').isLessThan(amountHuman),
-    [amountHuman, isPredictWithdraw, predictBalanceHuman],
-  );
+  const isPendingInput = pendingAmount !== undefined;
+
+  const isInsufficient = useMemo(() => {
+    if (!isPredictWithdraw) return false;
+
+    if (new BigNumber(predictBalanceHuman ?? '0').isLessThan(amountHuman)) {
+      return true;
+    }
+
+    // Predict withdraws are EXACT_INPUT: fees are deducted from the receive
+    // amount, never added on top of the entered amount. Only guard against
+    // fees consuming the entire withdrawal.
+    if (
+      !isPendingInput &&
+      hasQuotes &&
+      totals?.fees &&
+      new BigNumber(amountHuman).isGreaterThan(0)
+    ) {
+      if (getTotalPayFeesUsd(totals.fees).isGreaterThanOrEqualTo(amountHuman)) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [
+    amountHuman,
+    hasQuotes,
+    isPendingInput,
+    isPredictWithdraw,
+    predictBalanceHuman,
+    totals,
+  ]);
 
   return useMemo(() => {
     if (!isInsufficient) {
@@ -44,7 +78,10 @@ export function useInsufficientPredictBalanceAlert({
       {
         key: AlertKeys.InsufficientPredictBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },

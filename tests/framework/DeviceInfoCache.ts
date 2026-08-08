@@ -1,7 +1,7 @@
 /**
  * Cached device information to avoid repeated HTTP calls to the Appium server.
  *
- * Used only on the Playwright + WebdriverIO/Appium path (`tests/framework/fixture`, gestures,
+ * Used only on the Playwright + WebdriverIO/Appium path (`tests/framework/fixtures/playwright`, gestures,
  * utilities). Detox smoke/regression does not use this module — `PlatformDetector` reads from
  * Detox `device` there, not from this cache.
  *

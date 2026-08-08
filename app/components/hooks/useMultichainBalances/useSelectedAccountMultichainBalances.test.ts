@@ -57,6 +57,10 @@ const MOCK_STORE_STATE = {
         currentCurrency: 'USD',
         conversionRate: 1,
       },
+      AssetsController: {
+        ...backgroundState.AssetsController,
+        selectedCurrency: 'USD',
+      },
       PreferencesController: {
         isTokenNetworkFilterEqualCurrentNetwork: true,
       },

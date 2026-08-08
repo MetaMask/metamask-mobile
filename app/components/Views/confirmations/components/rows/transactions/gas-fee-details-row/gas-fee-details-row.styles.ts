@@ -51,6 +51,10 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 8,
       paddingHorizontal: 8,
     },
+    paidByMetaMask: {
+      height: undefined,
+      paddingVertical: 2,
+    },
   });
 };
 

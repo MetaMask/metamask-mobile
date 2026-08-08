@@ -28,7 +28,7 @@ describe('MoneyWhatYouGet', () => {
     expect(container).toHaveTextContent(/dollar-backed stablecoin/);
     expect(container).toHaveTextContent(/Get full liquidity/);
     expect(container).toHaveTextContent(/1-3% mUSD back/);
-    expect(container).toHaveTextContent(/Transfer to any of your wallets/);
+    expect(container).toHaveTextContent(/Send to any of your wallets/);
     expect(container).toHaveTextContent(/Send and receive funds globally/);
   });
 
@@ -75,11 +75,11 @@ describe('MoneyWhatYouGet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the inline APY text in the auto-earn benefit when apy is zero', () => {
-    const { queryByText } = render(<MoneyWhatYouGet apy={0} />);
+  it('renders the inline APY text in the auto-earn benefit when apy is zero', () => {
+    const { getByText } = render(<MoneyWhatYouGet apy={0} />);
 
     expect(
-      queryByText(strings('money.apy_label', { percentage: 0 })),
-    ).not.toBeOnTheScreen();
+      getByText(strings('money.apy_label', { percentage: 0 })),
+    ).toBeOnTheScreen();
   });
 });

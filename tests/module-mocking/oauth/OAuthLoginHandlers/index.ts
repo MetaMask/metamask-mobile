@@ -37,6 +37,7 @@ interface AuthResponse {
   refresh_token: string;
   revoke_token: string;
   metadata_access_token: string;
+  account_name?: string;
 }
 
 /**
@@ -109,6 +110,21 @@ abstract class MockBaseLoginHandler {
     } catch {
       return '{}';
     }
+  }
+
+  getUserInfo(authResponse: AuthResponse): {
+    userId: string;
+    accountName: string;
+  } {
+    const payload = JSON.parse(this.decodeIdToken(authResponse.id_token)) as {
+      sub?: string;
+      email?: string;
+    };
+
+    return {
+      userId: payload.sub ?? '',
+      accountName: authResponse.account_name ?? payload.email ?? '',
+    };
   }
 }
 
@@ -235,12 +251,70 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
 }
 
 /**
+ * Mock Telegram Login Handler
+ *
+ * Mirrors the PKCE code-based TelegramLoginHandler shape used by production.
+ * Performance builds with E2E_MOCK_OAUTH skip login() and use QAMockOAuthService,
+ * but createLoginHandler must still return a Telegram handler with clientId.
+ */
+class MockTelegramLoginHandler extends MockBaseLoginHandler {
+  authConnection = 'telegram';
+  scope = ['openid'];
+  authServerPath = 'api/v1/oauth/mint';
+
+  private clientId: string;
+  private redirectUri: string;
+
+  constructor(params: { clientId: string; redirectUri?: string }) {
+    super();
+    this.clientId = params.clientId;
+    this.redirectUri = params.redirectUri || 'metamask://';
+    this.options = {
+      clientId: this.clientId,
+      authServerUrl: this.authServerUrl,
+      web3AuthNetwork: this.web3AuthNetwork,
+    };
+  }
+
+  async login(): Promise<LoginHandlerResult> {
+    const email = E2EOAuthHelpers.getE2EEmail();
+    console.log(`[E2E Mock] Telegram login with email: ${email}`);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    return {
+      authConnection: this.authConnection,
+      code: 'e2e-mock-telegram-code',
+      clientId: this.clientId,
+      redirectUri: this.redirectUri,
+      codeVerifier: 'e2e-mock-code-verifier',
+      email,
+    };
+  }
+
+  getAuthTokenRequestData(
+    params: LoginHandlerResult & { web3AuthNetwork: string },
+  ): Record<string, unknown> {
+    return {
+      client_id: params.clientId,
+      redirect_uri: params.redirectUri,
+      code: params.code,
+      login_provider: this.authConnection,
+      network: params.web3AuthNetwork,
+      code_verifier: params.codeVerifier,
+      email: params.email || E2EOAuthHelpers.getE2EEmail(),
+    };
+  }
+}
+
+/**
  * Factory function to create mock login handlers
  */
 export function createLoginHandler(
   _platformOS: Platform['OS'],
   provider: string,
   _fallback = false,
+  options?: { telegramLoginEnabled?: boolean },
 ): MockBaseLoginHandler {
   console.log(`[E2E Mock] createLoginHandler called for provider: ${provider}`);
 
@@ -253,6 +327,14 @@ export function createLoginHandler(
     case 'apple':
       return new MockAppleLoginHandler({
         clientId: 'e2e-mock-apple-client-id',
+      });
+    case 'telegram':
+      if (!options?.telegramLoginEnabled) {
+        throw new Error('[E2E Mock] Telegram login is not available');
+      }
+      return new MockTelegramLoginHandler({
+        clientId: 'e2e-mock-telegram-client-id',
+        redirectUri: 'metamask://e2e',
       });
     default:
       throw new Error(`[E2E Mock] Unsupported provider: ${provider}`);

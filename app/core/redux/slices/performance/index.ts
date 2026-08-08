@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import { isTest } from '../../../../util/test/utils';
+import { isTestEnvironment } from '../../../../util/test/utils';
 import { createSelector } from 'reselect';
 import { Platform } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
@@ -59,7 +59,7 @@ const slice = createSlice({
         environment?: PerformanceState['environment'];
       }>,
     ) => {
-      if (!isTest) {
+      if (!isTestEnvironment) {
         return;
       }
       // Initialize session if not already initialized
@@ -89,7 +89,7 @@ const slice = createSlice({
         additionalMetadata?: Record<string, unknown>;
       }>,
     ) => {
-      if (!isTest) {
+      if (!isTestEnvironment) {
         return;
       }
       const { eventName, additionalMetadata = {} } = action.payload;
@@ -112,7 +112,7 @@ const slice = createSlice({
       }
     },
     clearPerformanceMetrics: (state) => {
-      if (!isTest) {
+      if (!isTestEnvironment) {
         return;
       }
       state.metrics = [];

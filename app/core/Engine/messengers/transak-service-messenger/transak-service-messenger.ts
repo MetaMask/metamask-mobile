@@ -17,15 +17,18 @@ type AllowedEvents = MessengerEvents<TransakServiceMessenger>;
  * @returns The TransakServiceMessenger.
  */
 export function getTransakServiceMessenger(
-  rootMessenger: RootMessenger,
+  rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): TransakServiceMessenger {
-  return new Messenger<
-    'TransakService',
-    AllowedActions,
-    AllowedEvents,
-    typeof rootMessenger
-  >({
+  const messenger: TransakServiceMessenger = new Messenger({
     namespace: 'TransakService',
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    // `createWidgetUrl` authenticates against the ramps API proxy with the
+    // MetaMask bearer token.
+    actions: ['AuthenticationController:getBearerToken'],
+    events: [],
+    messenger,
+  });
+  return messenger;
 }

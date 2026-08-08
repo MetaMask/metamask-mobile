@@ -1,36 +1,51 @@
 import React from 'react';
-import { PredictMarket as PredictMarketType } from '../../types';
+import { useSelector } from 'react-redux';
+import {
+  PredictMarket as PredictMarketType,
+  type PredictMarketBuyButtonPress,
+} from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictMarketSingle from '../PredictMarketSingle';
 import PredictMarketMultiple from '../PredictMarketMultiple';
 import PredictMarketSportCard from '../PredictMarketSportCard';
+import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
+import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import { selectPredictUpDownEnabledFlag } from '../../selectors/featureFlags';
 
 interface PredictMarketProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
+  /** Active feed tab key forwarded to trade analytics (e.g. "trending"). */
+  predictFeedTab?: string;
+  /** Screen context forwarded to trade analytics. */
+  predictScreen?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictMarket: React.FC<PredictMarketProps> = ({
   market,
   testID,
+  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
+  transactionActiveAbTests,
 }) => {
-  const contextEntryPoint = usePredictEntryPoint();
-  const entryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+  const entryPoint = useResolvedPredictEntryPoint(propEntryPoint);
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+
   if (market.game) {
     return (
       <PredictMarketSportCard
@@ -38,8 +53,29 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
+        cardPressDisabled={cardPressDisabled}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
+        transactionActiveAbTests={transactionActiveAbTests}
+      />
+    );
+  }
+
+  if (upDownEnabled && isCryptoUpDown(market)) {
+    return (
+      <PredictCryptoUpDownMarketCard
+        market={market}
+        testID={testID}
+        entryPoint={entryPoint}
+        isCarousel={isCarousel}
+        cardPressDisabled={cardPressDisabled}
+        onCardPress={onCardPress}
+        onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     );
   }
@@ -51,8 +87,12 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
+        cardPressDisabled={cardPressDisabled}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     );
   }
@@ -63,10 +103,17 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
       testID={testID}
       entryPoint={entryPoint}
       isCarousel={isCarousel}
+      cardPressDisabled={cardPressDisabled}
       onCardPress={onCardPress}
       onBuyButtonPress={onBuyButtonPress}
+      predictFeedTab={predictFeedTab}
+      predictScreen={predictScreen}
+      transactionActiveAbTests={transactionActiveAbTests}
     />
   );
 };
 
-export default PredictMarket;
+const MemoizedPredictMarket: React.FC<PredictMarketProps> =
+  React.memo(PredictMarket);
+
+export default MemoizedPredictMarket;

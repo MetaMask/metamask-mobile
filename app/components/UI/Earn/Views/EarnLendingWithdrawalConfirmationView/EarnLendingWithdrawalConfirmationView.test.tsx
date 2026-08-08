@@ -1,5 +1,4 @@
 import { LendingMarketWithPosition } from '@metamask/earn-controller';
-import { mockTheme } from '../../../../../util/theme';
 import { useRoute } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
@@ -24,8 +23,6 @@ import {
 } from '@metamask/transaction-controller';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-// eslint-disable-next-line import-x/no-namespace
-import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import useEarnToken from '../../hooks/useEarnToken';
 import {
@@ -35,8 +32,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
 import { RootState } from '../../../../../reducers';
-
-const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -213,7 +208,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('renders withdrawal confirmation with correct navbar title and cancel button', () => {
+  it('renders the withdrawal confirmation footer cancel button', () => {
     const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {
@@ -221,35 +216,55 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    // Assert Navbar was updated
-    expect(getStakingNavbarSpy).toHaveBeenCalledWith(
-      `${strings('earn.withdraw')} ${mockLineaAUsdc.symbol}`,
-      expect.any(Object), // navigation object
-      expect.any(Object), // theme.colors
-      {
-        hasCancelButton: false,
-        backgroundColor: mockTheme.colors.background.default,
-      },
-      {
-        backButtonEvent: {
-          event: {
-            category: 'Earn Lending Withdraw Confirmation Back Clicked',
-          },
-          properties: {
-            experience: 'STABLECOIN_LENDING',
-            location: 'EarnLendingWithdrawConfirmationView',
-            selected_provider: 'consensys',
-            token: 'AUSDC',
-            transaction_value: '1 AUSDC',
-            user_token_balance: '3.62106 AUSDC',
-          },
-        },
-      },
-    );
-
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  describe('HeaderStandard', () => {
+    it('renders the withdraw title with the routed token symbol', () => {
+      const { getByText } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(
+        getByText(`${strings('earn.withdraw')} ${mockLineaAUsdc.symbol}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('emits EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED and navigates back when the back button is pressed', async () => {
+      const { getByLabelText } = renderWithProvider(
+        <EarnLendingWithdrawalConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      mockTrackEvent.mockClear();
+
+      const backButton = getByLabelText(strings('navigation.back'));
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Lending Withdraw Confirmation Back Clicked',
+          properties: expect.objectContaining({
+            selected_provider: 'consensys',
+            location: 'EarnLendingWithdrawConfirmationView',
+            experience: 'STABLECOIN_LENDING',
+            user_token_balance: '3.62106 AUSDC',
+            transaction_value: '1 AUSDC',
+            token: 'AUSDC',
+          }),
+        }),
+      );
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1

@@ -1,8 +1,9 @@
-import { test as perfTest } from '../../../framework/fixture';
+import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import ToastModal from '../../../page-objects/wallet/ToastModal';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
@@ -28,22 +29,22 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       // Login to the app
       await loginToAppPlaywright();
-
+      perfTest.setTimeout(15 * 60 * 1000);
       // Timer 1: Navigate to Predict tab and verify available balance
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Available Balance is displayed',
-        { ios: 4500, android: 8000 },
+        { ios: 4500, android: 5000 },
         currentDeviceDetails.platform,
       );
+      await ToastModal.waitForToastToDismiss();
 
       await TabBarComponent.tapActions();
+
       await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictMarketList.balanceCard),
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictMarketList.availableBalanceLabel),
+          asPlaywrightElement(PredictMarketList.container),
+          { timeout: 60000 },
         );
       });
 

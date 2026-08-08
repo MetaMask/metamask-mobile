@@ -1,25 +1,40 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import {
   BottomSheet,
-  type BottomSheetRef,
   BottomSheetHeader,
   Box,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-
 import SelectSRP from './SelectSRP';
 import { strings } from '../../../../locales/i18n';
 import { SelectSRPBottomSheetTestIds } from './SelectSRPBottomSheet.testIds';
 import { goBackIfFocused } from './SelectSRPBottomSheet.utils';
+import Routes from '../../../constants/navigation/Routes';
 
 export const SelectSRPBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
-
+  const navigation = useNavigation<AppNavigationProp>();
   const goBack = useCallback(() => {
     goBackIfFocused(navigation);
   }, [navigation]);
+
+  // Dismiss the sheet before navigating to the reveal card. Navigating while
+  // ROOT_MODAL_FLOW is still open leaves SelectSRP covering RevealPrivateCredential
+  // (regression after #33670 made reveal a native-stack card).
+  const handleKeyringSelect = useCallback(
+    (keyringId: string) => {
+      bottomSheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+          shouldUpdateNav: true,
+          keyringId,
+        });
+      });
+    },
+    [navigation],
+  );
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={goBack}>
@@ -32,7 +47,7 @@ export const SelectSRPBottomSheet = () => {
         {strings('secure_your_wallet.srp_list_selection')}
       </BottomSheetHeader>
       <Box twClassName="-mt-4">
-        <SelectSRP />
+        <SelectSRP onKeyringSelect={handleKeyringSelect} />
       </Box>
     </BottomSheet>
   );

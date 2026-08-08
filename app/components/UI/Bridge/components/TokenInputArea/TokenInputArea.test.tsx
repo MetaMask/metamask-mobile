@@ -51,6 +51,28 @@ jest.mock('../../hooks/useDisplayCurrencyValue', () => ({
   useDisplayCurrencyValue: jest.fn(() => '$100.00'),
 }));
 
+jest.mock('../../hooks/useInsufficientBalance', () => jest.fn(() => false));
+
+jest.mock('../TokenButton', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+
+  return {
+    TokenButton: ({
+      symbol,
+      securityBadgeAssetId,
+    }: {
+      symbol?: string;
+      securityBadgeAssetId?: string;
+    }) =>
+      createElement(
+        Text,
+        { testID: 'token-button', securityBadgeAssetId },
+        symbol,
+      ),
+  };
+});
+
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 const mockUseShouldRenderMaxOption =
   useShouldRenderMaxOption as jest.MockedFunction<
@@ -61,6 +83,12 @@ import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanc
 const mockUseFormattedBalanceWithThreshold =
   useFormattedBalanceWithThreshold as jest.MockedFunction<
     typeof useFormattedBalanceWithThreshold
+  >;
+
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+const mockUseIsInsufficientBalance =
+  useIsInsufficientBalance as jest.MockedFunction<
+    typeof useIsInsufficientBalance
   >;
 
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
@@ -74,6 +102,7 @@ const mockOnFocus = jest.fn();
 const mockOnBlur = jest.fn();
 const mockOnInputPress = jest.fn();
 const mockOnMaxPress = jest.fn();
+const mockOnAmountTypeTogglePress = jest.fn();
 
 describe('TokenInputArea', () => {
   beforeEach(() => {
@@ -81,6 +110,7 @@ describe('TokenInputArea', () => {
     mockUseShouldRenderMaxOption.mockReturnValue(true);
     mockUseFormattedBalanceWithThreshold.mockReturnValue('100');
     mockUseDisplayCurrencyValue.mockReturnValue('$100.00');
+    mockUseIsInsufficientBalance.mockReturnValue(false);
   });
 
   it('renders with initial state', () => {
@@ -853,6 +883,86 @@ describe('TokenInputArea', () => {
         undefined,
       );
     });
+
+    it('toggles amount type when pressing the secondary denomination value', () => {
+      // Arrange
+      mockUseDisplayCurrencyValue.mockReturnValue('$100.00');
+
+      const { getByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+            amount="1"
+            onAmountTypeTogglePress={mockOnAmountTypeTogglePress}
+            amountTypeToggleTestID="amount-type-toggle"
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      // Act
+      fireEvent.press(getByText('$100.00'));
+
+      // Assert
+      expect(mockOnAmountTypeTogglePress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('amount overrides', () => {
+    const mockToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const renderAmountOverrideInput = (
+      props: Partial<React.ComponentProps<typeof TokenInputArea>> = {},
+    ) =>
+      renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+            amountTypeToggleTestID="amount-type-toggle"
+            {...props}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+    it('uses token amount for balance checks when display amount is fiat', () => {
+      renderAmountOverrideInput({
+        amount: '113.28',
+        balanceCheckAmount: '0.05',
+        inputPrefix: '$',
+      });
+
+      expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: '0.05' }),
+      );
+    });
+
+    it('shows fiat as primary and token amount as secondary for destination display mode', () => {
+      mockUseDisplayCurrencyValue.mockReturnValue('1,23 €');
+
+      const { getByTestId, getByText } = renderAmountOverrideInput({
+        amount: '1.234567',
+        tokenType: TokenInputAreaType.Destination,
+        showFiatAmountAsPrimary: true,
+      });
+
+      expect(getByTestId('token-input-input').props.value).toBe('1,23 €');
+      expect(getByText('1.23456 TEST')).toBeOnTheScreen();
+      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
+        '1.234567',
+        mockToken,
+      );
+    });
   });
 
   describe('token button vs select button', () => {
@@ -879,6 +989,74 @@ describe('TokenInputArea', () => {
 
       // Assert
       expect(getByText('TEST')).toBeTruthy();
+    });
+
+    it('passes CAIP asset ID for an EVM ERC-20 token to TokenButton', () => {
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-button').props.securityBadgeAssetId).toBe(
+        'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+      );
+    });
+
+    it('passes CAIP asset ID for a native token to TokenButton', () => {
+      const nativeToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        decimals: 18,
+        chainId: '0x1' as `0x${string}`,
+      };
+
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-button').props.securityBadgeAssetId).toBe(
+        'eip155:1/slip44:60',
+      );
+    });
+
+    it('normalizes Polygon native token address before passing CAIP asset ID to TokenButton', () => {
+      const polygonNativeToken: BridgeToken = {
+        address: POLYGON_NATIVE_TOKEN,
+        symbol: 'POL',
+        decimals: 18,
+        chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      };
+
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={polygonNativeToken}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-button').props.securityBadgeAssetId).toBe(
+        'eip155:137/slip44:966',
+      );
     });
 
     it('shows "Swap from" button when no token and isSourceToken is true', () => {

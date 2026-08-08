@@ -1,15 +1,15 @@
 import React, { forwardRef } from 'react';
 
 import {
-  Box,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
-  type BottomSheetRef,
+  Box,
+  BoxAlignItems,
   ButtonSize,
   Text,
   TextVariant,
-  BoxAlignItems,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 

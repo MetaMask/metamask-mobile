@@ -1,12 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   BackHandler,
-  Image,
-  type ImageSourcePropType,
-  Platform,
-  Pressable,
+  Keyboard,
   ScrollView,
-  StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
@@ -20,9 +17,10 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  BoxFlexDirection,
-  BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { InterestSelectionIndicator } from './InterestSelectionIndicator';
+import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -30,61 +28,59 @@ import { useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
-import buyAndSellCryptoImage from '../../../images/buy_and_sell_crypto.png';
-import consolidateWalletsImage from '../../../images/consolidate_wallets.png';
-import advancedTradesImage from '../../../images/advanced_trades.png';
-import predictSportsEventsImage from '../../../images/predict_sports_events.png';
-import cryptoAsMoneyImage from '../../../images/crypto_as_money.png';
-import connectAppsSitesImage from '../../../images/connect_apps_sites.png';
 
 type InterestOptionId =
-  | 'buy_and_sell_crypto'
-  | 'consolidate_wallets'
-  | 'advanced_trades'
-  | 'predict_sports_events'
-  | 'crypto_as_money'
-  | 'connect_apps_sites';
+  | 'swap_tokens'
+  | 'trade_perpetuals'
+  | 'prediction_markets'
+  | 'send_receive_crypto'
+  | 'earn_and_spend'
+  | 'use_other_crypto_apps'
+  | 'other';
 
 interface InterestOption {
   id: InterestOptionId;
   labelKey: string;
+  emoji?: string;
 }
 
 const INTEREST_OPTIONS: InterestOption[] = [
   {
-    id: 'buy_and_sell_crypto',
-    labelKey: 'onboarding_interest_questionnaire.option_buy_and_sell_crypto',
+    id: 'swap_tokens',
+    labelKey: 'onboarding_interest_questionnaire.option_swap_tokens',
+    emoji: '🔄',
   },
   {
-    id: 'consolidate_wallets',
-    labelKey: 'onboarding_interest_questionnaire.option_consolidate_wallets',
+    id: 'trade_perpetuals',
+    labelKey: 'onboarding_interest_questionnaire.option_trade_perpetuals',
+    emoji: '📈',
   },
   {
-    id: 'advanced_trades',
-    labelKey: 'onboarding_interest_questionnaire.option_advanced_trades',
+    id: 'prediction_markets',
+    labelKey: 'onboarding_interest_questionnaire.option_prediction_markets',
+    emoji: '🔮',
   },
   {
-    id: 'predict_sports_events',
-    labelKey: 'onboarding_interest_questionnaire.option_predict_sports_events',
+    id: 'send_receive_crypto',
+    labelKey: 'onboarding_interest_questionnaire.option_send_receive_crypto',
+    emoji: '📥',
   },
   {
-    id: 'crypto_as_money',
-    labelKey: 'onboarding_interest_questionnaire.option_crypto_as_money',
+    id: 'earn_and_spend',
+    labelKey: 'onboarding_interest_questionnaire.option_earn_and_spend',
+    emoji: '💰',
   },
   {
-    id: 'connect_apps_sites',
-    labelKey: 'onboarding_interest_questionnaire.option_connect_apps_sites',
+    id: 'use_other_crypto_apps',
+    labelKey: 'onboarding_interest_questionnaire.option_use_other_crypto_apps',
+    emoji: '🌐',
+  },
+  {
+    id: 'other',
+    labelKey: 'onboarding_interest_questionnaire.option_other',
+    emoji: '📝',
   },
 ];
-
-const INTEREST_OPTION_IMAGES: Record<InterestOptionId, ImageSourcePropType> = {
-  buy_and_sell_crypto: buyAndSellCryptoImage,
-  consolidate_wallets: consolidateWalletsImage,
-  advanced_trades: advancedTradesImage,
-  predict_sports_events: predictSportsEventsImage,
-  crypto_as_money: cryptoAsMoneyImage,
-  connect_apps_sites: connectAppsSitesImage,
-};
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
@@ -101,24 +97,24 @@ const OnboardingInterestQuestionnaire = () => {
   const [selectedIds, setSelectedIds] = useState<Set<InterestOptionId>>(
     new Set(),
   );
+  const [isOtherBottomSheetVisible, setIsOtherBottomSheetVisible] =
+    useState(false);
+  const [otherText, setOtherText] = useState('');
 
   const hasTrackedView = React.useRef(false);
   useEffect(() => {
     if (hasTrackedView.current) return;
     hasTrackedView.current = true;
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_VIEWED)
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED)
         .addProperties({
+          question_type: 'interest',
           ...(accountType && { account_type: accountType }),
         })
         .build(),
     );
   }, [trackEvent, createEventBuilder, accountType]);
 
-  /**
-   * Block hardware back so users cannot return to OptinMetrics beneath this screen
-   * (avoids duplicate opt-in / analytics). No alert — questionnaire has no back affordance.
-   */
   const handleBackPress = useCallback(() => true, []);
 
   useEffect(() => {
@@ -144,36 +140,104 @@ const OnboardingInterestQuestionnaire = () => {
     });
   }, []);
 
-  const onContinue = useCallback(() => {
+  const handleOptionPress = useCallback(
+    (id: InterestOptionId) => {
+      if (id === 'other') {
+        setIsOtherBottomSheetVisible(true);
+        return;
+      }
+      toggleOption(id);
+    },
+    [toggleOption],
+  );
+
+  const handleOtherBottomSheetClose = useCallback(() => {
+    Keyboard.dismiss();
+    setIsOtherBottomSheetVisible(false);
+  }, []);
+
+  const handleOtherDone = useCallback((value: string) => {
+    Keyboard.dismiss();
+    const isEmpty = value.length === 0;
+    setOtherText(isEmpty ? '' : value);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (isEmpty) {
+        next.delete('other');
+      } else {
+        next.add('other');
+      }
+      return next;
+    });
+    setIsOtherBottomSheetVisible(false);
+  }, []);
+
+  const onNext = useCallback(() => {
     const selectedInterests = Array.from(selectedIds);
-    const skipped = selectedInterests.length === 0;
 
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
-      )
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
+          question_type: 'interest',
           selected_interests: selectedInterests,
+          ...(otherText && { other_text: otherText }),
           item_count: selectedInterests.length,
-          skipped,
+          skipped: selectedInterests.length === 0,
           ...(accountType && { account_type: accountType }),
         })
         .build(),
     );
 
     onComplete();
-  }, [selectedIds, trackEvent, createEventBuilder, accountType, onComplete]);
+  }, [
+    selectedIds,
+    otherText,
+    trackEvent,
+    createEventBuilder,
+    accountType,
+    onComplete,
+  ]);
+
+  const onSkip = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
+        .addProperties({
+          question_type: 'interest',
+          selected_interests: [],
+          item_count: 0,
+          skipped: true,
+          ...(accountType && { account_type: accountType }),
+        })
+        .build(),
+    );
+
+    onComplete();
+  }, [trackEvent, createEventBuilder, accountType, onComplete]);
 
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default', {
-        paddingTop:
-          Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
-      })}
+      style={tw.style('flex-1 bg-default')}
       testID={OnboardingInterestQuestionnaireTestIds.SCREEN}
     >
-      <Box twClassName="mx-4 mt-4 mb-2">
+      <HeaderCompactStandard
+        includesTopInset
+        twClassName="mb-2"
+        endAccessory={
+          <Text
+            variant={TextVariant.BodyLg}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            onPress={onSkip}
+            testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
+            style={tw.style('pr-4')}
+          >
+            {strings('onboarding_interest_questionnaire.skip')}
+          </Text>
+        }
+      />
+
+      <Box twClassName="mx-4 mb-4 flex flex-col gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
@@ -181,61 +245,63 @@ const OnboardingInterestQuestionnaire = () => {
         >
           {strings('onboarding_interest_questionnaire.title')}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mt-2"
-        >
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings('onboarding_interest_questionnaire.description')}
         </Text>
       </Box>
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 pb-4')}
+        contentContainerStyle={tw.style('px-4 pb-4 flex-col gap-y-4')}
         showsVerticalScrollIndicator={false}
       >
         {INTEREST_OPTIONS.map((option) => {
           const isSelected = selectedIds.has(option.id);
+          const isOtherOption = option.id === 'other';
           return (
-            <Pressable
+            <TouchableOpacity
               key={option.id}
-              onPress={() => toggleOption(option.id)}
-              style={({ pressed }) =>
-                tw.style(
-                  'rounded-xl px-3 py-3 mt-2 bg-background-muted',
-                  isSelected
-                    ? 'border border-border-default'
-                    : 'border border-transparent',
-                  pressed && 'opacity-70',
-                )
-              }
+              onPress={() => handleOptionPress(option.id)}
+              style={tw.style(
+                'flex-row items-center rounded-full px-6 py-4 border',
+                isSelected
+                  ? 'border-text-default bg-background-section'
+                  : 'border-text-muted',
+              )}
               testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: isSelected }}
             >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={3}
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
               >
-                <Image
-                  source={INTEREST_OPTION_IMAGES[option.id]}
-                  style={tw.style('h-10 w-10')}
-                  resizeMode="contain"
-                  accessibilityElementsHidden
-                  importantForAccessibility="no-hide-descendants"
-                />
+                {option.emoji}
+              </Text>
+              <Box twClassName="flex-1 flex-row items-center gap-x-2 ml-3">
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
-                  twClassName="shrink flex-1"
                 >
                   {strings(option.labelKey)}
                 </Text>
+                {isOtherOption && otherText?.length > 0 ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    twClassName="flex-shrink mr-2"
+                  >
+                    {otherText}
+                  </Text>
+                ) : null}
               </Box>
-            </Pressable>
+              <InterestSelectionIndicator isSelected={isSelected} />
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
@@ -244,13 +310,22 @@ const OnboardingInterestQuestionnaire = () => {
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={onContinue}
+          onPress={onNext}
+          isDisabled={selectedIds.size === 0}
           style={tw.style('w-full')}
           testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
         >
-          {strings('onboarding_interest_questionnaire.continue')}
+          {strings('onboarding_interest_questionnaire.done')}
         </Button>
       </Box>
+
+      {isOtherBottomSheetVisible ? (
+        <OtherBottomSheet
+          initialValue={otherText}
+          onClose={handleOtherBottomSheetClose}
+          onDone={handleOtherDone}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

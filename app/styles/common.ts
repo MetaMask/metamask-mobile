@@ -19,6 +19,7 @@ export const colors = {
   // https://developer.apple.com/design/human-interface-guidelines/apple-pay
   applePayBlack: '#000000',
   applePayWhite: '#FFFFFF',
+  telegramBlue: '#29B6F6',
   btnBlack: '#1C1E21',
   btnBlackText: '#FFFFFF',
   btnBlackInverse: 'rgba(60, 77, 157, 0.1)',
@@ -26,6 +27,13 @@ export const colors = {
   gettingStartedPageBackgroundColor: '#EAC2FF',
   gettingStartedTextColor: '#3D065F',
   gettingStartedPageBackgroundColorLightMode: '#FFF2EB',
+  // Provider iframe backgrounds — these colors are set by each provider and
+  // outside our control. We match them in the checkout BottomSheet so the
+  // native chrome feels seamless with the embedded webview. Update only if
+  // a provider changes their iframe theme colors.
+  transakCheckoutDark: '#1a1a1a',
+  moonpayCheckoutDark: '#131416',
+  banxaCheckoutDark: '#0D0D0F',
 };
 
 export const onboardingCarouselColors: Record<

@@ -33,6 +33,7 @@ import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import {
+  enrichCaveatValueForEip155,
   getHostname,
   getScopedPermissions,
   hideWCLoadingState,
@@ -46,7 +47,14 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
+import {
+  buildSessionPropertiesByAdapters,
+  enrichCaveatValueByAdapters,
+  doesProposalOrSessionIncludeNamespace,
+  filterNamespaces,
+  getScopedPermissionsByAdapters,
+} from './multichain';
 import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -119,6 +127,25 @@ export class WC2Manager {
         // Remove session from local list
         this.sessions[event.topic]?.removeListeners();
         delete this.sessions[event.topic];
+      },
+    );
+
+    // Single source of truth for re-emitting WC session updates on account changes (EIP155 or adapters).
+    // Update all sessions in parallel
+    Engine.controllerMessenger.subscribe(
+      'AccountTreeController:selectedAccountGroupChange',
+      () => {
+        for (const topic of Object.keys(this.sessions)) {
+          const session = this.sessions[topic];
+          void session
+            .updateSession({ chainId: 0, accounts: [] })
+            .catch((err) => {
+              DevLogger.log(
+                `WC2::selectedAccountGroupChange updateSession failed topic=${topic}`,
+                err,
+              );
+            });
+        }
       },
     );
   }
@@ -593,8 +620,19 @@ export class WC2Manager {
 
     // Save connection info to redux store for the approval UI.
     store.dispatch(
-      updateWC2Metadata({ url, name, icon, id: `${id}`, verifyContext }),
+      updateWC2Metadata({
+        url,
+        name,
+        icon,
+        id: channelId,
+        verifyContext,
+      }),
     );
+
+    const doesProposalIncludeEip155 = doesProposalOrSessionIncludeNamespace({
+      proposalOrSession: proposal.params,
+      namespace: KnownCaipNamespace.Eip155,
+    });
 
     // Get the current chain ID to include in permissions
     const walletChainIdHex = selectEvmChainId(store.getState());
@@ -604,12 +642,27 @@ export class WC2Manager {
       // Create a modified CAIP-25 caveat value that includes the current chain
       const caveatValue = getDefaultCaip25CaveatValue();
 
+      // Let every non-EVM adapter enrich the CAIP-25 caveat value before
+      // we persist permissions.
+      const adapterEnrichedCaveatValue = enrichCaveatValueByAdapters({
+        proposal: proposal.params,
+        caveatValue,
+      });
+
+      // Seed the requested eip155 chains too, so the approval UI pre-selects
+      // EVM networks alongside any adapter namespaces (e.g. Tron) instead of
+      // defaulting to the adapter namespace only.
+      const enrichedCaveatValue = enrichCaveatValueForEip155({
+        proposal: proposal.params,
+        caveatValue: adapterEnrichedCaveatValue,
+      });
+
       // Important: Use hostname as the origin for permission request to ensure consistency
       DevLogger.log(
         `WC2::session_proposal requestPermissions for hostname and channelId`,
         {
           hostname,
-          caveatValue,
+          caveatValue: enrichedCaveatValue,
           channelId,
         },
       );
@@ -621,7 +674,7 @@ export class WC2Manager {
             caveats: [
               {
                 type: Caip25CaveatType,
-                value: caveatValue,
+                value: enrichedCaveatValue,
               },
             ],
           },
@@ -632,23 +685,25 @@ export class WC2Manager {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Explicitly add the current chain to permissions
-      try {
-        const hexChainId = `0x${walletChainIdDecimal.toString(
-          16,
-        )}` as `0x${string}`;
-        DevLogger.log(
-          `WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`,
-        );
+      if (doesProposalIncludeEip155) {
+        try {
+          const hexChainId = `0x${walletChainIdDecimal.toString(
+            16,
+          )}` as `0x${string}`;
+          DevLogger.log(
+            `WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`,
+          );
 
-        updatePermittedChains(channelId, [`eip155:${walletChainIdDecimal}`]);
-        DevLogger.log(
-          `WC2::session_proposal chain permission added successfully`,
-        );
-      } catch (err) {
-        DevLogger.log(
-          `WC2::session_proposal error adding chain permission`,
-          err,
-        );
+          updatePermittedChains(channelId, [`eip155:${walletChainIdDecimal}`]);
+          DevLogger.log(
+            `WC2::session_proposal chain permission added successfully`,
+          );
+        } catch (err) {
+          DevLogger.log(
+            `WC2::session_proposal error adding chain permission`,
+            err,
+          );
+        }
       }
     } catch (err) {
       DevLogger.log(`WC2::session_proposal requestPermissions error`, {
@@ -676,13 +731,35 @@ export class WC2Manager {
       });
 
       // Use getScopedPermissions to get properly formatted namespaces
-      const namespaces = await getScopedPermissions({ channelId });
+      const evmNamespaces = await getScopedPermissions({ channelId });
+      const adaptersNamespaces = await getScopedPermissionsByAdapters({
+        channelId,
+      });
+      const namespaces = {
+        ...evmNamespaces,
+        ...adaptersNamespaces,
+      };
 
-      DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
+      const onlyRequiredOrOptionalNamespaces = filterNamespaces({
+        proposalOrSession: proposal.params,
+        namespaces,
+      });
+
+      DevLogger.log(
+        `WC2::session_proposal namespaces`,
+        onlyRequiredOrOptionalNamespaces,
+      );
+
+      const sessionProperties = buildSessionPropertiesByAdapters({
+        proposal: proposal.params,
+      });
+      const hasSessionProperties =
+        sessionProperties && Object.keys(sessionProperties).length > 0;
 
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
-        namespaces,
+        namespaces: onlyRequiredOrOptionalNamespaces,
+        ...(hasSessionProperties ? { sessionProperties } : {}),
       });
 
       const deeplink = !!this.deeplinkSessions[activeSession.pairingTopic];
@@ -709,28 +786,32 @@ export class WC2Manager {
         accounts: approvedAccounts,
       });
 
-      // Check if the chain is in the approved chains list before emitting event
-      const caipChainId = `eip155:${walletChainIdDecimal}` as CaipChainId;
-      const approvedChains = namespaces?.eip155?.chains || [];
+      // We decided not to support chain switching for non-EVM
+      // We only keep the chainChanged emission logic for EVM though
+      if (doesProposalIncludeEip155) {
+        // Check if the chain is in the approved chains list before emitting event
+        const caipChainId = `eip155:${walletChainIdDecimal}` as CaipChainId;
+        const approvedChains = namespaces?.eip155?.chains || [];
 
-      DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
-        topic: activeSession.topic,
-        event: {
-          name: 'chainChanged',
-          data: walletChainIdHex,
-        },
-        chainId: caipChainId,
-        approvedChains,
-      });
+        DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
+          topic: activeSession.topic,
+          event: {
+            name: 'chainChanged',
+            data: walletChainIdHex,
+          },
+          chainId: caipChainId,
+          approvedChains,
+        });
 
-      await this.web3Wallet.emitSessionEvent({
-        topic: activeSession.topic,
-        event: {
-          name: 'chainChanged',
-          data: walletChainIdHex,
-        },
-        chainId: caipChainId,
-      });
+        await this.web3Wallet.emitSessionEvent({
+          topic: activeSession.topic,
+          event: {
+            name: 'chainChanged',
+            data: walletChainIdHex,
+          },
+          chainId: caipChainId,
+        });
+      }
 
       if (deeplink) {
         session.redirect('onSessionProposal');

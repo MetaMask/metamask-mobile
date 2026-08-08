@@ -2,10 +2,10 @@ import React, { useRef } from 'react';
 
 import {
   BottomSheet,
-  type BottomSheetRef,
   IconColor,
   IconName,
   IconSize,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import ModalContent from '../../Notification/Modal';

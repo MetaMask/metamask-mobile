@@ -35,19 +35,6 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
 
 jest.mock('../../../../../selectors/multichain', () => ({
-  selectAccountTokensAcrossChains: jest.fn(() => ({
-    '0x1': [
-      {
-        address: '0x0',
-        symbol: 'ETH',
-        decimals: 18,
-        balance: '1.5',
-        balanceFiat: '$3000',
-        isNative: true,
-        isETH: true,
-      },
-    ],
-  })),
   selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
@@ -973,6 +960,12 @@ describe('EarnWithdrawInputView', () => {
       await act(async () => {
         fireEvent.press(screen.getByText('1'));
       });
+
+      // Reveal the TRON unstake preview, which renders the "Unstake" button.
+      await act(async () => {
+        fireEvent.press(screen.getByText('Done'));
+      });
+
       await waitFor(() => {
         expect(screen.getAllByText('Unstake')[0]).toBeOnTheScreen();
       });

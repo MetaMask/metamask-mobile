@@ -10,7 +10,11 @@
 
 import { renderHook } from '@testing-library/react-hooks';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import { usePerpsFeed, PERPS_VARIANT_SORT_OPTION } from './usePerpsFeed';
+import {
+  filterAndSortByPriceChangeDirection,
+  usePerpsFeed,
+  PERPS_VARIANT_SORT_OPTION,
+} from './usePerpsFeed';
 
 // ---------------------------------------------------------------------------
 // Core dependency mocks
@@ -62,6 +66,7 @@ jest.mock('../search-utils', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   filterMarketsByQuery: jest.fn((items: unknown[]) => items),
 }));
 
@@ -81,7 +86,7 @@ const makeMarket = (
     name: symbol,
     change24hPercent,
     volumeNumber,
-    marketType: 'equity',
+    marketType: 'stock',
     isHip3: false,
   }) as unknown as PerpsMarketData;
 
@@ -125,7 +130,7 @@ describe('usePerpsFeed', () => {
         makeMarket('LOW_VOL', '5', 10),
         makeMarket('HIGH_VOL', '1', 200),
         makeMarket('MID_VOL', '3', 100),
-      ].map((m) => ({ ...m, marketType: 'equity' as const }));
+      ].map((m) => ({ ...m, marketType: 'stock' as const }));
 
       (usePerpsMarkets as jest.Mock).mockReturnValue({
         markets,
@@ -137,6 +142,36 @@ describe('usePerpsFeed', () => {
       const { result } = renderFeed({ variant: 'macro' });
       const symbols = result.current.data.map((d) => d.market.symbol);
       expect(symbols).toEqual(['HIGH_VOL', 'MID_VOL', 'LOW_VOL']);
+    });
+  });
+
+  describe('price-change mover filtering', () => {
+    it('filters gainers to positive price changes sorted descending', () => {
+      const markets = [
+        makeMarket('LOSER', '-3', 100),
+        makeMarket('HIGH_GAINER', '5', 50),
+        makeMarket('LOW_GAINER', '1', 75),
+      ];
+
+      expect(
+        filterAndSortByPriceChangeDirection(markets, 'gainers').map(
+          (market) => market.symbol,
+        ),
+      ).toEqual(['HIGH_GAINER', 'LOW_GAINER']);
+    });
+
+    it('filters losers to negative price changes sorted ascending', () => {
+      const markets = [
+        makeMarket('GAINER', '3', 100),
+        makeMarket('SMALL_LOSER', '-1', 50),
+        makeMarket('BIG_LOSER', '-7', 75),
+      ];
+
+      expect(
+        filterAndSortByPriceChangeDirection(markets, 'losers').map(
+          (market) => market.symbol,
+        ),
+      ).toEqual(['BIG_LOSER', 'SMALL_LOSER']);
     });
   });
 
@@ -175,7 +210,7 @@ describe('usePerpsFeed', () => {
         makeMarket('AAPL', '1', 10),
         makeMarket('MSFT', '5', 200),
         makeMarket('NVDA', '3', 100),
-      ].map((m) => ({ ...m, marketType: 'equity' as const }));
+      ].map((m) => ({ ...m, marketType: 'stock' as const }));
 
       (usePerpsMarkets as jest.Mock).mockReturnValue({
         markets,
@@ -222,5 +257,11 @@ describe('usePerpsFeed', () => {
         );
       },
     );
+  });
+
+  it('passes skipInitialFetch through to usePerpsMarkets', () => {
+    renderFeed({ skipInitialFetch: true });
+
+    expect(usePerpsMarkets).toHaveBeenCalledWith({ skipInitialFetch: true });
   });
 });

@@ -7,6 +7,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
 import { debounce } from 'lodash';
@@ -91,7 +92,7 @@ import { handleTronStakingNavigationResult } from '../../utils/tron';
 
 const EarnInputView = () => {
   // navigation hooks
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<EarnInputViewProps['route']>();
   const { token } = route.params;
 
@@ -473,6 +474,7 @@ const EarnInputView = () => {
         from: (selectedAccount?.address as Hex) || '0x',
         networkClientId,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         transactions: [approveTx, lendingDepositTx],
         requireApproval: true,
       });
@@ -899,12 +901,6 @@ const EarnInputView = () => {
     earnToken?.experience.apr,
     navigateToLearnMoreModal,
   ]);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   const headerTitle = useMemo(() => {
     const isLending =

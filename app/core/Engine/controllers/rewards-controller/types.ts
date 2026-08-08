@@ -56,9 +56,7 @@ export type VipTierRefDto = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipProgressDto = {
   percent: number;
-  remainingSwapsUsd: number;
-  remainingPerpsUsd: number;
-  estimatedDaysToNextTier: number;
+  remainingPointsToNextTier: number;
   status: string;
 };
 
@@ -76,12 +74,16 @@ export type VipFeesDto = {
 export type VipVolumeDto = {
   swapsUsd: number;
   perpsUsd: number;
+  points: number;
+  pointsFromReferrals: number;
+  referrals: number;
+  referralsCap: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type VipPointsAllocationDto = {
+export type VipEquityAllocation = {
   earned: number;
-  max: number;
+  threshold: number;
   percent: number;
 };
 
@@ -90,11 +92,18 @@ export type VipTierDto = {
   id: string;
   name: string;
   tier: number;
-  swapsRequirementUsd: number;
-  perpsRequirementUsd: number;
+  pointsRequirement: number;
+  /**
+   * Lower 30d-points threshold to KEEP this tier once held (vs
+   * `pointsRequirement` to REACH it). `null` when no maintain threshold is
+   * configured for the tier — the reach requirement then also governs keeping
+   * it. Sourced from `/vip/me` (backend PR #737).
+   */
+  maintainPointsRequirement: number | null;
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;
+  referralCarryoverBps: number;
   status: string;
 };
 
@@ -103,39 +112,120 @@ export type VipTierDto = {
 // on these strings without a local i18n fallback.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipLocalizedTextDto = {
-  period: string;
-  progressToNextTier: string;
+  periodTitle: string;
+  memberIdTitle: string;
+  transactionsTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
+  revenueShareTitle: string;
+  referralPointsTitle: string;
+  statsTitle: string;
+  pointsTitle: string;
+  swapsVolumeTitle: string;
+  pointsFromReferralsTitle: string;
+  perpsVolumeTitle: string;
+  vipReferralsTitle: string;
+  totalPointsTitle: string;
+  equityLockedTitle: string;
+  equityLockedDescription: string;
+  equityUnlockedTitle: string;
+  equityUnlockedDescription: string;
+  /**
+   * Copy for when the equity multiplier request itself fails. Carried here
+   * rather than on that response, which returns no strings when it fails.
+   */
+  equityMultiplierFailedTitle: string;
+  equityMultiplierFailedDescription: string;
+  topTierDescription: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
   // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
   // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
-  revenueShareTitle: string;
-  volumeTitle: string;
-  statusMessage: string;
-  pointsTitle: string;
-  pointsAllocationTitle: string;
-  pointsAllocationDescription: string;
+  nextTierRevenueShareDelta: string;
+  nextTierReferralPointsDelta: string;
 };
+
+/**
+ * Display-only equity multiplier from POST /vip/equity-multiplier.
+ * Never persist as program truth; never feed settlement (RWDS-1485).
+ */
+/**
+ * Display state of the multiplier, driven only by holdings against the
+ * configured band. `below_floor` — multiplier is 1.0. `active` — more holdings
+ * earn more. `at_cap` — maxed, nothing left to gain.
+ */
+export type VipEquityMultiplierState = 'below_floor' | 'active' | 'at_cap';
+
+/**
+ * Copy already resolved server-side for the current state and fully
+ * interpolated. Render as-is; never branch on `state` to pick copy, or a
+ * future state will need a mobile release.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierLocalizedTextDto = {
+  title: string;
+  description: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierUnavailableDto = {
+  available: false;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierAvailableDto = {
+  available: true;
+  multiplier: string;
+  state: VipEquityMultiplierState;
+  progressPercent: number;
+  tierNumber: number;
+  tierName: string;
+  capUsd: string;
+  computedAt: string;
+  localizedText: VipEquityMultiplierLocalizedTextDto;
+};
+
+export type VipEquityMultiplierDto =
+  | VipEquityMultiplierUnavailableDto
+  | VipEquityMultiplierAvailableDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipDashboardDto = {
   program: VipProgramDto;
   period: VipPeriodDto;
+  // ISO-8601 instant the subscription's tier snapshot was last computed
+  // (vip_subscription_tier.computed_at), or null if no snapshot exists yet.
+  computedAt: string | null;
   currentTier: VipTierRefDto;
   nextTier: VipTierRefDto;
   progress: VipProgressDto;
   fees: VipFeesDto;
   volume: VipVolumeDto;
-  pointsAllocation: VipPointsAllocationDto;
+  pointsAllocation: VipEquityAllocation;
   tiers: VipTierDto[];
   localizedText: VipLocalizedTextDto;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipDashboardState = VipDashboardDto & {
+  lastFetched: number;
+};
+
+// Minimal stats for the "VIP Pilot" referee page (GET /vip/referee/me).
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipRefereeMeDto = {
+  referredByCode: string | null;
+  points: number;
+  swapsVolume: number;
+  perpsVolume: number;
+  // ISO-8601 instant the referee stats were last computed, or null if
+  // unavailable. v1 backend placeholder — currently the current time.
+  computedAt: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipRefereeMeState = VipRefereeMeDto & {
   lastFetched: number;
 };
 
@@ -164,6 +254,78 @@ export type VipFeesResponseDto = {
   vipTier: number;
   fees: VipFeesGroupDto | null;
   updatedAt: string | null;
+};
+
+export type VipTransactionType = 'PERPS' | 'SWAP';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPerpsTransactionDetailDto = {
+  coin: string;
+  feeCoin: string;
+  rawFee: string;
+  rawNotionalVolume: string;
+  tradeId: string;
+  orderId: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipSwapTransactionDetailDto = {
+  quoteId: string;
+  bridgeId?: string;
+  srcChainId: string;
+  srcAssetSymbol?: string;
+  destChainId: string;
+  destAssetSymbol?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionDto = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PaginatedVipTransactionsDto = {
+  results: VipTransactionDto[];
+  has_more: boolean;
+  cursor: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type GetVipTransactionsDto = {
+  subscriptionId: string;
+  type: VipTransactionType;
+  cursor: string | null;
+  forceFresh?: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsLastUpdatedDto = {
+  lastUpdated: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionEntryState = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsState = {
+  results: VipTransactionEntryState[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
 };
 
 // Per-subscription cache for VIP perps builder fee.
@@ -243,6 +405,7 @@ export interface ApplyBonusCodeDto {
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
   PERPS_TRADING = 'PERPS_TRADING',
+  PREDICT_THE_PITCH = 'PREDICT_THE_PITCH',
   SEASON_1 = 'SEASON_1',
 }
 
@@ -300,7 +463,7 @@ export interface CampaignDto {
    * The details of the campaign
    * @example { howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
    */
-  details: CampaignDetails | null;
+  details: CampaignDetailsDto | null;
 
   /**
    * Whether this campaign is featured (shown prominently in the UI)
@@ -316,42 +479,42 @@ export interface CampaignDto {
 }
 
 /**
- * Serializable version of OndoCampaignStep for state storage.
+ * Serializable version of CampaignStep for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignStepState = {
+export type CampaignStepState = {
   title: string;
   description: Json | null;
   iconName: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignTourActionsState = {
+export type CampaignTourActionsState = {
   next?: boolean;
   skip?: boolean;
 };
 
 /**
- * Serializable version of OndoCampaignTourStepDto for state storage.
+ * Serializable version of CampaignTourStepDto for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignTourStepDtoState = {
+export type CampaignTourStepDtoState = {
   title: string;
   description: string;
   image: ThemeImageState | null;
-  actions: OndoCampaignTourActionsState | null;
+  actions: CampaignTourActionsState | null;
 };
 
 /**
- * Serializable version of OndoCampaignHowItWorks for state storage.
+ * Serializable version of CampaignHowItWorks for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignHowItWorksState = {
+export type CampaignHowItWorksState = {
   title: string;
   description: string;
-  steps: OndoCampaignStepState[];
+  steps: CampaignStepState[];
   notes?: Json | null;
-  tour?: OndoCampaignTourStepDtoState[];
+  tour?: CampaignTourStepDtoState[];
 };
 
 /**
@@ -364,12 +527,11 @@ export type ThemeImageState = {
 };
 
 /**
- * Serializable version of CampaignDetails for state storage.
+ * Serializable base campaign details for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
-  howItWorks: OndoCampaignHowItWorksState;
-  tiers?: OndoCampaignTierState[];
+  howItWorks: CampaignHowItWorksState;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -377,6 +539,20 @@ export type OndoCampaignTierState = {
   name: string;
   minNetDeposit: number;
 };
+
+export type OndoHoldingDetailsState = CampaignDetailsState & {
+  tiers?: OndoCampaignTierState[];
+};
+
+export type PerpsTradingCampaignDetailsState = CampaignDetailsState;
+
+export type PredictThePitchCampaignDetailsState = CampaignDetailsState;
+
+export type CampaignDetailsDtoState =
+  | CampaignDetailsState
+  | OndoHoldingDetailsState
+  | PerpsTradingCampaignDetailsState
+  | PredictThePitchCampaignDetailsState;
 
 /**
  * Serializable version of CampaignDto for state storage.
@@ -393,7 +569,7 @@ export type CampaignDtoState = {
   excludedRegions: string[];
   statusLabel: string;
   image: ThemeImageState | null;
-  details: CampaignDetailsState | null;
+  details: CampaignDetailsDtoState | null;
   featured: boolean;
   showUpcomingDate: boolean;
 };
@@ -874,8 +1050,8 @@ export interface PerpsTradingCampaignLeaderboardEntry {
   referralCode: string;
   /** Signed USD PnL for the campaign window */
   pnl: number;
-  /** true when notional volume ≥ $25k */
-  qualified: boolean;
+  /** Cumulative volume traded during the competition window (USD) */
+  volume: number;
 }
 
 /**
@@ -886,21 +1062,30 @@ export interface PerpsTradingCampaignLeaderboardDto {
   /** ISO timestamp — display as "last updated" (refreshes ~every 15 min) */
   computedAt: string;
   entries: PerpsTradingCampaignLeaderboardEntry[];
+  /** Number of eligible participants in this campaign */
   totalParticipants: number;
+  /** Minimum cumulative volume (USD) required to appear on the leaderboard */
+  minVolumeForEligibility: number;
 }
 
 /**
  * Response DTO for GET /perps-trading/:campaignId/leaderboard/me (authenticated).
  */
 export interface PerpsTradingCampaignLeaderboardPositionDto {
-  rank: number;
+  /** Null when the participant has not yet met the volume threshold. */
+  rank: number | null;
+  /** Number of eligible participants in this campaign */
+  totalParticipants: number;
   /** Signed USD PnL */
   pnl: number;
-  /** Cumulative notional volume traded during the competition window (USD) */
-  notionalVolume: number;
-  qualified: boolean;
-  neighbors: PerpsTradingCampaignLeaderboardEntry[];
+  /** Cumulative volume traded during the competition window (USD) */
+  volume: number;
   computedAt: string;
+  neighbors: PerpsTradingCampaignLeaderboardEntry[];
+  /** Whether this participant has met the minimum volume threshold */
+  eligible: boolean;
+  /** Minimum cumulative volume (USD) required to become eligible */
+  minVolumeForEligibility: number;
 }
 
 /**
@@ -919,23 +1104,26 @@ export type PerpsTradingCampaignLeaderboardState = {
     rank: number;
     referralCode: string;
     pnl: number;
-    qualified: boolean;
+    volume: number;
   }[];
   totalParticipants: number;
+  minVolumeForEligibility: number;
   lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsTradingCampaignLeaderboardPositionFoundState = {
-  rank: number;
+  rank: number | null;
+  totalParticipants: number;
   pnl: number;
-  notionalVolume: number;
-  qualified: boolean;
+  volume: number;
+  eligible: boolean;
+  minVolumeForEligibility: number;
   neighbors: {
     rank: number;
     referralCode: string;
     pnl: number;
-    qualified: boolean;
+    volume: number;
   }[];
   computedAt: string;
   lastFetched: number;
@@ -1028,30 +1216,30 @@ export type CampaignParticipantStatusState = {
   lastFetched: number;
 };
 
-export interface OndoCampaignStep {
+export interface CampaignStep {
   title: string;
   description: Json | null;
   iconName: string;
 }
 
-export interface OndoCampaignTourActions {
+export interface CampaignTourActions {
   next?: boolean;
   skip?: boolean;
 }
 
-export interface OndoCampaignTourStepDto {
+export interface CampaignTourStepDto {
   title: string;
   description: string;
   image: ThemeImage | null;
-  actions: OndoCampaignTourActions | null;
+  actions: CampaignTourActions | null;
 }
 
-export interface OndoCampaignHowItWorks {
+export interface CampaignHowItWorks {
   title: string;
   description: string;
-  steps: OndoCampaignStep[];
+  steps: CampaignStep[];
   notes?: Json | null;
-  tour?: OndoCampaignTourStepDto[];
+  tour?: CampaignTourStepDto[];
 }
 
 export interface OndoCampaignTier {
@@ -1059,12 +1247,233 @@ export interface OndoCampaignTier {
   minNetDeposit: number;
 }
 
-export interface OndoHoldingDetails {
-  howItWorks: OndoCampaignHowItWorks;
+export interface CampaignDetails {
+  howItWorks: CampaignHowItWorks;
+}
+
+export interface OndoHoldingDetails extends CampaignDetails {
   tiers?: OndoCampaignTier[];
 }
 
-export type CampaignDetails = OndoHoldingDetails;
+export type PerpsTradingCampaignDetails = CampaignDetails;
+
+// ─── Predict The Pitch Campaign ───────────────────────────────────────────
+
+export type PredictThePitchCampaignDetails = CampaignDetails;
+
+export type CampaignDetailsDto =
+  | CampaignDetails
+  | OndoHoldingDetails
+  | PerpsTradingCampaignDetails
+  | PredictThePitchCampaignDetails;
+
+export interface PredictThePitchLeaderboardEntryDto {
+  rank: number;
+  referralCode: string;
+  roi: number;
+}
+
+export interface PredictThePitchLeaderboardDto {
+  campaignId: string;
+  computedAt: string;
+  entries: PredictThePitchLeaderboardEntryDto[];
+  totalParticipants: number;
+}
+
+export interface PredictThePitchLeaderboardPositionDto {
+  rank: number | null;
+  totalParticipants: number;
+  roi: number;
+  pnl: number;
+  volume: number;
+  eligible: boolean;
+  neighbors: PredictThePitchLeaderboardEntryDto[];
+  computedAt: string;
+  marketsTraded: number | null;
+  minimumMarketsTraded: number;
+}
+
+export type PredictThePitchPositionStatus = 'open' | 'sold' | 'resolved';
+
+export interface PredictThePitchPositionDto {
+  outcomeAssetId: string;
+  outcomeAsset: string | null;
+  conditionId: string;
+  conditionSlug: string | null;
+  conditionName: string;
+  eventId: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  capitalDeployed: number;
+  pnl: number;
+  roi: number;
+  status: PredictThePitchPositionStatus;
+  fillShares: number;
+  fillSharesBought: number;
+  fillSharesSold: number;
+  fillPrice: number;
+  fillDate: string;
+}
+
+export interface PredictThePitchPositionsDto {
+  openPositions: PredictThePitchPositionDto[];
+  resolvedPositions: PredictThePitchPositionDto[];
+  computedAt: string | null;
+  numberOfPositionsToShow?: number | null;
+}
+
+export interface PredictThePitchCampaignParticipantOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
+  rank?: number | null;
+}
+
+export interface PredictThePitchPrizeBreakdownEntryDto {
+  rank: number;
+  amountUsd: number;
+}
+
+export interface PredictThePitchPrizePoolDto {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  breakdown: PredictThePitchPrizeBreakdownEntryDto[];
+  computedAt: string | null;
+}
+
+/**
+ * Minimal reference to a single Polymarket market.
+ */
+export interface PredictMarketRef {
+  eventId: string;
+  conditionId?: string;
+}
+
+/**
+ * Response DTO for the public first predict on us endpoint.
+ */
+export interface FirstPredictOnUsDto {
+  name: string;
+  image: ThemeImage | null;
+  localizedText: Record<string, string>;
+  usdAmount: number;
+  markets: PredictMarketRef[];
+  termsUrl: string | null;
+}
+
+/**
+ * Serializable version of FirstPredictOnUsDto for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FirstPredictOnUsDtoState = {
+  name: string;
+  image: ThemeImageState | null;
+  localizedText: { [key: string]: string };
+  usdAmount: number;
+  markets: { eventId: string; conditionId?: string }[];
+  termsUrl: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FirstPredictOnUsCacheState = {
+  data: FirstPredictOnUsDtoState | null;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardEntryState = {
+  rank: number;
+  referralCode: string;
+  roi: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardState = {
+  campaignId: string;
+  computedAt: string;
+  entries: PredictThePitchLeaderboardEntryState[];
+  totalParticipants: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardPositionFoundState = {
+  rank: number | null;
+  totalParticipants: number;
+  roi: number;
+  pnl: number;
+  volume: number;
+  eligible: boolean;
+  neighbors: PredictThePitchLeaderboardEntryState[];
+  computedAt: string;
+  marketsTraded: number | null;
+  minimumMarketsTraded: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardPositionNotFoundState = {
+  notFound: true;
+  lastFetched: number;
+};
+
+export type PredictThePitchLeaderboardPositionState =
+  | PredictThePitchLeaderboardPositionFoundState
+  | PredictThePitchLeaderboardPositionNotFoundState;
+
+/**
+ * Single cached position (mirrors {@link PredictThePitchPositionDto}; explicit plain-object shape for cache / Json).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPositionState = {
+  outcomeAssetId: string;
+  outcomeAsset: string | null;
+  conditionId: string;
+  conditionSlug: string | null;
+  conditionName: string;
+  eventId: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  capitalDeployed: number;
+  pnl: number;
+  roi: number;
+  status: 'open' | 'sold' | 'resolved';
+  fillShares: number;
+  fillSharesBought: number;
+  fillSharesSold: number;
+  fillPrice: number;
+  fillDate: string;
+};
+
+/**
+ * Cached positions payload (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPositionsState = {
+  openPositions: PredictThePitchPositionState[];
+  resolvedPositions: PredictThePitchPositionState[];
+  computedAt: string | null;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPrizeBreakdownEntryState = {
+  rank: number;
+  amountUsd: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPrizePoolState = {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  breakdown: PredictThePitchPrizeBreakdownEntryState[];
+  computedAt: string | null;
+  lastFetched: number;
+};
+
+// ─── End Predict The Pitch Campaign ───────────────────────────────────────
 
 /**
  * Campaign status derived from dates
@@ -1540,6 +1949,10 @@ export interface SubscriptionReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
+  /** True when this subscription signed up with a VIP's referral code. */
+  isVipReferee?: boolean;
+  /** The VIP referrer's primary referral code, when isVipReferee is true. */
+  vipReferrer?: { referralCode: string };
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -1615,6 +2028,10 @@ export type SubscriptionReferralDetailState = {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
+  /** True when this subscription signed up with a VIP's referral code. */
+  isVipReferee: boolean;
+  /** The VIP referrer's primary referral code, when isVipReferee is true. */
+  referredByVipCode?: string | null;
   lastFetched?: number;
 };
 
@@ -1631,6 +2048,7 @@ export type SubscriptionBenefitDto = {
   actionDate: string | null;
   chain: string;
   type: { id: number; name: string };
+  companyName?: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -2078,8 +2496,15 @@ export type RewardsControllerState = {
   vipDashboard: {
     [subscriptionId: string]: VipDashboardState;
   };
+  vipRefereeDashboard: {
+    [subscriptionId: string]: VipRefereeMeState;
+  };
   vipPerpsFees: {
     [subscriptionId: string]: VipPerpsFeesState;
+  };
+  /** First-page VIP transactions keyed by subscriptionId:type. */
+  vipTransactions: {
+    [compositeId: string]: VipTransactionsState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
@@ -2128,8 +2553,26 @@ export type RewardsControllerState = {
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
   };
+  /** Predict The Pitch leaderboard keyed by campaignId (public endpoint). */
+  predictThePitchLeaderboard: {
+    [campaignId: string]: PredictThePitchLeaderboardState;
+  };
+  /** Predict The Pitch leaderboard position keyed by compositeId (subscriptionId:campaignId). */
+  predictThePitchLeaderboardPositions: {
+    [compositeId: string]: PredictThePitchLeaderboardPositionState;
+  };
+  /** Predict The Pitch positions keyed by compositeId (subscriptionId:campaignId). */
+  predictThePitchPositions: {
+    [compositeId: string]: PredictThePitchPositionsState;
+  };
+  /** Predict The Pitch prize pool keyed by campaignId (public endpoint). */
+  predictThePitchPrizePool: {
+    [campaignId: string]: PredictThePitchPrizePoolState;
+  };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;
+  /** Cached first predict on us content from the public endpoint. */
+  firstPredictOnUs: FirstPredictOnUsCacheState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

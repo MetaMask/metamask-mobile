@@ -13,7 +13,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -25,6 +25,7 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { parseCaipAccountId } from '@metamask/utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as React.ComponentType<
@@ -160,7 +161,7 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockStore = configureMockStore();
 
 const routeMock = {

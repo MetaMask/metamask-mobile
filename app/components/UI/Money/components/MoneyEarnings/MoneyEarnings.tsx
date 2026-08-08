@@ -1,93 +1,199 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
+import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
+import Svg, { Line } from 'react-native-svg';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Skeleton,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
 
 interface MoneyEarningsProps {
   /**
-   * Estimated monthly earnings based on current balance and APY, formatted in
-   * the user's selected currency.
+   * Interest earned over the last 30 days, formatted in USD.
    */
-  monthlyEarnings: string;
+  last30DaysEarnings: string;
   /**
-   * Estimated yearly earnings based on current balance and APY, formatted in
-   * the user's selected currency.
+   * Interest earned since the Money Account position was created, formatted
+   * in USD.
    */
-  yearlyEarnings: string;
+  sinceInceptionEarnings: string;
   /**
    * Render skeletons in place of the two earnings values while data is being
    * fetched.
    */
   isLoading?: boolean;
   /**
-   * Handler fired when the info icon next to the section title is tapped.
-   * Opens the Earnings tooltip bottom sheet.
+   * Opens the Monthly earnings info bottom sheet.
    */
-  onInfoPress?: () => void;
+  onMonthlyInfoPress?: () => void;
+  /**
+   * Opens the Lifetime earnings info bottom sheet.
+   */
+  onLifetimeInfoPress?: () => void;
+  /**
+   * Whether the earnings values should be masked.
+   */
+  privacyMode?: boolean;
 }
+
+const UNDERLINE_HEIGHT = 2;
+/** Pull the underline closer to the label baseline. */
+const UNDERLINE_GAP = -1;
+const UNDERLINE_STROKE_WIDTH = 1.5;
+/** Extra left inset so round stroke caps don't peek past the first letter. */
+const UNDERLINE_START_INSET = 1.5;
+
+const styles = StyleSheet.create({
+  labelPressable: {
+    alignSelf: 'flex-start',
+  },
+  labelColumn: {
+    alignItems: 'flex-start',
+  },
+  underline: {
+    marginTop: UNDERLINE_GAP,
+  },
+});
 
 const ValueText = ({
   children,
   testID,
+  privacyMode,
 }: {
   children: string;
   testID: string;
+  privacyMode: boolean;
 }) => {
   const isPositive = children.startsWith('+');
   return (
-    <Text
+    <SensitiveText
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
       color={isPositive ? TextColor.SuccessDefault : TextColor.TextDefault}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Medium}
       testID={testID}
     >
       {children}
-    </Text>
+    </SensitiveText>
+  );
+};
+
+/**
+ * Info label with a custom SVG dotted underline so we can control vertical
+ * offset and dot density (native textDecoration dotted is too coarse/tight).
+ */
+const DottedInfoLabel = ({
+  children,
+  onPress,
+  testID,
+  accessibilityLabel,
+}: {
+  children: string;
+  onPress?: () => void;
+  testID: string;
+  accessibilityLabel: string;
+}) => {
+  const { colors } = useTheme();
+  const [textWidth, setTextWidth] = useState(0);
+
+  const handleTextLayout = useCallback((event: LayoutChangeEvent) => {
+    const nextWidth = event.nativeEvent.layout.width;
+    setTextWidth((current) => (current === nextWidth ? current : nextWidth));
+  }, []);
+
+  const underlineWidth = textWidth;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      disabled={!onPress}
+      testID={testID}
+      style={styles.labelPressable}
+    >
+      <View style={styles.labelColumn}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          onLayout={handleTextLayout}
+        >
+          {children}
+        </Text>
+        {underlineWidth > 0 ? (
+          <Svg
+            width={underlineWidth}
+            height={UNDERLINE_HEIGHT}
+            style={styles.underline}
+          >
+            <Line
+              // Inset so round caps stay flush with the glyph edges.
+              x1={UNDERLINE_STROKE_WIDTH / 2 + UNDERLINE_START_INSET}
+              y1={UNDERLINE_HEIGHT / 2}
+              x2={underlineWidth - UNDERLINE_STROKE_WIDTH / 2}
+              y2={UNDERLINE_HEIGHT / 2}
+              stroke={colors.text.alternative}
+              strokeWidth={UNDERLINE_STROKE_WIDTH}
+              // Zero-length dashes + round caps render as fine circular dots.
+              strokeDasharray="0, 3"
+              strokeLinecap="round"
+            />
+          </Svg>
+        ) : null}
+      </View>
+    </Pressable>
   );
 };
 
 const MoneyEarnings = ({
-  monthlyEarnings,
-  yearlyEarnings,
+  last30DaysEarnings,
+  sinceInceptionEarnings,
   isLoading = false,
-  onInfoPress,
+  onMonthlyInfoPress,
+  onLifetimeInfoPress,
+  privacyMode = false,
 }: MoneyEarningsProps) => (
-  <Box twClassName="px-4 py-3" testID={MoneyEarningsTestIds.CONTAINER}>
-    <MoneySectionHeader
-      title={strings('money.earnings.title')}
-      onInfoPress={onInfoPress}
-      infoAccessibilityLabel={strings('money.earnings.info_label')}
-    />
+  <Box twClassName="px-4 pt-7 pb-3" testID={MoneyEarningsTestIds.CONTAINER}>
+    <MoneySectionHeader title={strings('money.earnings.title')} />
 
     <Box twClassName="mt-5 gap-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="justify-between"
-        testID={MoneyEarningsTestIds.MONTHLY}
+        testID={MoneyEarningsTestIds.LAST_30_DAYS}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <DottedInfoLabel
+          onPress={onMonthlyInfoPress}
+          accessibilityLabel={strings('money.earnings.monthly_info_label')}
+          testID={MoneyEarningsTestIds.MONTHLY_LABEL}
+        >
           {strings('money.earnings.estimated_monthly')}
-        </Text>
+        </DottedInfoLabel>
         {isLoading ? (
           <Skeleton
             height={24}
             width={80}
-            testID={MoneyEarningsTestIds.MONTHLY_SKELETON}
+            testID={MoneyEarningsTestIds.LAST_30_DAYS_SKELETON}
           />
         ) : (
-          <ValueText testID={MoneyEarningsTestIds.MONTHLY_VALUE}>
-            {monthlyEarnings}
+          <ValueText
+            testID={MoneyEarningsTestIds.LAST_30_DAYS_VALUE}
+            privacyMode={privacyMode}
+          >
+            {last30DaysEarnings}
           </ValueText>
         )}
       </Box>
@@ -96,20 +202,27 @@ const MoneyEarnings = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="justify-between"
-        testID={MoneyEarningsTestIds.YEARLY}
+        testID={MoneyEarningsTestIds.SINCE_INCEPTION}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.earnings.estimated_yearly')}
-        </Text>
+        <DottedInfoLabel
+          onPress={onLifetimeInfoPress}
+          accessibilityLabel={strings('money.earnings.lifetime_info_label')}
+          testID={MoneyEarningsTestIds.LIFETIME_LABEL}
+        >
+          {strings('money.earnings.estimated_lifetime')}
+        </DottedInfoLabel>
         {isLoading ? (
           <Skeleton
             height={24}
             width={80}
-            testID={MoneyEarningsTestIds.YEARLY_SKELETON}
+            testID={MoneyEarningsTestIds.SINCE_INCEPTION_SKELETON}
           />
         ) : (
-          <ValueText testID={MoneyEarningsTestIds.YEARLY_VALUE}>
-            {yearlyEarnings}
+          <ValueText
+            testID={MoneyEarningsTestIds.SINCE_INCEPTION_VALUE}
+            privacyMode={privacyMode}
+          >
+            {sinceInceptionEarnings}
           </ValueText>
         )}
       </Box>

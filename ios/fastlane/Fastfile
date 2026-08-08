@@ -101,7 +101,7 @@ platform :ios do
     testflight_options = {
       api_key: api_key,
       ipa: ipa_path,
-      reject_build_waiting_for_review: true,
+      reject_build_waiting_for_review: false,
       distribute_external: distribute_external,
       groups: groups,
       notify_external_testers: notify_external_testers,
@@ -116,6 +116,20 @@ platform :ios do
       testflight_options[:skip_submission] = true
     end
 
-    upload_to_testflight(testflight_options)
+    begin
+      upload_to_testflight(testflight_options)
+    rescue => e
+      # When distribute_external is true, Apple only allows one build "Waiting for Review"
+      # per external group at a time. If the previous build is still pending review, the
+      # submission will fail. We treat this as a non-fatal warning so the build is still
+      # uploaded (internal testers can use it) and the in-review build is not cancelled.
+      if distribute_external && e.message.to_s =~ /waiting.for.review|another.build|submission.already|in review/i
+        UI.important("⚠️  External distribution skipped: a build is already waiting for Apple review.")
+        UI.important("   The uploaded build is available to internal testers.")
+        UI.important("   The in-review build will not be cancelled and should complete review normally.")
+      else
+        raise e
+      end
+    end
   end
 end

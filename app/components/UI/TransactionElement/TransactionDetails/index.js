@@ -14,6 +14,9 @@ import {
   getBlockExplorerTxUrl,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
@@ -49,7 +52,10 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
-import { hasGasFeeTokenSelected } from '../../../Views/confirmations/utils/transaction';
+import {
+  hasGasFeeTokenSelected,
+  isTransactionMarkedAsGasFeeSponsored,
+} from '../../../Views/confirmations/utils/transaction';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -257,6 +263,17 @@ class TransactionDetails extends PureComponent {
     const { rpcBlockExplorer } = this.state;
     try {
       const { url, title } = getBlockExplorerTxUrl(RPC, hash, rpcBlockExplorer);
+      trackBlockExplorerLinkClicked(
+        analytics.trackEvent,
+        AnalyticsEventBuilder.createEventBuilder,
+        {
+          location: 'transaction_details',
+          text: `${strings('transactions.view_on')} ${getBlockExplorerName(
+            rpcBlockExplorer,
+          )}`,
+          url,
+        },
+      );
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: { url, title },
@@ -480,7 +497,8 @@ class TransactionDetails extends PureComponent {
             transactionType={updatedTransactionDetails.transactionType}
             chainId={chainId}
             isGasFeeSponsored={
-              transactionObject.isGasFeeSponsored && !isHardwareWallet
+              isTransactionMarkedAsGasFeeSponsored(transactionObject) &&
+              !isHardwareWallet
             }
           />
         </View>

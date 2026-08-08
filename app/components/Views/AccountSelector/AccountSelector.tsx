@@ -14,6 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -27,6 +28,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   FontWeight,
   Text,
   TextVariant,
@@ -35,13 +37,11 @@ import {
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Engine from '../../../core/Engine';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
-import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -70,7 +70,7 @@ import Routes from '../../../constants/navigation/Routes';
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { y: frameY } = useSafeAreaFrame();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -86,6 +86,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     (state: RootState) => state.accounts.reloadAccounts,
   );
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+
+  // Stable array reference so the memoized list isn't re-rendered (and its
+  // selectedIdSet / renderItem rebuilt) on every parent render.
+  const selectedAccountGroups = useMemo(
+    () => (selectedAccountGroup ? [selectedAccountGroup] : []),
+    [selectedAccountGroup],
+  );
 
   const {
     isAccountSyncingInProgress,
@@ -116,20 +123,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigateToAddAccountActions ===
     AccountSelectorScreens.MultichainAddWalletActions;
 
-  const getInitialScreen = (): AccountSelectorScreens => {
-    if (shouldRedirectToAddWallet) {
-      return AccountSelectorScreens.MultichainAddWalletActions;
-    }
-    if (
-      navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
-    ) {
-      return AccountSelectorScreens.AddAccountActions;
-    }
-    return AccountSelectorScreens.AccountSelector;
-  };
-
-  const [screen, setScreen] =
-    useState<AccountSelectorScreens>(getInitialScreen());
+  const [screen, setScreen] = useState<AccountSelectorScreens>(
+    shouldRedirectToAddWallet
+      ? AccountSelectorScreens.MultichainAddWalletActions
+      : AccountSelectorScreens.AccountSelector,
+  );
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
 
@@ -154,7 +152,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [dispatch, reloadAccounts]);
 
-  // Tracing for the account list: start at layout flush, end after paint (useEffect).
+  // Tracing for the account list: start at layout flush, end after paint (the
+  // `useEffect` below). The `useLayoutEffect` cleanup is a leak-safety fallback
+  // that ends the span if the view unmounts before the passive effect runs;
+  // `endTrace` is idempotent, so the normal path only records one span.
   useLayoutEffect(() => {
     if (!isAccountSelector) {
       return undefined;
@@ -221,7 +222,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         {selectedAccountGroup ? (
           <MultichainAccountSelectorList
             onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroups={[selectedAccountGroup]}
+            selectedAccountGroups={selectedAccountGroups}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
             showFooter={!disableAddAccountButton}
@@ -265,6 +266,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     ),
     [
       selectedAccountGroup,
+      selectedAccountGroups,
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,
@@ -273,18 +275,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     ],
   );
 
-  const renderAddAccountActions = useCallback(
-    () => <AddAccountActions onBack={handleBackToSelector} />,
-    [handleBackToSelector],
-  );
-
   const renderMultichainAddWalletActions = useCallback(
     () => <MultichainAddWalletActions onBack={handleBackToSelector} />,
     [handleBackToSelector],
   );
 
   const showAddWalletModal =
-    screen === AccountSelectorScreens.AddAccountActions ||
     screen === AccountSelectorScreens.MultichainAddWalletActions;
 
   if (shouldRedirectToAddWallet) {
@@ -306,7 +302,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             paddingBottom: insets.bottom,
           }}
         >
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('accounts.accounts_title')}
             onBack={handleClose}
             backButtonProps={{
@@ -330,20 +326,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               paddingBottom: insets.bottom,
             }}
           >
-            <HeaderCompactStandard
-              title={
-                screen === AccountSelectorScreens.AddAccountActions
-                  ? strings('account_actions.add_account')
-                  : strings('multichain_accounts.add_wallet')
-              }
+            <HeaderStandard
+              title={strings('multichain_accounts.add_wallet')}
               onBack={handleBackToSelector}
               backButtonProps={{
                 testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
               }}
             />
-            {screen === AccountSelectorScreens.AddAccountActions
-              ? renderAddAccountActions()
-              : renderMultichainAddWalletActions()}
+            {renderMultichainAddWalletActions()}
           </Box>
         ) : null}
       </Modal>

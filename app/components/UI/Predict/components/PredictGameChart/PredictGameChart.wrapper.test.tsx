@@ -4,17 +4,20 @@ import { render, act, waitFor } from '@testing-library/react-native';
 import PredictGameChart from './PredictGameChart';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import {
   PredictMarket,
   PredictMarketStatus,
   PredictPriceHistoryInterval,
   PredictGameStatus,
+  PredictOutcome,
 } from '../../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock the hooks
 jest.mock('../../hooks/usePredictPriceHistory');
 jest.mock('../../hooks/useLiveMarketPrices');
+jest.mock('../../hooks/usePredictGame');
 
 // Mock PredictGameChartContent to capture props
 jest.mock('./PredictGameChartContent', () => {
@@ -55,6 +58,9 @@ jest.mock('./PredictGameChartContent', () => {
 
 const mockUsePredictPriceHistory = usePredictPriceHistory as jest.Mock;
 const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const createMockPriceHistory = (
   tokenIndex: number,
@@ -123,14 +129,43 @@ const createMockMarket = (
     ...overrides,
   }) as PredictMarket;
 
+const createChartOutcome = (
+  overrides: Partial<PredictOutcome>,
+): PredictOutcome =>
+  ({
+    id: 'outcome',
+    marketId: 'test-market-id',
+    title: 'Outcome',
+    groupItemTitle: 'Outcome',
+    status: 'open',
+    volume: 1000,
+    tokens: [{ id: 'token', title: 'Outcome', price: 0.5 }],
+    ...overrides,
+  }) as PredictOutcome;
+
 const defaultTokenIds: [string, string] = ['token-a', 'token-b'];
 const defaultMarket = createMockMarket();
+const FIXED_NOW = new Date('2024-01-15T12:00:00.000Z').getTime();
+
+const setMockNow = (time: number): void => {
+  if (jest.isMockFunction(Date.now)) {
+    (Date.now as jest.Mock).mockReturnValue(time);
+    return;
+  }
+
+  jest.spyOn(Date, 'now').mockReturnValue(time);
+};
 
 describe('PredictGameChart Wrapper', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-15T12:00:00.000Z'));
+    setMockNow(FIXED_NOW);
+
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
 
     mockUsePredictPriceHistory.mockReturnValue({
       priceHistories: [],
@@ -148,7 +183,7 @@ describe('PredictGameChart Wrapper', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
@@ -194,6 +229,190 @@ describe('PredictGameChart Wrapper', () => {
         }),
       );
     });
+
+    it('uses only main moneyline tokens for draw-capable extended sports markets', () => {
+      const market = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          league: 'fifwc',
+        },
+        outcomes: [
+          createChartOutcome({
+            id: 'spread',
+            sportsMarketType: 'spreads',
+            groupItemThreshold: -2.5,
+            tokens: [{ id: 'token-spread', title: 'MEX -2.5', price: 0.16 }],
+          }),
+          createChartOutcome({
+            id: 'away',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 2,
+            tokens: [{ id: 'token-away', title: 'Ghana', price: 0.12 }],
+          }),
+          createChartOutcome({
+            id: 'halftime',
+            sportsMarketType: 'soccer_halftime_result',
+            groupItemThreshold: 1,
+            tokens: [{ id: 'token-halftime', title: 'Draw', price: 0.2 }],
+          }),
+          createChartOutcome({
+            id: 'draw',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 1,
+            tokens: [{ id: 'token-draw', title: 'Draw', price: 0.19 }],
+          }),
+          createChartOutcome({
+            id: 'home',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 0,
+            tokens: [{ id: 'token-home', title: 'Mexico', price: 0.7 }],
+          }),
+        ],
+      });
+
+      render(<PredictGameChart market={market} testID="chart" />);
+
+      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-home', 'token-draw', 'token-away'],
+          enabled: true,
+        }),
+      );
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-draw', 'token-away'],
+        { enabled: true },
+      );
+    });
+
+    it('uses explicit esports draw moneyline tokens for chart series', () => {
+      const market = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          league: 'dota2',
+          homeTeam: {
+            ...mockBaseGame.homeTeam,
+            name: 'Nigma',
+            abbreviation: 'NIGMA',
+          },
+          awayTeam: {
+            ...mockBaseGame.awayTeam,
+            name: '1win',
+            abbreviation: '1WIN',
+          },
+        },
+        outcomes: [
+          createChartOutcome({
+            id: 'away',
+            sportsMarketType: 'moneyline',
+            groupItemTitle: '1win',
+            negRisk: true,
+            tokens: [{ id: 'token-away', title: 'Yes', price: 0.34 }],
+          }),
+          createChartOutcome({
+            id: 'draw',
+            sportsMarketType: 'moneyline',
+            groupItemTitle: 'Draw',
+            negRisk: true,
+            tokens: [{ id: 'token-draw', title: 'Yes', price: 0.22 }],
+          }),
+          createChartOutcome({
+            id: 'home',
+            sportsMarketType: 'moneyline',
+            groupItemTitle: 'Nigma',
+            negRisk: true,
+            tokens: [{ id: 'token-home', title: 'Yes', price: 0.44 }],
+          }),
+        ],
+      });
+
+      render(<PredictGameChart market={market} testID="chart" />);
+
+      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-home', 'token-draw', 'token-away'],
+          enabled: true,
+        }),
+      );
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-draw', 'token-away'],
+        { enabled: true },
+      );
+    });
+
+    it('uses combined esports draw tokens for chart series', () => {
+      const market = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          league: 'dota2',
+          homeTeam: {
+            ...mockBaseGame.homeTeam,
+            name: 'Nigma',
+            abbreviation: 'NIGMA',
+          },
+          awayTeam: {
+            ...mockBaseGame.awayTeam,
+            name: '1win',
+            abbreviation: '1WIN',
+          },
+        },
+        outcomes: [
+          createChartOutcome({
+            id: 'moneyline',
+            sportsMarketType: 'moneyline',
+            tokens: [
+              { id: 'token-home', title: 'Nigma', price: 0.44 },
+              { id: 'token-draw', title: 'Draw', price: 0.22 },
+              { id: 'token-away', title: '1win', price: 0.34 },
+            ],
+          }),
+        ],
+      });
+
+      render(<PredictGameChart market={market} testID="chart" />);
+
+      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-home', 'token-draw', 'token-away'],
+          enabled: true,
+        }),
+      );
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-draw', 'token-away'],
+        { enabled: true },
+      );
+    });
+
+    it('uses two-way esports moneyline tokens when no draw is offered', () => {
+      const market = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          league: 'dota2',
+        },
+        outcomes: [
+          createChartOutcome({
+            id: 'moneyline',
+            sportsMarketType: 'moneyline',
+            tokens: [
+              { id: 'token-home', title: 'Nigma', price: 0.58 },
+              { id: 'token-away', title: '1win', price: 0.42 },
+            ],
+          }),
+        ],
+      });
+
+      render(<PredictGameChart market={market} testID="chart" />);
+
+      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-home', 'token-away'],
+          enabled: true,
+        }),
+      );
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-away'],
+        { enabled: true },
+      );
+    });
   });
 
   describe('Data Transformation', () => {
@@ -223,6 +442,60 @@ describe('PredictGameChart Wrapper', () => {
         expect(data[0].color).toBe(TEST_HEX_COLORS.PURE_RED);
         expect(data[0].data).toHaveLength(3);
         expect(data[0].data[0].value).toBe(60);
+      });
+    });
+
+    it('labels home-away league token histories in token order', async () => {
+      const mockHistories = [
+        [{ timestamp: 1000000, price: 0.35 }],
+        [{ timestamp: 1000000, price: 0.65 }],
+      ];
+      const wimbledonMarket = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          league: 'atp',
+          homeTeam: {
+            ...mockBaseGame.homeTeam,
+            name: 'Otto Virtanen',
+            abbreviation: 'VIRT',
+          },
+          awayTeam: {
+            ...mockBaseGame.awayTeam,
+            name: 'Ben Shelton',
+            abbreviation: 'SHEL',
+          },
+        },
+        outcomes: [
+          {
+            ...defaultMarket.outcomes[0],
+            sportsMarketType: 'moneyline',
+            tokens: [
+              { id: 'token-virtanen', title: 'Otto Virtanen', price: 0.35 },
+              { id: 'token-shelton', title: 'Ben Shelton', price: 0.65 },
+            ],
+          },
+        ],
+      });
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: mockHistories,
+        isFetching: false,
+        errors: [null, null],
+        refetch: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <PredictGameChart market={wimbledonMarket} testID="chart" />,
+      );
+
+      await waitFor(() => {
+        const dataText = getByTestId('content-data').children[0];
+        const data = JSON.parse(String(dataText));
+
+        expect(data[0].label).toBe('VIRT');
+        expect(data[0].data[0].value).toBe(35);
+        expect(data[1].label).toBe('SHEL');
+        expect(data[1].data[0].value).toBe(65);
       });
     });
 
@@ -371,7 +644,7 @@ describe('PredictGameChart Wrapper', () => {
   describe('Live Update Logic', () => {
     it('updates last data point when within same minute', async () => {
       const baseTimestamp = new Date('2024-01-15T12:00:00.000Z').getTime();
-      jest.setSystemTime(new Date(baseTimestamp + 30000)); // 30 seconds later
+      setMockNow(baseTimestamp + 30000); // 30 seconds later
 
       const mockHistories = [
         [{ timestamp: baseTimestamp, price: 0.5 }],
@@ -452,7 +725,7 @@ describe('PredictGameChart Wrapper', () => {
       });
 
       // First render at base time
-      jest.setSystemTime(new Date(baseTimestamp));
+      setMockNow(baseTimestamp);
 
       const { getByTestId, rerender } = render(
         <PredictGameChart market={defaultMarket} testID="chart" />,
@@ -467,7 +740,7 @@ describe('PredictGameChart Wrapper', () => {
 
       // Move to next minute and provide new prices
       const nextMinute = baseTimestamp + 60000;
-      jest.setSystemTime(new Date(nextMinute));
+      setMockNow(nextMinute);
 
       const pricesMap = new Map([
         [
@@ -560,7 +833,7 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
-      jest.setSystemTime(new Date(baseTimestamp + 120000));
+      setMockNow(baseTimestamp + 120000);
 
       const pricesMap = new Map([
         [
@@ -608,7 +881,7 @@ describe('PredictGameChart Wrapper', () => {
         refetch: jest.fn(),
       });
 
-      jest.setSystemTime(new Date(baseTimestamp + 30000));
+      setMockNow(baseTimestamp + 30000);
 
       const pricesMap = new Map([
         [
@@ -644,7 +917,7 @@ describe('PredictGameChart Wrapper', () => {
 
     it('preserves accumulated live data when historical data refetches', async () => {
       const baseTimestamp = new Date('2024-01-15T12:00:00.000Z').getTime();
-      jest.setSystemTime(new Date(baseTimestamp + 30000));
+      setMockNow(baseTimestamp + 30000);
 
       const initialHistories = [
         [{ timestamp: baseTimestamp, price: 0.5 }],
@@ -1085,6 +1358,26 @@ describe('PredictGameChart Wrapper', () => {
       expect(getByTestId('content-timeframe').children[0]).toBe('max');
       expect(getByTestId('content-disabled-selector').children[0]).toBe('true');
       expect(queryByTestId('timeframe-trigger')).toBeNull();
+    });
+
+    it('uses the cached game status for the default timeframe', () => {
+      mockUsePredictGame.mockReturnValue({
+        game: {
+          ...mockBaseGame,
+          status: 'ended' as PredictGameStatus,
+          startTime: '2024-01-15T10:00:00Z',
+          endTime: '2024-01-15T13:00:00Z',
+        },
+        isConnected: false,
+        lastUpdateTime: null,
+      });
+
+      const { getByTestId } = render(
+        <PredictGameChart market={defaultMarket} testID="chart" />,
+      );
+
+      expect(getByTestId('content-timeframe').children[0]).toBe('max');
+      expect(getByTestId('content-disabled-selector').children[0]).toBe('true');
     });
 
     it('uses startTs/endTs for ended games instead of interval', () => {

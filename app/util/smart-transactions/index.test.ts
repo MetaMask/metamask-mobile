@@ -338,18 +338,38 @@ describe('Smart Transactions utils', () => {
       isProductionMock.mockRestore();
     });
 
-    it('returns true for Infura URLs in production', () => {
+    it('returns false in production if no allowed hosts are provided', () => {
       isProductionMock.mockReturnValue(true);
       const result = getIsAllowedRpcUrlForSmartTransactions(
+        [],
+        'https://mainnet.infura.io/v3/abc123',
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns true for for suffix/subdomain match URLs in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions(
+        ['.infura.io', '.binance.org'],
         'https://mainnet.infura.io/v3/abc123',
       );
       expect(result).toBe(true);
     });
 
-    it('returns true for Binance URLs in production', () => {
+    it('returns false for not exact domain match URLs in production', () => {
       isProductionMock.mockReturnValue(true);
       const result = getIsAllowedRpcUrlForSmartTransactions(
-        'https://bsc-dataseed.binance.org/',
+        ['mainnet.base.org'],
+        'https://developer-access-mainnet.base.org/',
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns true for exact domain match URLs in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions(
+        ['mainnet.base.org'],
+        'https://mainnet.base.org/',
       );
       expect(result).toBe(true);
     });
@@ -357,6 +377,7 @@ describe('Smart Transactions utils', () => {
     it('returns false for other URLs in production', () => {
       isProductionMock.mockReturnValue(true);
       const result = getIsAllowedRpcUrlForSmartTransactions(
+        ['.infura.io', '.binance.org'],
         'https://example.com/rpc',
       );
       expect(result).toBe(false);
@@ -364,13 +385,17 @@ describe('Smart Transactions utils', () => {
 
     it('returns false for undefined URL in production', () => {
       isProductionMock.mockReturnValue(true);
-      const result = getIsAllowedRpcUrlForSmartTransactions(undefined);
+      const result = getIsAllowedRpcUrlForSmartTransactions(
+        ['.infura.io', '.binance.org'],
+        undefined,
+      );
       expect(result).toBe(false);
     });
 
     it('returns true for any URL in non-production environments', () => {
       isProductionMock.mockReturnValue(false);
       const result = getIsAllowedRpcUrlForSmartTransactions(
+        ['.infura.io', '.binance.org'],
         'https://example.com/rpc',
       );
       expect(result).toBe(true);
@@ -378,7 +403,10 @@ describe('Smart Transactions utils', () => {
 
     it('returns true for undefined URL in non-production environments', () => {
       isProductionMock.mockReturnValue(false);
-      const result = getIsAllowedRpcUrlForSmartTransactions(undefined);
+      const result = getIsAllowedRpcUrlForSmartTransactions(
+        ['.infura.io', '.binance.org'],
+        undefined,
+      );
       expect(result).toBe(true);
     });
   });

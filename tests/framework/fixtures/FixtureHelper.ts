@@ -16,8 +16,13 @@ import {
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../Utilities';
-import { dismissDevScreens } from '../../flows/general.flow';
-import TestHelpers from '../../helpers';
+import {
+  dismissAndroidSystemOverlaysPlaywright,
+  dismissDevScreens,
+  dismissDeveloperMenuPlaywright,
+  dismissDevelopmentServerPickerPlaywright,
+} from '../../flows/general.flow';
+import { launchApp as launchDetoxApp } from '../detox/DetoxAppLaunch';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
@@ -41,11 +46,13 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  shouldHandleMetroDevLauncherLocally,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
-import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import { mockNotificationServices } from '../../smoke-appium/notifications/utils/mocks';
+import { softReloadAppForFixtures } from '../services/appium/softReloadApp';
 import {
   runAnalyticsExpectations,
   shouldRunAnalyticsExpectations,
@@ -62,6 +69,14 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
+import { FrameworkDetector } from '../FrameworkDetector';
+import { DeviceCommandHandler } from '../services/device-commands';
+import {
+  getPhaseTimer,
+  recordPhase,
+  startPhase,
+  stopPhase,
+} from '../telemetry/PhaseTimer.ts';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -111,6 +126,17 @@ async function handleDapps(
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          }),
+        );
+        break;
+      case DappVariants.BITCOIN_TEST_DAPP:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BITCOIN_TEST_DAPP].dappPath,
+            dappVariant: DappVariants.BITCOIN_TEST_DAPP,
           }),
         );
         break;
@@ -340,22 +366,16 @@ function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
 }
 
 /**
- * Updates dapp URLs in PermissionController with actual allocated ports by index.
- * Replaces all occurrences of dapp URLs (by index) with their actual allocated ports.
+ * Updates dapp URLs in fixture with actual allocated ports by index.
+ * Replaces all occurrences of fallback dapp ports (8085, 8086, …) with the
+ * dynamically allocated ports. This affects browser tabs, PermissionController
+ * subjects, and any other fixture field that references a dapp URL.
  */
 function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
-  const permissionController =
-    state.state?.engine?.backgroundState?.PermissionController;
 
-  if (!permissionController?.subjects) {
-    return state;
-  }
+  let fixtureJson = JSON.stringify(state);
 
-  // Serialize subjects to JSON string for easy replacement
-  let subjectsJson = JSON.stringify(permissionController.subjects);
-
-  // Update each dapp URL by index
   let index = 0;
   while (true) {
     const actualPort = portManager.getMultiInstancePort(
@@ -368,15 +388,15 @@ function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
     const oldUrl = `localhost:${fallbackPort}`;
     const newUrl = `localhost:${actualPort}`;
 
-    // Replace all occurrences
-    subjectsJson = subjectsJson.split(oldUrl).join(newUrl);
-
+    fixtureJson = fixtureJson.split(oldUrl).join(newUrl);
     index++;
   }
 
-  // Parse back and update
-  permissionController.subjects = JSON.parse(subjectsJson);
-  return state;
+  if (index === 0) {
+    return state;
+  }
+
+  return JSON.parse(fixtureJson);
 }
 
 /**
@@ -516,15 +536,17 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
     analyticsExpectations,
+    currentDeviceDetails,
     disableSynchronization = false,
   } = options;
+  const deviceCommands =
+    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
+      ? new DeviceCommandHandler({ currentDeviceDetails, logger })
+      : undefined;
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
   await cleanupAllAndroidPortForwarding();
-
-  // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
 
   // ========== RESOURCE STARTUP ORDER (IMPORTANT!) ==========
   // Resources must be started in this specific order to ensure ports are allocated
@@ -555,8 +577,11 @@ export async function withFixtures(
     ResourceType.ACCOUNT_ACTIVITY_WS,
   );
   let testError: Error | null = null;
+  let didAttemptPlaywrightDevelopmentServerPickerDismissal = false;
 
   try {
+    startPhase('servers_start');
+
     // Step 1: Start local nodes (Anvil/Ganache)
     if (!disableLocalNodes) {
       localNodes = await handleLocalNodes(localNodeOptions);
@@ -616,6 +641,10 @@ export async function withFixtures(
         commandQueueServer,
       );
     }
+
+    // End servers_start before soft-reload / device launch phases.
+    stopPhase();
+
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
@@ -623,11 +652,36 @@ export async function withFixtures(
       // On Android, LaunchArguments library integration is unreliable on CI
       // We must pass fallback ports so the app uses them and adb reverse can map them
       // to the actual allocated ports
-      const isAndroid = device.getPlatform() === 'android';
+      const isAndroid = await PlatformDetector.isAndroid();
+      const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
-      await TestHelpers.launchApp({
-        delete: true,
-        launchArgs: {
+      if (framework === 'Detox') {
+        await launchDetoxApp({
+          delete: true,
+          launchArgs: {
+            fixtureServerPort: isAndroid
+              ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+              : `${getFixturesServerPort()}`,
+            commandQueueServerPort: isAndroid
+              ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+              : `${commandQueueServer.getServerPort()}`,
+            detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+            mockServerPort: isAndroid
+              ? `${FALLBACK_MOCKSERVER_PORT}`
+              : `${mockServerPort}`,
+            [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+              ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+              : `${accountActivityWsServer.getServerPort()}`,
+            ...(launchArgs || {}),
+          },
+          languageAndLocale,
+          permissions,
+        });
+      } else if (framework === 'Appium') {
+        if (!currentDeviceDetails) {
+          throw new Error('currentDeviceDetails is not available');
+        }
+        const testArgs = {
           fixtureServerPort: isAndroid
             ? `${FALLBACK_FIXTURE_SERVER_PORT}`
             : `${getFixturesServerPort()}`,
@@ -642,33 +696,66 @@ export async function withFixtures(
             ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
             : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
-        },
-        languageAndLocale,
-        permissions,
-      });
+        };
+
+        const softReloadResult = await softReloadAppForFixtures({
+          currentDeviceDetails,
+          deviceCommands,
+          launchArgs: testArgs,
+          fixtureServer,
+        });
+        recordPhase('app_clear', softReloadResult.clearAppDataMs);
+        recordPhase('context_reset', softReloadResult.contextResetMs);
+        recordPhase('app_launch', softReloadResult.launchAppMs);
+        recordPhase('fixture_bootstrap', softReloadResult.fixtureBootstrapMs);
+        if (softReloadResult.attemptedMetroDevLauncherDismissal) {
+          didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
+        }
+      } else {
+        throw new Error(`Unsupported test runner: ${framework}`);
+      }
     }
 
-    if (disableSynchronization) {
-      await device.disableSynchronization();
-    } else {
-      await device.enableSynchronization();
+    if (FrameworkDetector.isDetox()) {
+      if (disableSynchronization) {
+        await device.disableSynchronization();
+      } else {
+        await device.enableSynchronization();
+      }
     }
 
-    // Dismiss dev screens if running locally (not in CI)
+    // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
     if (process.env.CI !== 'true') {
-      await dismissDevScreens();
+      if (FrameworkDetector.isDetox()) {
+        await dismissDevScreens();
+      } else if (
+        FrameworkDetector.isAppium() &&
+        shouldHandleMetroDevLauncherLocally()
+      ) {
+        if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
+          await dismissDevelopmentServerPickerPlaywright();
+        }
+        await dismissDeveloperMenuPlaywright();
+      }
     }
 
+    startPhase('test_body');
     await testSuite({
       contractRegistry,
       mockServer: mockServerInstance.server,
       localNodes,
       commandQueueServer,
+      deviceCommands,
     });
+    stopPhase();
   } catch (error) {
     testError = error as Error;
     logger.error('Error in withFixtures:', error);
   } finally {
+    // Prefer teardown phase even if test_body / login left a phase open.
+    if (getPhaseTimer()) {
+      startPhase('teardown');
+    }
     const cleanupErrors: Error[] = [];
 
     if (endTestfn) {
@@ -730,7 +817,7 @@ export async function withFixtures(
     }
 
     // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
-    if (!skipReactNativeReload) {
+    if (!skipReactNativeReload && FrameworkDetector.isDetox()) {
       try {
         // Disable synchronization to prevent race conditions with pending timers
         await device.disableSynchronization();
@@ -813,6 +900,8 @@ export async function withFixtures(
     }
 
     // Handle error reporting: prioritize test error over cleanup errors
+    stopPhase();
+
     if (testError && cleanupErrors.length > 0) {
       // Both test and cleanup failed - report both but throw the test error
       const cleanupErrorMessages = cleanupErrors

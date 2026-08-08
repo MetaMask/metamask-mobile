@@ -9,16 +9,17 @@ import { AddressSelectorParams } from './AddressSelector.types';
 import { AccountGroupId } from '@metamask/account-api';
 import {
   BottomSheet,
-  type BottomSheetRef,
   BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isCaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 import { MultichainAddressRow } from '../../../component-library/components-temp/MultichainAccounts';
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
@@ -32,9 +33,11 @@ import {
 } from '../../../selectors/networkController';
 import {
   createNavigationDetails,
+  navigateWithDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
 import { useAccountName } from '../../hooks/useAccountName';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
@@ -48,7 +51,7 @@ export const createAddressSelectorNavDetails =
 
 const AddressSelector = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { displayOnlyCaipChainIds, isEvmOnly } =
     useParams<AddressSelectorParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -83,8 +86,9 @@ const AddressSelector = () => {
 
   const handleAccountSelectorPress = useCallback(
     () =>
-      navigation.navigate(
-        ...createAccountSelectorNavDetails({
+      navigateWithDetails(
+        navigation,
+        createAccountSelectorNavDetails({
           isSelectOnly: true,
         }),
       ),
@@ -126,7 +130,7 @@ const AddressSelector = () => {
           networkName={item.networkName}
           address={item.account.address}
           // @ts-expect-error MultichainAddressRow doesn't have twClassName in types
-          twClassName="p-0 gap-4 bg-default"
+          twClassName="p-0 gap-4"
         />
       </ListItemSelect>
     ),

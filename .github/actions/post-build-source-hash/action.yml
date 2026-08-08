@@ -19,10 +19,14 @@ inputs:
     description: 'GitHub commit status context name'
     required: false
     default: 'build-source-hash'
+  post-status:
+    description: 'Whether to post the GitHub commit status after computing the fingerprint'
+    required: false
+    default: 'true'
 
 outputs:
   fingerprint:
-    description: 'The @expo/fingerprint hash that was posted'
+    description: 'The computed @expo/fingerprint hash'
     value: ${{ steps.generate-fingerprint.outputs.fingerprint }}
 
 runs:
@@ -37,6 +41,7 @@ runs:
         echo "Current fingerprint: ${FINGERPRINT}"
 
     - name: Post commit status
+      if: ${{ inputs.post-status == 'true' }}
       uses: actions/github-script@v7
       continue-on-error: true
       env:

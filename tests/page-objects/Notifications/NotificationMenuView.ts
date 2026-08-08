@@ -5,7 +5,7 @@ import {
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 
-class EnableNotificationsModal {
+class NotificationMenuView {
   get title() {
     return Matchers.getElementByID(NotificationMenuViewSelectorsIDs.TITLE);
   }
@@ -23,15 +23,13 @@ class EnableNotificationsModal {
     );
   }
   get scrollViewIdentifier() {
-    return Matchers.getIdentifier(
+    return Matchers.scrollContainer(
       NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
     );
   }
 
   selectNotificationItem(id: string) {
-    return Matchers.getElementByID(
-      NotificationMenuViewSelectorsIDs.ITEM(id),
-    ) as Promise<IndexableNativeElement>;
+    return Matchers.getElementByID(NotificationMenuViewSelectorsIDs.ITEM(id));
   }
 
   async tapOnWalletTab() {
@@ -53,4 +51,4 @@ class EnableNotificationsModal {
   }
 }
 
-export default new EnableNotificationsModal();
+export default new NotificationMenuView();

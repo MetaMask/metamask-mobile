@@ -14,6 +14,7 @@ export enum UserProfileProperty {
   PRIMARY_CURRENCY = 'primary_currency',
   CURRENT_CURRENCY = 'current_currency',
   HAS_MARKETING_CONSENT = 'has_marketing_consent',
+  PUSH_NOTIFICATIONS_ENABLED = 'push_notifications_enabled',
   NUMBER_OF_HD_ENTROPIES = 'number_of_hd_entropies',
   NUMBER_OF_ACCOUNT_GROUPS = 'number_of_account_groups',
   NUMBER_OF_IMPORTED_ACCOUNTS = 'number_of_imported_accounts',
@@ -21,12 +22,14 @@ export enum UserProfileProperty {
   NUMBER_OF_QR_HARDWARE_ACCOUNTS = 'number_of_qr_hardware_accounts',
   NUMBER_OF_HARDWARE_WALLETS = 'number_of_hardware_wallets',
   CHAIN_IDS = 'chain_id_list',
+  CANONICAL_PROFILE_ID = 'canonical_profile_id',
   HAS_REWARDS_OPTED_IN = 'has_rewards_opted_in',
   REWARDS_REFERRED = 'rewards_referred',
   REWARDS_REFERRAL_CODE_USED = 'rewards_referral_code_used',
   REWARD_ENABLED_ACCOUNTS_COUNT = 'reward_enabled_accounts_count',
   CREATED_POLYMARKET_ACCOUNT_VIA_MM = 'created_polymarket_account_via_mm',
   ACCOUNT_TYPE = 'account_type',
+  INSTALL_DATE_MOBILE = 'InstallDateMobile',
 }
 
 export interface UserProfileMetaData {
@@ -40,6 +43,7 @@ export interface UserProfileMetaData {
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
   [UserProfileProperty.HAS_MARKETING_CONSENT]: boolean;
+  [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]?: boolean;
   [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: number;
   [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: number;
   [UserProfileProperty.NUMBER_OF_IMPORTED_ACCOUNTS]: number;
@@ -47,6 +51,7 @@ export interface UserProfileMetaData {
   [UserProfileProperty.NUMBER_OF_QR_HARDWARE_ACCOUNTS]: number;
   [UserProfileProperty.NUMBER_OF_HARDWARE_WALLETS]: number;
   [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
+  [UserProfileProperty.CANONICAL_PROFILE_ID]?: string;
   [UserProfileProperty.HAS_REWARDS_OPTED_IN]?: string;
   [UserProfileProperty.REWARDS_REFERRED]?: boolean;
   [UserProfileProperty.REWARDS_REFERRAL_CODE_USED]?: string;

@@ -1,45 +1,67 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
-import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsFeedbackEnabledFlag,
+  selectPerpsProductsEnabledFlag,
+  selectPerpsTopMoversEnabledFlag,
+  selectPerpsRecentlyAddedEnabledFlag,
+  selectPerpsWatchlistEnabledFlag,
+  selectPerpsProModeEnabledFlag,
+} from '../../selectors/featureFlags';
+import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
+import { usePerpsCategories } from '../../hooks/usePerpsCategories';
+import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
-import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
-
-// Mock useDiscoveryScrollManager
-const mockPerpsOnTabEnter = jest.fn();
-const mockPerpsScrollHandler = jest.fn();
-jest.mock('../../../Predict/hooks/useDiscoveryScrollManager', () => ({
-  useDiscoveryScrollManager: jest.fn(() => ({
-    scrollHandler: mockPerpsScrollHandler,
-    onTabEnter: mockPerpsOnTabEnter,
-    headerHidden: false,
-  })),
-}));
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import {
+  PerpsHomeViewSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
+} from '../../Perps.testIds';
+import {
+  HOME_SCREEN_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  const mockUseAnimatedScrollHandler = jest.fn(
+    (handlers: { onScroll: (event: unknown) => void }) => handlers.onScroll,
+  );
   Reanimated.default.ScrollView = jest.requireActual('react-native').ScrollView;
+  Reanimated.useAnimatedScrollHandler = mockUseAnimatedScrollHandler;
   return Reanimated;
 });
+
+jest.mock('react-native-worklets', () => ({
+  scheduleOnRN: jest.fn(
+    (callback: (...args: number[]) => void, ...args: number[]) =>
+      callback(...args),
+  ),
+}));
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+const mockReset = jest.fn();
+let mockRouteParams: Record<string, unknown> = {
+  source: 'main_action_button',
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
+    reset: mockReset,
   }),
   useRoute: () => ({
-    params: {
-      source: 'main_action_button', // PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON
-    },
+    params: mockRouteParams,
   }),
   useFocusEffect: (callback: () => void) => {
     // Call the callback immediately in tests
@@ -47,10 +69,41 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
+const mockPerpsModeToggle = jest.fn();
+
+// Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
+// (its analytics/design-system internals are covered by its own unit tests).
+jest.mock('../../components/PerpsModeToggle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  const { PerpsModeToggleSelectorsIDs: SelectorsIDs } = jest.requireActual(
+    '../../Perps.testIds',
+  );
+  return {
+    __esModule: true,
+    default: ({
+      onChange,
+      variant,
+    }: {
+      onChange?: (mode: string) => void;
+      variant?: string;
+    }) => {
+      mockPerpsModeToggle({ variant });
+      return ReactActual.createElement(TouchableOpacity, {
+        testID: SelectorsIDs.CONTAINER,
+        // Simulate the user switching to Pro from the stubbed toggle.
+        onPress: () => onChange?.('pro'),
+      });
+    },
+    PerpsMode: { Lite: 'lite', Pro: 'pro' },
+  };
+});
+
 // Mock Redux - default feedback disabled
-const mockUseSelector = jest.fn<boolean, [unknown]>(() => false);
+const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
+  useDispatch: () => jest.fn(),
 }));
 
 // Mock components to prevent complex module initialization chains
@@ -66,6 +119,10 @@ jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
 );
+jest.mock(
+  '../../components/PerpsTopMoversSection',
+  () => 'PerpsTopMoversSection',
+);
 
 // Mock hooks (consolidated to avoid conflicts)
 const mockNavigateBack = jest.fn();
@@ -74,6 +131,8 @@ const mockNavigateToMarketList = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
+const mockSetPerpsMode = jest.fn();
+const mockUsePerpsHomeSectionTracking = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -94,12 +153,43 @@ jest.mock('../../hooks', () => ({
     isProcessing: false,
     error: null,
   })),
-  usePerpsHomeSectionTracking: jest.fn(() => ({
-    handleSectionLayout: jest.fn(() => jest.fn()),
-    handleScroll: jest.fn(),
-    resetTracking: jest.fn(),
+  usePerpsHomeSectionTracking: () => mockUsePerpsHomeSectionTracking(),
+  usePerpsMode: jest.fn(() => ({
+    mode: 'lite',
+    setMode: mockSetPerpsMode,
   })),
 }));
+
+const mockHasCompletedPerpsModeSelection = jest.fn(() =>
+  Promise.resolve(false),
+);
+jest.mock('../../utils/perpsModeSelectionStorage', () => ({
+  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
+}));
+
+// Mock direct import of usePerpsCategories (used for sections_displayed gating)
+jest.mock('../../hooks/usePerpsCategories', () => ({
+  usePerpsCategories: jest.fn(() => []),
+}));
+
+// Mock direct import of useHasNewMarkets (used for sections_displayed gating,
+// mirroring PerpsProducts' own visibility check).
+jest.mock('../../hooks/useHasNewMarkets', () => ({
+  useHasNewMarkets: jest.fn(() => false),
+}));
+
+jest.mock('../../hooks/usePerpsTopMovers', () => ({
+  usePerpsTopMovers: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+  })),
+  isPerpsTopMoversSectionVisible: jest.requireActual(
+    '../../hooks/usePerpsTopMovers',
+  ).isPerpsTopMoversSectionVisible,
+}));
+
+const mockUsePerpsTopMovers = jest.requireMock('../../hooks/usePerpsTopMovers')
+  .usePerpsTopMovers as jest.Mock;
 
 // Mock direct import of usePerpsHomeActions (component imports it directly now)
 jest.mock('../../hooks/usePerpsHomeActions', () => ({
@@ -145,7 +235,20 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(() => ({
+    isMultiProviderEnabled: false,
+  })),
+}));
+
 // Use real BigNumber library - mocking it causes issues with module initialization
+
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -168,8 +271,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
-  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
     ButtonIcon: ({
@@ -178,14 +281,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: {
       testID?: string;
       onPress?: () => void;
-    }) => React.createElement(TouchableOpacity, { testID, onPress }),
-    Text: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(RNText, { testID }, children),
+    }) => ReactActual.createElement(TouchableOpacity, { testID, onPress }),
     Box: 'Box',
   };
 });
@@ -233,41 +329,6 @@ jest.mock('../../../../../util/trace', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   ...jest.requireActual('@metamask/perps-controller'),
-  PERPS_EVENT_PROPERTY: {
-    SCREEN_TYPE: 'screen_type',
-    SOURCE: 'source',
-    BUTTON_CLICKED: 'button_clicked',
-    BUTTON_LOCATION: 'button_location',
-    INTERACTION_TYPE: 'interaction_type',
-    LOCATION: 'location',
-  },
-  PERPS_EVENT_VALUE: {
-    SCREEN_TYPE: {
-      MARKETS: 'markets',
-      HOMESCREEN: 'homescreen',
-      PERPS_HOME: 'perps_home',
-      WALLET_HOME_PERPS_TAB: 'wallet_home_perps_tab',
-    },
-    SOURCE: {
-      MAIN_ACTION_BUTTON: 'main_action_button',
-      HOMESCREEN_TAB: 'homescreen_tab',
-      PERPS_HOME: 'perps_home',
-    },
-    BUTTON_LOCATION: {
-      PERPS_HOME: 'perps_home',
-      PERPS_HOME_EMPTY_STATE: 'perps_home_empty_state',
-      PERPS_TAB: 'perps_tab',
-      PERPS_ASSET_SCREEN: 'perps_asset_screen',
-    },
-    BUTTON_CLICKED: {
-      TUTORIAL: 'tutorial',
-      MAGNIFYING_GLASS: 'magnifying_glass',
-    },
-    INTERACTION_TYPE: {
-      BUTTON_CLICKED: 'button_clicked',
-      CONTACT_SUPPORT: 'contact_support',
-    },
-  },
   DECIMAL_PRECISION_CONFIG: {
     MaxPriceDecimals: 6,
     MaxSignificantFigures: 5,
@@ -281,83 +342,6 @@ jest.mock('@metamask/perps-controller', () => ({
   },
 }));
 
-// Mock child components
-jest.mock('../../components/PerpsHomeHeader', () => {
-  const { View, TouchableOpacity, Text, TextInput } =
-    jest.requireActual('react-native');
-
-  interface MockPerpsHomeHeaderProps {
-    segment?: 'nav' | 'title';
-    screenTitle?: string;
-    onSearchToggle?: () => void;
-    onBack?: () => void;
-    isSearchVisible?: boolean;
-    searchQuery?: string;
-    onSearchQueryChange?: (text: string) => void;
-    onSearchClear?: () => void;
-    testID?: string;
-  }
-
-  function MockPerpsHomeHeader({
-    segment = 'nav',
-    screenTitle = 'Perps',
-    onSearchToggle,
-    onBack,
-    isSearchVisible = false,
-    searchQuery = '',
-    onSearchQueryChange,
-    testID,
-  }: MockPerpsHomeHeaderProps) {
-    if (segment === 'title') {
-      return (
-        <View testID={testID}>
-          <Text testID={testID ? `${testID}-title` : undefined}>
-            {screenTitle}
-          </Text>
-        </View>
-      );
-    }
-
-    if (isSearchVisible) {
-      return (
-        <View>
-          <TextInput
-            value={searchQuery}
-            onChangeText={onSearchQueryChange}
-            testID={`${testID}-search-bar`}
-          />
-          <TouchableOpacity
-            testID={`${testID}-search-close`}
-            onPress={onSearchToggle}
-          >
-            <Text>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View>
-        <TouchableOpacity testID={`${testID}-back-button`} onPress={onBack}>
-          {/* Also provide back-button for backward compatibility with tests */}
-          <View testID="back-button" />
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID={`${testID}-search-toggle`}
-          onPress={onSearchToggle}
-        >
-          <Text>Search</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  return {
-    __esModule: true,
-    default: MockPerpsHomeHeader,
-  };
-});
 jest.mock('../../components/PerpsHomeSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -398,6 +382,7 @@ jest.mock(
   '../../components/PerpsMarketBalanceActions',
   () => 'PerpsMarketBalanceActions',
 );
+jest.mock('../../components/PerpsProducts', () => 'PerpsProducts');
 jest.mock('../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCloseAllPositionsView() {
@@ -440,18 +425,21 @@ jest.mock(
   },
 );
 jest.mock('../../components/PerpsCard', () => 'PerpsCard');
-jest.mock('../../components/PerpsNavigationCard/PerpsNavigationCard', () => {
+jest.mock('../../components/PerpsMoreSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
   return {
     __esModule: true,
-    default: function MockPerpsNavigationCard({
+    default: function MockPerpsMoreSection({
       items,
+      testID,
     }: {
       items: { label: string; onPress: () => void; testID?: string }[];
+      testID?: string;
     }) {
       return (
-        <View testID="perps-navigation-card">
+        <View testID={testID ?? 'perps-more-section'}>
+          <Text>More</Text>
           {items.map(
             (
               item: { label: string; onPress: () => void; testID?: string },
@@ -491,21 +479,6 @@ jest.mock(
     selectWhatsHappeningEnabled: jest.fn(),
   }),
 );
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: 'Text',
-  TextVariant: {
-    HeadingLG: 'HeadingLG',
-    HeadingSM: 'HeadingSM',
-    BodyMD: 'BodyMD',
-    BodyMDMedium: 'BodyMDMedium',
-    BodySM: 'BodySM',
-  },
-  TextColor: {
-    Default: 'Default',
-    Alternative: 'Alternative',
-  },
-}));
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: 'Icon',
@@ -546,6 +519,16 @@ jest.mock(
 
 const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
+const mockUseAnimatedScrollHandler = jest.requireMock('react-native-reanimated')
+  .useAnimatedScrollHandler as jest.Mock;
+const mockScrollTracking = () => ({
+  handleSectionLayout: jest.fn(() => jest.fn()),
+  handleScroll: jest.fn(),
+  resetTracking: jest.fn(),
+});
+
+const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
+  .usePerpsLiveAccount as jest.Mock;
 
 describe('PerpsHomeView', () => {
   const mockDefaultData = {
@@ -556,8 +539,11 @@ describe('PerpsHomeView', () => {
     stocksMarkets: [],
     commoditiesMarkets: [],
     forexMarkets: [],
+    recentlyAddedMarkets: [],
+    hasMarkets: false,
     recentActivity: [],
     sortBy: 'name',
+    categoryMarketCounts: {},
     isLoading: {
       positions: false,
       markets: false,
@@ -567,10 +553,27 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
+    mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
+    mockUsePerpsTopMovers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        totalBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      },
+      isInitialLoading: false,
+    });
   });
 
   it('renders without crashing', () => {
@@ -578,8 +581,10 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert - Component renders with essential elements
-    expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('shows header with navigation controls', () => {
@@ -587,8 +592,10 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('shows search toggle button', () => {
@@ -596,7 +603,123 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+  });
+
+  it('renders the active-mode pill in the header when the Pro mode flag is enabled', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert - back/search remain and the toggle is shown centered
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(
+      getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({ variant: 'active' });
+  });
+
+  it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
+    // Arrange
+    mockUseSelector.mockReturnValue(false);
+
+    // Act
+    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
+  });
+
+  it('opens the mode selection sheet when the header toggle is pressed', async () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Act
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    // Assert — chooser opens once while selection is incomplete
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'home',
+          source: 'perps_home',
+        },
+      });
+    });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
+  });
+
+  it('does not open the mode selection sheet when the user has already completed it', async () => {
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    await waitFor(() => {
+      expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      }),
+    );
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        expect.objectContaining({
+          name: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'BTC' }),
+          }),
+        }),
+      ],
+    });
+  });
+
+  it('opens the mode selection sheet for first-time users from the header toggle', async () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectPerpsProModeEnabledFlag ||
+        selector === selectIsFirstTimePerpsUser,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Act
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    // Assert — first-time tutorial continues from the chooser after select
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'home',
+          source: 'perps_home',
+        },
+      });
+    });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.TUTORIAL,
+      expect.anything(),
+    );
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {
@@ -607,7 +730,7 @@ describe('PerpsHomeView', () => {
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
 
     // Act - Press search toggle
-    fireEvent.press(getByTestId('perps-home-search-toggle'));
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultMarketTypeFilter: 'all',
@@ -618,6 +741,69 @@ describe('PerpsHomeView', () => {
     });
     // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
+  });
+
+  it('forwards scroll events to the latest section tracking callback', async () => {
+    const initialTracking = mockScrollTracking();
+    const latestTracking = mockScrollTracking();
+    mockUsePerpsHomeSectionTracking.mockReturnValue(initialTracking);
+
+    const { rerender } = render(<PerpsHomeView />);
+    const scrollHandlers = mockUseAnimatedScrollHandler.mock.calls.map(
+      ([handlers]) =>
+        handlers as {
+          onScroll: (event: {
+            contentOffset: { x: number; y: number };
+            layoutMeasurement: { width: number; height: number };
+          }) => void;
+        },
+    );
+    const event = {
+      contentOffset: { x: 0, y: 240 },
+      layoutMeasurement: { width: 390, height: 844 },
+    };
+
+    mockUsePerpsHomeSectionTracking.mockReturnValue(latestTracking);
+    rerender(<PerpsHomeView />);
+
+    await act(async () => {
+      scrollHandlers.forEach(({ onScroll }) => onScroll(event));
+      await Promise.resolve();
+    });
+
+    expect(initialTracking.handleScroll).not.toHaveBeenCalled();
+    expect(latestTracking.handleScroll).toHaveBeenCalledWith({
+      nativeEvent: {
+        contentOffset: { x: 0, y: 240 },
+        layoutMeasurement: { width: 0, height: 844 },
+      },
+    });
+  });
+
+  it('carries route transactionActiveAbTests when search opens market list', () => {
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'treatment',
+      ),
+    ];
+    mockRouteParams = {
+      source: 'home_section',
+      transactionActiveAbTests,
+    };
+
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
+
+    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      defaultMarketTypeFilter: 'all',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      fromHome: true,
+      button_clicked: 'magnifying_glass',
+      button_location: 'perps_home',
+      transactionActiveAbTests,
+    });
   });
 
   it('shows positions section when positions exist', () => {
@@ -720,7 +906,7 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Act
-    fireEvent.press(getByTestId('back-button'));
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON));
 
     // Assert - Always navigates to wallet home to avoid loops (e.g., from tutorial)
     expect(mockNavigateToWallet).toHaveBeenCalled();
@@ -798,22 +984,25 @@ describe('PerpsHomeView', () => {
   });
 
   // Note: PerpsHomeView does not render a bottom tab bar
-  // The component uses PerpsNavigationCard for navigation instead
-  it('renders navigation card', () => {
-    // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+  // The component uses PerpsMoreSection for footer actions
+  it('renders more section', () => {
+    const { getByTestId, getByText } = render(<PerpsHomeView />);
 
-    // Assert - Verify navigation card is rendered (if it has a testID)
-    // Or just verify component renders without error
-    // The navigation card is tested separately
-    expect(getByTestId('back-button')).toBeTruthy();
+    expect(getByText('More')).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON)).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON),
+    ).toBeTruthy();
   });
 
   it('renders main sections', () => {
-    // Arrange & Act
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      isLoading: { ...mockDefaultData.isLoading, activity: true },
+    });
+
     const { UNSAFE_getByType } = render(<PerpsHomeView />);
 
-    // Assert
     expect(UNSAFE_getByType('PerpsMarketBalanceActions' as never)).toBeTruthy();
     expect(UNSAFE_getByType('PerpsRecentActivityList' as never)).toBeTruthy();
   });
@@ -843,18 +1032,76 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
-  it('renders watchlist component with empty markets array', () => {
-    // Arrange
+  it('does not render watchlist when markets and suggestions are empty', () => {
     mockUsePerpsHomeData.mockReturnValue({
       ...mockDefaultData,
       watchlistMarkets: [],
+      suggestedWatchlistMarkets: [],
     });
 
-    // Act
+    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+  });
+
+  it('does not render watchlist when only suggested markets exist and redesign flag is off', () => {
+    mockUseSelector.mockReturnValue(false);
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      watchlistMarkets: [],
+      suggestedWatchlistMarkets: [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$50000',
+          change24h: '+$1250',
+          change24hPercent: '+2.5%',
+          volume: '$1.2B',
+          volumeNumber: 1200000000,
+          maxLeverage: '50',
+        },
+      ],
+    });
+
+    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+  });
+
+  it('renders watchlist when only suggested markets exist and redesign flag is on', () => {
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsWatchlistEnabledFlag,
+    );
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      watchlistMarkets: [],
+      suggestedWatchlistMarkets: [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$50000',
+          change24h: '+$1250',
+          change24hPercent: '+2.5%',
+          volume: '$1.2B',
+          volumeNumber: 1200000000,
+          maxLeverage: '50',
+        },
+      ],
+    });
+
     const { UNSAFE_getByType } = render(<PerpsHomeView />);
 
-    // Assert - Component is rendered, it handles empty state internally
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+  });
+
+  it('passes enabled: false to usePerpsTopMovers when top movers flag is off', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    render(<PerpsHomeView />);
+
+    expect(mockUsePerpsTopMovers).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 
   describe('Feedback Feature', () => {
@@ -910,76 +1157,110 @@ describe('PerpsHomeView', () => {
     });
   });
 
-  describe('hideHeader prop', () => {
-    it('renders the header by default', () => {
+  describe('Contact Support', () => {
+    beforeEach(() => {
+      mockOpenSupportWithConsent.mockClear();
+    });
+
+    it('shows the support consent sheet with the support URL when the support button is pressed', () => {
       const { getByTestId } = render(<PerpsHomeView />);
-      expect(getByTestId('back-button')).toBeTruthy();
-      expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+
+      fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        SUPPORT_CONFIG.Url,
+        expect.any(Function),
+      );
     });
 
-    it('hides the header when hideHeader is true', () => {
-      const { queryByTestId } = render(<PerpsHomeView hideHeader />);
-      expect(queryByTestId('back-button')).toBeNull();
-      expect(queryByTestId('perps-home-search-toggle')).toBeNull();
+    // Covers only the call-site opener glue: invoking the opener passed to
+    // openSupportWithConsent navigates to the webview. The consent modal
+    // behavior itself is covered by the core support-consent tests.
+    it('navigates to the SimpleWebview when the provided opener is invoked', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+      const [open] = mockOpenSupportWithConsent.mock.calls[0];
+      open(SUPPORT_CONFIG.Url);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: SUPPORT_CONFIG.Url,
+          title: 'perps.support.title',
+        },
+      });
+    });
+  });
+
+  describe('fixed footer', () => {
+    let originalShowHeaderActionButtons: boolean;
+
+    beforeEach(() => {
+      originalShowHeaderActionButtons =
+        HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+      Object.assign(HOME_SCREEN_CONFIG, { ShowHeaderActionButtons: false });
     });
 
-    it('still renders content when hideHeader is true', () => {
-      const { UNSAFE_getByType } = render(<PerpsHomeView hideHeader />);
+    afterEach(() => {
+      Object.assign(HOME_SCREEN_CONFIG, {
+        ShowHeaderActionButtons: originalShowHeaderActionButtons,
+      });
+    });
+
+    it('hides fixed footer when balance is a loading sentinel', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '--',
+          spendableBalance: '--',
+          withdrawableBalance: '--',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+        },
+        isInitialLoading: false,
+      });
+
+      const { queryByTestId } = render(<PerpsHomeView />);
+
       expect(
-        UNSAFE_getByType('PerpsMarketBalanceActions' as never),
+        queryByTestId(PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows fixed footer when balance is funded', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '100',
+          spendableBalance: '100',
+          withdrawableBalance: '100',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+        },
+        isInitialLoading: false,
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeTruthy();
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeTruthy();
     });
   });
 
-  describe('tabEnterCallbackRef prop', () => {
-    it('populates tabEnterCallbackRef.current with onTabEnter after mount', () => {
-      const ref = { current: null } as React.MutableRefObject<
-        (() => void) | null
-      >;
-      render(<PerpsHomeView tabEnterCallbackRef={ref} />);
-      expect(ref.current).toBe(mockPerpsOnTabEnter);
-    });
-
-    it('updates tabEnterCallbackRef.current when onTabEnter changes', () => {
-      const ref = { current: null } as React.MutableRefObject<
-        (() => void) | null
-      >;
-      const newOnTabEnter = jest.fn();
-      (useDiscoveryScrollManager as jest.Mock).mockReturnValueOnce({
-        scrollHandler: mockPerpsScrollHandler,
-        onTabEnter: newOnTabEnter,
-        headerHidden: false,
-      });
-      render(<PerpsHomeView tabEnterCallbackRef={ref} />);
-      expect(ref.current).toBe(newOnTabEnter);
-    });
-
-    it('does not throw when tabEnterCallbackRef is not provided', () => {
-      expect(() => render(<PerpsHomeView />)).not.toThrow();
-    });
-  });
-
-  describe('useDiscoveryScrollManager integration', () => {
-    it('passes walletHeaderHeight to useDiscoveryScrollManager', () => {
-      render(<PerpsHomeView walletHeaderHeight={56} />);
-      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ walletHeaderHeight: 56 }),
-      );
-    });
-
-    it('passes onHeaderHiddenChange to useDiscoveryScrollManager', () => {
-      const onHeaderHiddenChange = jest.fn();
-      render(<PerpsHomeView onHeaderHiddenChange={onHeaderHiddenChange} />);
-      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ onHeaderHiddenChange }),
-      );
-    });
-
-    it('uses default walletHeaderHeight of 0 when not provided', () => {
-      render(<PerpsHomeView />);
-      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ walletHeaderHeight: 0 }),
-      );
+  describe('header', () => {
+    it('renders the header by default', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+      ).toBeTruthy();
+      expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
     });
   });
 
@@ -997,6 +1278,358 @@ describe('PerpsHomeView', () => {
       mockUseSelector.mockReturnValue(false);
       const { queryByTestId } = render(<PerpsHomeView />);
       expect(queryByTestId('whats-happening-section')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Analytics: base perps_home screen view event', () => {
+    const mockUsePerpsEventTracking = jest.requireMock(
+      '../../hooks/usePerpsEventTracking',
+    ).usePerpsEventTracking as jest.Mock;
+
+    interface TrackingOptions {
+      properties?: Record<string, unknown>;
+    }
+
+    const getBaseEventProperties = (
+      calls: unknown[][],
+    ): Record<string, unknown> | undefined => {
+      const match = calls.find((c) => {
+        const opts = c[0] as TrackingOptions;
+        return opts?.properties?.screen_type === 'perps_home';
+      });
+      return (match?.[0] as TrackingOptions)?.properties;
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('includes sections_displayed containing balance and explore sections when markets exist', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        perpsMarkets: [{ symbol: 'BTC' }],
+        stocksMarkets: [{ symbol: 'AAPL' }],
+        recentActivity: [{ id: '1' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toEqual(
+        expect.arrayContaining([
+          'balance',
+          'explore_crypto',
+          'explore_stocks',
+          'recent_activity',
+        ]),
+      );
+    });
+
+    it('includes watchlist_count and watchlist_markets from raw selector', () => {
+      const mockWatchlist = ['BTC', 'ETH', 'SOL'];
+      mockUseSelector.mockImplementation(() => mockWatchlist);
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.watchlist_count).toBe(3);
+      expect(properties?.watchlist_markets).toEqual(mockWatchlist);
+    });
+
+    it('excludes positions section from sections_displayed when positions array is empty', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('positions');
+    });
+
+    it('includes positions section in sections_displayed when positions exist', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('positions');
+    });
+
+    it('includes orders while orders are loading even when the array is empty', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        orders: [],
+        isLoading: { ...mockDefaultData.isLoading, orders: true },
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('orders');
+    });
+
+    it('includes recent_activity while activity is loading even when the array is empty', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentActivity: [],
+        isLoading: { ...mockDefaultData.isLoading, activity: true },
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('recent_activity');
+    });
+
+    it('excludes products and top_movers when their feature flags are disabled', () => {
+      mockUseSelector.mockReturnValue(false);
+      (usePerpsCategories as jest.Mock).mockReturnValue([
+        { id: 'crypto', label: 'Crypto' },
+      ]);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        perpsMarkets: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('products');
+      expect(properties?.sections_displayed).not.toContain('top_movers');
+    });
+
+    it('includes products when enabled and categories are available', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsProductsEnabledFlag,
+      );
+      (usePerpsCategories as jest.Mock).mockReturnValue([
+        { id: 'crypto', label: 'Crypto' },
+      ]);
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('products');
+    });
+
+    it('excludes products when enabled but no categories are available', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsProductsEnabledFlag,
+      );
+      (usePerpsCategories as jest.Mock).mockReturnValue([]);
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('products');
+    });
+
+    it('includes products when enabled and there is at least one recently listed market, even with no categories', () => {
+      // Regression test: PerpsProducts renders a "New" pill on its own via
+      // useHasNewMarkets even when usePerpsCategories is empty, so the home
+      // screen's own gating must account for that too or the section never
+      // mounts and the pill is unreachable.
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsProductsEnabledFlag,
+      );
+      (usePerpsCategories as jest.Mock).mockReturnValue([]);
+      (useHasNewMarkets as jest.Mock).mockReturnValue(true);
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('products');
+    });
+
+    it('excludes products when enabled but there are no categories and no recently listed markets', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsProductsEnabledFlag,
+      );
+      (usePerpsCategories as jest.Mock).mockReturnValue([]);
+      (useHasNewMarkets as jest.Mock).mockReturnValue(false);
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('products');
+    });
+
+    it('includes top_movers when enabled and top movers feed has data', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [{ symbol: 'BTC' }],
+        isLoading: false,
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('top_movers');
+    });
+
+    it('includes top_movers when enabled and top movers feed is loading', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: true,
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('top_movers');
+    });
+
+    it('excludes top_movers when enabled but top movers feed is empty and loaded', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: false,
+      });
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        hasMarkets: true,
+        perpsMarkets: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('top_movers');
+    });
+
+    it('excludes top_movers when enabled but top movers feed is empty', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: false,
+      });
+      mockUsePerpsHomeData.mockReturnValue({ ...mockDefaultData });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('top_movers');
+    });
+
+    it('excludes recently_added when the feature flag is off even though data is present', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('recently_added');
+    });
+
+    it('includes recently_added when the feature flag is on and data is present', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('recently_added');
+    });
+  });
+
+  describe('Recently Added header navigation', () => {
+    it('navigates to the market list filtered to new markets when the header is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(
+        getByTestId(PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER),
+      );
+
+      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+        defaultMarketTypeFilter: 'new',
+        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
     });
   });
 });

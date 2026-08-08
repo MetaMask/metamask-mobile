@@ -2,10 +2,6 @@
 import React from 'react';
 import { View, ViewProps } from 'react-native';
 
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../hooks/useStyles';
 import { EditSpendingCapButton } from '../../../Views/confirmations/components/edit-spending-cap-button';
 import { ApproveMethod } from '../../../Views/confirmations/types/approve';
@@ -17,6 +13,12 @@ import styleSheet from './BalanceChangeRow.styles';
 import AlertRow from '../../../Views/confirmations/components/UI/info-row/alert-row';
 import { RowAlertKey } from '../../../Views/confirmations/components/UI/info-row/alert-row/constants';
 import alertRowStyleSheet from '../../../Views/confirmations/components/UI/info-row/alert-row/alert-row.styles';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 interface BalanceChangeRowProperties extends ViewProps {
   approveMethod?: ApproveMethod;
@@ -61,8 +63,9 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
     return (
       <Text
         testID="balance-change-row-label"
-        variant={TextVariant.BodyMDMedium}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        fontWeight={FontWeight.Medium}
       >
         {label}
       </Text>

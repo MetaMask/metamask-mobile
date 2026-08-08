@@ -1,6 +1,6 @@
 import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
-import { screen } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
@@ -9,9 +9,6 @@ import {
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
   HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
   HomepagePerpsPillsEmptyVariant,
-  HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-  HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-  HomepageTrendingSectionsVariant,
 } from './abTestConfig';
 
 const defaultUseABTestImplementation = (key: string) => {
@@ -25,40 +22,9 @@ const defaultUseABTestImplementation = (key: string) => {
       isActive: true,
     };
   }
-  if (key === HOMEPAGE_TRENDING_SECTIONS_AB_KEY) {
-    return {
-      variant:
-        HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
-          HomepageTrendingSectionsVariant.Control
-        ],
-      variantName: HomepageTrendingSectionsVariant.Control,
-      isActive: true,
-    };
-  }
   return {
-    variant: { separateTrending: false },
+    variant: { layout: 'carousel' },
     variantName: 'control',
-    isActive: true,
-  };
-};
-
-const separateTrendingTreatmentUseABTestImplementation = (key: string) => {
-  if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
-    return {
-      variant:
-        HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
-          HomepagePerpsPillsEmptyVariant.Control
-        ],
-      variantName: HomepagePerpsPillsEmptyVariant.Control,
-      isActive: true,
-    };
-  }
-  return {
-    variant:
-      HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
-        HomepageTrendingSectionsVariant.TrendingSections
-      ],
-    variantName: HomepageTrendingSectionsVariant.TrendingSections,
     isActive: true,
   };
 };
@@ -89,27 +55,40 @@ jest.mock('./Sections/NFTs/hooks', () => ({
   useOwnedNfts: () => mockUseOwnedNfts(),
 }));
 
-// Mock feature flags - enable all sections by default
-const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
-const mockAbortDetection = jest.fn();
-
-jest.mock('../../hooks/useNftDetection', () => ({
-  useNftDetection: () => ({
-    detectNfts: mockDetectNfts,
-    abortDetection: mockAbortDetection,
-    chainIdsToDetectNftsFor: [],
-  }),
-}));
-
 // Mock feature flags - enable all sections
+const mockPerpsEnabled = true;
 jest.mock('../../UI/Perps', () => ({
-  selectPerpsEnabledFlag: jest.fn(() => true),
+  selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
 }));
 
-jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
-  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
+const mockPerpsConnectionProvider = jest.fn();
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
+  const PerpsConnectionContext = ReactLib.createContext({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn().mockResolvedValue(undefined),
+  });
+
+  return {
+    PerpsConnectionContext,
+    PerpsConnectionProvider: ({
+      children,
+      isEnabled,
+    }: {
+      children: React.ReactNode;
+      isEnabled?: boolean;
+    }) => {
+      mockPerpsConnectionProvider({ isEnabled });
+      return children;
+    },
+  };
+});
 
 jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -180,6 +159,8 @@ jest.mock('react-native-skeleton-placeholder', () => {
   return MockSkeletonPlaceholder;
 });
 
+jest.mock('../../UI/NftGrid/NftGridItemBottomSheet', () => () => null);
+
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
 }));
@@ -188,6 +169,11 @@ jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query');
   return {
     ...actual,
+    useQuery: jest.fn(() => ({
+      data: 510,
+      isLoading: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    })),
     useQueryClient: jest.fn(() => ({
       invalidateQueries: jest.fn(() => Promise.resolve()),
     })),
@@ -227,9 +213,39 @@ jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
   selectDeFiPositionsSectionEnabled: jest.fn(() => true),
 }));
 
+jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
+  selectDeFiPositionsV2SectionEnabled: jest.fn(() => false),
+}));
+
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
+  selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
+  selectAiSocialAusCacheRefreshEnabled: jest.fn(() => false),
 }));
+
+jest.mock('../../UI/Assets/selectors/featureFlags', () => ({
+  selectTokenWatchlistEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
+  useTokenWatchlistQuery: jest.fn(() => ({
+    tokens: [],
+    isLoading: false,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
+const mockBalanceBreakdownSection = jest.fn();
+jest.mock('./Sections/BalanceBreakdown', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockBalanceBreakdownSection(props);
+      return <View testID="balance-breakdown-section-mock" />;
+    },
+  };
+});
 
 jest.mock('./Sections/TopTraders/hooks', () => ({
   useTopTraders: jest.fn(() => ({
@@ -239,6 +255,7 @@ jest.mock('./Sections/TopTraders/hooks', () => ({
     refresh: jest.fn().mockResolvedValue(undefined),
     toggleFollow: jest.fn(),
   })),
+  usePrefetchTraderProfiles: jest.fn(),
 }));
 
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */
@@ -256,17 +273,14 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
   default: (params: UseHomeViewedEventParamsSnapshot) =>
     (mockUseHomeViewedEvent as jest.Mock)(params),
   HomeSectionNames: {
-    CASH: 'cash',
     TOKENS: 'tokens',
+    WATCHLIST: 'watchlist',
     TOP_TRADERS: 'top_traders',
     WHATS_HAPPENING: 'whats_happening',
     PERPS: 'perps',
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
-    TRENDING_TOKENS: 'trending_tokens',
-    TRENDING_PERPS: 'trending_perps',
-    TRENDING_PREDICT: 'trending_predict',
   },
 }));
 
@@ -286,6 +300,7 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
+  selectMusdBalanceChainIds: jest.fn(() => []),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
@@ -305,6 +320,8 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 }));
 
 const mockEnableAllPopularNetworks = jest.fn();
+let mockPopularNetworks: string[] = [];
+const mockIsNetworkEnabled = jest.fn(() => true);
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -317,8 +334,8 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
     enableAllPopularNetworks: mockEnableAllPopularNetworks,
     popularEvmNetworks: [],
     popularMultichainNetworks: [],
-    popularNetworks: [],
-    isNetworkEnabled: jest.fn(),
+    popularNetworks: mockPopularNetworks,
+    isNetworkEnabled: mockIsNetworkEnabled,
     hasOneEnabledNetwork: false,
     tryEnableEvmNetwork: jest.fn(),
   }),
@@ -338,6 +355,14 @@ const stateWithPreferences = {
   },
 };
 
+const mockOwnedNft = {
+  address: '0x123',
+  tokenId: '1',
+  isCurrentlyOwned: true,
+  name: 'NFT 1',
+  image: 'https://example.com/nft.png',
+} as Nft;
+
 describe('Homepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -351,32 +376,115 @@ describe('Homepage', () => {
       .requireMock('../../../selectors/deFiPositionsSectionEnabled')
       .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
     jest
+      .requireMock('../../../selectors/deFiPositionsV2SectionEnabled')
+      .selectDeFiPositionsV2SectionEnabled.mockReturnValue(false);
+    jest
       .requireMock('../../../selectors/featureFlagController/socialLeaderboard')
       .selectSocialLeaderboardEnabled.mockReturnValue(false);
+    jest
+      .requireMock('../../UI/Assets/selectors/featureFlags')
+      .selectTokenWatchlistEnabled.mockReturnValue(false);
     jest
       .requireMock('../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
     mockUseOwnedNfts.mockReturnValue([]);
+    mockPopularNetworks = [];
+    mockIsNetworkEnabled.mockReturnValue(true);
   });
 
-  it('calls enableAllPopularNetworks when Homepage is focused (useFocusEffect)', () => {
+  it('uses one enabled Perps connection provider for the homepage', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: true,
+    });
+  });
+
+  it('keeps the shared provider inert when Perps is disabled', () => {
+    jest
+      .requireMock('../../UI/Perps')
+      .selectPerpsEnabledFlag.mockReturnValue(false);
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: false,
+    });
+  });
+
+  it('renders the treatment breakdown before homepage sections when provided', () => {
+    const balanceBreakdownSectionProps = {
+      accountGroupBalanceProps: {},
+      hideRows: false,
+      layout: 'icons' as const,
+    };
+
+    renderWithProvider(
+      <Homepage balanceBreakdownSectionProps={balanceBreakdownSectionProps} />,
+      { state: stateWithPreferences },
+    );
+
+    expect(
+      screen.getByTestId('balance-breakdown-section-mock'),
+    ).toBeOnTheScreen();
+    expect(mockBalanceBreakdownSection).toHaveBeenCalledWith(
+      balanceBreakdownSectionProps,
+    );
+  });
+
+  it('does not render a breakdown section for control', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(
+      screen.queryByTestId('balance-breakdown-section-mock'),
+    ).not.toBeOnTheScreen();
+    expect(mockBalanceBreakdownSection).not.toHaveBeenCalled();
+  });
+
+  it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {
+    mockPopularNetworks = ['eip155:1'];
+    mockIsNetworkEnabled.mockReturnValue(false);
+
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
   });
 
-  it('renders NFTs section title', () => {
+  it('does not call enableAllPopularNetworks when all popular networks are already enabled', () => {
+    mockPopularNetworks = ['eip155:1'];
+    mockIsNetworkEnabled.mockReturnValue(true);
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockEnableAllPopularNetworks).not.toHaveBeenCalled();
+  });
+
+  it('renders NFTs section with skeletons when user has no NFTs (pre-detection state)', () => {
+    // Before detection fires, the section shows skeletons so useSectionViewportVisible
+    // can measure it and trigger the first detection call.
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
   });
 
-  it('renders NFTs section empty state when user has no NFTs', () => {
+  it('renders More section actions', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-    expect(screen.getByText('Import NFTs')).toBeOnTheScreen();
+    expect(screen.getByText('More')).toBeOnTheScreen();
+    expect(screen.getByText('Import a token')).toBeOnTheScreen();
+    expect(screen.getByText('Import an NFT')).toBeOnTheScreen();
+  });
+
+  it('renders NFTs section when user has NFTs', () => {
+    mockUseOwnedNfts.mockReturnValue([mockOwnedNft]);
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(screen.getByText('NFTs')).toBeOnTheScreen();
   });
 
   it('exposes refresh function via ref', () => {
@@ -401,7 +509,7 @@ describe('Homepage', () => {
     it('passes correct sectionIndex to each section when all flags are on', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      // Tokens=0, Perps=1, Predict=2, DeFi=3, NFTs=4 → total=5
+      // Tokens=0, Perps=1, Predict=2, DeFi=3, NFTs=4 → total=5 (NFTs always present)
       const calls = getUseHomeViewedEventCalls();
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
@@ -464,6 +572,9 @@ describe('Homepage', () => {
       jest
         .requireMock('../../../selectors/deFiPositionsSectionEnabled')
         .selectDeFiPositionsSectionEnabled.mockReturnValue(false);
+      jest
+        .requireMock('../../../selectors/deFiPositionsV2SectionEnabled')
+        .selectDeFiPositionsV2SectionEnabled.mockReturnValue(false);
     });
 
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
@@ -513,37 +624,14 @@ describe('Homepage', () => {
     });
   });
 
-  describe('section indices — Cash section enabled', () => {
+  describe('section indices — Watchlist enabled', () => {
     beforeEach(() => {
       jest
-        .requireMock('../../UI/Earn/selectors/featureFlags')
-        .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
-      mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
+        .requireMock('../../UI/Assets/selectors/featureFlags')
+        .selectTokenWatchlistEnabled.mockReturnValue(true);
     });
 
-    it('passes sectionIndex 0 to Cash and shifts others when Cash is enabled', () => {
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
-      expect(callBySectionName('cash')?.sectionIndex).toBe(0);
-      expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
-      expect(callBySectionName('cash')?.totalSectionsLoaded).toBe(6);
-    });
-  });
-
-  describe('treatment variant — separateTrending enabled', () => {
-    beforeEach(() => {
-      mockUseABTest.mockImplementation(
-        separateTrendingTreatmentUseABTestImplementation,
-      );
-    });
-
-    it('passes correct section indices when separateTrending is active (no NFTs)', () => {
+    it('places watchlist after Predictions when all core flags are on', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();
@@ -553,68 +641,21 @@ describe('Homepage', () => {
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
       expect(callBySectionName('predict')?.sectionIndex).toBe(2);
-      expect(callBySectionName('defi')?.sectionIndex).toBe(3);
-      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(4);
-      expect(callBySectionName('trending_perps')?.sectionIndex).toBe(5);
-      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(6);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(7);
-
-      calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(8);
-      });
-    });
-
-    it('places NFTs above trending sections when user has NFTs', () => {
-      mockUseOwnedNfts.mockReturnValue([{ tokenId: '1' } as Nft]);
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
-      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
-      expect(callBySectionName('defi')?.sectionIndex).toBe(3);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
-      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(5);
-      expect(callBySectionName('trending_perps')?.sectionIndex).toBe(6);
-      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(7);
-
-      calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(8);
-      });
-    });
-
-    it('excludes trending_perps when Perps is disabled', () => {
-      jest
-        .requireMock('../../UI/Perps')
-        .selectPerpsEnabledFlag.mockReturnValue(false);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
-      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(1);
-      expect(callBySectionName('defi')?.sectionIndex).toBe(2);
-      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(3);
-      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(4);
+      expect(callBySectionName('watchlist')?.sectionIndex).toBe(3);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
       expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
+    });
 
-      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(false);
-      expect(calls.some((c) => c[0]?.sectionName === 'trending_perps')).toBe(
-        false,
-      );
+    it('passes totalSectionsLoaded=6 when Watchlist flag is on (NFTs always present)', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
+      const calls = getUseHomeViewedEventCalls();
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(6);
       });
     });
 
-    it('includes top_traders in section order when Social Leaderboard is enabled', () => {
+    it('places watchlist after Predictions when Social Leaderboard is also enabled', () => {
       jest
         .requireMock(
           '../../../selectors/featureFlagController/socialLeaderboard',
@@ -630,44 +671,14 @@ describe('Homepage', () => {
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
       expect(callBySectionName('predict')?.sectionIndex).toBe(2);
-      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
-      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
-      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(5);
-      expect(callBySectionName('trending_perps')?.sectionIndex).toBe(6);
-      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(7);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(8);
+      expect(callBySectionName('watchlist')?.sectionIndex).toBe(3);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(4);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(5);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(6);
 
       calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(9);
+        expect(call[0]?.totalSectionsLoaded).toBe(7);
       });
-    });
-  });
-
-  describe('perpsProvidersHoisted + Perps feature flag', () => {
-    it('does not render PerpsSection when perpsProvidersHoisted=true and Perps flag is disabled', () => {
-      jest
-        .requireMock('../../UI/Perps')
-        .selectPerpsEnabledFlag.mockReturnValue(false);
-
-      renderWithProvider(<Homepage perpsProvidersHoisted />, {
-        state: stateWithPreferences,
-      });
-
-      const calls = getUseHomeViewedEventCalls();
-      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(false);
-    });
-
-    it('renders PerpsSection when perpsProvidersHoisted=true and Perps flag is enabled', () => {
-      jest
-        .requireMock('../../UI/Perps')
-        .selectPerpsEnabledFlag.mockReturnValue(true);
-
-      renderWithProvider(<Homepage perpsProvidersHoisted />, {
-        state: stateWithPreferences,
-      });
-
-      const calls = getUseHomeViewedEventCalls();
-      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(true);
     });
   });
 });

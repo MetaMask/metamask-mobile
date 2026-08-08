@@ -1,18 +1,22 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
+import { CardEntryPoint } from '../../../../components/UI/Card/util/metrics';
 
 export interface OnboardingState {
   onboardingId: string | null;
   contactVerificationId: string | null;
   consentSetId: string | null;
+  // Immersve funding source created at sign-up; consumed by the
+  // spending-prerequisites flow (KYC / funding polling) in later steps.
+  immersveFundingSourceId: string | null;
 }
 
 export interface CardSliceState {
   hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
-  pendingMoneyAccountCardLink: boolean;
+  pendingMoneyAccountCardLink: CardEntryPoint | null;
 }
 
 export const initialState: CardSliceState = {
@@ -21,9 +25,10 @@ export const initialState: CardSliceState = {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    immersveFundingSourceId: null,
   },
   isDaimoDemo: false,
-  pendingMoneyAccountCardLink: false,
+  pendingMoneyAccountCardLink: null,
 };
 
 const name = 'card';
@@ -48,14 +53,24 @@ const slice = createSlice({
     setConsentSetId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.consentSetId = action.payload;
     },
+    setImmersveFundingSourceId: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.onboarding.immersveFundingSourceId = action.payload;
+    },
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
         contactVerificationId: null,
         consentSetId: null,
+        immersveFundingSourceId: null,
       };
     },
-    setPendingMoneyAccountCardLink: (state, action: PayloadAction<boolean>) => {
+    setPendingMoneyAccountCardLink: (
+      state,
+      action: PayloadAction<CardEntryPoint | null>,
+    ) => {
       state.pendingMoneyAccountCardLink = action.payload;
     },
   },
@@ -93,6 +108,11 @@ export const selectConsentSetId = createSelector(
   (card) => card.onboarding.consentSetId,
 );
 
+export const selectImmersveFundingSourceId = createSelector(
+  selectCardState,
+  (card) => card.onboarding.immersveFundingSourceId,
+);
+
 export const selectPendingMoneyAccountCardLink = createSelector(
   selectCardState,
   (card) => card.pendingMoneyAccountCardLink,
@@ -105,6 +125,7 @@ export const {
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
+  setImmersveFundingSourceId,
   resetOnboardingState,
   setIsDaimoDemo,
   setPendingMoneyAccountCardLink,

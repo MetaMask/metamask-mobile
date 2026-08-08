@@ -1,5 +1,6 @@
 import { Theme } from '@metamask/design-tokens';
 import { Platform, StyleSheet } from 'react-native';
+import { colors as importedColors } from '../../../../../styles/common';
 
 export const inputStepperStyles = ({
   vars,
@@ -22,6 +23,7 @@ export const inputStepperStyles = ({
       justifyContent: 'center',
     },
     input: {
+      backgroundColor: importedColors.transparent,
       borderWidth: 0,
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,

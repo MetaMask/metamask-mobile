@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { renderHook } from '@testing-library/react-hooks';
 import { Linking } from 'react-native';
+import { IconColor } from '@metamask/design-system-react-native';
 import { useMusdConversionNavbar } from './useMusdConversionNavbar';
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
 import { strings } from '../../../../../locales/i18n';
@@ -148,6 +149,24 @@ describe('useMusdConversionNavbar', () => {
     const { getByTestId } = render(<HeaderRight />);
 
     expect(getByTestId('button-icon')).toBeOnTheScreen();
+  });
+
+  it('renders the headerRight info button greyed (IconColor.IconAlternative)', () => {
+    let capturedOverrides: NavbarOverrides | undefined;
+    mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
+      capturedOverrides = overrides;
+    });
+
+    renderHook(() => useMusdConversionNavbar());
+
+    const headerRightElement = (
+      capturedOverrides?.headerRight as () => React.ReactElement<{
+        children: React.ReactElement<{ iconProps: { color: IconColor } }>;
+      }>
+    )();
+    const buttonIcon = React.Children.only(headerRightElement.props.children);
+
+    expect(buttonIcon.props.iconProps.color).toBe(IconColor.IconAlternative);
   });
 
   it('opens tooltip modal when info button is pressed', () => {

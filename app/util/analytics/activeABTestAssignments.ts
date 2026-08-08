@@ -58,3 +58,29 @@ export const normalizeActiveABTestAssignments = (
       createActiveABTestAssignment(key, assignmentValue),
     );
 };
+
+/**
+ * Merges multiple `active_ab_tests` lists, de-duplicating by assignment `key`
+ * (first occurrence wins).
+ */
+export const mergeActiveAbTestAssignmentLists = (
+  ...lists: (ActiveABTestAssignment[] | undefined)[]
+): ActiveABTestAssignment[] | undefined => {
+  const merged: ActiveABTestAssignment[] = [];
+  const seenKeys = new Set<string>();
+
+  for (const list of lists) {
+    if (!list?.length) {
+      continue;
+    }
+    for (const entry of list) {
+      if (seenKeys.has(entry.key)) {
+        continue;
+      }
+      seenKeys.add(entry.key);
+      merged.push(entry);
+    }
+  }
+
+  return merged.length > 0 ? merged : undefined;
+};

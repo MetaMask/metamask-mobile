@@ -11,6 +11,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
   TrendingTokensData,
   TrendingTokensDataProps,
+  TrendingTokensFullViewParams,
 } from './TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../hooks/useTrendingSearch/useTrendingSearch';
@@ -40,12 +41,17 @@ const initialMetrics: Metrics = {
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockUseRoute = jest.fn<
+  { params: TrendingTokensFullViewParams | undefined },
+  []
+>(() => ({ params: undefined }));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useRoute: () => mockUseRoute(),
   createNavigatorFactory: () => ({}),
 }));
 
@@ -101,6 +107,7 @@ const arrangeMocks = () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
   };
 
@@ -243,6 +250,7 @@ describe('TrendingTokensFullView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRoute.mockReturnValue({ params: undefined });
     const mocks = arrangeMocks();
     mocks.setTrendingRequestMock({ results: [createMockToken()] });
     mocks.setTrendingSearchMock({ data: [createMockToken()] });
@@ -253,6 +261,19 @@ describe('TrendingTokensFullView', () => {
 
     expect(getByText('Trending')).toBeOnTheScreen();
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
+  });
+
+  it('shows Crypto movers title when opened from the Now tab entry point', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        entryPoint: 'crypto_movers',
+        quickBuySource: 'explore_now',
+      },
+    });
+
+    const { getByText } = renderTrendingFullView();
+
+    expect(getByText(strings('trending.crypto_movers'))).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', async () => {
@@ -329,6 +350,38 @@ describe('TrendingTokensFullView', () => {
       sortBy: undefined,
       chainIds: null,
       searchQuery: undefined,
+      filterLowQuality: true,
+    });
+  });
+
+  it('applies initial time option from route params', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialTimeOption: TimeOption.OneHour },
+    });
+
+    const { getByTestId } = renderTrendingFullView();
+
+    expect(getByTestId('24h-button')).toHaveTextContent('1h');
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      sortBy: 'h1_trending',
+      chainIds: null,
+      searchQuery: undefined,
+      filterLowQuality: true,
+    });
+  });
+
+  it('applies initial network filter from route params', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialNetwork: ['eip155:4663'] },
+    });
+
+    renderTrendingFullView();
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      sortBy: undefined,
+      chainIds: ['eip155:4663'],
+      searchQuery: undefined,
+      filterLowQuality: true,
     });
   });
 
@@ -367,6 +420,7 @@ describe('TrendingTokensFullView', () => {
           sortBy: 'h6_trending',
           chainIds: null,
           searchQuery: undefined,
+          filterLowQuality: true,
         });
       },
     },
@@ -385,6 +439,7 @@ describe('TrendingTokensFullView', () => {
           sortBy: undefined,
           chainIds: ['eip155:1'],
           searchQuery: undefined,
+          filterLowQuality: true,
         });
       },
     },

@@ -1,7 +1,5 @@
 import Engine from '../Engine';
 import AppConstants from '../AppConstants';
-import { selectEvmChainId } from '../../selectors/networkController';
-import { store } from '../../store';
 
 // eslint-disable-next-line import-x/no-nodejs-modules, import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const EventEmitter = require('events').EventEmitter;
@@ -27,12 +25,6 @@ class WalletConnectPort extends EventEmitter {
         this._wcRequestActions?.updateSession?.({
           chainId: parseInt(msg.data.params.chainId, 16),
           accounts: [selectedAddress],
-        });
-      } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
-        const chainId = selectEvmChainId(store.getState());
-        this._wcRequestActions?.updateSession?.({
-          chainId: parseInt(chainId),
-          accounts: msg.data.params,
         });
       } else if (msg?.data?.method === NOTIFICATION_NAMES.unlockStateChanged) {
         // WC DOESN'T NEED THIS EVENT

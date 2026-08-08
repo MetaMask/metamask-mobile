@@ -2,6 +2,7 @@ import { isProduction } from '../util/environment';
 import { NETWORKS_CHAIN_ID } from './network';
 import { Hex } from '@metamask/utils';
 import Device from '../util/device';
+import { getVersion } from 'react-native-device-info';
 
 // Client identifiers for smart transaction metadata
 const CLIENT_ID_IOS = 'mobileIOS';
@@ -9,6 +10,9 @@ const CLIENT_ID_ANDROID = 'mobileAndroid';
 
 export const getClientForTransactionMetadata = (): string =>
   Device.isIos() ? CLIENT_ID_IOS : CLIENT_ID_ANDROID;
+
+export const getClientVersionForTransactionMetadata = (): string =>
+  getVersion();
 
 /**
  * Sanitizes transaction origin for smart transaction analytics.
@@ -44,6 +48,7 @@ const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS_DEVELOPMENT: Hex[] = [
   NETWORKS_CHAIN_ID.BSC,
   NETWORKS_CHAIN_ID.ARBITRUM,
   NETWORKS_CHAIN_ID.POLYGON,
+  NETWORKS_CHAIN_ID.ROBINHOOD,
 ];
 
 // TODO: deprecate this and use the feature flags instead
@@ -54,6 +59,7 @@ const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS_PRODUCTION: Hex[] = [
   NETWORKS_CHAIN_ID.BSC,
   NETWORKS_CHAIN_ID.ARBITRUM,
   NETWORKS_CHAIN_ID.POLYGON,
+  NETWORKS_CHAIN_ID.ROBINHOOD,
 ];
 
 export const getAllowedSmartTransactionsChainIds = (): Hex[] =>

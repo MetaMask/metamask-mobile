@@ -17,6 +17,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -37,7 +38,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import AppConstants from '../../../core/AppConstants';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -58,6 +58,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
@@ -69,10 +70,8 @@ import {
   selectSeedlessOnboardingLoginFlow,
   selectSeedlessOnboardingAuthConnection,
 } from '../../../selectors/seedlessOnboardingController';
-import {
-  AuthConnection,
-  SeedlessOnboardingControllerErrorMessage,
-} from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import Device from '../../../util/device';
 import SearchingFox from '../../../animations/Searching_Fox.json';
@@ -144,72 +143,65 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   >(undefined);
 
   const confirmPasswordInput = useRef<TextInput | null>(null);
-  const mounted = useRef(true);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
 
   const reauthenticate = useCallback(async (pwd?: string) => {
     setReady(false);
+    let reauthError: Error | undefined;
     try {
       const { password: verifiedPassword } =
         await Authentication.reauthenticate(pwd);
       setPassword('');
       setOriginalPassword(verifiedPassword);
-      setReady(true);
       setView(ViewState.ResetForm);
     } catch (e) {
-      const err = e as Error;
+      reauthError = e as Error;
+    }
+    if (reauthError) {
       if (
-        err.message.includes(
+        !reauthError.message.includes(
           ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
         )
       ) {
-        return;
+        setWarningIncorrectPassword(
+          strings('reveal_credential.warning_incorrect_password'),
+        );
       }
-      setWarningIncorrectPassword(
-        strings('reveal_credential.warning_incorrect_password'),
-      );
-    } finally {
-      setReady(true);
     }
+    setReady(true);
   }, []);
 
   useEffect(() => {
     const initAuth = async () => {
+      let authData;
+      let previouslyDisabled: string | null;
+      let passcodePreviouslyDisabled: string | null;
+
       try {
-        const authData = await Authentication.getType();
-        const previouslyDisabled = await StorageWrapper.getItem(
+        authData = await Authentication.getType();
+        previouslyDisabled = await StorageWrapper.getItem(
           BIOMETRY_CHOICE_DISABLED,
         );
-        const passcodePreviouslyDisabled =
+        passcodePreviouslyDisabled =
           await StorageWrapper.getItem(PASSCODE_DISABLED);
-
-        if (
-          authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
-        ) {
-          setBiometryType(passcodeType(authData.currentAuthType));
-          setBiometryChoice(
-            !(
-              passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
-            ),
-          );
-        } else if (authData.availableBiometryType) {
-          setBiometryType(authData.availableBiometryType);
-          setBiometryChoice(
-            !(previouslyDisabled && previouslyDisabled === TRUE),
-          );
-          reauthenticate();
-        }
       } catch (e) {
         Logger.error(e as Error);
-      } finally {
         setView(ViewState.ConfirmCurrent);
+        return;
       }
+
+      if (
+        authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
+      ) {
+        setBiometryType(passcodeType(authData.currentAuthType));
+        setBiometryChoice(
+          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+        );
+      } else if (authData.availableBiometryType) {
+        setBiometryType(authData.availableBiometryType);
+        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+        reauthenticate();
+      }
+      setView(ViewState.ConfirmCurrent);
     };
 
     initAuth();
@@ -604,7 +596,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     const isSrp =
       authConnection !== AuthConnection.Apple &&
-      authConnection !== AuthConnection.Google;
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Telegram;
 
     return (
       <Box
@@ -803,7 +796,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
+        testID="header"
         title={strings('password_reset.change_password')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ isDisabled: loading }}

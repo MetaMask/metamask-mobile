@@ -23,7 +23,10 @@ import {
   encapsulated,
   asPlaywrightElement,
   asDetoxElement,
+  resolve,
+  isSelector,
   type LocatorConfig,
+  type Selector,
   FrameworkDetector,
   TestFramework,
 } from './index.ts';
@@ -584,6 +587,241 @@ describe('EncapsulatedElement', () => {
       const result = asDetoxElement(element);
 
       expect(result).toBe(mockDetoxElement);
+    });
+  });
+
+  describe('isSelector', () => {
+    it('returns true for { testID }', () => {
+      expect(isSelector({ testID: 'foo' })).toBe(true);
+    });
+
+    it('returns true for { testID, index }', () => {
+      expect(isSelector({ testID: 'foo', index: 1 })).toBe(true);
+    });
+
+    it('returns true for { label }', () => {
+      expect(isSelector({ label: 'Submit' })).toBe(true);
+    });
+
+    it('returns true for { text }', () => {
+      expect(isSelector({ text: 'Cancel' })).toBe(true);
+    });
+
+    it('returns true for { detoxTestID, appiumTestID }', () => {
+      expect(
+        isSelector({ detoxTestID: 'trade', appiumTestID: 'actions' }),
+      ).toBe(true);
+    });
+
+    it('returns true for { detoxTestID, androidAppiumTestID, iosAppiumTestID }', () => {
+      expect(
+        isSelector({
+          detoxTestID: 'trade',
+          androidAppiumTestID: 'actions-android',
+          iosAppiumTestID: 'actions-ios',
+        }),
+      ).toBe(true);
+    });
+
+    it('returns true for { testID, iosAppiumTestID }', () => {
+      expect(
+        isSelector({
+          testID: 'wallet-container',
+          iosAppiumTestID: 'eye-slash-icon',
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false for null', () => {
+      expect(isSelector(null)).toBe(false);
+    });
+
+    it('returns false for a string', () => {
+      expect(isSelector('some-id')).toBe(false);
+    });
+
+    it('returns false for a Promise', () => {
+      expect(isSelector(Promise.resolve())).toBe(false);
+    });
+
+    it('returns false for a DetoxElement-like object', () => {
+      const mockDetoxElement = createMockDetoxElement();
+      expect(isSelector(mockDetoxElement)).toBe(false);
+    });
+
+    it('returns false for an empty object', () => {
+      expect(isSelector({})).toBe(false);
+    });
+  });
+
+  describe('resolve', () => {
+    const createSpyOnEncapsulatedCreate = () =>
+      jest.spyOn(EncapsulatedElement, 'create');
+
+    describe('{ testID } — Detox context', () => {
+      it('calls EncapsulatedElement.create with detox config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({ testID: 'my-button' });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        spy.mockRestore();
+      });
+    });
+
+    describe('{ testID } — Appium Android context', () => {
+      it('calls EncapsulatedElement.create with android appium config', () => {
+        FrameworkDetector.setFramework(TestFramework.APPIUM);
+        setDeviceInfo('android', { width: 1080, height: 1920 });
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockResolvedValue(createMockPlaywrightElement());
+
+        resolve({ testID: 'my-button' });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof (config.appium as Record<string, unknown>)?.android).toBe(
+          'function',
+        );
+        spy.mockRestore();
+        resetDeviceInfo();
+      });
+    });
+
+    describe('{ testID } — Appium iOS context', () => {
+      it('calls EncapsulatedElement.create with ios appium config', () => {
+        FrameworkDetector.setFramework(TestFramework.APPIUM);
+        setDeviceInfo('ios', { width: 390, height: 844 });
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockResolvedValue(createMockPlaywrightElement());
+
+        resolve({ testID: 'my-button' });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof (config.appium as Record<string, unknown>)?.ios).toBe(
+          'function',
+        );
+        spy.mockRestore();
+        resetDeviceInfo();
+      });
+    });
+
+    describe('{ label }', () => {
+      it('calls EncapsulatedElement.create with label config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({ label: 'Password Input' });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        spy.mockRestore();
+      });
+    });
+
+    describe('{ text }', () => {
+      it('calls EncapsulatedElement.create with text config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({ text: 'Cancel' });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        spy.mockRestore();
+      });
+    });
+
+    describe('{ detoxTestID, appiumTestID }', () => {
+      it('calls EncapsulatedElement.create with framework-split config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({ detoxTestID: 'trade', appiumTestID: 'actions' });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        spy.mockRestore();
+      });
+    });
+
+    describe('{ detoxTestID, androidAppiumTestID, iosAppiumTestID }', () => {
+      it('calls EncapsulatedElement.create with three-way split config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({
+          detoxTestID: 'trade',
+          androidAppiumTestID: 'actions-android',
+          iosAppiumTestID: 'actions-ios',
+        });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        expect(
+          typeof (config.appium as { android: unknown; ios: unknown }).android,
+        ).toBe('function');
+        expect(
+          typeof (config.appium as { android: unknown; ios: unknown }).ios,
+        ).toBe('function');
+        spy.mockRestore();
+      });
+    });
+
+    describe('{ detoxTestID, androidAppiumTestID, iosAppiumXPath }', () => {
+      it('calls EncapsulatedElement.create with ios xpath config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({
+          detoxTestID: 'seed-phrase-input',
+          androidAppiumTestID: 'seed-phrase-input',
+          iosAppiumXPath: '//XCUIElementTypeOther[@name="textfield"]',
+        });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        expect(
+          typeof (config.appium as { android: unknown; ios: unknown }).android,
+        ).toBe('function');
+        expect(
+          typeof (config.appium as { android: unknown; ios: unknown }).ios,
+        ).toBe('function');
+        spy.mockRestore();
+      });
+    });
+
+    describe('{ testID, iosAppiumTestID }', () => {
+      it('calls EncapsulatedElement.create with ios-override config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({
+          testID: 'wallet-container',
+          iosAppiumTestID: 'eye-slash-icon',
+        });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        spy.mockRestore();
+      });
     });
   });
 });

@@ -22,13 +22,13 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import Text, {
+  ButtonVariant,
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
@@ -45,6 +45,7 @@ import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../../constants/perpsConfig';
+import { useGetPerpsHomeNavigationTarget } from '../../utils/perpsModeSwitch';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
@@ -145,6 +146,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     route.params?.source ?? PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON;
   const redirectScreen = route.params?.redirectScreen;
   const redirectParams = route.params?.redirectParams;
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const [currentTab, setCurrentTab] = useState(0);
@@ -270,16 +272,22 @@ const PerpsTutorialCarousel: React.FC = () => {
   );
 
   const navigateAfterTutorial = useCallback(() => {
-    const navParams: Record<string, unknown> = {
-      screen: redirectScreen ?? Routes.PERPS.PERPS_HOME,
-    };
-    if (redirectParams) {
-      navParams.params = redirectParams;
+    // No explicit redirect was requested by the caller: fall back to the
+    // Pro-aware default (TAT-3612) so Perps Home is never shown while Pro
+    // mode is active, e.g. after the user switched to Pro mode but hadn't
+    // completed onboarding yet.
+    const { screen, params } = redirectScreen
+      ? { screen: redirectScreen, params: redirectParams }
+      : getPerpsHomeNavigationTarget();
+
+    const navParams: Record<string, unknown> = { screen };
+    if (params && Object.keys(params).length > 0) {
+      navParams.params = params;
     }
     NavigationService.navigation.dispatch(
       StackActions.replace(Routes.PERPS.ROOT, navParams),
     );
-  }, [redirectScreen, redirectParams]);
+  }, [redirectScreen, redirectParams, getPerpsHomeNavigationTarget]);
 
   const handleContinue = useCallback(async () => {
     // Prevent double-tap on Android - if timeout exists, we're still debouncing
@@ -422,7 +430,7 @@ const PerpsTutorialCarousel: React.FC = () => {
           onChangeTab={handleTabChange}
           initialPage={0}
         >
-          {tutorialScreens.map((screen) => (
+          {tutorialScreens.map((screen, index) => (
             <View key={screen.id} style={styles.fullScreenContainer}>
               <ScrollView
                 style={styles.scrollableContent}
@@ -433,23 +441,23 @@ const PerpsTutorialCarousel: React.FC = () => {
                   {/* Header Section - Now flexible height */}
                   <View>
                     <Text
-                      variant={TextVariant.HeadingLG}
-                      color={TextColor.Default}
+                      variant={TextVariant.HeadingLg}
+                      color={TextColor.TextDefault}
                       style={styles.title}
                     >
                       {screen.title}
                     </Text>
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
                       style={styles.description}
                     >
                       {screen.description}
                     </Text>
                     {screen.subtitle && (
                       <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
                         style={styles.subtitle}
                       >
                         {screen.subtitle}
@@ -462,7 +470,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                     <View style={styles.contentSection}>{screen.content}</View>
                   )}
 
-                  {screen?.riveArtboardName && (
+                  {screen?.riveArtboardName && currentTab === index && (
                     <View style={styles.animationContainer}>
                       <Rive
                         key={screen.id}
@@ -479,8 +487,8 @@ const PerpsTutorialCarousel: React.FC = () => {
                 {screen.footerText && (
                   <View style={styles.footerTextContainer}>
                     <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
                       style={styles.footerText}
                     >
                       {screen.footerText}
@@ -524,8 +532,9 @@ const PerpsTutorialCarousel: React.FC = () => {
                 testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
               >
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.tutorial.skip')}
                 </Text>

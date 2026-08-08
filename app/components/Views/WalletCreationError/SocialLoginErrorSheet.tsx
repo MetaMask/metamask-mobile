@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -20,12 +20,12 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  getSocialAccountType,
+  AccountType,
   WalletCreationErrorCtaType,
 } from '../../../constants/onboarding';
-import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -37,17 +37,17 @@ const FOX_LOGO = require('../../../images/branding/fox.png');
 
 interface SocialLoginErrorSheetProps {
   error?: Error;
+  accountType: AccountType;
 }
 
-const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
-  const navigation = useNavigation();
+const SocialLoginErrorSheet = ({
+  error,
+  accountType,
+}: SocialLoginErrorSheetProps) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const oauthProvider = useSelector(selectSeedlessOnboardingAuthConnection);
-  const accountType = useMemo(
-    () => getSocialAccountType(oauthProvider ?? '', false),
-    [oauthProvider],
-  );
+  const { openSupportWithConsent } = useSupportConsent();
 
   useEffect(() => {
     trackEvent(
@@ -90,18 +90,19 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
         })
         .build(),
     );
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [trackEvent, createEventBuilder, accountType]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  }, [trackEvent, createEventBuilder, accountType, openSupportWithConsent]);
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-alternative justify-end')}>
-      <Box twClassName="flex-1 justify-center items-center">
-        <Image
-          source={FOX_LOGO}
-          style={tw.style('w-[120px] h-[120px]')}
-          resizeMode="contain"
-        />
-      </Box>
+    <SafeAreaView style={tw.style('flex-1 bg-alternative')}>
+      <Image
+        source={FOX_LOGO}
+        style={tw.style('flex-1 w-[120px] h-[120px] self-center')}
+        resizeMode="contain"
+      />
 
       <Box twClassName="bg-default rounded-t-2xl p-4 pb-10 items-center">
         <Box twClassName="w-10 h-1 bg-border-muted rounded-full self-center mb-4" />

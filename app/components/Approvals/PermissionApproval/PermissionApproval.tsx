@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { createMultichainAccountConnectNavDetails } from '../../Views/MultichainAccounts/shared';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -85,7 +85,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     );
 
     props.navigation.navigate(
-      ...createAccountConnectNavDetails({
+      ...createMultichainAccountConnectNavDetails({
         hostInfo: requestData,
         permissionRequestId: id,
       }),

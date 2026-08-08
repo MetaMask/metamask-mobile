@@ -14,15 +14,23 @@ export const PredictEventProperties = {
   MARKET_CATEGORY: 'market_category',
   MARKET_TAGS: 'market_tags',
   ENTRY_POINT: 'entry_point',
+  ACTION_TYPE: 'action_type',
   TRANSACTION_TYPE: 'transaction_type',
   LIQUIDITY: 'liquidity',
   VOLUME: 'volume',
   FAILURE_REASON: 'failure_reason',
+  SURFACE: 'surface',
+  VARIANT: 'variant',
+  CTA_NAME: 'cta_name',
+  CATEGORY_NAME: 'category_name',
 
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
   ORDER_TYPE: 'order_type',
+  TRADE_TYPE: 'trade_type',
+  IMPLEMENTATION_TYPE: 'implementation_type',
+  USD_TRADE_VALUE: 'usd_trade_value',
 
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',
@@ -42,6 +50,9 @@ export const PredictEventProperties = {
 
   // Position specific
   OPEN_POSITIONS_COUNT: 'open_positions_count',
+  CLAIMABLE_POSITIONS_COUNT: 'claimable_positions_count',
+  HAS_CLAIMABLE_WINNINGS: 'has_claimable_winnings',
+  PORTFOLIO_MODULE_ENABLED: 'portfolio_module_enabled',
 
   // Activity specific
   ACTIVITY_TYPE: 'activity_type',
@@ -52,10 +63,20 @@ export const PredictEventProperties = {
 
   // Feed session specific
   PREDICT_FEED_TAB: 'predict_feed_tab',
+  PREDICT_SCREEN: 'predict_screen',
+  PREDICT_COMPONENT: 'predict_component',
   NUM_FEED_PAGES_VIEWED_IN_SESSION: 'num_feed_pages_viewed_in_session',
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
+
+  // Redesigned home + generic feed IA (PRED-834)
+  FEED_ID: 'feed_id',
+  TAB_ID: 'tab_id',
+  FILTER_ID: 'filter_id',
+  SECTION_ID: 'section_id',
+  IS_DYNAMIC_FILTER: 'is_dynamic_filter',
+  TRACKING_MODE: 'tracking_mode',
 
   // Payment token (buy-with-any-token flow only)
   PAYMENT_TOKEN_ADDRESS: 'payment_token_address',
@@ -77,6 +98,14 @@ export const PredictEventProperties = {
   GAME_STATUS: 'game_status',
   GAME_PERIOD: 'game_period',
   GAME_CLOCK: 'game_clock',
+
+  // Banner properties
+  BANNER_TYPE: 'banner_type',
+
+  // Search engagement
+  INTERACTION_TYPE: 'interaction_type',
+  SEARCH_QUERY: 'search_query',
+  RESULTS_COUNT: 'results_count',
 } as const;
 
 /**
@@ -94,6 +123,7 @@ export const PredictEventValues = {
     HOMEPAGE_FEATURED_CAROUSEL: 'homepage_featured_carousel',
     HOMEPAGE_FEATURED_LIST: 'homepage_featured_list',
     MAIN_TRADE_BUTTON: 'main_trade_button',
+    HOMESCREEN_PILL: 'homescreen_pill',
     REWARDS: 'rewards',
     GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
@@ -101,6 +131,7 @@ export const PredictEventValues = {
     TRENDING: 'trending',
     BUY_PREVIEW: 'buy_preview',
     HOME_SECTION: 'home_section',
+    EXPLORE: 'explore',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
@@ -108,6 +139,21 @@ export const PredictEventValues = {
     MM_PREDICT_DEPOSIT: 'mm_predict_deposit',
     MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
     MM_PREDICT_CLAIM: 'mm_predict_claim',
+    MM_PREDICT_TRANSACTION_SUBMISSION: 'mm_predict_transaction_submission',
+    MM_PREDICT_WALLET_CREATION: 'mm_predict_wallet_creation',
+  },
+  TRADE_TYPE: {
+    PREDICT: 'predict',
+  },
+  IMPLEMENTATION_TYPE: {
+    NATIVE: 'native',
+  },
+  CLAIM_FAILURE_REASON: {
+    PENDING_RESOLUTION: 'pending_resolution',
+    INSUFFICIENT_GAS: 'insufficient_gas',
+    NETWORK_ERROR: 'network_error',
+    USER_REJECTED: 'user_rejected',
+    UNKNOWN: 'unknown',
   },
   MARKET_TYPE: {
     BINARY: 'binary',
@@ -131,6 +177,35 @@ export const PredictEventValues = {
     CLAIM: 'claim',
     WITHDRAW: 'withdraw',
   },
+  PREDICT_SCREEN: {
+    PREDICT_POSITIONS_SCREEN: 'predict_positions_screen',
+  },
+  PREDICT_COMPONENT: {
+    PREDICT_PORTFOLIO_MODULE: 'predict_portfolio_module',
+  },
+  PREDICT_FEED_TAB: {
+    POSITIONS: 'positions',
+    HISTORY: 'history',
+  },
+  ACTION_TYPE: {
+    VIEWED: 'viewed',
+    CLICKED: 'clicked',
+    SEE_ALL: 'see_all',
+  },
+  SECTION_ID: {
+    LIVE_NOW: 'live_now',
+    CATEGORIES: 'categories',
+    POPULAR_TODAY: 'popular_today',
+    TRENDING: 'trending',
+  },
+  BANNER_TYPE: {
+    PREDICT_THE_PITCH: 'predict_the_pitch',
+  },
+  SEARCH_INTERACTION: {
+    OPENED: 'opened',
+    QUERIED: 'queried',
+    RESULT_CLICKED: 'result_clicked',
+  },
 } as const;
 
 /**
@@ -142,6 +217,7 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
+  CANCELLED: 'cancelled',
   SWAP_INITIATED: 'swap_initiated',
   SWAP_SUCCESS: 'swap_success',
   SWAP_FAILED: 'swap_failed',

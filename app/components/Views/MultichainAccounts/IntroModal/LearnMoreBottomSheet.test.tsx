@@ -15,31 +15,28 @@ const mockDispatch = jest.fn();
 // Mock the BottomSheet component
 const mockOnCloseBottomSheet = jest.fn();
 // eslint-disable-next-line import-x/no-commonjs
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs, @typescript-eslint/no-var-requires
-    const ReactMock = require('react');
-    return {
-      __esModule: true,
-      default: ReactMock.forwardRef(
-        (
-          { children }: { children: React.ReactNode },
-          ref: React.Ref<{ onCloseBottomSheet: () => void }>,
-        ) => {
-          ReactMock.useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: mockOnCloseBottomSheet,
-          }));
-          return ReactMock.createElement(
-            'View',
-            { testID: 'bottom-sheet' },
-            children,
-          );
-        },
-      ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs, @typescript-eslint/no-var-requires
+  const ReactMock = require('react');
+
+  return {
+    ...actualDesignSystem,
+    BottomSheet: ReactMock.forwardRef(
+      (
+        { children, testID }: { children: React.ReactNode; testID?: string },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        ReactMock.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+        return ReactMock.createElement('View', { testID }, children);
+      },
+    ),
+  };
+});
 
 // Mock React Navigation
 jest.mock('@react-navigation/native', () => {

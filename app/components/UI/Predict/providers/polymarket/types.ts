@@ -74,8 +74,9 @@ export interface PolymarketApiMarket {
   outcomePrices: string;
   closed: boolean;
   active: boolean;
+  acceptingOrders?: boolean;
   resolvedBy: string;
-  orderPriceMinTickSize: number;
+  orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
   line?: number;
@@ -109,6 +110,7 @@ export interface PolymarketApiEvent {
   icon: string;
   endDate?: string;
   closed: boolean;
+  active?: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
   tags: PolymarketApiTag[];
@@ -125,11 +127,15 @@ export interface PolymarketApiEvent {
   live?: boolean;
   ended?: boolean;
   parentEventId?: string | number | null;
+  eventMetadata?: {
+    priceToBeat?: number | string | null;
+  };
 }
 
 export interface PolymarketApiActivity {
   type: 'TRADE' | 'REDEEM';
   side: 'BUY' | 'SELL' | '';
+  size?: number | string | null;
   price: number;
   usdcSize: number;
   timestamp: number;
@@ -139,6 +145,10 @@ export interface PolymarketApiActivity {
   title: string;
   outcome?: 'Yes' | 'No' | '';
   icon: string;
+  slug?: string;
+  eventSlug?: string;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
 }
 
 export interface PolymarketApiEventsKeysetResponse {
@@ -160,7 +170,7 @@ export interface RoundConfig {
   readonly amount: number;
 }
 
-export type TickSize = '0.1' | '0.01' | '0.001' | '0.0001';
+export type TickSize = string;
 
 export const COLLATERAL_TOKEN_DECIMALS = 6;
 export const CONDITIONAL_TOKEN_DECIMALS = 6;

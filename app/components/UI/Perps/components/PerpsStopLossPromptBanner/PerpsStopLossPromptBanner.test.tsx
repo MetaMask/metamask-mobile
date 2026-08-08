@@ -4,6 +4,7 @@ import PerpsStopLossPromptBanner from './PerpsStopLossPromptBanner';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const initialState = {
   engine: {
@@ -151,7 +152,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(onSetStopLoss).not.toHaveBeenCalled();
     });
 
-    it('shows loading indicator instead of button text when loading', () => {
+    it('marks the button as loading when loading', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
@@ -164,12 +165,11 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      // Button's internal spinner is shown
-      expect(getByTestId('spinner-container')).toBeTruthy();
-      // Button still exists but shows loading indicator
-      expect(
-        getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
-      ).toBeTruthy();
+      const button = getByTestId(
+        PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
+      );
+      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.busy).toBe(true);
     });
 
     it('does not trigger action when loading', () => {
@@ -186,8 +186,13 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      // Button's internal spinner is shown, no toggle to interact with
-      expect(getByTestId('spinner-container')).toBeTruthy();
+      const button = getByTestId(
+        PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
+      );
+      fireEvent.press(button);
+
+      expect(button.props.accessibilityState?.busy).toBe(true);
+      expect(onSetStopLoss).not.toHaveBeenCalled();
     });
 
     it('formats price correctly', () => {
@@ -224,6 +229,30 @@ describe('PerpsStopLossPromptBanner', () => {
   });
 
   describe('fade-out animation', () => {
+    it('shows success banner without action button when isSuccess is true', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <PerpsStopLossPromptBanner
+          variant="stop_loss"
+          liquidationDistance={15}
+          suggestedStopLossPrice="47500"
+          suggestedStopLossPercent={-50}
+          onSetStopLoss={jest.fn()}
+          isSuccess
+        />,
+        { state: initialState },
+      );
+
+      expect(
+        getByText(strings('perps.stop_loss_prompt.success_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
+      ).toBeNull();
+    });
+
     it('calls onFadeOutComplete after success animation', async () => {
       jest.useFakeTimers();
       const onFadeOutComplete = jest.fn();

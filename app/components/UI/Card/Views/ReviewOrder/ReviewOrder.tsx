@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -11,7 +12,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -40,9 +43,10 @@ interface OrderItem {
 }
 
 const ReviewOrder = () => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
+  const headerHandlers = useCardHeaderHandlers('back');
   const { shippingAddress: routeShippingAddress, fromUpgrade } =
     useParams<ReviewOrderParams>();
 
@@ -218,6 +222,11 @@ const ReviewOrder = () => {
       edges={['bottom']}
       testID={ReviewOrderSelectors.CONTAINER}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <Box twClassName="flex-1 px-4">
         <Box twClassName="py-4">
           <Text

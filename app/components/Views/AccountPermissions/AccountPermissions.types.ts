@@ -11,22 +11,3 @@ export enum AccountPermissionsScreens {
   ChooseFromPermittedNetworks = 'ChooseFromPermittedNetworks',
   AddAccount = 'AddAccount',
 }
-
-/**
- * AccountPermissions props.
- */
-export interface AccountPermissionsProps {
-  /**
-   * Props that are passed in while navigating to screen.
-   */
-  route: {
-    params: {
-      hostInfo: {
-        metadata: { origin: string };
-      };
-      isRenderedAsBottomSheet?: boolean;
-      initialScreen?: AccountPermissionsScreens;
-      isNonDappNetworkSwitch?: boolean;
-    };
-  };
-}

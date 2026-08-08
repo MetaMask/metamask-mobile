@@ -1,5 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
+import enContent from '../../../locales/languages/en.json';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -17,7 +18,7 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class ImportWalletView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportFromSeedSelectorsIDs.CONTAINER_ID);
   }
 
@@ -35,13 +36,13 @@ class ImportWalletView {
     });
   }
 
-  get newPasswordInput(): DetoxElement {
+  get newPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
-  get confirmPasswordInput(): DetoxElement {
+  get confirmPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
@@ -75,7 +76,7 @@ class ImportWalletView {
         android: () =>
           PlaywrightMatchers.getElementById(
             index === 0
-              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_FIELD
+              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
               : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
             {
               exact: true,
@@ -156,8 +157,9 @@ class ImportWalletView {
         );
       },
       appium: async () => {
-        const isAndroid = await PlatformDetector.isAndroid();
-        if (isAndroid) {
+        // Android: replaceText does not leave the soft keyboard open;
+        // hideKeyboard() throws on Android when none is visible (unlike iOS).
+        if (PlatformDetector.isAndroid()) {
           await UnifiedGestures.replaceText(
             this.seedPhraseInput(0, onboarding),
             secretRecoveryPhrase,
@@ -165,19 +167,20 @@ class ImportWalletView {
               description: 'Import Wallet Secret Recovery Phrase Input Box',
             },
           );
-        } else {
-          for (const [i, word] of srpArray.entries()) {
-            const suffix = i === srpArray.length - 1 ? '' : ' ';
-            await UnifiedGestures.typeText(
-              // once merged, remove me and create a typeText in Playwright Gestures
-              this.seedPhraseInput(i, onboarding),
-              `${word}${suffix}`,
-              {
-                description: 'Import Wallet Secret Recovery Phrase Input Box',
-              },
-            );
-          }
+          return;
         }
+
+        for (const [i, word] of srpArray.entries()) {
+          await UnifiedGestures.typeText(
+            this.seedPhraseInput(i, onboarding),
+            `${word} `,
+            {
+              description: 'Import Wallet Secret Recovery Phrase Input Box',
+              hideKeyboard: false,
+            },
+          );
+        }
+        await this.tapImportScreenTitleToDismissKeyboard(onboarding);
         await PlaywrightGestures.hideKeyboard();
       },
     });
@@ -185,8 +188,24 @@ class ImportWalletView {
 
   async tapContinueButton(onboarding = true): Promise<void> {
     if (onboarding) {
-      await UnifiedGestures.waitAndTap(this.continueButton, {
-        description: 'Import Wallet Continue Button',
+      await encapsulatedAction({
+        detox: async () => {
+          await UnifiedGestures.waitAndTap(this.continueButton, {
+            description: 'Import Wallet Continue Button',
+          });
+        },
+        appium: async () => {
+          // iOS only — Android replaceText path already has no keyboard.
+          if (!PlatformDetector.isAndroid()) {
+            await PlaywrightGestures.hideKeyboard();
+          }
+          await UnifiedGestures.waitAndTap(this.continueButton, {
+            description: 'Import Wallet Continue Button',
+            timeout: 15_000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+        },
       });
       return;
     }
@@ -198,6 +217,9 @@ class ImportWalletView {
         });
       },
       appium: async () => {
+        if (!PlatformDetector.isAndroid()) {
+          await PlaywrightGestures.hideKeyboard();
+        }
         await UnifiedGestures.tap(
           encapsulated({
             appium: {
@@ -254,6 +276,27 @@ class ImportWalletView {
   ): Promise<void> {
     await UnifiedGestures.waitAndTap(this.title, {
       description: 'Import Wallet Title',
+    });
+  }
+
+  get importFromExtensionLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          enContent.import_from_seed.import_wallet_from_extension,
+          true,
+        ),
+    });
+  }
+
+  async tapImportFromExtensionLink(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.importFromExtensionLink, {
+      description: 'Import from MetaMask extension link',
+      timeout: 15_000,
     });
   }
 }

@@ -4,6 +4,7 @@ import { Platform, StyleSheet, TextStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
 import { colors } from '../../../../../../styles/common';
+import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 import { getFontFamily } from '../../../../Texts/Text/';
 
 // Internal dependencies
@@ -50,7 +51,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         color: theme.colors.text.default,
         borderWidth: 1,
         borderColor: colors.transparent,
-        backgroundColor: theme.colors.background.default,
+        backgroundColor: getElevatedSurfaceColor(theme),
         ...stateObj,
         fontFamily: getFontFamily(textVariant),
         fontWeight: theme.typography[textVariant].fontWeight,

@@ -21,61 +21,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactActual = require('react');
-  const { Text: RNText, View: RNView } = jest.requireActual('react-native');
-  const MockText = ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    style?: unknown;
-    variant?: string;
-    color?: string;
-    testID?: string;
-    twClassName?: string;
-  }) => <RNText {...props}>{children}</RNText>;
-  const MockSkeleton = (props: {
-    height?: number;
-    width?: number;
-    twClassName?: string;
-  }) => <RNText testID="skeleton">{`${props.height}x${props.width}`}</RNText>;
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        onClose,
-        testID,
-      }: {
-        children: React.ReactNode;
-        onClose?: (hasPendingAction?: boolean) => void;
-        testID?: string;
-      },
-      ref: React.Ref<{
-        onCloseBottomSheet: (cb?: () => void) => void;
-        onOpenBottomSheet: (cb?: () => void) => void;
-      }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: (cb?: () => void) => {
-          onClose?.(false);
-          cb?.();
-        },
-        onOpenBottomSheet: jest.fn(),
-      }));
-      return <RNView testID={testID}>{children}</RNView>;
-    },
-  );
-  return {
-    BottomSheet: MockBottomSheet,
-    Text: MockText,
-    Skeleton: MockSkeleton,
-    TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
-    TextColor: { TextAlternative: 'TextAlternative' },
-  };
-});
-
 jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -98,19 +43,6 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     IconSize: { Sm: 'Sm', Md: 'Md' },
   };
 });
-
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return ({ title, onClose }: { title: string; onClose?: () => void }) => (
-      <View testID="account-selector-modal-header">
-        <Text>{title}</Text>
-        <Pressable accessibilityRole="button" onPress={onClose} />
-      </View>
-    );
-  },
-);
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -320,6 +252,114 @@ describe('AccountSelector', () => {
 
     expect(getByText('From')).toBeOnTheScreen();
     expect(queryByText('confirm.label.to')).toBeNull();
+  });
+
+  it('includes wallet name in label when multiple wallets exist', () => {
+    const multiWalletSections = [
+      {
+        title: 'Wallet 1',
+        wallet: { id: 'wallet-1' },
+        data: [
+          {
+            id: 'group-1',
+            accounts: ['account-1'],
+            metadata: { name: 'Account 1' },
+          },
+        ],
+      },
+      {
+        title: 'Wallet 2',
+        wallet: { id: 'wallet-2' },
+        data: [
+          {
+            id: 'group-2',
+            accounts: ['account-2'],
+            metadata: { name: 'Account 2' },
+          },
+        ],
+      },
+    ];
+
+    const multiWalletAccountToGroupMap = {
+      ...mockAccountToGroupMap,
+      'account-2': {
+        id: 'group-2',
+        accounts: ['account-2'],
+        metadata: { name: 'Account 2' },
+      },
+    };
+
+    const { useSelector } = jest.requireMock('react-redux');
+    const { selectAccountGroupsByWallet, selectAccountToGroupMap } =
+      jest.requireMock(
+        '../../../../../selectors/multichainAccounts/accountTreeController',
+      );
+    const { selectInternalAccountsById } = jest.requireMock(
+      '../../../../../selectors/accountsController',
+    );
+    const { selectAvatarAccountType } = jest.requireMock(
+      '../../../../../selectors/settings',
+    );
+
+    useSelector.mockImplementation(
+      (selector: (...args: unknown[]) => unknown) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectAccountGroupsByWallet)
+          return multiWalletSections;
+        if (selector === selectAccountToGroupMap)
+          return multiWalletAccountToGroupMap;
+        if (selector === selectAvatarAccountType) return 'HD Key Tree';
+        return undefined;
+      },
+    );
+
+    const { getByText } = render(
+      <AccountSelector
+        label="From"
+        selectedAddress="0xAccount1Address"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByText('From Wallet 1')).toBeOnTheScreen();
+  });
+
+  it('does not include wallet name in label with a single wallet', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const { selectAccountGroupsByWallet, selectAccountToGroupMap } =
+      jest.requireMock(
+        '../../../../../selectors/multichainAccounts/accountTreeController',
+      );
+    const { selectInternalAccountsById } = jest.requireMock(
+      '../../../../../selectors/accountsController',
+    );
+    const { selectAvatarAccountType } = jest.requireMock(
+      '../../../../../selectors/settings',
+    );
+
+    useSelector.mockImplementation(
+      (selector: (...args: unknown[]) => unknown) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectAccountGroupsByWallet)
+          return mockAccountGroupsByWallet;
+        if (selector === selectAccountToGroupMap) return mockAccountToGroupMap;
+        if (selector === selectAvatarAccountType) return 'HD Key Tree';
+        return undefined;
+      },
+    );
+
+    const { getByText, queryByText } = render(
+      <AccountSelector
+        label="From"
+        selectedAddress="0xAccount1Address"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(queryByText('From Wallet 1')).toBeNull();
   });
 
   it('uses custom selector title in the sheet header when provided', () => {

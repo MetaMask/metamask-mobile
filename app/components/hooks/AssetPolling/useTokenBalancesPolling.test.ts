@@ -6,6 +6,7 @@ import { usePollingNetworks } from './use-polling-networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import initialRootState from '../../../util/test/initial-root-state';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -50,6 +51,9 @@ const arrangeMocks = () => {
   jest.mocked(useSelector).mockImplementation((selector) => {
     if (selector === selectSelectedAccountGroupId) {
       return selector({});
+    }
+    if (selector === selectIsAssetsUnifyStateEnabled) {
+      return false;
     }
     return selector(initialRootState);
   });
@@ -126,6 +130,29 @@ const withNoPollingAssertions = (
 describe('useTokenBalancesPolling', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+  });
+
+  describe('unified assets state gating', () => {
+    it('does not start polling when unified assets state is enabled', () => {
+      withNoPollingAssertions({
+        overrideMocks: () => {
+          jest.mocked(useSelector).mockImplementation((selector) => {
+            if (selector === selectIsAssetsUnifyStateEnabled) {
+              return true;
+            }
+            if (selector === selectSelectedAccountGroupId) {
+              return selector({});
+            }
+            return selector(initialRootState);
+          });
+        },
+        testFn: ({ mocks }) => {
+          expect(
+            mocks.mockTokenBalancesController.startPolling,
+          ).not.toHaveBeenCalled();
+        },
+      });
+    });
   });
 
   describe('Basic polling behavior', () => {

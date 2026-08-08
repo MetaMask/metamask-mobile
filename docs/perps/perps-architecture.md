@@ -502,6 +502,13 @@ const prices = useLivePrices({ symbols: allSymbols, throttleMs: 2000 });
 
 // Charts: near real-time (100ms throttle)
 const prices = useLivePrices({ symbols: ['BTC'], throttleMs: 100 });
+
+// Slippage estimator: sub-second so the row reflects the size the user is
+// typing. Downstream useMemo keeps per-tick work cheap.
+const { orderBook } = usePerpsLiveOrderBook({
+  symbol,
+  throttleMs: PERFORMANCE_CONFIG.SlippageEstimateThrottleMs,
+});
 ```
 
 4. **Shared cache** ensures instant data availability for all subscribers

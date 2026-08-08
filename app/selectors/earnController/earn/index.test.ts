@@ -65,6 +65,20 @@ jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
       .internalAccount2,
 }));
 
+const TRX_NATIVE_TOKEN_ADDRESS = 'tron:728126428/slip44:195';
+const TRON_MAINNET_CHAIN_ID = 'tron:728126428';
+
+const mockSelectAccountTokensAcrossChainsUnified = jest.fn();
+
+jest.mock('../../../selectors/multichain', () => {
+  const actual = jest.requireActual('../../../selectors/multichain');
+  return {
+    ...actual,
+    selectAccountTokensAcrossChainsUnified: (state: RootState) =>
+      mockSelectAccountTokensAcrossChainsUnified(state),
+  };
+});
+
 const MOCK_ROOT_STATE_WITH_EARN_CONTROLLER = mockEarnControllerRootState();
 const MOCK_RATE = {
   price: 0.99,
@@ -86,6 +100,123 @@ const MOCK_RATE = {
   pricePercentChange200d: 0,
   pricePercentChange1y: 0,
   totalVolume: 1,
+};
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const createMainnetErc20AssetId = (address: string) =>
+  `eip155:1/erc20:${toChecksumHexAddress(address)}`;
+const MOCK_EARN_ASSETS_CONTROLLER_STATE = {
+  selectedCurrency: 'usd',
+  assetsInfo: {
+    [MAINNET_NATIVE_ASSET_ID]: {
+      type: 'native',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: 18,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.underlying.address)]: {
+      type: 'erc20',
+      symbol: 'USDT',
+      name: 'USDT Token',
+      decimals: 6,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.underlying.address)]: {
+      type: 'erc20',
+      symbol: 'USDC',
+      name: 'USDC Token',
+      decimals: 6,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.underlying.address)]: {
+      type: 'erc20',
+      symbol: 'WETH',
+      name: 'WETH Token',
+      decimals: 12,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.outputToken.address)]: {
+      type: 'erc20',
+      symbol: 'aUSDT',
+      name: 'aUSDT Token',
+      decimals: 6,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.outputToken.address)]: {
+      type: 'erc20',
+      symbol: 'aUSDC',
+      name: 'aUSDC Token',
+      decimals: 6,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.outputToken.address)]: {
+      type: 'erc20',
+      symbol: 'aWETH',
+      name: 'aWETH Token',
+      decimals: 12,
+    },
+  },
+  assetsBalance: {
+    [internalAccount2.id]: {
+      [MAINNET_NATIVE_ASSET_ID]: { amount: '0.000000000355751235' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.underlying.address)]:
+        { amount: '18844059.451957' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.underlying.address)]:
+        { amount: '0' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.underlying.address)]:
+        { amount: '54.028431540789' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.outputToken.address)]:
+        { amount: '0' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.outputToken.address)]:
+        { amount: '0' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.outputToken.address)]:
+        { amount: '0' },
+    },
+  },
+  assetsPrice: {
+    [MAINNET_NATIVE_ASSET_ID]: {
+      assetPriceType: 'fungible',
+      price: 1,
+      usdPrice: 1,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.underlying.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.000005123,
+      usdPrice: 0.000005123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.underlying.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.0000000123,
+      usdPrice: 0.0000000123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.underlying.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.0000654123,
+      usdPrice: 0.0000654123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.outputToken.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.0000654123,
+      usdPrice: 0.0000654123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.outputToken.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.003654123,
+      usdPrice: 0.003654123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.outputToken.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.00040123,
+      usdPrice: 0.00040123,
+      lastUpdated: 1717334400000,
+    },
+  },
 };
 const mockState = {
   ...MOCK_ROOT_STATE_WITH_EARN_CONTROLLER,
@@ -252,6 +383,7 @@ const mockState = {
           },
         },
       },
+      AssetsController: MOCK_EARN_ASSETS_CONTROLLER_STATE,
       KeyringController: {
         isUnlocked: true,
         keyrings: [],
@@ -263,6 +395,13 @@ const mockState = {
 describe('Earn Controller Selectors', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+
+    const { selectAccountTokensAcrossChainsUnified } = jest.requireActual<
+      typeof import('../../../selectors/multichain')
+    >('../../../selectors/multichain');
+    mockSelectAccountTokensAcrossChainsUnified.mockImplementation(
+      selectAccountTokensAcrossChainsUnified,
+    );
 
     (
       selectPooledStakingEnabledFlag as jest.MockedFunction<
@@ -427,6 +566,113 @@ describe('Earn Controller Selectors', () => {
       expect(result.earnTokens.slice(nonZeroBalances.length)).toEqual(
         zeroBalances,
       );
+    });
+
+    describe('trxNativeTokenAddress', () => {
+      let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+      const createTronToken = (overrides: Partial<TokenI> = {}): TokenI =>
+        ({
+          address: TRX_NATIVE_TOKEN_ADDRESS,
+          chainId: TRON_MAINNET_CHAIN_ID,
+          symbol: 'TRX',
+          name: 'TRON',
+          decimals: 6,
+          isNative: true,
+          isETH: false,
+          isStaked: false,
+          balance: '100',
+          balanceFiat: '12',
+          aggregators: [],
+          ticker: 'TRX',
+          ...overrides,
+        }) as TokenI;
+
+      const createStateWithTrxStakingEnabled = () =>
+        ({
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  trxStakingEnabled: { enabled: true, minimumVersion: '1.0.0' },
+                },
+                cacheTimestamp: 0,
+              },
+              EarnController: {
+                ...mockState.engine.backgroundState.EarnController,
+                lending: {
+                  markets: [],
+                  positions: [],
+                },
+              },
+            },
+          },
+        }) as unknown as RootState;
+
+      beforeEach(() => {
+        mockHasMinimumRequiredVersion = jest.spyOn(
+          remoteFeatureFlagModule,
+          'hasMinimumRequiredVersion',
+        );
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        (getVersion as jest.MockedFunction<typeof getVersion>).mockReturnValue(
+          '1.0.0',
+        );
+
+        (
+          selectPooledStakingEnabledFlag as jest.MockedFunction<
+            typeof selectPooledStakingEnabledFlag
+          >
+        ).mockReturnValue(false);
+        (
+          selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+            typeof selectStablecoinLendingEnabledFlag
+          >
+        ).mockReturnValue(false);
+      });
+
+      afterEach(() => {
+        mockHasMinimumRequiredVersion?.mockRestore();
+      });
+
+      it('includes canonical TRX native token as a pooled staking earn token', () => {
+        const tronToken = createTronToken();
+
+        mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({
+          [TRON_MAINNET_CHAIN_ID]: [tronToken],
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          createStateWithTrxStakingEnabled(),
+        );
+
+        expect(result.earnTokens).toHaveLength(1);
+        expect(result.earnTokens[0].address).toBe(TRX_NATIVE_TOKEN_ADDRESS);
+        expect(result.earnTokens[0].experience.type).toBe(
+          EARN_EXPERIENCES.POOLED_STAKING,
+        );
+      });
+
+      it('excludes Tron slip44 tokens that do not match trxNativeTokenAddress', () => {
+        const tronToken = createTronToken({
+          address: 'tron:728126428/slip44:195-in-lock-period',
+          symbol: 'TRX-IN-LOCK-PERIOD',
+          ticker: 'TRX-IN-LOCK-PERIOD',
+        });
+
+        mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({
+          [TRON_MAINNET_CHAIN_ID]: [tronToken],
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          createStateWithTrxStakingEnabled(),
+        );
+
+        expect(result.earnTokens).toHaveLength(0);
+      });
     });
   });
 
@@ -775,10 +1021,17 @@ describe('Earn Controller Selectors', () => {
             isUnlocked: true,
             keyrings: [],
           },
+          AssetsController: {
+            selectedCurrency: 'USD',
+            assetsInfo: {},
+            assetsBalance: {},
+            assetsPrice: {},
+          },
         },
       },
       settings: {
         showFiatOnTestnets: false,
+        basicFunctionalityEnabled: true,
       },
     });
 

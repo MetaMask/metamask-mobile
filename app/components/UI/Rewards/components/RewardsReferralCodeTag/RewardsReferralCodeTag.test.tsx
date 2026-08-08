@@ -43,10 +43,7 @@ jest.mock('react', () => ({
   })),
 }));
 
-jest.mock(
-  '../../../../../images/rewards/metamask-rewards-points.svg',
-  () => 'FoxRewardIcon',
-);
+jest.mock('../../../../../images/rewards/vip.svg', () => 'VipIcon');
 
 describe('RewardsReferralCodeTag', () => {
   beforeEach(() => {

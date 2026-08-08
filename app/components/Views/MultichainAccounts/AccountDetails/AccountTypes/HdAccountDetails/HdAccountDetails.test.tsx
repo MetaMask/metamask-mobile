@@ -7,7 +7,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { ExportCredentialsIds } from '../../ExportCredentials.testIds';
-import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 
 const mockIsEvmAccountType = jest.fn();
 const mockNavigate = jest.fn();

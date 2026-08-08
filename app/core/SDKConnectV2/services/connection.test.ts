@@ -744,4 +744,136 @@ describe('Connection', () => {
       );
     });
   });
+
+  describe('silent read-only methods', () => {
+    it.each([['eth_accounts'], ['eth_chainId']])(
+      'suppresses the return-to-app toast for a successful %s response but still relays it to the dapp',
+      async (method) => {
+        await Connection.create(
+          mockConnectionInfo,
+          mockKeyManager,
+          RELAY_URL,
+          mockHostApp,
+        );
+
+        const requestPayload = {
+          name: 'metamask-provider',
+          data: { id: 42, method, params: [] },
+        };
+        await onClientMessageCallback(requestPayload);
+
+        const responsePayload = {
+          name: 'metamask-provider',
+          data: { id: 42, jsonrpc: '2.0', result: ['0xabc'] },
+        };
+        onBridgeResponseCallback(responsePayload);
+
+        expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+        expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+        expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
+        expect(
+          mockHostApp.showConfirmationRejectionError,
+        ).not.toHaveBeenCalled();
+
+        expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+        expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+          responsePayload,
+        );
+      },
+    );
+
+    it.each([['eth_accounts'], ['eth_chainId']])(
+      'suppresses error toasts for a failed %s response but still relays it to the dapp',
+      async (method) => {
+        await Connection.create(
+          mockConnectionInfo,
+          mockKeyManager,
+          RELAY_URL,
+          mockHostApp,
+        );
+
+        const requestPayload = {
+          name: 'metamask-provider',
+          data: { id: 7, method, params: [] },
+        };
+        await onClientMessageCallback(requestPayload);
+
+        const errorResponsePayload = {
+          name: 'metamask-provider',
+          data: {
+            id: 7,
+            jsonrpc: '2.0',
+            error: { code: -32603, message: 'Internal error' },
+          },
+        };
+        onBridgeResponseCallback(errorResponsePayload);
+
+        expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+        expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+        expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
+        expect(
+          mockHostApp.showConfirmationRejectionError,
+        ).not.toHaveBeenCalled();
+
+        expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+        expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+          errorResponsePayload,
+        );
+      },
+    );
+
+    it('still shows the return-to-app toast for non-silent methods', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const requestPayload = {
+        name: 'metamask-provider',
+        data: { id: 9, method: 'personal_sign', params: [] },
+      };
+      await onClientMessageCallback(requestPayload);
+
+      const responsePayload = {
+        name: 'metamask-provider',
+        data: { id: 9, jsonrpc: '2.0', result: '0xsignature' },
+      };
+      onBridgeResponseCallback(responsePayload);
+
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        responsePayload,
+      );
+    });
+
+    it('only suppresses toasts once per tracked id (subsequent responses with the same id are treated normally)', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const requestPayload = {
+        name: 'metamask-provider',
+        data: { id: 1, method: 'eth_accounts', params: [] },
+      };
+      await onClientMessageCallback(requestPayload);
+
+      const responsePayload = {
+        name: 'metamask-provider',
+        data: { id: 1, jsonrpc: '2.0', result: ['0xabc'] },
+      };
+      onBridgeResponseCallback(responsePayload);
+      onBridgeResponseCallback(responsePayload);
+
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(2);
+    });
+  });
 });

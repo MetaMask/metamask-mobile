@@ -3,12 +3,10 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
-import { selectDefiPositionsByChainIds } from '../../../../../../selectors/defiPositionsController';
+import { makeSelectDefiPositionsByChainIds } from '../../../../../../selectors/defiPositionsController';
 import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { RootState } from '../../../../../../reducers';
+
 import { sortAssets } from '../../../../../UI/Tokens/util';
-import { selectHomepageSectionsV1Enabled } from '../../../../../../selectors/featureFlagController/homepage';
-import { selectEVMEnabledNetworks } from '../../../../../../selectors/networkEnablementController';
 
 /** Homepage always sorts DeFi by market value; View all uses user preference. */
 const HOMEPAGE_DEFI_SORT_BY_VALUE = {
@@ -54,21 +52,21 @@ const MAX_POSITIONS_DEFAULT = 5;
 export const useDeFiPositionsForHomepage = (
   maxPositions: number = MAX_POSITIONS_DEFAULT,
 ): UseDeFiPositionsForHomepageResult => {
-  const evmEnabledNetworks = useSelector(selectEVMEnabledNetworks);
-  const isHomepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
-  const { popularEvmNetworks } = useNetworkEnablement();
-
-  const popularEvmChainIds = useMemo(
+  const { popularEvmNetworks: rawPopularEvmNetworks } = useNetworkEnablement();
+  const popularEvmNetworksKey = (rawPopularEvmNetworks ?? []).join(',');
+  const popularEvmNetworks = useMemo(
     () =>
-      isHomepageSectionsV1Enabled ? popularEvmNetworks : evmEnabledNetworks,
-    [isHomepageSectionsV1Enabled, popularEvmNetworks, evmEnabledNetworks],
+      popularEvmNetworksKey
+        ? (popularEvmNetworksKey.split(',') as Hex[])
+        : undefined,
+    [popularEvmNetworksKey],
   );
 
-  const defiPositionsByChainIds = useSelector((state: RootState) =>
-    selectDefiPositionsByChainIds(state, popularEvmChainIds),
+  const selectHomepageDeFiPositions = useMemo(
+    () => makeSelectDefiPositionsByChainIds(popularEvmNetworks),
+    [popularEvmNetworks],
   );
+  const defiPositionsByChainIds = useSelector(selectHomepageDeFiPositions);
 
   const result = useMemo((): UseDeFiPositionsForHomepageResult => {
     // Loading state - data not yet available

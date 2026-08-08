@@ -1,11 +1,11 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '../../../Box/Box';
 import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
-  selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
   selectIsSolanaSourced,
@@ -16,12 +16,10 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import ApprovalTooltip from '../../components/ApprovalText';
 import {
-  BRIDGE_MM_FEE_RATE,
+  DiscountType,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
-import { isNullOrUndefined } from '@metamask/utils';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 import { useStyles } from '../../../../../component-library/hooks/useStyles.ts';
 import { createStyles } from './BridgeView.styles.ts';
@@ -32,6 +30,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
+import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
+import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -45,9 +46,9 @@ export const BridgeViewFooter = ({
   transactionActiveAbTests,
 }: Props) => {
   const { styles } = useStyles(createStyles);
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -56,6 +57,8 @@ export const BridgeViewFooter = ({
 
   const { activeQuote, isLoading, blockaidError, needsNewQuote } =
     useBridgeQuoteDataContext();
+  const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
+    useFeeDisclaimer({ activeQuote });
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -68,9 +71,14 @@ export const BridgeViewFooter = ({
     return null;
   }
 
+  const footerContainerStyle = [
+    styles.buttonContainer,
+    { paddingBottom: bottomInset },
+  ];
+
   if (needsNewQuote) {
     return (
-      <Box style={styles.buttonContainer}>
+      <Box style={footerContainerStyle}>
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
@@ -84,25 +92,11 @@ export const BridgeViewFooter = ({
     return null;
   }
 
-  // TODO: remove this once controller types are updated
-  // @ts-expect-error: controller types are not up to date yet
-  const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
-  const feePercentage = !isNullOrUndefined(quoteBpsFee)
-    ? quoteBpsFee / 100
-    : BRIDGE_MM_FEE_RATE;
-
-  const hasFee = activeQuote && feePercentage > 0;
-
-  const approval =
-    activeQuote?.approval && sourceAmount && sourceToken
-      ? { amount: sourceAmount, symbol: sourceToken.symbol }
-      : null;
-
   return (
     isValidSourceAmount &&
     activeQuote &&
     quotesLastFetched && (
-      <Box style={styles.buttonContainer}>
+      <Box style={footerContainerStyle}>
         {isHardwareAddress && isSolanaSourced && (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
@@ -121,29 +115,48 @@ export const BridgeViewFooter = ({
           latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
         />
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
-        >
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {hasFee
-              ? strings('bridge.fee_disclaimer', {
-                  feePercentage,
-                })
-              : strings('bridge.no_mm_fee_disclaimer', {
-                  destTokenSymbol: destToken?.symbol,
-                })}
-            {approval
-              ? ` ${strings('bridge.approval_needed', approval)}`
-              : ''}{' '}
-          </Text>
-          {approval && (
-            <ApprovalTooltip
-              amount={approval.amount}
-              symbol={approval.symbol}
-            />
-          )}
+        <Box flexDirection={FlexDirection.Column} gap={2}>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={2}
+            testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
+          >
+            {discountBadge?.type === DiscountType.VIP ? (
+              <RewardsVipBadge />
+            ) : null}
+
+            {discountBadge && discountBadge.type !== DiscountType.VIP ? (
+              <RewardsDiscountBadge label={discountBadge.label} />
+            ) : null}
+
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {infoText}
+            </Text>
+
+            {baseFeePercentage && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{ textDecorationLine: 'line-through' }}
+              >
+                {baseFeePercentage}
+              </Text>
+            )}
+
+            {infoSuffix && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {infoSuffix}
+              </Text>
+            )}
+          </Box>
         </Box>
       </Box>
     )

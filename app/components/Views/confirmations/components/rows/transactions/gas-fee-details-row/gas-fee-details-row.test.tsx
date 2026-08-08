@@ -15,6 +15,7 @@ import {
   GasFeeEstimateType,
   SimulationData,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
@@ -339,6 +340,25 @@ describe('GasFeesDetailsRow', () => {
 
     expect(getByText('Paid by MetaMask')).toBeDefined();
     expect(queryByText('ETH')).toBeNull();
+  });
+
+  it('shows network fee when sponsored transaction is revoke delegation', async () => {
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].type =
+      TransactionType.revokeDelegation;
+
+    const { getByText, queryByTestId } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      {
+        state: clonedStakingDepositConfirmationState,
+      },
+    );
+
+    expect(queryByTestId('paid-by-metamask')).toBeNull();
+    expect(getByText('$0.34')).toBeDefined();
+    expect(getByText('ETH')).toBeDefined();
   });
 
   it('does not show MetaMask fee info when metaMaskFee is 0x0', () => {

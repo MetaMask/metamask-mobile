@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, screen } from '@testing-library/react-native';
+import { render, act, screen, waitFor } from '@testing-library/react-native';
 import FoxLoader, { _resetAnimationStateForTesting } from './FoxLoader';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 import { hideAsync } from 'expo-splash-screen';
@@ -48,11 +48,11 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-// Getter pattern so individual tests can flip isE2E without re-mocking the module
-let mockIsE2E = false;
+// Getter pattern so individual tests can flip hasTestOverrides without re-mocking the module
+let mockHasTestOverrides = false;
 jest.mock('../../../util/test/utils', () => ({
-  get isE2E() {
-    return mockIsE2E;
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
   },
 }));
 
@@ -74,6 +74,7 @@ jest.mock('../../../component-library/hooks', () => ({
 
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 describe('FoxLoader', () => {
@@ -82,7 +83,7 @@ describe('FoxLoader', () => {
     _resetAnimationStateForTesting();
     jest.clearAllMocks();
     mockRiveCallbacks = {};
-    mockIsE2E = false;
+    mockHasTestOverrides = false;
   });
 
   it('renders the container, static fox, and Rive wrapper', () => {
@@ -103,6 +104,28 @@ describe('FoxLoader', () => {
       screen.getByTestId(FoxLoaderSelectorsIDs.RIVE_WRAPPER),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+  });
+
+  it('returns null and completes immediately in E2E', async () => {
+    mockHasTestOverrides = true;
+    const onAnimationComplete = jest.fn();
+
+    render(
+      <FoxLoader
+        appServicesReady={false}
+        onAnimationComplete={onAnimationComplete}
+      />,
+    );
+
+    expect(screen.queryByTestId(FoxLoaderSelectorsIDs.CONTAINER)).toBeNull();
+    expect(
+      screen.queryByTestId(FoxLoaderSelectorsIDs.ANIMATION_WRAPPER),
+    ).toBeNull();
+    expect(screen.queryByTestId(FoxLoaderSelectorsIDs.STATIC_FOX)).toBeNull();
+    expect(screen.queryByTestId(FoxLoaderSelectorsIDs.RIVE_WRAPPER)).toBeNull();
+    expect(screen.queryByTestId('mock-rive-animation')).toBeNull();
+    await waitFor(() => expect(onAnimationComplete).toHaveBeenCalledTimes(1));
+    expect(hideAsync).toHaveBeenCalledTimes(1);
   });
 
   it('calls onAnimationComplete when Rive reaches ExitState', () => {
@@ -278,7 +301,7 @@ describe('FoxLoader', () => {
     expect(onAnimationComplete).not.toHaveBeenCalled();
 
     act(() => {
-      jest.advanceTimersByTime(5_000);
+      jest.advanceTimersByTime(3_000);
     });
 
     expect(onAnimationComplete).toHaveBeenCalledTimes(1);
@@ -434,7 +457,7 @@ describe('FoxLoader', () => {
     );
 
     await act(async () => {
-      jest.advanceTimersByTime(5_000);
+      jest.advanceTimersByTime(3_000);
     });
 
     expect(Logger.error).toHaveBeenCalledWith(

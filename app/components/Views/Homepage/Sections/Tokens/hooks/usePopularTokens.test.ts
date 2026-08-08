@@ -42,6 +42,10 @@ jest.mock('../../../../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(),
 }));
 
+jest.mock('../../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHubEnabledFlag: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 
@@ -93,27 +97,6 @@ describe('usePopularTokens', () => {
     expect(result.current.tokens[1].name).toBe('Ethereum');
     expect(result.current.tokens[1].price).toBe(3000.0);
     expect(result.current.error).toBeNull();
-  });
-
-  it('includes localized description for mUSD token', async () => {
-    mockHandleFetch.mockResolvedValue({});
-
-    const { result } = renderHook(() => usePopularTokens());
-
-    await waitFor(() => {
-      expect(result.current.isInitialLoading).toBe(false);
-    });
-
-    const musdToken = result.current.tokens.find(
-      (token) => token.symbol === 'mUSD',
-    );
-    expect(musdToken?.description).toBe('Get 3% mUSD bonus');
-
-    // Other tokens should not have a description
-    const ethToken = result.current.tokens.find(
-      (token) => token.symbol === 'ETH',
-    );
-    expect(ethToken?.description).toBeUndefined();
   });
 
   it('sets error state when fetch fails', async () => {
@@ -208,10 +191,11 @@ describe('usePopularTokens', () => {
   it('excludes mUSD from tokens when Cash section is enabled', async () => {
     mockHandleFetch.mockResolvedValue({});
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
-    // First call: selectCurrentCurrency → 'usd'; second: selectIsMusdConversionFlowEnabledFlag → true.
-    // Later calls (re-renders) keep Cash enabled so mUSD stays filtered.
+    // Selector call order: selectCurrentCurrency → 'usd', selectIsMusdConversionFlowEnabledFlag → true,
+    // selectMoneyHubEnabledFlag → true. Later calls (re-renders) keep Cash enabled so mUSD stays filtered.
     mockUseSelector
       .mockReturnValueOnce('usd')
+      .mockReturnValueOnce(true)
       .mockReturnValueOnce(true)
       .mockReturnValue(true);
 

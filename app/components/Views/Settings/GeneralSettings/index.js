@@ -18,7 +18,6 @@ import I18n, {
 } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   setSearchEngine,
   setPrimaryCurrency,
@@ -26,6 +25,7 @@ import {
   setHideZeroBalanceTokens,
   setHapticsEnabled,
 } from '../../../../actions/settings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PickComponent from '../../PickComponent';
 import AvatarAccount, {
   AvatarAccountType,
@@ -40,12 +40,16 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
 import { enablePushNotifications } from '../../../../actions/notification/helpers';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
+
+export const GENERAL_SETTINGS_CURRENCY_SELECTOR =
+  'general-settings-currency-selector';
 
 const diameter = 40;
 const spacing = 8;
@@ -227,8 +231,13 @@ class Settings extends PureComponent {
   };
 
   selectCurrency = async (currency) => {
-    const { CurrencyRateController } = Engine.context;
+    const { CurrencyRateController, AssetsController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
+    // When the `assetsUnifyState` flag is enabled, the UI reads the active
+    // currency from AssetsController.selectedCurrency rather than from
+    // CurrencyRateController, so it must be updated here too. Otherwise the
+    // selection silently no-ops and the displayed currency stays unchanged.
+    AssetsController?.setSelectedCurrency?.(currency);
     updateUserTraitsWithCurrentCurrency(currency);
   };
 
@@ -336,7 +345,7 @@ class Settings extends PureComponent {
 
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('app_settings.general_title')}
           onBack={() => navigation.goBack()}
           includesTopInset
@@ -357,6 +366,7 @@ class Settings extends PureComponent {
               </Text>
               <View style={styles.accessory}>
                 <SelectComponent
+                  testID={GENERAL_SETTINGS_CURRENCY_SELECTOR}
                   selectedValue={currentCurrency}
                   onValueChange={this.selectCurrency}
                   label={strings('app_settings.current_conversion')}

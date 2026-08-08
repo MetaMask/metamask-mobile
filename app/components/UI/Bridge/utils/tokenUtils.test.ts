@@ -2,6 +2,7 @@ import { constants } from 'ethers';
 import {
   getNativeSourceToken,
   getDefaultDestToken,
+  isSameBridgeToken,
   tokenMatchesQuery,
 } from './tokenUtils';
 import { getSecurityWarnings } from './tokenSecurityUtils';
@@ -11,7 +12,7 @@ import {
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
+import { getSwapDestToken } from './getSwapDestToken';
 import { createMockToken } from '../testUtils/fixtures';
 
 // Mock dependencies
@@ -34,9 +35,13 @@ jest.mock('@metamask/bridge-controller', () => {
   };
 });
 
-jest.mock('../../../../util/address', () => ({
-  safeToChecksumAddress: jest.fn(),
-}));
+jest.mock('../../../../util/address', () => {
+  const actual = jest.requireActual('../../../../util/address');
+  return {
+    ...actual,
+    safeToChecksumAddress: jest.fn(),
+  };
+});
 
 describe('tokenUtils', () => {
   beforeEach(() => {
@@ -122,14 +127,14 @@ describe('tokenUtils', () => {
     it('returns token for direct hex chainId lookup', () => {
       const result = getDefaultDestToken(CHAIN_IDS.MAINNET);
 
-      expect(result).toEqual(DefaultSwapDestTokens[CHAIN_IDS.MAINNET]);
+      expect(result).toEqual(getSwapDestToken(CHAIN_IDS.MAINNET));
       expect(result?.chainId).toBe(CHAIN_IDS.MAINNET);
     });
 
     it('returns token for another valid hex chainId', () => {
       const result = getDefaultDestToken(CHAIN_IDS.OPTIMISM);
 
-      expect(result).toEqual(DefaultSwapDestTokens[CHAIN_IDS.OPTIMISM]);
+      expect(result).toEqual(getSwapDestToken(CHAIN_IDS.OPTIMISM));
       expect(result?.chainId).toBe(CHAIN_IDS.OPTIMISM);
     });
 
@@ -220,7 +225,7 @@ describe('tokenUtils', () => {
     it('preserves token properties when converting CAIP to hex', () => {
       const caipChainId = 'eip155:1';
       const result = getDefaultDestToken(caipChainId);
-      const originalToken = DefaultSwapDestTokens[CHAIN_IDS.MAINNET];
+      const originalToken = getSwapDestToken(CHAIN_IDS.MAINNET) as BridgeToken;
 
       expect(result).toBeDefined();
       expect(result?.address).toBe(originalToken.address);
@@ -306,6 +311,47 @@ describe('tokenUtils', () => {
       expect(tokenMatchesQuery(token, 'wrap')).toBe(true);
       expect(tokenMatchesQuery(token, 'bit')).toBe(true);
       expect(tokenMatchesQuery(token, 'btc')).toBe(true);
+    });
+  });
+
+  describe('isSameBridgeToken', () => {
+    const ethToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: '0x1',
+    };
+    const usdcToken: BridgeToken = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x1',
+    };
+    const usdcPolygonToken: BridgeToken = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x89',
+    };
+
+    it('returns false when the first token is undefined', () => {
+      expect(isSameBridgeToken(undefined, usdcToken)).toBe(false);
+    });
+
+    it('returns false when the second token is undefined', () => {
+      expect(isSameBridgeToken(usdcToken, undefined)).toBe(false);
+    });
+
+    it('returns true for the same address on the same chain', () => {
+      expect(isSameBridgeToken(usdcToken, { ...usdcToken })).toBe(true);
+    });
+
+    it('returns false for different addresses on the same chain', () => {
+      expect(isSameBridgeToken(ethToken, usdcToken)).toBe(false);
+    });
+
+    it('returns false for the same address on a different chain', () => {
+      expect(isSameBridgeToken(usdcToken, usdcPolygonToken)).toBe(false);
     });
   });
 });

@@ -1,10 +1,10 @@
 import axios, { type AxiosResponse } from 'axios';
 import { handleExportStateCommand } from './e2eStateExport';
 
-let mockIsE2E = false;
+let mockHasTestOverrides = false;
 jest.mock('./utils', () => ({
-  get isE2E() {
-    return mockIsE2E;
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
   },
   getCommandQueueServerPortInApp: () => 2446,
 }));
@@ -21,6 +21,12 @@ const mockDispatchPerpsCommand = jest.fn();
 jest.mock('./e2ePerpsCommandHandler', () => ({
   dispatchPerpsCommand: (...args: unknown[]) =>
     mockDispatchPerpsCommand(...args),
+}));
+
+const mockDispatchQrSyncCommand = jest.fn();
+jest.mock('./e2eQrSyncCommandHandler', () => ({
+  dispatchQrSyncCommand: (...args: unknown[]) =>
+    mockDispatchQrSyncCommand(...args),
 }));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -56,15 +62,15 @@ describe('e2eCommandPolling', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
-    mockIsE2E = false;
+    mockHasTestOverrides = false;
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('does not start polling when isE2E is false', async () => {
-    mockIsE2E = false;
+  it('does not start polling when hasTestOverrides is false', async () => {
+    mockHasTestOverrides = false;
     const { startE2ECommandPolling } = loadModule();
 
     await startE2ECommandPolling();
@@ -74,7 +80,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('does not start polling when server probe fails', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     mockedAxios.get.mockRejectedValueOnce(new Error('ECONNREFUSED'));
@@ -85,8 +91,8 @@ describe('e2eCommandPolling', () => {
     expect(jest.getTimerCount()).toBe(0);
   });
 
-  it('starts polling when isE2E is true and server is reachable', async () => {
-    mockIsE2E = true;
+  it('starts polling when hasTestOverrides is true and server is reachable', async () => {
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     // Probe succeeds
@@ -99,7 +105,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('does not start polling twice', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     mockedAxios.get.mockResolvedValueOnce(probeResponse);
@@ -112,7 +118,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('dispatches export-state command to handleExportStateCommand', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     // First call: probe succeeds
@@ -136,7 +142,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('reschedules after receiving an empty queue', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
@@ -154,7 +160,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('reschedules after receiving null queue data', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
@@ -171,7 +177,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('dispatches push-price command to perps handler', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     const command = {
@@ -191,8 +197,32 @@ describe('e2eCommandPolling', () => {
     expect(mockDispatchPerpsCommand).toHaveBeenCalledWith(command);
   });
 
+  it('dispatches apply-qr-sync-sync-ready command to QR sync handler', async () => {
+    mockHasTestOverrides = true;
+    const { startE2ECommandPolling } = loadModule();
+
+    const command = {
+      type: 'apply-qr-sync-sync-ready',
+      args: {
+        mnemonic: 'test mnemonic',
+        isPrimary: true,
+      },
+    };
+    mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
+      status: 200,
+      data: { queue: [command] },
+    } as AxiosResponse);
+
+    await startE2ECommandPolling();
+
+    jest.advanceTimersByTime(0);
+    await flushMicrotasks();
+
+    expect(mockDispatchQrSyncCommand).toHaveBeenCalledWith(command);
+  });
+
   it('dispatches force-liquidation command to perps handler', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     const command = { type: 'force-liquidation', args: { symbol: 'BTC' } };
@@ -210,7 +240,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('dispatches mock-deposit command to perps handler', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     const command = { type: 'mock-deposit', args: { amount: '5000' } };
@@ -228,7 +258,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('skips null or non-object items in the queue', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
@@ -248,7 +278,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('disables polling after consecutive non-200 responses', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     const non200Response = { status: 500, data: {} } as AxiosResponse;
@@ -274,7 +304,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('disables polling after consecutive network errors', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     // Probe succeeds, then two consecutive errors
@@ -298,7 +328,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('resets consecutive failures after a successful poll', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     const non200Response = { status: 500, data: {} } as AxiosResponse;
@@ -333,7 +363,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('logs error and continues when export-state handler throws', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     (handleExportStateCommand as jest.Mock).mockRejectedValueOnce(
@@ -358,7 +388,7 @@ describe('e2eCommandPolling', () => {
   });
 
   it('uses debug.json endpoint for server probe', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const { startE2ECommandPolling } = loadModule();
 
     mockedAxios.get.mockResolvedValueOnce(probeResponse);

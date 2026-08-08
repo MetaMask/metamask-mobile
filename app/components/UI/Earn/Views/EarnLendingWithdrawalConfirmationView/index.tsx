@@ -5,15 +5,15 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ethers } from 'ethers';
 import { capitalize } from 'lodash';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import Badge, {
   BadgeVariant,
@@ -21,7 +21,7 @@ import Badge, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
+import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import {
   IMetaMetricsEvent,
   MetaMetricsEvents,
@@ -34,7 +34,6 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
 import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
-import { getStakingNavbar } from '../../../Navbar';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
 import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
 import { TokenI } from '../../../Tokens/types';
@@ -72,10 +71,10 @@ export interface EarnWithdrawalConfirmationViewProps {
 }
 
 const EarnLendingWithdrawalConfirmationView = () => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { params } = useRoute<EarnWithdrawalConfirmationViewProps['route']>();
 
@@ -87,6 +86,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
     lendingProtocol,
     // healthFactorSimulation,
   } = params;
+
+  const headerTitle = useMemo(() => {
+    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
+    return `${strings('earn.withdraw')} ${tokenLabel}`;
+  }, [token?.ticker, token?.symbol, token?.name]);
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
@@ -106,50 +110,34 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
-  useEffect(() => {
-    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
-    const title = `${strings('earn.withdraw')} ${tokenLabel}`;
-
-    navigation.setOptions(
-      getStakingNavbar(
-        title,
-        navigation,
-        theme.colors,
-        {
-          hasCancelButton: false,
-          backgroundColor: theme.colors.background.default,
-        },
-        {
-          backButtonEvent: {
-            event:
-              MetaMetricsEvents.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
-            properties: {
-              selected_provider: EVENT_PROVIDERS.CONSENSYS,
-              location: EVENT_LOCATIONS.EARN_LENDING_WITHDRAW_CONFIRMATION_VIEW,
-              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              user_token_balance: outputToken?.balanceFormatted as string,
-              transaction_value: `${renderFromTokenMinimalUnit(
-                amountTokenMinimalUnit,
-                outputToken?.decimals as number,
-              )} ${outputToken?.symbol}`,
-              token: token.symbol,
-            },
-          },
-        },
-      ),
+  const handleHeaderBackPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
+      )
+        .addProperties({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          location: EVENT_LOCATIONS.EARN_LENDING_WITHDRAW_CONFIRMATION_VIEW,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          user_token_balance: outputToken?.balanceFormatted as string,
+          transaction_value: `${renderFromTokenMinimalUnit(
+            amountTokenMinimalUnit,
+            outputToken?.decimals as number,
+          )} ${outputToken?.symbol}`,
+          token: token.symbol,
+        })
+        .build(),
     );
+    navigation.goBack();
   }, [
     amountTokenMinimalUnit,
+    createEventBuilder,
     navigation,
     outputToken?.balanceFormatted,
-    outputToken?.balanceMinimalUnit,
     outputToken?.decimals,
-    outputToken?.experience.type,
     outputToken?.symbol,
-    theme.colors,
     token.symbol,
-    token.name,
-    token.ticker,
+    trackEvent,
   ]);
 
   // const riskTextColor = useMemo(() => {
@@ -329,7 +317,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+            navigateToActivityAfterConfirmation(navigation);
           }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -469,6 +457,14 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
+      <HeaderStandard
+        title={headerTitle}
+        onBack={handleHeaderBackPress}
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+        }}
+        includesTopInset
+      />
       <View style={styles.contentContainer}>
         <Erc20TokenHero
           token={token}
@@ -488,7 +484,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   tooltip: {
                     title: strings('earn.withdrawal_time'),
                     content: strings('earn.tooltip_content.withdrawal_time'),
-                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
@@ -531,7 +526,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   tooltip: {
                     title: strings('earn.protocol'),
                     content: strings('earn.tooltip_content.protocol'),
-                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
@@ -634,7 +628,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                           </View>
                         </View>
                       ),
-                      size: TooltipSizes.Sm,
                     },
                   }}
                   value={{

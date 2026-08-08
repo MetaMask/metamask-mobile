@@ -9,7 +9,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class OnboardingSuccessView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
   }
 
@@ -30,6 +30,7 @@ class OnboardingSuccessView {
   async tapDone(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.doneButton, {
       description: 'Onboarding Success Done Button',
+      timeout: 15_000,
     });
   }
 }

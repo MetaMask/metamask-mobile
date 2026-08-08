@@ -10,6 +10,7 @@ import {
   RequestStatus,
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
+  BRIDGE_MM_FEE_RATE,
 } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -63,16 +64,38 @@ jest.mock('../../components/SwapsConfirmButton/index.tsx', () => ({
   },
 }));
 
-// Mock ApprovalTooltip to avoid the navigation dependency of useTooltipModal.
-jest.mock('../../components/ApprovalText', () => {
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () =>
-      MockReact.createElement(View, { testID: 'approval-tooltip' }),
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
   };
 });
+
+jest.mock(
+  '../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',
+  () => {
+    const MockReact = jest.requireActual('react');
+    const { Text, View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ label }: { label: string }) =>
+        MockReact.createElement(
+          View,
+          { testID: 'rewards-discount-badge' },
+          MockReact.createElement(Text, null, label),
+        ),
+      RewardsDiscountBadge: ({ label }: { label: string }) =>
+        MockReact.createElement(
+          View,
+          { testID: 'rewards-discount-badge' },
+          MockReact.createElement(Text, null, label),
+        ),
+    };
+  },
+);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -303,6 +326,88 @@ describe('BridgeViewFooter', () => {
       });
     });
 
+    it('shows standard fee disclaimer when fee is less than base fee but discountType is absent', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              feeData: { metabridge: { quoteBpsFee: 57.5, baseBpsFee: 90 } },
+            },
+          },
+        }));
+
+      const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+        ).toHaveTextContent('Includes 0.575% MetaMask fee');
+      });
+    });
+
+    it.each([
+      {
+        discountType: 'vip',
+        expectedBadgeTestId: 'rewards-vip-badge',
+        expectedBadgeLabel: undefined,
+      },
+      {
+        discountType: 'promo',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'Promo',
+      },
+      {
+        discountType: 'dao',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'DAO',
+      },
+      {
+        discountType: 'seasonal',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'Promo',
+      },
+    ])(
+      'shows discounted fee disclaimer and badge for $discountType discountType',
+      async ({ discountType, expectedBadgeTestId, expectedBadgeLabel }) => {
+        jest
+          .mocked(useBridgeQuoteData as unknown as jest.Mock)
+          .mockImplementation(() => ({
+            ...mockUseBridgeQuoteData,
+            activeQuote: {
+              ...mockQuoteWithMetadata,
+              quote: {
+                feeData: {
+                  metabridge: {
+                    quoteBpsFee: 57.5,
+                    baseBpsFee: 90,
+                    discountType,
+                  },
+                },
+              },
+            },
+          }));
+
+        const { getByTestId, getByText } = renderFooter(
+          buildActiveQuoteState(),
+        );
+
+        await waitFor(() => {
+          expect(getByTestId(expectedBadgeTestId)).toBeTruthy();
+          if (expectedBadgeLabel) {
+            expect(getByText(expectedBadgeLabel)).toBeTruthy();
+          }
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+          ).toHaveTextContent(
+            `${expectedBadgeLabel ?? ''}0.9%0.575% MetaMask fee`,
+          );
+        });
+      },
+    );
+
     it('shows no MM fee disclaimer when dest token is mUSD and fee is zero', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 
@@ -313,7 +418,14 @@ describe('BridgeViewFooter', () => {
           isLoading: false,
           activeQuote: {
             ...(mockQuoteWithMetadata as unknown as QuoteResponse),
-            quote: { feeData: { metabridge: { quoteBpsFee: 0 } } },
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              destAsset: {
+                ...mockQuoteWithMetadata.quote.destAsset,
+                symbol: 'mUSD',
+              },
+              feeData: { metabridge: { quoteBpsFee: 0, baseBpsFee: 87.5 } },
+            },
           } as unknown as QuoteResponse,
         }));
 
@@ -354,41 +466,53 @@ describe('BridgeViewFooter', () => {
         ).toBeTruthy();
       });
     });
-  });
 
-  describe('Approval Disclaimer', () => {
-    it('displays approval needed text when quote requires approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: {
-          chainId: '0x1',
-          to: '0xToken',
-          data: '0xApprovalData',
-        },
-      };
+    it('shows fee disclaimer when fee is undefined', async () => {
+      const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
+          isLoading: false,
+          activeQuote: {
+            ...(mockQuoteWithMetadata as unknown as QuoteResponse),
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              destAsset: {
+                ...mockQuoteWithMetadata.quote.destAsset,
+                symbol: 'mUSD',
+              },
+              feeData: {
+                metabridge: { quoteBpsFee: undefined, baseBpsFee: undefined },
+              },
+            },
+          } as unknown as QuoteResponse,
         }));
 
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: Date.now(),
+          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
-          sourceAmount: '1.5',
+          sourceAmount: '1.0',
           sourceToken: {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1' as Hex,
+            decimals: 18,
+            image: '',
+            name: 'Ether',
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: musdAddress,
             chainId: '0x1' as Hex,
             decimals: 6,
             image: '',
-            name: 'USD Coin',
-            symbol: 'USDC',
+            name: 'MetaMask USD',
+            symbol: 'mUSD',
           },
         },
       });
@@ -396,95 +520,62 @@ describe('BridgeViewFooter', () => {
       const { getByText } = renderFooter(testState as DeepPartial<RootState>);
 
       await waitFor(() => {
-        const approvalText = strings('bridge.approval_needed', {
+        expect(
+          getByText(
+            strings('bridge.fee_disclaimer', {
+              feePercentage: BRIDGE_MM_FEE_RATE,
+            }),
+            {
+              exact: false,
+            },
+          ),
+        ).toBeTruthy();
+      });
+    });
+  });
+
+  it('does not display an approval row when quote requires approval', () => {
+    const mockQuote = {
+      ...mockQuoteWithMetadata,
+      approval: {
+        chainId: '0x1',
+        to: '0xToken',
+        data: '0xApprovalData',
+      },
+    };
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockQuote,
+      }));
+
+    const testState = buildActiveQuoteState({
+      bridgeControllerOverrides: {
+        quotes: [mockQuote as unknown as QuoteResponse],
+      },
+      bridgeReducerOverrides: {
+        sourceAmount: '1.5',
+        sourceToken: {
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          chainId: '0x1' as Hex,
+          decimals: 6,
+          image: '',
+          name: 'USD Coin',
+          symbol: 'USDC',
+        },
+      },
+    });
+
+    const { queryByText } = renderFooter(testState);
+
+    expect(
+      queryByText(
+        strings('bridge.approval_needed', {
           amount: '1.5',
           symbol: 'USDC',
-        });
-        expect(getByText(approvalText, { exact: false })).toBeTruthy();
-      });
-    });
-
-    it('displays approval tooltip when quote requires approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: {
-          chainId: '0x1',
-          to: '0xToken',
-          data: '0xApprovalData',
-        },
-      };
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: Date.now(),
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.5',
-          sourceToken: {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            chainId: '0x1' as Hex,
-            decimals: 6,
-            image: '',
-            name: 'USD Coin',
-            symbol: 'USDC',
-          },
-        },
-      });
-
-      const { getByTestId } = renderFooter(testState as DeepPartial<RootState>);
-
-      await waitFor(() => {
-        expect(getByTestId('approval-tooltip')).toBeTruthy();
-      });
-    });
-
-    it('does not display approval text when quote does not require approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: null,
-      };
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
-
-      const { queryByText } = renderFooter(buildActiveQuoteState());
-
-      await waitFor(() => {
-        expect(queryByText(/approval needed/i, { exact: false })).toBeNull();
-      });
-    });
-
-    it('does not display approval tooltip when quote does not require approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: null,
-      };
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
-
-      const { queryByTestId } = renderFooter(buildActiveQuoteState());
-
-      await waitFor(() => {
-        expect(queryByTestId('approval-tooltip')).toBeNull();
-      });
-    });
+        }),
+      ),
+    ).toBeNull();
   });
 });

@@ -99,7 +99,7 @@ describe('useTraderPositions', () => {
         expect.objectContaining({
           queryKey: [
             'SocialService:fetchOpenPositions',
-            { addressOrId: 'trader-1' },
+            { addressOrId: 'trader-1', limit: 100 },
           ],
         }),
       );
@@ -108,7 +108,7 @@ describe('useTraderPositions', () => {
         expect.objectContaining({
           queryKey: [
             'SocialService:fetchClosedPositions',
-            { addressOrId: 'trader-1' },
+            { addressOrId: 'trader-1', sort: 'latest', limit: 100 },
           ],
         }),
       );
@@ -151,7 +151,7 @@ describe('useTraderPositions', () => {
       );
     });
 
-    it('forwards refetchInterval only to the open positions query', () => {
+    it('forwards refetchInterval to both open and closed positions queries', () => {
       renderHook(() =>
         useTraderPositions('trader-1', { refetchInterval: 30_000 }),
       );
@@ -160,8 +160,20 @@ describe('useTraderPositions', () => {
       expect(calls[0][0]).toEqual(
         expect.objectContaining({ refetchInterval: 30_000 }),
       );
-      expect(calls[1][0]).not.toEqual(
-        expect.objectContaining({ refetchInterval: expect.anything() }),
+      expect(calls[1][0]).toEqual(
+        expect.objectContaining({ refetchInterval: 30_000 }),
+      );
+    });
+
+    it('uses refetchOnMount always on both position queries', () => {
+      renderHook(() => useTraderPositions('trader-1'));
+
+      const calls = mockUseQuery.mock.calls;
+      expect(calls[0][0]).toEqual(
+        expect.objectContaining({ refetchOnMount: 'always' }),
+      );
+      expect(calls[1][0]).toEqual(
+        expect.objectContaining({ refetchOnMount: 'always' }),
       );
     });
 
@@ -287,7 +299,7 @@ describe('useTraderPositions', () => {
       expect(result.current.error).toBe('raw error');
     });
 
-    it('logs the open error with enriched extras including the endpoint', () => {
+    it('logs the open error with feature:social tags', () => {
       const error = new Error('fetch failed');
 
       mockUseQuery
@@ -299,14 +311,21 @@ describe('useTraderPositions', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         expect.objectContaining({
-          message: 'useTraderPositions: positions fetch failed',
-          endpoint: 'open_positions',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_profile',
+            operation: 'fetch_open_positions',
+            endpoint: 'open_positions',
+          }),
+          extras: expect.objectContaining({
+            message: 'Trader open positions fetch failed at useTraderPositions',
+            endpoint: 'open_positions',
+          }),
         }),
       );
     });
 
-    it('logs the closed error with enriched extras including the endpoint', () => {
+    it('logs the closed error with feature:social tags', () => {
       const error = new Error('closed fetch failed');
 
       mockUseQuery
@@ -318,9 +337,17 @@ describe('useTraderPositions', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         expect.objectContaining({
-          message: 'useTraderPositions: positions fetch failed',
-          endpoint: 'closed_positions',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_profile',
+            operation: 'fetch_closed_positions',
+            endpoint: 'closed_positions',
+          }),
+          extras: expect.objectContaining({
+            message:
+              'Trader closed positions fetch failed at useTraderPositions',
+            endpoint: 'closed_positions',
+          }),
         }),
       );
     });
@@ -330,7 +357,7 @@ describe('useTraderPositions', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
-    it('does NOT include addressOrId in the Logger.error extras', () => {
+    it('does NOT include addressOrId in the Logger.error payload', () => {
       const error = new Error('fetch failed');
 
       mockUseQuery
@@ -340,10 +367,9 @@ describe('useTraderPositions', () => {
       renderHook(() => useTraderPositions('0xSensitiveAddress'));
 
       const call = (Logger.error as jest.Mock).mock.calls[0];
-      const extras = call[1];
-      const serialised = JSON.stringify(extras);
+      const serialised = JSON.stringify(call[1]);
       expect(serialised).not.toContain('0xSensitiveAddress');
-      expect(Object.keys(extras)).not.toContain('addressOrId');
+      expect(serialised).not.toContain('addressOrId');
     });
   });
 
@@ -379,7 +405,13 @@ describe('useTraderPositions', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'useTraderPositions: refetch failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_profile',
+            operation: 'refetch_positions',
+          }),
+        }),
       );
     });
 
@@ -409,7 +441,12 @@ describe('useTraderPositions', () => {
       await expect(refetchPromise).rejects.toThrow('open failed');
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'useTraderPositions: refetch failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            operation: 'refetch_positions',
+          }),
+        }),
       );
     });
 
@@ -429,12 +466,22 @@ describe('useTraderPositions', () => {
       expect(Logger.error).toHaveBeenNthCalledWith(
         1,
         openError,
-        'useTraderPositions: refetch failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            operation: 'refetch_positions',
+          }),
+        }),
       );
       expect(Logger.error).toHaveBeenNthCalledWith(
         2,
         closedError,
-        'useTraderPositions: refetch failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            operation: 'refetch_positions',
+          }),
+        }),
       );
     });
   });

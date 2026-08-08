@@ -3,8 +3,10 @@ import { TransactionDetailsRow } from '../transaction-details-row/transaction-de
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
@@ -16,6 +18,7 @@ const FALLBACK_TYPES = [
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
   TransactionType.musdClaim,
+  TransactionType.revokeDelegation,
 ];
 
 export function TransactionDetailsNetworkFeeRow() {

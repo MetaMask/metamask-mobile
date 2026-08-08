@@ -3,7 +3,10 @@ import performance, { PerformanceObserver } from 'react-native-performance';
 import StorageWrapper from '../../store/storage-wrapper';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import getUIStartupSpan from './UIStartup';
-import { isQa, isTest } from '../../util/test/utils';
+import {
+  isE2EOrExpEnvironment,
+  isTestEnvironment,
+} from '../../util/test/utils';
 
 /**
  * Service for measuring app performance
@@ -24,6 +27,16 @@ class Performance {
       const entries = list.getEntries();
 
       if (entries.find((entry) => entry.name === 'runJsBundleEnd')) {
+        // On hot reload under RN 0.83 bridgeless, `runJsBundleStart` is dropped
+        // while `runJsBundleEnd` still fires (StartupLogger reset cascade,
+        // facebook/react-native#56339). `performance.measure` throws on the
+        // missing mark, so skip this startup telemetry when it's absent.
+        // Note: native startup marks are emitted as `react-native-mark` entries,
+        // not `mark`, so the name lookup must NOT filter by entry type — that's
+        // the same set of marks `performance.measure` resolves against.
+        if (performance.getEntriesByName('runJsBundleStart').length === 0) {
+          return;
+        }
         // Measure app start
         performance.measure(
           'nativeLaunch',
@@ -47,7 +60,7 @@ class Performance {
         // the total app start time is then the maximum of the two durations
         const appStartTime = Math.max(nativeLaunchDuration, jsBundleDuration);
 
-        if (isTest || isQa) {
+        if (isTestEnvironment || isE2EOrExpEnvironment) {
           // eslint-disable-next-line no-console
           console.info(
             `-------------------------------------------------------`,

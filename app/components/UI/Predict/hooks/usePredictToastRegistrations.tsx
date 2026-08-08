@@ -1,10 +1,11 @@
 import {
-  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -13,9 +14,12 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import Routes from '../../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import { ActivityTypeFilter } from '../../../Views/ActivityScreen/types';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { PredictEventValues } from '../constants/eventNames';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
@@ -25,9 +29,15 @@ import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from '../../Money/utils/moneyTransactionGuards';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
-import { isPredictSheetProviderMounted } from '../contexts/PredictPreviewSheetContext';
+import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
+import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 
 const showPendingToast = ({
   showToast,
@@ -52,12 +62,10 @@ const showPendingToast = ({
     iconName: IconName.Loading,
     hasNoTimeout: false,
     startAccessory: (
-      <Box twClassName="pr-3">
-        <Spinner
-          color={ReactNativeDsIconColor.PrimaryDefault}
-          spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
-        />
-      </Box>
+      <Spinner
+        color={ReactNativeDsIconColor.IconDefault}
+        spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+      />
     ),
     ...(trackLabel && onTrack
       ? {
@@ -75,11 +83,13 @@ const showSuccessToast = ({
   title,
   description,
   iconColor,
+  iconName = IconName.Confirmation,
 }: {
   showToast: ToastRef['showToast'];
   title: string;
   description: string;
   iconColor: string;
+  iconName?: IconName;
 }) =>
   showToast({
     variant: ToastVariants.Icon,
@@ -88,7 +98,7 @@ const showSuccessToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
-    iconName: IconName.Confirmation,
+    iconName,
     iconColor,
     hasNoTimeout: false,
   });
@@ -99,7 +109,6 @@ const showErrorToast = ({
   description,
   retryLabel,
   onRetry,
-  backgroundColor,
   iconColor,
 }: {
   showToast: ToastRef['showToast'];
@@ -107,7 +116,6 @@ const showErrorToast = ({
   description: string;
   retryLabel?: string;
   onRetry?: () => void;
-  backgroundColor: string;
   iconColor: string;
 }) =>
   showToast({
@@ -119,7 +127,6 @@ const showErrorToast = ({
     ],
     iconName: IconName.Error,
     iconColor,
-    backgroundColor,
     hasNoTimeout: false,
     ...(retryLabel && onRetry
       ? {
@@ -136,15 +143,17 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const { deposit } = usePredictDeposit();
   const { claim } = usePredictClaim();
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useAppThemeFromContext();
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
-  const selectedAddress =
-    getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
-  const normalizedSelectedAddress = selectedAddress.toLowerCase();
+  const isTransactionsRedesignEnabled = useSelector(
+    selectIsTransactionsRedesignEnabled,
+  );
+  const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
+  const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, senderAddress, transactionId, amount, marketId } =
@@ -174,6 +183,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       }
 
       if (type === 'deposit') {
+        const depositMeta = transactionId
+          ? selectTransactionMetadataById(store.getState(), transactionId)
+          : undefined;
+        if (depositMeta && isPerpsPredictMoneyDeposit(depositMeta)) {
+          return;
+        }
+
         if (status === 'approved') {
           showPendingToast({
             showToast,
@@ -183,14 +199,14 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             }),
             trackLabel: strings('predict.deposit.track'),
             onTrack: () => {
-              navigation.navigate(Routes.TRANSACTIONS_VIEW);
-              if (transactionId) {
-                setTimeout(() => {
-                  navigation.navigate(Routes.TRANSACTION_DETAILS, {
-                    transactionId,
-                  });
-                }, 100);
-              }
+              navigateToTransactionDetails(navigation, {
+                transactionId,
+                initialTypeFilter: ActivityTypeFilter.Predictions,
+                isTransactionsRedesignEnabled,
+                ...(depositMeta?.chainId
+                  ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
+                  : {}),
+              });
             },
           });
           return;
@@ -228,7 +244,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -256,10 +271,21 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
+          if ((amount ?? 0) <= 0) {
+            showSuccessToast({
+              showToast,
+              title: strings('predict.claim.toasts.redeemed.title'),
+              description: strings('predict.claim.toasts.redeemed.description'),
+              iconName: IconName.Info,
+              iconColor: theme.colors.primary.default,
+            });
+            return;
+          }
+
           showSuccessToast({
             showToast,
-            title: strings('predict.deposit.account_ready'),
-            description: strings('predict.deposit.account_ready_description', {
+            title: strings('predict.claim.toasts.confirmed.title'),
+            description: strings('predict.claim.toasts.confirmed.description', {
               amount: formattedClaimAmount,
             }),
             iconColor: theme.colors.success.default,
@@ -276,11 +302,12 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               ? {
                   retryLabel: strings('predict.claim.toasts.error.try_again'),
                   onRetry: () => {
-                    claim().catch(() => undefined);
+                    claim({
+                      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+                    }).catch(() => undefined);
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
         }
@@ -299,6 +326,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
+          const withdrawMeta = transactionId
+            ? selectTransactionMetadataById(store.getState(), transactionId)
+            : undefined;
+          if (withdrawMeta && isPerpsPredictMoneyWithdraw(withdrawMeta)) {
+            return;
+          }
+
           const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
           const { title, description } = getWithdrawConfirmedMessage(
             transactionId,
@@ -327,7 +361,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -353,7 +386,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         if (status === 'confirmed') {
           showToast({
             variant: ToastVariants.Icon,
-            iconName: IconName.Check,
+            iconName: IconName.Confirmation,
             iconColor: theme.colors.success.default,
             labelOptions: [
               {
@@ -371,14 +404,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           // the provider's state-based trigger (in PredictPreviewSheetContext)
           // surfaces a persistent Retry toast for the same error. Skip here
           // to avoid double-firing.
-          if (bottomSheetEnabled && isPredictSheetProviderMounted()) {
+          if (bottomSheetEnabled && shouldSuppressLegacyOrderFailureToast()) {
             return;
           }
           showErrorToast({
             showToast,
             title: strings('predict.order.prediction_failed'),
             description: strings('predict.order.order_failed_generic'),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -389,11 +421,12 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       bottomSheetEnabled,
       claim,
       deposit,
+      isTransactionsRedesignEnabled,
       navigation,
       normalizedSelectedAddress,
       queryClient,
-      theme.colors.accent04.normal,
       theme.colors.error.default,
+      theme.colors.primary.default,
       theme.colors.success.default,
       withdraw,
       withdrawTransaction?.amount,

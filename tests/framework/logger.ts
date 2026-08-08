@@ -48,7 +48,7 @@ export class Logger {
     this.name = options.name || '';
     this.prefix = options.prefix || 'E2E Framework';
     this.colors = options.colors !== false;
-    this.level = options.level || LogLevel.DEBUG;
+    this.level = options.level ?? LogLevel.DEBUG;
   }
 
   private colorize(text: string, color: keyof typeof this.colorCodes): string {

@@ -11,6 +11,7 @@ import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCa
 import { getCampaignStatus } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import useRewardsToast from '../../hooks/useRewardsToast';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
@@ -35,7 +36,7 @@ interface OndoCampaignCTAProps {
  * Renders one of four states depending on campaign/participant status:
  * - Delegates to CampaignOptInCta for the opt-in flow (active, not opted in, within deposit window). Passes ONDO_RESTRICTED_COUNTRIES so that CampaignOptInCta shows the geo-locked "Check eligibility" CTA for restricted users.
  * - "Entries closed" button (with Lock icon + toast) when cutoff has passed and user is not opted in
- * - "Open Position" button when the user has opted in but has no portfolio positions
+ * - "Trade now" button when the user has opted in but has no portfolio positions
  * - "Swap Ondo Assets" button when the user has opted in and has portfolio positions
  */
 const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
@@ -45,7 +46,7 @@ const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   campaignId,
   notEligibleForCampaign = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const [isNotEligibleSheetOpen, setIsNotEligibleSheetOpen] = useState(false);

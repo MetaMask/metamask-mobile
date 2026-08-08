@@ -1,7 +1,8 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
+import { IconName, toast } from '@metamask/design-system-react-native';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -10,6 +11,9 @@ import { AddressList } from './AddressList';
 import { MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { toFormattedAddress } from '../../../../util/address';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { strings } from '../../../../../locales/i18n';
+import { AddressListIds } from './AddressList.testIds';
 
 const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
 const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
@@ -32,6 +36,7 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
     title: TITLE,
     groupId: ACCOUNT_GROUP_ID,
+    source: 'copy_button',
   }),
   useRoute: jest.fn(),
   createNavigationDetails: jest.fn(),
@@ -54,6 +59,20 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    Toaster: jest.fn(() => null),
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 const mockEthEoaAccount = {
   ...createMockInternalAccount(
@@ -164,6 +183,15 @@ const renderWithAddressList = () => {
 describe('AddressList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    const { useParams } = jest.requireMock(
+      '../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      title: TITLE,
+      groupId: ACCOUNT_GROUP_ID,
+      source: 'copy_button',
+    });
   });
 
   it('renders correctly with list of addresses from a specific account group', () => {
@@ -191,6 +219,27 @@ describe('AddressList', () => {
       header: expect.any(Function),
       headerShown: true,
     });
+  });
+
+  it('calls navigation.goBack from the header back button', () => {
+    renderWithAddressList();
+
+    const navOptionsWithHeader = mockSetOptions.mock.calls
+      .map(([opts]) => opts)
+      .find(
+        (opts) =>
+          opts &&
+          opts.headerShown === true &&
+          typeof opts.header === 'function',
+      );
+
+    expect(navOptionsWithHeader).toBeDefined();
+
+    const { getByTestId, unmount } = render(navOptionsWithHeader.header());
+    fireEvent.press(getByTestId(AddressListIds.GO_BACK));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    unmount();
   });
 
   it('does not set navigation options when title is not provided', () => {
@@ -226,6 +275,8 @@ describe('AddressList', () => {
           networkName: 'Ethereum',
           chainId: 'eip155:1',
           groupId: ACCOUNT_GROUP_ID,
+          location: 'address-list',
+          account: expect.objectContaining({ id: mockEthEoaAccount.id }),
         },
       },
     );
@@ -237,6 +288,32 @@ describe('AddressList', () => {
       mockCreateEventBuilder.mockClear();
       mockAddProperties.mockClear();
       mockBuild.mockClear();
+    });
+
+    it('tracks "Address List Viewed" event when screen is shown', () => {
+      renderWithAddressList();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.ADDRESS_LIST_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        source: 'copy_button',
+        account_type: expect.any(String),
+      });
+      expect(mockBuild).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks "Address List Viewed" only once on re-render', () => {
+      const { rerender } = renderWithAddressList();
+
+      rerender(<AddressList />);
+
+      const addressListViewedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([eventName]) => eventName === MetaMetricsEvents.ADDRESS_LIST_VIEWED,
+      );
+
+      expect(addressListViewedCalls).toHaveLength(1);
     });
 
     it('tracks "Copied Address" event when copy button is pressed', async () => {
@@ -302,10 +379,28 @@ describe('AddressList', () => {
 
       await new Promise(process.nextTick);
 
-      // Access the first call from this test (now properly cleared between tests)
-      const addPropertiesCall = mockAddProperties.mock.calls[0][0];
+      const addPropertiesCall = mockAddProperties.mock.calls.find(
+        ([properties]) => properties.location === 'address-list',
+      )?.[0];
 
       expect(addPropertiesCall).toHaveProperty('location', 'address-list');
+    });
+
+    it('shows the design system copy toast', async () => {
+      const { getAllByTestId } = renderWithAddressList();
+
+      const copyButton = getAllByTestId(
+        'multichain-address-row-copy-button',
+      )[0];
+      expect(copyButton).toBeDefined();
+      fireEvent.press(copyButton);
+
+      await waitFor(() => {
+        expect(toast).toHaveBeenCalledWith({
+          title: strings('notifications.address_copied_to_clipboard'),
+          hasNoTimeout: false,
+        });
+      });
     });
   });
 });

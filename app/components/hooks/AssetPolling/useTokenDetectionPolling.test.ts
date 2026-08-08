@@ -13,9 +13,16 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
+  selectIsAssetsUnifyStateEnabled: jest.fn(),
+}));
+
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
+
 describe('useTokenDetectionPolling', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(false);
   });
 
   const selectedAddress = '0x1234567890abcdef';
@@ -115,6 +122,16 @@ describe('useTokenDetectionPolling', () => {
     expect(
       mockedTokenDetectionController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start polling when unified assets state is enabled', () => {
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
+
+    renderHookWithProvider(() => useTokenDetectionPolling(), { state });
+
+    expect(
+      jest.mocked(Engine.context.TokenDetectionController.startPolling),
+    ).not.toHaveBeenCalled();
   });
 
   it('Should not poll when token detection is disabled', async () => {

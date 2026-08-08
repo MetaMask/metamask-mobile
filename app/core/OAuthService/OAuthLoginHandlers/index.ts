@@ -5,16 +5,43 @@ import { IosAppleLoginHandler } from './iosHandlers/apple';
 import { AndroidGoogleLoginHandler } from './androidHandlers/google';
 import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallback';
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
+import { TelegramLoginHandler } from './shared/TelegramLoginHandler';
 import {
-  AuthServerUrl,
+  w3aAuthServerUrl,
+  profileSyncEnv,
   GoogleWebGID,
   GoogleRedirectUri,
   AppleWebClientId,
+  AppRedirectUri,
+  TelegramRedirectUri,
   web3AuthNetwork,
   getIosGoogleConfig,
+  AuthConnectionConfig,
+  SupportedPlatforms,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
 import { BaseLoginHandler } from './baseHandler';
+
+export interface CreateLoginHandlerOptions {
+  /**
+   * For {@link AuthConnection.Telegram}: when false/omitted, constructing a handler throws
+   * (onboarding hides Telegram). Set true from UI via {@link selectTelegramLoginEnabled},
+   * or from {@link AuthTokenHandler} for refresh/renew/revoke when the session is already
+   * Telegram (independent of the onboarding feature flag).
+   */
+  telegramLoginEnabled?: boolean;
+}
+
+const getTelegramClientId = (platform: SupportedPlatforms) => {
+  const clientId =
+    AuthConnectionConfig[platform][AuthConnection.Telegram].clientId;
+
+  if (!clientId) {
+    throw new Error('Missing Telegram client ID');
+  }
+
+  return clientId;
+};
 
 /**
  * This factory pattern function is used to create a login handler based on the platform and provider.
@@ -22,20 +49,28 @@ import { BaseLoginHandler } from './baseHandler';
  * @param platformOS - The platform of the device (ios, android)
  * @param provider - The provider of the login (Google, Apple)
  * @param fallback - Whether to use browser fallback for Google login on Android (default: false)
+ * @param options - Optional behavior overrides for internal callers
  * @returns The login handler
  */
 export function createLoginHandler(
   platformOS: Platform['OS'],
   provider: AuthConnection,
   fallback = false,
+  options?: CreateLoginHandlerOptions,
 ): BaseLoginHandler {
   if (
-    !AuthServerUrl ||
+    !w3aAuthServerUrl ||
     !GoogleWebGID ||
     !AppleWebClientId ||
     !GoogleRedirectUri
   ) {
     throw new Error('Missing environment variables');
+  }
+  if (provider === AuthConnection.Telegram && !options?.telegramLoginEnabled) {
+    throw new OAuthError(
+      'Telegram login is not available',
+      OAuthErrorType.InvalidProvider,
+    );
   }
   switch (platformOS) {
     case 'ios':
@@ -45,14 +80,25 @@ export function createLoginHandler(
           return new IosGoogleLoginHandler({
             clientId,
             redirectUri,
-            authServerUrl: AuthServerUrl,
+            authServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
           });
         }
         case AuthConnection.Apple:
+          if (!AppleWebClientId) {
+            throw new Error('Missing environment variables');
+          }
           return new IosAppleLoginHandler({
             clientId: AppleWebClientId,
-            authServerUrl: AuthServerUrl,
+            authServerUrl: w3aAuthServerUrl,
+            web3AuthNetwork,
+          });
+        case AuthConnection.Telegram:
+          return new TelegramLoginHandler({
+            clientId: getTelegramClientId(SupportedPlatforms.IOS),
+            appRedirectUri: TelegramRedirectUri,
+            authServerUrl: w3aAuthServerUrl,
+            profileSyncEnv,
             web3AuthNetwork,
           });
         default:
@@ -68,19 +114,30 @@ export function createLoginHandler(
             ? new AndroidGoogleFallbackLoginHandler({
                 clientId: GoogleWebGID,
                 redirectUri: GoogleRedirectUri,
-                authServerUrl: AuthServerUrl,
+                authServerUrl: w3aAuthServerUrl,
                 web3AuthNetwork,
               })
             : new AndroidGoogleLoginHandler({
                 clientId: GoogleWebGID,
-                authServerUrl: AuthServerUrl,
+                authServerUrl: w3aAuthServerUrl,
                 web3AuthNetwork,
               });
         case AuthConnection.Apple:
+          if (!AppleWebClientId) {
+            throw new Error('Missing environment variables');
+          }
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,
             appRedirectUri: GoogleRedirectUri,
-            authServerUrl: AuthServerUrl,
+            authServerUrl: w3aAuthServerUrl,
+            web3AuthNetwork,
+          });
+        case AuthConnection.Telegram:
+          return new TelegramLoginHandler({
+            clientId: getTelegramClientId(SupportedPlatforms.Android),
+            appRedirectUri: TelegramRedirectUri,
+            authServerUrl: w3aAuthServerUrl,
+            profileSyncEnv,
             web3AuthNetwork,
           });
         default:

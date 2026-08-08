@@ -256,6 +256,16 @@ export async function startResourceWithRetry(
   resource: Resource,
   maxRetries: number = 3,
 ): Promise<number> {
+  const isRetryableAnvilForkError = (errorMessage: string): boolean =>
+    resourceType === ResourceType.ANVIL &&
+    [
+      'failed to create genesis',
+      'failed to get account for',
+      'failed to get fork block number',
+      'http error 401',
+      'error code -32603',
+    ].some((signature) => errorMessage.includes(signature));
+
   let attempt = 0;
   let lastError: Error | undefined;
 
@@ -298,6 +308,18 @@ export async function startResourceWithRetry(
         logger.debug(
           `Port ${failedPort} conflict for ${resourceType}, retrying with new random port (${attempt}/${maxRetries})`,
         );
+        continue;
+      }
+
+      // Anvil forks can fail transiently when upstream RPC returns temporary
+      // errors during genesis/account fetch. Retrying usually recovers.
+      if (attempt < maxRetries && isRetryableAnvilForkError(errorMessage)) {
+        attempt++;
+        const retryDelayMs = 2000;
+        logger.debug(
+          `Transient fork startup error for ${resourceType}, retrying (${attempt}/${maxRetries}) after ${retryDelayMs}ms: ${errorMessage}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         continue;
       }
 
@@ -477,13 +499,6 @@ function getServerPort(resourceType: ResourceType): number {
   return allocatedPort;
 }
 
-/**
- * Gets the URL for the second test dapp.
- * This function is used instead of a constant to ensure device.getPlatform() is called
- * after Detox is properly initialized, preventing initialization errors in the apiSpecs tests.
- *
- * @returns {string} The URL for the second test dapp
- */
 // ========== New Clean Dapp API (Use These) ==========
 
 /**
@@ -504,10 +519,7 @@ function getServerPort(resourceType: ResourceType): number {
  * const url2 = getDappUrl(1);
  */
 export function getDappUrl(index: number): string {
-  const isAndroid = FrameworkDetector.isDetox()
-    ? device.getPlatform() === 'android'
-    : true; // Appium single emulator assumption
-  const port = isAndroid
+  const port = PlatformDetector.isAndroid()
     ? FALLBACK_DAPP_SERVER_PORT + index
     : getDappPort(index);
   return `http://localhost:${port}`;
@@ -578,7 +590,8 @@ export function getTestDappLocalUrl() {
 
 /**
  * Gets the Anvil port for use during test execution.
- * Automatically handles platform differences (Android uses fallback port, iOS uses actual allocated port).
+ * Android uses the fallback port (mapped via adb reverse); iOS uses the
+ * actual PortManager-allocated port.
  *
  * @returns The Anvil port to use in tests (8545 on Android, allocated port on iOS)
  *
@@ -587,10 +600,9 @@ export function getTestDappLocalUrl() {
  * const wsUrl = `ws://localhost:${getAnvilPortForTest()}`;
  */
 export function getAnvilPortForTest(): number {
-  const isAndroid = FrameworkDetector.isDetox()
-    ? device.getPlatform() === 'android'
-    : true;
-  return isAndroid ? DEFAULT_ANVIL_PORT : getServerPort(ResourceType.ANVIL);
+  return PlatformDetector.isAndroid()
+    ? DEFAULT_ANVIL_PORT
+    : getServerPort(ResourceType.ANVIL);
 }
 
 export function getGanachePort(): number {

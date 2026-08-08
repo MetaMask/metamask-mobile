@@ -9,19 +9,34 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 
-const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
+const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests = jest.fn<
   { key: string; value: string; key_value_pair?: string }[] | undefined,
   []
 >(() => undefined);
 
-jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
-  useHomepageTrendingTransactionActiveAbTests: () =>
-    mockUseHomepageTrendingTransactionActiveAbTests(),
-}));
+const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook = jest.fn(
+  (isHomepagePerpsPillsEmptySurface: boolean) =>
+    isHomepagePerpsPillsEmptySurface
+      ? mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests()
+      : undefined,
+);
+
+jest.mock(
+  '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests',
+  () => ({
+    useHomepagePerpsPillsEmptyTransactionActiveAbTests: (
+      isHomepagePerpsPillsEmptySurface: boolean,
+    ) =>
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook(
+        isHomepagePerpsPillsEmptySurface,
+      ),
+  }),
+);
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
@@ -187,6 +202,27 @@ jest.mock('./components/PerpsMarketTileCard', () => {
   };
 });
 
+jest.mock('../../../../UI/Perps/components/PerpsPillItem', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    PerpsPillItem: ({
+      item,
+      onNavigateToMarketDetails,
+    }: {
+      item: { market: { symbol: string } };
+      onNavigateToMarketDetails?: (market: { symbol: string }) => void;
+    }) => (
+      <TouchableOpacity
+        testID={`homepage-perps-pill-${item.market.symbol}`}
+        onPress={() => onNavigateToMarketDetails?.(item.market)}
+      >
+        <Text>{`pill-${item.market.symbol}`}</Text>
+      </TouchableOpacity>
+    ),
+  };
+});
+
 const {
   usePerpsLivePositions,
   usePerpsLiveOrders,
@@ -244,6 +280,7 @@ const makeTrendingMarket = (overrides: Record<string, unknown> = {}) => ({
   change24h: '+$2,000',
   change24hPercent: '+4.00%',
   volume: '$2.5B',
+  openInterest: '$500M',
   volumeNumber: 2500000000,
   ...overrides,
 });
@@ -257,11 +294,16 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
-    TRENDING_TOKENS: 'trending_tokens',
-    TRENDING_PERPS: 'trending_perps',
-    TRENDING_PREDICT: 'trending_predict',
   },
 }));
+
+const spyOnUsePerpsFeed = () =>
+  jest.spyOn(
+    jest.requireActual(
+      '../../../TrendingView/feeds/perps/usePerpsFeed',
+    ) as typeof import('../../../TrendingView/feeds/perps/usePerpsFeed'),
+    'usePerpsFeed',
+  );
 
 describe('PerpsSection', () => {
   beforeEach(() => {
@@ -297,7 +339,14 @@ describe('PerpsSection', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
-    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+      undefined,
+    );
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook.mockClear();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders section title', () => {
@@ -390,6 +439,33 @@ describe('PerpsSection', () => {
     renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
+
+    fireEvent.press(screen.getByText('Perpetuals'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'home_section' },
+    });
+  });
+
+  it('does not attach pills empty-state transaction AB tests on title press for tiles empty state', () => {
+    const activeAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'control',
+      ),
+    ];
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+      activeAbTests,
+    );
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook,
+    ).toHaveBeenCalledWith(false);
 
     fireEvent.press(screen.getByText('Perpetuals'));
 
@@ -636,18 +712,6 @@ describe('PerpsSection', () => {
   });
 
   describe('Trending Perps Carousel', () => {
-    const makeTrendingMarket = (overrides: Record<string, unknown> = {}) => ({
-      symbol: 'BTC',
-      name: 'Bitcoin',
-      maxLeverage: '50x',
-      price: '$52,000',
-      change24h: '+$2,000',
-      change24hPercent: '+4.00%',
-      volume: '$2.5B',
-      volumeNumber: 2500000000,
-      ...overrides,
-    });
-
     it('shows trending carousel when user has no positions or orders', () => {
       usePerpsMarkets.mockReturnValue({
         markets: [
@@ -719,8 +783,17 @@ describe('PerpsSection', () => {
       expect(screen.getByTestId('homepage-perps-positions')).toBeOnTheScreen();
     });
 
-    it('navigates to market details when tile is pressed', () => {
+    it('does not attach pills empty-state transaction AB tests when a carousel tile is pressed', () => {
       const market = makeTrendingMarket({ symbol: 'SOL' });
+      const activeAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'control',
+        ),
+      ];
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+        activeAbTests,
+      );
       usePerpsMarkets.mockReturnValue({
         markets: [market],
         isLoading: false,
@@ -733,11 +806,33 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
       );
 
+      expect(
+        mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook,
+      ).toHaveBeenCalledWith(false);
+
       fireEvent.press(screen.getByTestId('perps-market-tile-SOL'));
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+        }),
+      );
+      expect(mockTrack.mock.calls.at(-1)?.[1]).not.toHaveProperty(
+        'active_ab_tests',
+      );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market, source: 'home_section' },
+        params: {
+          market,
+          source: 'home_section',
+        },
       });
     });
 
@@ -811,6 +906,38 @@ describe('PerpsSection', () => {
       });
     });
 
+    it('does not attach pills empty-state transaction AB tests when "View more" opens market list', () => {
+      const activeAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'control',
+        ),
+      ];
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+        activeAbTests,
+      );
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-view-more-card'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: { source: 'home_section' },
+      });
+    });
+
     it('renders nothing when no positions, orders, or markets', () => {
       renderWithProvider(
         <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
@@ -825,19 +952,397 @@ describe('PerpsSection', () => {
     });
   });
 
-  describe('Watchlist Markets in Carousel', () => {
-    const makeTrendingMarket = (overrides: Record<string, unknown> = {}) => ({
-      symbol: 'BTC',
-      name: 'Bitcoin',
-      maxLeverage: '50x',
-      price: '$52,000',
-      change24h: '+$2,000',
-      change24hPercent: '+4.00%',
-      volume: '$2.5B',
-      volumeNumber: 2500000000,
-      ...overrides,
+  describe('pills empty state content', () => {
+    it('keeps default title and defers pills empty state while positions load', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+      usePerpsLiveOrders.mockReturnValue({
+        orders: [],
+        isInitialLoading: true,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
+      expect(screen.queryByText('Perps movers')).toBeNull();
+      expect(usePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: false }),
+      );
+      expect(
+        mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook,
+      ).toHaveBeenCalledWith(false);
     });
 
+    it('skips market fetch when the pills empty state is showing', () => {
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+        />,
+      );
+
+      expect(usePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: true }),
+      );
+    });
+
+    it('fetches markets when pills variant user has positions', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+        />,
+      );
+
+      expect(usePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: false }),
+      );
+    });
+
+    it('skips pills feed fetch when the user has positions', () => {
+      const usePerpsFeedSpy = spyOnUsePerpsFeed();
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+        />,
+      );
+
+      expect(usePerpsFeedSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: true }),
+      );
+      usePerpsFeedSpy.mockRestore();
+    });
+
+    it('fetches pills feed when the pills empty state is showing', () => {
+      const usePerpsFeedSpy = spyOnUsePerpsFeed();
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+        />,
+      );
+
+      expect(usePerpsFeedSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: false }),
+      );
+      usePerpsFeedSpy.mockRestore();
+    });
+
+    it('activates pills transaction AB hook only when pills empty state is showing', () => {
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+        />,
+      );
+
+      expect(
+        mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook,
+      ).toHaveBeenCalledWith(true);
+    });
+
+    it('carries pills empty-state transaction AB tests on title press', () => {
+      const activeAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'treatment',
+        ),
+      ];
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+        activeAbTests,
+      );
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Perps movers'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: {
+          source: 'home_section',
+          transactionActiveAbTests: activeAbTests,
+        },
+      });
+    });
+
+    it('returns null when pills feed is not loading and has no markets', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      expect(screen.queryByText('Perps movers')).toBeNull();
+      expect(screen.toJSON()).toBeNull();
+    });
+
+    it('renders pills inside the shared section shell when configured', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      expect(screen.getByText('Perps movers')).toBeOnTheScreen();
+      expect(screen.getByTestId('homepage-perps-pills-list')).toBeOnTheScreen();
+      expect(screen.getByText('pill-BTC')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('homepage-trending-perps-carousel'),
+      ).toBeNull();
+    });
+
+    it('keeps the shared header navigation for the pills section title', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      expect(
+        mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook,
+      ).toHaveBeenCalledWith(true);
+
+      fireEvent.press(screen.getByText('Perps movers'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'home_section' },
+      });
+    });
+
+    it('keeps the normal section title when positions are present', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
+      expect(screen.queryByText('Perps movers')).toBeNull();
+      expect(screen.getByTestId('homepage-perps-positions')).toBeOnTheScreen();
+    });
+
+    it('uses the pills feed market data for position navigation when the tile feed is skipped', () => {
+      const fullMarket = {
+        symbol: 'BTC',
+        maxLeverage: 50,
+        marketType: 'crypto',
+        marketSource: 'HyperLiquid',
+        volumeNumber: 1000000,
+      };
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+      usePerpsMarkets
+        .mockReturnValueOnce({
+          markets: [],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        })
+        .mockReturnValueOnce({
+          markets: [fullMarket],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-position-row-BTC'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: fullMarket,
+          initialTab: 'position',
+          source: 'section_position',
+        },
+      });
+    });
+
+    it('tracks and navigates through the shared market-details handler on pill press', () => {
+      const market = makeTrendingMarket({
+        symbol: 'SOL',
+        volumeNumber: 5000000000,
+      });
+      const activeAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'treatment',
+        ),
+      ];
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+        activeAbTests,
+      );
+      usePerpsMarkets.mockReturnValue({
+        markets: [market],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('homepage-perps-pill-SOL'));
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+          active_ab_tests: activeAbTests,
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market,
+          source: 'home_section',
+          transactionActiveAbTests: activeAbTests,
+        },
+      });
+    });
+
+    it('refreshes the pills feed while the pills empty state is showing', async () => {
+      const refresh = jest.fn().mockResolvedValue(undefined);
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh,
+        isRefreshing: false,
+      });
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+
+      renderWithProvider(
+        <PerpsSection
+          ref={ref}
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      await ref.current?.refresh();
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Watchlist Markets in Carousel', () => {
     const watchlistState = (symbols: string[]) => ({
       engine: {
         backgroundState: {
@@ -1419,324 +1924,6 @@ describe('PerpsSection', () => {
 
       expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ itemCount: 0 }),
-      );
-    });
-  });
-
-  describe('mode="positions-only"', () => {
-    it('renders positions when user has positions', () => {
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsLivePositions.mockReturnValue({
-          positions: [makePosition()],
-          isInitialLoading: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      expect(screen.getByText(/BTC.*10X position/)).toBeOnTheScreen();
-    });
-
-    it('returns null when no positions and not loading', () => {
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsLivePositions.mockReturnValue({
-          positions: [],
-          isInitialLoading: false,
-        });
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsLiveOrders.mockReturnValue({
-          orders: [],
-          isInitialLoading: false,
-        });
-
-      const { toJSON } = renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      expect(toJSON()).toBeNull();
-    });
-
-    it('does not pass market symbols to sparklines when empty despite loaded markets', () => {
-      mockUseHomepageSparklines.mockClear();
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [makeTrendingMarket({ symbol: 'BTC' })],
-          isLoading: false,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsLivePositions.mockReturnValue({
-          positions: [],
-          isInitialLoading: false,
-        });
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsLiveOrders.mockReturnValue({
-          orders: [],
-          isInitialLoading: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      expect(
-        mockUseHomepageSparklines.mock.calls.every(
-          ([symbols]) => Array.isArray(symbols) && symbols.length === 0,
-        ),
-      ).toBe(true);
-    });
-
-    it('returns null when empty even if WebSocket connection errors', () => {
-      usePerpsConnection.mockReturnValue({
-        isConnected: false,
-        isConnecting: false,
-        isInitialized: false,
-        error: 'NETWORK_ERROR',
-        connect: jest.fn(),
-        disconnect: jest.fn(),
-        resetError: jest.fn(),
-        reconnectWithNewContext: mockReconnectWithNewContext,
-      });
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsLivePositions.mockReturnValue({
-          positions: [],
-          isInitialLoading: false,
-        });
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsLiveOrders.mockReturnValue({
-          orders: [],
-          isInitialLoading: false,
-        });
-
-      const { toJSON } = renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="positions-only"
-        />,
-      );
-
-      expect(toJSON()).toBeNull();
-      expect(screen.queryByText('Retry')).toBeNull();
-    });
-  });
-
-  describe('mode="trending-only"', () => {
-    it('renders trending carousel when markets are available', () => {
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [makeTrendingMarket()],
-          isLoading: false,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('homepage-trending-perps-carousel'),
-      ).toBeOnTheScreen();
-    });
-
-    it('includes transactionActiveAbTests in market details params when trending-only and experiment is active', () => {
-      const abTests = [
-        {
-          key: 'homeTMCU470AbtestTrendingSections',
-          value: 'trendingSections',
-          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
-        },
-      ];
-      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
-      const market = makeTrendingMarket({ symbol: 'BTC' });
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [market],
-          isLoading: false,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByTestId('perps-market-tile-BTC'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market,
-          source: 'home_section',
-          transactionActiveAbTests: abTests,
-        },
-      });
-    });
-
-    it('renders carousel when WebSocket errors but REST markets load', () => {
-      usePerpsConnection.mockReturnValue({
-        isConnected: false,
-        isConnecting: false,
-        isInitialized: false,
-        error: 'CONNECTION_TIMEOUT',
-        connect: jest.fn(),
-        disconnect: jest.fn(),
-        resetError: jest.fn(),
-        reconnectWithNewContext: mockReconnectWithNewContext,
-      });
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [makeTrendingMarket()],
-          isLoading: false,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-          titleOverride="Trending perpetuals"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('homepage-trending-perps-carousel'),
-      ).toBeOnTheScreen();
-      expect(screen.queryByText('Retry')).toBeNull();
-    });
-
-    it('uses titleOverride when provided', () => {
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [makeTrendingMarket()],
-          isLoading: false,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-          titleOverride="Trending perpetuals"
-        />,
-      );
-
-      expect(screen.getByText('Trending perpetuals')).toBeOnTheScreen();
-    });
-
-    it('renders skeleton when markets are loading', () => {
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [],
-          isLoading: true,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      expect(screen.getByTestId('skeleton-placeholder')).toBeOnTheScreen();
-    });
-
-    it('returns null when no markets after loading in trending-only mode', () => {
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [],
-          isLoading: false,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-
-      const { toJSON } = renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-          titleOverride="Trending perpetuals"
-        />,
-      );
-
-      expect(toJSON()).toBeNull();
-    });
-
-    it('passes itemCount from carousel market count in trending-only mode', () => {
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [
-            makeTrendingMarket({ symbol: 'BTC' }),
-            makeTrendingMarket({ symbol: 'ETH' }),
-          ],
-          isLoading: false,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({ itemCount: 2 }),
       );
     });
   });

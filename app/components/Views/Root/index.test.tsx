@@ -43,7 +43,7 @@ jest.mock('../../Nav/ControllersGate', () => ({
 
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
-  isTest: true,
+  isTestEnvironment: true,
 }));
 
 describe('Root', () => {
@@ -59,18 +59,24 @@ describe('Root', () => {
     });
   });
 
-  it('should render children if isTest is false (skips store wait)', () => {
-    Object.defineProperty(testUtils, 'isTest', {
+  it('should render children if isTestEnvironment is false (skips store wait)', () => {
+    Object.defineProperty(testUtils, 'isTestEnvironment', {
       value: false,
       writable: true,
     });
     const { toJSON } = render(<Root foxCode="" />);
     expect(toJSON()).toBeDefined();
-    Object.defineProperty(testUtils, 'isTest', { value: true, writable: true });
+    Object.defineProperty(testUtils, 'isTestEnvironment', {
+      value: true,
+      writable: true,
+    });
   });
 
-  it('does not mount Nav/App until the store gate clears when isTest is true', () => {
-    Object.defineProperty(testUtils, 'isTest', { value: true, writable: true });
+  it('does not mount Nav/App until the store gate clears when isTestEnvironment is true', () => {
+    Object.defineProperty(testUtils, 'isTestEnvironment', {
+      value: true,
+      writable: true,
+    });
     const { queryByTestId } = render(<Root foxCode="" />);
     expect(queryByTestId(mockedAppTestId)).toBeNull();
   });

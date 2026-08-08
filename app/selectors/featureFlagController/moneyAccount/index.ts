@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 interface MoneyAccountFeatureFlag {
   moneyAccountDepositEnabled?: boolean;
@@ -24,6 +25,35 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
   },
 );
 
+export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
+  'moneyEnableOnboardingStepperAnimation' as const;
+
+export const MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY =
+  'moneyAccountDepositQuotePipeline' as const;
+
+export const selectMoneyAccountDepositQuotePipelineEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const localOverrideEnabled =
+      process.env.MM_MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.[MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY];
+    return (
+      localOverrideEnabled ||
+      (validatedVersionGatedFeatureFlag(remoteFlag) ?? false)
+    );
+  },
+);
+
+export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const remoteFlag =
+      remoteFeatureFlags?.[MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY];
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export interface MoneyAccountVaultConfig {
   chainId: string;
   boringVault: string;
@@ -40,18 +70,22 @@ export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
   lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
 };
 
+export const getMoneyAccountVaultConfig = (
+  remoteFeatureFlags: Record<string, unknown> | undefined,
+): MoneyAccountVaultConfig | undefined => {
+  const remoteConfig =
+    remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
+      | MoneyAccountVaultConfig
+      | undefined;
+  if (remoteConfig) {
+    return remoteConfig;
+  }
+  const devFallbackEnabled =
+    process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
+  return devFallbackEnabled ? DEV_VAULT_CONFIG : undefined;
+};
+
 export const selectMoneyAccountVaultConfig = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): MoneyAccountVaultConfig | undefined => {
-    const remoteConfig =
-      remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
-        | MoneyAccountVaultConfig
-        | undefined;
-    if (remoteConfig) {
-      return remoteConfig;
-    }
-    const devFallbackEnabled =
-      process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
-    return devFallbackEnabled ? DEV_VAULT_CONFIG : undefined;
-  },
+  getMoneyAccountVaultConfig,
 );

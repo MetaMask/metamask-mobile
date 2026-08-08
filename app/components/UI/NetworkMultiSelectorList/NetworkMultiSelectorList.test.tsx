@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, Text } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { parseCaipChainId, CaipChainId } from '@metamask/utils';
@@ -17,7 +18,7 @@ import {
   NetworkMultiSelectorListProps,
   Network,
 } from './NetworkMultiSelectorList.types.ts';
-import { Text } from 'react-native';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
 jest.mock('@metamask/transaction-controller', () => ({
   CHAIN_IDS: {
@@ -81,6 +82,7 @@ jest.mock('../../../component-library/hooks/index.ts', () => ({
       networkList: {},
       centeredNetworkCell: { alignItems: 'center' },
       noNetworkFeeContainer: { alignSelf: 'center' },
+      networkNameText: { flex: 1, minWidth: 0 },
     },
   })),
 }));
@@ -205,7 +207,6 @@ jest.mock('../../../component-library/components/Cells/Cell/index.ts', () => {
     default: MockCell,
     CellVariant: {
       SelectWithMenu: 'SelectWithMenu',
-      MultiSelectWithMenu: 'MultiSelectWithMenu',
     },
   };
 });
@@ -252,46 +253,6 @@ jest.mock('../../../component-library/components-temp/TagColored', () => {
     default: MockTagColored,
     TagColor: { Success: 'Success' },
   };
-});
-
-jest.mock('@shopify/flash-list', () => {
-  /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-  const ReactMock = require('react');
-  const MockFlashList = ReactMock.forwardRef(
-    // eslint-disable-next-line prefer-arrow-callback
-    function MockFlashList(
-      props: {
-        data?: unknown[];
-        renderItem?: (arg: { item: unknown; index: number }) => unknown;
-        keyExtractor?: (item: unknown, index: number) => string;
-        getItemType?: (item: unknown, index: number) => string;
-        onContentSizeChange?: () => void;
-        testID?: string;
-      },
-      ref: unknown,
-    ) {
-      ReactMock.useImperativeHandle(ref, () => ({
-        scrollToOffset: jest.fn(),
-      }));
-
-      ReactMock.useEffect(() => {
-        if (props.onContentSizeChange) {
-          props.onContentSizeChange();
-        }
-      }, [props.data?.length, props.onContentSizeChange]);
-
-      return ReactMock.createElement(
-        'View',
-        { testID: props.testID ?? 'mock-flash-list' },
-        ...(props.data ?? []).map((item: unknown, index: number) => {
-          props.keyExtractor?.(item, index);
-          props.getItemType?.(item, index);
-          return props.renderItem?.({ item, index });
-        }),
-      );
-    },
-  );
-  return { FlashList: MockFlashList, ListRenderItem: jest.fn() };
 });
 
 describe('NetworkMultiSelectorList', () => {
@@ -389,7 +350,11 @@ describe('NetworkMultiSelectorList', () => {
         <NetworkMultiSelectorList {...defaultProps} />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(
+        getByTestId(
+          NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM('eip155:1', true),
+        ),
+      ).toBeTruthy();
     });
 
     it('calls useSelector with selectEvmChainId', () => {
@@ -416,19 +381,19 @@ describe('NetworkMultiSelectorList', () => {
     });
 
     it('renders correctly when networks is empty', () => {
-      const { getByTestId } = render(
+      const { queryAllByTestId } = render(
         <NetworkMultiSelectorList {...defaultProps} networks={[]} />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(queryAllByTestId(/network-list-item/).length).toBe(0);
     });
 
     it('renders correctly when networks is undefined', () => {
-      const { getByTestId } = render(
+      const { queryAllByTestId } = render(
         <NetworkMultiSelectorList {...defaultProps} networks={undefined} />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(queryAllByTestId(/network-list-item/).length).toBe(0);
     });
   });
 
@@ -687,6 +652,35 @@ describe('NetworkMultiSelectorList', () => {
       );
 
       expect(getByTestId('tag-colored')).toBeTruthy();
+    });
+
+    it('renders network name Text with numberOfLines=1 and flex:1 for gas-sponsored chains', () => {
+      mockGasFeesSponsoredSelector.mockImplementation(
+        (chainId: string) => chainId === '0x1',
+      );
+
+      const singleNetwork: Network[] = [
+        {
+          id: 'eip155:1',
+          name: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
+          isSelected: false,
+          imageSource: { uri: 'eth.png' },
+          caipChainId: 'eip155:1' as CaipChainId,
+        },
+      ];
+
+      const { getByText } = render(
+        <NetworkMultiSelectorList {...defaultProps} networks={singleNetwork} />,
+      );
+
+      const nameText = getByText(
+        'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
+      );
+      expect(nameText.props.numberOfLines).toBe(1);
+      expect(StyleSheet.flatten(nameText.props.style)).toMatchObject({
+        flex: 1,
+        minWidth: 0,
+      });
     });
 
     it('renders plain name for non-sponsored chains', () => {
@@ -1095,7 +1089,11 @@ describe('NetworkMultiSelectorList', () => {
       );
 
       expect(getByTestId('additional-networks')).toBeTruthy();
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(
+        getByTestId(
+          NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM('eip155:1', false),
+        ),
+      ).toBeTruthy();
     });
   });
 

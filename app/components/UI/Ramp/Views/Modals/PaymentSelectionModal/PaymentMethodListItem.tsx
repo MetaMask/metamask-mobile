@@ -18,6 +18,7 @@ import { useFormatters } from '../../../../../hooks/useFormatters';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
 import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
+import { paymentMethodTestId } from './PaymentSelectionModal.testIds';
 
 const ICON_CIRCLE_SIZE = 44;
 
@@ -44,6 +45,7 @@ interface PaymentMethodListItemProps {
   quote: Quote | null;
   quoteLoading: boolean;
   quoteError: boolean;
+  quoteErrorMessage?: string;
   currency: string;
   tokenSymbol: string;
 }
@@ -56,6 +58,7 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   quote,
   quoteLoading,
   quoteError,
+  quoteErrorMessage,
   currency,
   tokenSymbol,
 }) => {
@@ -67,6 +70,9 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
     Array.isArray(paymentMethod.delay) && paymentMethod.delay.length >= 2
       ? formatDelayFromArray(paymentMethod.delay)
       : null;
+
+  const subtitleText =
+    quoteError && quoteErrorMessage ? quoteErrorMessage : delayText;
 
   const cryptoAmount =
     quote?.quote?.amountOut != null && tokenSymbol
@@ -82,8 +88,10 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
 
   return (
     <ListItemSelect
+      testID={paymentMethodTestId(paymentMethod.id)}
       isSelected={isSelected}
-      onPress={onPress}
+      isDisabled={quoteError}
+      onPress={quoteError ? undefined : onPress}
       accessibilityRole="button"
       accessible
     >
@@ -102,9 +110,9 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {paymentMethod.name}
         </Text>
-        {delayText ? (
+        {subtitleText ? (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {delayText}
+            {subtitleText}
           </Text>
         ) : null}
       </ListItemColumn>

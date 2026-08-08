@@ -3,7 +3,9 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Text, {
@@ -30,7 +32,7 @@ const AccountNetworkRow = ({
   address: Hex;
   network: EIP7702NetworkConfiguration;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { downgradeAccount, upgradeAccount } = useEIP7702Accounts(
     network as unknown as NetworkConfiguration,
   );

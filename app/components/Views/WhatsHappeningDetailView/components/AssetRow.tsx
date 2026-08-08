@@ -3,11 +3,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
+  ListItem,
+  ListItemVariant,
   Text,
   TextColor,
   TextVariant,
@@ -43,76 +43,49 @@ const AssetRow: React.FC<AssetRowProps> = ({
   secondaryLine,
 }) => {
   const image = useMemo(() => getRelatedAssetImageSource(asset), [asset]);
+  const title = asset.name || asset.symbol;
+
+  const description = secondaryLine ? (
+    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {secondaryLine.priceText}
+      </Text>
+      {secondaryLine.changeText ? (
+        <>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {' \u2022 '}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={secondaryLine.changeColor}>
+            {secondaryLine.changeText}
+          </Text>
+        </>
+      ) : null}
+    </Box>
+  ) : undefined;
+
+  const endAccessory =
+    onAction && actionLabel && accessibilityLabel ? (
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        onPress={onAction}
+        accessibilityLabel={accessibilityLabel}
+      >
+        {actionLabel}
+      </Button>
+    ) : undefined;
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={3}
-      twClassName="py-3"
-    >
-      <RelatedAssetAvatar name={asset.name} image={image} />
-
-      <Box
-        twClassName="flex-1"
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-      >
-        {/* Left: name + optional badge + optional price/change */}
-        <Box twClassName="flex-1 mr-2">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-          >
-            {asset.name || asset.symbol}
-          </Text>
-
-          {secondaryLine && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {secondaryLine.priceText}
-              </Text>
-              {secondaryLine.changeText ? (
-                <>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {' \u2022 '}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={secondaryLine.changeColor}
-                  >
-                    {secondaryLine.changeText}
-                  </Text>
-                </>
-              ) : null}
-            </Box>
-          )}
-        </Box>
-
-        {onAction && actionLabel && accessibilityLabel ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Md}
-            onPress={onAction}
-            accessibilityLabel={accessibilityLabel}
-          >
-            {actionLabel}
-          </Button>
-        ) : null}
-      </Box>
-    </Box>
+    <ListItem
+      variant={
+        secondaryLine ? ListItemVariant.TwoLines : ListItemVariant.OneLine
+      }
+      avatar={<RelatedAssetAvatar name={title} image={image} />}
+      title={title}
+      description={description}
+      endAccessory={endAccessory}
+      accessoryGap={3}
+    />
   );
 };
 

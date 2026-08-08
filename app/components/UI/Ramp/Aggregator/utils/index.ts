@@ -410,34 +410,47 @@ export function getCaipChainIdFromCryptoCurrency(
   }
 }
 
-export function getHexChainIdFromCryptoCurrency(
-  cryptoCurrency: CryptoCurrency | null,
-): Hex | undefined {
-  if (!cryptoCurrency?.network?.chainId) {
-    return;
+/**
+ * Resolves a chainId (hex, decimal or CAIP format) to an EVM hex chainId.
+ * Returns undefined for non-EVM or unparseable chainIds.
+ */
+export function getEvmHexChainId(chainId?: string): Hex | undefined {
+  if (!chainId) {
+    return undefined;
   }
 
-  let assetDecimalChainId = cryptoCurrency.network.chainId;
-
-  if (isCaipChainId(cryptoCurrency.network.chainId)) {
-    const { namespace, reference } = parseCaipChainId(
-      cryptoCurrency.network.chainId,
-    );
-
-    if (namespace === KnownCaipNamespace.Eip155) {
-      assetDecimalChainId = reference;
+  let decimalOrHexChainId: string = chainId;
+  if (isCaipChainId(chainId)) {
+    const { namespace, reference } = parseCaipChainId(chainId);
+    if (namespace !== KnownCaipNamespace.Eip155) {
+      return undefined;
     }
+    decimalOrHexChainId = reference;
   }
 
   try {
-    return toHex(assetDecimalChainId);
-  } catch (error) {
-    Logger.error(
-      new Error(
-        `getHexChainIdFromCryptoCurrency: Invalid chainId format: ${assetDecimalChainId}`,
-      ),
-      assetDecimalChainId,
-    );
+    return toHex(decimalOrHexChainId);
+  } catch {
+    return undefined;
+  }
+}
+
+export function getHexChainIdFromCryptoCurrency(
+  cryptoCurrency: CryptoCurrency | null,
+): Hex | undefined {
+  const chainId = cryptoCurrency?.network?.chainId;
+  if (!chainId) {
     return;
   }
+
+  const hexChainId = getEvmHexChainId(chainId);
+  if (!hexChainId) {
+    Logger.error(
+      new Error(
+        `getHexChainIdFromCryptoCurrency: Invalid chainId format: ${chainId}`,
+      ),
+      chainId,
+    );
+  }
+  return hexChainId;
 }

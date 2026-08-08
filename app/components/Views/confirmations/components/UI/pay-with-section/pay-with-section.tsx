@@ -17,15 +17,17 @@ const PayWithSection = ({ config }: PayWithSectionProps) => {
 
   return (
     <Box twClassName="py-2" testID={testID}>
-      <Text
-        variant={TextVariant.BodyXs}
-        color={TextColor.TextAlternative}
-        testID={`${testID}-title`}
-        twClassName="px-4 pb-2 tracking-wider"
-      >
-        {config.title.toUpperCase()}
-      </Text>
-      <Box twClassName="bg-default" testID={`${testID}-rows`}>
+      {config.title ? (
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          testID={`${testID}-title`}
+          twClassName="px-4 pb-2 tracking-wider"
+        >
+          {config.title.toUpperCase()}
+        </Text>
+      ) : null}
+      <Box testID={`${testID}-rows`}>
         {config.rows.map((row) => (
           <PaymentMethodRow key={row.id} {...row} />
         ))}

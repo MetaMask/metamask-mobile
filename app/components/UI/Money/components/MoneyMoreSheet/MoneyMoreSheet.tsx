@@ -1,17 +1,18 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View, Linking } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
-  type BottomSheetRef,
   FontWeight,
   Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
   Text,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -19,7 +20,17 @@ import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import styleSheet from './MoneyMoreSheet.styles';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  MONEY_URLS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 
 interface MenuOption {
   label: string;
@@ -30,8 +41,15 @@ interface MenuOption {
 
 const MoneyMoreSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
+
+  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
+  });
+  const { openSupportWithConsent } = useSupportConsent();
+
+  useMountEffect(trackBottomSheetViewed);
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -42,27 +60,48 @@ const MoneyMoreSheet = () => {
   }, [navigation]);
 
   const handleHowItWorks = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_HOW_IT_WORKS,
+      redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
+    });
+
     closeAndNavigate(() => {
       navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
     });
-  }, [closeAndNavigate, navigation]);
+  }, [closeAndNavigate, navigation, trackSurfaceClicked]);
 
   const handleWhatYouGet = useCallback(() => {
-    closeAndNavigate(() => {
-      Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
+      redirect_target: MONEY_URLS.MONEY_LANDING,
     });
-  }, [closeAndNavigate]);
+
+    closeAndNavigate(() => {
+      openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
+    });
+  }, [closeAndNavigate, navigation, trackSurfaceClicked]);
 
   const handleContactSupport = useCallback(() => {
-    closeAndNavigate(() => {
-      Linking.openURL(METAMASK_SUPPORT_URL);
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_CONTACT_SUPPORT,
+      redirect_target: MONEY_URLS.METAMASK_SUPPORT,
     });
-  }, [closeAndNavigate]);
+
+    openSupportWithConsent(
+      (url) => closeAndNavigate(() => openInAppBrowser(navigation, url)),
+      METAMASK_SUPPORT_URL,
+    );
+  }, [
+    closeAndNavigate,
+    navigation,
+    trackSurfaceClicked,
+    openSupportWithConsent,
+  ]);
 
   const options: MenuOption[] = [
     {
       label: strings('money.more_sheet.how_it_works'),
-      icon: IconName.Info,
+      icon: IconName.Book,
       onPress: handleHowItWorks,
       testID: MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION,
     },
@@ -74,7 +113,7 @@ const MoneyMoreSheet = () => {
     },
     {
       label: strings('money.more_sheet.contact_support'),
-      icon: IconName.MessageQuestion,
+      icon: IconName.Sms,
       onPress: handleContactSupport,
       testID: MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION,
     },

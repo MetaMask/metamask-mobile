@@ -50,7 +50,9 @@ const PredictWithdrawUnavailableSheet = forwardRef<PredictBottomSheetRef>(
           closeButtonProps={{
             testID: PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_CLOSE_BUTTON,
           }}
-          titleTestID={PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_TITLE}
+          textProps={{
+            testID: PREDICT_BALANCE_TEST_IDS.WITHDRAW_UNAVAILABLE_TITLE,
+          }}
         >
           {strings('predict.withdraw.unavailable_title')}
         </BottomSheetHeader>

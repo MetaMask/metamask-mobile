@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
@@ -9,12 +10,18 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useConfirmActions } from '../useConfirmActions';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../utils/transaction';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
-import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
+} from '../pay/useTransactionPayData';
 
 const IGNORE_TYPES = [
   TransactionType.moneyAccountWithdraw,
@@ -38,18 +45,21 @@ export const useInsufficientBalanceAlert = ({
   const { hasInsufficientBalance, nativeCurrency } =
     useHasInsufficientBalance();
   const isQuotesLoading = useIsTransactionPayLoading();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return useMemo(() => {
-    if (!transactionMetadata || isTransactionValueUpdating || isUsingPay) {
+    if (
+      !transactionMetadata ||
+      isTransactionValueUpdating ||
+      isUsingPay ||
+      isFiatPaymentSelected
+    ) {
       return [];
     }
 
-    const {
-      selectedGasFeeToken,
-      isGasFeeSponsored,
-      gasFeeTokens,
-      excludeNativeTokenForFee,
-    } = transactionMetadata;
+    const { selectedGasFeeToken, gasFeeTokens, excludeNativeTokenForFee } =
+      transactionMetadata;
 
     const isGasFeeTokensEmpty = gasFeeTokens?.length === 0;
 
@@ -57,7 +67,10 @@ export const useInsufficientBalanceAlert = ({
     const isGaslessCheckComplete = !isGaslessCheckPending;
 
     // Transaction is sponsored only if it's marked as sponsored AND gasless is supported
-    const isSponsoredTransaction = isGasFeeSponsored && isGaslessSupported;
+    const isSponsoredTransaction = shouldApplyGasFeeSponsorship({
+      transactionMeta: transactionMetadata,
+      isGaslessSupported,
+    });
 
     // Simulation is complete if it's disabled, or if enabled and gasFeeTokens is loaded
     const isSimulationComplete = !isSimulationEnabled || Boolean(gasFeeTokens);
@@ -101,7 +114,7 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            goToBuy();
+            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
             onReject(undefined, true);
           },
         },
@@ -119,6 +132,7 @@ export const useInsufficientBalanceAlert = ({
   }, [
     transactionMetadata,
     isTransactionValueUpdating,
+    isFiatPaymentSelected,
     isGaslessCheckPending,
     isGaslessSupported,
     isSimulationEnabled,

@@ -1,33 +1,45 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
-import type { ListRenderItem } from '@shopify/flash-list';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
-import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
+import {
+  applyMarketFilters,
+  type PerpsMarketData,
+  type SortOptionId,
+} from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
-import PerpsToggleBlock from '../feeds/perps/PerpsToggleBlock';
+import PerpsToggleBlock, {
+  type PerpsFilterKey,
+} from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import { PredictionCarouselRowItem } from '../feeds/predictions/PredictionRowItem';
-import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import ExploreScroll from '../components/ExploreScroll';
-import HorizontalCarousel from '../components/HorizontalCarousel';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
-import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
-import { trackExploreInteracted } from '../search/analytics';
+
+/** Perps category pills for the Macro tab, in perps display order. */
+const MACRO_PERPS_CATEGORIES: PerpsFilterKey[] = [
+  'stock',
+  'pre-ipo',
+  'commodity',
+  'index',
+  'etf',
+];
 
 interface MacroPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
+  onViewAll: (filter: PerpsFilterKey, sortOptionId: SortOptionId) => void;
 }
 
 const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
@@ -35,26 +47,20 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   onViewAll,
 }) => {
   const perps = usePerpsFeed({ variant: 'macro', refresh });
+  const markets = useMemo(() => perps.data.map((d) => d.market), [perps.data]);
 
-  const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
-    const byType = (type: PerpsMarketData['marketType']) =>
-      perps.data
-        .filter((d) => d.market.marketType === type)
-        .slice(0, 3)
-        .map((d) => d.market);
-    return [
-      {
-        key: 'stocks',
-        name: strings('trending.macro_pill_stocks'),
-        items: byType('equity'),
-      },
-      {
-        key: 'commodities',
-        name: strings('trending.macro_pill_commodities'),
-        items: byType('commodity'),
-      },
-    ];
-  }, [perps.data]);
+  const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(
+    () =>
+      MACRO_PERPS_CATEGORIES.map((category) => ({
+        key: category,
+        name: strings(`perps.home.tabs.${normalizeFilterKey(category)}`),
+        items: applyMarketFilters(markets, {
+          categories: [category],
+          limit: 3,
+        }),
+      })),
+    [markets],
+  );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
@@ -63,7 +69,7 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
       title={strings('trending.macro_stocks_commodity_perps')}
       tabs={tabs}
       isLoading={perps.isLoading}
-      defaultPillKey="stocks"
+      defaultPillKey={MACRO_PERPS_CATEGORIES[0]}
       onViewAll={onViewAll}
       sortOptionId={perps.defaultSortOptionId}
       tabName="Macro"
@@ -76,7 +82,11 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   );
 };
 
-const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
+const MacroTabContent: React.FC<TabProps> = ({
+  refresh,
+  refreshing,
+  onRefresh,
+}) => {
   const appNavigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -84,73 +94,73 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
+  const macroPerps = usePerpsFeed({ variant: 'macro', refresh });
 
-  const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item, index }) => (
-      <PredictionCarouselRowItem
-        market={item}
-        testIdPrefix="predict-rwa-politics-market-row-item"
-        onCardPress={() =>
-          trackExploreInteracted({
-            interaction_type: 'section_item_tapped',
-            tab_name: 'Macro',
-            section_name: 'predictions_politics',
-            asset_type: 'prediction',
-            position: index,
-            item_clicked: item.id,
-          })
-        }
-        onBuyButtonPress={(marketId) =>
-          trackExploreInteracted({
-            interaction_type: 'prediction_voted',
-            tab_name: 'Macro',
-            section_name: 'predictions_politics',
-            item_clicked: marketId,
-          })
-        }
-      />
-    ),
-    [],
-  );
-
-  const showPolitics =
+  const showPredictions =
     isPredictEnabled && (politics.isLoading || politics.data.length > 0);
+  const showPerps =
+    isPerpsEnabled && (macroPerps.isLoading || macroPerps.data.length > 0);
 
-  return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
-      {showPolitics && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.predictions')}
-            onViewAll={() =>
-              navigateToPredictionsList(appNavigation, 'politics')
-            }
-            testID="section-header-view-all-politics_predictions"
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
+
+    if (showPredictions) {
+      items.push({
+        key: 'predictions',
+        content: (
+          <PredictionsCarouselSection
+            feed={politics}
             tabName="Macro"
             sectionName="predictions_politics"
-          />
-          <HorizontalCarousel<PredictMarketType>
-            data={politics.data}
-            isLoading={politics.isLoading}
-            renderItem={renderPredictionItem}
-            Skeleton={PredictionsSkeleton}
+            title={strings('trending.predictions')}
+            testIdPrefix="predict-rwa-politics-market-row-item"
             idPrefix="politics_predictions"
+            onViewAll={() =>
+              navigateToExplorePredictionsList(appNavigation, 'politics')
+            }
+            isEnabled={isPredictEnabled}
           />
-        </Box>
-      )}
+        ),
+      });
+    }
 
-      {isPerpsEnabled && (
-        <PerpsSectionProvider>
+    if (showPerps) {
+      items.push({
+        key: 'perps',
+        isVerticalList: true,
+        content: (
           <MacroPerpsBlock
             refresh={refresh}
             onViewAll={(filter, sortOptionId) =>
               navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
             }
           />
-        </PerpsSectionProvider>
-      )}
+        ),
+      });
+    }
+
+    return items;
+  }, [
+    showPredictions,
+    showPerps,
+    politics,
+    isPredictEnabled,
+    appNavigation,
+    refresh,
+    perpsNavigation,
+  ]);
+
+  return (
+    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
+      <ExploreSectionList sections={sections} />
     </ExploreScroll>
   );
 };
+
+const MacroTab: React.FC<TabProps> = (props) => (
+  <PerpsSectionProvider>
+    <MacroTabContent {...props} />
+  </PerpsSectionProvider>
+);
 
 export default MacroTab;

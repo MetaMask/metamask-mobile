@@ -94,7 +94,6 @@ describe('MusdConversionAssetListCta', () => {
       goToBuy: mockGoToBuy,
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
 
     (
@@ -314,9 +313,13 @@ describe('MusdConversionAssetListCta', () => {
 
       fireEvent.press(getByText('Buy mUSD'));
 
-      expect(mockGoToBuy).toHaveBeenCalledWith({
-        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-      });
+      expect(mockGoToBuy).toHaveBeenCalledWith(
+        {
+          assetId:
+            MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+        },
+        { surface: 'earn' },
+      );
     });
 
     it('calls goToBuy when earn percentage text is pressed', () => {
@@ -331,9 +334,13 @@ describe('MusdConversionAssetListCta', () => {
       const bonusTextElement = getByText(bonusText);
       fireEvent.press(bonusTextElement.parent as never);
 
-      expect(mockGoToBuy).toHaveBeenCalledWith({
-        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-      });
+      expect(mockGoToBuy).toHaveBeenCalledWith(
+        {
+          assetId:
+            MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+        },
+        { surface: 'earn' },
+      );
     });
 
     it('does not call initiateCustomConversion when wallet is empty', () => {

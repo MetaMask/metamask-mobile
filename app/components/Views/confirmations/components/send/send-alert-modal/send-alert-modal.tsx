@@ -1,10 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal } from 'react-native';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonIcon,
+  ButtonSize,
+  ButtonsAlignment,
   Icon,
   IconColor,
   IconName,
@@ -13,15 +19,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import type { SendAlert } from '../../../hooks/send/alerts/types';
 import { SendAlertModalProps } from './send-alert-modal.types';
 
@@ -123,57 +120,55 @@ export const SendAlertModal = ({
     currentAlert.acknowledgeButtonLabel ?? strings('send.i_understand');
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-      <PageNavigation
-        alerts={alerts}
-        selectedIndex={safeIndex}
-        onBack={goToPrevious}
-        onForward={goToNext}
-      />
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        gap={3}
-        twClassName="px-4 pt-2 pb-2"
-      >
-        <Icon
-          name={IconName.Danger}
-          size={IconSize.Xl}
-          color={IconColor.WarningDefault}
+    <Modal visible transparent animationType="none">
+      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+        <PageNavigation
+          alerts={alerts}
+          selectedIndex={safeIndex}
+          onBack={goToPrevious}
+          onForward={goToNext}
         />
-        <Text variant={TextVariant.HeadingMd}>{currentAlert.title}</Text>
-        <Box twClassName="w-full max-w-full">
-          {typeof currentAlert.message === 'string' ? (
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-center break-words"
-            >
-              {currentAlert.message}
-            </Text>
-          ) : (
-            currentAlert.message
-          )}
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          gap={3}
+          twClassName="px-4 pt-2 pb-2"
+        >
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Xl}
+            color={IconColor.WarningDefault}
+          />
+          <Text variant={TextVariant.HeadingMd}>{currentAlert.title}</Text>
+          <Box twClassName="w-full max-w-full">
+            {typeof currentAlert.message === 'string' ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-center break-words"
+              >
+                {currentAlert.message}
+              </Text>
+            ) : (
+              currentAlert.message
+            )}
+          </Box>
         </Box>
-      </Box>
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={[
-          {
-            variant: ButtonVariants.Secondary,
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          secondaryButtonProps={{
+            children: strings('send.cancel'),
             size: ButtonSize.Lg,
-            label: strings('send.cancel'),
             onPress: onClose,
             testID: 'send-alert-modal-cancel-button',
-          },
-          {
-            variant: ButtonVariants.Primary,
+          }}
+          primaryButtonProps={{
+            children: acknowledgeLabel,
             size: ButtonSize.Lg,
-            label: acknowledgeLabel,
             onPress: handleAcknowledgeStep,
             testID: 'send-alert-modal-acknowledge-button',
-          },
-        ]}
-      />
-    </BottomSheet>
+          }}
+        />
+      </BottomSheet>
+    </Modal>
   );
 };

@@ -64,7 +64,6 @@ const createInfuraMocks = () => {
     'starknet-mainnet.infura.io',
     'starknet-goerli.infura.io',
     'starknet-sepolia.infura.io',
-    'ipfs.infura.io',
     'sei-mainnet.infura.io',
     'monad-mainnet.infura.io',
     'megaeth-mainnet.infura.io',
@@ -72,35 +71,19 @@ const createInfuraMocks = () => {
   ];
 
   endpoints.forEach((endpoint) => {
-    if (endpoint === 'ipfs.infura.io') {
-      // IPFS endpoints are GET requests, not JSON-RPC
-      mocks.push({
-        urlEndpoint: new RegExp(
-          `^https://${endpoint.replace(/\./g, '\\.')}/ipfs/[a-zA-Z0-9]+.*$`,
-        ),
-        responseCode: 200,
-        response: 'Mock IPFS content',
-      });
-    } else {
-      // Regular Infura endpoints are POST requests with JSON-RPC
-      mocks.push({
-        urlEndpoint: new RegExp(
-          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
-        ),
-        responseCode: 200,
-        response: createJsonRpcResponse(1, '0x0'),
-      });
-    }
+    mocks.push({
+      urlEndpoint: new RegExp(
+        // E2E builds use INFURA_PROJECT_ID fallback "NON_EMPTY" (see network-controller-init).
+        `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9_-]+$`,
+      ),
+      responseCode: 200,
+      response: createJsonRpcResponse(1, '0x0'),
+    });
   });
 
   return mocks;
 };
 
 export const INFURA_MOCKS: MockEventsObject = {
-  GET: createInfuraMocks().filter((mock) =>
-    mock.urlEndpoint.toString().includes('ipfs'),
-  ),
-  POST: createInfuraMocks().filter(
-    (mock) => !mock.urlEndpoint.toString().includes('ipfs'),
-  ),
+  POST: createInfuraMocks(),
 };

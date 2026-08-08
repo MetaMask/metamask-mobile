@@ -1,10 +1,13 @@
 import { useCallback, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 
-export function useComponentSize() {
-  const [size, setSize] = useState<null | { width: number; height: number }>(
-    null,
-  );
+export interface ComponentSize {
+  width: number;
+  height: number;
+}
+
+export function useComponentSize(initialSize?: ComponentSize | null) {
+  const [size, setSize] = useState<null | ComponentSize>(initialSize ?? null);
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const onLayout = useCallback((event: LayoutChangeEvent) => {

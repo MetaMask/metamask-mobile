@@ -20,17 +20,21 @@ import {
   TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import { getDeleGatorEnvironment } from '../../../core/Delegation';
-import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
+import { TransactionControllerInitMessenger } from '../../../core/Engine/wallet-init/messengers/transaction-controller-messenger';
 import {
-  RelayStatus,
   submitRelayTransaction,
-  waitForRelayResult,
+  waitForRelaySuccess,
 } from '../transaction-relay';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
+import { recoverAuthorizationAddress } from 'viem/utils';
 
 jest.mock('../transaction-relay');
+jest.mock('viem/utils', () => ({
+  ...jest.requireActual('viem/utils'),
+  recoverAuthorizationAddress: jest.fn(),
+}));
 jest.mock('../../../core/Delegation/delegation', () => ({
   ...jest.requireActual('../../../core/Delegation/delegation'),
   encodeRedeemDelegations: jest.fn(() => '0xdeadbeef'),
@@ -89,7 +93,10 @@ const getRootMessenger = (): RootMessenger =>
 
 describe('Delegation 7702 Publish Hook', () => {
   const submitRelayTransactionMock = jest.mocked(submitRelayTransaction);
-  const waitForRelayResultMock = jest.mocked(waitForRelayResult);
+  const waitForRelaySuccessMock = jest.mocked(waitForRelaySuccess);
+  const recoverAuthorizationAddressMock = jest.mocked(
+    recoverAuthorizationAddress,
+  );
   let messenger: TransactionControllerInitMessenger;
   let hookClass: Delegation7702PublishHook;
 
@@ -184,8 +191,8 @@ describe('Delegation 7702 Publish Hook', () => {
     signEip7702AuthorizationMock.mockResolvedValue(
       AUTHORIZATION_SIGNATURE_MOCK,
     );
-    waitForRelayResultMock.mockResolvedValue({
-      status: RelayStatus.Success,
+    waitForRelaySuccessMock.mockResolvedValue({
+      status: 'VALIDATED',
       transactionHash: TRANSACTION_HASH_MOCK,
     });
     getStateMock.mockReturnValue({
@@ -194,6 +201,25 @@ describe('Delegation 7702 Publish Hook', () => {
   });
 
   describe('returns empty result if', () => {
+    it('transaction type is revokeDelegation', async () => {
+      const result = await hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.revokeDelegation,
+          isGasFeeSponsored: true,
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      );
+
+      expect(result).toEqual({
+        transactionHash: undefined,
+      });
+      expect(isAtomicBatchSupportedMock).not.toHaveBeenCalled();
+      expect(submitRelayTransactionMock).not.toHaveBeenCalled();
+    });
+
     it('atomic batch is not supported', async () => {
       const result = await hookClass.getHook()(
         TRANSACTION_META_MOCK,
@@ -202,6 +228,34 @@ describe('Delegation 7702 Publish Hook', () => {
       expect(result).toEqual({
         transactionHash: undefined,
       });
+    });
+
+    it('throws when atomic batch is not supported for a gas-sponsored transaction', async () => {
+      await expect(
+        hookClass.getHook()(
+          {
+            ...TRANSACTION_META_MOCK,
+            isGasFeeSponsored: true,
+          },
+          SIGNED_TX_MOCK,
+        ),
+      ).rejects.toThrow(
+        'Gas Station 7702: Chain must support EIP-7702 for sponsored or gas included transaction',
+      );
+    });
+
+    it('throws when atomic batch is not supported for a gas-included transaction', async () => {
+      await expect(
+        hookClass.getHook()(
+          {
+            ...TRANSACTION_META_MOCK,
+            isGasFeeIncluded: true,
+          },
+          SIGNED_TX_MOCK,
+        ),
+      ).rejects.toThrow(
+        'Gas Station 7702: Chain must support EIP-7702 for sponsored or gas included transaction',
+      );
     });
 
     it('no selected gas fee token', async () => {
@@ -274,7 +328,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Selected gas fee token not found');
+      ).rejects.toThrow('Gas Station 7702: Selected gas fee token not found');
     });
 
     it('throws error when upgrade contract address not found for non-upgraded accounts', async () => {
@@ -295,7 +349,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Upgrade contract address not found');
+      ).rejects.toThrow('Gas Station 7702: Upgrade contract address not found');
     });
 
     it('throws error when gas fee token is undefined in buildExecutions for includeTransfer', async () => {
@@ -324,7 +378,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Selected gas fee token not found');
+      ).rejects.toThrow('Gas Station 7702: Selected gas fee token not found');
     });
   });
 
@@ -636,10 +690,108 @@ describe('Delegation 7702 Publish Hook', () => {
     );
   });
 
-  it('throws if relay status is not success', async () => {
-    waitForRelayResultMock.mockResolvedValueOnce({
-      status: 'TEST_STATUS',
-    });
+  it('merges foreign Money Account authorization with EOA upgrade authorization', async () => {
+    const moneyAccountAuthorization = {
+      address: UPGRADE_CONTRACT_ADDRESS_MOCK as Hex,
+      chainId: TRANSACTION_META_MOCK.chainId as Hex,
+      nonce: '0x9' as Hex,
+      r: '0xaaa' as Hex,
+      s: '0xbbb' as Hex,
+      yParity: '0x1' as Hex,
+    };
+    const moneyAccountAddress =
+      '0x9999999999999999999999999999999999999999' as Hex;
+
+    recoverAuthorizationAddressMock.mockResolvedValueOnce(moneyAccountAddress);
+
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: undefined,
+        isSupported: false,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    await hookClass.getHook()(
+      {
+        ...TRANSACTION_META_MOCK,
+        gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+        selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        txParams: {
+          ...TRANSACTION_META_MOCK.txParams,
+          authorizationList: [moneyAccountAuthorization],
+        },
+      },
+      SIGNED_TX_MOCK,
+    );
+
+    expect(submitRelayTransactionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorizationList: [
+          moneyAccountAuthorization,
+          {
+            address: UPGRADE_CONTRACT_ADDRESS_MOCK,
+            chainId: TRANSACTION_META_MOCK.chainId,
+            nonce: TRANSACTION_META_MOCK.txParams.nonce,
+            r: expect.any(String),
+            s: expect.any(String),
+            yParity: expect.any(String),
+          },
+        ],
+      }),
+    );
+  });
+
+  it('includes foreign authorization when from is already upgraded', async () => {
+    const moneyAccountAuthorization = {
+      address: UPGRADE_CONTRACT_ADDRESS_MOCK as Hex,
+      chainId: TRANSACTION_META_MOCK.chainId as Hex,
+      nonce: '0x9' as Hex,
+      r: '0xaaa' as Hex,
+      s: '0xbbb' as Hex,
+      yParity: '0x1' as Hex,
+    };
+    const moneyAccountAddress =
+      '0x9999999999999999999999999999999999999999' as Hex;
+
+    recoverAuthorizationAddressMock.mockResolvedValueOnce(moneyAccountAddress);
+
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        isSupported: true,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    await hookClass.getHook()(
+      {
+        ...TRANSACTION_META_MOCK,
+        gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+        selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        txParams: {
+          ...TRANSACTION_META_MOCK.txParams,
+          authorizationList: [moneyAccountAuthorization],
+        },
+      },
+      SIGNED_TX_MOCK,
+    );
+
+    expect(submitRelayTransactionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorizationList: [moneyAccountAuthorization],
+      }),
+    );
+  });
+
+  it('throws if relay result is not success', async () => {
+    waitForRelaySuccessMock.mockRejectedValueOnce(
+      new Error(
+        'Sentinel: Relay: Transaction failed - TEST_STATUS - Unknown error',
+      ),
+    );
     isAtomicBatchSupportedMock.mockResolvedValueOnce([
       {
         chainId: TRANSACTION_META_MOCK.chainId,
@@ -658,7 +810,34 @@ describe('Delegation 7702 Publish Hook', () => {
         },
         SIGNED_TX_MOCK,
       ),
-    ).rejects.toThrow('Transaction relay error - TEST_STATUS');
+    ).rejects.toThrow(
+      'Gas Station 7702: Sentinel: Relay: Transaction failed - TEST_STATUS - Unknown error',
+    );
+  });
+
+  it('prefixes relay submit errors', async () => {
+    submitRelayTransactionMock.mockRejectedValueOnce(
+      new Error('Sentinel: Relay: submission failed'),
+    );
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        isSupported: true,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    await expect(
+      hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      ),
+    ).rejects.toThrow('Gas Station 7702: Sentinel: Relay: submission failed');
   });
 
   it('submits request to relay for gasless 7702 swap without gas fee tokens', async () => {

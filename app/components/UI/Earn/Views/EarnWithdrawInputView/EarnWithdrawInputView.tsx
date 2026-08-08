@@ -4,6 +4,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -159,7 +160,7 @@ const EarnWithdrawInputView = () => {
     return undefined;
   }, [receiptTokenToUse, earnTokenFromMap]);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(

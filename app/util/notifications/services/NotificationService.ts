@@ -9,12 +9,13 @@ import notifee, {
 import { Linking, Alert as NativeAlert, Platform } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { store } from '../../../store';
+import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import Logger from '../../../util/Logger';
 import {
   ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
-import { isE2E } from '../../test/utils';
+import { hasTestOverrides } from '../../test/utils';
 import { withTimeout } from '../methods';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
@@ -79,7 +80,7 @@ class NotificationsService {
     );
 
     // E2E tests do not play well with OS push permissions
-    if (isE2E) {
+    if (hasTestOverrides) {
       return { permission: 'authorized' };
     }
 
@@ -274,21 +275,26 @@ class NotificationsService {
     id?: string;
   }): Promise<void> => {
     try {
+      const channel = notificationChannels.find((c) => c.id === channelId);
+      if (channel) {
+        await notifee.createChannel(channel);
+      }
+      const notifId = id ?? `notif-${Date.now()}`;
       await notifee.displayNotification({
-        id,
+        id: notifId,
         title,
         body,
         // Notifee can only store and handle data strings
         data: { dataStr: JSON.stringify(data) },
         android: {
+          // Omit largeIcon — same fox as smallIcon caused a duplicate on Android.
           smallIcon: 'ic_notification_small',
-          largeIcon: 'ic_notification',
           channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
           pressAction: {
             id: pressActionId,
             launchActivity: LAUNCH_ACTIVITY,
           },
-          tag: id,
+          tag: notifId,
         },
         ios: {
           launchImageName: 'Default',
@@ -313,8 +319,28 @@ const NotificationService = new NotificationsService();
 
 export default NotificationService;
 
+export type PushPermissionStatus = 'granted' | 'promptable' | 'denied';
+
+const getPushPermissionStatusFromAuthorizationStatus = (
+  authorizationStatus: AuthorizationStatus,
+): PushPermissionStatus => {
+  if (
+    authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+    authorizationStatus === AuthorizationStatus.PROVISIONAL
+  ) {
+    return 'granted';
+  }
+
+  if (authorizationStatus === AuthorizationStatus.NOT_DETERMINED) {
+    return 'promptable';
+  }
+
+  return 'denied';
+};
+
 export async function requestPushPermissions() {
   const result = await NotificationService.getAllPermissions(true);
+  store.dispatch(markPushNotificationOsPromptRequested());
   return result.permission === 'authorized';
 }
 
@@ -326,4 +352,38 @@ export async function hasPushPermission() {
 export async function getPushPermission() {
   const result = await NotificationService.getAllPermissions(false);
   return result.permission;
+}
+
+export async function getPushPermissionStatus(): Promise<PushPermissionStatus> {
+  try {
+    const settings = await notifee.getNotificationSettings();
+    return getPushPermissionStatusFromAuthorizationStatus(
+      settings.authorizationStatus,
+    );
+  } catch {
+    return 'denied';
+  }
+}
+
+/**
+ * Returns true when the OS has granted push permission (AUTHORIZED or PROVISIONAL).
+ * NOT_DETERMINED and DENIED both return false.
+ * Use this to gate registration, settings UI, and pre-prompt eligibility.
+ */
+export async function isPushPermissionGranted(): Promise<boolean> {
+  return (await getPushPermissionStatus()) === 'granted';
+}
+
+/**
+ * Returns true when requesting push permission may show the OS dialog.
+ * iOS exposes a NOT_DETERMINED state, but Notifee only exposes AUTHORIZED/DENIED
+ * on Android. Treat Android's not-granted state as promptable and let
+ * requestPermission determine whether the OS can show a dialog.
+ */
+export async function isPushPermissionPromptable(): Promise<boolean> {
+  if (Platform.OS === 'android') {
+    return !(await isPushPermissionGranted());
+  }
+
+  return (await getPushPermissionStatus()) === 'promptable';
 }

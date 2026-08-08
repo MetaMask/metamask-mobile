@@ -71,7 +71,6 @@ export const setupBridge = ({
       });
     },
     getApprovedHosts: () => connection.getApprovedHosts('backgroundBridge'),
-    remoteConnHost: connection.host,
     getRpcMethodMiddleware: ({
       getProviderState,
     }: RPCMethodsMiddleParameters) => {

@@ -4,7 +4,7 @@ import configureStore from 'redux-mock-store';
 import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import {
@@ -57,13 +57,6 @@ jest.mock('../../../../reducers/swaps', () => ({
 
 jest.mock('../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
-}));
-
-jest.mock('../../../../selectors/multichain/evm', () => ({
-  selectHideZeroBalanceTokens: () => false,
-  selectAccountTokensAcrossChains: () => [],
-  selectTokensBalances: () => ({}),
-  selectEvmTokensWithZeroBalanceFilter: () => [],
 }));
 
 jest.mock('../../../../core/SDKConnectV2', () => ({
@@ -124,6 +117,11 @@ jest.mock('../../../../util/test/initial-root-state', () => ({
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
   selectIconSeedAddressesByAccountGroupIds: () => ({
+    'keyring:test-group/group-1': 'mock-address',
+    'keyring:test-group/group-2': 'mock-address',
+    'keyring:test-group/group-3': 'mock-address',
+  }),
+  selectAllAccountGroupIconSeedAddresses: () => ({
     'keyring:test-group/group-1': 'mock-address',
     'keyring:test-group/group-2': 'mock-address',
     'keyring:test-group/group-3': 'mock-address',

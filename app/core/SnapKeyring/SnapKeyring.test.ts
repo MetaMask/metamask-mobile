@@ -10,7 +10,7 @@ import {
   KeyringRpcMethod,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { snapKeyringBuilder } from './SnapKeyring';
+import { legacySnapKeyringBuilder } from './SnapKeyring';
 import {
   SnapKeyringBuilderAllowActions,
   SnapKeyringBuilderMessenger,
@@ -34,6 +34,7 @@ const mockRemoveAccountHelper = jest.fn();
 const mockGetAccountByAddress = jest.fn();
 const mockSetAccountName = jest.fn();
 const mockSnapControllerHandleRequest = jest.fn();
+const mockSnapControllerGetSnap = jest.fn();
 const mockListMultichainAccounts = jest.fn();
 
 const mockFlowId = '123';
@@ -122,6 +123,10 @@ const createControllerMessenger = ({
         return mockEndFlow.mockReturnValue(true)(params);
       case 'KeyringController:getAccounts':
         return mockGetAccounts.mockResolvedValue([])();
+      case 'KeyringController:persistAllKeyrings':
+        return mockPersisKeyringHelper();
+      case 'KeyringController:removeAccount':
+        return mockRemoveAccountHelper(...params);
       case 'AccountsController:getAccountByAddress':
         return mockGetAccountByAddress.mockReturnValue(account)(params);
       case 'AccountsController:setSelectedAccount':
@@ -130,6 +135,14 @@ const createControllerMessenger = ({
         return mockSetAccountName.mockReturnValue(null)(params);
       case 'AccountsController:listMultichainAccounts':
         return mockListMultichainAccounts.mockReturnValue([])();
+      case 'SnapController:getSnap':
+        return mockSnapControllerGetSnap.mockReturnValue({
+          id: mockSnapId,
+          manifest: {
+            proposedName: mockSnapName,
+            initialPermissions: {},
+          },
+        })(params);
       case 'SnapController:handleRequest':
         return mockSnapControllerHandleRequest(params);
       default:
@@ -157,10 +170,7 @@ async function waitForAllPromises(): Promise<void> {
 }
 
 const createSnapKeyringBuilder = () =>
-  snapKeyringBuilder(createControllerMessenger(), {
-    persistKeyringHelper: mockPersisKeyringHelper,
-    removeAccountHelper: mockRemoveAccountHelper,
-  });
+  legacySnapKeyringBuilder(createControllerMessenger());
 
 // Mock the isSnapPreinstalled function
 jest.mock('./utils/snaps', () => ({

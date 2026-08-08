@@ -72,7 +72,7 @@ describe('useAddPopularNetwork', () => {
           build: jest.fn().mockReturnValue({ event: 'test' }),
         }),
       }),
-      addTraitsToUser: mockAddTraitsToUser,
+      identify: mockAddTraitsToUser,
     });
     (useNetworkEnablement as jest.Mock).mockReturnValue({
       enableNetwork: mockEnableNetwork,

@@ -12,6 +12,7 @@ import { useBalance } from './useBalance';
 import { useGasFeeEstimatesForSend } from './useGasFeeEstimatesForSend';
 import { useSendType } from './useSendType';
 import { useIsNetworkGasSponsored } from '../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
+import { isHardwareAccount } from '../../../../../util/address';
 
 export interface GasFeeEstimatesType {
   medium: {
@@ -81,7 +82,9 @@ export const usePercentageAmount = () => {
   const { isEvmNativeSendType, isNonEvmNativeSendType } = useSendType();
   const { rawBalanceBN } = useBalance();
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
-  const isGasSponsored = useIsNetworkGasSponsored(chainId);
+  const isHardwareWallet = Boolean(from && isHardwareAccount(from));
+  const isNetworkGasSponsored = useIsNetworkGasSponsored(chainId);
+  const isGasSponsored = Boolean(isNetworkGasSponsored && !isHardwareWallet);
 
   const { value: layer1GasFee } = useAsyncResult(async () => {
     if (!isEvmNativeSendType || asset?.chainId === CHAIN_IDS.MAINNET || !from) {

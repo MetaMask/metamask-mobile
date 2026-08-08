@@ -199,6 +199,28 @@ describe('NetworkConnectionBanner', () => {
       },
     );
 
+    it('limits primary message to 2 lines for long network names', () => {
+      useNetworkConnectionBannerMock.mockReturnValue({
+        networkConnectionBannerState: {
+          visible: true,
+          chainId: '0x89',
+          status: 'unavailable',
+          networkName: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
+          rpcUrl: 'https://custom-rpc.example.com',
+          isInfuraEndpoint: false,
+        },
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      const { getByText } = renderWithProvider(<NetworkConnectionBanner />);
+
+      const primaryText = getByText(
+        'Unable to connect to Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK.',
+      );
+      expect(primaryText.props.numberOfLines).toBe(2);
+    });
+
     it('handles multiple rapid button presses', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         networkConnectionBannerState: {

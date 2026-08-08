@@ -1,17 +1,27 @@
 export { useCryptoTargetPrice } from './useCryptoTargetPrice';
 export type { UseCryptoTargetPriceParams } from './useCryptoTargetPrice';
+export { useCurrentCryptoUpDownMarketData } from './useCurrentCryptoUpDownMarketData';
+export type { UseCurrentCryptoUpDownMarketDataParams } from './useCurrentCryptoUpDownMarketData';
+export { useCurrentPredictMarketFromSeries } from './useCurrentPredictMarketFromSeries';
+export type { UseCurrentPredictMarketFromSeriesParams } from './useCurrentPredictMarketFromSeries';
 
 export {
-  useLiveGameUpdates,
-  type UseLiveGameUpdatesOptions,
-  type UseLiveGameUpdatesResult,
-} from './useLiveGameUpdates';
+  usePredictGame,
+  type UsePredictGameOptions,
+  type UsePredictGameResult,
+} from './usePredictGame';
 
 export {
   useLiveMarketPrices,
   type UseLiveMarketPricesOptions,
   type UseLiveMarketPricesResult,
 } from './useLiveMarketPrices';
+
+export {
+  usePredictOrderbook,
+  type UsePredictOrderbookOptions,
+  type UsePredictOrderbookResult,
+} from './usePredictOrderbook';
 
 export {
   usePredictTabs,
@@ -25,12 +35,9 @@ export {
 } from './usePredictSearch';
 
 export { usePredictCashOut } from './usePredictCashOut';
+export { usePredictPortfolio } from './usePredictPortfolio';
 
 export {
-  usePredictWorldCupMarkets,
-  usePredictWorldCupAvailability,
-  usePredictWorldCupAvailableTabs,
-  type UsePredictWorldCupMarketsOptions,
-  type UsePredictWorldCupAvailableTabsOptions,
-  type PredictWorldCupAvailableTab,
-} from './usePredictWorldCup';
+  usePredictFeedMarketList,
+  type UsePredictFeedMarketListOptions,
+} from './usePredictFeedMarketList';

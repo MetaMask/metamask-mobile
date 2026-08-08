@@ -2,7 +2,7 @@ import { playImpact, ImpactMoment } from '../../util/haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
-import Logger from '../../util/Logger';
+import { reportSocialServiceFailure } from '../../util/social/socialServiceTelemetry';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
 import {
   SocialLeaderboardEventProperties,
@@ -11,6 +11,7 @@ import {
   type TraderFollowInteractionSource,
 } from '../Views/SocialLeaderboard/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
+import { hasRealAvatar } from '../Views/Homepage/Sections/TopTraders/utils/avatarFallback';
 
 /**
  * Analytics context attached to a follow/unfollow action so the
@@ -30,6 +31,11 @@ export interface FollowToggleAnalyticsContext {
   traderUsername?: string;
   /** Leaderboard rank when triggered from leaderboard / home_carousel. */
   traderRank?: number;
+  /**
+   * Backend-provided avatar URL at tap time. Used to derive
+   * `trader_has_profile_picture_set` (real image vs Maskicon fallback).
+   */
+  traderAvatarUri?: string | null;
 }
 
 export interface UseFollowToggleManyResult {
@@ -39,6 +45,21 @@ export interface UseFollowToggleManyResult {
     analyticsContext?: FollowToggleAnalyticsContext,
   ) => Promise<void>;
 }
+
+const FOLLOWING_QUERY_KEY = ['SocialService:fetchFollowing'] as const;
+
+/**
+ * Invalidates the followed-traders query without importing ReactQueryService at
+ * module load (that import pulls in Engine and breaks tests that mock Engine).
+ */
+const invalidateFollowingQuery = async (): Promise<void> => {
+  const { default: ReactQueryService } = await import(
+    '../../core/ReactQueryService'
+  );
+  await ReactQueryService.queryClient.invalidateQueries({
+    queryKey: FOLLOWING_QUERY_KEY,
+  });
+};
 
 /**
  * Shared primitive that optimistically toggles follow/unfollow state for one
@@ -99,6 +120,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             : 'SocialController:unfollowTrader',
           opts,
         );
+        await invalidateFollowingQuery();
         if (analyticsContext) {
           track(MetaMetricsEvents.SOCIAL_TRADER_FOLLOW_INTERACTION, {
             [SocialLeaderboardEventProperties.ACTION]: nextValue
@@ -111,6 +133,8 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             [SocialLeaderboardEventProperties.SOURCE]: analyticsContext.source,
             [SocialLeaderboardEventProperties.TRADER_RANK]:
               analyticsContext.traderRank,
+            [SocialLeaderboardEventProperties.TRADER_HAS_PROFILE_PICTURE_SET]:
+              hasRealAvatar(analyticsContext.traderAvatarUri),
           });
         }
       } catch (err) {
@@ -119,7 +143,19 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
           delete next[addressOrId];
           return next;
         });
-        Logger.error(err as Error, 'useFollowToggle: toggleFollow failed');
+        reportSocialServiceFailure(
+          err,
+          {
+            surface: 'follow',
+            operation: nextValue ? 'follow_trader' : 'unfollow_trader',
+            extraMessage: nextValue
+              ? 'Follow trader failed'
+              : 'Unfollow trader failed',
+            source: 'useFollowToggle',
+            endpoint: nextValue ? 'follow' : 'unfollow',
+          },
+          { breadcrumb: false },
+        );
       } finally {
         inflightIdsRef.current.delete(addressOrId);
       }

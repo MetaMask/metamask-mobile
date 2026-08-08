@@ -122,7 +122,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
-    addTraitsToUser: mockAddTraitsToUser,
+    identify: mockAddTraitsToUser,
   }),
 }));
 

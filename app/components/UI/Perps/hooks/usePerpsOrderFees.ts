@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 
 import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
@@ -17,6 +18,7 @@ import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
+  type OrderType,
 } from '@metamask/perps-controller';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -45,6 +47,12 @@ let pointsCalculationCache: {
 export interface OrderFeesResult {
   /** Total fee in USD (protocol + MetaMask) */
   totalFee: number;
+  /**
+   * Total fee in USD **before** the MetaMask VIP discount is applied.
+   * Equals `totalFee` when no discount is in effect. Consumers use this to
+   * display a struck-through "original" fee alongside the discounted one.
+   */
+  undiscountedTotalFee: number;
   /** Protocol trading fee in USD */
   protocolFee: number;
   /** MetaMask service fee in USD */
@@ -68,8 +76,8 @@ export interface OrderFeesResult {
 }
 
 interface UsePerpsOrderFeesParams {
-  /** Order type - market or limit */
-  orderType: 'market' | 'limit';
+  /** Order placement type */
+  orderType: OrderType;
   /** Order amount in USD */
   amount: string;
   /** Symbol for the trade (e.g., 'BTC', 'ETH') */
@@ -117,6 +125,7 @@ export function usePerpsOrderFees({
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   const isMaker = useMemo(() => {
     if (!direction) {
@@ -343,7 +352,7 @@ export function usePerpsOrderFees({
    */
   const applyFeeDiscount = useCallback(
     async (originalRate: number) => {
-      if (!selectedAddress) {
+      if (!selectedAddress || !isVipProgramEnabled) {
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
 
@@ -388,7 +397,7 @@ export function usePerpsOrderFees({
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
     },
-    [fetchFeeDiscount, amount, selectedAddress],
+    [fetchFeeDiscount, amount, selectedAddress, isVipProgramEnabled],
   );
 
   /**
@@ -655,8 +664,14 @@ export function usePerpsOrderFees({
       metamaskFeeRate !== undefined ? amountNum * metamaskFeeRate : 0;
     const totalFee = totalFeeRate !== undefined ? amountNum * totalFeeRate : 0;
 
+    const undiscountedTotalFee =
+      protocolFeeRate !== undefined && originalMetamaskFeeRate !== undefined
+        ? amountNum * (protocolFeeRate + originalMetamaskFeeRate)
+        : totalFee;
+
     return {
       totalFee,
+      undiscountedTotalFee,
       protocolFee,
       metamaskFee,
       protocolFeeRate,

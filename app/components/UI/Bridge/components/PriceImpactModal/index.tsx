@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { PriceImpactModalRouterParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -21,7 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 export const PriceImpactModal = () => {
-  const { goBack } = useNavigation();
+  const { goBack } = useNavigation<AppNavigationProp>();
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const [loading, setLoading] = useState(false);
   const { type, token, location } = useParams<PriceImpactModalRouterParams>();
@@ -42,7 +43,6 @@ export const PriceImpactModal = () => {
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote.priceData?.priceImpact,
   );
-
   const isDangerousPriceImpact = useMemo(
     () =>
       exceedsPriceImpactErrorThreshold(
@@ -58,7 +58,11 @@ export const PriceImpactModal = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
+    } else {
+      await confirmBridge();
+    }
   }, [confirmBridge]);
 
   return (

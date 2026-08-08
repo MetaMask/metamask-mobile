@@ -55,6 +55,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../hooks', () => ({
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 0.5,
+    undiscountedTotalFee: 0.5,
     makerFee: 0.2,
     takerFee: 0.3,
     isLoadingMetamaskFee: false,
@@ -97,19 +98,32 @@ jest.mock('../../utils/formatUtils', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  PERPS_EVENT_VALUE: {
+    SOURCE: {
+      POSITION_SCREEN: 'position_screen',
+    },
+  },
 }));
 
 jest.mock('../PerpsFeesDisplay', () => {
   const ReactModule = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return function MockPerpsFeesDisplay({
-    formatFeeText,
+    fee,
+    placeholder,
   }: {
-    formatFeeText: string;
+    fee?: number;
+    placeholder?: string;
   }) {
-    return ReactModule.createElement(Text, null, formatFeeText);
+    const text =
+      fee !== undefined ? `$${fee.toFixed(2)}` : (placeholder ?? '--');
+    return ReactModule.createElement(Text, null, text);
   };
 });
+
+jest.mock('../../../Rewards/hooks/useVipTier', () => ({
+  useVipTier: () => null,
+}));
 
 jest.mock('../../../Rewards/components/RewardPointsAnimation', () => ({
   __esModule: true,
@@ -208,41 +222,22 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactModule = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockText({
-      children,
-      testID,
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) {
-      return ReactModule.createElement(Text, { testID }, children);
-    },
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMD: 'BodyMD',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-    },
-  };
-});
+jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
+  __esModule: true,
+  default: () => null,
+  IconName: { ArrowRight: 'ArrowRight' },
+  IconSize: { Md: 'Md' },
+  IconColor: { Default: 'Default' },
+}));
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactModule = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: ({ name }: { name: string }) =>
+    ...actual,
+    Icon: ({ name }: { name: string }) =>
       ReactModule.createElement(View, { accessibilityLabel: name }),
-    IconName: { ArrowRight: 'ArrowRight' },
-    IconSize: { Md: 'Md' },
-    IconColor: { Default: 'Default' },
   };
 });
 
@@ -336,7 +331,13 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     fireEvent.press(screen.getByText('Flip'));
 
     await waitFor(() => {
-      expect(mockHandleFlipPosition).toHaveBeenCalledWith(mockLongPosition);
+      expect(mockHandleFlipPosition).toHaveBeenCalledWith(
+        mockLongPosition,
+        expect.objectContaining({
+          totalFee: expect.any(Number),
+          marketPrice: expect.any(Number),
+        }),
+      );
     });
   });
 

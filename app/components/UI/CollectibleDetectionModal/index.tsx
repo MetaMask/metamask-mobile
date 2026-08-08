@@ -9,10 +9,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -29,7 +26,7 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { addTraitsToUser } = useAnalytics();
+  const { identify } = useAnalytics();
   const { detectNfts } = useNftDetection();
 
   const showToastAndEnableNFtDetection = useCallback(() => {
@@ -37,9 +34,8 @@ const CollectibleDetectionModal = () => {
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
       labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
-      iconName: IconName.CheckBold,
-      iconColor: IconColor.Default,
-      backgroundColor: colors.primary.inverse,
+      iconName: IconName.Confirmation,
+      iconColor: colors.success.default,
       hasNoTimeout: false,
     });
     // set nft autodetection
@@ -50,9 +46,9 @@ const CollectibleDetectionModal = () => {
       [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
       [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.ON,
     };
-    addTraitsToUser(traits);
+    identify(traits);
     detectNfts();
-  }, [colors.primary.inverse, toastRef, addTraitsToUser, detectNfts]);
+  }, [colors.success.default, toastRef, identify, detectNfts]);
 
   return (
     <View style={styles.alertBar}>

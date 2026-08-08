@@ -1,89 +1,156 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
-import { Utilities, Assertions } from '../../framework';
+import {
+  Utilities,
+  Assertions,
+  EncapsulatedElementType,
+  encapsulated,
+} from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class SendView {
-  get ethereumTokenButton(): DetoxElement {
-    return Matchers.getElementByText('Ethereum');
+  get ethTokenAssetButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(getAssetTestId('ETH'), 0);
   }
 
-  get erc20TokenButton(): DetoxElement {
-    return Matchers.getElementByText('USD Coin');
+  get erc20TokenButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(getAssetTestId('USDC'), 0);
   }
 
-  get zeroButton(): DetoxElement {
-    return Matchers.getElementByText('0', 1);
+  get amountScreen(): EncapsulatedElementType {
+    return Matchers.getElementByID(RedesignedSendViewSelectorsIDs.SEND_AMOUNT);
   }
 
-  get amountFiveButton(): DetoxElement {
+  get zeroButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('0', 1),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById('keypad-key-0', { exact: true }),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId('keypad-key-0'),
+      },
+    });
+  }
+
+  get amountFiveButton(): EncapsulatedElementType {
     return Matchers.getElementByText('5');
   }
 
-  get fiftyPercentButton(): DetoxElement {
+  get fiftyPercentButton(): EncapsulatedElementType {
     return Matchers.getElementByID('percentage-button-50');
   }
 
-  get maxButton(): DetoxElement {
+  get maxButton(): EncapsulatedElementType {
     return Matchers.getElementByID('percentage-button-100');
   }
 
-  get continueButton(): DetoxElement {
+  get continueButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Continue');
   }
 
-  get recipientAddressInput(): DetoxElement {
+  get recipientAddressInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
   }
 
-  get reviewButton(): DetoxElement {
+  get reviewButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
     );
   }
 
-  get amountInputField(): DetoxElement {
+  get amountInputField(): EncapsulatedElementType {
     return Matchers.getElementByID('txn-amount-input');
   }
 
-  get nextButton(): DetoxElement {
+  get nextButton(): EncapsulatedElementType {
     return Matchers.getElementByID('txn-amount-next-button');
   }
 
-  get currencySwitch(): DetoxElement {
+  get currencySwitch(): EncapsulatedElementType {
     return Matchers.getElementByID('amount-screen-currency-switch');
   }
 
-  get backButton(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get insufficientBalanceToCoverFeesError(): DetoxElement {
+  get insufficientBalanceToCoverFeesError(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SendActionViewSelectorsIDs.INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR,
     );
   }
 
-  get insufficientFundsError(): DetoxElement {
+  get insufficientFundsError(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
     );
   }
 
   async selectEthereumToken(): Promise<void> {
-    await Gestures.waitAndTap(this.ethereumTokenButton, {
-      elemDescription: 'Select ethereum token',
-    });
+    // With device.disableSynchronization(), the asset list can still re-render
+    // (duplicate rows hydrating) when Detox taps. The tap may highlight the row
+    // without firing onPress, so we wait for stability and retry until Amount.
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+          return;
+        } catch {
+          // Still on the asset picker
+        }
+
+        await Gestures.waitAndTap(this.ethTokenAssetButton, {
+          elemDescription: 'Select ethereum token',
+          checkStability: true,
+          delay: 1000,
+        });
+
+        await Utilities.waitForElementToBeVisible(this.amountScreen, 5000);
+      },
+      {
+        timeout: 25000,
+        description: 'Select ethereum token and open amount screen',
+      },
+    );
   }
 
   async selectERC20Token(): Promise<void> {
-    await Gestures.waitAndTap(this.erc20TokenButton, {
-      elemDescription: 'Select ERC20 token',
-    });
+    // With device.disableSynchronization(), the asset list can still re-render
+    // (duplicate rows hydrating) when Detox taps. The tap may highlight the row
+    // without firing onPress, so we wait for stability and retry until Amount.
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+          return;
+        } catch {
+          // Still on the asset picker
+        }
+
+        await Gestures.waitAndTap(this.erc20TokenButton, {
+          elemDescription: 'Select ERC20 token',
+          checkStability: true,
+          delay: 1000,
+        });
+
+        await Utilities.waitForElementToBeVisible(this.amountScreen, 5000);
+      },
+      {
+        timeout: 25000,
+        description: 'Select ERC20 token and open amount screen',
+      },
+    );
   }
 
   async enterZeroAmount(): Promise<void> {
@@ -110,37 +177,134 @@ class SendView {
     });
   }
 
-  async pressContinueButton() {
-    await Gestures.waitAndTap(this.continueButton, {
-      elemDescription: 'Continue button',
+  async pressContinueButton(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.continueButton, {
+          elemDescription: 'Continue button',
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementByText('Continue');
+        await PlaywrightGestures.waitAndTap(el);
+      },
     });
   }
 
   async inputRecipientAddress(address: string): Promise<void> {
-    await Gestures.typeText(this.recipientAddressInput, address, {
-      elemDescription: 'Enter recipient address',
-      hideKeyboard: true,
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.typeText(this.recipientAddressInput, address, {
+          elemDescription: 'Enter recipient address',
+          hideKeyboard: true,
+        });
+      },
+      appium: async () => {
+        const isIOS = await PlatformDetector.isIOS();
+        if (isIOS) {
+          const wrapper = await PlaywrightMatchers.getElementById('textfield', {
+            exact: true,
+          });
+          await PlaywrightGestures.waitAndTap(wrapper);
+          await PlaywrightGestures.typeViaIosKeyboard(address);
+        } else {
+          const el = await PlaywrightMatchers.getElementById(
+            RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+            { exact: true },
+          );
+          await el.fill(address);
+        }
+        await PlaywrightGestures.hideKeyboard();
+      },
     });
   }
 
-  async pressReviewButton() {
-    await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
-    await Utilities.waitForElementToBeEnabled(this.reviewButton);
-    await Utilities.waitForElementToStopMoving(this.reviewButton, {
-      timeout: 10000,
-      interval: 250,
-      stableCount: 3,
-    });
-    await Gestures.waitAndTap(this.reviewButton, {
-      elemDescription: 'Review button',
-      checkStability: false,
-      timeout: 20000,
+  async pressReviewButton(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
+        await Utilities.waitForElementToBeEnabled(this.reviewButton);
+        await Utilities.waitForElementToStopMoving(this.reviewButton, {
+          timeout: 10000,
+          interval: 250,
+          stableCount: 3,
+        });
+        await Gestures.waitAndTap(this.reviewButton, {
+          elemDescription: 'Review button',
+          checkStability: false,
+          timeout: 20000,
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementById(
+          RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        );
+        await PlaywrightGestures.waitAndTap(el, { timeout: 20000 });
+      },
     });
   }
 
   async typeInTransactionAmount(amount: string): Promise<void> {
     await Gestures.replaceText(this.amountInputField, amount, {
       elemDescription: 'Amount Input Field',
+    });
+  }
+
+  /**
+   * Enter an amount by tapping individual numpad digits.
+   * Works in both Detox and Playwright/Appium contexts.
+   * @param amount - The amount string to enter (e.g., '1', '0.5', '100')
+   */
+  async enterAmountViaNumpad(amount: string): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        for (const digit of amount.split('')) {
+          // The numpad "0" is the second element matching text "0" on screen
+          const el =
+            digit === '0'
+              ? Matchers.getElementByText('0', 1)
+              : Matchers.getElementByText(digit);
+          await Gestures.waitAndTap(el, {
+            elemDescription: `Numpad digit ${digit}`,
+          });
+        }
+      },
+      appium: async () => {
+        const isAndroid = await PlatformDetector.isAndroid();
+        for (const digit of amount.split('')) {
+          let el: PlaywrightElement;
+          const keyName =
+            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+          if (isAndroid) {
+            el = await PlaywrightMatchers.getElementByText(digit);
+          } else {
+            el = await PlaywrightMatchers.getElementByXPath(
+              `//*[contains(@name,'${keyName}')]`,
+            );
+          }
+          await PlaywrightGestures.waitAndTap(el, { delay: 300 });
+        }
+      },
+    });
+  }
+
+  /**
+   * Select a recipient account by name from the my accounts suggestions
+   * on the recipient selection screen.
+   * @param accountName - The account name to select (e.g., 'Account 2')
+   */
+  async selectRecipientAccount(accountName: string): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        const el = Matchers.getElementByText(accountName);
+        await Gestures.waitAndTap(el, {
+          elemDescription: `Select recipient account: ${accountName}`,
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementByText(accountName);
+        await PlaywrightGestures.waitAndTap(el);
+      },
     });
   }
 

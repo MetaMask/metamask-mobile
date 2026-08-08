@@ -1,4 +1,9 @@
-import { isValidUrl, isENSUrl, getMaskedUrl } from './utils';
+import {
+  isValidUrl,
+  isENSUrl,
+  getMaskedUrl,
+  isDisallowedExplicitPort,
+} from './utils';
 import URLParse from 'url-parse';
 import AppConstants from '../../../core/AppConstants';
 import { SessionENSNames } from './types';
@@ -18,6 +23,23 @@ describe('BrowserTab utils', () => {
       it(`should return ${expected} for ${url}`, () => {
         const parsedUrl = new URLParse(url);
         expect(isValidUrl(parsedUrl)).toBe(expected);
+      });
+    });
+  });
+
+  describe('isDisallowedExplicitPort', () => {
+    const testCases = [
+      { url: 'https://example.com:83/page', expected: true },
+      { url: 'https://example.com/page', expected: false },
+      { url: 'http://example.com:8080', expected: true },
+      { url: 'http://localhost:3000', expected: false },
+      { url: 'https://127.0.0.1:8443', expected: false },
+      { url: 'https://google.com:443', expected: false },
+    ];
+
+    testCases.forEach(({ url, expected }) => {
+      it(`should return ${expected} for ${url}`, () => {
+        expect(isDisallowedExplicitPort(url)).toBe(expected);
       });
     });
   });

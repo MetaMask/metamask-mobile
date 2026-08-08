@@ -16,7 +16,6 @@ import { MOCK_ADDRESS_2 } from '../../../../../util/test/accountsControllerTestU
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_AUSDT_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
@@ -235,8 +234,6 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 describe('EarnLendingDepositConfirmationView', () => {
-  jest.mocked(getStakingNavbar);
-
   const mockExecuteLendingDeposit = jest.mocked(
     Engine.context.EarnController.executeLendingDeposit,
   );
@@ -343,6 +340,56 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('HeaderStandard', () => {
+    it('renders the supply title with the routed token ticker', () => {
+      const { getByText } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      expect(
+        getByText(
+          `${strings('earn.supply')} ${MOCK_USDC_MAINNET_ASSET.ticker}`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to the token symbol when the routed token has no ticker', () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          token: {
+            ...defaultRouteParams.params.token,
+            ticker: undefined,
+            symbol: 'AUSDC',
+          },
+        },
+      });
+
+      const { getByText } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      expect(getByText(`${strings('earn.supply')} AUSDC`)).toBeOnTheScreen();
+    });
+
+    it('calls navigation.goBack when the back button is pressed', async () => {
+      const { getByLabelText } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const backButton = getByLabelText(strings('navigation.back'));
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('USDT token allowance reset edge case', () => {

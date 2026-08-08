@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../../framework/fixture';
+import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import {
   asPlaywrightElement,

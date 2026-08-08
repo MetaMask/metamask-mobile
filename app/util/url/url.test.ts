@@ -4,6 +4,7 @@ import {
   isCardUrl,
   isCardTravelUrl,
   isCardTosUrl,
+  isCardLoginUrl,
   isValidASCIIURL,
   toPunycodeURL,
   isSameOrigin,
@@ -79,6 +80,12 @@ describe('URL Check Functions', () => {
     ])('returns expected result for %s', (url, expected) => {
       expect(isCardUrl(url)).toBe(expected);
     });
+
+    it('matches against a provided base origin', () => {
+      const devBase = AppConstants.CARD.WEB_URL.DEV;
+      expect(isCardUrl(`${devBase}/account`, devBase)).toBe(true);
+      expect(isCardUrl(AppConstants.CARD.URL, devBase)).toBe(false);
+    });
   });
 
   describe('isCardTravelUrl', () => {
@@ -102,6 +109,35 @@ describe('URL Check Functions', () => {
       ['invalid url', false],
     ])('returns expected result for %s', (url, expected) => {
       expect(isCardTosUrl(url)).toBe(expected);
+    });
+  });
+
+  describe('isCardLoginUrl', () => {
+    it.each([
+      [`${AppConstants.CARD.URL}${AppConstants.CARD.LOGIN_PATH}`, true],
+      [`${AppConstants.CARD.URL}/account/login?foo=bar`, true],
+      [
+        `${AppConstants.CARD.URL}${AppConstants.CARD.PASSWORD_RESET_PATH}`,
+        false,
+      ],
+      [`${AppConstants.CARD.URL}/account`, false],
+      ['https://example.com/account/login', false],
+      ['invalid url', false],
+    ])('returns expected result for %s', (url, expected) => {
+      expect(isCardLoginUrl(url)).toBe(expected);
+    });
+
+    it('matches the login path against a provided base origin', () => {
+      const uatBase = AppConstants.CARD.WEB_URL.UAT;
+      expect(
+        isCardLoginUrl(`${uatBase}${AppConstants.CARD.LOGIN_PATH}`, uatBase),
+      ).toBe(true);
+      expect(
+        isCardLoginUrl(
+          `${AppConstants.CARD.URL}${AppConstants.CARD.LOGIN_PATH}`,
+          uatBase,
+        ),
+      ).toBe(false);
     });
   });
 

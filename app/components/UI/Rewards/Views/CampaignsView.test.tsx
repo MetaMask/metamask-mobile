@@ -8,6 +8,7 @@ import {
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
+import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
 const mockGoBack = jest.fn();
@@ -39,6 +40,14 @@ jest.mock('../hooks/usePerpsTradingCampaignEndedOutcomeToast', () => ({
 const mockUsePerpsTradingCampaignEndedOutcomeToast =
   usePerpsTradingCampaignEndedOutcomeToast as jest.MockedFunction<
     typeof usePerpsTradingCampaignEndedOutcomeToast
+  >;
+
+jest.mock('../hooks/useGetPredictThePitchOutcomeToast', () => ({
+  useGetPredictThePitchOutcomeToast: jest.fn(),
+}));
+const mockUseGetPredictThePitchOutcomeToast =
+  useGetPredictThePitchOutcomeToast as jest.MockedFunction<
+    typeof useGetPredictThePitchOutcomeToast
   >;
 
 jest.mock('../components/Campaigns/CampaignsGroup', () => {
@@ -176,6 +185,7 @@ describe('CampaignsView', () => {
     expect(mockUsePerpsTradingCampaignEndedOutcomeToast).toHaveBeenCalledTimes(
       1,
     );
+    expect(mockUseGetPredictThePitchOutcomeToast).toHaveBeenCalledTimes(1);
   });
 
   it('navigates back when the back button is pressed', () => {

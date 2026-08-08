@@ -3,6 +3,12 @@ export { default as Assertions } from './Assertions.ts';
 export { default as Gestures } from './Gestures.ts';
 export { default as Matchers } from './Matchers.ts';
 export { default as Utilities, BASE_DEFAULTS, sleep } from './Utilities.ts';
+export {
+  default as WebView,
+  type AndroidWebViewScrollOptions,
+  type AndroidWebViewTapOptions,
+  type WebViewByIdOptions,
+} from './WebView.ts';
 export { Logger, createLogger, LogLevel, logger } from './logger.ts';
 export { default as PortManager, ResourceType } from './PortManager.ts';
 export * from './types.ts';
@@ -12,7 +18,16 @@ export {
   deriveEventNamesForFetch,
   shouldRunAnalyticsExpectations,
 } from '../helpers/analytics/runAnalyticsExpectations.ts';
-export { boxedStep, getDriver } from './PlaywrightUtilities.ts';
+export {
+  boxedStep,
+  executeMobileDeepLink,
+  getDriver,
+  withSnapshotSettings,
+  startOverheadTracking,
+  addOverhead,
+  stopOverheadTracking,
+  isOverheadTrackingActive,
+} from './PlaywrightUtilities.ts';
 
 // Mock server utilities
 export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';
@@ -47,9 +62,23 @@ export {
 } from './EncapsulatedElement.ts';
 
 export { FrameworkDetector, TestFramework } from './FrameworkDetector.ts';
+export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
 export { default as UnifiedGestures } from './UnifiedGestures.ts';
 export { encapsulatedAction } from './encapsulatedAction.ts';
+export {
+  DeviceCommandHandler,
+  AndroidDeviceCommandHandler,
+  IOSDeviceCommandHandler,
+  type ClearAppDataOptions,
+  type DeviceCommandHandlerOptions,
+  type DeviceCommandLogger,
+  type InstallAppOptions,
+  type IsAppInstalledOptions,
+  type PlatformDeviceCommandHandler,
+  type ReinstallAppOptions,
+  type UninstallAppOptions,
+} from './services/device-commands';
 export {
   DetoxGestureStrategy,
   AppiumGestureStrategy,
@@ -57,4 +86,5 @@ export {
   type UnifiedGestureOptions,
   type TapAtIndexElement,
   type ScrollViewMatcher,
+  type ScrollContainer,
 } from './GestureStrategy.ts';

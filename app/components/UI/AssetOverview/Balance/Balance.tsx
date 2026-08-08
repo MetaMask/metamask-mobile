@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { type ReactNode, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import {
   CaipAssetId,
@@ -32,7 +32,6 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../component-library/components/Texts/SensitiveText';
 import { TokenI } from '../../Tokens/types';
-import { useNavigation } from '@react-navigation/native';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -40,7 +39,6 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
-import EarnBalance from '../../Earn/components/EarnBalance';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesController';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
@@ -57,8 +55,12 @@ export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 interface BalanceProps {
   asset: TokenI;
+  balanceCta?: ReactNode;
+  balanceDescription?: ReactNode;
   mainBalance: string;
   secondaryBalance?: string;
+  priceChangeOverride?: string;
+  priceChangeOverrideColor?: TextColor;
   hideTitleHeading?: boolean;
   hidePercentageChange?: boolean;
 }
@@ -101,13 +103,16 @@ export const NetworkBadgeSource = (chainId: Hex) => {
 
 const Balance = ({
   asset,
+  balanceCta,
+  balanceDescription,
   mainBalance,
   secondaryBalance,
+  priceChangeOverride,
+  priceChangeOverrideColor,
   hideTitleHeading,
   hidePercentageChange,
 }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
   const { isStockToken } = useRWAToken();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -193,17 +198,6 @@ const Balance = ({
     [asset.chainId, asset.isNative],
   );
 
-  const handlePress = useCallback(
-    () =>
-      !asset.isNative &&
-      navigation.navigate('AssetDetails', {
-        chainId: asset.chainId,
-        address: asset.address,
-        asset,
-      }),
-    [asset, navigation],
-  );
-
   const label = asset.accountType
     ? ACCOUNT_TYPE_LABELS[asset.accountType]
     : undefined;
@@ -215,17 +209,23 @@ const Balance = ({
           {strings('asset_overview.your_balance')}
         </Text>
       )}
+      {balanceDescription}
       <AssetElement
         disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
-        secondaryBalance={hidePercentageChange ? undefined : percentageText}
+        secondaryBalance={
+          hidePercentageChange
+            ? undefined
+            : (priceChangeOverride ?? percentageText)
+        }
         secondaryBalanceColor={
-          hidePercentageChange ? undefined : percentageColor
+          hidePercentageChange
+            ? undefined
+            : (priceChangeOverrideColor ?? percentageColor)
         }
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
-        onPress={handlePress}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}
@@ -267,7 +267,7 @@ const Balance = ({
           </View>
         </View>
       </AssetElement>
-      <EarnBalance asset={asset} />
+      {balanceCta}
     </View>
   );
 };

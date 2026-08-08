@@ -1,0 +1,58 @@
+import Logger from '../../../../util/Logger';
+import NavigationService from '../../../NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import type { AgenticCliApprovalParams } from '../../../../components/Views/AgenticCliApproval/types';
+import { AgenticCliApprovalService } from '../../../../components/Views/AgenticCliApproval/AgenticCliApprovalService';
+
+/**
+ * Handles `https://link.metamask.io/agentic-cli` deeplinks.
+ *
+ * Preferred query string:
+ * `?projectId=<id>&approvalId=<approvalId>&mimirSignature=<sig>`
+ *
+ * Dashboard host is always chosen on-device from build type. The approval page
+ * path is always `/agentic/approval`.
+ *
+ * The pending-deeplink saga (app/store/sagas/index.ts) gates this on
+ * vault-unlocked + onboarding-complete.
+ */
+
+export const parseAgenticCliApprovalParams =
+  AgenticCliApprovalService.parseDeeplinkQuery;
+
+export const handleAgenticCliApproval = (params: {
+  actionPath: string;
+}): void => {
+  const parsed = AgenticCliApprovalService.parseDeeplinkQuery(
+    params.actionPath,
+  );
+  const { projectId, approvalId, mimirSignature, operationType, subjectId } =
+    parsed;
+
+  if (!projectId || !approvalId) {
+    Logger.error(
+      new Error(
+        'handleAgenticCliApproval: missing projectId or approvalId param',
+      ),
+    );
+    return;
+  }
+
+  const navigationParams: AgenticCliApprovalParams = {
+    projectId,
+    approvalId,
+    mimirSignature:
+      AgenticCliApprovalService.decodeDeeplinkParam(mimirSignature),
+    operationType,
+    subjectId,
+  };
+
+  // The 200ms gap mirrors `handleDeeplinkSaga`'s setTimeout — gives any
+  // ongoing navigation transition time to settle before we push our screen.
+  setTimeout(() => {
+    NavigationService.navigation?.navigate(
+      Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
+      navigationParams,
+    );
+  }, 200);
+};

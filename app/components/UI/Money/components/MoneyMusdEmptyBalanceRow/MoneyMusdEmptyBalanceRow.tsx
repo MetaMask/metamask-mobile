@@ -60,7 +60,7 @@ const MoneyMusdEmptyBalanceRow = ({
         <AvatarToken
           name={MUSD_TOKEN.symbol}
           src={MUSD_TOKEN.imageSource as ImageOrSvgSrc}
-          size={AvatarTokenSize.Md}
+          size={AvatarTokenSize.Lg}
         />
       </BadgeWrapper>
       <Box twClassName="flex-1">

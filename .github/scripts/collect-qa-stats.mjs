@@ -29,13 +29,14 @@
  *   {
  *     "unit":          { "total_tests_run": 41957, "total_tests_skipped": 17, "bridge_tests_run": 5000, "other_tests_run": 1000 },
  *     "component_view":{ "total_tests_run": 94,    "total_tests_skipped": 0 },
+ *     "integration":   { "total_tests_run": 11,    "total_tests_skipped": 0 },
  *     "e2e":           { "total_tests_run": 420,   "total_tests_skipped": 27,
  *                        "main_tests_run": 276, "main_android_tests_run": 276, "main_ios_tests_run": 276,
  *                        "flask_tests_run": 144, "confirmations_tests_run": 62 },
  *     "metametrics":   { "metametrics_events_checked_unique_count": 42,
  *                        "metametrics_events_checked_names_json": "[\"Action Button Clicked\", ...]" },
  *     "performance":   { "total_tests_defined": 21, "total_tests_skipped": 1,
- *                        "login_tests_defined": 11, "onboarding_tests_defined": 4, "mm_connect_tests_defined": 6 }
+ *                        "login_tests_defined": 11, "onboarding_tests_defined": 4 }
  *   }
  */
 
@@ -70,6 +71,7 @@ const PATH_ONBOARDING_EVENTS = 'tests/helpers/analytics/helpers.ts';
 const SCAN_PERFORMANCE_DIR = 'tests/performance';
 
 const PATTERN_CV_TEST_FILE   = /\.view(?:\..+)?\.test\.[jt]sx?$/;
+const PATTERN_INTEGRATION_TEST_FILE = /\.integration\.test\.[jt]sx?$/;
 const PATTERN_UNIT_TEST_FILE = /\.test\.[jt]sx?$/;
 const PATTERN_E2E_SPEC_FILE  = /\.spec\.[jt]sx?$/;
 const PATTERN_PERF_SPEC_FILE = /\.spec\.js$/;
@@ -83,30 +85,50 @@ let _runId = null;
 let _artifactList = null;
 
 /**
- * Fetches the ID of the latest successful CI workflow run on `main`.
+ * Fetches the ID of the latest successful CI workflow run on `main` triggered
+ * by a `push` (merge-queue merge) or `schedule` event.
+ *
+ * These two event types always upload artifacts to standard GitHub storage.
+ * `workflow_dispatch` runs with runner_provider=namespace upload to Namespace's
+ * own storage instead, which is invisible to the standard GitHub artifacts API
+ * and would cause all artifact-based metrics to silently drop from the output.
+ * `workflow_call` runs are PR shadow runs — also not useful here.
+ *
+ * The GitHub API only supports a single `event` filter per request, so both
+ * event types are fetched in parallel and the most recently created run wins.
  *
  * @returns {Promise<string>}
  */
 async function getLatestCiRunId() {
-  const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&per_page=1`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-    },
-  });
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+  };
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch CI workflow runs: ${res.status} ${res.statusText}`);
-  }
+  const fetchLatestForEvent = async (event) => {
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&event=${event}&per_page=1`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+    }
+    const data = await res.json();
+    return data.workflow_runs?.[0] ?? null;
+  };
 
-  const data = await res.json();
-  const run = data.workflow_runs?.[0];
+  const [pushRun, scheduleRun] = await Promise.all([
+    fetchLatestForEvent('push'),
+    fetchLatestForEvent('schedule'),
+  ]);
+
+  const run = [pushRun, scheduleRun]
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
   if (!run) {
-    throw new Error('No successful CI workflow runs found on main');
+    throw new Error('No successful CI workflow runs found on main (push or schedule)');
   }
 
-  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, ${run.created_at})`);
+  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, event=${run.event}, ${run.created_at})`);
   return String(run.id);
 }
 
@@ -814,6 +836,52 @@ async function collectComponentViewTestCount() {
   return result;
 }
 
+async function collectIntegrationTestCount() {
+  console.log(
+    '[integration] collecting per-suite counts from shard artifacts...',
+  );
+  const result = await collectShardCounts(
+    /^coverage-integration-\d+$/,
+    'integration',
+  );
+  if (Object.keys(result).length === 0) return result;
+
+  const isIntegrationTestFile = (name) =>
+    PATTERN_INTEGRATION_TEST_FILE.test(name);
+  const files = await walkFiles(SCAN_APP_DIR, isIntegrationTestFile);
+  let defined = 0, skips = 0;
+  for (const f of files) {
+    const source = await readFile(f, 'utf8');
+    defined += countDefinedTests(source);
+    skips += countSkips(source);
+  }
+  result.total_tests_defined = defined;
+  result.total_tests_skipped = skips;
+
+  // Coverage from the pre-computed nyc json-summary report produced by
+  // the merge-unit-and-component-view-tests job in ci.yml.
+  try {
+    const destDir = await downloadArtifact('integration-test-coverage-summary');
+    const summary = JSON.parse(
+      await readFile(join(destDir, 'coverage-summary.json'), 'utf8'),
+    );
+    const { lines, statements, branches, functions } = summary.total;
+    result.coverage_line = Math.round(lines.pct * 10) / 10;
+    result.coverage_statement = Math.round(statements.pct * 10) / 10;
+    result.coverage_branch = Math.round(branches.pct * 10) / 10;
+    result.coverage_function = Math.round(functions.pct * 10) / 10;
+    console.log(
+      `[integration] coverage — line: ${result.coverage_line}%, stmt: ${result.coverage_statement}%, branch: ${result.coverage_branch}%, fn: ${result.coverage_function}%`,
+    );
+  } catch (err) {
+    console.warn(
+      `[integration] coverage summary not available, skipping: ${err.message}`,
+    );
+  }
+
+  return result;
+}
+
 async function collectUnitTestCount() {
   console.log('[unit] collecting per-suite counts from shard artifacts...');
   // minFolderCount=200: buckets individual component-level folders into `other`,
@@ -821,9 +889,11 @@ async function collectUnitTestCount() {
   const result = await collectShardCounts(/^coverage-unit-\d+$/, 'unit', 200);
   if (Object.keys(result).length === 0) return result;
 
-  // Unit test files: *.test.{ts,tsx,js} excluding *.view[.*].test.*
+  // Unit test files: *.test.{ts,tsx,js} excluding view and integration suites.
   const isUnitTestFile = (name) =>
-    PATTERN_UNIT_TEST_FILE.test(name) && !PATTERN_CV_TEST_FILE.test(name);
+    PATTERN_UNIT_TEST_FILE.test(name) &&
+    !PATTERN_CV_TEST_FILE.test(name) &&
+    !PATTERN_INTEGRATION_TEST_FILE.test(name);
   const files = await walkFiles(SCAN_APP_DIR, isUnitTestFile);
   let defined = 0, skips = 0;
   for (const f of files) {
@@ -1118,7 +1188,7 @@ async function collectE2ETestTimes() {
  * Counts executed performance scenarios by scanning *.spec.js files
  * under tests/performance/ and counting non-skipped test() calls.
  *
- * The top-level subdirectory (login, onboarding, mm-connect) determines the
+ * The top-level subdirectory (login, onboarding) determines the
  * category for per-category metrics.
  */
 async function collectPerformanceTestCounts() {
@@ -1200,6 +1270,7 @@ async function main() {
   const collectors = [
     { namespace: 'unit', collect: collectUnitTestCount },
     { namespace: 'component_view', collect: collectComponentViewTestCount },
+    { namespace: 'integration', collect: collectIntegrationTestCount },
     { namespace: 'e2e', collect: collectE2ECounts },
     { namespace: 'e2e_test_times', collect: collectE2ETestTimes },
     { namespace: 'metametrics', collect: collectMetametricsQaStats },

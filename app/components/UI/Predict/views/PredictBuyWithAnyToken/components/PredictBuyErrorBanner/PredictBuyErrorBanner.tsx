@@ -53,10 +53,14 @@ const PredictBuyErrorBanner = ({
   const styles = VARIANT_STYLES[variant];
 
   return (
+    // `-mt-1` (-4px) trims the 24px gap left by the preceding PredictFeeSummary
+    // (`pb-6`) down to 20px so it matches this banner's own `mb-5` (20px) gap to
+    // the action button, keeping the banner evenly spaced. If PredictFeeSummary's
+    // bottom padding changes, revisit this offset.
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName={`mb-5 p-3 rounded-lg gap-3 ${styles.containerClass}`}
+      twClassName={`-mt-1 mb-5 p-3 rounded-lg gap-3 ${styles.containerClass}`}
       testID={testID}
     >
       <Icon

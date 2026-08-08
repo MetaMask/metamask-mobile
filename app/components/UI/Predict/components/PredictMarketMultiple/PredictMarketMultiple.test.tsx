@@ -180,6 +180,27 @@ describe('PredictMarketMultiple', () => {
     });
   });
 
+  it('calls buy handler instead of opening the buy sheet when it returns true', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictMarketMultiple
+        market={mockMarket}
+        onBuyButtonPress={onBuyButtonPress}
+      />,
+      { state: initialState },
+    );
+
+    const buttons = UNSAFE_getAllByType(Button);
+    fireEvent.press(buttons[0]);
+
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+    });
+    expect(mockOpenBuySheet).not.toHaveBeenCalled();
+  });
+
   it('handle missing or invalid market data gracefully', () => {
     const marketWithMissingData: PredictMarket = {
       ...mockMarket,
@@ -236,6 +257,31 @@ describe('PredictMarketMultiple', () => {
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
     expect(getByText('75%')).toBeOnTheScreen();
+  });
+
+  it('renders outcomes provided by the feed model without price-based filtering', () => {
+    const pinnedOutcomeMarket: PredictMarket = {
+      ...mockMarket,
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          id: 'pinned-outcome',
+          groupItemTitle: 'Pinned Outcome',
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 1 },
+            { id: 'token-no', title: 'No', price: 0 },
+          ],
+        },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketMultiple market={pinnedOutcomeMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Pinned Outcome')).toBeOnTheScreen();
+    expect(getByText('>99%')).toBeOnTheScreen();
   });
 
   it('handle market with recurrence', () => {
@@ -344,6 +390,21 @@ describe('PredictMarketMultiple', () => {
         image: mockMarket.image,
       },
     });
+  });
+
+  it('does not navigate to market details when card press is disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <PredictMarketMultiple
+        market={mockMarket}
+        cardPressDisabled
+        testID="predict-market-multiple-card"
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId('predict-market-multiple-card'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('checks eligibility before balance for Yes button', () => {

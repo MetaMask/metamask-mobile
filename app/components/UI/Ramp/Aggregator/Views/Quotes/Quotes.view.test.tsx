@@ -1,0 +1,264 @@
+import '../../../../../../../tests/component-view/mocks';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  CryptoCurrency,
+  FiatCurrency,
+  QuoteResponse,
+  SellQuoteResponse,
+} from '@consensys/on-ramp-sdk';
+
+import { renderAggregatorQuotesView } from '../../../../../../../tests/component-view/renderers/ramps';
+import {
+  clearRampSdkApiMocks,
+  setupRampSdkApiMock,
+} from '../../../../../../../tests/component-view/api-mocking/ramp';
+import { RampType } from '../../types';
+
+const ETH = {
+  id: '/currencies/crypto/1/eth',
+  idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
+  network: {
+    active: true,
+    chainId: '1',
+    chainName: 'Ethereum Mainnet',
+    shortName: 'Ethereum',
+  },
+  logo: 'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
+  decimals: 18,
+  address: '0x0000000000000000000000000000000000000000',
+  symbol: 'ETH',
+  name: 'Ethereum',
+} as unknown as CryptoCurrency;
+
+const EUR = {
+  id: '/currencies/fiat/eur',
+  symbol: 'EUR',
+  name: 'Euro',
+  denomSymbol: '€',
+  decimals: 2,
+} as unknown as FiatCurrency;
+
+const FRANCE_REGION_ID = '/regions/fr';
+const PAYMENT_METHOD_ID = '/payments/sepa-bank-transfer';
+const WALLET_ADDRESS = '0xabc123abc123abc123abc123abc123abc123abcd';
+
+/**
+ * Minimal QuoteResponse shape consumed by `Quote` (provider name,
+ * amounts, fee, exchange rate). Avoids pulling the heavyweight
+ * `mockQuotesData` constant whose ordering depends on `sorted`/sort tags
+ * we don't supply.
+ */
+function buildSellQuote(
+  overrides: Partial<SellQuoteResponse> = {},
+): SellQuoteResponse {
+  return {
+    provider: {
+      id: '/providers/moonpay-staging',
+      name: 'MoonPay (Staging)',
+      description: '',
+      hqAddress: '',
+      links: [],
+      logos: { light: '', dark: '', height: 24, width: 88 },
+      features: {} as never,
+    },
+    crypto: ETH,
+    fiat: EUR,
+    amountIn: 50,
+    amountOut: 38.42,
+    networkFee: 0.5,
+    providerFee: 1.2,
+    extraFee: 0,
+    exchangeRate: 0.7684,
+    error: false,
+    paymentMethod: 'sepa-bank-transfer',
+    receiver: WALLET_ADDRESS,
+    isNativeApplePay: false,
+    amountOutInFiat: 38.42,
+    tags: { isBestRate: true, isMostReliable: true },
+    ...overrides,
+  } as unknown as SellQuoteResponse;
+}
+
+function buildBuyQuote(overrides: Partial<QuoteResponse> = {}): QuoteResponse {
+  return {
+    provider: {
+      id: '/providers/transak-staging',
+      name: 'Transak (Staging)',
+      description: '',
+      hqAddress: '',
+      links: [],
+      logos: { light: '', dark: '', height: 24, width: 90 },
+      features: {} as never,
+    },
+    crypto: ETH,
+    fiat: EUR,
+    amountIn: 50,
+    amountOut: 0.0162,
+    networkFee: 2.64,
+    providerFee: 1.84,
+    extraFee: 0,
+    exchangeRate: 2854.39,
+    error: false,
+    paymentMethod: 'sepa-bank-transfer',
+    receiver: WALLET_ADDRESS,
+    isNativeApplePay: false,
+    amountOutInFiat: 44.39,
+    tags: { isBestRate: true, isMostReliable: true },
+    ...overrides,
+  } as unknown as QuoteResponse;
+}
+
+describe('Aggregator Quotes screen', () => {
+  beforeEach(() => {
+    // Block incidental Ramp HTTP (regions/countries) left over from prior suites
+    // so Quotes cannot open real TLS through nock's interceptor.
+    setupRampSdkApiMock();
+  });
+
+  afterEach(() => {
+    clearRampSdkApiMocks();
+  });
+
+  it('loads sell quotes via getSellQuotes and renders the recommended provider', async () => {
+    const sellQuote = buildSellQuote();
+    const getSellQuotes = jest.fn().mockResolvedValue({
+      quotes: [sellQuote],
+      sorted: [],
+      customActions: [],
+    });
+
+    const { render, sdkMocks } = renderAggregatorQuotesView({
+      rampType: RampType.SELL,
+      amount: 50,
+      selectedAsset: ETH,
+      selectedFiatCurrency: EUR,
+      selectedPaymentMethodId: PAYMENT_METHOD_ID,
+      selectedAddress: WALLET_ADDRESS,
+      sdkMocks: { getSellQuotes },
+    });
+
+    expect(await render.findByText('MoonPay (Staging)')).toBeOnTheScreen();
+
+    await waitFor(() => {
+      expect(sdkMocks.getSellQuotes).toHaveBeenCalledWith(
+        FRANCE_REGION_ID,
+        [PAYMENT_METHOD_ID],
+        ETH.id,
+        EUR.id,
+        50,
+        WALLET_ADDRESS,
+        expect.anything(),
+      );
+    });
+  });
+
+  it('displays sell quote amount and shows CTA after pressing the quote', async () => {
+    const sellQuote = buildSellQuote({
+      amountOut: 45.5,
+      providerFee: 2.5,
+      networkFee: 1.0,
+    });
+    const getSellQuotes = jest.fn().mockResolvedValue({
+      quotes: [sellQuote],
+      sorted: [],
+      customActions: [],
+    });
+
+    const { render } = renderAggregatorQuotesView({
+      rampType: RampType.SELL,
+      amount: 50,
+      selectedAsset: ETH,
+      selectedFiatCurrency: EUR,
+      selectedPaymentMethodId: PAYMENT_METHOD_ID,
+      selectedAddress: WALLET_ADDRESS,
+      sdkMocks: { getSellQuotes },
+    });
+
+    expect(await render.findByText('MoonPay (Staging)')).toBeOnTheScreen();
+
+    fireEvent.press(await render.findByText('MoonPay (Staging)'));
+
+    expect(
+      await render.findByText('Continue with MoonPay (Staging)'),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(render.getByText(/45\.5/)).toBeOnTheScreen();
+    });
+  });
+
+  it('renders multiple sell quotes and reveals second provider via "Explore more options"', async () => {
+    const moonpayQuote = buildSellQuote({
+      amountOut: 38.42,
+    });
+    const transakQuote = buildSellQuote({
+      provider: {
+        id: '/providers/transak-staging',
+        name: 'Transak (Staging)',
+        description: '',
+        hqAddress: '',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 90 },
+        features: {} as never,
+        environmentType: '' as never,
+      },
+      amountOut: 37.5,
+    });
+
+    const getSellQuotes = jest.fn().mockResolvedValue({
+      quotes: [moonpayQuote, transakQuote],
+      sorted: [],
+      customActions: [],
+    });
+
+    const { render } = renderAggregatorQuotesView({
+      rampType: RampType.SELL,
+      amount: 50,
+      selectedAsset: ETH,
+      selectedFiatCurrency: EUR,
+      selectedPaymentMethodId: PAYMENT_METHOD_ID,
+      selectedAddress: WALLET_ADDRESS,
+      sdkMocks: { getSellQuotes },
+    });
+
+    // First (recommended) quote is visible immediately
+    expect(await render.findByText('MoonPay (Staging)')).toBeOnTheScreen();
+
+    // Expand to see other providers
+    fireEvent.press(await render.findByText('Explore more options'));
+
+    expect(await render.findByText('Transak (Staging)')).toBeOnTheScreen();
+  });
+
+  it('loads buy quotes via getQuotes and renders the recommended provider', async () => {
+    const buyQuote = buildBuyQuote();
+    const getQuotes = jest.fn().mockResolvedValue({
+      quotes: [buyQuote],
+      sorted: [],
+      customActions: [],
+    });
+
+    const { render, sdkMocks } = renderAggregatorQuotesView({
+      rampType: RampType.BUY,
+      amount: 50,
+      selectedAsset: ETH,
+      selectedFiatCurrency: EUR,
+      selectedPaymentMethodId: PAYMENT_METHOD_ID,
+      selectedAddress: WALLET_ADDRESS,
+      sdkMocks: { getQuotes },
+    });
+
+    expect(await render.findByText('Transak (Staging)')).toBeOnTheScreen();
+
+    await waitFor(() => {
+      expect(sdkMocks.getQuotes).toHaveBeenCalledWith(
+        FRANCE_REGION_ID,
+        [PAYMENT_METHOD_ID],
+        ETH.id,
+        EUR.id,
+        50,
+        WALLET_ADDRESS,
+        expect.anything(),
+      );
+    });
+  });
+});

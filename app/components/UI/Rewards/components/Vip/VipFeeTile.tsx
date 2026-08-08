@@ -1,20 +1,22 @@
 import React from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { formatNumber } from '../../utils/formatUtils';
+import {
+  VIP_GOLD_BORDER_DEFAULT,
+  VIP_GOLD_TEXT_DEFAULT,
+  VIP_GOLD_TEXT_MUTED,
+} from './Vip.constants';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 export const VIP_FEE_TILE_TEST_IDS = {
   CONTAINER: 'vip-fee-tile',
@@ -23,13 +25,15 @@ export const VIP_FEE_TILE_TEST_IDS = {
   NEXT: 'vip-fee-tile-next',
 } as const;
 
+export const VIP_FEE_TILE_WIDTH = 168;
+
+const vipGoldTextMutedStyle = { color: VIP_GOLD_TEXT_MUTED };
+
 interface VipFeeTileProps {
   label: string;
   currentBps?: number;
   unit?: string;
   nextTierLabel?: string;
-  nextTierIconName?: IconName;
-  style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
@@ -38,10 +42,15 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
   currentBps,
   unit = strings('rewards.vip.bps_unit'),
   nextTierLabel,
-  nextTierIconName,
-  style,
   testID,
 }) => {
+  const { themeAppearance } = useTheme();
+  const mutedTextStyle =
+    themeAppearance === AppThemeKey.dark ? vipGoldTextMutedStyle : undefined;
+  const mutedTextColor =
+    themeAppearance === AppThemeKey.dark
+      ? undefined
+      : TextColor.TextAlternative;
   const displayValue =
     unit === '%' && currentBps !== undefined
       ? formatNumber(currentBps / 100, 2)
@@ -49,9 +58,13 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
 
   return (
     <Box
-      twClassName="bg-section rounded-2xl p-4 gap-2"
-      style={style}
+      twClassName="bg-section rounded-2xl p-4"
+      style={{
+        width: VIP_FEE_TILE_WIDTH,
+        borderColor: VIP_GOLD_BORDER_DEFAULT,
+      }}
       testID={testID ?? VIP_FEE_TILE_TEST_IDS.CONTAINER}
+      borderWidth={1}
     >
       <Text
         variant={TextVariant.BodySm}
@@ -64,20 +77,20 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.End}
-        twClassName="gap-1"
         testID={VIP_FEE_TILE_TEST_IDS.CURRENT}
+        twClassName="gap-1"
       >
         <Text
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
-          color={TextColor.WarningDefault}
+          style={{ color: VIP_GOLD_TEXT_DEFAULT }}
         >
           {displayValue}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Bold}
-          color={TextColor.WarningDefault}
+          style={{ color: VIP_GOLD_TEXT_DEFAULT }}
           twClassName="pb-1"
         >
           {unit}
@@ -87,19 +100,12 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
         >
-          {nextTierIconName ? (
-            <Icon
-              name={nextTierIconName}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          ) : null}
           <Text
             variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
+            color={mutedTextColor}
             testID={VIP_FEE_TILE_TEST_IDS.NEXT}
+            style={mutedTextStyle}
           >
             {nextTierLabel}
           </Text>

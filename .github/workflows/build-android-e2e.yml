@@ -23,7 +23,7 @@ on:
       source-fingerprint:
         description: >-
           Canonical @expo/fingerprint hash for this commit, computed once in
-          the `post-build-source-hash` job. Used for cache keys and cross-run
+          the `native-build-fingerprint` job. Used for cache keys and cross-run
           artifact lookups. When empty (e.g. forked PR where the hash job is
           skipped), the build compiles fresh with no cache reuse.
         required: false
@@ -34,6 +34,22 @@ on:
         required: false
         type: string
         default: current
+      include_arm64:
+        description: >-
+          Include arm64-v8a in the E2E build (in addition to x86_64) so the APK runs on
+          Apple Silicon emulators. Default false = standard CI behavior (x86_64-only).
+          When true, all build reuse/caching is disabled and artifact names are suffixed
+          with "-arm64" to avoid colliding with the standard x86_64 CI artifacts.
+        required: false
+        default: false
+        type: boolean
+      reuse-main-builds-only:
+        description: >-
+          When true, only reuse native artifacts from the base branch (main) and skip
+          JS repacking. Fails if no reusable main build is found.
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build-android-apks:
@@ -44,6 +60,7 @@ jobs:
       GRADLE_USER_HOME: ${{ inputs.runner_provider == 'namespace' && '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle' }}
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
+      E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-android-build-metadata
     outputs:
       apk-uploaded: ${{ steps.upload-apk-namespace.outcome == 'success' || steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -121,10 +138,18 @@ jobs:
             echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
             exit 1
           fi
+          # Captured here, pre-setup, so the reuse summary can print the same APK
+          # cache keys the restore steps below actually used. `hashFiles` is
+          # evaluated wherever it is written, and the summary now runs after the
+          # build — by then jetify has rewritten `*.gradle` files under
+          # `node_modules/*/android/`, so an inline `hashFiles` there would render
+          # keys that were never used, in exactly the row someone is reading to
+          # debug a cache miss.
+          echo "gradle-files-hash=${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}" >> "$GITHUB_OUTPUT"
 
       - name: Check Namespace E2E APK cache
         id: namespace-apk-cache
-        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         shell: bash
         env:
           APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -168,15 +193,18 @@ jobs:
 
       - name: Find reusable build from prior run
         id: find-reusable-build
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          metadata-artifact-name: ${{ inputs.reuse-main-builds-only != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
           github-token: ${{ github.token }}
+          main-branch-only: ${{ inputs.reuse-main-builds-only }}
+          max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
 
       - name: Restore APKs matching fingerprint from branch cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && inputs.reuse-main-builds-only != true }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -187,7 +215,7 @@ jobs:
           key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && (inputs.reuse-main-builds-only == true || (steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -196,9 +224,67 @@ jobs:
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Download reusable Android build metadata from prior run
+        id: download-reusable-metadata
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-reusable-metadata/android
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Validate reusable Android build metadata
+        id: validate-reusable-metadata
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        shell: bash
+        env:
+          EXPECTED_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          EXPECTED_BUILD_TYPE: ${{ inputs.build_type }}
+          EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          EXPECTED_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build.outputs.source-sha }}
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          METADATA_FILE: .e2e-reusable-metadata/android/android.json
+        run: |
+          set -euo pipefail
+          echo "valid=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ steps.download-reusable-metadata.outcome }}" != "success" ]]; then
+            echo "::warning::Reusable Android metadata download failed; falling back to fresh native build."
+            exit 0
+          fi
+          if [[ ! -f "$METADATA_FILE" ]]; then
+            echo "::warning::Reusable Android metadata file missing at $METADATA_FILE; falling back to fresh native build."
+            exit 0
+          fi
+          if jq -e \
+            --arg fingerprint "$EXPECTED_FINGERPRINT" \
+            --arg buildType "$EXPECTED_BUILD_TYPE" \
+            --arg metamaskEnvironment "$EXPECTED_METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$EXPECTED_RUN_ID" \
+            --arg headSha "$EXPECTED_HEAD_SHA" \
+            --argjson artifactNames "$EXPECTED_ARTIFACTS" \
+            '.schemaVersion == 1
+              and .fingerprint == $fingerprint
+              and .platform == "android"
+              and .buildType == $buildType
+              and .metamaskEnvironment == $metamaskEnvironment
+              and .workflowRunId == $workflowRunId
+              and .headSha == $headSha
+              and .artifactNames == $artifactNames' "$METADATA_FILE" >/dev/null; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Reusable Android metadata is valid."
+          else
+            echo "::warning::Reusable Android metadata did not match current build request; falling back to fresh native build."
+            cat "$METADATA_FILE"
+          fi
+
       - name: Download reusable APK from prior run
         id: download-reusable-apk
-        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -210,7 +296,7 @@ jobs:
 
       - name: Download reusable androidTest APK from prior run
         id: download-reusable-test-apk
-        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -231,10 +317,27 @@ jobs:
       - name: Compute native-build gate
         id: gate
         run: |
-          if [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
+          if [[ "${{ inputs.reuse-main-builds-only }}" == "true" ]]; then
+            if [[ "${{ steps.force-builds.outputs.force }}" == "true" ]]; then
+              echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+              echo "force-builds override on test-only PR — compiling fresh native build."
+            elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+               && "${{ steps.download-reusable-apk.outcome }}" == "success" \
+               && "${{ steps.download-reusable-test-apk.outcome }}" == "success" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Test-only PR: reusing main branch Android artifacts from GitHub Actions (no repack)."
+            elif [[ "${{ steps.apk-cache-restore-main.outputs.cache-hit }}" == "true" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Test-only PR: reusing main branch Android artifacts from Cirrus APK cache (no repack)."
+            else
+              echo "::warning::Test-only PR could not reuse main Android builds yet (GitHub artifacts or main APK cache). Falling back to fresh native build."
+              echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+            fi
+          elif [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
             echo "Namespace APK cache hit; heavy Android setup + Gradle restore will be skipped."
           elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+             && "${{ steps.validate-reusable-metadata.outputs.valid }}" == "true" \
              && "${{ steps.download-reusable-apk.outcome }}" == "success" \
              && "${{ steps.download-reusable-test-apk.outcome }}" == "success" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
@@ -244,7 +347,9 @@ jobs:
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
             echo "APK cache hit; heavy Android setup + Gradle restore will be skipped."
           else
-            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
+            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" && "${{ steps.validate-reusable-metadata.outputs.valid }}" != "true" ]]; then
+              echo "::warning::Reusable run was found but metadata validation failed; falling back to fresh native build."
+            elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
               echo "::warning::Reusable run was found but artifact download failed (apk=${{ steps.download-reusable-apk.outcome }}, test-apk=${{ steps.download-reusable-test-apk.outcome }}); falling back to fresh native build."
             fi
             echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
@@ -294,6 +399,150 @@ jobs:
             echo "📦 Setting up project (lightweight, skips jetify)..."
             yarn setup:github-ci --no-build-ios --no-build-android
 
+      # Roughly four and a half minutes elapse between the lookup near the top of
+      # this job and the build step below, spent on the Android toolchain and
+      # dependency install. A donor can finish uploading inside that window: the
+      # native build publishes its APKs well before its run ends, so a run that had
+      # nothing to offer at lookup time may have complete artifacts by now. Re-check
+      # before committing to a ~18 minute compile. This costs one lookup on the path
+      # that was about to be the expensive one, and adds no waiting — it only
+      # harvests a donor that appeared while we were busy anyway.
+      #
+      # Deliberately placed *before* the Gradle cache restores rather than directly
+      # before the build, which is where the iOS equivalent sits. "Restore Gradle
+      # dependencies from branch cache" below is `cirruslabs/cache` (not `/restore`),
+      # so it saves at post-job whenever its key missed. Today a miss is always
+      # followed by a compile, so what it saves is populated; if a late reuse could
+      # skip the compile after that step had run, the post-job save would write a
+      # near-empty tree under `gradle-${{ github.ref_name }}-…` — a key that on
+      # `main` is identical to the shared `gradle-main-…` key every other branch
+      # falls back to. Running the re-check first, and gating both restores on it,
+      # removes that possibility and skips the cache download too. The cost is ~27
+      # seconds of harvest window out of ~4.5 minutes.
+      - name: Re-check for a reusable build published since the first lookup
+        id: find-reusable-build-late
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false && steps.gate.outputs.needs-native-build == 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source-fingerprint }}
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          metadata-artifact-name: ${{ inputs.reuse-main-builds-only != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
+          github-token: ${{ github.token }}
+          main-branch-only: ${{ inputs.reuse-main-builds-only }}
+          max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
+
+      - name: Download late reusable Android build metadata
+        id: download-late-metadata
+        if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-reusable-metadata/android-late
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
+
+      # Same acceptance criteria as the first lookup's validation. A late donor is
+      # held to an identical standard; the only difference is when it was found.
+      # Failures here are logged plainly rather than via `::warning::` — not finding
+      # a late donor is the ordinary outcome and should not annotate the run.
+      - name: Validate late reusable Android build metadata
+        id: validate-late-metadata
+        if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
+        shell: bash
+        env:
+          EXPECTED_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          EXPECTED_BUILD_TYPE: ${{ inputs.build_type }}
+          EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          EXPECTED_RUN_ID: ${{ steps.find-reusable-build-late.outputs.run-id }}
+          EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          METADATA_FILE: .e2e-reusable-metadata/android-late/android.json
+        run: |
+          set -euo pipefail
+          echo "valid=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ steps.download-late-metadata.outcome }}" != "success" ]]; then
+            echo "Late reusable Android metadata download failed; continuing with the fresh native build."
+            exit 0
+          fi
+          if [[ ! -f "$METADATA_FILE" ]]; then
+            echo "Late reusable Android metadata file missing at $METADATA_FILE; continuing with the fresh native build."
+            exit 0
+          fi
+          if jq -e \
+            --arg fingerprint "$EXPECTED_FINGERPRINT" \
+            --arg buildType "$EXPECTED_BUILD_TYPE" \
+            --arg metamaskEnvironment "$EXPECTED_METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$EXPECTED_RUN_ID" \
+            --arg headSha "$EXPECTED_HEAD_SHA" \
+            --argjson artifactNames "$EXPECTED_ARTIFACTS" \
+            '.schemaVersion == 1
+              and .fingerprint == $fingerprint
+              and .platform == "android"
+              and .buildType == $buildType
+              and .metamaskEnvironment == $metamaskEnvironment
+              and .workflowRunId == $workflowRunId
+              and .headSha == $headSha
+              and .artifactNames == $artifactNames' "$METADATA_FILE" >/dev/null; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Late reusable Android metadata is valid."
+          else
+            echo "Late reusable Android metadata did not match current build request; continuing with the fresh native build."
+            cat "$METADATA_FILE"
+          fi
+
+      # Defensive, not load-bearing. The iOS equivalent of this step is required
+      # there because `actions/download-artifact` merges into its destination and the
+      # iOS payload is a `.app` *directory* bundle, so a stale one would blend with
+      # the donor's. An APK is a single file that the extraction overwrites whole.
+      # Nothing on this path should have written these files either: the Cirrus APK
+      # caches above only restore when the first lookup found nothing, and a hit
+      # there forces `needs-native-build=false`, which this step cannot be reached
+      # under. Kept as cheap insurance against a partial restore — if the download
+      # then fails, the compile still runs and regenerates both files.
+      - name: Clear any stale Android APKs before the late download
+        if: ${{ steps.validate-late-metadata.outputs.valid == 'true' }}
+        shell: bash
+        env:
+          APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          TEST_APK_TARGET: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          ARTIFACT_NAME: ${{ steps.determine-target-paths.outputs.artifact_name }}
+        run: rm -f "${APK_TARGET}/${ARTIFACT_NAME}.apk" "${TEST_APK_TARGET}/${ARTIFACT_NAME}-androidTest.apk"
+
+      - name: Download late reusable APK
+        id: download-late-apk
+        if: ${{ steps.validate-late-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
+
+      - name: Download late reusable androidTest APK
+        id: download-late-test-apk
+        if: ${{ steps.validate-late-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
+
+      - name: Log late-reused Android build source
+        if: ${{ steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success' }}
+        shell: bash
+        run: |
+          echo "A reusable Android build appeared while this job was setting up; skipping the native compile."
+          echo "Reusing Android build from run ${{ steps.find-reusable-build-late.outputs.run-id }}"
+          echo "Source SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}"
+          echo "Source branch: ${{ steps.find-reusable-build-late.outputs.source-branch }}"
+
       # -------------------------------------------------------------------------
       # Gradle caches + native build — only on the full native-build path.
       # -------------------------------------------------------------------------
@@ -306,7 +555,7 @@ jobs:
         id: gradle-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -321,7 +570,7 @@ jobs:
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -341,8 +590,10 @@ jobs:
           echo "init-script=$RUNNER_TEMP/namespace-gradle-init.gradle" >> "$GITHUB_OUTPUT"
         shell: bash
 
+      # Both downloads must have succeeded to skip the compile — a half-downloaded
+      # donor leaves the job without a test APK, so it falls through to a full build.
       - name: Build Android E2E APKs
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=4096"
@@ -353,7 +604,8 @@ jobs:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-          IS_TEST: true
+          E2E_INCLUDE_ARM64: ${{ inputs.include_arm64 }}
+          HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
@@ -368,7 +620,6 @@ jobs:
           # download missing components, causing CXX1300. RN's CMakeLists.txt files
           # only require >= 3.13, so 3.22.1 is fully sufficient.
           CMAKE_VERSION: '3.22.1'
-          BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
@@ -392,7 +643,7 @@ jobs:
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Record Namespace E2E APK cache marker
-        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         shell: bash
         env:
           APK_SOURCE: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
@@ -412,8 +663,10 @@ jobs:
           printf '%s\n' "${EXPECTED}" > "${CACHE_DIR}/.e2e-apk-cache-marker"
           echo "Namespace APK cache marker + APKs written to ${CACHE_DIR}."
 
+      # A late-reused APK carries the donor's JS bundle, not this branch's, so a late
+      # reuse must repack exactly like an early one.
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ inputs.reuse-main-builds-only != true && (steps.gate.outputs.needs-native-build != 'true' || (steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success')) }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -423,14 +676,14 @@ jobs:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-          IS_TEST: true
+          E2E_INCLUDE_ARM64: ${{ inputs.include_arm64 }}
+          HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
           METRO_MAX_WORKERS: '6'
-          BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
@@ -452,12 +705,170 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      # Deliberately placed after the build and repack rather than next to the gate,
+      # where it used to sit. The gate is computed before the late re-check exists,
+      # so from up there a late reuse still reported "Fresh native build" — the row
+      # someone reads first when a run looks wrong. Here every input to the decision
+      # is final. `always()` runs on failure and on cancellation, so a failed or
+      # cancelled compile still gets its summary.
+      - name: Write Android E2E reuse summary
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
+          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          METADATA_VALID: ${{ steps.validate-reusable-metadata.outputs.valid }}
+          APK_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-apk.outcome }}
+          TEST_APK_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-test-apk.outcome }}
+          LATE_LOOKUP_OUTCOME: ${{ steps.find-reusable-build-late.outcome }}
+          LATE_REUSABLE_FOUND: ${{ steps.find-reusable-build-late.outputs.found }}
+          LATE_REUSABLE_RUN_ID: ${{ steps.find-reusable-build-late.outputs.run-id }}
+          LATE_METADATA_VALID: ${{ steps.validate-late-metadata.outputs.valid }}
+          LATE_APK_DOWNLOAD_OUTCOME: ${{ steps.download-late-apk.outcome }}
+          LATE_TEST_APK_DOWNLOAD_OUTCOME: ${{ steps.download-late-test-apk.outcome }}
+          NAMESPACE_CACHE_HIT: ${{ steps.namespace-apk-cache.outputs.cache-hit }}
+          BRANCH_CACHE_HIT: ${{ steps.apk-cache-restore.outputs.cache-hit }}
+          MAIN_CACHE_HIT: ${{ steps.apk-cache-restore-main.outputs.cache-hit }}
+          # Uses the hash captured pre-setup by `determine-target-paths`, not an
+          # inline `hashFiles`: this step now runs after jetify, which rewrites
+          # `*.gradle` files under `node_modules/*/android/`, so an inline call here
+          # would render keys the restore steps never used.
+          BRANCH_CACHE_KEY: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ steps.determine-target-paths.outputs.gradle-files-hash }}
+          MAIN_CACHE_KEY: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ steps.determine-target-paths.outputs.gradle-files-hash }}
+          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          value() {
+            if [[ -n "${1:-}" ]]; then
+              printf '%s' "$1"
+            else
+              printf 'n/a'
+            fi
+          }
+
+          yes_no() {
+            case "${1:-}" in
+              true) printf 'yes' ;;
+              *) printf 'no' ;;
+            esac
+          }
+
+          run_link() {
+            printf '[https://github.com/%s/actions/runs/%s](https://github.com/%s/actions/runs/%s)' \
+              "$REPOSITORY" "$1" "$REPOSITORY" "$1"
+          }
+
+          github_candidate="$(yes_no "$REUSABLE_FOUND")"
+          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
+            github_candidate="yes ($(run_link "$REUSABLE_RUN_ID"))"
+          fi
+
+          # Three states, so "the re-check never ran" reads differently from "it ran
+          # and found nothing" — the two have very different causes.
+          late_candidate="n/a (not reached)"
+          if [[ -n "${LATE_LOOKUP_OUTCOME:-}" && "${LATE_LOOKUP_OUTCOME}" != "skipped" ]]; then
+            late_candidate="$(yes_no "$LATE_REUSABLE_FOUND")"
+            if [[ -n "${LATE_REUSABLE_RUN_ID:-}" ]]; then
+              late_candidate="yes ($(run_link "$LATE_REUSABLE_RUN_ID"))"
+            fi
+          fi
+
+          # The late branch is checked first: on a late reuse the gate still says
+          # `needs-native-build=true`, because it was computed before the re-check.
+          # A late reuse is mutually exclusive with every other branch below — it
+          # requires a non-Namespace runner and a `true` gate, so no Namespace hit,
+          # no early GitHub reuse and no Cirrus hit can coexist with it.
+          decision="Fresh native build"
+          if [[ "${LATE_APK_DOWNLOAD_OUTCOME:-}" == "success" && "${LATE_TEST_APK_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
+            decision="GitHub artifact reuse (late — donor appeared during setup)"
+          elif [[ "${NAMESPACE_CACHE_HIT:-}" == "true" ]]; then
+            decision="Namespace APK cache"
+          elif [[ "${REUSABLE_FOUND:-}" == "true" && "${METADATA_VALID:-}" == "true" && "${APK_DOWNLOAD_OUTCOME:-}" == "success" && "${TEST_APK_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
+            decision="GitHub artifact reuse"
+          elif [[ "${BRANCH_CACHE_HIT:-}" == "true" || "${MAIN_CACHE_HIT:-}" == "true" ]]; then
+            decision="Cirrus APK cache"
+          elif [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+            decision="reuse/cache hit"
+          fi
+
+          branch_cache="$(yes_no "$BRANCH_CACHE_HIT")"
+          main_cache="$(yes_no "$MAIN_CACHE_HIT")"
+          if [[ "${BRANCH_CACHE_HIT:-}" == "true" ]]; then
+            branch_cache="yes (\`$BRANCH_CACHE_KEY\`)"
+          elif [[ "${MAIN_CACHE_HIT:-}" == "true" ]]; then
+            main_cache="yes (\`$MAIN_CACHE_KEY\`)"
+          fi
+
+          {
+            echo "### Android E2E build reuse"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Decision | $decision |"
+            echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
+            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
+            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
+            echo "| Branch APK cache hit | $branch_cache |"
+            echo "| Main APK cache hit | $main_cache |"
+            echo "| GitHub artifact candidate | $github_candidate |"
+            echo "| Late re-check candidate | $late_candidate |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write Android E2E build metadata
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECKOUT_SHA: ${{ github.sha }}
+          GITHUB_REF_VALUE: ${{ github.ref }}
+          GITHUB_REF_NAME_VALUE: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME_VALUE: ${{ github.event_name }}
+          GITHUB_RUN_ID_VALUE: ${{ github.run_id }}
+          ARTIFACT_NAMES: ${{ format('["{0}-{1}{2}-release.apk","{0}-{1}{2}-release-androidTest.apk"]', inputs.build_type, inputs.metamask_environment, inputs.include_arm64 && '-arm64' || '') }}
+        run: |
+          set -euo pipefail
+          mkdir -p .e2e-build-metadata
+          jq -n \
+            --arg fingerprint "$SOURCE_FINGERPRINT" \
+            --arg platform "android" \
+            --arg buildType "$BUILD_TYPE" \
+            --arg metamaskEnvironment "$METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$GITHUB_RUN_ID_VALUE" \
+            --arg headSha "$HEAD_SHA" \
+            --arg checkoutSha "$CHECKOUT_SHA" \
+            --arg githubRef "$GITHUB_REF_VALUE" \
+            --arg githubRefName "$GITHUB_REF_NAME_VALUE" \
+            --arg githubEventName "$GITHUB_EVENT_NAME_VALUE" \
+            --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson artifactNames "$ARTIFACT_NAMES" \
+            '{
+              schemaVersion: 1,
+              fingerprint: $fingerprint,
+              platform: $platform,
+              buildType: $buildType,
+              metamaskEnvironment: $metamaskEnvironment,
+              workflowRunId: $workflowRunId,
+              headSha: $headSha,
+              checkoutSha: $checkoutSha,
+              githubRef: $githubRef,
+              githubRefName: $githubRefName,
+              githubEventName: $githubEventName,
+              artifactNames: $artifactNames,
+              createdAt: $createdAt
+            }' > .e2e-build-metadata/android.json
+          cat .e2e-build-metadata/android.json
+
       - name: Upload Android APK (Namespace)
         id: upload-apk-namespace
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
@@ -467,7 +878,7 @@ jobs:
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
@@ -477,17 +888,59 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
+
+      - name: Upload Android build metadata (Namespace)
+        id: upload-metadata-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-build-metadata/android.json
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload Android build metadata (current)
+        id: upload-metadata
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-build-metadata/android.json
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
 
       - name: Upload Android Test APK (current)
         id: upload-test-apk
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
+
+      # Gradle builds every RN library module inside node_modules
+      # (node_modules/<pkg>/android/build) and CMake writes to
+      # node_modules/<pkg>/android/.cxx — ~4-5 GB of intermediates that used
+      # to balloon the post-job yarn cache save (setup-e2e-env) from ~600 MB
+      # to ~1.5 GB, adding ~1 min of cache download to every Android E2E job.
+      # Main steps all run before post-job steps, so deleting the
+      # intermediates here (after the APKs have been uploaded — they live in
+      # android/app/build, not node_modules) means the post-job save archives
+      # a clean tree. Gradle build reuse is handled by the dedicated Gradle
+      # caches, which are correctly keyed on Gradle config files.
+      - name: Clean native build intermediates from node_modules
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          before=$(du -sm node_modules | cut -f1)
+          find node_modules -type d \( -name build -o -name .cxx \) -path '*/android/*' -prune -exec rm -rf {} + 2>/dev/null || true
+          after=$(du -sm node_modules | cut -f1)
+          echo "node_modules: ${before} MB -> ${after} MB (removed $((before - after)) MB of Gradle/CMake intermediates)"

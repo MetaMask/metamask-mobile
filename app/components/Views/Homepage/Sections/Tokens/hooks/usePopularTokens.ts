@@ -10,6 +10,7 @@ import {
 } from '../../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../../UI/Earn/hooks/useMusdConversionEligibility';
+import { selectMoneyHubEnabledFlag } from '../../../../../UI/Money/selectors/featureFlags';
 
 /**
  * Popular token metadata with CAIP-19 asset IDs
@@ -34,7 +35,6 @@ const POPULAR_TOKENS = [
     name: 'MetaMask USD',
     symbol: 'mUSD',
     // Description will be added dynamically with localized string
-    hasMusdBonus: true,
     iconUrl: buildIconUrl('eip155', '1', 'erc20', MUSD_TOKEN_ADDRESS),
   },
   {
@@ -121,8 +121,10 @@ export const usePopularTokens = () => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
+  const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-  const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
+  const shouldExcludeMusd =
+    isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
   const [rawTokens, setRawTokens] = useState<
     {
       assetId: string;
@@ -218,7 +220,7 @@ export const usePopularTokens = () => {
   );
 
   // Add descriptions dynamically (localized strings must be called within component).
-  // When Cash section is enabled, exclude mUSD from this list (it is shown in Cash section).
+  // Exclude mUSD while it is surfaced in the Money hub.
   const tokens: PopularToken[] = useMemo(() => {
     const mapped = rawTokens.map((token) => {
       const baseToken = POPULAR_TOKENS.find((t) => t.assetId === token.assetId);
@@ -232,13 +234,13 @@ export const usePopularTokens = () => {
         description: baseToken ? getTokenDescription(baseToken) : undefined,
       };
     });
-    return isCashSectionEnabled
+    return shouldExcludeMusd
       ? mapped.filter((t) => {
           const address = t.assetId.split(':').pop();
           return !isMusdToken(address);
         })
       : mapped;
-  }, [rawTokens, isCashSectionEnabled]);
+  }, [rawTokens, shouldExcludeMusd]);
 
   return {
     tokens,

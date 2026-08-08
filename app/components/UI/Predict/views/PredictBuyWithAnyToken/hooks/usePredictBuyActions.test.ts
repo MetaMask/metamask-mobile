@@ -8,6 +8,7 @@ import {
   PlaceOrderParams,
   Side,
 } from '../../../types';
+import { predictBuyPreviewOrderInitiatedRef } from '../../PredictBuyPreview/PredictBuyPreview';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -173,6 +174,8 @@ describe('usePredictBuyActions', () => {
     mockActiveOrder = null;
     mockPayWithAnyTokenEnabled = true;
     mockApprovalRequest = undefined;
+    mockPlaceOrder.mockReset();
+    mockPlaceOrder.mockResolvedValue(undefined);
     mockInitPayWithAnyToken.mockResolvedValue(undefined);
     mockTransitionEndCallbacks.length = 0;
     mockBeforeRemoveCallbacks.length = 0;
@@ -197,6 +200,13 @@ describe('usePredictBuyActions', () => {
       expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
     });
 
+    it('does not reset payment token during init', () => {
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
     it('does not call initPayWithAnyToken when pay with any token is disabled', () => {
       mockPayWithAnyTokenEnabled = false;
 
@@ -215,6 +225,18 @@ describe('usePredictBuyActions', () => {
       expect(mockTransitionEndUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockBeforeRemoveUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledTimes(1);
+    });
+
+    it('resets payment token on beforeRemove cleanup', () => {
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      act(() => {
+        mockBeforeRemoveCallbacks[0]();
+      });
+
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });
 
     it('only calls initPayWithAnyToken once even if transitionEnd fires again', () => {
@@ -355,6 +377,18 @@ describe('usePredictBuyActions', () => {
       });
     });
 
+    it('resets isConfirming when preview is null', async () => {
+      const params = createDefaultParams();
+      params.preview = null;
+      const { result } = renderHook(() => usePredictBuyActions(params));
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockSetIsConfirming).toHaveBeenLastCalledWith(false);
+    });
+
     it('passes transactionId from approvalRequest when state is PAY_WITH_ANY_TOKEN', async () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
       mockApprovalRequest = { id: 'approval-tx-123' };
@@ -385,6 +419,69 @@ describe('usePredictBuyActions', () => {
       expect(mockPlaceOrder).toHaveBeenCalledWith(
         expect.objectContaining({ transactionId: undefined }),
       );
+    });
+
+    it('resets isConfirming when placeOrder rejects before the active order state changes', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      mockPlaceOrder.mockRejectedValueOnce(
+        new Error(PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION),
+      );
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      let outcome;
+      await act(async () => {
+        outcome = await result.current.handleConfirm();
+      });
+
+      expect(outcome).toEqual({
+        status: 'error',
+        error: PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
+      });
+      expect(mockSetIsConfirming).toHaveBeenLastCalledWith(false);
+    });
+
+    it('keeps order-initiated gating on provider-side placeOrder errors', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      mockPlaceOrder.mockRejectedValueOnce(
+        new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+      );
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(predictBuyPreviewOrderInitiatedRef.current).toBe(true);
+      expect(mockSetIsConfirming).toHaveBeenLastCalledWith(false);
+
+      act(() => {
+        mockBeforeRemoveCallbacks[0]?.();
+      });
+
+      expect(mockTrackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('resets order-initiated gating on immediate preview validation errors', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = createDefaultParams();
+      params.preview = null;
+      const { result } = renderHook(() => usePredictBuyActions(params));
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(predictBuyPreviewOrderInitiatedRef.current).toBe(false);
+
+      act(() => {
+        mockBeforeRemoveCallbacks[0]?.();
+      });
+
+      expect(mockTrackBetslipDismissed).toHaveBeenCalledTimes(1);
     });
 
     it('attempts re-init and does not call placeOrder when approvalRequest is missing', async () => {
@@ -675,9 +772,11 @@ describe('usePredictBuyActions', () => {
         'beforeRemove',
         expect.any(Function),
       );
+      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
 
       unmount();
 
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
       expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });
@@ -705,9 +804,11 @@ describe('usePredictBuyActions', () => {
 
       mockOnConfirmActionsReject.mockClear();
       mockClearActiveOrderTransactionId.mockClear();
+      mockResetSelectedPaymentToken.mockClear();
 
       unmount();
 
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
       expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });

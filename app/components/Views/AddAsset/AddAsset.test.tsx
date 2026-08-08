@@ -135,6 +135,7 @@ describe('AddAsset', () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
   });
 
@@ -166,6 +167,7 @@ describe('AddAsset', () => {
         loadMore: jest.fn(),
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { getByTestId, queryByTestId } = renderComponent();
@@ -191,6 +193,7 @@ describe('AddAsset', () => {
         loadMore: jest.fn(),
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { getByTestId, queryByTestId } = renderComponent();

@@ -25,7 +25,7 @@ const BatchAccountBalanceSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-  const { addTraitsToUser } = useAnalytics();
+  const { identify } = useAnalytics();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -36,13 +36,13 @@ const BatchAccountBalanceSettings = () => {
       PreferencesController.setIsMultiAccountBalancesEnabled(
         multiAccountBalancesEnabled,
       );
-      addTraitsToUser({
+      identify({
         [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: multiAccountBalancesEnabled
           ? UserProfileProperty.ON
           : UserProfileProperty.OFF,
       });
     },
-    [PreferencesController, addTraitsToUser],
+    [PreferencesController, identify],
   );
 
   return (

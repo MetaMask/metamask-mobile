@@ -4,7 +4,10 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
+import {
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../../Earn/constants/musd';
 import {
   applySlippage,
   getSharesForWithdrawal,
@@ -12,6 +15,9 @@ import {
   buildMoneyAccountWithdrawBatch,
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
+  getMoneyAccountDepositTransactionsData,
+  getMoneyAccountWithdrawTransactionsData,
+  getMoneyAccountDepositAssetId,
 } from './moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -25,6 +31,12 @@ import {
 jest.mock('../../Earn/constants/musd', () => ({
   MUSD_TOKEN_ADDRESS_BY_CHAIN: {} as Record<string, Hex>,
   MUSD_DECIMALS: 6,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN: {
+    // Monad (0x8f) mUSD CAIP-19 asset id.
+    '0x8f': 'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    // Mainnet (0x1) mUSD CAIP-19 asset id.
+    '0x1': 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  } as Record<string, string>,
 }));
 
 jest.mock('../../../../core/AppConstants', () => ({
@@ -134,29 +146,127 @@ describe('moneyAccountTransactions', () => {
   });
 
   describe('getSharesForWithdrawal', () => {
-    it('converts amount to shares using the rate', () => {
+    const SHARE_SCALAR = BigInt(1_000_000);
+
+    it('converts amount to shares at 1:1 rate (exact division)', () => {
       const amount = BigInt(1_000_000);
       const rate = BigInt(1_000_000);
+      // 1_000_000 * 1_000_000 / 1_000_000 = exact, ceiling = floor
       expect(getSharesForWithdrawal(amount, rate)).toBe(BigInt(1_000_000));
     });
 
-    it('scales down when rate is higher than 1:1', () => {
+    it('scales down when rate is higher than 1:1 (exact division)', () => {
       const amount = BigInt(1_000_000);
       const rate = BigInt(2_000_000);
+      // 1_000_000 * 1_000_000 / 2_000_000 = exact 500_000
       expect(getSharesForWithdrawal(amount, rate)).toBe(BigInt(500_000));
     });
 
-    it('scales up when rate is lower than 1:1', () => {
+    it('scales up when rate is lower than 1:1 (exact division)', () => {
       const amount = BigInt(2_000_000);
       const rate = BigInt(1_000_000);
       expect(getSharesForWithdrawal(amount, rate)).toBe(BigInt(2_000_000));
     });
 
-    it('handles large amounts without overflow', () => {
-      const amount = BigInt('1000000000000');
+    it('uses ceiling division — rounds up when remainder exists', () => {
+      // 1_000_000 * 1_000_000 = 1_000_000_000_000
+      // floor(1_000_000_000_000 / 3_000_000) = 333_333
+      // ceil should be 333_334
+      const amount = BigInt(1_000_000);
+      const rate = BigInt(3_000_000);
+      const floorResult = (amount * SHARE_SCALAR) / rate;
+      expect(floorResult).toBe(BigInt(333_333));
+      expect(getSharesForWithdrawal(amount, rate)).toBe(BigInt(333_334));
+    });
+
+    it('reproduces the exact reported scenario — $1.96 at rate ~1,000,094', () => {
+      // This was the failing case: floor division gave 1,959,815 shares,
+      // contract mulDivDown produced 1,959,999 assetsOut < 1,960,000 minimumAssets
+      const amount = BigInt(1_960_000); // $1.96 in 6 decimals
+      const rate = BigInt(1_000_094);
+
+      const floorShares = (amount * SHARE_SCALAR) / rate;
+      expect(floorShares).toBe(BigInt(1_959_815)); // old buggy value
+
+      const ceilShares = getSharesForWithdrawal(amount, rate);
+      expect(ceilShares).toBe(BigInt(1_959_816)); // fixed: one more share
+
+      // Verify: contract mulDivDown(ceilShares * rate / SCALAR) >= amount
+      const assetsOut = (ceilShares * rate) / SHARE_SCALAR;
+      expect(assetsOut).toBeGreaterThanOrEqual(amount);
+    });
+
+    it('reproduces the reported $1.00 scenario — was passing by luck', () => {
+      const amount = BigInt(1_000_000);
+      const rate = BigInt(1_000_094);
+
+      const floorShares = (amount * SHARE_SCALAR) / rate;
+      const ceilShares = getSharesForWithdrawal(amount, rate);
+
+      // With ceiling, we get at least as many shares as floor
+      expect(ceilShares).toBeGreaterThanOrEqual(floorShares);
+
+      // Contract-side check still passes
+      const assetsOut = (ceilShares * rate) / SHARE_SCALAR;
+      expect(assetsOut).toBeGreaterThanOrEqual(amount);
+    });
+
+    it('handles large amounts with ceiling division', () => {
+      const amount = BigInt('1000000000000'); // $1M in 6 decimals
       const rate = BigInt('1500000');
       const result = getSharesForWithdrawal(amount, rate);
-      expect(result).toBe((amount * BigInt(1_000_000)) / rate);
+      const floorResult = (amount * SHARE_SCALAR) / rate;
+      // Ceiling >= floor always
+      expect(result).toBeGreaterThanOrEqual(floorResult);
+      // And at most 1 more than floor
+      expect(result - floorResult).toBeLessThanOrEqual(1n);
+    });
+
+    it('ceiling division equals floor when division is exact', () => {
+      // 2_000_000 * 1_000_000 / 500_000 = 4_000_000_000 (exact)
+      const amount = BigInt(2_000_000);
+      const rate = BigInt(500_000);
+      const floorResult = (amount * SHARE_SCALAR) / rate;
+      expect(getSharesForWithdrawal(amount, rate)).toBe(floorResult);
+    });
+
+    it('returns 0 for zero amount', () => {
+      expect(getSharesForWithdrawal(0n, BigInt(1_000_000))).toBe(0n);
+    });
+
+    it('guarantees assetsOut >= amount for many rate values', () => {
+      // Fuzz-like: sweep a range of rates near 1:1
+      const amount = BigInt(1_960_000);
+      for (let r = 999_900; r <= 1_000_200; r++) {
+        const rate = BigInt(r);
+        const shares = getSharesForWithdrawal(amount, rate);
+        // Simulate contract mulDivDown
+        const assetsOut = (shares * rate) / SHARE_SCALAR;
+        expect(assetsOut).toBeGreaterThanOrEqual(amount);
+      }
+    });
+  });
+
+  describe('getMoneyAccountDepositAssetId', () => {
+    it('returns the mapped asset id for a known chain', () => {
+      expect(getMoneyAccountDepositAssetId('0x8f' as Hex)).toBe(
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
+      );
+      expect(getMoneyAccountDepositAssetId('0x1' as Hex)).toBe(
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x1'],
+      );
+    });
+
+    it('falls back to the Monad asset id for an unknown chain', () => {
+      expect(getMoneyAccountDepositAssetId('0xdead' as Hex)).toBe(
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
+      );
+    });
+
+    it('falls back to the Monad asset id when chainId is undefined', () => {
+      expect(getMoneyAccountDepositAssetId(undefined)).toBe(
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
+      );
     });
   });
 
@@ -197,7 +307,7 @@ describe('moneyAccountTransactions', () => {
 
       expect(result.approveTx.params.data).toBeDefined();
       expect(typeof result.approveTx.params.data).toBe('string');
-      expect(result.approveTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.approveTx.params.data?.startsWith('0x')).toBe(true);
     });
 
     it('calls previewDeposit with correct arguments', async () => {
@@ -219,6 +329,64 @@ describe('moneyAccountTransactions', () => {
         MOCK_BORING_VAULT,
         MOCK_ACCOUNTANT,
       );
+    });
+
+    it('returns undefined data fields when initialiseWithoutData is true', async () => {
+      const result = await buildMoneyAccountDepositBatch({
+        amount: BigInt(0),
+        chainId: MOCK_CHAIN_ID,
+        boringVault: MOCK_BORING_VAULT,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        lensAddress: MOCK_LENS,
+        provider: MOCK_PROVIDER,
+        initialiseWithoutData: true,
+      });
+
+      expect(result.approveTx.params.data).toBeUndefined();
+      expect(result.depositTx.params.data).toBeUndefined();
+      expect(result.approveTx.type).toBe(TransactionType.tokenMethodApprove);
+      expect(result.depositTx.type).toBe(TransactionType.moneyAccountDeposit);
+      expect(result.approveTx.params.to).toBe(MOCK_MUSD_ADDRESS);
+      expect(result.depositTx.params.to).toBe(MOCK_TELLER);
+    });
+
+    it('skips calldata encoding but still resolves minimumMint for non-zero amounts when initialiseWithoutData is true', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const result = await buildMoneyAccountDepositBatch({
+        amount: BigInt(1_000_000),
+        chainId: MOCK_CHAIN_ID,
+        boringVault: MOCK_BORING_VAULT,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        lensAddress: MOCK_LENS,
+        provider: MOCK_PROVIDER,
+        initialiseWithoutData: true,
+      });
+
+      expect(result.approveTx.params.data).toBeUndefined();
+      expect(result.depositTx.params.data).toBeUndefined();
+    });
+
+    it('builds calldata normally when initialiseWithoutData is false', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const result = await buildMoneyAccountDepositBatch({
+        amount: BigInt(1_000_000),
+        chainId: MOCK_CHAIN_ID,
+        boringVault: MOCK_BORING_VAULT,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        lensAddress: MOCK_LENS,
+        provider: MOCK_PROVIDER,
+        initialiseWithoutData: false,
+      });
+
+      expect(result.approveTx.params.data).toBeDefined();
+      expect(result.approveTx.params.data?.startsWith('0x')).toBe(true);
+      expect(result.depositTx.params.data).toBeDefined();
+      expect(result.depositTx.params.data?.startsWith('0x')).toBe(true);
     });
   });
 
@@ -410,6 +578,41 @@ describe('moneyAccountTransactions', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('uses recipientOverride as recipient when provided', async () => {
+      const overrideAddress =
+        '0x1111111111111111111111111111111111111111' as Hex;
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+        overrideAddress,
+      );
+
+      expect(result).toHaveLength(2);
+      const encodedOverride = overrideAddress
+        .toLowerCase()
+        .replace('0x', '')
+        .padStart(64, '0');
+      expect(result[1].transactionData.toLowerCase()).toContain(
+        encodedOverride,
+      );
+    });
+
+    it('falls back to selectEvmAddress when recipientOverride is undefined', async () => {
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result).toHaveLength(2);
+      const encodedRecipient = MOCK_RECIPIENT.toLowerCase()
+        .replace('0x', '')
+        .padStart(64, '0');
+      expect(result[1].transactionData.toLowerCase()).toContain(
+        encodedRecipient,
+      );
+    });
   });
 
   describe('buildMoneyAccountWithdrawBatch', () => {
@@ -471,10 +674,10 @@ describe('moneyAccountTransactions', () => {
       });
 
       expect(result.withdrawTx.params.data).toBeDefined();
-      expect(result.withdrawTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.withdrawTx.params.data?.startsWith('0x')).toBe(true);
 
       expect(result.transferTx.params.data).toBeDefined();
-      expect(result.transferTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.transferTx.params.data?.startsWith('0x')).toBe(true);
     });
 
     it('calls getRate on the accountant contract', async () => {
@@ -505,8 +708,8 @@ describe('moneyAccountTransactions', () => {
       });
 
       expect(mockGetRate).not.toHaveBeenCalled();
-      expect(result.withdrawTx.params.data.startsWith('0x')).toBe(true);
-      expect(result.transferTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.withdrawTx.params.data?.startsWith('0x')).toBe(true);
+      expect(result.transferTx.params.data?.startsWith('0x')).toBe(true);
     });
 
     it('encodes the recipient address in the transfer calldata', async () => {
@@ -523,9 +726,259 @@ describe('moneyAccountTransactions', () => {
       });
 
       // The recipient address (lowercased, without 0x prefix) should appear in the calldata
-      expect(result.transferTx.params.data.toLowerCase()).toContain(
+      expect(result.transferTx.params.data?.toLowerCase()).toContain(
         MOCK_RECIPIENT_ADDRESS.toLowerCase().slice(2),
       );
+    });
+
+    it('encodes minimumAssets as amount - 1 for defense-in-depth', async () => {
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const amount = BigInt(1_960_000);
+      const result = await buildMoneyAccountWithdrawBatch({
+        amount,
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
+        provider: MOCK_PROVIDER,
+      });
+
+      // Decode withdraw calldata to verify minimumAssets = amount - 1
+      const iface = new ethers.utils.Interface([
+        'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
+      ]);
+      const withdrawData = result.withdrawTx.params.data;
+      if (!withdrawData) throw new Error('Expected withdraw data');
+      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
+      const encodedMinimumAssets = BigInt(decoded.minimumAssets.toString());
+      expect(encodedMinimumAssets).toBe(amount - 1n);
+    });
+
+    it('encodes minimumAssets as 0 when amount is 0 (placeholder batch)', async () => {
+      const result = await buildMoneyAccountWithdrawBatch({
+        amount: BigInt(0),
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
+        provider: MOCK_PROVIDER,
+      });
+
+      const iface = new ethers.utils.Interface([
+        'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
+      ]);
+      const withdrawData = result.withdrawTx.params.data;
+      if (!withdrawData) throw new Error('Expected withdraw data');
+      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
+      expect(BigInt(decoded.minimumAssets.toString())).toBe(0n);
+    });
+
+    it('uses ceiling division for shareAmount in withdraw calldata', async () => {
+      // Use a rate that produces a remainder to verify ceiling division
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000094'));
+
+      const amount = BigInt(1_960_000);
+      const result = await buildMoneyAccountWithdrawBatch({
+        amount,
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
+        provider: MOCK_PROVIDER,
+      });
+
+      const iface = new ethers.utils.Interface([
+        'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
+      ]);
+      const withdrawData = result.withdrawTx.params.data;
+      if (!withdrawData) throw new Error('Expected withdraw data');
+      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
+      const shareAmount = BigInt(decoded.shareAmount.toString());
+
+      // With ceiling division: (1_960_000 * 1_000_000 + 1_000_094 - 1) / 1_000_094 = 1_959_816
+      // Old floor division would give 1_959_815
+      expect(shareAmount).toBe(BigInt(1_959_816));
+    });
+  });
+
+  describe('getMoneyAccountDepositTransactionsData', () => {
+    beforeEach(() => {
+      mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER as never);
+      mockSelectMoneyAccountVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
+      (
+        jest.mocked(ReduxService) as unknown as {
+          store: { getState: jest.Mock };
+        }
+      ).store = { getState: jest.fn().mockReturnValue({}) };
+    });
+
+    it('returns two transaction param objects for a valid amount', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const result = await getMoneyAccountDepositTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatchObject({
+        to: expect.any(String),
+        data: expect.stringMatching(/^0x/),
+        value: '0x0',
+      });
+      expect(result[1]).toMatchObject({
+        to: expect.any(String),
+        data: expect.stringMatching(/^0x/),
+        value: '0x0',
+      });
+    });
+
+    it('returns [] when vault config is missing', async () => {
+      mockSelectMoneyAccountVaultConfig.mockReturnValue(undefined);
+
+      const result = await getMoneyAccountDepositTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+      );
+
+      expect(result).toEqual([]);
+      expect(mockPreviewDeposit).not.toHaveBeenCalled();
+    });
+
+    it('returns [] when provider is missing', async () => {
+      mockGetProviderByChainId.mockReturnValue(undefined as never);
+
+      const result = await getMoneyAccountDepositTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+      );
+
+      expect(result).toEqual([]);
+      expect(mockPreviewDeposit).not.toHaveBeenCalled();
+    });
+
+    it('calls previewDeposit with the converted token amount', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      await getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '1.0');
+
+      // 1.0 with 6 decimals = 1_000_000
+      expect(mockPreviewDeposit).toHaveBeenCalledWith(
+        expect.any(String),
+        '1000000',
+        MOCK_VAULT_CONFIG.boringVault,
+        MOCK_VAULT_CONFIG.accountantAddress,
+      );
+    });
+
+    it('propagates RPC errors', async () => {
+      mockPreviewDeposit.mockRejectedValue(new Error('RPC timeout'));
+
+      await expect(
+        getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '1.0'),
+      ).rejects.toThrow('RPC timeout');
+    });
+  });
+
+  describe('getMoneyAccountWithdrawTransactionsData', () => {
+    const mockGetState = jest.mocked(ReduxService).store.getState as jest.Mock;
+    const mockSelectVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
+    const mockSelectPrimaryMoneyAccount = jest.mocked(
+      selectPrimaryMoneyAccount,
+    );
+    const mockGetProvider = jest.mocked(getProviderByChainId);
+
+    const MOCK_MONEY_ACCOUNT_ADDRESS =
+      '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
+    const MOCK_RECIPIENT = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
+
+    beforeEach(() => {
+      mockGetState.mockReturnValue({});
+      mockSelectVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
+      mockSelectPrimaryMoneyAccount.mockReturnValue({
+        address: MOCK_MONEY_ACCOUNT_ADDRESS,
+      } as ReturnType<typeof selectPrimaryMoneyAccount>);
+      mockGetProvider.mockReturnValue(
+        MOCK_PROVIDER as ReturnType<typeof getProviderByChainId>,
+      );
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
+    });
+
+    it('returns two transaction param objects for a valid amount', async () => {
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatchObject({
+        to: expect.any(String),
+        data: expect.stringMatching(/^0x/),
+        value: '0x0',
+      });
+      expect(result[1]).toMatchObject({
+        to: expect.any(String),
+        data: expect.stringMatching(/^0x/),
+        value: '0x0',
+      });
+    });
+
+    it('encodes the recipient address in the transfer calldata', async () => {
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result[1].data?.toLowerCase()).toContain(
+        MOCK_RECIPIENT.toLowerCase().slice(2),
+      );
+    });
+
+    it('returns [] when vault config is missing', async () => {
+      mockSelectVaultConfig.mockReturnValue(undefined);
+
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result).toEqual([]);
+      expect(mockGetRate).not.toHaveBeenCalled();
+    });
+
+    it('returns [] when primary money account is missing', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result).toEqual([]);
+      expect(mockGetRate).not.toHaveBeenCalled();
+    });
+
+    it('returns [] when provider is missing', async () => {
+      mockGetProvider.mockReturnValue(
+        undefined as unknown as ReturnType<typeof getProviderByChainId>,
+      );
+
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result).toEqual([]);
+      expect(mockGetRate).not.toHaveBeenCalled();
     });
   });
 });

@@ -7,9 +7,17 @@ import {
   PredictActionButtonsProps,
   PredictBetButtonLayout,
 } from './PredictActionButtons.types';
-import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
+import {
+  PredictMarketGame,
+  PredictMarketStatus,
+  PredictOutcomeToken,
+} from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isDrawCapableLeague } from '../../constants/sports';
+import {
+  getPrimaryMoneylineOutcomes,
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
 import {
   BASE_PREDICT_ACTION_BUTTONS_TEST_IDS,
   PREDICT_ACTION_BUTTONS_TEST_IDS,
@@ -29,6 +37,38 @@ interface ButtonConfig {
   drawToken?: PredictOutcomeToken;
 }
 
+type GameTeam = PredictMarketGame['homeTeam'];
+
+const normalizeLabel = (value?: string): string | undefined =>
+  value?.trim().toLowerCase();
+
+const teamMatchesToken = (
+  team: GameTeam,
+  token: PredictOutcomeToken,
+): boolean => {
+  const tokenLabels = [token.shortTitle, token.title]
+    .map(normalizeLabel)
+    .filter((label): label is string => Boolean(label));
+  const teamLabels = [team.abbreviation, team.name, team.alias]
+    .map(normalizeLabel)
+    .filter((label): label is string => Boolean(label));
+
+  return tokenLabels.some((tokenLabel) => teamLabels.includes(tokenLabel));
+};
+
+const getTokenTeam = (
+  token: PredictOutcomeToken,
+  game: PredictMarketGame,
+): GameTeam | undefined => {
+  if (teamMatchesToken(game.homeTeam, token)) {
+    return game.homeTeam;
+  }
+  if (teamMatchesToken(game.awayTeam, token)) {
+    return game.awayTeam;
+  }
+  return undefined;
+};
+
 const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   market,
   outcome,
@@ -45,45 +85,67 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
 }) => {
   const isGameMarket = Boolean(market.game);
   const isMarketOpen = market.status === PredictMarketStatus.OPEN;
+  const moneylineOutcomes = useMemo(
+    () => getPrimaryMoneylineOutcomes(market.outcomes),
+    [market.outcomes],
+  );
+  const hasMainMoneylineOutcomes = moneylineOutcomes.some(
+    (marketOutcome) =>
+      marketOutcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+  const primaryOutcome =
+    hasMainMoneylineOutcomes && !moneylineOutcomes.includes(outcome)
+      ? (moneylineOutcomes[0] ?? outcome)
+      : outcome;
 
-  const isDrawCapable =
+  const isDrawCapable = Boolean(
     isGameMarket &&
-    market.game &&
-    isDrawCapableLeague(market.game.league) &&
-    market.outcomes.length >= 3;
+      market.game &&
+      isDrawCapableMarket({
+        game: market.game,
+        outcomes: market.outcomes,
+      }),
+  );
 
-  const sortedOutcomes = useMemo(() => {
-    if (!isDrawCapable) {
+  const buttonResolution = useMemo(() => {
+    if (!isDrawCapable || !market.game) {
       return null;
     }
-    return [...market.outcomes].sort(
-      (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-    );
-  }, [isDrawCapable, market.outcomes]);
+
+    return resolvePredictSportCardButtons({
+      outcomes: market.outcomes,
+      game: market.game,
+      showDraw: true,
+    });
+  }, [isDrawCapable, market.game, market.outcomes]);
+
+  const hasResolvedDrawButtons = Boolean(
+    buttonResolution?.home && buttonResolution.draw && buttonResolution.away,
+  );
 
   const tokenIds = useMemo(() => {
-    if (sortedOutcomes) {
-      return sortedOutcomes
-        .map((marketOutcome) => marketOutcome.tokens[0]?.id)
+    if (hasResolvedDrawButtons) {
+      return [
+        buttonResolution?.home?.token,
+        buttonResolution?.draw?.token,
+        buttonResolution?.away?.token,
+      ]
+        .map((token) => token?.id)
         .filter((tokenId): tokenId is string => Boolean(tokenId));
     }
 
-    return outcome.tokens.map((token) => token.id);
-  }, [sortedOutcomes, outcome.tokens]);
+    return primaryOutcome.tokens.map((token) => token.id);
+  }, [buttonResolution, hasResolvedDrawButtons, primaryOutcome.tokens]);
 
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled: isMarketOpen && !isLoading,
   });
 
   const buttonConfig = useMemo<ButtonConfig | null>(() => {
-    if (sortedOutcomes && market.game) {
-      const homeOutcome = sortedOutcomes[0];
-      const drawOutcome = sortedOutcomes[1];
-      const awayOutcome = sortedOutcomes[2];
-
-      const homeToken = homeOutcome?.tokens[0];
-      const drawToken = drawOutcome?.tokens[0];
-      const awayToken = awayOutcome?.tokens[0];
+    if (hasResolvedDrawButtons && buttonResolution && market.game) {
+      const homeToken = buttonResolution.home?.token;
+      const drawToken = buttonResolution.draw?.token;
+      const awayToken = buttonResolution.away?.token;
 
       if (!homeToken || !drawToken || !awayToken) {
         return null;
@@ -110,7 +172,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
       };
     }
 
-    const tokens = outcome.tokens;
+    const tokens = primaryOutcome.tokens;
     if (tokens.length < 2) {
       return null;
     }
@@ -126,14 +188,17 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
 
     if (isGameMarket && market.game) {
       const { awayTeam, homeTeam } = market.game;
+      const yesTeam = getTokenTeam(yesToken, market.game) ?? awayTeam;
+      const noTeam = getTokenTeam(noToken, market.game) ?? homeTeam;
+
       return {
-        yesLabel: awayTeam.abbreviation,
+        yesLabel: yesTeam.abbreviation,
         yesPrice: Math.round(yesPrice * 100),
-        yesTeamColor: awayTeam.color,
+        yesTeamColor: yesTeam.color,
         yesToken,
-        noLabel: homeTeam.abbreviation,
+        noLabel: noTeam.abbreviation,
         noPrice: Math.round(noPrice * 100),
-        noTeamColor: homeTeam.color,
+        noTeamColor: noTeam.color,
         noToken,
       };
     }
@@ -148,7 +213,14 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
       noTeamColor: undefined,
       noToken,
     };
-  }, [outcome.tokens, isGameMarket, market.game, sortedOutcomes, getPrice]);
+  }, [
+    primaryOutcome.tokens,
+    isGameMarket,
+    market.game,
+    buttonResolution,
+    hasResolvedDrawButtons,
+    getPrice,
+  ]);
 
   if (isLoading) {
     return (

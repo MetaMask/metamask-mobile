@@ -3,10 +3,11 @@ import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import {
-  isPredictSheetProviderMounted,
+  shouldSuppressLegacyOrderFailureToast,
   PredictPreviewSheetProvider,
   usePredictPreviewSheet,
 } from './PredictPreviewSheetContext';
+import { PREDICT_REG_TIME_TAG_TEST_IDS } from '../components/PredictRegTimeTag/PredictRegTimeTag';
 import type {
   PredictBuyPreviewParams,
   PredictSellPreviewParams,
@@ -37,15 +38,19 @@ jest.mock('@react-navigation/native', () => ({
 
 let mockBottomSheetEnabled = true;
 let mockPayWithAnyTokenEnabled = false;
+let mockNonRegTimeSportsMarketTypes: string[] = [];
 
 const mockSelectPredictBottomSheetEnabledFlag = jest.fn();
 const mockSelectPredictWithAnyTokenEnabledFlag = jest.fn();
+const mockSelectNonRegTimeSportsMarketTypes = jest.fn();
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictBottomSheetEnabledFlag: (...args: unknown[]) =>
     mockSelectPredictBottomSheetEnabledFlag(...args),
   selectPredictWithAnyTokenEnabledFlag: (...args: unknown[]) =>
     mockSelectPredictWithAnyTokenEnabledFlag(...args),
+  selectNonRegTimeSportsMarketTypes: (...args: unknown[]) =>
+    mockSelectNonRegTimeSportsMarketTypes(...args),
 }));
 
 jest.mock('react-redux', () => ({
@@ -100,6 +105,7 @@ jest.mock('../components/PredictPreviewSheet/PredictPreviewSheet', () => {
           testID?: string;
           children?: (close: () => void) => React.ReactNode;
           renderHeader?: () => React.ReactNode;
+          renderRightComponent?: () => React.ReactNode;
           onDismiss?: () => void;
           title?: string;
           subtitle?: string;
@@ -115,7 +121,10 @@ jest.mock('../components/PredictPreviewSheet/PredictPreviewSheet', () => {
         return (
           <RNView testID={_props.testID ?? 'preview-sheet'}>
             {_props.title && (
-              <RNText testID="sheet-title">{_props.title}</RNText>
+              <RNView>
+                <RNText testID="sheet-title">{_props.title}</RNText>
+                {_props.renderRightComponent?.()}
+              </RNView>
             )}
             {_props.subtitle && (
               <RNText testID="sheet-subtitle">{_props.subtitle}</RNText>
@@ -168,6 +177,18 @@ jest.mock('../views/PredictSellPreview/PredictSellPreview', () => {
   };
 });
 
+jest.mock(
+  '../components/PredictGameDetailsContent/PredictRegTimeInfoSheet',
+  () => {
+    const { forwardRef } = jest.requireActual('react');
+    const { View: RNView } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: forwardRef(() => <RNView testID="reg-time-info-sheet" />),
+    };
+  },
+);
+
 const buyParams: PredictBuyPreviewParams = {
   market: { id: 'market-1' } as PredictBuyPreviewParams['market'],
   outcome: {
@@ -182,6 +203,29 @@ const buyParams: PredictBuyPreviewParams = {
   } as PredictBuyPreviewParams['outcomeToken'],
 };
 
+const createWorldCupBuyParams = (
+  overrides: Partial<PredictBuyPreviewParams> = {},
+): PredictBuyPreviewParams => ({
+  ...buyParams,
+  market: {
+    id: 'world-cup-market',
+    game: {
+      league: 'fifwc',
+    },
+  } as PredictBuyPreviewParams['market'],
+  outcome: {
+    ...buyParams.outcome,
+    title: 'Argentina',
+    groupItemTitle: 'Argentina',
+    sportsMarketType: 'moneyline',
+  } as PredictBuyPreviewParams['outcome'],
+  outcomeToken: {
+    ...buyParams.outcomeToken,
+    title: 'Argentina',
+  },
+  ...overrides,
+});
+
 const sellParams: PredictSellPreviewParams = {
   market: { id: 'market-1' } as PredictSellPreviewParams['market'],
   position: {
@@ -194,14 +238,18 @@ const sellParams: PredictSellPreviewParams = {
   outcome: { id: 'outcome-1' } as PredictSellPreviewParams['outcome'],
 };
 
-const TestConsumer: React.FC = () => {
-  const { openBuySheet, openSellSheet } = usePredictPreviewSheet();
+const TestConsumer: React.FC<{
+  buyParamsOverride?: PredictBuyPreviewParams;
+}> = ({ buyParamsOverride = buyParams }) => {
+  const { openBuySheet, openSellSheet, isBuySheetOpen } =
+    usePredictPreviewSheet();
 
   return (
     <View>
+      <Text testID="buy-sheet-open">{String(isBuySheetOpen)}</Text>
       <TouchableOpacity
         testID="open-buy"
-        onPress={() => openBuySheet(buyParams)}
+        onPress={() => openBuySheet(buyParamsOverride)}
       >
         <Text>Open Buy</Text>
       </TouchableOpacity>
@@ -221,11 +269,15 @@ describe('PredictPreviewSheetContext', () => {
     mockBottomSheetEnabled = true;
     mockPayWithAnyTokenEnabled = false;
     mockActiveOrder = null;
+    mockNonRegTimeSportsMarketTypes = [];
     mockSelectPredictBottomSheetEnabledFlag.mockImplementation(
       () => mockBottomSheetEnabled,
     );
     mockSelectPredictWithAnyTokenEnabledFlag.mockImplementation(
       () => mockPayWithAnyTokenEnabled,
+    );
+    mockSelectNonRegTimeSportsMarketTypes.mockImplementation(
+      () => mockNonRegTimeSportsMarketTypes,
     );
     // Explicit toast/clearOrderError mock resets — `jest.clearAllMocks()`
     // covers them but reset them by name for clarity and resilience to
@@ -260,6 +312,93 @@ describe('PredictPreviewSheetContext', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('renders Reg time tag for World Cup regular-time buy sheets', () => {
+    mockNonRegTimeSportsMarketTypes = ['soccer_team_to_advance'];
+
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer buyParamsOverride={createWorldCupBuyParams()} />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(
+      screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.TAG),
+    ).toHaveTextContent('Reg time');
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.INFO_BUTTON),
+    );
+
+    expect(screen.getByTestId('reg-time-info-sheet')).toBeOnTheScreen();
+  });
+
+  it('hides Reg time tag for configured non-reg-time World Cup buy sheets', () => {
+    mockNonRegTimeSportsMarketTypes = ['soccer_team_to_advance'];
+    const params = createWorldCupBuyParams({
+      outcome: {
+        ...buyParams.outcome,
+        title: 'Argentina',
+        groupItemTitle: 'Argentina',
+        sportsMarketType: 'soccer_team_to_advance',
+      } as PredictBuyPreviewParams['outcome'],
+    });
+
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer buyParamsOverride={params} />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(
+      screen.queryByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.TAG),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides Reg time tag for non-World-Cup buy sheets', () => {
+    const params = createWorldCupBuyParams({
+      market: {
+        id: 'ucl-market',
+        game: {
+          league: 'ucl',
+        },
+      } as PredictBuyPreviewParams['market'],
+    });
+
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer buyParamsOverride={params} />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(
+      screen.queryByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.TAG),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('exposes buy sheet open state while sheet is mounted', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('false');
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('true');
+
+    fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('false');
+  });
+
   it('renders sell preview sheet when openSellSheet is called and flag is ON', () => {
     render(
       <PredictPreviewSheetProvider>
@@ -284,10 +423,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-buy'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      buyParams,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: buyParams,
+    });
     expect(
       screen.queryByTestId('predict-buy-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -304,10 +443,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.SELL_PREVIEW,
-      sellParams,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+      params: sellParams,
+    });
     expect(
       screen.queryByTestId('predict-sell-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -418,6 +557,92 @@ describe('PredictPreviewSheetContext', () => {
     fireEvent.press(screen.getByTestId('open-buy'));
 
     expect(screen.getByTestId('sheet-image')).toBeOnTheScreen();
+  });
+
+  it('passes token image to buy sheet for World Cup team-to-advance', () => {
+    const params = createWorldCupBuyParams({
+      outcome: {
+        ...buyParams.outcome,
+        title: 'France vs. Morocco: Team to Advance',
+        groupItemTitle: 'Team to Advance',
+        image: 'https://example.com/soccer-ball.png',
+        sportsMarketType: 'soccer_team_to_advance',
+      } as PredictBuyPreviewParams['outcome'],
+      outcomeToken: {
+        ...buyParams.outcomeToken,
+        title: 'France',
+        image: 'https://example.com/france.png',
+      },
+    });
+
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer buyParamsOverride={params} />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('sheet-image')).toHaveTextContent(
+      'https://example.com/france.png',
+    );
+  });
+
+  it('renders provider-normalized moneyline team selections in the buy sheet header', () => {
+    const moneylineBuyParams: PredictBuyPreviewParams = {
+      market: {
+        id: 'market-2',
+        title: 'Korea Republic vs. Czechia',
+      } as PredictBuyPreviewParams['market'],
+      outcome: {
+        id: 'outcome-2',
+        title: 'Korea Republic vs. Czechia',
+        groupItemTitle: 'Korea Republic',
+        image: 'https://example.com/korea.png',
+        sportsMarketType: 'moneyline',
+        tokens: [
+          {
+            id: 'token-2',
+            title: 'Yes',
+            shortTitle: 'KOR',
+            price: 0.375,
+          },
+        ],
+      } as PredictBuyPreviewParams['outcome'],
+      outcomeToken: {
+        id: 'token-2',
+        title: 'Yes',
+        shortTitle: 'KOR',
+        price: 0.375,
+      } as PredictBuyPreviewParams['outcomeToken'],
+    };
+    const MoneylineConsumer = () => {
+      const { openBuySheet } = usePredictPreviewSheet();
+
+      return (
+        <TouchableOpacity
+          testID="open-moneyline-buy"
+          onPress={() => openBuySheet(moneylineBuyParams)}
+        >
+          <Text>Open Moneyline Buy</Text>
+        </TouchableOpacity>
+      );
+    };
+
+    render(
+      <PredictPreviewSheetProvider>
+        <MoneylineConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-moneyline-buy'));
+
+    expect(screen.getByTestId('sheet-title')).toHaveTextContent(
+      'Yes · Korea Republic',
+    );
+    expect(screen.getByTestId('sheet-image')).toHaveTextContent(
+      'https://example.com/korea.png',
+    );
   });
 
   it('renders SellSheetHeader with position info for sell sheet', () => {
@@ -616,6 +841,138 @@ describe('PredictPreviewSheetContext', () => {
     });
   });
 
+  describe('multi-provider dedup', () => {
+    // Mirrors production reality: HomeTabs mounts a sheet-mode provider above
+    // Tab.Navigator (so the BottomSheet's parent is the full-viewport stack
+    // card), and PredictScreenStack mounts another sheet-mode provider when
+    // the user navigates into the Predict tab. Both stay mounted while inside
+    // Predict. The toast effect must fire from the topmost (most recently
+    // mounted, innermost in the tree) provider only.
+
+    it('fires the failure toast only from the topmost (most recently mounted) sheet-mode provider', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Outer "remembers" buy params from a prior open + dismiss.
+      fireEvent.press(outer.getByTestId('open-buy'));
+      fireEvent.press(outer.getByTestId('dismiss-sheet'));
+
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Inner also remembers buy params from a prior open + dismiss.
+      fireEvent.press(inner.getByTestId('open-buy'));
+      fireEvent.press(inner.getByTestId('dismiss-sheet'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      inner.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      outer.unmount();
+      inner.unmount();
+    });
+
+    it('outer provider becomes active after inner unmounts and fires for the next error transition', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(outer.getByTestId('open-buy'));
+      fireEvent.press(outer.getByTestId('dismiss-sheet'));
+
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(inner.getByTestId('open-buy'));
+      fireEvent.press(inner.getByTestId('dismiss-sheet'));
+
+      // First error transition — only inner (topmost) fires.
+      mockActiveOrder = { error: 'order/failed' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      inner.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      // Inner unmounts — outer becomes the topmost provider.
+      inner.unmount();
+
+      // Drive a fresh falsy -> truthy transition for the outer provider so
+      // its `previousErrorRef` flips correctly.
+      mockActiveOrder = null;
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      mockActiveOrder = { error: 'order/failed-2' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(2);
+
+      outer.unmount();
+    });
+
+    it('shouldSuppressLegacyOrderFailureToast tracks the topmost provider after unmount order', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Outer alone, no opens — suppression off.
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      fireEvent.press(outer.getByTestId('open-buy'));
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      // Inner mounts on top of outer — its `lastBuyParamsRef` is null,
+      // so suppression flips back to false until inner has its own open.
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      fireEvent.press(inner.getByTestId('open-buy'));
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      // Unmounting inner falls back to outer (still has params).
+      inner.unmount();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      outer.unmount();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+  });
+
   describe('failure toast auto-clear timer', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -690,23 +1047,40 @@ describe('PredictPreviewSheetContext', () => {
     });
   });
 
-  describe('isPredictSheetProviderMounted', () => {
+  describe('shouldSuppressLegacyOrderFailureToast', () => {
     it('returns false when provider is not mounted', () => {
-      expect(isPredictSheetProviderMounted()).toBe(false);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
     });
 
-    it('returns true while provider is mounted and false after unmount', () => {
+    it('returns false while provider is mounted but no sheet has been opened yet', () => {
+      // Suppression is gated on the topmost provider's `lastBuyParamsRef` so
+      // the legacy toast keeps firing for tabs/flows where the user has not
+      // initiated a sheet (e.g. order failure surfaces from elsewhere).
       const { unmount } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
         </PredictPreviewSheetProvider>,
       );
 
-      expect(isPredictSheetProviderMounted()).toBe(true);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      unmount();
+    });
+
+    it('returns true after openBuySheet is called and false after unmount', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
 
       unmount();
 
-      expect(isPredictSheetProviderMounted()).toBe(false);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
     });
   });
 

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import {
+  BottomSheet,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -8,12 +9,11 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   IconColor,
   IconName,
   Text,
   TextVariant,
-  FontWeight,
-  BottomSheet,
 } from '@metamask/design-system-react-native';
 import { type CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';

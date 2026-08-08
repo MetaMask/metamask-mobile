@@ -110,7 +110,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.open_position': 'Open Position',
+      'rewards.campaign_details.open_position': 'Trade now',
       'rewards.campaign_details.swap_ondo_assets': 'Swap Ondo Assets',
       'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.ondo.entries_closed_description':
@@ -222,7 +222,7 @@ describe('OndoCampaignCTA', () => {
   });
 
   describe('opted in, no portfolio positions', () => {
-    it('renders the "Open Position" button', () => {
+    it('renders the "Trade now" button', () => {
       const { getByTestId, getByText } = render(
         <OndoCampaignCTA
           campaign={buildCampaign()}
@@ -233,7 +233,7 @@ describe('OndoCampaignCTA', () => {
       );
 
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-      expect(getByText('Open Position')).toBeOnTheScreen();
+      expect(getByText('Trade now')).toBeOnTheScreen();
     });
 
     it('navigates to RWA asset selector in open_position mode when pressed', () => {
