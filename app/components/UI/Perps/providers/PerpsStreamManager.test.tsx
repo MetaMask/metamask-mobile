@@ -3248,7 +3248,7 @@ describe('PerpsStreamManager', () => {
 
       await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
 
-      // Deliver first update so hasReceivedFirstUpdate is set
+      // Deliver first update so hasReceivedFirstLiveUpdate is set
       act(() => {
         orderCallback?.([SAMPLE_ORDER]);
       });
@@ -4608,14 +4608,14 @@ describe('PerpsStreamManager', () => {
       } as Order,
     ];
 
-    const mockPositions = [
+    const mockPositions: Position[] = [
       {
         symbol: 'BTC',
-        side: 'long',
         size: '1',
         entryPrice: '50000',
-        markPrice: '51000',
+        positionValue: '51000',
         unrealizedPnl: '1000',
+        marginUsed: '5000',
         leverage: { type: 'cross', value: 10 },
         liquidationPrice: '45000',
         maxLeverage: 50,
@@ -4700,6 +4700,39 @@ describe('PerpsStreamManager', () => {
       // Should receive cached positions immediately via getCachedData()
       expect(callback).toHaveBeenCalledWith(mockPositions);
       expect(mockSubscribeToPositions).not.toHaveBeenCalled();
+    });
+
+    it('delivers the first fresh positions update immediately after cached data', () => {
+      let controllerCallback: ((positions: Position[]) => void) | null = null;
+      mockSubscribeToPositions.mockImplementation(
+        (params: { callback: (positions: Position[]) => void }) => {
+          controllerCallback = params.callback;
+          return jest.fn();
+        },
+      );
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: mockPositions,
+        orders: [],
+        accountState: null,
+      });
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      streamManager.positions.subscribe({ callback, throttleMs: 100 });
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenLastCalledWith(mockPositions);
+
+      act(() => controllerCallback?.([]));
+      expect(callback).toHaveBeenCalledTimes(2);
+
+      act(() => controllerCallback?.(mockPositions));
+      expect(callback).toHaveBeenCalledTimes(2);
+
+      act(() => jest.advanceTimersByTime(100));
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenLastCalledWith(mockPositions);
     });
 
     it('serves cached account state instantly via getCachedData before isInitialized', () => {
