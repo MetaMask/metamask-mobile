@@ -17,6 +17,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 const mockRefetchPositions = jest.fn();
@@ -215,7 +216,11 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      canGoBack: mockCanGoBack,
+    }),
     useRoute: () => ({ params: mockRouteParams }),
   };
 });
@@ -380,6 +385,7 @@ const channelsDisabledPreferences: SocialAIPreference = {
 describe('TraderProfileView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
     mockProfileResult = {
       profile: fixtureProfile,
       isLoading: false,
@@ -458,12 +464,24 @@ describe('TraderProfileView', () => {
     ).toHaveTextContent('+$20,610');
   });
 
-  it('calls goBack when the back button is pressed', () => {
+  it('calls goBack when the back button is pressed and a screen can be popped', () => {
+    mockCanGoBack.mockReturnValue(true);
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.BACK_BUTTON),
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.HOME_TABS);
+  });
+
+  it('navigates to Wallet Home when the back button is pressed at the stack root', () => {
+    mockCanGoBack.mockReturnValue(false);
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.BACK_BUTTON),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('does not render a follower count', () => {

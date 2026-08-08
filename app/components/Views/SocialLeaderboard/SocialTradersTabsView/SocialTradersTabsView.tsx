@@ -49,6 +49,7 @@ import {
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
+import { useSocialLeaderboardBack } from '../hooks/useSocialLeaderboardBack';
 
 const LEADERBOARD_INDEX = 0;
 const FEED_INDEX = 1;
@@ -318,9 +319,7 @@ const SocialTradersTabsView: React.FC = () => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
 
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  const handleBack = useSocialLeaderboardBack();
 
   const handleNotificationPreferencesPress = useCallback(() => {
     if (isLoadingNotificationPreferences) {
