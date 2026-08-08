@@ -3,16 +3,21 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PerpsMode,
 } from '@metamask/perps-controller';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
+import {
+  getPerpsUtmAttributionProperties,
+  PERPS_MODE_ANALYTICS_PROPERTY,
+} from '../utils/perpsAnalyticsAttribution';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../utils/perpsAnalyticsAttribution', () => ({
+  PERPS_MODE_ANALYTICS_PROPERTY: 'perps_mode',
   getPerpsUtmAttributionProperties: jest.fn(() => ({})),
 }));
 
@@ -24,6 +29,7 @@ describe('usePerpsEventTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    mockGetPerpsUtmAttributionProperties.mockReturnValue({});
 
     mockCreateEventBuilder.mockImplementation(() => ({
       addProperties: jest.fn().mockReturnThis(),
@@ -76,6 +82,22 @@ describe('usePerpsEventTracking', () => {
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
+      });
+    });
+
+    it('passes through explicit perps_mode for enrichWithPerpsMode to honor', () => {
+      const { result } = renderHook(() => usePerpsEventTracking());
+
+      act(() => {
+        result.current.track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+        });
+      });
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
       });
     });
 

@@ -13,6 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
 import { type PerpsModeToggleProps } from './PerpsModeToggle.types';
 import PerpsProGradientLabel from './PerpsProGradientLabel';
 import PerpsModeSwitchPill from './PerpsModeSwitchPill';
@@ -53,7 +54,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_EVENT_PROPERTY.MODE]: nextMode,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: nextMode,
         ...(source ? { [PERPS_EVENT_PROPERTY.SOURCE]: source } : {}),
       });
 

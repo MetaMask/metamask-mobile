@@ -8,6 +8,7 @@ import React from 'react';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
 import PerpsModeSelectionView from './PerpsModeSelectionView';
 
 const mockGoBack = jest.fn();
@@ -153,7 +154,7 @@ describe('PerpsModeSelectionView', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
       },
