@@ -197,6 +197,7 @@ export const PopularList = [
       imageUrl: 'TEMPO',
       imageSource: require('../../images/tempo.png'),
     },
+    },
   {
     chainId: toHex('8721'),
     nickname: 'EB-Chain',
