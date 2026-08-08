@@ -33,6 +33,13 @@ import { PREDICT_GAME_CHART_CONTENT_TEST_IDS } from './PredictGameChartContent.t
 
 const LINE_CURVE = curveStepAfter;
 
+// Replace any non-finite point with `null` so it becomes a single gap (via the
+// chart's `.defined` check) instead of injecting a NaN/Infinity coordinate that
+// would invalidate the entire SVG path and blank the whole line. Mapping to
+// null (rather than filtering) keeps indices aligned with timestamps/activeIndex.
+const toRenderable = (values: (number | null)[]): (number | null)[] =>
+  values.map((v) => (typeof v === 'number' && Number.isFinite(v) ? v : null));
+
 const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   data,
   isLoading = false,
@@ -61,13 +68,17 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const hasData = nonEmptySeries.length > 0;
 
   const { chartMin, chartMax, maxValue } = useMemo(() => {
-    if (!hasData) {
+    // Filter out any non-finite values before computing the domain. A single
+    // NaN/Infinity would otherwise turn Math.min/Math.max into NaN and collapse
+    // the y-scale to [NaN, NaN], blanking every line.
+    const chartValues = nonEmptySeries
+      .flatMap((series) => series.data.map((point) => point.value))
+      .filter((value) => Number.isFinite(value));
+
+    if (!hasData || chartValues.length === 0) {
       return { chartMin: 0, chartMax: 100, maxValue: 0 };
     }
 
-    const chartValues = nonEmptySeries.flatMap((series) =>
-      series.data.map((point) => point.value),
-    );
     const minValue = Math.min(...chartValues);
     const maxChartValue = Math.max(...chartValues);
     const range = maxChartValue - minValue;
@@ -103,7 +114,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const primarySeries = nonEmptySeries[0] ?? seriesToRender[0];
   const primaryData = primarySeries?.data ?? [];
   const primaryChartData = primaryData.length
-    ? primaryData.map((point) => point.value)
+    ? toRenderable(primaryData.map((point) => point.value))
     : [50, 50];
 
   // Keep ref in sync for stable PanResponder (avoids recreation on data length changes)
@@ -250,10 +261,10 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const overlaySeries = nonEmptySeries.slice(1);
   const grayColor = colors.text.muted;
 
-  const getActiveData = (values: number[]) =>
-    values.map((v, i) => (i <= activeIndex ? v : null));
-
-  const getInactiveData = (values: number[]) =>
+  // The base layer below always draws each series in full color. When the
+  // tooltip is active we only need to paint the "future" (>= activeIndex)
+  // portion gray on top, so a single inactive helper is enough.
+  const getInactiveData = (values: (number | null)[]) =>
     values.map((v, i) => (i >= activeIndex ? v : null));
 
   const isTooltipActive = activeIndex >= 0;
@@ -262,56 +273,63 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
     <Box twClassName="w-full" testID={testID}>
       <View
         style={tw.style(`h-[${CHART_HEIGHT}px]`)}
+        testID={PREDICT_GAME_CHART_CONTENT_TEST_IDS.SURFACE}
         {...panResponder.panHandlers}
         onLayout={handleChartLayout}
       >
-        {!isTooltipActive ? (
-          <>
-            <LineChart
-              style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
-              data={primaryChartData}
-              svg={{
-                stroke: primarySeries?.color || colors.primary.default,
-                strokeWidth: 2,
-              }}
-              contentInset={contentInset}
-              yMin={chartMin}
-              yMax={chartMax}
-              curve={LINE_CURVE}
-            >
-              <EndpointDots
-                nonEmptySeries={nonEmptySeries}
-                primaryDataLength={primaryData.length}
-              />
-            </LineChart>
-
-            {overlaySeries.map((series, index) => (
-              <LineChart
-                key={`overlay-${index}`}
-                style={tw.style('absolute inset-0')}
-                data={series.data.map((point) => point.value)}
-                svg={{ stroke: series.color, strokeWidth: 2 }}
-                contentInset={contentInset}
-                yMin={chartMin}
-                yMax={chartMax}
-                curve={LINE_CURVE}
-              />
-            ))}
-          </>
-        ) : (
-          <>
-            <LineChart
-              style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
-              data={getActiveData(primaryChartData)}
-              svg={{
-                stroke: primarySeries?.color || colors.primary.default,
-                strokeWidth: 2,
-              }}
-              contentInset={contentInset}
-              yMin={chartMin}
-              yMax={chartMax}
-              curve={LINE_CURVE}
+        {/*
+         * Base layer: the primary and overlay lines are ALWAYS mounted in the
+         * same positions regardless of tooltip state. Activating the tooltip
+         * used to swap to a different element tree, which reordered/remounted
+         * the overlay charts; on remount `react-native-svg-charts` resets its
+         * measured size and draws nothing until the next layout pass, blanking
+         * the overlay lines for a frame on every scroll-driven toggle.
+         */}
+        <LineChart
+          style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
+          data={primaryChartData}
+          svg={{
+            stroke: primarySeries?.color || colors.primary.default,
+            strokeWidth: 2,
+          }}
+          contentInset={contentInset}
+          yMin={chartMin}
+          yMax={chartMax}
+          curve={LINE_CURVE}
+        >
+          {!isTooltipActive && (
+            <EndpointDots
+              nonEmptySeries={nonEmptySeries}
+              primaryDataLength={primaryData.length}
             />
+          )}
+        </LineChart>
+
+        {overlaySeries.map((series, index) => (
+          <LineChart
+            key={`overlay-${index}`}
+            style={tw.style('absolute inset-0')}
+            data={toRenderable(series.data.map((point) => point.value))}
+            svg={{ stroke: series.color, strokeWidth: 2 }}
+            contentInset={contentInset}
+            yMin={chartMin}
+            yMax={chartMax}
+            curve={LINE_CURVE}
+          />
+        ))}
+
+        {/*
+         * Tooltip layer: additive only. We paint the "future" portion of each
+         * line gray on top of the always-present base lines and render the
+         * crosshair. Mounting/unmounting these extra layers never tears down
+         * the base lines, so they stay visible while scrubbing.
+         *
+         * Draw order: the gray overlay segments are rendered after the gray
+         * primary segment, so at line crossings in the grayed region the
+         * overlays stay visually on top - matching the previous split render.
+         */}
+        {isTooltipActive && (
+          <>
             <LineChart
               style={tw.style('absolute inset-0')}
               data={getInactiveData(primaryChartData)}
@@ -322,31 +340,20 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
               curve={LINE_CURVE}
             />
 
-            {overlaySeries.map((series, index) => {
-              const seriesValues = series.data.map((point) => point.value);
-              return (
-                <React.Fragment key={`overlay-split-${index}`}>
-                  <LineChart
-                    style={tw.style('absolute inset-0')}
-                    data={getActiveData(seriesValues)}
-                    svg={{ stroke: series.color, strokeWidth: 2 }}
-                    contentInset={contentInset}
-                    yMin={chartMin}
-                    yMax={chartMax}
-                    curve={LINE_CURVE}
-                  />
-                  <LineChart
-                    style={tw.style('absolute inset-0')}
-                    data={getInactiveData(seriesValues)}
-                    svg={{ stroke: grayColor, strokeWidth: 2 }}
-                    contentInset={contentInset}
-                    yMin={chartMin}
-                    yMax={chartMax}
-                    curve={LINE_CURVE}
-                  />
-                </React.Fragment>
-              );
-            })}
+            {overlaySeries.map((series, index) => (
+              <LineChart
+                key={`overlay-inactive-${index}`}
+                style={tw.style('absolute inset-0')}
+                data={getInactiveData(
+                  toRenderable(series.data.map((point) => point.value)),
+                )}
+                svg={{ stroke: grayColor, strokeWidth: 2 }}
+                contentInset={contentInset}
+                yMin={chartMin}
+                yMax={chartMax}
+                curve={LINE_CURVE}
+              />
+            ))}
 
             <LineChart
               style={tw.style('absolute inset-0')}
