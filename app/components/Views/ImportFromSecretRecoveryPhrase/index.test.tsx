@@ -33,8 +33,22 @@ import {
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
+import { EVENT_NAME } from '../../../core/Analytics';
+import { AccountType } from '../../../constants/onboarding';
+import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 
 const mockQrSyncResetState = jest.fn();
+
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+
+const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
+  typeof trackOnboarding
+>;
 
 jest.mock('../../../core/Engine', () => ({
   __esModule: true,
@@ -741,6 +755,97 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(backButton);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks WALLET_SETUP_CANCELLED when leaving onboarding import on step 0', () => {
+      mockTrackOnboarding.mockClear();
+
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+        { [PREVIOUS_SCREEN]: ONBOARDING },
+      );
+
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: EVENT_NAME.WALLET_SETUP_CANCELLED,
+          properties: expect.objectContaining({
+            wallet_setup_type: 'import',
+            new_wallet: false,
+            account_type: AccountType.Imported,
+            screen_name: 'import_from_seed',
+          }),
+        } as Partial<AnalyticsTrackingEvent>),
+        expect.any(Function),
+      );
+    });
+
+    it('does not track WALLET_SETUP_CANCELLED when leaving import outside onboarding', () => {
+      mockTrackOnboarding.mockClear();
+
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+        { qrSyncImport: true },
+      );
+
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
+
+      expect(mockTrackOnboarding).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: EVENT_NAME.WALLET_SETUP_CANCELLED,
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('does not track WALLET_SETUP_CANCELLED when stepping back from password to SRP', async () => {
+      mockTrackOnboarding.mockClear();
+
+      const { getByPlaceholderText, getByRole, getByTestId, getByText } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
+          { [PREVIOUS_SCREEN]: ONBOARDING },
+        );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
+      fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.metamask_password')),
+        ).toBeOnTheScreen();
+      });
+      mockTrackOnboarding.mockClear();
+
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
+
+      await waitFor(() => {
+        expect(
+          getByPlaceholderText(strings('import_from_seed.srp_placeholder')),
+        ).toBeOnTheScreen();
+      });
+
+      expect(mockTrackOnboarding).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: EVENT_NAME.WALLET_SETUP_CANCELLED,
+        }),
+        expect.anything(),
+      );
     });
 
     it('update focused index on blur', async () => {

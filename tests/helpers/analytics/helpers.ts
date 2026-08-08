@@ -138,6 +138,7 @@ export const onboardingEvents = {
   TERMS_OF_USE_ACCEPTED: 'Terms of Use Accepted',
   WALLET_CREATION_ATTEMPTED: 'Wallet Creation Attempted',
   WALLET_CREATED: 'Wallet Created',
+  WALLET_SETUP_CANCELLED: 'Wallet Setup Cancelled',
   WALLET_SETUP_COMPLETED: 'Wallet Setup Completed',
   WALLET_SECURITY_STARTED: 'Wallet Security Started',
   MANUAL_BACKUP_INITIATED: 'Manual Backup Initiated',

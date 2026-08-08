@@ -693,6 +693,30 @@ describe('ChoosePassword', () => {
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
+    it('tracks WALLET_SETUP_CANCELLED when back button is pressed', async () => {
+      mockTrackOnboarding.mockClear();
+      const { getByTestId } = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const backButton = getByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID);
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: EVENT_NAME.WALLET_SETUP_CANCELLED,
+          properties: expect.objectContaining({
+            wallet_setup_type: 'new',
+            new_wallet: true,
+            account_type: AccountType.Metamask,
+            screen_name: 'choose_password',
+          }),
+        }),
+        expect.any(Function),
+      );
+    });
+
     it('navigates to ManualBackupStep1 with seed phrase after successful SRP wallet creation', async () => {
       const mockNewWalletAndKeychain = jest.spyOn(
         Authentication,
