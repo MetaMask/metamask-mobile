@@ -9,6 +9,7 @@ import {
   PerpsOrderTransactionStatusType,
   type PerpsTransaction,
 } from '../../../UI/Perps/types/transactionHistory';
+import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { PerpsDetails } from './PerpsDetails';
 
@@ -32,12 +33,17 @@ jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
     getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
   }),
-  usePerpsRecordedOrderFees: () => ({
+  usePerpsRecordedOrderFees: jest.fn(() => ({
     totalFee: 2.345,
     isLoading: false,
     hasError: false,
-  }),
+  })),
 }));
+
+const mockUsePerpsRecordedOrderFees =
+  usePerpsRecordedOrderFees as jest.MockedFunction<
+    typeof usePerpsRecordedOrderFees
+  >;
 
 const baseTransaction: Pick<
   PerpsTransaction,
@@ -244,6 +250,11 @@ describe('PerpsDetails', () => {
     expect(getByText('45%')).toBeOnTheScreen();
     expect(getByText('Total fee')).toBeOnTheScreen();
     expect(getByText('$2.345')).toBeOnTheScreen();
+    expect(mockUsePerpsRecordedOrderFees).toHaveBeenLastCalledWith(
+      'order-partially-filled',
+      'BTC',
+      1_765_361_640_000,
+    );
   });
 
   it('renders funding rate and signed funding fee', () => {

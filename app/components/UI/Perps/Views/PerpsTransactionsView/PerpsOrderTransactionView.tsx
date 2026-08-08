@@ -54,6 +54,7 @@ const PerpsOrderTransactionView: React.FC = () => {
   } = usePerpsRecordedOrderFees(
     transaction?.order?.orderId,
     transaction?.asset ?? '',
+    transaction?.timestamp,
   );
 
   useLayoutEffect(() => {

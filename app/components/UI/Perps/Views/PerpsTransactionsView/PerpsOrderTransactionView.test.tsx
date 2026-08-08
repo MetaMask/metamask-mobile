@@ -288,6 +288,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(mockUsePerpsRecordedOrderFees).toHaveBeenCalledWith(
       'order-123',
       'ETH',
+      1640995200000,
     );
   });
 
@@ -306,6 +307,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(mockUsePerpsRecordedOrderFees).toHaveBeenCalledWith(
       undefined,
       'ETH',
+      1640995200000,
     );
   });
 
@@ -342,6 +344,7 @@ describe('PerpsOrderTransactionView', () => {
     expect(mockUsePerpsRecordedOrderFees).toHaveBeenCalledWith(
       'order-123',
       'ETH',
+      1640995200000,
     );
   });
 

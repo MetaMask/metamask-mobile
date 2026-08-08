@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { usePerpsMarketFills } from './usePerpsMarketFills';
 
 interface UsePerpsRecordedOrderFeesResult {
@@ -21,11 +22,13 @@ interface UsePerpsRecordedOrderFeesResult {
  *
  * @param orderId - Hyperliquid order ID to correlate with execution fills.
  * @param symbol - Market symbol used to scope the fill history.
+ * @param orderTimestamp - Order timestamp used to verify fill-history coverage.
  * @returns Recorded total fee and lookup state.
  */
 export function usePerpsRecordedOrderFees(
   orderId: string | undefined,
   symbol: string,
+  orderTimestamp: number | undefined,
 ): UsePerpsRecordedOrderFeesResult {
   const { fills, isInitialLoading, isHistoryLoading, historyError } =
     usePerpsMarketFills({ symbol });
@@ -38,14 +41,22 @@ export function usePerpsRecordedOrderFees(
       return undefined;
     }
 
-    return fills
-      .filter((fill) => fill.orderId === orderId)
+    const matchingFills = fills.filter((fill) => fill.orderId === orderId);
+
+    if (matchingFills.length === 0) {
+      const historyStartTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
+      if (orderTimestamp === undefined || orderTimestamp < historyStartTime) {
+        return undefined;
+      }
+    }
+
+    return matchingFills
       .reduce(
         (sum, fill) => sum.plus(new BigNumber(fill.fee || '0')),
         new BigNumber(0),
       )
       .toNumber();
-  }, [fills, hasError, isLoading, orderId]);
+  }, [fills, hasError, isLoading, orderId, orderTimestamp]);
 
   return { totalFee, isLoading, hasError };
 }
