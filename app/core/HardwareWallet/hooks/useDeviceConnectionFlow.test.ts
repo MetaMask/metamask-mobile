@@ -138,6 +138,32 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
+    it('uses targetWalletTypeRef over the selected account wallet type', async () => {
+      const refs = createMockRefs();
+      refs.targetWalletTypeRef.current = HardwareWalletType.Ledger;
+      const mockAdapter = createMockAdapter();
+      const createAdapterWithCallbacks = jest.fn().mockReturnValue(mockAdapter);
+      const options = createDefaultOptions({
+        refs,
+        walletType: HardwareWalletType.Qr,
+        deviceId: 'device-123',
+        createAdapterWithCallbacks,
+      });
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady('device-123'),
+      );
+      const resolvedWalletType = createAdapterWithCallbacks.mock.calls[0]?.[0];
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+
+      expect(resolvedWalletType).toBe(HardwareWalletType.Ledger);
+    });
+
     it('uses pendingOperationWalletTypeRef before the render catches up', async () => {
       const refs = createMockRefs();
       refs.pendingOperationWalletTypeRef.current = HardwareWalletType.Qr;
@@ -160,6 +186,59 @@ describe('useDeviceConnectionFlow', () => {
         HardwareWalletType.Qr,
       );
       expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('default');
+    });
+
+    it('prioritizes pendingOperationWalletTypeRef over a stale targetWalletTypeRef', async () => {
+      const refs = createMockRefs();
+      refs.targetWalletTypeRef.current = HardwareWalletType.Qr;
+      refs.pendingOperationWalletTypeRef.current = HardwareWalletType.Ledger;
+      const mockAdapter = createMockAdapter();
+      const createAdapterWithCallbacks = jest.fn().mockReturnValue(mockAdapter);
+      const options = createDefaultOptions({
+        refs,
+        deviceId: 'device-123',
+        createAdapterWithCallbacks,
+      });
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady('device-123'),
+      );
+      const resolvedWalletType = createAdapterWithCallbacks.mock.calls[0]?.[0];
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+
+      expect(resolvedWalletType).toBe(HardwareWalletType.Ledger);
+    });
+
+    it('uses pendingOperationWalletTypeRef when all three wallet type sources are set', async () => {
+      const refs = createMockRefs();
+      refs.targetWalletTypeRef.current = HardwareWalletType.Qr;
+      refs.pendingOperationWalletTypeRef.current = HardwareWalletType.Ledger;
+      const mockAdapter = createMockAdapter();
+      const createAdapterWithCallbacks = jest.fn().mockReturnValue(mockAdapter);
+      const options = createDefaultOptions({
+        refs,
+        walletType: HardwareWalletType.Trezor,
+        deviceId: 'device-123',
+        createAdapterWithCallbacks,
+      });
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady('device-123'),
+      );
+      const resolvedWalletType = createAdapterWithCallbacks.mock.calls[0]?.[0];
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+
+      expect(resolvedWalletType).toBe(HardwareWalletType.Ledger);
     });
 
     it('calls onFlowStart callback', async () => {
