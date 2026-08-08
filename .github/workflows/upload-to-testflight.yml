@@ -67,7 +67,7 @@ jobs:
             echo "| **Build commit SHA** | \`${{ inputs.build_commit_sha }}\` |"
             echo "| **Build version** | \`${{ inputs.build_version }}\` |"
             echo "| **Build number** | \`${{ inputs.build_number }}\` |"
-            echo "| **TestFlight group** | ${{ inputs.testflight_group }} |"
+            echo "| **TestFlight group(s)** | ${{ inputs.distribute_external == true && format('Internal, External: {0}', inputs.testflight_group) || 'Internal' }} |"
             echo "| **Workflow branch ref** | \`${{ github.ref_name }}\` |"
           } >> "$GITHUB_STEP_SUMMARY"
 
