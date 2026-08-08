@@ -21,6 +21,8 @@ interface SearchResult {
   securityData?: TokenSecurityData;
 }
 
+type SearchTokensResult = Awaited<ReturnType<typeof searchTokens>>;
+
 const DEBOUNCE_MS = 300;
 
 /**
@@ -99,37 +101,37 @@ export const useSearchRequest = (options: {
     setHasNextPage(false);
     setTotalCount(undefined);
 
+    let searchResults: SearchTokensResult | undefined;
     try {
-      const searchResults = await searchTokens(stableChainIds, debouncedQuery, {
+      searchResults = await searchTokens(stableChainIds, debouncedQuery, {
         limit,
         includeMarketData,
         includeTokenSecurityData: true,
       });
-      // Only update state if this is still the current request
-      if (currentRequestId === requestIdRef.current) {
-        setResults((searchResults?.data as SearchResult[]) || []);
-        setEndCursor(searchResults?.pageInfo?.endCursor ?? undefined);
-        setHasNextPage(searchResults?.pageInfo?.hasNextPage ?? false);
-        setTotalCount(
-          typeof searchResults?.totalCount === 'number'
-            ? searchResults.totalCount
-            : undefined,
-        );
-        if (searchResults?.error) {
-          setError({ message: searchResults.error, name: 'SearchError' });
-        }
-      }
     } catch (err) {
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setError(err as Error);
         setResults([]);
-      }
-    } finally {
-      // Only update loading state if this is still the current request
-      if (currentRequestId === requestIdRef.current) {
         setIsFetching(false);
       }
+      return;
+    }
+
+    // Only update state if this is still the current request
+    if (currentRequestId === requestIdRef.current) {
+      setResults((searchResults?.data as SearchResult[]) || []);
+      setEndCursor(searchResults?.pageInfo?.endCursor ?? undefined);
+      setHasNextPage(searchResults?.pageInfo?.hasNextPage ?? false);
+      setTotalCount(
+        typeof searchResults?.totalCount === 'number'
+          ? searchResults.totalCount
+          : undefined,
+      );
+      if (searchResults?.error) {
+        setError({ message: searchResults.error, name: 'SearchError' });
+      }
+      setIsFetching(false);
     }
   }, [stableChainIds, debouncedQuery, limit, includeMarketData]);
 
@@ -139,24 +141,30 @@ export const useSearchRequest = (options: {
 
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
+
+    let more: SearchTokensResult | undefined;
     try {
-      const more = await searchTokens(stableChainIds, debouncedQuery, {
+      more = await searchTokens(stableChainIds, debouncedQuery, {
         limit,
         includeMarketData,
         includeTokenSecurityData: true,
         after: endCursor,
       });
-      if (more?.data) {
-        setResults((prev) => [...prev, ...(more.data as SearchResult[])]);
-      }
-      setEndCursor(more?.pageInfo?.endCursor ?? undefined);
-      setHasNextPage(more?.pageInfo?.hasNextPage ?? false);
     } catch {
       // Pagination errors are silent; existing results stay intact
-    } finally {
       isLoadingMoreRef.current = false;
       setIsLoadingMore(false);
+      return;
     }
+
+    const moreData = more?.data as SearchResult[] | undefined;
+    if (moreData) {
+      setResults((prev) => [...prev, ...moreData]);
+    }
+    setEndCursor(more?.pageInfo?.endCursor ?? undefined);
+    setHasNextPage(more?.pageInfo?.hasNextPage ?? false);
+    isLoadingMoreRef.current = false;
+    setIsLoadingMore(false);
   }, [
     hasNextPage,
     endCursor,
@@ -172,19 +180,17 @@ export const useSearchRequest = (options: {
     searchTokensRequest();
   }, [searchTokensRequest]);
 
-  // Track whether debouncedQuery has been processed by the effect yet.
-  // On the render where debouncedQuery changes, prevDebouncedQuery still
-  // holds the old value, so the check covers the one-frame gap before
-  // the effect fires the request.
-  const prevDebouncedQuery = useRef(debouncedQuery);
+  // Track whether debouncedQuery has been processed by the effect yet. This is
+  // state rather than a ref because it is read during render: on the render
+  // where debouncedQuery changes, requestedQuery still holds the old value, so
+  // the check covers the one-frame gap before the effect fires the request.
+  const [requestedQuery, setRequestedQuery] = useState(debouncedQuery);
   useEffect(() => {
-    prevDebouncedQuery.current = debouncedQuery;
-  });
+    setRequestedQuery(debouncedQuery);
+  }, [debouncedQuery]);
 
   const isLoading =
-    query !== debouncedQuery ||
-    prevDebouncedQuery.current !== debouncedQuery ||
-    isFetching;
+    query !== debouncedQuery || requestedQuery !== debouncedQuery || isFetching;
 
   return {
     results,
