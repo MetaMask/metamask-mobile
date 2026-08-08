@@ -140,13 +140,19 @@ class PerpsConnectionManagerClass {
         this.previousProvider !== currentProvider;
       const hasHip3Changed = this.previousHip3Version !== currentHip3Version;
 
-      // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
+      // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection.
+      // Skip if preloadSubscriptions() is currently running: the initial connection captures
+      // the correct context at connect time, so any state change arriving in this window will
+      // already be reflected in the in-flight preload. A genuine context switch (e.g. network
+      // toggle during handshake) is handled by the next store-subscriber cycle once preload
+      // completes and isPreloading resets to false, via the previousXxx comparison below.
       if (
         (hasAccountChanged ||
           hasPerpsNetworkChanged ||
           hasProviderChanged ||
           hasHip3Changed) &&
-        this.isConnected
+        this.isConnected &&
+        !this.isPreloading
       ) {
         DevLogger.log(
           hasHip3Changed
@@ -1357,7 +1363,12 @@ class PerpsConnectionManagerClass {
     // Force clean state so connect() runs the full init → ping → preload path.
     // Uses force: true to bypass the refCount guard — ensureConnected must
     // always tear down, regardless of how many components hold references.
-    if (this.isConnected || this.isInitialized) {
+    // Track whether we tore down a prior connection so we only rebind channels
+    // that had active (now-stale) WS handles — on cold start there is nothing
+    // to rebind and calling resubscribeActiveStreamChannels() would fire a
+    // redundant prewarm + candleSnapshot batch.
+    const hadPriorConnection = this.isConnected || this.isInitialized;
+    if (hadPriorConnection) {
       await this.performActualDisconnection({ force: true, preserveCaches });
     }
 
@@ -1377,7 +1388,10 @@ class PerpsConnectionManagerClass {
     // clearing during disconnect. Rebind active channel handles after the
     // controller comes back so subscribers do not keep stale WebSocket
     // unsubscribe references from the pre-reconnect provider.
-    if (preserveCaches) {
+    // Only rebind if there was a prior connection — on cold start there are no
+    // stale handles to fix and an unconditional rebind would double every REST
+    // preload call (candleSnapshot × 5, allMids × 1).
+    if (preserveCaches && hadPriorConnection) {
       this.resubscribeActiveStreamChannels();
     }
   }
