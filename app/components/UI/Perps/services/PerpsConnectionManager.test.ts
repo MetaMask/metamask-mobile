@@ -1462,6 +1462,10 @@ describe('PerpsConnectionManager', () => {
       await PerpsConnectionManager.connect();
     });
 
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('treats isInternetReachable null as online when isConnected is true', () => {
       // Arrange — start disconnected so wasOffline is not set by online path
       const m = PerpsConnectionManager as unknown as {
