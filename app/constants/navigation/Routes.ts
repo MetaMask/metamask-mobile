@@ -150,6 +150,7 @@ const Routes = {
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
+  EXPLORE_CARDS: 'ExploreCards',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',

@@ -64,6 +64,7 @@ import {
   useWhatsHappening,
 } from '../../../UI/WhatsHappening/hooks';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import ExploreCardsBanner from '../../../UI/ExploreCards/ExploreCardsBanner';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -289,6 +290,12 @@ const NowTabContent: React.FC<TabProps> = ({
 
   const sections = useMemo((): ExploreSectionItem[] => {
     const items: ExploreSectionItem[] = [];
+
+    // POC: Explore Cards deck entry point, always the first section.
+    items.push({
+      key: 'explore_cards',
+      content: <ExploreCardsBanner />,
+    });
 
     if (showPredictions) {
       items.push({
