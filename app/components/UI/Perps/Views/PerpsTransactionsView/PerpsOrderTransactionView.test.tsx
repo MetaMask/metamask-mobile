@@ -6,7 +6,7 @@ import PerpsOrderTransactionView from './PerpsOrderTransactionView';
 import {
   usePerpsBlockExplorerUrl,
   usePerpsNetwork,
-  usePerpsOrderFees,
+  usePerpsRecordedOrderFees,
 } from '../../hooks';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 
@@ -19,6 +19,7 @@ const mockTransaction = {
   timestamp: 1640995200000,
   asset: 'ETH',
   order: {
+    orderId: 'order-123',
     text: 'Filled',
     statusType: 'filled' as const,
     type: 'limit',
@@ -48,7 +49,7 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../hooks', () => ({
   usePerpsNetwork: jest.fn(),
-  usePerpsOrderFees: jest.fn(),
+  usePerpsRecordedOrderFees: jest.fn(),
   usePerpsBlockExplorerUrl: jest.fn(),
 }));
 
@@ -56,9 +57,10 @@ describe('PerpsOrderTransactionView', () => {
   const mockUsePerpsNetwork = usePerpsNetwork as jest.MockedFunction<
     typeof usePerpsNetwork
   >;
-  const mockUsePerpsOrderFees = usePerpsOrderFees as jest.MockedFunction<
-    typeof usePerpsOrderFees
-  >;
+  const mockUsePerpsRecordedOrderFees =
+    usePerpsRecordedOrderFees as jest.MockedFunction<
+      typeof usePerpsRecordedOrderFees
+    >;
   const mockUsePerpsBlockExplorerUrl =
     usePerpsBlockExplorerUrl as jest.MockedFunction<
       typeof usePerpsBlockExplorerUrl
@@ -86,15 +88,10 @@ describe('PerpsOrderTransactionView', () => {
       }),
       baseExplorerUrl: 'https://app.hyperliquid.xyz/explorer',
     });
-    mockUsePerpsOrderFees.mockReturnValue({
+    mockUsePerpsRecordedOrderFees.mockReturnValue({
       totalFee: 10.5,
-      undiscountedTotalFee: 10.5,
-      protocolFee: 7.5,
-      metamaskFee: 3,
-      protocolFeeRate: 0.1,
-      metamaskFeeRate: 0.05,
-      isLoadingMetamaskFee: false,
-      error: null,
+      isLoading: false,
+      hasError: false,
     });
 
     // Mock the route params
@@ -127,189 +124,64 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('100%')).toBeTruthy();
   });
 
-  it('renders fee breakdown correctly', () => {
+  it('renders one total fee row from recorded fills', () => {
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
+
+    expect(getByText('Total fee')).toBeTruthy();
+    expect(getByText('$10.5')).toBeTruthy();
+    expect(queryByText('MetaMask fee')).toBeNull();
+    expect(queryByText('Hyperliquid fee')).toBeNull();
+  });
+
+  it('renders zero after a completed lookup finds no fills', () => {
+    mockUsePerpsRecordedOrderFees.mockReturnValue({
+      totalFee: 0,
+      isLoading: false,
+      hasError: false,
+    });
+
     const { getByText } = render(<PerpsOrderTransactionView />);
 
-    expect(getByText('MetaMask fee')).toBeTruthy();
-    expect(getByText('Hyperliquid fee')).toBeTruthy();
-    expect(getByText('Total fee')).toBeTruthy();
-    expect(getByText('$3')).toBeTruthy();
-    expect(getByText('$7.5')).toBeTruthy(); // Trailing zero stripped
-    expect(getByText('$10.5')).toBeTruthy(); // Trailing zero stripped
+    expect(getByText('$0')).toBeTruthy();
   });
 
-  it('shows zero fees when order is not filled', () => {
-    const unfilledTransaction = {
-      ...mockTransaction,
-      order: {
-        ...mockTransaction.order,
-        text: 'Canceled',
-        statusType: 'canceled' as const,
-      },
-    };
-
-    mockUseRoute.mockReturnValue({
-      params: { transaction: unfilledTransaction },
+  it('renders a placeholder while recorded fills are loading', () => {
+    mockUsePerpsRecordedOrderFees.mockReturnValue({
+      totalFee: undefined,
+      isLoading: true,
+      hasError: false,
     });
 
-    const { getAllByText } = render(<PerpsOrderTransactionView />);
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
 
-    const zeroFees = getAllByText('$0');
-    expect(zeroFees).toHaveLength(3); // All three fees should be $0
+    expect(getByText('—')).toBeTruthy();
+    expect(queryByText('$0')).toBeNull();
   });
 
-  it('shows exact fee values for fees less than 0.01', () => {
-    mockUsePerpsOrderFees.mockReturnValue({
+  it('renders a placeholder when recorded fills are unavailable', () => {
+    mockUsePerpsRecordedOrderFees.mockReturnValue({
+      totalFee: undefined,
+      isLoading: false,
+      hasError: true,
+    });
+
+    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
+
+    expect(getByText('—')).toBeTruthy();
+    expect(queryByText('$0')).toBeNull();
+  });
+
+  it('shows exact recorded fee values below 0.01', () => {
+    mockUsePerpsRecordedOrderFees.mockReturnValue({
       totalFee: 0.005,
-      undiscountedTotalFee: 0.005,
-      protocolFee: 0.003,
-      metamaskFee: 0.002,
-      protocolFeeRate: 0.1,
-      metamaskFeeRate: 0.05,
-      isLoadingMetamaskFee: false,
-      error: null,
+      isLoading: false,
+      hasError: false,
     });
 
     const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
 
-    // All three fees should show exact values, not "< $0.01"
     expect(queryByText('< $0.01')).toBeNull();
-    expect(getByText('$0.005')).toBeTruthy(); // Total fee
-    expect(getByText('$0.003')).toBeTruthy(); // Protocol fee
-    expect(getByText('$0.002')).toBeTruthy(); // MetaMask fee
-  });
-
-  it('formats fees normally when they are exactly 0.01', () => {
-    mockUsePerpsOrderFees.mockReturnValue({
-      totalFee: 0.03,
-      undiscountedTotalFee: 0.03,
-      protocolFee: 0.01,
-      metamaskFee: 0.01,
-      protocolFeeRate: 0.1,
-      metamaskFeeRate: 0.05,
-      isLoadingMetamaskFee: false,
-      error: null,
-    });
-
-    const { getAllByText, queryByText, getByText } = render(
-      <PerpsOrderTransactionView />,
-    );
-
-    // Fees at exactly 0.01 should be formatted normally, not show "< $0.01"
-    expect(queryByText('< $0.01')).toBeNull();
-    // Both metamask and protocol fees are 0.01
-    const fee01Labels = getAllByText('$0.01');
-    expect(fee01Labels.length).toBeGreaterThanOrEqual(2);
-    expect(getByText('$0.03')).toBeTruthy(); // Total fee
-  });
-
-  it('formats fees with exact values regardless of size', () => {
-    mockUsePerpsOrderFees.mockReturnValue({
-      totalFee: 0.015,
-      undiscountedTotalFee: 0.015,
-      protocolFee: 0.012,
-      metamaskFee: 0.003,
-      protocolFeeRate: 0.1,
-      metamaskFeeRate: 0.05,
-      isLoadingMetamaskFee: false,
-      error: null,
-    });
-
-    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
-
-    // All fees should show exact values, not "< $0.01"
-    expect(queryByText('< $0.01')).toBeNull();
-    expect(getByText('$0.003')).toBeTruthy(); // MetaMask fee (exact)
-    expect(getByText('$0.012')).toBeTruthy(); // Protocol fee (exact)
-    expect(getByText('$0.015')).toBeTruthy(); // Total fee (exact)
-  });
-
-  it('handles mixed small and large fees correctly with exact values', () => {
-    mockUsePerpsOrderFees.mockReturnValue({
-      totalFee: 0.025,
-      undiscountedTotalFee: 0.025,
-      protocolFee: 0.02,
-      metamaskFee: 0.005,
-      protocolFeeRate: 0.1,
-      metamaskFeeRate: 0.05,
-      isLoadingMetamaskFee: false,
-      error: null,
-    });
-
-    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
-
-    // All fees should show exact values
-    expect(queryByText('< $0.01')).toBeNull();
-    expect(getByText('$0.005')).toBeTruthy(); // MetaMask fee (exact)
-    expect(getByText('$0.02')).toBeTruthy(); // Protocol fee
-    expect(getByText('$0.025')).toBeTruthy(); // Total fee (exact)
-  });
-
-  it('handles edge case: fee just below 0.01 threshold with exact values', () => {
-    mockUsePerpsOrderFees.mockReturnValue({
-      totalFee: 0.029,
-      undiscountedTotalFee: 0.029,
-      protocolFee: 0.0099,
-      metamaskFee: 0.0099,
-      protocolFeeRate: 0.1,
-      metamaskFeeRate: 0.05,
-      isLoadingMetamaskFee: false,
-      error: null,
-    });
-
-    const { getByText, getAllByText, queryByText } = render(
-      <PerpsOrderTransactionView />,
-    );
-
-    // All fees should show exact values, not "< $0.01"
-    expect(queryByText('< $0.01')).toBeNull();
-    // Both metamask and protocol fees show exact value
-    const fee0099Labels = getAllByText('$0.0099');
-    expect(fee0099Labels).toHaveLength(2);
-    // Total fee shows exact value
-    expect(getByText('$0.029')).toBeTruthy();
-  });
-
-  it('handles edge case: fee just above 0.01 threshold with exact values', () => {
-    mockUsePerpsOrderFees.mockReturnValue({
-      totalFee: 0.0201,
-      undiscountedTotalFee: 0.0201,
-      protocolFee: 0.0101,
-      metamaskFee: 0.01,
-      protocolFeeRate: 0.1,
-      metamaskFeeRate: 0.05,
-      isLoadingMetamaskFee: false,
-      error: null,
-    });
-
-    const { queryByText, getByText } = render(<PerpsOrderTransactionView />);
-
-    // All fees should show exact values, not "< $0.01"
-    expect(queryByText('< $0.01')).toBeNull();
-    expect(getByText('$0.01')).toBeTruthy(); // MetaMask fee (exact)
-    expect(getByText('$0.0101')).toBeTruthy(); // Protocol fee (exact)
-    expect(getByText('$0.0201')).toBeTruthy(); // Total fee (exact)
-  });
-
-  it('shows exact values for all fees when all are below 0.01', () => {
-    mockUsePerpsOrderFees.mockReturnValue({
-      totalFee: 0.008,
-      undiscountedTotalFee: 0.008,
-      protocolFee: 0.005,
-      metamaskFee: 0.003,
-      protocolFeeRate: 0.1,
-      metamaskFeeRate: 0.05,
-      isLoadingMetamaskFee: false,
-      error: null,
-    });
-
-    const { getByText, queryByText } = render(<PerpsOrderTransactionView />);
-
-    // All three fees should show exact values, not "< $0.01"
-    expect(queryByText('< $0.01')).toBeNull();
-    expect(getByText('$0.008')).toBeTruthy(); // Total fee
-    expect(getByText('$0.005')).toBeTruthy(); // Protocol fee
-    expect(getByText('$0.003')).toBeTruthy(); // MetaMask fee
+    expect(getByText('$0.005')).toBeTruthy();
   });
 
   it('navigates to block explorer in browser tab when button is pressed', () => {
@@ -413,11 +285,11 @@ describe('PerpsOrderTransactionView', () => {
 
     render(<PerpsOrderTransactionView />);
 
-    // Should still render without errors for market orders
-    expect(mockUsePerpsOrderFees).toHaveBeenCalledWith({
-      orderType: 'market',
-      amount: '3000',
-    });
+    expect(mockUsePerpsRecordedOrderFees).toHaveBeenCalledWith(
+      'order-123',
+      'ETH',
+      1640995200000,
+    );
   });
 
   it('handles missing order data gracefully', () => {
@@ -432,10 +304,11 @@ describe('PerpsOrderTransactionView', () => {
 
     render(<PerpsOrderTransactionView />);
 
-    expect(mockUsePerpsOrderFees).toHaveBeenCalledWith({
-      orderType: 'market',
-      amount: '0',
-    });
+    expect(mockUsePerpsRecordedOrderFees).toHaveBeenCalledWith(
+      undefined,
+      'ETH',
+      1640995200000,
+    );
   });
 
   it('displays exact price for low-priced assets like PUMP instead of "< $0.01"', () => {
@@ -465,13 +338,14 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('$0.00234')).toBeTruthy();
   });
 
-  it('calls usePerpsOrderFees with correct parameters', () => {
+  it('looks up recorded fees with the order ID and asset', () => {
     render(<PerpsOrderTransactionView />);
 
-    expect(mockUsePerpsOrderFees).toHaveBeenCalledWith({
-      orderType: 'limit',
-      amount: '3000',
-    });
+    expect(mockUsePerpsRecordedOrderFees).toHaveBeenCalledWith(
+      'order-123',
+      'ETH',
+      1640995200000,
+    );
   });
 
   it('sets correct navigation options', () => {

@@ -135,6 +135,8 @@ describe('usePerpsMarketFills', () => {
       // Assert
       expect(result.current.fills).toEqual([]);
       expect(result.current.isInitialLoading).toBe(false);
+      expect(result.current.isHistoryLoading).toBe(true);
+      expect(result.current.historyError).toBeNull();
       expect(result.current.isRefreshing).toBe(false);
     });
 
@@ -152,6 +154,22 @@ describe('usePerpsMarketFills', () => {
 
       // Assert
       expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('clears historical loading after the REST backfill completes', async () => {
+      // Arrange
+      mockProvider.getOrderFills.mockResolvedValue([]);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsMarketFills({ symbol: 'BTC' }),
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.isHistoryLoading).toBe(false);
+      });
+      expect(result.current.historyError).toBeNull();
     });
   });
 
@@ -467,6 +485,8 @@ describe('usePerpsMarketFills', () => {
         );
       });
       expect(result.current.fills).toHaveLength(1);
+      expect(result.current.isHistoryLoading).toBe(false);
+      expect(result.current.historyError).toBe('API Error');
     });
 
     it('handles missing provider gracefully', async () => {
@@ -486,8 +506,12 @@ describe('usePerpsMarketFills', () => {
         usePerpsMarketFills({ symbol: 'BTC' }),
       );
 
-      // Assert - should work with just WebSocket fills
+      // Assert - should work with just WebSocket fills and report unavailable history
       expect(result.current.fills).toHaveLength(1);
+      await waitFor(() => {
+        expect(result.current.isHistoryLoading).toBe(false);
+      });
+      expect(result.current.historyError).toBe('No active Perps provider');
     });
   });
 

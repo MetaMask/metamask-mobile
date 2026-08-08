@@ -113,9 +113,9 @@ describe('ActivityDetailsPerps.utils', () => {
   });
 
   describe('formatPerpsOrderFee', () => {
-    it('formats the fee when filled and $0 when not', () => {
-      expect(formatPerpsOrderFee(2, true)).toBe('$2');
-      expect(formatPerpsOrderFee(2, false)).toBe('$0');
+    it('formats the recorded fee with universal price ranges', () => {
+      expect(formatPerpsOrderFee(2)).toBe('$2');
+      expect(formatPerpsOrderFee(0.005)).toBe('$0.005');
     });
   });
 
