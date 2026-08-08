@@ -69,7 +69,7 @@ interface StreamSubscription<T> {
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
-  hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
+  hasReceivedFirstLiveUpdate?: boolean;
   // Symbols this subscriber cares about. When present, the channel can dispatch
   // an update only to subscribers registered for the symbols that changed,
   // instead of iterating every subscriber on every tick. Used by the price channel.
@@ -193,11 +193,11 @@ abstract class StreamChannel<T> {
    * {@link notifySubscribersForSymbols} so both dispatch paths behave identically.
    */
   private deliverToSubscriber(subscriber: StreamSubscription<T>, updates: T) {
-    // Check if this is the first update for this subscriber
-    if (!subscriber.hasReceivedFirstUpdate) {
+    // Deliver the first live update immediately for this subscriber.
+    if (!subscriber.hasReceivedFirstLiveUpdate) {
       subscriber.callback(updates);
-      subscriber.hasReceivedFirstUpdate = true;
-      return; // Don't set up throttle for the first update
+      subscriber.hasReceivedFirstLiveUpdate = true;
+      return;
     }
 
     // If no throttling (throttleMs is 0 or undefined), notify immediately
@@ -296,7 +296,7 @@ abstract class StreamChannel<T> {
     const subscription: StreamSubscription<T> = {
       id,
       ...params,
-      hasReceivedFirstUpdate: false, // Initialize as false
+      hasReceivedFirstLiveUpdate: false,
     };
     this.subscribers.set(id, subscription);
     this.indexSubscriptionSymbols(subscription);
@@ -514,7 +514,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
-      subscriber.hasReceivedFirstUpdate = false;
+      subscriber.hasReceivedFirstLiveUpdate = false;
     });
 
     // Disconnect the old WebSocket subscription to stop receiving old account data
@@ -2243,7 +2243,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       subscriber.pendingUpdate = undefined;
 
       if (!preserveCache) {
-        subscriber.hasReceivedFirstUpdate = false;
+        subscriber.hasReceivedFirstLiveUpdate = false;
         subscriber.callback([]);
       }
     });

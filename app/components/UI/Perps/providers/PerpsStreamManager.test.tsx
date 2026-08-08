@@ -3248,7 +3248,7 @@ describe('PerpsStreamManager', () => {
 
       await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
 
-      // Deliver first update so hasReceivedFirstUpdate is set
+      // Deliver first update so hasReceivedFirstLiveUpdate is set
       act(() => {
         orderCallback?.([SAMPLE_ORDER]);
       });
