@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.7.0]
 
+### Uncategorized
+
+- chore: revert add @metamaskbot create-testflight-build PR command (#34177)
+- chore(navbar): remove un-used navbar functions (#34087)
+
 ### Added
 
 - Added a Lite/Pro mode selection sheet for Perps and routed Trade entry and header toggles through it (#34395)
@@ -197,7 +202,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed token imports to return to the full token list after completion (#34039)
 - Fixed Money activity filters so card transactions appear only in the appropriate tabs (#33862)
 - Fixed stale destination exchange rates in Swap and Bridge quotes (#33955)
-- Updated in-app toast styling for consistency (#33766) (#33767) (#33769) (#33770) (#33771) (#33772) (#33773) (#33774) (#33775)
+- Updated in-app toast styling for consistency (#33766, #33767, #33769, #33770, #33771, #33772, #33773, #33774, #33775)
 - Fixed fullscreen Perps charts so older price history can load when using the fallback chart (#33881)
 - Fixed Android push notifications showing the MetaMask fox icon twice (#34065)
 - Fixed Perps Home being reachable while Pro mode is active; Pro-mode users now always land on a market page instead (#34052)
