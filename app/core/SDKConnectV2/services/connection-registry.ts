@@ -373,9 +373,10 @@ export class ConnectionRegistry {
       //   the same time, and the loading toast would linger after the error
       //   toast auto-dismisses.
       // - On success for direct deeplink flows (initialMessage present), the
-      //   connection request includes the initial RPC, so an approval will
-      //   surface immediately after the MWP handshake — it's safe to dismiss
-      //   the loading toast right away.
+      //   connection request includes the initial RPC, which Connection.connect
+      //   surfaces as an approval eagerly (in parallel with the MWP handshake),
+      //   so the approval is already on its way — it's safe to dismiss the
+      //   loading toast right away.
       // - On success for QR flows (no initialMessage), the dapp sends
       //   wallet_createSession separately after the handshake. There may be
       //   a noticeable delay before the approval appears, so we keep the
