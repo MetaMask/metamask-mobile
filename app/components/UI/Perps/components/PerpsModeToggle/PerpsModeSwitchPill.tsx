@@ -17,6 +17,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useHaptics } from '../../../../../util/haptics';
 
 export const GLOW_TOTAL_MS = 750;
 const GLOW_SWEEP_MS = 700;
@@ -101,6 +102,7 @@ interface PerpsModeSwitchPillProps {
   currentModeLabel: string;
   isPro: boolean;
   onSwitchRequest: () => void;
+  enableHaptics?: boolean;
   accessibilityLabel: string;
   accessibilityHint: string;
   testID: string;
@@ -110,11 +112,13 @@ const PerpsModeSwitchPill = ({
   currentModeLabel,
   isPro,
   onSwitchRequest,
+  enableHaptics = false,
   accessibilityLabel,
   accessibilityHint,
   testID,
 }: PerpsModeSwitchPillProps) => {
   const tw = useTailwind();
+  const { playSelection } = useHaptics();
   const [width, setWidth] = useState(0);
   const [isShimmering, setIsShimmering] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -147,6 +151,10 @@ const PerpsModeSwitchPill = ({
       return;
     }
 
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+
     setIsShimmering(true);
     sweepProgress.value = 0;
     overlayOpacity.value = 0;
@@ -164,7 +172,13 @@ const PerpsModeSwitchPill = ({
       setIsShimmering(false);
       onSwitchRequest();
     }, GLOW_TOTAL_MS);
-  }, [onSwitchRequest, overlayOpacity, sweepProgress]);
+  }, [
+    enableHaptics,
+    onSwitchRequest,
+    overlayOpacity,
+    playSelection,
+    sweepProgress,
+  ]);
 
   const gradient = (
     <LinearGradient

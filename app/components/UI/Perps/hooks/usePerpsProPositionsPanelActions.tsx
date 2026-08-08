@@ -221,6 +221,7 @@ export const usePerpsProPositionsPanelActions =
               initialTakeProfitPrice: position.takeProfitPrice,
               initialStopLossPrice: position.stopLossPrice,
               leverage: position.leverage.value,
+              enableHaptics: true,
               onConfirm: async (
                 positionFromRoute?: Position,
                 takeProfitPrice?: string,

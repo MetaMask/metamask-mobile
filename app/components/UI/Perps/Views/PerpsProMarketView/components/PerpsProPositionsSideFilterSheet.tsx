@@ -7,6 +7,7 @@ import {
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Modal, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../util/haptics';
 import ProPositionSideFilterIcon from './ProPositionSideFilterIcon';
 import {
   PRO_POSITION_SIDE_FILTER_OPTIONS,
@@ -32,6 +33,7 @@ const PerpsProPositionsSideFilterSheet = ({
   onClose,
   testID = 'perps-pro-positions-side-filter-sheet',
 }: PerpsProPositionsSideFilterSheetProps) => {
+  const { playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
@@ -46,10 +48,13 @@ const PerpsProPositionsSideFilterSheet = ({
 
   const handleSelect = useCallback(
     (option: ProPositionSideFilter) => {
-      onApply(option);
+      if (option !== sideFilter) {
+        playSelection().catch(() => undefined);
+        onApply(option);
+      }
       handleClose();
     },
-    [onApply, handleClose],
+    [onApply, handleClose, playSelection, sideFilter],
   );
 
   if (!isVisible) {

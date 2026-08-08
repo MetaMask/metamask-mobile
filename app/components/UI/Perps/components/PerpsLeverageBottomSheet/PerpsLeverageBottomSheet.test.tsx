@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
+import { playSelection } from '../../../../../util/haptics';
 import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsLeverageBottomSheet from './PerpsLeverageBottomSheet';
 
@@ -602,6 +603,28 @@ describe('PerpsLeverageBottomSheet', () => {
       fireEvent.press(screen.getByText('Set 5x'));
 
       expect(mockOnConfirm).toHaveBeenCalledWith(5, 'slider');
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not play a haptic when confirm only flushes a stuck drag', () => {
+      const mockOnConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          onConfirm={mockOnConfirm}
+        />,
+      );
+
+      const slider = screen.getByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.SLIDER,
+      );
+      fireEvent(slider, 'valueChange', 12);
+      jest.mocked(playSelection).mockClear();
+
+      fireEvent.press(screen.getByText('Set 12x'));
+
+      expect(mockOnConfirm).not.toHaveBeenCalled();
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('flushes a stuck live drag value instead of confirming a stale leverage', () => {

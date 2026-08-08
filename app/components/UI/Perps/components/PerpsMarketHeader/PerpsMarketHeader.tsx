@@ -14,7 +14,7 @@ import {
 import { AnimationDuration } from '@metamask/design-tokens';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedReaction,
@@ -23,6 +23,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsMarketIdentity from '../PerpsMarketIdentity';
@@ -117,13 +118,55 @@ const PerpsMarketHeader = ({
   isFavorite = false,
   mode,
   onModeChange,
+  enableHaptics = false,
   scrollY,
   priceSectionHeight,
 }: PerpsMarketHeaderProps) => {
+  const { playImpact, playSelection } = useHaptics();
   const fallbackScrollY = useSharedValue(0);
   const fallbackPriceSectionHeight = useSharedValue(0);
   const scrollYSv = scrollY ?? fallbackScrollY;
   const priceSectionHeightSv = priceSectionHeight ?? fallbackPriceSectionHeight;
+
+  const handleBackPress = useCallback(() => {
+    if (!onBackPress) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onBackPress();
+  }, [enableHaptics, onBackPress, playImpact]);
+
+  const handleIdentityPress = useCallback(() => {
+    if (!onIdentityPress) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onIdentityPress();
+  }, [enableHaptics, onIdentityPress, playImpact]);
+
+  const handleWalletPress = useCallback(() => {
+    if (!onWalletPress) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onWalletPress();
+  }, [enableHaptics, onWalletPress, playImpact]);
+
+  const handleFavoritePress = useCallback(() => {
+    if (!onFavoritePress) {
+      return;
+    }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    onFavoritePress();
+  }, [enableHaptics, onFavoritePress, playSelection]);
 
   const compactProgress = useSharedValue(0);
 
@@ -216,7 +259,7 @@ const PerpsMarketHeader = ({
             <ButtonIcon
               iconName={IconName.Wallet}
               size={ButtonIconSize.Md}
-              onPress={onWalletPress}
+              onPress={handleWalletPress}
               accessibilityLabel={strings('perps.market_details.wallet')}
               testID={testIDs.walletButton}
             />
@@ -231,7 +274,7 @@ const PerpsMarketHeader = ({
             <ButtonIcon
               iconName={isFavorite ? IconName.StarFilled : IconName.Star}
               size={ButtonIconSize.Md}
-              onPress={onFavoritePress}
+              onPress={handleFavoritePress}
               accessibilityLabel={strings(
                 isFavorite
                   ? 'perps.market_details.remove_from_watchlist'
@@ -247,6 +290,7 @@ const PerpsMarketHeader = ({
               mode={mode}
               variant="active"
               onChange={onModeChange}
+              enableHaptics={enableHaptics}
               source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
             />
           </Box>
@@ -267,7 +311,7 @@ const PerpsMarketHeader = ({
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Sm}
-          onPress={onBackPress}
+          onPress={handleBackPress}
           accessibilityLabel={strings('perps.market_details.back')}
           testID={testIDs.backButton}
         />
@@ -281,7 +325,7 @@ const PerpsMarketHeader = ({
             maxLeverage={market.maxLeverage}
             size={32}
             gap={2}
-            onPress={onIdentityPress}
+            onPress={onIdentityPress ? handleIdentityPress : undefined}
             subtitleContent={displaySubtitleAndPrice}
             testIDs={{
               assetIcon: testIDs.assetIcon,

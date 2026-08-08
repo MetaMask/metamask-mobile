@@ -2,15 +2,19 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from '@metamask/design-system-react-native';
 import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
+import { playSelection } from '../../../../../../util/haptics';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'perps.sort.apply': 'Apply',
+      'perps.sort.clear': 'Clear',
     };
     return translations[key] || key;
   }),
 }));
+
+jest.mock('../../../../../../util/haptics');
 
 describe('PerpsProPositionsOptionSheet', () => {
   const mockOnClose = jest.fn();
@@ -58,5 +62,28 @@ describe('PerpsProPositionsOptionSheet', () => {
 
     expect(mockOnApply).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays selection when Clear is pressed', () => {
+    const onClear = jest.fn();
+    render(
+      <PerpsProPositionsOptionSheet
+        isVisible
+        title="Options"
+        onClose={mockOnClose}
+        onApply={mockOnApply}
+        onClear={onClear}
+        testID="option-sheet"
+      >
+        <Text>Option</Text>
+      </PerpsProPositionsOptionSheet>,
+    );
+
+    fireEvent.press(screen.getByTestId('option-sheet-clear'));
+
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(mockOnClose).toHaveBeenCalled();
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 });
