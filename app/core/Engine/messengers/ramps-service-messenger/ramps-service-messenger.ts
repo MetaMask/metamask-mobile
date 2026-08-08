@@ -17,14 +17,9 @@ type AllowedEvents = MessengerEvents<RampsServiceMessenger>;
  * @returns The RampsServiceMessenger.
  */
 export function getRampsServiceMessenger(
-  rootMessenger: RootMessenger,
+  rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): RampsServiceMessenger {
-  const messenger = new Messenger<
-    'RampsService',
-    AllowedActions,
-    AllowedEvents,
-    typeof rootMessenger
-  >({
+  const messenger: RampsServiceMessenger = new Messenger({
     namespace: 'RampsService',
     parent: rootMessenger,
   });
