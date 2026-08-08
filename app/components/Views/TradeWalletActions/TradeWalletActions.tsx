@@ -228,6 +228,15 @@ function TradeWalletActions() {
     handleNavigateBack();
   }, [goToSwapsBase, handleNavigateBack]);
 
+  const onWalletAssistant = useCallback(() => {
+    postCallback.current = () => {
+      navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.WALLET_ASSISTANT,
+      });
+    };
+    handleNavigateBack();
+  }, [handleNavigateBack, navigate]);
+
   const onBatchSell = useCallback(() => {
     postCallback.current = () => {
       navigate(Routes.BRIDGE.ROOT, {
@@ -363,6 +372,13 @@ function TradeWalletActions() {
 
   const actionList = (
     <>
+      <ActionListItem
+        label={strings('asset_overview.wallet_assistant')}
+        description={strings('asset_overview.wallet_assistant_description')}
+        iconName={IconName.Ai}
+        onPress={onWalletAssistant}
+        testID={WalletActionsBottomSheetSelectorsIDs.WALLET_ASSISTANT_BUTTON}
+      />
       {shouldRenderBatchSell && (
         <ActionListItem
           label={

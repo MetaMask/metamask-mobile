@@ -4694,6 +4694,7 @@
     "earn_button": "Earn",
     "perps_button": "Perps",
     "predict_button": "Predictions",
+    "wallet_assistant": "AI assistant",
     "add_collectible_button": "Add",
     "info": "Info",
     "batch_sell": "Batch Sell",
@@ -4746,6 +4747,7 @@
     "earn_description": "Earn rewards on your tokens",
     "perps_description": "Trade perps contracts",
     "predict_description": "Trade on real-world events",
+    "wallet_assistant_description": "Ask about markets and prepare trades",
     "chart_time_period": {
       "1d": "Today",
       "1h": "Past hour",

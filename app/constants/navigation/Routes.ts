@@ -334,6 +334,7 @@ const Routes = {
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
+    WALLET_ASSISTANT: 'WalletAssistant',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     BATCH_SELL_REVIEW: 'BatchSellReview',
