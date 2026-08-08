@@ -123,6 +123,30 @@ export interface CalcTokenFiatValueParams {
 export type CalcTokenFiatRateParams = Omit<CalcTokenFiatValueParams, 'amount'>;
 
 /**
+ * Reads a token's market data for an EVM chain, tolerating either address
+ * casing. `TokenRatesController` keys market data by checksummed address while
+ * `BridgeToken.address` is frequently lowercased (deeplinks, route params, API
+ * payloads), so a raw lookup silently misses and prices the token at zero.
+ */
+const getEvmTokenMarketData = (
+  marketDataByAddress: Record<Hex, { price: number | undefined }> | undefined,
+  address: string | undefined,
+): { price: number | undefined } | undefined => {
+  if (!marketDataByAddress || !address) {
+    return undefined;
+  }
+
+  const checksumAddress = safeToChecksumAddress(address);
+  return (
+    marketDataByAddress[address as Hex] ??
+    (checksumAddress
+      ? marketDataByAddress[checksumAddress as Hex]
+      : undefined) ??
+    marketDataByAddress[address.toLowerCase() as Hex]
+  );
+};
+
+/**
  * Gets the rate of one token in the user's current fiat currency.
  * @returns The numeric fiat rate, or undefined when price data is unavailable.
  */
@@ -149,7 +173,10 @@ export const calcTokenFiatRate = ({
 
   const evmChainId = token.chainId as Hex;
   const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+  const evmTokenMarketData = getEvmTokenMarketData(
+    evmMultiChainExchangeRates,
+    token.address,
+  );
 
   const nativeCurrency =
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
@@ -201,7 +228,10 @@ export const calcTokenFiatValue = ({
   // EVM
   const evmChainId = token.chainId as Hex;
   const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+  const evmTokenMarketData = getEvmTokenMarketData(
+    evmMultiChainExchangeRates,
+    token.address,
+  );
 
   const nativeCurrency =
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;

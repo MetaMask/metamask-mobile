@@ -29,6 +29,7 @@ import {
   playImpact,
 } from '../../../../../../util/haptics';
 import Logger from '../../../../../../util/Logger';
+import { useDisplayCurrencyValue } from '../../../../../UI/Bridge/hooks/useDisplayCurrencyValue';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
@@ -429,6 +430,7 @@ const setupDefaultMocks = () => {
   (useReceiveTokens as jest.Mock).mockReturnValue([]);
   (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
   (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
+  (useDisplayCurrencyValue as jest.Mock).mockReturnValue(undefined);
   (usePayWithTokens as jest.Mock).mockReturnValue({
     options: [createSourceToken()],
     isLoading: false,
@@ -2053,6 +2055,87 @@ describe('useQuickBuyController', () => {
       );
 
       expect(result.current.formattedExchangeRate).toBeUndefined();
+    });
+  });
+
+  describe('formattedMinimumReceivedFiat', () => {
+    const mockQuoteWithMinReceived = () => {
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: createActiveQuote({
+          minToTokenAmount: { amount: '100' },
+        }),
+        destTokenAmount: '100',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 1,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      });
+    };
+
+    it('prices the minimum received against the resolved dest token rate', () => {
+      mockQuoteWithMinReceived();
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(0.5);
+      (useDisplayCurrencyValue as jest.Mock).mockReturnValue('$50.00');
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(useDisplayCurrencyValue).toHaveBeenCalledWith(
+        '100',
+        expect.objectContaining({
+          symbol: 'TARGET',
+          currencyExchangeRate: 0.5,
+        }),
+      );
+      expect(result.current.formattedMinimumReceivedFiat).toBe('$50.00');
+    });
+
+    it('prices the minimum received with the host-supplied token price when no market rate exists', () => {
+      mockQuoteWithMinReceived();
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
+      (useDisplayCurrencyValue as jest.Mock).mockReturnValue('$95.63');
+
+      renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn(), {
+          tokenPriceFiat: 0.95625,
+        }),
+      );
+
+      expect(useDisplayCurrencyValue).toHaveBeenCalledWith(
+        '100',
+        expect.objectContaining({ currencyExchangeRate: 0.95625 }),
+      );
+    });
+
+    it('omits the fiat conversion when the dest token cannot be priced', () => {
+      mockQuoteWithMinReceived();
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
+      (useDisplayCurrencyValue as jest.Mock).mockReturnValue('$0.00');
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.formattedMinimumReceivedFiat).toBeUndefined();
+    });
+
+    it('omits the fiat conversion when there is no quote', () => {
+      (useDisplayCurrencyValue as jest.Mock).mockReturnValue('$0.00');
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.formattedMinimumReceivedFiat).toBeUndefined();
     });
   });
 

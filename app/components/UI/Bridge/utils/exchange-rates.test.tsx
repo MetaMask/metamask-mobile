@@ -367,6 +367,48 @@ describe('exchange-rates', () => {
         expect(result).toBe(10000);
       });
 
+      it('prices a lowercased token address against checksummed market data', () => {
+        const checksumAddress =
+          '0x6B175474E89094C44Da98b954EedeAC495271d0F' as Hex;
+
+        const result = calcTokenFiatValue({
+          token: {
+            ...mockEvmToken,
+            address: checksumAddress.toLowerCase() as Hex,
+          },
+          amount: '1',
+          evmMultiChainMarketData: {
+            [mockChainId]: { [checksumAddress]: { price: 10 } },
+          },
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 1 * 2000 (conversionRate) * 10 (price) = 20000
+        expect(result).toBe(20000);
+      });
+
+      it('prices a checksummed token address against lowercased market data', () => {
+        const checksumAddress =
+          '0x6B175474E89094C44Da98b954EedeAC495271d0F' as Hex;
+
+        const result = calcTokenFiatValue({
+          token: { ...mockEvmToken, address: checksumAddress },
+          amount: '1',
+          evmMultiChainMarketData: {
+            [mockChainId]: {
+              [checksumAddress.toLowerCase() as Hex]: { price: 10 },
+            },
+          },
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        expect(result).toBe(20000);
+      });
+
       it('falls back to currencyExchangeRate when market data is undefined', () => {
         const tokenWithExchangeRate = {
           ...mockEvmToken,
