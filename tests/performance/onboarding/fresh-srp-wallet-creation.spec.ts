@@ -69,6 +69,7 @@ const POST_ONBOARDING_SOURCE_LABELS: Record<PostOnboardingSource, string> = {
 };
 
 const DESTINATION_PROBE_IMPLICIT_WAIT_MS = 300;
+const INTEREST_QUESTIONNAIRE_PROBE_TIMEOUT_MS = 1_000;
 
 const isCandidateVisible = async (
   getElement: () => ReturnType<typeof asPlaywrightElement>,
@@ -116,6 +117,8 @@ const waitForPostOnboardingDestination = async (
   const remaining = candidates.filter(
     (candidate) => !dismissedDestinations.has(candidate.destination),
   );
+  const interestQuestionnaireProbeDeadline =
+    Date.now() + INTEREST_QUESTIONNAIRE_PROBE_TIMEOUT_MS;
 
   if (remaining.length === 0) {
     throw new Error('No post-onboarding destinations remain to wait for');
@@ -135,13 +138,19 @@ const waitForPostOnboardingDestination = async (
   let visibleCandidate: (typeof candidates)[number] | undefined;
 
   // Probe concrete elements instead of getPageSource(): full hierarchy dumps
-  // are multi-second Appium RTTs on BrowserStack/TestMu and were not fully
-  // subtracted from TimerHelper (only the final probe is).
+  // are multi-second Appium RTTs on BrowserStack/TestMu and are not tracked as
+  // capped poll overhead the way expectElementToBeVisible is.
   await withImplicitWait(DESTINATION_PROBE_IMPLICIT_WAIT_MS, async () => {
     await appDriver.waitUntil(
       async () => {
         // Prefer any visible sheet over wallet — tab bar often stays mounted.
         for (const candidate of remaining) {
+          if (
+            candidate.destination === 'interest-questionnaire' &&
+            Date.now() >= interestQuestionnaireProbeDeadline
+          ) {
+            continue;
+          }
           if (candidate.destination === 'wallet') {
             continue;
           }
