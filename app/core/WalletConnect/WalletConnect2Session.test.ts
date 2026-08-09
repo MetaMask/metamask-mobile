@@ -16,6 +16,7 @@ import { Minimizer } from '../NativeModules';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { Hex, CaipChainId } from '@metamask/utils';
+import { errorCodes } from '@metamask/rpc-errors';
 import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
 
 jest.mock('../AppConstants', () => ({
@@ -948,7 +949,7 @@ describe('WalletConnect2Session', () => {
       });
     });
 
-    it('handles personal_sign correctly with invalid chainId network config', async () => {
+    it('answers the dapp when the request chain is not permitted', async () => {
       const requestId = Math.floor(Math.random() * 1000000);
       const request: WalletKitTypes.SessionRequest = {
         id: requestId,
@@ -974,17 +975,81 @@ describe('WalletConnect2Session', () => {
           'getChainIdForCaipChainId',
         )
         .mockReturnValue('eip155:2');
+      const mockRespondSessionRequest = jest
+        .spyOn(mockClient, 'respondSessionRequest')
+        .mockResolvedValue(undefined);
 
-      // Test with an invalid chainId that should cause handleSwitchToChain to throw
+      // A non-permitted chain makes handleRequest throw internally. That throw
+      // must not escape: both callers only log it, which would leave the dapp
+      // waiting forever and the request pending in WalletKit's store.
+      // Regression test for https://github.com/MetaMask/metamask-mobile/issues/25150
       await expect(
         buildCase(
           request,
           '0x2',
           'eip155:1234567890abcdef1234567890abcdef12345678',
         ),
-      ).rejects.toThrow(
-        'Invalid parameters: active chainId is different than the one provided.',
-      );
+      ).resolves.toBeUndefined();
+
+      // Exact shape matters: only code and message may reach the dapp, never
+      // the wallet's stack trace or the raw thrown value.
+      expect(mockRespondSessionRequest).toHaveBeenCalledWith({
+        topic: mockSession.topic,
+        response: {
+          id: request.id,
+          jsonrpc: '2.0',
+          error: {
+            code: errorCodes.rpc.invalidParams,
+            message:
+              'Invalid parameters: active chainId is different than the one provided.',
+          },
+        },
+      });
+      expect(session.isHandlingRequest()).toBe(false);
+    });
+
+    it('clears the handling flag when a failed request cannot be answered', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'personal_sign',
+            params: [{ chainId: 'eip155:2', message: 'test' }],
+          },
+          chainId: 'eip155:2',
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://example.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+      jest
+        .spyOn(
+          jest.requireMock('./wc-utils') as any,
+          'getChainIdForCaipChainId',
+        )
+        .mockReturnValue('eip155:2');
+      // Relay is down: even the error response fails to go out.
+      jest
+        .spyOn(mockClient, 'respondSessionRequest')
+        .mockRejectedValue(new Error('relay unavailable'));
+
+      await expect(
+        buildCase(
+          request,
+          '0x2',
+          'eip155:1234567890abcdef1234567890abcdef12345678',
+        ),
+      ).resolves.toBeUndefined();
+
+      // A stuck flag makes connect() skip the loading sheet on every later
+      // deeplink for this session, so the wallet opens to a blank home screen.
+      expect(session.isHandlingRequest()).toBe(false);
     });
 
     it('handles personal_sign correctly with invalid chainId', async () => {
