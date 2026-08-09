@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- chore(navigation): point React Navigation's global `RootParamList` at the app's real `RootStackParamList` (Phase 5) (#33745)
+- chore(money): opt in useNavigation to AppNavigationProp (Phase 4) (#33622)
+- chore(navigation): opt remaining small teams into AppNavigationProp (phase 4) (#33678)
+- chore(multichain accounts): opt in useNavigation to AppNavigationProp (Phase 4) (#33627)
+- chore(confirmation): opt in useNavigation to AppNavigationProp (Phase 4) (#33558)
+- chore(navigation): opt unowned surfaces into AppNavigationProp (Phase 4) (#33740)
+- chore(core): opt in useNavigation to AppNavigationProp (Phase 4) (#33666)
+- chore(assets): opt in useNavigation to AppNavigationProp (Phase 4) (#33628)
 - chore: revert add @metamaskbot create-testflight-build PR command (#34177)
 - chore(navbar): remove un-used navbar functions (#34087)
 
@@ -69,6 +77,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Polished toast styling for consistency in the 8.6.0 release (#33773)
+- Polished toast styling for consistency in the 8.6.0 release (#33769)
+- Polished toast styling for consistency in the 8.6.0 release (#33766)
+- Polished toast styling for consistency in the 8.6.0 release (#33771)
+- Polished toast styling for consistency in the 8.6.0 release (#33767)
+- Polished toast styling for consistency in the 8.6.0 release (#33772)
+- Polished toast styling for consistency in the 8.6.0 release (#33774)
+- Polished toast styling for consistency in the 8.6.0 release (#33775)
+- Polished toast styling for consistency in the 8.6.0 release (#33770)
 - Fixed Perps Pro Reduce Only validation so invalid orders show clear warnings before submission, and improved validation banner layout (#34485)
 - Fixed wallet activity push notifications so they are only hidden in the foreground and still appear when the app is backgrounded or closed (#34465)
 - Fixed truncated market names in Perps market lists and headers, and improved Pro order summary fee layout (#34489)
