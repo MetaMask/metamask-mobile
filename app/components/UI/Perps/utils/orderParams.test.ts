@@ -97,6 +97,22 @@ describe('buildPerpsOrderParams', () => {
     expect(withTpSl.takeProfitPrice).toBe('95000');
     expect(withTpSl).not.toHaveProperty('stopLossPrice');
   });
+
+  it('omits TP/SL when reduceOnly is true even if values are present', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'market',
+      reduceOnly: true,
+      isFullClose: true,
+      takeProfitPrice: '95000',
+      stopLossPrice: '80000',
+    });
+
+    expect(params.reduceOnly).toBe(true);
+    expect(params.isFullClose).toBe(true);
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
+  });
 });
 
 describe('buildPerpsOrderTrackingData', () => {

@@ -59,6 +59,7 @@ import {
   RewardsDataServiceGetCampaignParticipantStatusAction,
   RewardsDataServiceGetBenefitsAction,
   RewardsDataServiceGetVIPDashboardAction,
+  RewardsDataServiceGetVipEquityMultiplierAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
   RewardsDataServiceGetVipFeesAction,
   RewardsDataServiceGetVipTransactionsAction,
@@ -140,6 +141,7 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
   | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
@@ -229,6 +231,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDefaultRewardsEnvUrl',
       'RewardsDataService:getBenefits',
       'RewardsDataService:getVIPDashboard',
+      'RewardsDataService:getVipEquityMultiplier',
       'RewardsDataService:getVipRefereeDashboard',
       'RewardsDataService:getVipFees',
       'RewardsDataService:getVipTransactions',

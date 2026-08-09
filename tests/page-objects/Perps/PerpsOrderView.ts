@@ -577,8 +577,9 @@ class PerpsOrderView {
         const leverageSelector = `${leverageX}x`;
         let optionEl: PlaywrightElement;
         if (PlatformDetector.isAndroid()) {
-          optionEl = await PlaywrightMatchers.getElementByXPath(
-            `//android.view.ViewGroup[@content-desc="${leverageSelector}"]`,
+          optionEl = await PlaywrightMatchers.getElementById(
+            `leverage-quick-select-${leverageX}`,
+            { exact: true },
           );
         } else {
           optionEl = await PlaywrightMatchers.getElementByAccessibilityId(
