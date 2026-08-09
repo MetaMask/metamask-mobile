@@ -50,6 +50,11 @@ on:
         required: false
         type: boolean
         default: false
+      enable_testmu_benchmark:
+        description: 'Run the TestMu AI benchmark alongside BrowserStack'
+        required: false
+        type: boolean
+        default: true
       source_fingerprint:
         description: 'Optional @expo/fingerprint hash for Android app reuse'
         required: false
@@ -79,6 +84,7 @@ jobs:
       source_ref: main
       build_variant: e2e
       sentry_target: test
+      enable_testmu_benchmark: true
     secrets: inherit
 
   manual:
@@ -90,6 +96,7 @@ jobs:
       source_ref: ${{ github.ref_name }}
       build_variant: ${{ inputs.build_variant }}
       sentry_target: ${{ inputs.sentry_target }}
+      enable_testmu_benchmark: ${{ inputs.enable_testmu_benchmark }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
       browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
       browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
