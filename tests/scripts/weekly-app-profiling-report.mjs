@@ -522,6 +522,9 @@ function buildSlackMarkdown(report) {
   const topLeads = selectTopLeads(leads);
 
   lines.push(`*Weekly App Profiling Report*`);
+  lines.push(
+    `:warning: *Disclaimer:* This report is for TESTING purposes only and should not be treated as a production alert.`,
+  );
   lines.push('');
   lines.push(
     `*Window:* ${meta.since.slice(0, 10)} → ${meta.until.slice(0, 10)} (${meta.days}d)`,

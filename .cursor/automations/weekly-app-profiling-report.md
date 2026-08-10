@@ -31,6 +31,8 @@ in the **last 7 days**, then send a Slack DM to **Javier Vera**
 3) your own final **AI insights to investigate**, grounded in merged PRs
 
 The Slack message must be a short executive summary, not a data dump.
+The message must start with this disclaimer immediately below the title:
+`:warning: *Disclaimer:* This report is for TESTING purposes only and should not be treated as a production alert.`
 
 ## Steps
 

@@ -73,6 +73,12 @@ test('Slack output uses compact sections instead of a wide table', () => {
   });
 
   assert.equal(message.includes('| Scenario |'), false);
+  assert.equal(
+    message.includes(
+      ':warning: *Disclaimer:* This report is for TESTING purposes only',
+    ),
+    true,
+  );
   assert.equal(message.includes('Priority actions'), true);
   assert.equal(message.includes('Important flow'), true);
 });
