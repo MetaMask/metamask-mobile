@@ -1,0 +1,124 @@
+.trade-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: flex-end;
+  z-index: 20;
+  animation: fade-in 160ms ease;
+}
+
+.trade-sheet {
+  width: 100%;
+  background: var(--bg-default);
+  border-radius: 20px 20px 0 0;
+  padding: 0.75rem 1rem 1.75rem;
+  animation: slide-up 220ms ease;
+}
+
+.trade-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--border-muted);
+  margin: 0.25rem auto 1rem;
+}
+
+.trade-sheet h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.trade-sub {
+  margin: 0.35rem 0 1rem;
+  color: var(--text-alternative);
+  font-size: 0.85rem;
+}
+
+.trade-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.trade-list button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-align: left;
+  padding: 0.85rem 0.9rem;
+  border-radius: 14px;
+  background: var(--bg-alternative);
+}
+
+.trade-list button:hover {
+  background: var(--bg-muted);
+}
+
+.trade-list strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.trade-list small {
+  color: var(--text-alternative);
+  font-size: 0.78rem;
+}
+
+.trade-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-muted);
+  color: var(--icon-default);
+  flex-shrink: 0;
+}
+
+.trade-icon[data-action='swap'] {
+  background: #4459ff33;
+  color: #8b99ff;
+}
+.trade-icon[data-action='bridge'] {
+  background: #d075ff33;
+  color: #d075ff;
+}
+.trade-icon[data-action='buy'] {
+  background: #baf24a44;
+  color: #baf24a;
+}
+.trade-icon[data-action='sell'] {
+  background: #ff5c1633;
+  color: #ff8a5c;
+}
+
+.trade-cancel {
+  width: 100%;
+  margin-top: 0.85rem;
+  padding: 0.85rem;
+  border-radius: 14px;
+  font-weight: 600;
+  background: var(--bg-muted);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(24px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

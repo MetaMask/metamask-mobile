@@ -1,4 +1,5 @@
 /scripts/inpage-bridge
+/ui-prototype
 /app/core/InpageBridgeWeb3.js
 /app/components/UI/Charts/AdvancedChart/webview/chartLogic.js
 /app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts

@@ -1,0 +1,47 @@
+.tab-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.1rem;
+  padding: 0.35rem 0.35rem 1.25rem;
+  border-top: 1px solid var(--border-muted);
+  background: var(--bg-default);
+}
+
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.18rem;
+  padding: 0.25rem 0.1rem;
+  border-radius: 12px;
+  color: var(--icon-muted);
+  font-size: 0.62rem;
+  font-weight: 500;
+}
+
+.tab-item.is-active {
+  color: var(--icon-default);
+}
+
+.tab-item.is-trade {
+  position: relative;
+  top: -10px;
+}
+
+.trade-fab {
+  /* Light brand primary — override dark-theme --primary for this control only */
+  --trade-brand: #4459ff;
+  --trade-brand-inverse: #ffffff;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--trade-brand);
+  color: var(--trade-brand-inverse);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--trade-brand) 35%, transparent);
+}
+
+.tab-item:hover:not(.is-trade) {
+  background: var(--bg-muted);
+}

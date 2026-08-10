@@ -1,0 +1,33 @@
+/* Mirrors MMDS SectionHeader interactive layout:
+ * tw: px-4 pb-2 pt-3, gap-1, HeadingMd title, IconAlternative end chevron
+ */
+.section-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem; /* gap-1 */
+  padding: 0.75rem 0 0.5rem; /* pt-3 pb-2; px from parent .screen */
+  margin: 0;
+  text-align: left;
+  color: var(--text-default);
+}
+
+.section-header:active:not(:disabled) {
+  opacity: 0.7;
+}
+
+.section-header-title {
+  min-width: 0;
+  font-size: 1.25rem; /* sHeadingMD 20px */
+  line-height: 1.5rem; /* 24px */
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-default);
+}
+
+.section-header-end-icon {
+  flex-shrink: 0;
+  color: var(--icon-alternative); /* IconColor.IconAlternative */
+  translate: 0 0.08em; /* optical center with Material Symbols glyph */
+}

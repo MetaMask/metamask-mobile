@@ -1,0 +1,64 @@
+.stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  color: #f5f5f6;
+  overflow: auto;
+}
+
+/* iPhone 17 logical viewport: 402 × 874 — fixed size so rem-based UI always fits */
+.phone {
+  width: 402px;
+  height: 874px;
+  flex-shrink: 0;
+  border-radius: 47px;
+  background: var(--bg-default);
+  color: var(--text-default);
+  box-shadow: var(--shadow), 0 0 0 10px var(--phone-bezel);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scale the entire device as one unit when the window is shorter/narrower */
+@media (max-height: 940px), (max-width: 430px) {
+  .phone {
+    zoom: min(1, (100vh - 4rem) / 874px, (100vw - 2rem) / 422px);
+  }
+}
+
+.phone-notch {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 37px;
+  border-radius: 24px;
+  background: #000;
+  z-index: 5;
+}
+
+.phone-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-top: 54px;
+}
+
+.phone-home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--icon-muted);
+  opacity: 0.55;
+  z-index: 5;
+}
