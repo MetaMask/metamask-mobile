@@ -41023,13 +41023,13 @@ __metadata:
 
 "react-native-sensors@patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch":
   version: 5.3.0
-  resolution: "react-native-sensors@patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch::version=5.3.0&hash=31bdc4"
+  resolution: "react-native-sensors@patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch::version=5.3.0&hash=dbfe35"
   dependencies:
     rxjs: "npm:>= 6"
   peerDependencies:
     prop-types: ^15.6.0
     react-native: ">=0.39.0"
-  checksum: 10/c9aecd434f96026f9b995b5c3f1a470cda99e57beb89d10262a354c73c8d416577b3e8c852891b74a6e6128060c4d6f5c5f90749dcdb4e8fbe1c59f9cd2d0f9f
+  checksum: 10/373fb313d6b5333a4c7ba7f4c994130a33c9435668192d9a7603a219375c45ea6dd8aaad4e391c67a6e90a13c45e9148c1d94be384dbc162e95b7fa3a2cce893
   languageName: node
   linkType: hard
 
