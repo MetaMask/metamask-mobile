@@ -75,15 +75,15 @@ export const useTokensFeed = ({
    */
   const [firstPage, setFirstPage] = useState<{
     query?: string;
-    size: number;
-  } | null>(null);
+    size: number | null;
+  }>({ query, size: null });
 
   useEffect(() => {
     if (isLoading || isLoadingMore) {
       return;
     }
     setFirstPage((previous) =>
-      previous && previous.query === query
+      previous.query === query && previous.size !== null
         ? previous
         : { query, size: data.length },
     );
@@ -96,7 +96,9 @@ export const useTokensFeed = ({
       // Sort only the first-page slice; subsequent pages are appended as-is so
       // that pagination order is preserved rather than interleaved by market cap.
       const boundary =
-        firstPage && firstPage.query === query ? firstPage.size : data.length;
+        firstPage.query === query && firstPage.size !== null
+          ? firstPage.size
+          : data.length;
       const firstPageAssets = data
         .slice(0, boundary)
         .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
