@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import { TextButton } from '@metamask/design-system-react-native';
 
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -115,16 +115,16 @@ const AdvancedDetailsRow = () => {
                 label={strings('transaction.custom_nonce')}
                 tooltip={strings('transaction.custom_nonce_tooltip')}
               >
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  onPress={handleShowNonceModal}
-                  isDisabled={isNonceChangeDisabled}
+                <TextButton
+                  onPress={
+                    isNonceChangeDisabled ? undefined : handleShowNonceModal
+                  }
                   testID={
                     ConfirmationRowComponentIDs.ADVANCED_DETAILS_NONCE_BUTTON
                   }
                 >
                   {String(userSelectedNonce)}
-                </Button>
+                </TextButton>
               </InfoRow>
             </InfoSection>
             {shouldShowData && (
