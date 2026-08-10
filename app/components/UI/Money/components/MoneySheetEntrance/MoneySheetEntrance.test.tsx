@@ -51,10 +51,10 @@ describe('MoneySheetEntrance', () => {
   it('keeps the children mounted while held so the sheet height never shifts', () => {
     const { getByTestId } = renderStep({ isActive: false });
 
-    expect(getByTestId(CHILD_TEST_ID)).toBeTruthy();
+    expect(getByTestId(CHILD_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('starts hidden and offset so the step can rise into place', () => {
+  it('rests hidden below its final position before arriving', () => {
     const { getByTestId } = renderStep({ isActive: false });
 
     const style = getStyle(getByTestId(STEP_TEST_ID));

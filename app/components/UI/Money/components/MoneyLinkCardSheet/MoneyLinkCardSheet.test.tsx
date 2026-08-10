@@ -405,14 +405,36 @@ describe('MoneyLinkCardSheet', () => {
       expect(mockCardFlipProps.current?.shouldPlay).toBe(true);
     });
 
-    it('staggers the entrance steps top to bottom and releases them on open', () => {
+    it('staggers the entrance steps top to bottom', () => {
       renderWithProvider(<MoneyLinkCardSheet />);
 
       const delays = (mockEntranceProps.current ?? []).map((p) => p.delayMs);
+
       expect(delays.length).toBeGreaterThan(0);
       expect(delays).toEqual([...delays].sort((a, b) => (a ?? 0) - (b ?? 0)));
+    });
+
+    it('holds the entrance steps while the sheet is still opening', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(mockEntranceProps.current ?? []).not.toHaveLength(0);
       expect(
         (mockEntranceProps.current ?? []).every((p) => p.isActive === false),
+      ).toBe(true);
+    });
+
+    it('releases the entrance steps once the beat after the open has elapsed', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      act(() => mockSheetOnOpenRef.current?.());
+      mockEntranceProps.current = [];
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(mockEntranceProps.current ?? []).not.toHaveLength(0);
+      expect(
+        (mockEntranceProps.current ?? []).every((p) => p.isActive === true),
       ).toBe(true);
     });
 
