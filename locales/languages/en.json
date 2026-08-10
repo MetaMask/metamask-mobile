@@ -7341,8 +7341,7 @@
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana",
-      "tron": "Tron",
-      "stellar": "Stellar"
+      "tron": "Tron"
     }
   },
   "show_nft": {
