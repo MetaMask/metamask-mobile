@@ -27,8 +27,8 @@ Analyze performance / BrowserStack app-profiling data from PRs merged to `main`
 in the **last 7 days**, then send a Slack DM to **Javier Vera**
 (`javier.vera@consensys.net`, Slack user id `UEYQL2PEV`) with:
 1) profiling averages for the top executed scenarios
-2) data-driven investigation leads
-3) your own final **AI insights to investigate**, grounded in merged PRs
+2) data-driven investigation leads based only on app-profiling metrics
+3) your own final **AI insights to investigate**, based only on app-profiling data
 
 The Slack message must be a short executive summary, not a data dump.
 The message must start with this disclaimer immediately below the title:
@@ -48,17 +48,16 @@ The message must start with this disclaimer immediately below the title:
    - `/tmp/weekly-app-profiling/slack.md`
 
 3. **AI final analysis (required)**  
-   Using only the collected data + merged failing PR titles/areas, write:
+Using only the collected app-profiling data, write:
    - an executive summary with at most 3 bullets
    - at most 3 investigation findings
    - at most 3 priority actions
 
    Rules for insights:
-   - Prefer correlations between hotspot scenarios (memory / slow frames) and
-     merged PR themes (perps, predict, onboarding, assets, swap, accounts…).
-   - Explicitly separate likely product regressions vs test/QG flake.
+   - Use only CPU, memory, slow frames, issues, app size, ANRs, and frozen frames.
+   - Do not mention Test Error, test errors, quality gates, failure rates, or test stability.
    - Skip low-confidence scenarios (`n < 3`) unless the metric is extreme.
-   - Mention concrete PR numbers/titles when useful.
+   - Mention a PR number only as a neutral reference to a profiling artifact, if needed.
    - Do not repeat every scenario or every investigation lead.
    - End with exactly 3 or fewer prioritized actions.
    - English, Slack-friendly markdown, concise.
@@ -66,15 +65,15 @@ The message must start with this disclaimer immediately below the title:
 4. Merge your AI insights into the Slack message:
    - Start from `/tmp/weekly-app-profiling/slack.md`
    - Replace the placeholder AI insights section with your final analysis
-   - Keep only the selected top findings and up to 3 data-driven leads
+   - Keep only the selected top findings and up to 3 profiling-based leads
    - **Do NOT convert metrics into a markdown/ASCII table**
    - **Do NOT wrap the message (or any section) in a ``` code fence**
    - Slack wraps wide tables badly; keep the compact card format from `slack.md`
    - Prefer Slack mrkdwn (`*bold*`, links like `<url|label>`) over GitHub-flavored tables
    - The final Slack message should contain only: executive summary, top findings,
      up to 3 data-driven leads, up to 3 AI insights, and up to 3 priority actions
-   - Keep all raw metrics, all scenarios, and all merged PR details in
-     `report.json`; do not paste them into Slack
+   - Keep all raw app-profiling metrics and all scenarios in `report.json`;
+     do not paste raw details into Slack
 
 5. Send the final message as a Slack DM to user id `UEYQL2PEV` using the Slack
    `slack_send_message` tool. Do not post to a public channel unless explicitly

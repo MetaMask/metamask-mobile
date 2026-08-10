@@ -35,22 +35,22 @@ test('selects at most three high-confidence scenarios for Slack', () => {
   assert.equal(selected.length, 3);
   assert.deepEqual(
     selected.map(({ scenario: name }) => name),
-    ['Flaky flow', 'Janky flow', 'Stable flow'],
+    ['Janky flow', 'Stable flow', 'Flaky flow'],
   );
 });
 
 test('limits Slack leads to three and excludes low-confidence leads', () => {
   const selected = selectTopLeads([
-    { severity: 'high', theme: 'ui-jank', scenario: 'n=1' },
     { severity: 'high', theme: 'memory', scenario: 'memory' },
-    { severity: 'medium', theme: 'test-stability', scenario: 'flake' },
+    { severity: 'medium', theme: 'ui-jank', scenario: 'jank' },
     { severity: 'medium', theme: 'ui-jank', scenario: 'trend' },
+    { severity: 'low', theme: 'ui-jank', scenario: 'watch' },
   ]);
 
   assert.equal(selected.length, 3);
   assert.deepEqual(
     selected.map(({ scenario }) => scenario),
-    ['memory', 'flake', 'trend'],
+    ['memory', 'jank', 'trend'],
   );
 });
 
@@ -79,6 +79,9 @@ test('Slack output uses compact sections instead of a wide table', () => {
     ),
     true,
   );
+  assert.equal(message.includes('Fail'), false);
+  assert.equal(message.includes('testError'), false);
+  assert.equal(message.includes('quality gate'), false);
   assert.equal(message.includes('Priority actions'), true);
   assert.equal(message.includes('Important flow'), true);
 });
