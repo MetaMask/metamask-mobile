@@ -52,6 +52,18 @@ import {
 } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
 
+/**
+ * Unrestricted root messenger for harness wiring. Action/event unions are
+ * intentionally wide so sibling controllers can register and delegate freely.
+ */
+type NetworksHarnessRootMessenger = Messenger<
+  typeof MOCK_ANY_NAMESPACE,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any
+>;
+
 /** Gnosis-like custom chain used by Core UX smoke tests. */
 export const HARNESS_CUSTOM_CHAIN_ID = '0x64' as Hex;
 
@@ -100,7 +112,7 @@ export interface NetworksIntegrationHarness {
   networkEnablementController: NetworkEnablementController;
   multichainNetworkController: MultichainNetworkController;
   tokensController: TokensController;
-  rootMessenger: Messenger<typeof MOCK_ANY_NAMESPACE>;
+  rootMessenger: NetworksHarnessRootMessenger;
   mocks: {
     fetch: jest.Mock;
     fetchNetworkActivity: jest.Mock;
@@ -177,7 +189,7 @@ export function buildNetworksIntegrationHarness(
 
   const rootMessenger = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
-  });
+  }) as NetworksHarnessRootMessenger;
 
   // Stub handlers that NetworkController / MultichainNetworkController /
   // TokensController call via the root messenger during construction.
