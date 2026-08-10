@@ -10,8 +10,6 @@ describe('ACTIVITY_SCREEN_EVENTS', () => {
   });
 
   it('does not emit the legacy "Activity Screen Opened" name', () => {
-    // Arrange / Act - the legacy name is retained in segment-schema for
-    // historical validation only and must not be emitted by any client.
     const emittedNames = Object.values(ACTIVITY_SCREEN_EVENTS).map(
       (event) => event.category,
     );

@@ -10,10 +10,7 @@ import {
 } from '../../../../core/Analytics/events/activity';
 import { ActivityTypeFilter } from '../types';
 
-/**
- * UI filter bucket -> emitted `tab_name`. Explicit rather than derived so
- * renaming a UI bucket cannot silently change the data contract.
- */
+/** UI filter bucket -> emitted `tab_name`, mapped explicitly so renaming a bucket cannot change the data contract. */
 const TAB_NAME_BY_TYPE_FILTER: Record<
   ActivityTypeFilter,
   ActivityScreenTabName
@@ -27,39 +24,28 @@ const TAB_NAME_BY_TYPE_FILTER: Record<
 };
 
 export interface UseActivityScreenViewedParams {
-  /**
-   * False while the list this hook reports on is still loading, so the event
-   * carries settled counts instead of a transient empty list.
-   */
+  /** False while the list is still loading, so counts are settled when sent. */
   isSettled: boolean;
   /** Whether the settled list has no items for the active filters. */
   isEmpty: boolean;
   /** Number of pending items in the settled list. */
   pendingCount: number;
-  /** Active Activity type filter, used to detect in-screen tab switches. */
+  /** Active type filter; a change is reported as a tab switch. */
   typeFilter?: ActivityTypeFilter;
   /** Active network filter; reported, but never a reason to fire. */
   networkFilter?: CaipChainId[] | null;
-  /** Where the user came from. Only reported on the `navigation` fire. */
+  /** Where the user came from. Only sent on the `navigation` fire. */
   entryPoint?: ActivityScreenEntryPoint;
-  /**
-   * Guards the event to the standalone Activity screen. Embedded activity
-   * lists (e.g. asset details) must leave this false, mirroring extension's
-   * suppression of the event for its embedded list.
-   */
+  /** Only the standalone Activity screen sets this; embedded lists must not. */
   enabled?: boolean;
 }
 
 /**
- * Fires `Activity Screen Viewed` for the redesigned Activity screen.
+ * Fires `Activity Screen Viewed` once per screen entry (`navigation`) and once
+ * per type-filter switch (`filtered_tab`), each after the list settles.
  *
- * Two interactions produce the event:
- * - `navigation` — once per mount, after the list settles.
- * - `filtered_tab` — once per distinct type-filter switch, after the list settles again.
- *
- * Re-renders and `isSettled` cycling never re-fire: `navigation` is latched and
- * `filtered_tab` is deduped against the last reported filter. Network-filter
- * changes are reported by `Filter Clicked`, not here.
+ * Re-renders and `isSettled` cycling never re-fire. Network-filter changes are
+ * reported by `Filter Clicked` instead.
  */
 export const useActivityScreenViewed = ({
   isSettled,
@@ -72,8 +58,6 @@ export const useActivityScreenViewed = ({
 }: UseActivityScreenViewedParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Read through a ref so list metrics are captured at the moment the list
-  // settles without turning every count change into an effect trigger.
   const metricsRef = useRef({ isEmpty, pendingCount, networkFilter });
   metricsRef.current = { isEmpty, pendingCount, networkFilter };
 

@@ -6,14 +6,13 @@ import {
 } from '../../core/Analytics/events/filters';
 
 /**
- * Returns a tracker for the generic `Filter Clicked` event (TMCU-837).
+ * Tracks the generic `Filter Clicked` event, shared across surfaces via
+ * `location` / `filter_type`.
  *
- * Call it only from an explicit user interaction with a filter control — never
- * from a render or focus effect, since the event is defined as an interaction
- * signal rather than a state snapshot.
+ * Call only from an explicit filter interaction, never from a render or focus
+ * effect.
  *
- * Shared rather than Activity-specific so other surfaces can adopt the event by
- * passing their own `location` / `filter_type`.
+ * @returns Callback that sends the event with the given properties.
  */
 export const useTrackFilterClicked = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();

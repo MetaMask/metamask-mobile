@@ -100,13 +100,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             });
             break;
           case Routes.TRANSACTIONS_VIEW:
-            // Only reachable when the Activity tab exists, i.e. the Money tab
-            // has not replaced it. When it has, Activity is entered from the
-            // wallet home header instead and reports `wallet_home_header`.
-            //
-            // Nested form is required: TRANSACTIONS_VIEW is a tab route whose
-            // component is a stack with a screen of the same name, so params
-            // passed to the tab route never reach the Activity screen.
             navigation.navigate(Routes.TRANSACTIONS_VIEW, {
               screen: Routes.TRANSACTIONS_VIEW,
               params: {

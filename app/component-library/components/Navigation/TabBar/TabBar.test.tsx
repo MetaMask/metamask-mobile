@@ -143,8 +143,6 @@ describe('TabBar', () => {
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Activity}`));
-    // Nested form so the entry point reaches the Activity screen inside the tab
-    // stack, where Activity Screen Viewed reads it for attribution.
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
       screen: Routes.TRANSACTIONS_VIEW,
       params: { entryPoint: ActivityScreenEntryPoint.BottomNavClick },

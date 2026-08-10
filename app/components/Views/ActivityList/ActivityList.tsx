@@ -216,13 +216,7 @@ interface ActivityListProps {
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
-  /**
-   * Emits `Activity Screen Viewed` for this list. Only the standalone Activity
-   * screen sets it; embedded lists must leave it off so they don't report
-   * screen views.
-   */
   trackScreenViewed?: boolean;
-  /** Where the user came from, for `Activity Screen Viewed` attribution. */
   entryPoint?: ActivityScreenEntryPoint;
 }
 
