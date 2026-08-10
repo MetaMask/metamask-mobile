@@ -66,6 +66,16 @@ jobs:
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
+    # Bounded so a future caching/CocoaPods regression fails fast instead of silently
+    # ballooning past the merge queue's re-basing cadence (see #33442 / #34552 incident).
+    timeout-minutes: 30
+    # Set at job level (not just on the Ruby setup step) so it also applies to the
+    # later `yarn setup:github-ci` step, which runs `bundle exec pod install` without
+    # an explicit --gemfile flag. Without this, Bundler falls back to a plain $PATH
+    # lookup for `pod`, which can silently use the runner's ambient CocoaPods instead
+    # of the version pinned in ios/Gemfile.lock.
+    env:
+      BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -78,8 +88,25 @@ jobs:
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
           ruby-version: '3.2.9'
-        env:
-          BUNDLE_GEMFILE: ios/Gemfile
+          bundler-cache: true
+      # Only caches the small CocoaPods specs/trunk index (~/.cocoapods/repos), never
+      # ios/Pods or the CocoaPods download cache — caching those in #33442 produced a
+      # ~2.2GB blob that took ~77 minutes to extract on macos-latest, which repeatedly
+      # got superseded by the merge queue's re-basing before it could finish. This
+      # mirrors the safe, already-proven pattern in
+      # .github/actions/setup-e2e-env/action.yml ("Restore CocoaPods specs cache").
+      # continue-on-error + a tight timeout mean a slow/failed restore never blocks the
+      # job — it just falls back to a normal (bounded) `pod install`.
+      - name: Restore CocoaPods specs cache
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/cache@v4
+        continue-on-error: true
+        timeout-minutes: 5
+        with:
+          path: ~/.cocoapods/repos
+          key: ${{ runner.os }}-check-diff-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-check-diff-cocoapods-specs-
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
