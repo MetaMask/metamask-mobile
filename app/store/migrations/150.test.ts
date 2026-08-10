@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react-native';
-import migrate, { migrationVersion } from './149';
+import migrate, { migrationVersion } from './150';
 import { ensureValidState } from './util';
 
 jest.mock('@sentry/react-native', () => ({
@@ -47,8 +47,8 @@ describe(`Migration ${migrationVersion}: remove eth_signTransaction from money a
     mockedEnsureValidState.mockReturnValue(true);
   });
 
-  it('reports migration version 149', () => {
-    expect(migrationVersion).toBe(149);
+  it('reports migration version 150', () => {
+    expect(migrationVersion).toBe(150);
   });
 
   it('removes eth_signTransaction from persisted money account methods', () => {

@@ -2,7 +2,7 @@ import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 
-export const migrationVersion = 149;
+export const migrationVersion = 150;
 
 const ETH_SIGN_TRANSACTION_METHOD = 'eth_signTransaction';
 
@@ -15,7 +15,7 @@ interface MoneyAccountControllerLike {
 }
 
 /**
- * Migration 149: Remove `eth_signTransaction` from persisted money accounts.
+ * Migration 150: Remove `eth_signTransaction` from persisted money accounts.
  *
  * Money accounts no longer expose transaction signing; existing persisted state
  * must be updated so account capabilities match the controller.
