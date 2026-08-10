@@ -189,6 +189,92 @@ describe('useWhatsHappening', () => {
     await waitFor(() => expect(result.current.items).toHaveLength(2));
   });
 
+  it('resolves refresh promise on unmount during fetch', async () => {
+    let resolveOverview: ((value: typeof mockOverview) => void) | undefined;
+    mockFetchMarketOverview
+      .mockResolvedValueOnce(mockOverview)
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveOverview = resolve;
+          }),
+      );
+
+    const { result, unmount } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let refreshSettled = false;
+    const refreshPromise = result.current.refresh().then(() => {
+      refreshSettled = true;
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(true));
+
+    unmount();
+
+    await act(async () => {
+      resolveOverview?.(mockOverview);
+      await refreshPromise;
+    });
+
+    expect(refreshSettled).toBe(true);
+  });
+
+  it('resolves a superseded refresh promise when refresh is called again', async () => {
+    let resolveFirstRefresh: ((value: typeof mockOverview) => void) | undefined;
+    let resolveSecondRefresh:
+      | ((value: typeof mockOverview) => void)
+      | undefined;
+    mockFetchMarketOverview
+      .mockResolvedValueOnce(mockOverview)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstRefresh = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSecondRefresh = resolve;
+          }),
+      );
+
+    const { result } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let firstRefreshSettled = false;
+    const firstRefreshPromise = result.current.refresh().then(() => {
+      firstRefreshSettled = true;
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(true));
+
+    let secondRefreshSettled = false;
+    const secondRefreshPromise = result.current.refresh().then(() => {
+      secondRefreshSettled = true;
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(firstRefreshSettled).toBe(true);
+    expect(secondRefreshSettled).toBe(false);
+
+    await act(async () => {
+      resolveSecondRefresh?.(mockOverview);
+      await secondRefreshPromise;
+    });
+
+    expect(secondRefreshSettled).toBe(true);
+
+    await act(async () => {
+      resolveFirstRefresh?.(mockOverview);
+      await Promise.resolve();
+    });
+  });
+
   it('does not update state after unmount during fetch', async () => {
     let resolveOverview: ((value: typeof mockOverview) => void) | undefined;
     mockFetchMarketOverview.mockImplementation(

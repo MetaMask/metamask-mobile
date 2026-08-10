@@ -165,23 +165,31 @@ export const useWhatsHappening = (
   const [isLoading, setIsLoading] = useState(isActive);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const refreshResolverRef = useRef<(() => void) | null>(null);
+  const pendingRefreshRef = useRef<{
+    generation: number;
+    resolve: () => void;
+  } | null>(null);
 
   useEffect(() => {
+    const generation = refreshKey;
     let cancelled = false;
 
-    const resolveRefresh = () => {
-      refreshResolverRef.current?.();
-      refreshResolverRef.current = null;
+    const settleRefresh = () => {
+      const pending = pendingRefreshRef.current;
+      if (pending?.generation === generation) {
+        pending.resolve();
+        pendingRefreshRef.current = null;
+      }
     };
 
     if (!isActive) {
       setItems([]);
       setIsLoading(false);
       setError(null);
-      resolveRefresh();
+      settleRefresh();
       return () => {
         cancelled = true;
+        settleRefresh();
       };
     }
 
@@ -217,7 +225,7 @@ export const useWhatsHappening = (
       } finally {
         if (!cancelled) {
           setIsLoading(false);
-          resolveRefresh();
+          settleRefresh();
         }
       }
     };
@@ -226,14 +234,19 @@ export const useWhatsHappening = (
 
     return () => {
       cancelled = true;
+      settleRefresh();
     };
   }, [isActive, outdatedItemId, refreshKey]);
 
   const refresh = useCallback(
     () =>
       new Promise<void>((resolve) => {
-        refreshResolverRef.current = resolve;
-        setRefreshKey((key) => key + 1);
+        pendingRefreshRef.current?.resolve();
+        setRefreshKey((key) => {
+          const nextKey = key + 1;
+          pendingRefreshRef.current = { generation: nextKey, resolve };
+          return nextKey;
+        });
       }),
     [],
   );
