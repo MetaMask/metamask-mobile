@@ -98,40 +98,37 @@ export function useSignatureAddressAlerts(): Alert[] {
       return alerts;
     }
 
-    const maliciousIndex = trustSignals.findIndex(
-      ({ state }) => state === TrustSignalDisplayState.Malicious,
-    );
-    const warningIndex = trustSignals.findIndex(
-      ({ state }) => state === TrustSignalDisplayState.Warning,
-    );
+    // Report every flagged address, naming its field, so no malicious or
+    // warning address in the request is hidden behind another.
+    trustSignals.forEach(({ state }, index) => {
+      const address = signatureAddresses[index];
 
-    if (maliciousIndex !== -1) {
-      const address = signatureAddresses[maliciousIndex];
-      alerts.push({
-        key: AlertKeys.SignatureAddressTrustSignalMalicious,
-        field: RowAlertKey.InteractingWith,
-        severity: Severity.Danger,
-        message: strings(
-          'alert_system.signature_address_scan.malicious.message',
-          { field: fields[address], address: renderShortAddress(address) },
-        ),
-        title: strings('alert_system.signature_address_scan.malicious.title'),
-        isBlocking: false,
-      });
-    } else if (warningIndex !== -1) {
-      const address = signatureAddresses[warningIndex];
-      alerts.push({
-        key: AlertKeys.SignatureAddressTrustSignalWarning,
-        field: RowAlertKey.InteractingWith,
-        severity: Severity.Warning,
-        message: strings(
-          'alert_system.signature_address_scan.warning.message',
-          { field: fields[address], address: renderShortAddress(address) },
-        ),
-        title: strings('alert_system.signature_address_scan.warning.title'),
-        isBlocking: false,
-      });
-    }
+      if (state === TrustSignalDisplayState.Malicious) {
+        alerts.push({
+          key: `${AlertKeys.SignatureAddressTrustSignalMalicious}_${address}`,
+          field: RowAlertKey.InteractingWith,
+          severity: Severity.Danger,
+          message: strings(
+            'alert_system.signature_address_scan.malicious.message',
+            { field: fields[address], address: renderShortAddress(address) },
+          ),
+          title: strings('alert_system.signature_address_scan.malicious.title'),
+          isBlocking: false,
+        });
+      } else if (state === TrustSignalDisplayState.Warning) {
+        alerts.push({
+          key: `${AlertKeys.SignatureAddressTrustSignalWarning}_${address}`,
+          field: RowAlertKey.InteractingWith,
+          severity: Severity.Warning,
+          message: strings(
+            'alert_system.signature_address_scan.warning.message',
+            { field: fields[address], address: renderShortAddress(address) },
+          ),
+          title: strings('alert_system.signature_address_scan.warning.title'),
+          isBlocking: false,
+        });
+      }
+    });
 
     return alerts;
   }, [signatureAddresses, fields, overflow, trustSignals]);

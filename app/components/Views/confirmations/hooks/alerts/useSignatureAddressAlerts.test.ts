@@ -118,11 +118,46 @@ describe('useSignatureAddressAlerts', () => {
 
     expect(result.current).toStrictEqual([
       {
-        key: AlertKeys.SignatureAddressTrustSignalMalicious,
+        key: `${AlertKeys.SignatureAddressTrustSignalMalicious}_${ADDR_A}`,
         field: RowAlertKey.InteractingWith,
         severity: Severity.Danger,
         message: `alert_system.signature_address_scan.malicious.message|recipient|short(${ADDR_A})`,
         title: 'alert_system.signature_address_scan.malicious.title',
+        isBlocking: false,
+      },
+    ]);
+  });
+
+  it('reports every flagged address, not just the first', () => {
+    mockUseSignatureRequest.mockReturnValue(
+      buildSignatureRequest({ recipient: ADDR_A, maker: ADDR_B }),
+    );
+    mockUseAddressTrustSignals.mockReturnValue(
+      signalsOf(
+        TrustSignalDisplayState.Malicious,
+        TrustSignalDisplayState.Warning,
+      ),
+    );
+
+    const { result } = renderHookWithProvider(() =>
+      useSignatureAddressAlerts(),
+    );
+
+    expect(result.current).toStrictEqual([
+      {
+        key: `${AlertKeys.SignatureAddressTrustSignalMalicious}_${ADDR_A}`,
+        field: RowAlertKey.InteractingWith,
+        severity: Severity.Danger,
+        message: `alert_system.signature_address_scan.malicious.message|recipient|short(${ADDR_A})`,
+        title: 'alert_system.signature_address_scan.malicious.title',
+        isBlocking: false,
+      },
+      {
+        key: `${AlertKeys.SignatureAddressTrustSignalWarning}_${ADDR_B}`,
+        field: RowAlertKey.InteractingWith,
+        severity: Severity.Warning,
+        message: `alert_system.signature_address_scan.warning.message|maker|short(${ADDR_B})`,
+        title: 'alert_system.signature_address_scan.warning.title',
         isBlocking: false,
       },
     ]);
@@ -142,7 +177,7 @@ describe('useSignatureAddressAlerts', () => {
 
     expect(result.current).toStrictEqual([
       {
-        key: AlertKeys.SignatureAddressTrustSignalWarning,
+        key: `${AlertKeys.SignatureAddressTrustSignalWarning}_${ADDR_A}`,
         field: RowAlertKey.InteractingWith,
         severity: Severity.Warning,
         message: `alert_system.signature_address_scan.warning.message|recipient|short(${ADDR_A})`,
@@ -192,7 +227,7 @@ describe('useSignatureAddressAlerts', () => {
 
     expect(result.current).toStrictEqual([
       {
-        key: AlertKeys.SignatureAddressTrustSignalMalicious,
+        key: `${AlertKeys.SignatureAddressTrustSignalMalicious}_${ADDR_A}`,
         field: RowAlertKey.InteractingWith,
         severity: Severity.Danger,
         message: `alert_system.signature_address_scan.malicious.message|spender|short(${ADDR_A})`,
