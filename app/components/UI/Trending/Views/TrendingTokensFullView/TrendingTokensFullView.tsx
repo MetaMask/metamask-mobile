@@ -144,15 +144,12 @@ const TrendingTokensFullView = () => {
     null,
   );
   const trendingChainIds = useTrendingChainIds();
-  const trendingNetworks = useMemo(
-    () => {
-      const allowedChainIds = new Set(trendingChainIds);
-      return TRENDING_NETWORKS_LIST.filter((network) =>
-        allowedChainIds.has(network.caipChainId),
-      )
-    },
-    [trendingChainIds],
-  );
+  const trendingNetworks = useMemo(() => {
+    const allowedChainIds = new Set(trendingChainIds);
+    return TRENDING_NETWORKS_LIST.filter((network) =>
+      allowedChainIds.has(network.caipChainId),
+    );
+  }, [trendingChainIds]);
   const { variant: quickBuyVariant } = useABTest(
     EXPLORE_QUICK_BUY_AB_KEY,
     EXPLORE_QUICK_BUY_VARIANTS,
