@@ -6,7 +6,7 @@ import { TextColor } from '../../../../../../../component-library/components/Tex
 import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow, { InfoRowProps, InfoRowVariant } from '../info-row';
 import styleSheet from './alert-row.styles';
-import { IconColor } from '../../../../../../../component-library/components/Icons/Icon';
+import { IconColor } from '@metamask/design-system-react-native';
 import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
 
 function getAlertTextColors(severity?: Severity): TextColor {
@@ -23,11 +23,11 @@ function getAlertTextColors(severity?: Severity): TextColor {
 function getAlertIconColors(severity?: Severity): IconColor {
   switch (severity) {
     case Severity.Danger:
-      return IconColor.Error;
+      return IconColor.ErrorDefault;
     case Severity.Warning:
-      return IconColor.Warning;
+      return IconColor.WarningDefault;
     default:
-      return IconColor.Alternative;
+      return IconColor.IconAlternative;
   }
 }
 

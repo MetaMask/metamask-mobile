@@ -9,7 +9,7 @@ import Text, {
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
+import { IconColor } from '@metamask/design-system-react-native';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -62,7 +62,7 @@ export function PercentageRow() {
     <InfoRow
       label={strings('earn.claimable_bonus')}
       rowVariant={InfoRowVariant.Small}
-      tooltipColor={IconColor.Alternative}
+      tooltipColor={IconColor.IconAlternative}
       tooltip={
         <Text>
           {strings('earn.claimable_bonus_tooltip')}{' '}

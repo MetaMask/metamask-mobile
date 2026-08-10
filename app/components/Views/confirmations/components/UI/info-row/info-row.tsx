@@ -1,10 +1,11 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -111,7 +112,7 @@ const InfoRow = ({
         )}
         {valueOnNewLine ? null : ValueComponent}
         {copyText && (
-          <CopyIcon textToCopy={copyText ?? ''} color={IconColor.Muted} />
+          <CopyIcon textToCopy={copyText ?? ''} color={IconColor.IconMuted} />
         )}
         {withIcon && (
           <Icon

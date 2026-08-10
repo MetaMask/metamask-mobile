@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import AlertModal from './alert-modal';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { Severity } from '../../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';

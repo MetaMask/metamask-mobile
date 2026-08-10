@@ -7,11 +7,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  ButtonIconSize,
+  IconColor,
   Text,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../locales/i18n';
 import { shortenString } from '../../../../../../util/notifications/methods/common';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
@@ -54,8 +54,8 @@ export function TransactionDetailsFiatOrderIdRow() {
         </Text>
         <CopyButton
           copyText={displayId}
-          size={ButtonIconSizes.Sm}
-          iconColor={IconColor.Alternative}
+          size={ButtonIconSize.Sm}
+          iconColor={IconColor.IconAlternative}
           testID={TransactionDetailsFiatOrderIdRowTestIds.COPY}
         />
       </Box>

@@ -7,10 +7,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import { strings } from '../../../../../../../locales/i18n';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import TagBase, {
   TagShape,
 } from '../../../../../../component-library/base-components/TagBase';
@@ -191,7 +192,7 @@ export const Amount = () => {
             <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
               <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
               <Icon
-                color={IconColor.Alternative}
+                color={IconColor.IconAlternative}
                 name={IconName.SwapVertical}
               />
             </TagBase>

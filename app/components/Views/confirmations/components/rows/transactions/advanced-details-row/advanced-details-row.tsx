@@ -15,7 +15,7 @@ import {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { selectSmartTransactionsEnabled } from '../../../../../../../selectors/smartTransactionsController';
 import { RootState } from '../../../../../../../reducers';
@@ -84,7 +84,7 @@ const AdvancedDetailsRow = () => {
               label={strings('stake.advanced_details')}
               style={styles.infoRowOverride}
               withIcon={{
-                color: IconColor.Muted,
+                color: IconColor.IconMuted,
                 size: IconSize.Sm,
                 name: IconName.ArrowDown,
               }}

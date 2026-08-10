@@ -33,17 +33,6 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
-    IconColor: { Alternative: 'Alternative' },
-    IconName: { ArrowDown: 'ArrowDown', Close: 'Close' },
-    IconSize: { Sm: 'Sm', Md: 'Md' },
-  };
-});
-
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   const { View } = RN;

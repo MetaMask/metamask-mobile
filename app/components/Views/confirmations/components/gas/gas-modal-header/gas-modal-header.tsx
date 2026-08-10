@@ -3,8 +3,7 @@ import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './gas-modal-header.styles';
 
-import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
