@@ -243,12 +243,6 @@ export function useQuickBuyController(
   target: QuickBuyTarget,
   onClose: () => void,
   analyticsContext?: QuickBuyAnalyticsContext,
-  /**
-   * Keyboard A/B treatment. When true the amount starts empty (`$0`) and the
-   * user types via the keypad; when false (control) the slider auto-defaults to
-   * 50% of spendable balance on open.
-   */
-  useKeyboard = false,
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
@@ -302,7 +296,6 @@ export function useQuickBuyController(
   const [sliderPercent, setSliderPercent] = useState(0);
   const lastSliderPercentRef = useRef(0);
   const [isPresetAddFundsMode, setIsPresetAddFundsMode] = useState(false);
-  const hasAppliedOpenDefaultRef = useRef(false);
   // Deduplicates consecutive handleSliderDragEnd calls with the same
   // user-currency amount (can happen when Tap + Pan both fire onEnd for a pure
   // tap gesture).
@@ -608,6 +601,37 @@ export function useQuickBuyController(
     liveSourceCurrencyExchangeRate && liveSourceCurrencyExchangeRate > 0,
   );
 
+  // Buy mode freezes the quote conversion rate via the pay-with `useState`
+  // snapshot (`selectedSourceToken`). Sell mode's `positionToken` is
+  // selector-driven, so without an explicit freeze every market-data tick
+  // retargets `sourceTokenAmount` for the same fiat input — quotes look
+  // stale/`isPendingQuoteRefresh` and Sell stays disabled with no error label
+  // (TSA-976). Keep display rates live above; freeze only the rate used to
+  // convert committed fiat into the quote request amount.
+  const sellQuoteExchangeRateRef = useRef<number | undefined>(undefined);
+  const sellQuoteSourceTokenKeyRef = useRef<string | undefined>(undefined);
+  const positionTokenKey =
+    positionToken?.address != null && positionToken.chainId != null
+      ? getTokenKey(positionToken)
+      : undefined;
+  if (positionTokenKey !== sellQuoteSourceTokenKeyRef.current) {
+    sellQuoteSourceTokenKeyRef.current = positionTokenKey;
+    sellQuoteExchangeRateRef.current = positionToken?.currencyExchangeRate;
+  } else if (
+    sellQuoteExchangeRateRef.current == null &&
+    positionToken?.currencyExchangeRate != null &&
+    positionToken.currencyExchangeRate > 0
+  ) {
+    // Price arrived after the token was already selected — adopt it once so
+    // the first committed amount can convert; later ticks stay frozen.
+    sellQuoteExchangeRateRef.current = positionToken.currencyExchangeRate;
+  }
+  const sellQuoteExchangeRate = sellQuoteExchangeRateRef.current;
+  const quoteSourceExchangeRate =
+    tradeMode === 'sell'
+      ? sellQuoteExchangeRate
+      : sourceToken?.currencyExchangeRate;
+
   // The live balance for whichever token is the *source* this mode: the
   // resynced pay-with token in buy mode, or the already-live position token in
   // sell mode.
@@ -639,14 +663,14 @@ export function useQuickBuyController(
       return latestSourceBalance.displayBalance;
     }
     if (hasSourcePrice) {
-      if (!quotedFiatAmount || !sourceToken?.currencyExchangeRate) {
+      if (!quotedFiatAmount || !quoteSourceExchangeRate) {
         return undefined;
       }
       // `currencyExchangeRate` is user-currency-per-token and `quotedFiatAmount`
       // is in the user's display currency, so fiat / rate yields token units.
       const fiat = parseFloat(quotedFiatAmount);
       if (isNaN(fiat) || fiat <= 0) return undefined;
-      return (fiat / sourceToken.currencyExchangeRate).toString();
+      return (fiat / quoteSourceExchangeRate).toString();
     }
     // Unpriced path: source amount is entered directly in token units.
     if (!sourceAmountTokens) return undefined;
@@ -657,9 +681,9 @@ export function useQuickBuyController(
     hasSourcePrice,
     isMaxSourceAmount,
     latestSourceBalance?.displayBalance,
+    quoteSourceExchangeRate,
     quotedFiatAmount,
     sourceAmountTokens,
-    sourceToken?.currencyExchangeRate,
   ]);
 
   useEffect(() => {
@@ -1156,23 +1180,6 @@ export function useQuickBuyController(
     ],
   );
 
-  // Default the slider to 50% once per sheet open when spendable balance is
-  // known. Skipped on the keyboard treatment, which opens at $0 so the user
-  // types their own amount.
-  useEffect(() => {
-    if (useKeyboard) {
-      return;
-    }
-    if (hasAppliedOpenDefaultRef.current) {
-      return;
-    }
-    if (!hasSourcePrice || maxSpendFiat <= 0) {
-      return;
-    }
-    hasAppliedOpenDefaultRef.current = true;
-    handleSliderDragEnd(50);
-  }, [useKeyboard, hasSourcePrice, maxSpendFiat, handleSliderDragEnd]);
-
   const handleAmountAreaPress = useCallback(() => {
     // Priced flows are fiat-first, so typing in fiat keeps the keyboard digits
     // aligned with the headline. Unpriced flows are crypto-first by necessity
@@ -1651,11 +1658,27 @@ export function useQuickBuyController(
         sourceTokenAmount,
         sourceToken.decimals,
       ).toFixed(0);
-      const sent = calcTokenValue(
-        activeQuote.sentAmount?.amount,
-        sourceToken.decimals,
-      ).toFixed(0);
-      return sent === requested;
+      // Prefer `sentAmount` (full wallet deduction). Required for gas-included /
+      // gas-sponsored quotes where `quote.srcTokenAmount` is the post-fee
+      // routing amount and would never equal the request.
+      const sentAmountDecimal = activeQuote.sentAmount?.amount;
+      if (sentAmountDecimal != null && sentAmountDecimal !== '') {
+        const sent = calcTokenValue(
+          sentAmountDecimal,
+          sourceToken.decimals,
+        ).toFixed(0);
+        if (sent === requested) {
+          return true;
+        }
+      }
+      // Fallback when `sentAmount` is missing (partial QuoteMetadata) or inflated
+      // by src-token protocol fees on top of an already-full request amount:
+      // match the quote's atomic routing amount against the request.
+      const srcTokenAmountAtomic = activeQuote.quote?.srcTokenAmount;
+      return (
+        srcTokenAmountAtomic != null &&
+        String(srcTokenAmountAtomic) === requested
+      );
     } catch {
       return false;
     }

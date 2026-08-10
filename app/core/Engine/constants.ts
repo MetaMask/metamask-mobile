@@ -42,7 +42,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AppMetadataController:stateChange',
   'AssetsController:stateChange',
   'ConnectivityController:stateChange',
-  'ConfigRegistryController:stateChange',
+  'ConfigRegistryController:stateChanged',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
@@ -92,6 +92,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
+  'DeFiPositionsControllerV2:stateChanged',
   'SeedlessOnboardingController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   'SamplePetnamesController:stateChange',

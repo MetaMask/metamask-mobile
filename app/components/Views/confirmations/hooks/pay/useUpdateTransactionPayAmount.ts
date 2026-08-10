@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
@@ -8,6 +8,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { updateMoneyAccountDepositAmount } from '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update';
 import { selectMoneyAccountDepositQuotePipelineEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
@@ -23,7 +24,6 @@ import {
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { prefixError } from '../../../../../util/transactions/error-prefix';
-import { updateMoneyAccountDepositAmount } from '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update';
 import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
@@ -38,6 +38,12 @@ type MoneyAccountAmountUpdater = (
   recipientOverride?: Hex,
 ) => Promise<UpdateTransactionPayAmountCall[]>;
 
+interface OptimizedAmountUpdate {
+  amountHuman: string;
+  promise: Promise<boolean>;
+  transactionId: string;
+}
+
 export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
@@ -46,6 +52,28 @@ export function useUpdateTransactionPayAmount() {
   const accountOverride = useTransactionAccountOverride();
   const isMoneyAccountDepositQuotePipelineEnabled = useSelector(
     selectMoneyAccountDepositQuotePipelineEnabled,
+  );
+  const optimizedAmountUpdateRef = useRef<OptimizedAmountUpdate | undefined>(
+    undefined,
+  );
+  const isMoneyAccountDeposit = Boolean(
+    transactionMeta &&
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountDeposit,
+      ]),
+  );
+  const depositIntent =
+    isMoneyAccountDeposit && transactionMeta
+      ? getMoneyAccountDepositIntent(transactionMeta.batchId)
+      : undefined;
+  // Initially optimize only generic/convert crypto deposits. addMusd uses the
+  // Relay max/gas-station path and card uses the multi-stage fiat path, so both
+  // retain the existing pipeline until validated separately.
+  const isAmountUpdateQuotePipelineEnabled = Boolean(
+    isMoneyAccountDepositQuotePipelineEnabled &&
+      isMoneyAccountDeposit &&
+      (depositIntent === undefined || depositIntent === 'convert') &&
+      !fiatPayment?.selectedPaymentMethodId,
   );
 
   const applyMoneyAccountAmountUpdates = useCallback(
@@ -87,33 +115,56 @@ export function useUpdateTransactionPayAmount() {
     [transactionMeta],
   );
 
+  const updateOptimizedAmount = useCallback(
+    (amountHuman: string, transaction: TransactionMeta) => {
+      // The coordinator deduplicates only in-flight intents. Retain a
+      // successful prefetch so Continue can reuse it instead of launching the
+      // pipeline again.
+      const existingUpdate = optimizedAmountUpdateRef.current;
+      if (
+        existingUpdate?.amountHuman === amountHuman &&
+        existingUpdate.transactionId === transaction.id
+      ) {
+        return existingUpdate.promise;
+      }
+
+      const promise = updateMoneyAccountDepositAmount(transaction, amountHuman);
+      optimizedAmountUpdateRef.current = {
+        amountHuman,
+        promise,
+        transactionId: transaction.id,
+      };
+
+      promise.then(
+        (isPublished) => {
+          if (
+            !isPublished &&
+            optimizedAmountUpdateRef.current?.promise === promise
+          ) {
+            optimizedAmountUpdateRef.current = undefined;
+          }
+        },
+        () => {
+          if (optimizedAmountUpdateRef.current?.promise === promise) {
+            optimizedAmountUpdateRef.current = undefined;
+          }
+        },
+      );
+
+      return promise;
+    },
+    [],
+  );
+
   const updateTransactionPayAmount = useCallback(
     async (amountHuman: string) => {
       if (!transactionMeta) {
         return;
       }
 
-      if (
-        hasTransactionType(transactionMeta, [
-          TransactionType.moneyAccountDeposit,
-        ])
-      ) {
-        const depositIntent = getMoneyAccountDepositIntent(
-          transactionMeta.batchId,
-        );
-        // Initially optimize only generic/convert crypto deposits. addMusd uses
-        // the Relay max/gas-station path and card uses the multi-stage fiat path,
-        // so both retain the existing pipeline until validated separately.
-        const isOptimizedDepositIntent =
-          (depositIntent === undefined || depositIntent === 'convert') &&
-          !fiatPayment?.selectedPaymentMethodId;
-
-        if (
-          isMoneyAccountDepositQuotePipelineEnabled &&
-          isOptimizedDepositIntent
-        ) {
-          await updateMoneyAccountDepositAmount(transactionMeta, amountHuman);
-          return;
+      if (isMoneyAccountDeposit) {
+        if (isAmountUpdateQuotePipelineEnabled) {
+          return updateOptimizedAmount(amountHuman, transactionMeta);
         }
 
         syncMoneyAccountDepositRequiredAssets(
@@ -150,13 +201,17 @@ export function useUpdateTransactionPayAmount() {
       applyMoneyAccountAmountUpdates,
       updateTokenAmount,
       requiredTokens,
-      fiatPayment?.selectedPaymentMethodId,
       accountOverride,
-      isMoneyAccountDepositQuotePipelineEnabled,
+      isMoneyAccountDeposit,
+      isAmountUpdateQuotePipelineEnabled,
+      updateOptimizedAmount,
     ],
   );
 
-  return { updateTransactionPayAmount };
+  return {
+    isAmountUpdateQuotePipelineEnabled,
+    updateTransactionPayAmount,
+  };
 }
 
 function syncMoneyAccountDepositRequiredAssets(
@@ -168,10 +223,12 @@ function syncMoneyAccountDepositRequiredAssets(
   if (!existing?.length || decimals === undefined) return;
 
   try {
+    // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
+    // more than the source balance can fund (ROUND_UP was pushing past it).
     const amount = toHex(
       new BigNumber(amountHuman)
         .shiftedBy(decimals)
-        .decimalPlaces(0, BigNumber.ROUND_UP)
+        .decimalPlaces(0, BigNumber.ROUND_DOWN)
         .toFixed(0),
     ) as Hex;
     if (existing[0].amount === amount) return;

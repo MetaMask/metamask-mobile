@@ -108,7 +108,7 @@ describe('PredictThePitchCampaignCTA', () => {
     jest.useRealTimers();
   });
 
-  it('navigates to Predict World Cup when the active campaign participant is opted in', () => {
+  it('navigates to Predict market list when the active campaign participant is opted in', () => {
     const { getByTestId, getByText } = render(
       <PredictThePitchCampaignCTA
         campaign={buildCampaign()}
@@ -123,7 +123,7 @@ describe('PredictThePitchCampaignCTA', () => {
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.WORLD_CUP,
+      screen: Routes.PREDICT.MARKET_LIST,
       params: {
         entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
       },

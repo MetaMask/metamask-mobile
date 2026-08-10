@@ -96,6 +96,12 @@ export const LEVERAGE_SLIDER_CONFIG = {
 } as const;
 
 /**
+ * Maximum number of digits allowed in any perps price/size/percentage input.
+ * Prevents overflow and keeps inputs within safe numeric range.
+ */
+export const MAX_PERPS_INPUT_DIGITS = 9;
+
+/**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
  */
@@ -112,7 +118,7 @@ export const TP_SL_VIEW_CONFIG = {
 
   // Maximum number of digits allowed in price/percentage input fields
   // Prevents overflow and maintains reasonable input constraints
-  MaxInputDigits: 9,
+  MaxInputDigits: MAX_PERPS_INPUT_DIGITS,
 
   // Keypad configuration for price inputs
   // USD_PERPS is not a real currency - it's a custom configuration
@@ -152,6 +158,22 @@ export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
+
+/**
+ * Retry policy for per-asset market-data fetches (TAT-3645).
+ *
+ * `getMarkets` throws while the Perps connection is still initialising (e.g.
+ * `CLIENT_NOT_INITIALIZED` right after unlocking, or during a reconnect). That
+ * is transient, not a verdict about the asset, so the fetch is retried across
+ * the initialisation window instead of being surfaced as a failure. The total
+ * budget comfortably covers a provider re-initialisation, which is ~1.5s.
+ */
+export const MARKET_DATA_FETCH_RETRY_CONFIG = {
+  /** Extra attempts after the first, when the fetch throws. */
+  MaxRetries: 3,
+  /** Delay between attempts. */
+  RetryDelayMs: 1000,
+} as const;
 
 /**
  * Development-only configuration for testing and debugging

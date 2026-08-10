@@ -158,6 +158,7 @@ function BuildQuote() {
     providers,
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
     selectedToken,
     paymentMethods,
     paymentMethodsLoading,
@@ -275,14 +276,26 @@ function BuildQuote() {
       return;
     }
 
+    // Keep providers in deps: ensures the effect re-runs when the provider
+    // list loads or refreshes, giving the controller a chance to find a
+    // compatible provider even if it was called too early.
+    if (providers.length === 0) return;
+
     if (effectiveAssetId) {
-      const supportingProvider = providers.find(
+      const switched = setSelectedProviderForAsset(effectiveAssetId);
+      if (switched) return;
+
+      // Controller no-ops when the current provider already lists the asset in
+      // supportedCryptoCurrencies. Empty payment methods can still mark the
+      // token unavailable for that provider, so try a different supporting
+      // provider before showing the modal (parity with pre-delegation UI).
+      const otherSupporting = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
           providerSupportsAsset(p, effectiveAssetId),
       );
-      if (supportingProvider) {
-        setSelectedProvider(supportingProvider, { autoSelected: true });
+      if (otherSupporting) {
+        setSelectedProvider(otherSupporting, { autoSelected: true });
         return;
       }
     }
@@ -312,6 +325,7 @@ function BuildQuote() {
     focusTrigger,
     providers,
     setSelectedProvider,
+    setSelectedProviderForAsset,
   ]);
 
   const currency = userRegion?.country?.currency || 'USD';

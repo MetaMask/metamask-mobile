@@ -206,7 +206,9 @@ export async function setupAppleExistingUserOAuthMock(
 }
 
 /**
- * Social login new user onboarding flow (Appium smoke).
+ * Social login new-user smoke.
+ * Intermediate screen UI is covered by component-view / unit tests; this
+ * helper only drives the device path.
  */
 export const completeSocialLoginOnboarding = async (
   provider: 'google' | 'apple',
@@ -290,8 +292,7 @@ export const completeSocialLoginOnboarding = async (
   await dismissPushNotificationExistingUserSheet();
   await dismissExperienceEnhancerModal();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
-  // Predict GTM can still appear if remote flags race the mock; dismiss if present
-  // so accounts-menu → lock is not blocked (Android lock/unlock / reset smokes).
+  // Predict GTM can still appear if remote flags race the mock; dismiss if present.
   await dismisspredictionsModalPlaywright();
 };
 

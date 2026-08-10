@@ -27,6 +27,7 @@ export enum CustomAmountStage {
  * @param options.amountFiat - Current fiat amount; detects a no-op re-commit
  * (unchanged amount → skip the loading window, no fetch will follow).
  * @param options.hasAccountNoFunds - Whether the account-no-funds alert is active.
+ * @param options.hasPrefetchedQuote - Whether the current amount already has a quote.
  * @param options.isAddMusdIntent - Whether this is an add-mUSD deposit.
  * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
  * @param options.isDepositPrefillLoading - Whether a deposit prefill is loading.
@@ -37,6 +38,7 @@ export function useCustomAmountStage({
   amountFiat,
   disablePay,
   hasAccountNoFunds,
+  hasPrefetchedQuote = false,
   isAddMusdIntent,
   isDepositPrefillEnabled,
   isDepositPrefillLoading,
@@ -45,6 +47,7 @@ export function useCustomAmountStage({
   amountFiat: string;
   disablePay: boolean | undefined;
   hasAccountNoFunds: boolean;
+  hasPrefetchedQuote?: boolean;
   isAddMusdIntent: boolean;
   isDepositPrefillEnabled: boolean;
   isDepositPrefillLoading: boolean;
@@ -108,7 +111,7 @@ export function useCustomAmountStage({
       // required-token amount may never resolve. There is nothing to await once
       // the amount is committed, so settle on the arm frame itself — the settle
       // branch below is never re-entered when no reactive input changes.
-      if (isNoOpRecommit || disablePay) {
+      if (isNoOpRecommit || disablePay || hasPrefetchedQuote) {
         setStage(null);
       }
       return;
@@ -130,6 +133,7 @@ export function useCustomAmountStage({
     amountFiat,
     disablePay,
     hasAmount,
+    hasPrefetchedQuote,
     hasQuotes,
     isQuotesLoading,
     quotesLastUpdated,
@@ -163,7 +167,7 @@ export function useCustomAmountStage({
   // Derive from reactive inputs. Stay in Loading while quotes fetch or a
   // prefill preload resolves; otherwise show totals when quotes exist, or fall
   // through to NoQuote when a settled fetch produced none.
-  if (isQuotesLoading || isAwaitingPrefillResult) {
+  if ((isQuotesLoading && !hasPrefetchedQuote) || isAwaitingPrefillResult) {
     return { setStage, stage: CustomAmountStage.Loading };
   }
 

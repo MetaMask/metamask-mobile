@@ -1,4 +1,4 @@
-import {
+import type {
   PredictExtendedSportsMarketsFlag,
   PredictFeedBannerConfig,
   PredictFeedCarouselConfig,
@@ -6,9 +6,12 @@ import {
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
+  PredictSportsFeedChipConfig,
+  PredictSportsFeedConfig,
+  PredictSportsFeedTabConfig,
   PredictWimbledonTabFlag,
-  PredictWorldCupConfig,
 } from '../types/flags';
+import { PREDICT_MIN_GAME_OUTCOME_VOLUME } from '../utils/marketStaleness';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
@@ -31,10 +34,23 @@ export const DEFAULT_PREDICT_FEED_BANNER_FLAG: PredictFeedBannerConfig = {
   id: '',
   title: '',
   description: '',
-  position: PredictFeedBannerPosition.AfterWorldCupBanner,
+  position: PredictFeedBannerPosition.AfterFeaturedCarousel,
   severity: PredictFeedBannerSeverity.Info,
   dismissible: false,
 };
+
+export const PREDICT_MARKET_LIST_ORDERS = [
+  'volume24hr',
+  'volume',
+  'liquidity',
+  'ending_soon',
+  'newest',
+  'upcoming',
+  'start_time',
+] as const;
+
+export type PredictMarketListOrder =
+  (typeof PREDICT_MARKET_LIST_ORDERS)[number];
 
 export const DEFAULT_FEE_COLLECTION_FLAG = {
   enabled: true,
@@ -75,12 +91,12 @@ export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
   minimumVersion: '7.64.0',
 };
 
-export const PREDICT_WIMBLEDON_DEFAULT_GAMES_TAG_ID = '100639';
+export const PREDICT_POLYMARKET_GAMES_TAG_ID = '100639';
 export const PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG = 'tennis';
 export const PREDICT_WIMBLEDON_DEFAULT_SEARCH = 'Wimbledon';
 
 export const PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS =
-  `active=true&archived=false&closed=false&ended=false&tag_id=${PREDICT_WIMBLEDON_DEFAULT_GAMES_TAG_ID}` +
+  `active=true&archived=false&closed=false&ended=false&tag_id=${PREDICT_POLYMARKET_GAMES_TAG_ID}` +
   `&tag_slug=${PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG}` +
   `&title_search=${PREDICT_WIMBLEDON_DEFAULT_SEARCH}` +
   '&order=volume24hr&ascending=false';
@@ -91,19 +107,130 @@ export const DEFAULT_WIMBLEDON_TAB_FLAG = {
   minimumVersion: '',
 } satisfies PredictWimbledonTabFlag;
 
-export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
-export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
+const createSportsFeedChip = (
+  id: string,
+  tagSlug: string,
+): PredictSportsFeedChipConfig => ({
+  id,
+  kind: 'tag',
+  tagSlug,
+  titleKey: `predict.feed.filters.${id}`,
+});
 
-export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
-  enabled: false,
+const createSportsFeedChips = (
+  ...tagSlugs: string[]
+): PredictSportsFeedChipConfig[] =>
+  tagSlugs.map((tagSlug) => createSportsFeedChip(tagSlug, tagSlug));
+
+const createSportsFeedTab = ({
+  id,
+  chips,
+  titleKey = `predict.feed.tabs.${id}`,
+  tagSlug = id,
+  gamesTitleKey = 'predict.feed.filters.games',
+  gamesFilterByVolume,
+}: {
+  id: string;
+  chips: PredictSportsFeedChipConfig[];
+  titleKey?: string;
+  tagSlug?: string;
+  gamesTitleKey?: string;
+  gamesFilterByVolume?: number;
+}): PredictSportsFeedTabConfig => ({
+  id,
+  titleKey,
+  tagSlug,
+  defaultFilterId: 'games',
+  chips: [
+    {
+      id: 'games',
+      kind: 'games',
+      titleKey: gamesTitleKey,
+      filterByVolume: gamesFilterByVolume,
+    },
+    {
+      id: 'props',
+      kind: 'props',
+      titleKey: 'predict.feed.filters.props',
+    },
+    ...chips,
+  ],
+});
+
+export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
+  enabled: true,
   minimumVersion: '',
-  showMainFeedBanner: false,
-  showMainFeedTab: false,
-  showWorldCupScreen: false,
-  showHubV2: false,
-  showHubBanner: false,
-  tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
-  gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
-  winnerEventId: '',
-  stages: [],
+  tabs: [
+    createSportsFeedTab({
+      id: 'all',
+      titleKey: 'predict.feed.tabs.all',
+      tagSlug: 'sports',
+      chips: [],
+      gamesFilterByVolume: PREDICT_MIN_GAME_OUTCOME_VOLUME,
+    }),
+    createSportsFeedTab({
+      id: 'soccer',
+      chips: createSportsFeedChips(
+        'mls',
+        'champions-league',
+        'EPL',
+        'uel',
+        'la-liga',
+        'serie-a',
+        'bundesliga',
+        'ligue-1',
+        'lib',
+      ),
+    }),
+    createSportsFeedTab({
+      id: 'baseball',
+      chips: createSportsFeedChips('mlb', 'kbo', 'npb', 'cpbl', 'awards'),
+    }),
+    createSportsFeedTab({
+      id: 'football',
+      chips: createSportsFeedChips(
+        'nfl',
+        'nfl-team-futures',
+        'nfl-free-agency',
+        'cfb',
+        'cfl',
+      ),
+    }),
+    createSportsFeedTab({
+      id: 'basketball',
+      chips: createSportsFeedChips('nba', 'nba-free-agency', 'wnba', 'ncaa'),
+    }),
+    createSportsFeedTab({
+      id: 'esports',
+      chips: createSportsFeedChips(
+        'league-of-legends',
+        'counter-strike-2',
+        'valorant',
+        'dota-2',
+        'rainbow-six-siege',
+      ),
+    }),
+    createSportsFeedTab({
+      id: 'tennis',
+      chips: createSportsFeedChips('atp', 'wta', 'itf'),
+    }),
+    createSportsFeedTab({
+      id: 'cricket',
+      chips: createSportsFeedChips('international-cricket', 't20-blast'),
+    }),
+    createSportsFeedTab({
+      id: 'golf',
+      gamesTitleKey: 'predict.feed.filters.tournaments',
+      chips: createSportsFeedChips('pga-tour', 'liv-golf'),
+    }),
+    createSportsFeedTab({
+      id: 'combat',
+      gamesTitleKey: 'predict.feed.filters.fights',
+      chips: createSportsFeedChips('ufc', 'boxing'),
+    }),
+    createSportsFeedTab({
+      id: 'hockey',
+      chips: createSportsFeedChips('nhl'),
+    }),
+  ],
 };
