@@ -93,19 +93,20 @@ jobs:
         with:
           ruby-version: '3.2.9'
           bundler-cache: true
-      # Only caches the small CocoaPods specs/trunk index (~/.cocoapods/repos), never
-      # ios/Pods or the CocoaPods download cache — caching those in #33442 produced a
-      # ~2.2GB blob that took ~77 minutes to extract on macos-latest, which repeatedly
-      # got superseded by the merge queue's re-basing before it could finish. This
-      # mirrors the safe, already-proven pattern in
-      # .github/actions/setup-e2e-env/action.yml ("Restore CocoaPods specs cache").
-      # continue-on-error + a tight timeout mean a slow/failed restore never blocks the
-      # job — it just falls back to a normal (bounded) `pod install`.
+      # Only caches the CocoaPods specs/trunk index (~/.cocoapods/repos), never ios/Pods
+      # or the CocoaPods download cache — caching those in #33442 produced a ~2.2GB blob
+      # that took ~77 minutes to extract on macos-latest, which repeatedly got superseded
+      # by the merge queue's re-basing before it could finish. This mirrors the pattern
+      # already used in .github/actions/setup-e2e-env/action.yml ("Restore CocoaPods
+      # specs cache"), though empirically that cache is itself ~1.6GB (not small — it's
+      # the full public specs/trunk index, not scoped to this project's deps), so this
+      # gets a real (not token) timeout. continue-on-error means a slow/failed
+      # restore/save never blocks the job — it just falls back to a normal `pod install`.
       - name: Restore CocoaPods specs cache
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/cache@v4
         continue-on-error: true
-        timeout-minutes: 5
+        timeout-minutes: 15
         with:
           path: ~/.cocoapods/repos
           key: ${{ runner.os }}-check-diff-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
