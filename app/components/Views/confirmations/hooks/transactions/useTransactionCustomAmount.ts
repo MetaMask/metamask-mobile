@@ -582,7 +582,10 @@ function useTokenBalance(tokenUsdRate: number | undefined) {
         .toNumber()
     : 0;
 
-  const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
+  const { withdrawableMusd } = useMoneyAccountBalance();
+
+  const withdrawableMusdRaw =
+    withdrawableMusd?.multipliedBy(tokenUsdRate).toNumber() ?? 0;
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -602,9 +605,7 @@ function useTokenBalance(tokenUsdRate: number | undefined) {
     if (withdrawableMusd === undefined) {
       return 0;
     }
-    return tokenUsdRate
-      ? withdrawableMusd.multipliedBy(tokenUsdRate).toNumber()
-      : 0;
+    return withdrawableMusdRaw;
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
@@ -612,14 +613,10 @@ function useTokenBalance(tokenUsdRate: number | undefined) {
   }
 
   if (paymentOverride === PaymentOverride.MoneyAccount) {
-    if (!withdrawableFiatRaw) {
+    if (!withdrawableMusd) {
       return 0;
     }
-    // ROUND_DOWN to cents before Max/percentage math so we never set an
-    // amount above the spendable withdrawable balance after display rounding.
-    return new BigNumber(withdrawableFiatRaw)
-      .decimalPlaces(2, BigNumber.ROUND_DOWN)
-      .toNumber();
+    return withdrawableMusdRaw;
   }
 
   return payTokenBalanceUsd;
