@@ -3,6 +3,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Button,
+  ButtonBaseSize,
   Icon,
   IconColor,
   IconName,
@@ -12,12 +14,18 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-export type PredictBuyErrorBannerVariant = 'price_changed' | 'order_failed';
+export type PredictBuyErrorBannerVariant =
+  | 'price_changed'
+  | 'order_failed'
+  | 'payment_failed';
 
 interface PredictBuyErrorBannerProps {
   variant: PredictBuyErrorBannerVariant;
   title: string;
   description: string;
+  actionLabel?: string;
+  onActionPress?: () => void;
+  actionTestID?: string;
   testID?: string;
 }
 
@@ -42,15 +50,25 @@ const VARIANT_STYLES: Record<
     iconColor: IconColor.ErrorDefault,
     titleColor: TextColor.ErrorDefault,
   },
+  payment_failed: {
+    containerClass: 'bg-error-muted',
+    iconName: IconName.Danger,
+    iconColor: IconColor.ErrorDefault,
+    titleColor: TextColor.ErrorDefault,
+  },
 };
 
 const PredictBuyErrorBanner = ({
   variant,
   title,
   description,
+  actionLabel,
+  onActionPress,
+  actionTestID,
   testID,
 }: PredictBuyErrorBannerProps) => {
   const styles = VARIANT_STYLES[variant];
+  const showAction = Boolean(actionLabel && onActionPress);
 
   return (
     // `-mt-1` (-4px) trims the 24px gap left by the preceding PredictFeeSummary
@@ -69,7 +87,7 @@ const PredictBuyErrorBanner = ({
         size={IconSize.Md}
         testID={`${testID ?? 'predict-buy-error-banner'}-icon`}
       />
-      <Box twClassName="flex-1 min-w-0">
+      <Box twClassName="flex-1 min-w-0 gap-2">
         <Text
           variant={TextVariant.BodyMd}
           color={styles.titleColor}
@@ -85,6 +103,19 @@ const PredictBuyErrorBanner = ({
         >
           {description}
         </Text>
+        {showAction && (
+          <Button
+            size={ButtonBaseSize.Sm}
+            onPress={onActionPress}
+            testID={
+              actionTestID ?? `${testID ?? 'predict-buy-error-banner'}-action`
+            }
+          >
+            <Text variant={TextVariant.BodySm} twClassName="font-medium">
+              {actionLabel}
+            </Text>
+          </Button>
+        )}
       </Box>
     </Box>
   );

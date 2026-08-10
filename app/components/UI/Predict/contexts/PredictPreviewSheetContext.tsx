@@ -28,6 +28,10 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import ToastService from '../../../../core/ToastService';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
+  PredictEventValues,
+  PredictTradeStatus,
+ PredictDismissalMethod } from '../constants/eventNames';
+import {
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictBottomSheetEnabledFlag,
 } from '../selectors/featureFlags';
@@ -49,7 +53,6 @@ import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWi
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
-import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
 import { getBuyOutcomeImage } from '../utils/sports';
@@ -388,10 +391,11 @@ export const PredictPreviewSheetProvider: React.FC<
     }
 
     const lastParams = lastBuyParamsRef.current;
+    const isPaymentFailure = activeOrder?.errorStage === 'payment';
     // Use `closeButtonOptions` (with `ButtonVariants.Link`) rather than
-    // `linkButtonOptions` so the Retry sits inline on the right of the row
-    // (`[icon] [label] [Retry]`) instead of stacked below the label. This
-    // matches the deposit "Adding funds / Track" toast convention.
+    // `linkButtonOptions` so the Retry / Add funds sits inline on the right of
+    // the row (`[icon] [label] [action]`) instead of stacked below the label.
+    // This matches the deposit "Adding funds / Track" toast convention.
     ToastService.showToast({
       variant: ToastVariants.Icon,
       labelOptions: [
@@ -401,23 +405,47 @@ export const PredictPreviewSheetProvider: React.FC<
         },
       ],
       // The description provides useful context AND makes the labels
-      // container two lines tall — same height as the Retry Primary
+      // container two lines tall — same height as the action Primary
       // button — so the row's `alignItems: flex-start` produces a
       // visually-balanced layout (matches the deposit/Track toast).
       descriptionOptions: {
-        description: strings('predict.order.order_failed_generic'),
+        description: isPaymentFailure
+          ? strings('predict.order.payment_failed_body_generic')
+          : strings('predict.order.order_failed_generic'),
       },
       iconName: IconName.Error,
       iconColor: themeRef.current.colors.error.default,
       backgroundColor: themeRef.current.colors.error.muted,
       hasNoTimeout: false,
       closeButtonOptions: {
-        label: strings('predict.order.retry'),
+        label: isPaymentFailure
+          ? strings('predict.deposit.add_funds')
+          : strings('predict.order.retry'),
         variant: ButtonVariants.Link,
         onPress: () => {
           if (clearErrorTimerRef.current) {
             clearTimeout(clearErrorTimerRef.current);
             clearErrorTimerRef.current = null;
+          }
+          if (isPaymentFailure) {
+            Engine.context.PredictController.trackPredictOrderEvent({
+              status: PredictTradeStatus.ADD_FUNDS_SUBMITTED,
+              analyticsProperties: {
+                marketId: lastParams.market?.id,
+                marketTitle: lastParams.market?.title,
+                marketCategory: lastParams.market?.category,
+                entryPoint: lastParams.entryPoint,
+                transactionType:
+                  PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+              },
+              paymentTokenAddress: activeOrder?.paymentTokenAddress,
+              paymentTokenSymbol: activeOrder?.paymentTokenSymbol,
+            });
+            navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+              screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+              params: { autoDeposit: true },
+            });
+            return;
           }
           openBuySheet(lastParams);
         },
@@ -426,22 +454,29 @@ export const PredictPreviewSheetProvider: React.FC<
 
     // Toast auto-dismisses on the platform default (~2.75s visibility +
     // ~250ms exit anim). When that finishes without the user tapping
-    // Retry, clear the error so the next slip open is clean (no banner).
-    // Tapping Retry cancels this timer so the reopened slip can show the
-    // banner explaining what went wrong.
+    // Retry, clear order-stage errors so the next slip open is clean.
+    // Payment-stage errors persist so reopening the slip still explains
+    // what happened. Tapping Retry cancels this timer so the reopened
+    // slip can show the banner explaining what went wrong.
     if (clearErrorTimerRef.current) {
       clearTimeout(clearErrorTimerRef.current);
     }
-    clearErrorTimerRef.current = setTimeout(() => {
-      clearErrorTimerRef.current = null;
-      clearOrderError();
-    }, 3000);
+    if (!isPaymentFailure) {
+      clearErrorTimerRef.current = setTimeout(() => {
+        clearErrorTimerRef.current = null;
+        clearOrderError();
+      }, 3000);
+    }
   }, [
     activeOrder?.error,
+    activeOrder?.errorStage,
+    activeOrder?.paymentTokenAddress,
+    activeOrder?.paymentTokenSymbol,
     buyParams,
     bottomSheetEnabled,
     openBuySheet,
     clearOrderError,
+    navigation,
   ]);
 
   const BuyComponent = useMemo(

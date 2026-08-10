@@ -5692,12 +5692,16 @@ describe('PredictController', () => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.PREVIEW,
           error: 'some error',
+          errorStage: 'payment',
         });
 
         controller.clearOrderError();
 
         expect(
           controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage,
         ).toBeUndefined();
       });
     });
@@ -12519,6 +12523,12 @@ describe('PredictController', () => {
         ).toMatchObject({
           payment_token_address: '0xpaytoken',
         });
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit reverted',
+        );
       });
     });
 
@@ -12823,6 +12833,12 @@ describe('PredictController', () => {
           success: false,
           error: 'Deposit preparation returned undefined',
         });
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit preparation returned undefined',
+        );
       });
     });
 

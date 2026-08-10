@@ -16,12 +16,15 @@ import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockTrackBetslipDismissed = jest.fn();
+const mockTrackPredictOrderEvent = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackBetslipDismissed: (...args: unknown[]) =>
         mockTrackBetslipDismissed(...args),
+      trackPredictOrderEvent: (...args: unknown[]) =>
+        mockTrackPredictOrderEvent(...args),
     },
   },
 }));
@@ -59,7 +62,13 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockClearOrderError = jest.fn();
-let mockActiveOrder: { error?: string; state?: string } | null = null;
+let mockActiveOrder: {
+  error?: string;
+  errorStage?: 'payment' | 'order';
+  state?: string;
+  paymentTokenAddress?: string;
+  paymentTokenSymbol?: string;
+} | null = null;
 
 jest.mock('../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: jest.fn(() => ({
@@ -754,6 +763,56 @@ describe('PredictPreviewSheetContext', () => {
       });
       expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
       expect(mockToastCloseToast).not.toHaveBeenCalled();
+    });
+
+    it('offers Add funds for payment-stage failures and does not auto-clear the error', () => {
+      jest.useFakeTimers();
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+      mockClearOrderError.mockClear();
+
+      mockActiveOrder = {
+        error: 'PREDICT_DEPOSIT_FAILED',
+        errorStage: 'payment',
+        paymentTokenSymbol: 'USDC',
+      };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+      const toastCall = mockToastShowToast.mock.calls[0][0];
+      expect(toastCall.closeButtonOptions.label).toBe('Add funds');
+
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+      expect(mockClearOrderError).not.toHaveBeenCalled();
+
+      act(() => {
+        toastCall.closeButtonOptions.onPress();
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+          params: { autoDeposit: true },
+        }),
+      );
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'add_funds_submitted',
+        }),
+      );
+      jest.useRealTimers();
     });
 
     it('does not fire the toast when the slip is open (banner handles it)', () => {

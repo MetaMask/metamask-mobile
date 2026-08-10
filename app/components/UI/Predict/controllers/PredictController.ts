@@ -103,6 +103,7 @@ import {
   PredictMarket,
   PredictMarketListParams,
   PredictMarketListResponse,
+  PredictOrderErrorStage,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -171,6 +172,11 @@ export type PredictControllerState = {
       transactionId?: string;
       state: ActiveOrderState;
       error?: string;
+      /**
+       * Which buy leg failed. `'payment'` = swap/deposit before order placement.
+       * `'order'` (default when omitted) = order placement / fill failure.
+       */
+      errorStage?: PredictOrderErrorStage;
       paymentTokenAddress?: string;
       paymentTokenSymbol?: string;
     };
@@ -1616,6 +1622,7 @@ export class PredictController extends BaseController<
           state.activeBuyOrders[activeOrderAddress].state =
             ActiveOrderState.PREVIEW;
           state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+          state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
         }
       });
 
@@ -1927,6 +1934,7 @@ export class PredictController extends BaseController<
           state.activeBuyOrders[activeOrderAddress].state =
             ActiveOrderState.PREVIEW;
           state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+          state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
         }
         if (isBuyWithAnyToken) {
           state.selectedPaymentToken = null;
@@ -2651,6 +2659,7 @@ export class PredictController extends BaseController<
     this.update((state) => {
       if (state.activeBuyOrders[address]) {
         delete state.activeBuyOrders[address].error;
+        delete state.activeBuyOrders[address].errorStage;
       }
     });
   }
@@ -2997,6 +3006,7 @@ export class PredictController extends BaseController<
       this.update((state) => {
         if (state.activeBuyOrders[address]) {
           delete state.activeBuyOrders[address].error;
+          delete state.activeBuyOrders[address].errorStage;
         }
       });
 
@@ -3019,10 +3029,17 @@ export class PredictController extends BaseController<
         };
       }
 
-      this.trackFlowSubmissionFailureMetric({
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
         transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
         error,
       });
+
+      if (isUserCancelled) {
+        return {
+          success: true,
+          response: { batchId: 'NA' },
+        };
+      }
 
       Logger.error(
         e,
@@ -3031,9 +3048,17 @@ export class PredictController extends BaseController<
         }),
       );
 
+      const errorMessage = e.message || PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      this.update((state) => {
+        if (state.activeBuyOrders[address]) {
+          state.activeBuyOrders[address].error = errorMessage;
+          state.activeBuyOrders[address].errorStage = 'payment';
+        }
+      });
+
       return {
         success: false,
-        error: e.message,
+        error: errorMessage,
       };
     }
   }
@@ -3352,6 +3377,7 @@ export class PredictController extends BaseController<
             state.activeBuyOrders[address].state =
               ActiveOrderState.PAY_WITH_ANY_TOKEN;
             state.activeBuyOrders[address].error = errorMessage;
+            state.activeBuyOrders[address].errorStage = 'payment';
             state.activeBuyOrders[address].transactionId = undefined;
           }
         });
