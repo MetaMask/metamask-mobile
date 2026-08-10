@@ -204,11 +204,26 @@ jobs:
           chmod +x ./tests/scripts/run-testmu-hyperexecute.sh
           ./tests/scripts/run-testmu-hyperexecute.sh
 
+      - name: Resolve artifact name
+        id: artifact-name
+        if: always()
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          DEVICE_NAME: ${{ matrix.device.name }}
+          OS_VERSION: ${{ matrix.device.os_version }}
+        run: |
+          sanitize() {
+            printf '%s' "$1" | tr -c '[:alnum:]' '-' | sed -E 's/-+/-/g; s/^-|-$//g'
+          }
+          SUITE="${BUILD_TYPE/onboarding/onboarding-flow}"
+          echo "name=testmu-${PLATFORM}-${SUITE}-test-results-$(sanitize "$DEVICE_NAME")-$(sanitize "$OS_VERSION")" >> "$GITHUB_OUTPUT"
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: testmu-${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: ${{ steps.artifact-name.outputs.name }}
           # Do NOT upload tmp/hyperexecute/ — generated YAML may be retained for
           # debugging locally, but secrets are injected via --job-secret-file
           # outside the workspace and must never ship as GHA artifacts.
