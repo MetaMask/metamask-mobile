@@ -547,7 +547,6 @@ const Routes = {
     CREDIT_REDEEM: 'CardCreditRedeem',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
-    SET_PIN_SUCCESS: 'CardSetPinSuccess',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',

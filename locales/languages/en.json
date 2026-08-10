@@ -8993,8 +8993,7 @@
       "forbidden_error": "You can't set a PIN on this card right now.",
       "network_error": "Something went wrong. Please try again.",
       "success_title": "PIN set",
-      "success_description": "Your card PIN is ready to use. Make sure you keep it safe—you won't be able to view it in the app.",
-      "success_done": "Done"
+      "success_description": "Your card PIN is ready to use. Make sure you keep it safe—you won't be able to view it in the app."
     },
     "choose_your_card": {
       "title": "Choose your card",
