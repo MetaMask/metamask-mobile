@@ -5,6 +5,7 @@ import {
   handleTrendingUrl,
   EXPLORE_SCREEN_DEEPLINK_PARAM,
   EXPLORE_TAB_DEEPLINK_PARAM,
+  EXPLORE_TIMEFRAME_DEEPLINK_PARAM,
 } from '../handleTrendingUrl';
 
 jest.mock('../../../../NavigationService', () => ({
@@ -156,6 +157,182 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
     expect(mockNavigate).toHaveBeenNthCalledWith(
       2,
       Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    );
+  });
+});
+
+describe('handleTrendingUrl - trending tokens chain filter (chainId=...)', () => {
+  const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each([
+    {
+      description: 'CAIP chain id',
+      chainIdParam: 'eip155:4663',
+      expectedCaipChainId: 'eip155:4663',
+    },
+    {
+      description: 'hex chain id',
+      chainIdParam: '0x2105',
+      expectedCaipChainId: 'eip155:8453',
+    },
+    {
+      description: 'decimal chain id',
+      chainIdParam: '8453',
+      expectedCaipChainId: 'eip155:8453',
+    },
+  ])(
+    'opens the trending tokens view filtered by a $description',
+    async ({ chainIdParam, expectedCaipChainId }) => {
+      await handleTrendingUrl({
+        actionPath: `?screen=trending-tokens&chainId=${chainIdParam}`,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
+      expect(mockNavigate).toHaveBeenNthCalledWith(
+        2,
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+        { initialNetwork: [expectedCaipChainId] },
+      );
+    },
+  );
+
+  it.each([
+    { description: 'malformed value', chainIdParam: 'not-a-chain' },
+    {
+      description: 'chain unsupported by trending',
+      chainIdParam: 'eip155:999999',
+    },
+    { description: 'zero chain id', chainIdParam: '0' },
+  ])(
+    'opens the unfiltered trending tokens view for a $description',
+    async ({ chainIdParam }) => {
+      await handleTrendingUrl({
+        actionPath: `?screen=trending-tokens&chainId=${chainIdParam}`,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenNthCalledWith(
+        2,
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      );
+    },
+  );
+
+  it('opens the filtered trending tokens view when only chainId is provided', async () => {
+    await handleTrendingUrl({ actionPath: '?chainId=eip155:4663' });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      { initialNetwork: ['eip155:4663'] },
+    );
+  });
+
+  it('falls back to the Explore tab when only an invalid chainId is provided', async () => {
+    await handleTrendingUrl({ actionPath: '?chainId=not-a-chain' });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+  });
+
+  it('prioritizes tab over an implied chain-filtered trending tokens view', async () => {
+    await handleTrendingUrl({ actionPath: '?tab=crypto&chainId=eip155:1' });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
+      screen: Routes.TRENDING_FEED,
+      params: {
+        initialTab: EXPLORE_TAB_INDEX.CRYPTO,
+        source: 'deeplink',
+      },
+    });
+  });
+
+  it('ignores chainId on screens without a chain filter', async () => {
+    await handleTrendingUrl({ actionPath: '?screen=stocks&chainId=eip155:1' });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    );
+  });
+});
+
+describe('handleTrendingUrl - trending tokens time filter (timeframe=...)', () => {
+  const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each(Object.values(EXPLORE_TIMEFRAME_DEEPLINK_PARAM))(
+    'opens the trending tokens view with timeframe=%s preselected',
+    async (timeframeParam) => {
+      await handleTrendingUrl({
+        actionPath: `?screen=trending-tokens&timeframe=${timeframeParam}`,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenNthCalledWith(
+        2,
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+        { initialTimeOption: timeframeParam },
+      );
+    },
+  );
+
+  it('accepts an uppercase timeframe value', async () => {
+    await handleTrendingUrl({
+      actionPath: '?screen=trending-tokens&timeframe=24H',
+    });
+
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      { initialTimeOption: EXPLORE_TIMEFRAME_DEEPLINK_PARAM.TWENTY_FOUR_HOURS },
+    );
+  });
+
+  it('ignores an unknown timeframe value', async () => {
+    await handleTrendingUrl({
+      actionPath: '?screen=trending-tokens&timeframe=2d',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+    );
+  });
+
+  it('falls back to the Explore tab when only a timeframe is provided', async () => {
+    await handleTrendingUrl({ actionPath: '?timeframe=1h' });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+  });
+
+  it('applies chain and time filters together', async () => {
+    await handleTrendingUrl({
+      actionPath: '?screen=trending-tokens&chainId=eip155:4663&timeframe=6h',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      {
+        initialNetwork: ['eip155:4663'],
+        initialTimeOption: EXPLORE_TIMEFRAME_DEEPLINK_PARAM.SIX_HOURS,
+      },
     );
   });
 });

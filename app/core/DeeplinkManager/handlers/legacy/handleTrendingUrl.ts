@@ -1,8 +1,16 @@
+import {
+  isCaipChainId,
+  isStrictHexString,
+  type CaipChainId,
+} from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   EXPLORE_TAB_INDEX,
   type ExploreTabIndex,
 } from '../../../../constants/navigation/exploreTabIndices';
+import { TRENDING_NETWORKS_LIST } from '../../../../components/UI/Trending/utils/trendingNetworksList';
+import type { TimeOption } from '../../../../components/UI/Trending/components/TrendingTokensBottomSheet';
+import type { TrendingTokensFullViewParams } from '../../../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { ExploreFeedRouteParams } from '../../../../components/Views/TrendingView/TrendingView';
 import type { ExploreSearchRouteParams } from '../../../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 import type { RootStackParamList } from '../../../NavigationService/types';
@@ -25,6 +33,10 @@ const TRENDING_QUERY_PARAM = {
   /** Prefills Explore search when used with `screen=search`. */
   QUERY: 'q',
   QUERY_ALT: 'query',
+  /** Filters the trending tokens view to a single chain. */
+  CHAIN_ID: 'chainId',
+  /** Preselects the trending tokens time filter. */
+  TIMEFRAME: 'timeframe',
 } as const;
 
 /**
@@ -76,6 +88,20 @@ export const EXPLORE_SCREEN_DEEPLINK_PARAM = {
 export type ExploreScreenDeeplinkParam =
   (typeof EXPLORE_SCREEN_DEEPLINK_PARAM)[keyof typeof EXPLORE_SCREEN_DEEPLINK_PARAM];
 
+/**
+ * `?timeframe=` values — one per {@link TimeOption} of the trending tokens view.
+ * e.g. https://link.metamask.io/trending?screen=trending-tokens&timeframe=1h
+ */
+export const EXPLORE_TIMEFRAME_DEEPLINK_PARAM = {
+  FIVE_MINUTES: '5m',
+  ONE_HOUR: '1h',
+  SIX_HOURS: '6h',
+  TWENTY_FOUR_HOURS: '24h',
+} as const satisfies Record<string, `${TimeOption}`>;
+
+export type ExploreTimeframeDeeplinkParam =
+  (typeof EXPLORE_TIMEFRAME_DEEPLINK_PARAM)[keyof typeof EXPLORE_TIMEFRAME_DEEPLINK_PARAM];
+
 const isExploreTabDeeplinkParam = (
   value: string,
 ): value is ExploreTabDeeplinkParam =>
@@ -89,6 +115,87 @@ const isExploreScreenDeeplinkParam = (
   Object.values(EXPLORE_SCREEN_DEEPLINK_PARAM).includes(
     value as ExploreScreenDeeplinkParam,
   );
+
+const isExploreTimeframeDeeplinkParam = (
+  value: string,
+): value is ExploreTimeframeDeeplinkParam =>
+  Object.values(EXPLORE_TIMEFRAME_DEEPLINK_PARAM).includes(
+    value as ExploreTimeframeDeeplinkParam,
+  );
+
+/** Chains the trending tokens view can filter by. */
+const TRENDING_CAIP_CHAIN_IDS = new Set<CaipChainId>(
+  TRENDING_NETWORKS_LIST.map((network) => network.caipChainId),
+);
+
+/**
+ * Normalizes a `?chainId=` value to a CAIP chain id, accepting the EVM
+ * shorthands campaign links commonly use: `eip155:8453`, `0x2105`, or `8453`.
+ */
+const normalizeChainIdParam = (value: string): CaipChainId | undefined => {
+  if (isCaipChainId(value)) {
+    return value;
+  }
+
+  let decimalChainId = Number.NaN;
+  if (isStrictHexString(value)) {
+    decimalChainId = parseInt(value, 16);
+  } else if (/^\d+$/u.test(value)) {
+    decimalChainId = Number(value);
+  }
+
+  if (!Number.isSafeInteger(decimalChainId) || decimalChainId <= 0) {
+    return undefined;
+  }
+  return `eip155:${decimalChainId}`;
+};
+
+/**
+ * Chains trending doesn't support are dropped so the link still lands on the
+ * unfiltered list instead of an empty filtered one.
+ */
+const getTrendingChainFilterParam = (
+  urlParams: URLSearchParams,
+): CaipChainId[] | undefined => {
+  const chainIdParam = urlParams.get(TRENDING_QUERY_PARAM.CHAIN_ID)?.trim();
+  if (!chainIdParam) {
+    return undefined;
+  }
+
+  const caipChainId = normalizeChainIdParam(chainIdParam);
+  return caipChainId && TRENDING_CAIP_CHAIN_IDS.has(caipChainId)
+    ? [caipChainId]
+    : undefined;
+};
+
+const getTrendingTimeframeParam = (
+  urlParams: URLSearchParams,
+): TimeOption | undefined => {
+  const timeframeParam = urlParams
+    .get(TRENDING_QUERY_PARAM.TIMEFRAME)
+    ?.toLowerCase();
+  if (!timeframeParam || !isExploreTimeframeDeeplinkParam(timeframeParam)) {
+    return undefined;
+  }
+  // Safe: the `satisfies` on EXPLORE_TIMEFRAME_DEEPLINK_PARAM pins its values
+  // to TimeOption's.
+  return timeframeParam as TimeOption;
+};
+
+const getTrendingTokensViewParams = (
+  urlParams: URLSearchParams,
+): TrendingTokensFullViewParams | undefined => {
+  const initialNetwork = getTrendingChainFilterParam(urlParams);
+  const initialTimeOption = getTrendingTimeframeParam(urlParams);
+
+  if (!initialNetwork && !initialTimeOption) {
+    return undefined;
+  }
+  return {
+    ...(initialNetwork && { initialNetwork }),
+    ...(initialTimeOption && { initialTimeOption }),
+  };
+};
 
 /**
  * These views are MainNavigator stack screens above the tabs, so they are
@@ -125,8 +232,11 @@ const EXPLORE_SCREEN_TARGETS: Record<
 > = {
   [EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS]: () =>
     exploreFullScreenTarget(Routes.WALLET.RWA_TOKENS_FULL_VIEW),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS]: () =>
-    exploreFullScreenTarget(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW),
+  [EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS]: (urlParams) =>
+    exploreFullScreenTarget(
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      getTrendingTokensViewParams(urlParams),
+    ),
   [EXPLORE_SCREEN_DEEPLINK_PARAM.SITES]: () =>
     exploreFullScreenTarget(Routes.SITES_FULL_VIEW),
   [EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES]: () =>
@@ -163,6 +273,8 @@ const getUrlParams = (actionPath: string): URLSearchParams =>
  * Resolves the trending/explore deeplink:
  * - `?screen=<view>` opens a full-screen view above the Explore tab (see {@link EXPLORE_SCREEN_DEEPLINK_PARAM}).
  * - `?screen=search&q=<query>` (or `query=`) opens Explore search with the query prefilled.
+ * - `?screen=trending-tokens` supports `chainId=<caip|hex|decimal>` (chain filter) and `timeframe=<5m|1h|6h|24h>` (time filter).
+ * - `?chainId=<chainId>` without `screen`/`tab` opens the trending tokens view filtered to that chain.
  * - `?tab=<tab>` opens Explore with the given tab preselected (see {@link EXPLORE_TAB_DEEPLINK_PARAM}).
  * - Anything else falls back to the Explore tab on its default tab.
  */
@@ -179,6 +291,18 @@ export const createTrendingDeeplinkIntent = ({
 
   if (tabParam && isExploreTabDeeplinkParam(tabParam)) {
     return { target: exploreTabTarget(EXPLORE_TAB_PARAM_TO_INDEX[tabParam]) };
+  }
+
+  // A chain filter alone implies the trending tokens view — the only Explore
+  // surface that can apply it (e.g. `?chainId=eip155:8453` with no `screen=`).
+  const trendingTokensParams = getTrendingTokensViewParams(urlParams);
+  if (trendingTokensParams?.initialNetwork) {
+    return {
+      target: exploreFullScreenTarget(
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+        trendingTokensParams,
+      ),
+    };
   }
 
   return {
