@@ -253,6 +253,30 @@ describe('JsonReportGenerator', () => {
       expect(firstArtifact.profilingData).toEqual(profilingData);
     });
 
+    it('sanitizes device OS versions in app-profiling filenames', () => {
+      const data = makeReportData({
+        metrics: [
+          makeMetricsEntry({
+            device: {
+              name: 'Pixel.*',
+              osVersion: '13.*|14.*',
+              provider: 'testmu',
+            },
+            profilingSummary: { issues: 0 },
+          }),
+        ],
+      });
+
+      const files = generator.generate(data, '/reports');
+      const profilingFile = files.find((file) =>
+        file.includes(`${path.sep}app-profiling${path.sep}`),
+      );
+
+      expect(profilingFile).toBeDefined();
+      expect(profilingFile).not.toMatch(/[|*]/u);
+      expect(profilingFile).toContain('13__14_');
+    });
+
     it('creates the app-profiling directory when missing', () => {
       mockExistsSync.mockReturnValue(false);
 
