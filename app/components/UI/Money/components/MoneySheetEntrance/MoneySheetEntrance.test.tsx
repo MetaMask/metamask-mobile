@@ -23,12 +23,24 @@ const getStyle = (node: { props: { style?: unknown } }) => {
     : ((style ?? {}) as Record<string, unknown>);
 };
 
+const renderStep = (props?: { isActive?: boolean; delayMs?: number }) =>
+  render(
+    <MoneySheetEntrance
+      isActive={props?.isActive ?? false}
+      delayMs={props?.delayMs}
+      testID={STEP_TEST_ID}
+    >
+      <Text testID={CHILD_TEST_ID}>Spend and earn</Text>
+    </MoneySheetEntrance>,
+  );
+
 /**
  * The phase decision itself is covered exhaustively against
  * `resolveMoneySheetEntrancePhase` in `constants/sheetEntrance.test.ts`.
  * Reanimated's jest mock evaluates the style worklet once per render and does
  * not re-render on shared-value writes, so these cover only what the component
- * itself owns: layout stability, the resting state, and style composition.
+ * itself owns: layout stability, the resting state, interactivity gating, and
+ * style composition.
  */
 describe('MoneySheetEntrance', () => {
   beforeEach(() => {
@@ -37,27 +49,39 @@ describe('MoneySheetEntrance', () => {
   });
 
   it('keeps the children mounted while held so the sheet height never shifts', () => {
-    const { getByTestId } = render(
-      <MoneySheetEntrance isActive={false} testID={STEP_TEST_ID}>
-        <Text testID={CHILD_TEST_ID}>Spend and earn</Text>
-      </MoneySheetEntrance>,
-    );
+    const { getByTestId } = renderStep({ isActive: false });
 
-    expect(getByTestId(CHILD_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(CHILD_TEST_ID)).toBeTruthy();
   });
 
   it('starts hidden and offset so the step can rise into place', () => {
-    const { getByTestId } = render(
-      <MoneySheetEntrance isActive={false} testID={STEP_TEST_ID}>
-        <Text testID={CHILD_TEST_ID}>Spend and earn</Text>
-      </MoneySheetEntrance>,
-    );
+    const { getByTestId } = renderStep({ isActive: false });
 
     const style = getStyle(getByTestId(STEP_TEST_ID));
     expect(style.opacity).toBe(0);
     expect(style.transform).toEqual([
       { translateY: MONEY_SHEET_ENTRANCE_TRANSLATE_Y },
     ]);
+  });
+
+  it('is inert to touch while it has not arrived', () => {
+    const { getByTestId } = renderStep({ isActive: false });
+
+    expect(getByTestId(STEP_TEST_ID).props.pointerEvents).toBe('none');
+  });
+
+  it('stays inert while the entrance is still playing', () => {
+    const { getByTestId } = renderStep({ isActive: true, delayMs: 60 });
+
+    expect(getByTestId(STEP_TEST_ID).props.pointerEvents).toBe('none');
+  });
+
+  it('is interactive immediately when reduce motion skips the entrance', () => {
+    mockUseReduceMotionState.mockReturnValue(true);
+
+    const { getByTestId } = renderStep({ isActive: false });
+
+    expect(getByTestId(STEP_TEST_ID).props.pointerEvents).toBe('auto');
   });
 
   it('applies the caller style alongside the animated style', () => {

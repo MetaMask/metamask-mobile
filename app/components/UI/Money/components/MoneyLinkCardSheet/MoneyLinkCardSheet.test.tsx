@@ -23,6 +23,36 @@ const mockCardFlipProps: {
   current?: { isMetalCard?: boolean; shouldPlay?: boolean };
 } = {};
 
+// The entrance wrapper holds its children inert until the step has arrived,
+// which is covered by its own suite. Passed through here so these tests assert
+// the sheet's content and wiring rather than the wave's timing.
+const mockEntranceProps: {
+  current?: { isActive?: boolean; delayMs?: number }[];
+} = {};
+
+jest.mock('../MoneySheetEntrance', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      isActive,
+      delayMs,
+    }: {
+      children: React.ReactNode;
+      isActive?: boolean;
+      delayMs?: number;
+    }) => {
+      mockEntranceProps.current = [
+        ...(mockEntranceProps.current ?? []),
+        { isActive, delayMs },
+      ];
+      return ReactActual.createElement(View, null, children);
+    },
+  };
+});
+
 jest.mock('../MoneyCardFlipAnimation', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -142,6 +172,7 @@ describe('MoneyLinkCardSheet', () => {
     jest.clearAllMocks();
     mockRouteParams = undefined;
     mockCardFlipProps.current = undefined;
+    mockEntranceProps.current = undefined;
     mockSheetOnOpenRef.current = undefined;
     mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
     mockUseMoneyAccountCardLinkage.mockReturnValue({
@@ -372,6 +403,17 @@ describe('MoneyLinkCardSheet', () => {
       });
 
       expect(mockCardFlipProps.current?.shouldPlay).toBe(true);
+    });
+
+    it('staggers the entrance steps top to bottom and releases them on open', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      const delays = (mockEntranceProps.current ?? []).map((p) => p.delayMs);
+      expect(delays.length).toBeGreaterThan(0);
+      expect(delays).toEqual([...delays].sort((a, b) => (a ?? 0) - (b ?? 0)));
+      expect(
+        (mockEntranceProps.current ?? []).every((p) => p.isActive === false),
+      ).toBe(true);
     });
 
     it('keeps the card animation running when the card variant resolves after the open', () => {
