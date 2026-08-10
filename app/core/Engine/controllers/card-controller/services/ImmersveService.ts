@@ -11,14 +11,16 @@ interface RequestOptions {
   tokenSet?: CardAuthTokens;
   timeout?: number;
   headers?: Record<string, string>;
+  baseURL?: string;
 }
 
 export class ImmersveService {
   private readonly client: AxiosInstance;
+  private readonly getBaseUrl: () => string;
 
-  constructor({ baseUrl }: { baseUrl: string }) {
+  constructor({ getBaseUrl }: { getBaseUrl: () => string }) {
+    this.getBaseUrl = getBaseUrl;
     this.client = create({
-      baseURL: baseUrl,
       timeout: DEFAULT_TIMEOUT_MS,
       headers: {
         'Content-Type': 'application/json',
@@ -44,6 +46,7 @@ export class ImmersveService {
 
     try {
       const response = await this.client.request<T>({
+        baseURL: opts.baseURL ?? this.getBaseUrl(),
         url: path,
         method: opts.method ?? 'GET',
         headers,

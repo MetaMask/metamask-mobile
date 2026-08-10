@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import type { Dispatch, AnyAction } from 'redux';
 import {
   TransactionStatus,
@@ -12,6 +18,7 @@ import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
+import { withPostTradeNotificationSuppression } from '../../Bridge/utils/postTradeNotifications';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
@@ -121,6 +128,7 @@ interface UseHardwareWalletSubmitOptions {
  *
  * Exposes behavioral methods only — `submit()`, `canRetry()`,
  * `clearCachedSubmission()` — so callers never reach into internal refs.
+ * Bridge also exposes settled submission identifiers (`null` until settled).
  */
 export function useHardwareWalletSubmit({
   isSendFlow,
@@ -137,8 +145,10 @@ export function useHardwareWalletSubmit({
   submit: () => Promise<void>;
   /** True when enough state is cached to retry. Send: pending approval + prepared tx; bridge: cached params. */
   canRetry: () => boolean;
-  /** Clears the cached bridge submission params (no-op in send mode). */
+  /** Clears the cached bridge submission params and settled tx metadata. */
   clearCachedSubmission: () => void;
+  /** `null` while pending, transaction on success, `undefined` on failure. */
+  submittedTransaction: TransactionMeta | null | undefined;
 } {
   const { approvalRequest } = useApprovalRequest();
   const approvalRequestRef = useRef(approvalRequest);
@@ -154,6 +164,9 @@ export function useHardwareWalletSubmit({
   const cachedSubmissionParams = useRef<SubmissionParams | null>(
     submissionParams ?? null,
   );
+  const [submittedTransaction, setSubmittedTransaction] = useState<
+    TransactionMeta | null | undefined
+  >(null);
   useEffect(() => {
     if (submissionParams && !cachedSubmissionParams.current) {
       cachedSubmissionParams.current = submissionParams;
@@ -162,12 +175,14 @@ export function useHardwareWalletSubmit({
 
   // Shared stale-submission guard + TransactionFailed dispatch.
   const runSubmit = useCallback(
-    async (submitFn: () => Promise<unknown>) => {
-      const myGeneration = submissionGenerationRef.current;
+    async <Result>(submitFn: () => Promise<Result>) => {
+      const submissionGenerationAtStart = submissionGenerationRef.current;
       try {
-        await submitFn();
+        return await submitFn();
       } catch (error) {
-        if (submissionGenerationRef.current !== myGeneration) return;
+        if (submissionGenerationRef.current !== submissionGenerationAtStart) {
+          return;
+        }
         Logger.error(error as Error, 'HW swap submit failed');
         const status = progressRef.current.status;
         // Only transition to Failed from active phases:
@@ -187,6 +202,7 @@ export function useHardwareWalletSubmit({
             }),
           );
         }
+        return undefined;
       }
     },
     [dispatch, progressRef, submissionGenerationRef],
@@ -254,13 +270,6 @@ export function useHardwareWalletSubmit({
   ]);
 
   // ── Bridge flow ────────────────────────────────────────────────────
-  // Wire the DMK session before submitting. BridgeStatusController signs
-  // the EIP-712 intent directly via KeyringController (intent-strategy.mjs:
-  // signTypedMessage → KeyringController:signTypedMessage), which bypasses
-  // the confirmation pipeline. Without this readiness gate the keyring signs
-  // cold and throws "Session ID not set". Mirrors submitSendFlow. For
-  // approval-tx quotes the controller's own requireApproval flow still runs,
-  // hitting ensureDeviceReady's fast path (already connected) — no conflict.
   const submitBridgeFlow = useCallback(async () => {
     const cachedParams = cachedSubmissionParams.current;
     if (!cachedParams || !walletAddress) {
@@ -269,34 +278,25 @@ export function useHardwareWalletSubmit({
           type: HardwareWalletsSwapsEventType.TransactionFailed,
         }),
       );
+      setSubmittedTransaction(undefined);
       return;
     }
 
-    await runSubmit(async () => {
-      setPendingOperationAddress(walletAddress);
-      try {
-        const deviceId = await getDeviceIdForAddress(walletAddress);
-        const isReady = await ensureDeviceReady?.(deviceId);
-        if (!isReady) {
-          dispatch(
-            updateHardwareWalletsSwaps({
-              type: HardwareWalletsSwapsEventType.TransactionFailed,
-            }),
-          );
-          return;
-        }
-        await submitBridgeTxRef.current(cachedParams);
-      } finally {
-        setPendingOperationAddress(null);
-      }
-    });
-  }, [
-    dispatch,
-    walletAddress,
-    runSubmit,
-    ensureDeviceReady,
-    setPendingOperationAddress,
-  ]);
+    const submissionGenerationAtStart = submissionGenerationRef.current;
+    setSubmittedTransaction(null);
+
+    const submitted = await runSubmit(() =>
+      withPostTradeNotificationSuppression(() =>
+        submitBridgeTxRef.current(cachedParams),
+      ),
+    );
+
+    if (submissionGenerationRef.current !== submissionGenerationAtStart) {
+      return;
+    }
+
+    setSubmittedTransaction(submitted);
+  }, [dispatch, walletAddress, runSubmit, submissionGenerationRef]);
 
   const submit = useCallback(async () => {
     if (isSendFlow) {
@@ -318,11 +318,13 @@ export function useHardwareWalletSubmit({
 
   const clearCachedSubmission = useCallback(() => {
     cachedSubmissionParams.current = null;
+    setSubmittedTransaction(null);
   }, []);
 
   return {
     submit,
     canRetry,
     clearCachedSubmission,
+    submittedTransaction,
   };
 }

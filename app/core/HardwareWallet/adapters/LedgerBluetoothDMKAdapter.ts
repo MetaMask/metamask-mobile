@@ -38,9 +38,9 @@ import {
   connectLedgerDmkDevice,
   getLedgerDmkSessionState,
   disconnectLedgerDmkSession,
+  listenToLedgerDmkAvailableDevices,
 } from '../../Ledger/LedgerDmk';
 import { DISCONNECT_ERROR_NAMES } from '../../Ledger/ledgerErrors';
-import { getDmk } from '../../Ledger/dmk';
 
 /**
  * Local dev-only debug logger.
@@ -87,6 +87,8 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   #bleStateSubscription: { unsubscribe: () => void } | null = null;
   #scanSubscription: Subscription | null = null;
   #scanTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  /** Bumped by {@link stopDeviceDiscovery} to cancel an in-flight async start. */
+  #discoveryEpoch = 0;
   #transportStateCallbacks: Set<(isAvailable: boolean) => void> = new Set();
   #discoveredDevices: Map<string, DmkDiscoveredDevice> = new Map();
   #sessionStateSubscription: { unsubscribe: () => void } | null = null;
@@ -218,6 +220,7 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     );
 
     try {
+      const devices$ = await listenToLedgerDmkAvailableDevices({});
       const discovered = await new Promise<DmkDiscoveredDevice | null>(
         (resolve) => {
           let sub: Subscription | null = null;
@@ -226,28 +229,25 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
             resolve(null);
           }, timeoutMs);
 
-          // Discovery uses getDmk() (DMK #1): listenToAvailableDevices lists
-          // already-paired/known devices instantly, which startDiscovering
-          // (active scan) does not. Device IDs are stateless, so the device
-          // found here is valid for bridge.connect() on DMK #2.
-          sub = getDmk()
-            .listenToAvailableDevices({})
-            .subscribe({
-              next: (devices: DmkDiscoveredDevice[]) => {
-                for (const candidate of devices) {
-                  if (candidate.id === targetDeviceId) {
-                    clearTimeout(timer);
-                    sub?.unsubscribe();
-                    resolve(candidate);
-                    return;
-                  }
+          // Discovery uses the bridge's shared DMK: listenToAvailableDevices
+          // lists already-paired/known devices instantly, which
+          // startDiscovering (active scan) does not.
+          sub = devices$.subscribe({
+            next: (devices: DmkDiscoveredDevice[]) => {
+              for (const candidate of devices) {
+                if (candidate.id === targetDeviceId) {
+                  clearTimeout(timer);
+                  sub?.unsubscribe();
+                  resolve(candidate);
+                  return;
                 }
-              },
-              error: () => {
-                clearTimeout(timer);
-                resolve(null);
-              },
-            });
+              }
+            },
+            error: () => {
+              clearTimeout(timer);
+              resolve(null);
+            },
+          });
         },
       );
 
@@ -491,18 +491,22 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     this.stopDeviceDiscovery(); // TODO: rename to stopScanning()
 
     const seenDevices = new Set<string>();
+    const discoveryEpoch = this.#discoveryEpoch;
 
     log('[LedgerDMK] Starting DMK discovery');
 
-    const dmk = getDmk();
+    // Discovery uses the bridge's shared DMK: listenToAvailableDevices lists
+    // paired/known devices (incl. already-connected ones), which
+    // startDiscovering (active scan) does not surface.
+    const devices$ = await listenToLedgerDmkAvailableDevices({});
+    if (this.#isDestroyed || discoveryEpoch !== this.#discoveryEpoch) {
+      return;
+    }
+
     log(
-      '[LedgerDMK] startDeviceDiscovery - calling dmk.listenToAvailableDevices()',
+      '[LedgerDMK] startDeviceDiscovery - calling listenToLedgerDmkAvailableDevices()',
     );
-    // Discovery uses getDmk() (DMK #1): listenToAvailableDevices lists
-    // paired/known devices (incl. already-connected ones), which the bridge's
-    // startDiscovering (active scan) does not surface. Device IDs are
-    // stateless, so devices found here are valid for bridge.connect() (#2).
-    this.#scanSubscription = dmk.listenToAvailableDevices({}).subscribe({
+    this.#scanSubscription = devices$.subscribe({
       next: (devices: DmkDiscoveredDevice[]) => {
         log('[LedgerDMK] DMK scan batch:', devices.length, 'devices');
         for (const discoveredDevice of devices) {
@@ -543,12 +547,13 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
 
   stopDeviceDiscovery(): void {
     log('[LedgerDMK] stopDeviceDiscovery called');
+    this.#discoveryEpoch += 1;
 
     if (this.#scanSubscription) {
       this.#scanSubscription.unsubscribe();
       this.#scanSubscription = null;
-      // The bridge exposes no stopDiscovering; unsubscribing the discovery
-      // stream stops event delivery. The underlying DMK scan may persist.
+      // Unsubscribing stops event delivery. The underlying DMK listen may
+      // persist until the shared kit tears down.
     }
 
     if (this.#scanTimeoutId) {

@@ -7,8 +7,8 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../utils/transaction';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTokenAmount } from '../useTokenAmount';
 

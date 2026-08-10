@@ -1,9 +1,3 @@
-import {
-  DeviceManagementKitBuilder,
-  type DeviceManagementKit,
-} from '@ledgerhq/device-management-kit';
-import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
-import DevLogger from '../SDKConnect/utils/DevLogger';
 import { validatedVersionGatedFeatureFlag } from '../../util/remoteFeatureFlag';
 import { FeatureFlagNames } from '../../constants/featureFlags';
 
@@ -30,26 +24,4 @@ export const isDmkEnabled = (
   return typeof raw === 'boolean'
     ? raw
     : (validatedVersionGatedFeatureFlag(raw) ?? false);
-};
-
-const state: { dmk: DeviceManagementKit | null } = { dmk: null };
-
-export const getDmk = (): DeviceManagementKit => {
-  if (!state.dmk) {
-    try {
-      state.dmk = new DeviceManagementKitBuilder()
-        .addTransport(RNBleTransportFactory)
-        .build();
-    } catch (error) {
-      DevLogger.log('[DMK] Failed to build DeviceManagementKit:', error);
-      throw error;
-    }
-  } else {
-    DevLogger.log('[DMK] Returning cached DeviceManagementKit instance');
-  }
-  return state.dmk;
-};
-
-export const resetDmk = (): void => {
-  state.dmk = null;
 };

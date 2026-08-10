@@ -25,12 +25,22 @@ jest.mock('../../Ledger/LedgerDmk', () => ({
   connectLedgerDmkDevice: jest.fn(),
   getLedgerDmkSessionState: jest.fn(),
   disconnectLedgerDmkSession: jest.fn(),
+  listenToLedgerDmkAvailableDevices: jest.fn(),
 }));
 
-// Mock device info so hasMinimumRequiredVersion('1.0.0') returns a truthy value
-// (compare-versions returns 1 when currentVersion >= minRequiredVersion).
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('7.50.0'),
+jest.mock('../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({})),
+    dispatch: jest.fn(),
+  },
+}));
+
+jest.mock('../../../selectors/featureFlagController', () => ({
+  selectRemoteFeatureFlags: jest.fn(() => ({})),
+}));
+
+jest.mock('../../Ledger/dmk', () => ({
+  isDmkEnabled: jest.fn(() => false),
 }));
 
 // Mock Eth app
@@ -46,8 +56,10 @@ import { HardwareWalletType, ErrorCode } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
+import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
+import { isDmkEnabled } from '../../Ledger/dmk';
 
 describe('createAdapter', () => {
   const mockOptions: HardwareWalletAdapterOptions = {
@@ -55,20 +67,27 @@ describe('createAdapter', () => {
     onDeviceEvent: jest.fn(),
   };
 
-  it('creates LedgerBluetoothDMKAdapter for Ledger wallet type when DMK is enabled', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(isDmkEnabled).mockReturnValue(false);
+  });
+
+  it('creates LedgerBluetoothAdapter for Ledger wallet type when DMK is off', () => {
+    const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions);
+    expect(adapter).toBeInstanceOf(LedgerBluetoothAdapter);
+    expect(adapter.walletType).toBe(HardwareWalletType.Ledger);
+  });
+
+  it('creates LedgerBluetoothDMKAdapter for Ledger when enableDmk is true', () => {
     const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions, true);
     expect(adapter).toBeInstanceOf(LedgerBluetoothDMKAdapter);
     expect(adapter.walletType).toBe(HardwareWalletType.Ledger);
   });
 
-  it('creates LedgerBluetoothAdapter for Ledger wallet type when DMK is disabled', () => {
-    const adapter = createAdapter(
-      HardwareWalletType.Ledger,
-      mockOptions,
-      false,
-    );
-    expect(adapter).toBeInstanceOf(LedgerBluetoothAdapter);
-    expect(adapter.walletType).toBe(HardwareWalletType.Ledger);
+  it('creates LedgerBluetoothDMKAdapter when store flag enables DMK', () => {
+    jest.mocked(isDmkEnabled).mockReturnValue(true);
+    const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions);
+    expect(adapter).toBeInstanceOf(LedgerBluetoothDMKAdapter);
   });
 
   it('creates QRWalletAdapter for QR wallet type', () => {
@@ -125,7 +144,11 @@ describe('adapter transport properties', () => {
   };
 
   it('LedgerBluetoothAdapter returns BluetoothDisabled error code for transport', () => {
-    const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions, true);
+    const adapter = createAdapter(
+      HardwareWalletType.Ledger,
+      mockOptions,
+      false,
+    );
     expect(adapter.getTransportDisabledErrorCode()).toBe(
       ErrorCode.BluetoothDisabled,
     );

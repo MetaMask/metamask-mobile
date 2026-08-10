@@ -17,20 +17,21 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
 
   return (
     <Box testID="quick-buy-content-loading">
-      {/* Toolbar — mirrors QuickBuyToolbar px-4 pt-2 pb-3 */}
+      {/* Toolbar — gear | toggle | close */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-2 pb-3"
+        twClassName="px-4 pt-4 pb-3"
       >
-        <Skeleton width={56} height={28} style={tw.style('rounded-full')} />
+        <Skeleton width={24} height={24} style={tw.style('rounded-md')} />
         <Skeleton
-          width={140}
-          height={28}
-          style={tw.style('rounded-full')}
-          testID="quick-buy-skeleton-rate-tag"
+          width={130}
+          height={40}
+          style={tw.style('rounded-xl')}
+          testID="quick-buy-skeleton-trade-mode"
         />
+        <Skeleton width={24} height={24} style={tw.style('rounded-md')} />
       </Box>
 
       {/* Amount area — mirrors QuickBuyAmountSection pt-6 pb-4 */}
@@ -40,27 +41,21 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
         gap={2}
         twClassName="px-4 pt-6 pb-4"
       >
-        {/* Primary amount */}
         <Skeleton width={160} height={52} style={tw.style('rounded-xl')} />
-        {/* Secondary amount */}
         <Skeleton width={120} height={20} style={tw.style('rounded-md')} />
-        {/* Available balance */}
-        <Skeleton width={96} height={16} style={tw.style('rounded-md')} />
       </Box>
 
-      {/* Footer area — mirrors QuickBuyActionFooter px-4 pb-4 */}
+      {/* Footer area — mirrors QuickBuyActionFooter */}
       <Box twClassName="px-4 pb-4">
-        {/* Slider — mirrors pt-2 pb-3 */}
-        <Box twClassName="pt-2 pb-3">
+        <Box twClassName="pb-3">
           <Skeleton
             width="100%"
-            height={24}
-            style={tw.style('rounded-full')}
-            testID="quick-buy-skeleton-slider"
+            height={40}
+            style={tw.style('rounded-xl')}
+            testID="quick-buy-skeleton-quick-amounts"
           />
         </Box>
 
-        {/* Pay with row */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -78,13 +73,16 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
           />
         </Box>
 
-        {/* Confirm button */}
         <Skeleton
           width="100%"
           height={48}
           style={tw.style('rounded-xl')}
           testID="quick-buy-skeleton-confirm-button"
         />
+      </Box>
+
+      <Box twClassName="px-4 py-4" testID="quick-buy-skeleton-keypad">
+        <Skeleton width="100%" height={220} style={tw.style('rounded-xl')} />
       </Box>
     </Box>
   );

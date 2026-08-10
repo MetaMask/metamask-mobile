@@ -9,6 +9,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import QuickBuyAmount from './QuickBuyAmount';
 import QuickBuyActionFooter from './components/QuickBuyActionFooter';
+import QuickBuyKeypad from './components/QuickBuyKeypad';
 import QuickBuyToolbar from './components/QuickBuyToolbar';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
@@ -31,10 +32,11 @@ const QuickBuyAmountScreen: React.FC = () => {
   return (
     <>
       <QuickBuyToolbar />
-      <Box twClassName="shrink" testID="quick-buy-amount-container">
+      <Box testID="quick-buy-amount-container">
         <QuickBuyAmount />
       </Box>
       <QuickBuyActionFooter />
+      <QuickBuyKeypad />
     </>
   );
 };

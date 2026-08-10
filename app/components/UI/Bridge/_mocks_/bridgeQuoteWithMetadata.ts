@@ -1,29 +1,26 @@
 import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
-import mockQuotes from './mock-quotes-sol-sol.json';
+import mockQuotes from './mock-quotes-sol-sol';
 
 const mockQuote = mockQuotes[0] as unknown as QuoteResponse;
 
 export const mockQuoteWithMetadata: QuoteResponse & QuoteMetadata = {
   ...mockQuote,
-  adjustedReturn: { usd: null, valueInCurrency: null },
-  cost: { usd: null, valueInCurrency: null },
+  adjustedReturn: { usd: undefined, valueInCurrency: undefined },
+  cost: { usd: undefined, valueInCurrency: undefined },
   gasFee: {
-    effective: { amount: '0', usd: null, valueInCurrency: null },
-    max: { amount: '0', usd: null, valueInCurrency: null },
-    total: { amount: '0', usd: null, valueInCurrency: null },
+    total: { amount: '0', usd: undefined, valueInCurrency: undefined },
   },
-  sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
+  sentAmount: { amount: '0.5', usd: undefined, valueInCurrency: undefined },
   swapRate: '114.112442',
   toTokenAmount: {
     amount: '57.056221',
-    usd: null,
-    valueInCurrency: null,
+    usd: undefined,
+    valueInCurrency: undefined,
   },
-  totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
-  totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
+  totalNetworkFee: { amount: '0', usd: undefined, valueInCurrency: undefined },
   minToTokenAmount: {
     amount: '55.56221',
-    usd: null,
-    valueInCurrency: null,
+    usd: undefined,
+    valueInCurrency: undefined,
   },
 };

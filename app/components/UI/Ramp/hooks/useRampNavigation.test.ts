@@ -110,6 +110,14 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+const mockStartRampsBuyCufTrace = jest.fn();
+jest.mock('../utils/rampsBuyCufTrace', () => ({
+  startRampsBuyCufTrace: (...args: unknown[]) =>
+    mockStartRampsBuyCufTrace(...args),
+  surfaceFromBuyFlowOrigin: jest.requireActual('../utils/rampsBuyCufTrace')
+    .surfaceFromBuyFlowOrigin,
+}));
+
 const mockNavigate = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
@@ -223,6 +231,9 @@ describe('useRampNavigation', () => {
       });
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'unknown',
+      });
     });
 
     it('passes buyFlowOrigin through to BuildQuote params', () => {
@@ -236,6 +247,9 @@ describe('useRampNavigation', () => {
         assetId: intent.assetId,
         buyFlowOrigin: 'tokenInfo',
       });
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'token_buy',
+      });
     });
 
     it('passes homeTokenList buyFlowOrigin through to BuildQuote params', () => {
@@ -248,6 +262,24 @@ describe('useRampNavigation', () => {
       expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
         assetId: intent.assetId,
         buyFlowOrigin: 'homeTokenList',
+      });
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'home_token_list',
+      });
+    });
+
+    it('starts Buy E2E CUF with an explicit surface tag', () => {
+      const intent = { assetId: 'eip155:1/erc20:0x123' };
+      mockCreateBuildQuoteNavDetails.mockReturnValue([
+        Routes.RAMP.AMOUNT_INPUT,
+      ] as never);
+
+      const { result } = renderUseRampNavigation();
+
+      result.current.goToBuy(intent, { surface: 'fund_menu' });
+
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'fund_menu',
       });
     });
 
@@ -264,6 +296,9 @@ describe('useRampNavigation', () => {
       expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledWith({
+        surface: 'unknown',
+      });
     });
 
     it('does not navigate to BuildQuote when overrideUnifiedRouting is true', () => {
@@ -277,6 +312,7 @@ describe('useRampNavigation', () => {
 
       expect(mockSetSelectedToken).not.toHaveBeenCalled();
       expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+      expect(mockStartRampsBuyCufTrace).not.toHaveBeenCalled();
       expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
         AggregatorRampType.BUY,
         intent,
@@ -364,6 +400,47 @@ describe('useRampNavigation', () => {
           buyFlowOrigin: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+      });
+
+      it('navigates to BuildQuote for Polygon native POL from token details intent', () => {
+        const polIntent = { assetId: 'eip155:137/slip44:.' };
+        mockTokens = {
+          allTokens: [
+            {
+              assetId: 'eip155:137/slip44:966',
+              chainId: 'eip155:137',
+              tokenSupported: true,
+            },
+          ],
+          topTokens: [],
+        };
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+            params: {
+              screen: Routes.RAMP.AMOUNT_INPUT,
+              params: { assetId: 'eip155:137/slip44:966' },
+            },
+          },
+        ] as const;
+        mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
+
+        const { result } = renderUseRampNavigation();
+
+        result.current.goToBuy(polIntent, { buyFlowOrigin: 'tokenInfo' });
+
+        expect(mockSetSelectedToken).toHaveBeenCalledWith(
+          'eip155:137/slip44:966',
+        );
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: 'eip155:137/slip44:966',
+          buyFlowOrigin: 'tokenInfo',
+        });
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          ...createRampUnsupportedModalNavigationDetails(),
+        );
       });
     });
 

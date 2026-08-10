@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAppTheme } from '../../../util/theme';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
@@ -14,7 +14,6 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { Platform, Pressable } from 'react-native';
 import {
   FontWeight,
   Icon,
@@ -98,71 +97,57 @@ const SecondaryMessage = ({ content }: { content: React.ReactNode }) => (
 );
 
 /**
- * Shared button component for action links in the banner
+ * Shared button component for action links in the banner.
+ *
+ * Rendered as a nested `Text` rather than a `Pressable`/`TextButton` so it
+ * participates in the surrounding paragraph's line layout. A `Pressable`
+ * renders a `View`, and on iOS a `View` nested inside a `Text` becomes an
+ * opaque text attachment: it can't be broken across lines, is baseline-aligned
+ * by its bottom edge, and pushes any trailing text (the ".") onto the previous
+ * line. Android lays inline views out closer to real text, which is why the
+ * old per-platform `translate-y` offsets only ever looked right there.
  */
 const ActionButton = ({
   isLowerCase,
-  isOnlyChild,
   onPress,
   text,
 }: {
   isLowerCase: boolean;
-  isOnlyChild: boolean;
   onPress: () => void;
   text: string;
 }) => {
   const tw = useTailwind();
+  const [isPressed, setIsPressed] = useState(false);
 
-  // Not using TextButton directly because the extra Text around it seems to
-  // create extra vertical spacing in between lines on Android
   return (
-    <Pressable
+    <Text
       accessibilityRole="button"
-      style={({ pressed }) =>
-        tw.style(
-          'flex-row items-center',
-          pressed ? 'bg-pressed' : 'bg-transparent',
-          // Not sure why there are differences between platforms here, and
-          // why the spacing changes when other text around the button is
-          // present.
-          !isOnlyChild &&
-            (Platform.OS === 'ios'
-              ? 'translate-y-[12px]'
-              : 'translate-y-[6px]'),
-        )
-      }
+      suppressHighlighting
       onPress={onPress}
-    >
-      {({ pressed }) => (
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          style={tw.style(
-            'inline-block vertical-align-middle',
-            pressed
-              ? 'text-primary-default-pressed underline'
-              : 'text-primary-default no-underline',
-          )}
-        >
-          {isLowerCase ? text[0].toLowerCase() + text.slice(1) : text}
-        </Text>
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      style={tw.style(
+        isPressed
+          ? 'text-primary-default-pressed underline'
+          : 'text-primary-default no-underline',
       )}
-    </Pressable>
+    >
+      {isLowerCase ? text[0].toLowerCase() + text.slice(1) : text}
+    </Text>
   );
 };
 
 const UpdateRpcButton = ({
   isLowerCase,
-  isOnlyChild,
   updateRpc,
 }: {
   isLowerCase: boolean;
-  isOnlyChild: boolean;
   updateRpc: () => void;
 }) => (
   <ActionButton
     isLowerCase={isLowerCase}
-    isOnlyChild={isOnlyChild}
     onPress={updateRpc}
     text={strings('network_connection_banner.update_rpc')}
   />
@@ -170,16 +155,13 @@ const UpdateRpcButton = ({
 
 const SwitchToInfuraButton = ({
   isLowerCase,
-  isOnlyChild,
   switchToInfura,
 }: {
   isLowerCase: boolean;
-  isOnlyChild: boolean;
   switchToInfura: () => Promise<void>;
 }) => (
   <ActionButton
     isLowerCase={isLowerCase}
-    isOnlyChild={isOnlyChild}
     onPress={switchToInfura}
     text={strings('network_connection_banner.switch_to_metamask_default_rpc')}
   />
@@ -217,15 +199,10 @@ const getBannerContent = (
       const buttonContent = hasInfuraEndpoint ? (
         <SwitchToInfuraButton
           isLowerCase={false}
-          isOnlyChild
           switchToInfura={switchToInfura}
         />
       ) : (
-        <UpdateRpcButton
-          isLowerCase={false}
-          isOnlyChild
-          updateRpc={updateRpc}
-        />
+        <UpdateRpcButton isLowerCase={false} updateRpc={updateRpc} />
       );
       secondaryMessage = <SecondaryMessage content={buttonContent} />;
     }
@@ -263,7 +240,6 @@ const getBannerContent = (
         <SwitchToInfuraButton
           key="switchToInfura"
           isLowerCase
-          isOnlyChild={false}
           switchToInfura={switchToInfura}
         />
         {'.'}
@@ -274,12 +250,7 @@ const getBannerContent = (
     secondaryMessageContent = (
       <>
         {strings('network_connection_banner.check_network_connectivity_or')}{' '}
-        <UpdateRpcButton
-          key="updateRpc"
-          isLowerCase
-          isOnlyChild={false}
-          updateRpc={updateRpc}
-        />
+        <UpdateRpcButton key="updateRpc" isLowerCase updateRpc={updateRpc} />
         {'.'}
       </>
     );
@@ -303,11 +274,17 @@ const getBannerContent = (
   };
 };
 
-export const NetworkConnectionBanner = () => {
+type NetworkConnectionBannerData = ReturnType<
+  typeof useNetworkConnectionBanner
+>;
+
+export const NetworkConnectionBannerContent = ({
+  networkConnectionBannerState,
+  updateRpc,
+  switchToInfura,
+}: NetworkConnectionBannerData) => {
   const theme = useAppTheme();
   const tw = useTailwind();
-  const { networkConnectionBannerState, updateRpc, switchToInfura } =
-    useNetworkConnectionBanner();
 
   const handleUpdateRpc = useCallback(() => {
     if (networkConnectionBannerState.visible) {
@@ -347,6 +324,11 @@ export const NetworkConnectionBanner = () => {
       description={secondaryMessage}
     />
   );
+};
+
+export const NetworkConnectionBanner = () => {
+  const bannerData = useNetworkConnectionBanner();
+  return <NetworkConnectionBannerContent {...bannerData} />;
 };
 
 export default NetworkConnectionBanner;

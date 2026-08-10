@@ -4,27 +4,23 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import { ScamQuestionnaire } from './scam-questionnaire';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { confirmSupportConsent } from '../../../util/support';
 
-const mockTrackStarted = jest.fn();
-const mockTrackQuestionAnswered = jest.fn();
-const mockTrackCompletedClean = jest.fn();
-const mockTrackDismissed = jest.fn();
-const mockTrackWarningShown = jest.fn();
-const mockTrackWarningStopped = jest.fn();
-const mockTrackWarningContactSupport = jest.fn();
-const mockTrackWarningProceeded = jest.fn();
+const mockTrackViewed = jest.fn();
+const mockTrackContactSupport = jest.fn();
+const mockTrackCompleted = jest.fn();
 
 jest.mock('./useScamQuestionnaireMetrics', () => ({
   useScamQuestionnaireMetrics: () => ({
-    trackStarted: mockTrackStarted,
-    trackQuestionAnswered: mockTrackQuestionAnswered,
-    trackCompletedClean: mockTrackCompletedClean,
-    trackDismissed: mockTrackDismissed,
-    trackWarningShown: mockTrackWarningShown,
-    trackWarningStopped: mockTrackWarningStopped,
-    trackWarningContactSupport: mockTrackWarningContactSupport,
-    trackWarningProceeded: mockTrackWarningProceeded,
+    trackViewed: mockTrackViewed,
+    trackContactSupport: mockTrackContactSupport,
+    trackCompleted: mockTrackCompleted,
   }),
+}));
+
+jest.mock('../../../util/support', () => ({
+  confirmSupportConsent: jest.fn(),
+  rejectSupportConsent: jest.fn(),
 }));
 
 jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
@@ -72,9 +68,13 @@ describe('ScamQuestionnaire', () => {
     jest.clearAllMocks();
   });
 
-  it('fires the "started" analytics event on first render', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('fires the "viewed" event for the first step on render', () => {
     setup();
-    expect(mockTrackStarted).toHaveBeenCalledTimes(1);
+    expect(mockTrackViewed).toHaveBeenCalledWith(0);
   });
 
   it('starts on Q1', () => {
@@ -96,38 +96,16 @@ describe('ScamQuestionnaire', () => {
     ).toBe(false);
   });
 
-  it('fires the question-answered event for each step', () => {
-    const { getByTestId } = setup();
-    answerAllClean(getByTestId);
-
-    expect(mockTrackQuestionAnswered).toHaveBeenCalledTimes(3);
-    expect(mockTrackQuestionAnswered).toHaveBeenNthCalledWith(
-      1,
-      'q1',
-      'q1_no',
-      false,
-    );
-    expect(mockTrackQuestionAnswered).toHaveBeenNthCalledWith(
-      2,
-      'q2',
-      'q2_goods',
-      false,
-    );
-    expect(mockTrackQuestionAnswered).toHaveBeenNthCalledWith(
-      3,
-      'q3',
-      'q3_no',
-      false,
-    );
-  });
-
   it('calls onCleanPass and fires the clean-completion event when all 3 answers are clean', () => {
     const { getByTestId, onCleanPass } = setup();
     answerAllClean(getByTestId);
 
     expect(onCleanPass).toHaveBeenCalledTimes(1);
-    expect(mockTrackCompletedClean).toHaveBeenCalledTimes(1);
-    expect(mockTrackWarningShown).not.toHaveBeenCalled();
+    expect(mockTrackCompleted).toHaveBeenCalledTimes(1);
+    expect(mockTrackCompleted).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'clean' }),
+    );
+    expect(mockTrackViewed).not.toHaveBeenCalledWith(3);
   });
 
   it('navigates to the scam warning when any answer is a red flag', () => {
@@ -135,7 +113,7 @@ describe('ScamQuestionnaire', () => {
     answerOneRedFlag(getByTestId);
 
     expect(getByTestId('scam-warning-stop')).toBeDefined();
-    expect(mockTrackWarningShown).toHaveBeenCalledTimes(1);
+    expect(mockTrackViewed).toHaveBeenCalledWith(3);
     expect(onCleanPass).not.toHaveBeenCalled();
   });
 
@@ -146,23 +124,46 @@ describe('ScamQuestionnaire', () => {
     fireEvent.press(getByTestId('scam-warning-stop'));
 
     expect(onReject).toHaveBeenCalledTimes(1);
-    expect(mockTrackWarningStopped).toHaveBeenCalledTimes(1);
+    expect(mockTrackCompleted).toHaveBeenCalledTimes(1);
+    expect(mockTrackCompleted).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'payment_stopped' }),
+    );
   });
 
-  it('opens the support URL and tracks the support event when "Contact support" is tapped', () => {
+  it('shows the standalone consent modal when "Contact support" is tapped, tracking only when support actually opens', () => {
     const { getByTestId } = setup();
     answerOneRedFlag(getByTestId);
 
     fireEvent.press(getByTestId('scam-warning-contact-support'));
 
-    expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
-    expect(mockTrackWarningContactSupport).toHaveBeenCalledTimes(1);
+    // The consent modal renders above the questionnaire's full-screen modal;
+    // merely showing it must not open support or fire the tracker.
+    expect(getByTestId('standalone-support-consent-modal').props.visible).toBe(
+      true,
+    );
+    expect(confirmSupportConsent).not.toHaveBeenCalled();
+    expect(mockTrackContactSupport).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId('standalone-support-consent-confirm-button'));
+
+    expect(confirmSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+      expect.any(Function),
+    );
+    // Tracking is deferred to the callback the call site hands the consent
+    // flow (fired once support actually opens).
+    expect(mockTrackContactSupport).not.toHaveBeenCalled();
+
+    const onOpenSupport = jest.mocked(confirmSupportConsent).mock.calls[0][2];
+    onOpenSupport?.();
+    expect(mockTrackContactSupport).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to the scam warning and tracks the proceeded event when the bypass link is used', () => {
+  it('shows the warning screen when the bypass link is tapped after answering with a red flag', () => {
     // Full bypass behaviour (including the countdown gate) is covered in
     // scam-warning.test.tsx; here we only assert the questionnaire wires the
-    // warning screen up and fires the proceeded analytics event.
+    // warning screen up correctly.
     const { getByTestId, onBypass } = setup();
     answerOneRedFlag(getByTestId);
 
@@ -170,11 +171,13 @@ describe('ScamQuestionnaire', () => {
     expect(onBypass).not.toHaveBeenCalled();
   });
 
-  it('calls onDismiss and tracks dismissal when back is tapped on Q1', () => {
+  it('calls onDismiss when back is tapped on Q1 without firing a tracking event', () => {
     const { getByTestId, onDismiss } = setup();
+    const viewedCallsBefore = mockTrackViewed.mock.calls.length;
     fireEvent.press(getByTestId('scam-questionnaire-back'));
     expect(onDismiss).toHaveBeenCalledTimes(1);
-    expect(mockTrackDismissed).toHaveBeenCalledTimes(1);
+    expect(mockTrackViewed.mock.calls.length).toBe(viewedCallsBefore);
+    expect(mockTrackCompleted).not.toHaveBeenCalled();
   });
 
   it('walks back to the previous question instead of dismissing when not on Q1', () => {
@@ -190,9 +193,12 @@ describe('ScamQuestionnaire', () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
-  it('does not re-fire the warning-shown event on re-render', () => {
+  it('does not re-fire the viewed event for a step already seen', () => {
     const { getByTestId, rerender } = setup();
     answerOneRedFlag(getByTestId);
+    const warningViewedCount = mockTrackViewed.mock.calls.filter(
+      (args) => args[0] === 3,
+    ).length;
     rerender(
       <ScamQuestionnaire
         onCleanPass={jest.fn()}
@@ -201,6 +207,8 @@ describe('ScamQuestionnaire', () => {
         onDismiss={jest.fn()}
       />,
     );
-    expect(mockTrackWarningShown).toHaveBeenCalledTimes(1);
+    expect(
+      mockTrackViewed.mock.calls.filter((args) => args[0] === 3).length,
+    ).toBe(warningViewedCount);
   });
 });

@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { TransakEnvironment } from '@metamask/ramps-controller';
 import {
   getTransakEnvironment,
   transakServiceInit,
@@ -12,7 +13,12 @@ jest.mock('@metamask/ramps-controller', () => ({
   TransakEnvironment: {
     Production: 'PRODUCTION',
     Staging: 'STAGING',
+    Development: 'DEVELOPMENT',
   },
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getBundleId: jest.fn().mockReturnValue('io.metamask'),
 }));
 
 describe('transak-service-init', () => {
@@ -21,9 +27,71 @@ describe('transak-service-init', () => {
   });
 
   describe('getTransakEnvironment', () => {
-    it('returns a valid TransakEnvironment value', () => {
-      const result = getTransakEnvironment();
-      expect(['PRODUCTION', 'STAGING']).toContain(result);
+    const originalEnv = process.env.METAMASK_ENVIRONMENT;
+    const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+
+    beforeEach(() => {
+      delete process.env.RAMPS_ENVIRONMENT;
+    });
+
+    afterEach(() => {
+      process.env.METAMASK_ENVIRONMENT = originalEnv;
+      if (originalRampsEnvironment !== undefined) {
+        process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+      } else {
+        delete process.env.RAMPS_ENVIRONMENT;
+      }
+    });
+
+    describe('when RAMPS_ENVIRONMENT is set (builds.yml path)', () => {
+      it('returns Production when RAMPS_ENVIRONMENT is production', () => {
+        process.env.RAMPS_ENVIRONMENT = 'production';
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
+      });
+
+      it('returns Development when RAMPS_ENVIRONMENT is development', () => {
+        process.env.RAMPS_ENVIRONMENT = 'development';
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Development);
+      });
+
+      it('returns Staging when RAMPS_ENVIRONMENT is any other value', () => {
+        process.env.RAMPS_ENVIRONMENT = 'staging';
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
+      });
+
+      it('ignores METAMASK_ENVIRONMENT when RAMPS_ENVIRONMENT is set', () => {
+        process.env.METAMASK_ENVIRONMENT = 'production';
+        process.env.RAMPS_ENVIRONMENT = 'staging';
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
+      });
+    });
+
+    describe('METAMASK_ENVIRONMENT fallback path', () => {
+      it.each(['production', 'beta', 'rc'])(
+        'returns Production for %s environment',
+        (env) => {
+          process.env.METAMASK_ENVIRONMENT = env;
+          expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
+        },
+      );
+
+      it('returns Development for dev environment', () => {
+        process.env.METAMASK_ENVIRONMENT = 'dev';
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Development);
+      });
+
+      it.each(['exp', 'test', 'e2e', 'unknown'])(
+        'returns Staging for %s environment',
+        (env) => {
+          process.env.METAMASK_ENVIRONMENT = env;
+          expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
+        },
+      );
+
+      it('returns Staging for undefined environment', () => {
+        delete process.env.METAMASK_ENVIRONMENT;
+        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
+      });
     });
   });
 
@@ -70,7 +138,22 @@ describe('transak-service-init', () => {
       } as never);
 
       const calledWith = mockTransakService.mock.calls[0][0];
-      expect(['PRODUCTION', 'STAGING']).toContain(calledWith.environment);
+      expect(['PRODUCTION', 'STAGING', 'DEVELOPMENT']).toContain(
+        calledWith.environment,
+      );
+    });
+
+    it('passes the app bundle id as the Transak referrer domain', () => {
+      const mockMessenger = {} as never;
+      transakServiceInit({
+        controllerMessenger: mockMessenger,
+      } as never);
+
+      expect(mockTransakService).toHaveBeenCalledWith(
+        expect.objectContaining({
+          referrerDomain: 'io.metamask',
+        }),
+      );
     });
   });
 });

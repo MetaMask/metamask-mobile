@@ -79,6 +79,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -93,6 +94,11 @@ import {
   isBiometricUnlockCancelledByUser,
 } from '../../../core/Authentication/utils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import {
+  getLoginInteractionEndData,
+  getLoginPerformanceTags,
+  markLoginInteractionCompleted,
+} from './loginPerformanceTags';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -115,7 +121,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     undefined | 'Start' | 'Loader'
   >(undefined);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
@@ -127,11 +133,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     checkIsSeedlessPasswordOutdated,
   } = useAuthentication();
   const { capabilities } = useAuthCapabilities();
+  const isLocked = Boolean(route.params?.locked);
+  const loginPerformanceTags = useRef(getLoginPerformanceTags(isLocked));
 
   useEffect(() => {
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
+      tags: loginPerformanceTags.current,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
     setStartFoxAnimation('Start');
@@ -299,13 +308,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    endTrace({ name: TraceName.LoginUserInteraction });
+    endTrace({
+      name: TraceName.LoginUserInteraction,
+      data: getLoginInteractionEndData(),
+    });
+    markLoginInteractionCompleted();
 
     try {
       await trace(
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
+          tags: loginPerformanceTags.current,
         },
         async () => {
           const isSeedlessPasswordOutdated =
@@ -357,11 +371,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    endTrace({
+      name: TraceName.LoginUserInteraction,
+      data: getLoginInteractionEndData(),
+    });
+    markLoginInteractionCompleted();
+
     try {
       await trace(
         {
           name: TraceName.LoginBiometricAuthentication,
           op: TraceOperation.Login,
+          tags: loginPerformanceTags.current,
         },
         async () => {
           await unlockWallet();

@@ -17,7 +17,6 @@ jest.mock('../../../../util/theme', () => ({
     colors: {
       success: { default: 'successDefault' },
       error: { default: 'errorDefault' },
-      accent04: { normal: 'accent04Normal' },
     },
   }),
 }));

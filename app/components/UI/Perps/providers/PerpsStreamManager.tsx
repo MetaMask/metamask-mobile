@@ -43,6 +43,7 @@ import {
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import {
+  buildPerpsCufStartTags,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
 } from '../utils/perpsCufTrace';
@@ -630,6 +631,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       name: TraceName.PerpsWebSocketFirstPrice,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
     this.wsConnectionStartTime = performance.now();
 
@@ -809,6 +811,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           name: TraceName.PerpsWebSocketFirstPrice,
           id: this.firstDataTraceId,
           op: TraceOperation.PerpsOperation,
+          tags: buildPerpsCufStartTags(),
         });
         this.wsConnectionStartTime = performance.now();
 
@@ -1012,6 +1015,64 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
   public getSnapshot() {
     return this.cache.get('orders') ?? null;
+  }
+
+  /**
+   * Apply optimistic price and/or size updates to an open order before the
+   * venue confirms the edit. WebSocket delivery reconciles the cache afterward.
+   */
+  public updateOrderOptimistic(
+    orderId: string,
+    edit: { limitPrice?: string; size?: string },
+  ): void {
+    const { limitPrice, size } = edit;
+    if (limitPrice === undefined && size === undefined) {
+      return;
+    }
+
+    const cachedOrders = this.cache.get('orders');
+    if (!cachedOrders) {
+      DevLogger.log(
+        'OrderStreamChannel: Cannot apply optimistic update - no cached orders',
+      );
+      return;
+    }
+
+    const orderIndex = cachedOrders.findIndex(
+      (order) => order.orderId === orderId,
+    );
+    if (orderIndex === -1) {
+      DevLogger.log(
+        `OrderStreamChannel: Cannot apply optimistic update - order not found for ${orderId}`,
+      );
+      return;
+    }
+
+    const updatedOrders = cachedOrders.map((order, index) => {
+      if (index !== orderIndex) {
+        return order;
+      }
+
+      return {
+        ...order,
+        ...(limitPrice !== undefined ? { price: limitPrice } : {}),
+        ...(size !== undefined
+          ? { size, originalSize: size, remainingSize: size }
+          : {}),
+      };
+    });
+
+    DevLogger.log('OrderStreamChannel: Applying optimistic order edit', {
+      orderId,
+      limitPrice,
+      size,
+    });
+
+    this.cache.set('orders', updatedOrders);
+    // Notify UI subscribers only — do NOT call handlePerpsCufOrdersDelivered.
+    // The WS delivery path (:994) ends PerpsEditOrder spans; optimistic paint
+    // must not, or CUF would measure local cache updates instead of venue confirmation.
+    this.notifySubscribers(updatedOrders);
   }
 
   /**
@@ -1647,6 +1708,7 @@ class TopOfBookStreamChannel extends StreamChannel<
       name: TraceName.PerpsWebSocketFirstOrderBook,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
     this.wsConnectionStartTime = performance.now();
 
@@ -2285,39 +2347,6 @@ export class PerpsStreamManager {
     )?.catch(() => {
       /* fire-and-forget */
     });
-  }
-
-  /**
-   * Pause all stream channels — stops emitting updates to subscribers while
-   * keeping WebSocket subscriptions alive and cache warm. Call when the Perps
-   * UI is not visible to avoid unnecessary processing.
-   */
-  public pauseAllChannels(): void {
-    this.prices.pause();
-    this.orders.pause();
-    this.positions.pause();
-    this.fills.pause();
-    this.account.pause();
-    this.oiCaps.pause();
-    this.topOfBook.pause();
-    this.focusedPrice.pause();
-    this.candles.pause();
-  }
-
-  /**
-   * Resume all stream channels after a pause. Subscribers will receive the
-   * next update pushed by the WebSocket.
-   */
-  public resumeAllChannels(): void {
-    this.prices.resume();
-    this.orders.resume();
-    this.positions.resume();
-    this.fills.resume();
-    this.account.resume();
-    this.oiCaps.resume();
-    this.topOfBook.resume();
-    this.focusedPrice.resume();
-    this.candles.resume();
   }
 
   /**

@@ -5,6 +5,8 @@ import { getApprovalControllerInstanceOptions } from './instance-options/approva
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
+import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
+import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
 import {
   getNetworkControllerInstanceOptions,
@@ -51,11 +53,17 @@ export function initializeWallet({
     getTransactionControllerInitMessenger(messenger);
 
   const wallet: Wallet = new Wallet({
-    messenger,
+    // Mobile's root messenger carries a superset action/event union (all app
+    // controllers) vs. the wallet's narrower DefaultActions/DefaultEvents.
+    // `Messenger` isn't covariant in those params, so the superset messenger
+    // isn't assignable to the wallet's type despite being the same runtime
+    // 'Root' bus that already carries everything Wallet needs.
+    messenger: messenger as NonNullable<WalletOptions['messenger']>,
     state,
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),
+      gasFeeController: getGasFeeControllerInstanceOptions(),
       keyringController: getKeyringControllerInstanceOptions(messenger, useDmk),
       networkController: getNetworkControllerInstanceOptions(),
       remoteFeatureFlagController:
@@ -63,6 +71,8 @@ export function initializeWallet({
           messenger,
           state,
         }),
+      seedlessOnboardingController:
+        getSeedlessOnboardingControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         initMessenger: transactionControllerInitMessenger,

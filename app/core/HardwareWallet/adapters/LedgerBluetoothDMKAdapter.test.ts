@@ -37,20 +37,13 @@ jest.mock('react-native-ble-plx', () => ({
   State: { PoweredOn: 'PoweredOn' },
 }));
 
-// Discovery uses getDmk() directly (listenToAvailableDevices), so mock the
-// dmk module. Connect/monitor/disconnect still route through the LedgerDmk.ts
-// bridge helpers (mocked below).
-const mockDmk = {
-  listenToAvailableDevices: jest.fn(),
-};
-jest.mock('../../Ledger/dmk', () => ({
-  getDmk: () => mockDmk,
-}));
-
+// Discovery routes through LedgerDmk listenToLedgerDmkAvailableDevices
+// (bridge.dmk), so that helper is mocked with the other bridge helpers below.
 const mockConnectLedgerHardware = jest.fn();
 const mockConnectLedgerDmkDevice = jest.fn();
 const mockGetLedgerDmkSessionState = jest.fn();
 const mockDisconnectLedgerDmkSession = jest.fn();
+const mockListenToLedgerDmkAvailableDevices = jest.fn();
 jest.mock('../../Ledger/Ledger', () => ({
   openEthereumAppOnLedger: jest.fn(),
   closeRunningAppOnLedger: jest.fn(),
@@ -65,6 +58,8 @@ jest.mock('../../Ledger/LedgerDmk', () => ({
     mockGetLedgerDmkSessionState(...args),
   disconnectLedgerDmkSession: (...args: unknown[]) =>
     mockDisconnectLedgerDmkSession(...args),
+  listenToLedgerDmkAvailableDevices: (...args: unknown[]) =>
+    mockListenToLedgerDmkAvailableDevices(...args),
 }));
 
 jest.mock('react-native-permissions', () => ({
@@ -106,10 +101,10 @@ describe('LedgerBluetoothDMKAdapter', () => {
     };
 
     // RxJS Subject gives the test synchronous control over the discovery
-    // observable (getDmk().listenToAvailableDevices emits device arrays).
+    // observable (listenToLedgerDmkAvailableDevices emits device arrays).
     scanSubject = new Subject<DmkDiscoveredDevice[]>();
 
-    mockDmk.listenToAvailableDevices.mockReturnValue(
+    mockListenToLedgerDmkAvailableDevices.mockResolvedValue(
       scanSubject.asObservable(),
     );
     mockConnectLedgerDmkDevice.mockResolvedValue('session-1');
@@ -133,7 +128,8 @@ describe('LedgerBluetoothDMKAdapter', () => {
 
   /**
    * Drive the public discovery flow so that `connect()` finds the device in
-   * the discovered-devices cache (listenToAvailableDevices emits arrays).
+   * the discovered-devices cache (listenToLedgerDmkAvailableDevices emits
+   * arrays).
    */
   async function discoverDevice(
     id: string = DEVICE_ID,

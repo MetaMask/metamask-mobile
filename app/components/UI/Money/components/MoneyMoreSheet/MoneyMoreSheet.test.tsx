@@ -17,8 +17,26 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
+const mockOpenSupportWithConsent: jest.Mock<
+  void,
+  [(url: string) => void, string]
+> = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
+const mockTrackButtonClicked = jest.fn();
+const mockTrackTooltipClicked = jest.fn();
+const mockTrackTokenButtonClicked = jest.fn();
+const mockTrackTokenSurfaceClicked = jest.fn();
+const mockTrackActivitySurfaceClicked = jest.fn();
+const mockTrackScreenViewed = jest.fn();
+const mockTrackComponentViewed = jest.fn();
+const mockTrackOnboardingEvent = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -75,10 +93,22 @@ describe('MoneyMoreSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+    jest.mocked(useMoneyAnalytics).mockReturnValue({
+      trackButtonClicked: mockTrackButtonClicked,
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
+      trackTooltipClicked: mockTrackTooltipClicked,
+      trackTokenButtonClicked: mockTrackTokenButtonClicked,
+      trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
+      trackActivitySurfaceClicked: mockTrackActivitySurfaceClicked,
+      trackScreenViewed: mockTrackScreenViewed,
+      trackComponentViewed: mockTrackComponentViewed,
+      trackOnboardingEvent: mockTrackOnboardingEvent,
     });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders How it works, What you get, and Contact support rows', () => {
@@ -141,17 +171,40 @@ describe('MoneyMoreSheet', () => {
     });
   });
 
-  it('opens the MetaMask support URL in the in-app browser when "Contact support" is pressed', () => {
+  it('shows the support consent sheet with the METAMASK_SUPPORT_URL when "Contact support" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+  });
+
+  it('keeps the sheet open while the support consent sheet is shown', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
+
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('closes the sheet before opening the consented support URL in the in-app browser', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
+    const [openSupportUrl] = mockOpenSupportWithConsent.mock.calls[0];
+    const consentedUrl = `${METAMASK_SUPPORT_URL}&metamask_version=1.0.0`;
+
+    openSupportUrl(consentedUrl);
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {
-        newTabUrl: METAMASK_SUPPORT_URL,
+        newTabUrl: consentedUrl,
         timestamp: expect.any(Number),
         fromMoney: true,
       },

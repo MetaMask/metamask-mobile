@@ -13,14 +13,17 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { isDrawCapableLeague } from '../../constants/sports';
-import { resolvePredictSportCardButtons } from '../../utils/sports';
+import {
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
@@ -36,10 +39,7 @@ import {
   PredictSportTeam,
   type PredictMarketBuyButtonPress,
 } from '../../types';
-import {
-  PredictEntryPoint,
-  PredictNavigationParamList,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import { isGameEnded } from '../../utils/scoreboard';
@@ -85,12 +85,11 @@ const compactButtonItems = (
 const buildButtonItems = (
   market: PredictMarketType,
   game: PredictMarketGame,
-  showDraw: boolean,
 ): SportOutcomeButtonItem[] => {
   const { home, draw, away } = resolvePredictSportCardButtons({
     outcomes: market.outcomes,
     game,
-    showDraw,
+    showDraw: isDrawCapableMarket({ game, outcomes: market.outcomes }),
   });
   const isHomeFirst = getLeagueTeamOrder(game.league) === 'home-away';
 
@@ -147,8 +146,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const livePricesEnabled = useSelector(
@@ -166,10 +164,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   });
 
   const buttonItems = useMemo(
-    () =>
-      game
-        ? buildButtonItems(market, game, isDrawCapableLeague(game.league))
-        : [],
+    () => (game ? buildButtonItems(market, game) : []),
     [game, market],
   );
 

@@ -8,6 +8,7 @@ import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
+import { useQuickBuyQuickAmountPreferences } from './hooks/useQuickBuyQuickAmountPreferences';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { positionToQuickBuyTarget } from './types';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
@@ -22,6 +23,15 @@ const mockControllerState: {
 
 jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
+}));
+
+jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
+  useQuickBuyQuickAmountPreferences: jest.fn(() => ({
+    buyAmounts: [10, 50, 100, 250],
+    sellPercentages: [25, 50, 75, 100],
+    savePreferences: jest.fn(),
+    isLoaded: true,
+  })),
 }));
 
 jest.mock('./hooks/useQuickBuySetup', () => ({
@@ -91,15 +101,30 @@ jest.mock('./components/QuickBuyToolbar', () => {
 
 jest.mock('./components/QuickBuyAmountSection', () => {
   const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, Pressable } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactMock.createElement(
+    default: ({ onAmountAreaPress }: { onAmountAreaPress?: () => void }) => {
+      if (onAmountAreaPress) {
+        return ReactMock.createElement(
+          Pressable,
+          {
+            testID: 'quick-buy-amount-area-pressable',
+            onPress: onAmountAreaPress,
+          },
+          ReactMock.createElement(
+            Text,
+            { testID: 'mock-amount-section' },
+            'amount-section',
+          ),
+        );
+      }
+      return ReactMock.createElement(
         Text,
         { testID: 'mock-amount-section' },
         'amount-section',
-      ),
+      );
+    },
   };
 });
 
@@ -293,11 +318,21 @@ const setMockQuickBuyController = (
   );
 };
 
+const setMockQuickBuyPreferences = () => {
+  (useQuickBuyQuickAmountPreferences as jest.Mock).mockReturnValue({
+    buyAmounts: [10, 50, 100, 250],
+    sellPercentages: [25, 50, 75, 100],
+    savePreferences: jest.fn(),
+    isLoaded: true,
+  });
+};
+
 describe('QuickBuy.Root', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
     setMockQuickBuyController();
+    setMockQuickBuyPreferences();
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
       destToken: undefined,
@@ -417,6 +452,45 @@ describe('QuickBuy.Root', () => {
 
       expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
       expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
+    });
+
+    it('renders the keypad by default', () => {
+      setMockQuickBuyController({ isUnsupportedChain: false });
+
+      renderWithProvider(
+        <QuickBuy.Root
+          isVisible
+          target={positionToQuickBuyTarget(createPosition())}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        />,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
+      expect(screen.queryByTestId('quick-buy-keypad-done')).toBeNull();
+    });
+
+    it('keeps the keypad open when the amount headline is tapped', () => {
+      setMockQuickBuyController({ isUnsupportedChain: false });
+
+      renderWithProvider(
+        <QuickBuy.Root
+          isVisible
+          target={positionToQuickBuyTarget(createPosition())}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        />,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      fireEvent.press(screen.getByTestId('quick-buy-amount-area-pressable'));
+
+      expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
     });
 
     it('calls handleConfirm from the sticky confirm button', () => {

@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -29,6 +30,7 @@ import { TokenDetailsAction } from '../constants/constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { useAssetActivation } from '../hooks/useAssetActivation';
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
@@ -60,7 +62,7 @@ interface ActionConfig {
 const MoreTokenActionsMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<MoreTokenActionsMenuRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const {
     hasPerpsMarket,
@@ -83,6 +85,13 @@ const MoreTokenActionsMenu = () => {
     selectSelectedInternalAccountByScope,
   );
   const { handleHideToken } = useAssetVisibility(asset);
+
+  const { deactivateAsset, canDeactivate, isDeactivating } = useAssetActivation(
+    {
+      assetId: asset.address,
+      assetSymbol: asset.symbol,
+    },
+  );
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -219,6 +228,26 @@ const MoreTokenActionsMenu = () => {
     onActionTapped,
   ]);
 
+  const handleDeactivateTrustline = useCallback(() => {
+    closeBottomSheetAndNavigate(async () => {
+      const { success, errorMessage } = await deactivateAsset();
+
+      if (errorMessage) {
+        NotificationManager.showSimpleNotification({
+          status: 'error',
+          duration: 5000,
+          title: strings('transactions.activity_trustline_deactivation_failed'),
+          description: errorMessage,
+        });
+        return;
+      }
+
+      if (success) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
+    });
+  }, [closeBottomSheetAndNavigate, deactivateAsset, navigation]);
+
   const tokenIsInAccount = !!useSelector((state: RootState) =>
     selectAsset(state, {
       address: asset.address,
@@ -279,6 +308,18 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
+    if (canDeactivate) {
+      actions.push({
+        type: 'stellar-deactivate-trustline',
+        label: strings('asset_details.options.deactivate_asset'),
+        iconName: IconName.Trash,
+        testID: 'more-actions-deactivate-asset',
+        isVisible: true,
+        isDisabled: isDeactivating,
+        onPress: handleDeactivateTrustline,
+      });
+    }
+
     return actions;
   }, [
     asset.address,
@@ -295,6 +336,9 @@ const MoreTokenActionsMenu = () => {
     handleBuy,
     handleViewOnBlockExplorer,
     handleRemoveToken,
+    handleDeactivateTrustline,
+    canDeactivate,
+    isDeactivating,
   ]);
 
   return (

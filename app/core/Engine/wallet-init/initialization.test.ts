@@ -31,6 +31,14 @@ jest.mock('./instance-options/connectivity-controller', () => ({
     () => 'connectivity-options',
   ),
 }));
+jest.mock('./instance-options/gas-fee-controller', () => ({
+  getGasFeeControllerInstanceOptions: jest.fn(() => 'gas-fee-options'),
+}));
+jest.mock('./instance-options/seedless-onboarding-controller', () => ({
+  getSeedlessOnboardingControllerInstanceOptions: jest.fn(
+    () => 'seedless-options',
+  ),
+}));
 jest.mock('./instance-options/storage-service', () => ({
   getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
 }));
@@ -60,6 +68,8 @@ describe('initializeWallet', () => {
         keyringController: 'keyring-options',
         remoteFeatureFlagController: 'rffc-options',
         connectivityController: 'connectivity-options',
+        gasFeeController: 'gas-fee-options',
+        seedlessOnboardingController: 'seedless-options',
         storageService: 'storage-options',
         networkController: getNetworkControllerInstanceOptions(),
         transactionController: 'transaction-options',

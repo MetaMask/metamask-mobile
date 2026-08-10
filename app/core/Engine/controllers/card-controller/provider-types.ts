@@ -21,6 +21,7 @@ export enum CardProviderErrorCode {
   ServerError = 'server_error',
   Timeout = 'timeout',
   Network = 'network',
+  MoneyAccountLinkedToDifferentCard = 'money_account_linked_to_different_card',
   Unknown = 'unknown',
 }
 
@@ -59,7 +60,13 @@ export class CardLinkageInProgressError extends Error {
 
 // -- Provider Identity --
 
-export type CardProviderId = string;
+export const CardProviderIds = {
+  Baanx: 'baanx',
+  Immersve: 'immersve',
+} as const;
+
+export type CardProviderId =
+  (typeof CardProviderIds)[keyof typeof CardProviderIds];
 
 export type CardAuthMethod = 'email_password' | 'siwe';
 
@@ -130,6 +137,8 @@ export interface CardProviderCapabilities {
   supportsPinView: boolean;
   supportsCashback: boolean;
   supportsCredit: boolean;
+  supportsSensitiveDetailsView: boolean;
+  supportsTravel: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -155,6 +164,7 @@ export interface CardFundingAsset {
   stagingTokenAddress?: string;
   externalId?: number;
   delegationContract?: string;
+  assumeUsdParity?: boolean;
 }
 
 // -- Card Details --
@@ -166,6 +176,8 @@ export interface CardDetails {
   lastFour: string;
   holderName?: string;
   isFreezable?: boolean;
+  /** ISO region code from Immersve LIST/detail (e.g. "GB"). */
+  regionCode?: string;
 }
 
 export interface CardSecureViewParams {
@@ -175,6 +187,13 @@ export interface CardSecureViewParams {
 export interface CardSecureView {
   url: string;
   token: string;
+}
+
+export interface CardSensitiveDetails {
+  pan: string;
+  cvv2: string;
+  expiry: string;
+  embossedName: string;
 }
 
 // -- Account --
@@ -365,6 +384,7 @@ export interface CardFundingSourceResult {
   network?: string;
   balance?: string;
   balanceCurrency?: string;
+  fundingChannelId?: string;
 }
 
 export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';
@@ -374,6 +394,12 @@ export type CardPrerequisiteStatus =
   | 'ok'
   | 'blocked'
   | 'kyc_check_failed';
+
+export type CardKycCtaHint =
+  | 'KYC_NOT_STARTED'
+  | 'KYC_NOT_COMPLETED'
+  | 'KYC_INFORMATION_NEEDED'
+  | 'KYC_EXPIRING';
 
 export interface CardSmartContractWriteParams {
   abi: unknown[];
@@ -387,6 +413,7 @@ export interface CardSpendingPrerequisite {
   status: CardPrerequisiteStatus;
   actionType?: string;
   type?: string;
+  ctaHint?: CardKycCtaHint;
   params?: Record<string, unknown>;
 }
 
@@ -437,6 +464,9 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
   ): Promise<CardSecureView>;
+  getCardSensitiveDetails?(
+    tokens: CardAuthTokens,
+  ): Promise<CardSensitiveDetails>;
 
   updateAssetPriority?(
     asset: CardFundingAsset,

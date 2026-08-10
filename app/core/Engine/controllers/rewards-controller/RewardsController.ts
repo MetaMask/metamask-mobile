@@ -58,10 +58,15 @@ import {
   type SubscriptionBenefitsState,
   type VipDashboardDto,
   type VipDashboardState,
+  type VipEquityMultiplierDto,
   type VipRefereeMeDto,
   type VipRefereeMeState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
+  type GetVipTransactionsDto,
+  type PaginatedVipTransactionsDto,
+  type VipTransactionDto,
+  type VipTransactionsState,
   CampaignType,
 } from './types';
 import {
@@ -124,10 +129,16 @@ const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 // VIP dashboard cache threshold — re-fetched on every dashboard screen focus,
 // so cache for 5 minutes to avoid redundant backend calls.
 const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+/** Holdings-keyed display cache for POST /vip/equity-multiplier (not program truth). */
+const VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.
 const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+
+// VIP transactions cache threshold (first page only).
+// Disabled so each first-page read checks the backend last-updated timestamp.
+const VIP_TRANSACTIONS_CACHE_THRESHOLD_MS = 0;
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -397,6 +408,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: false,
   },
+  vipTransactions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 export { defaultRewardsControllerState, getRewardsControllerDefaultState };
@@ -554,6 +571,9 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPredictThePitchPrizePool',
   'getPerpsDiscountForAccount',
   'getVipTierForAccount',
+  'getVipTransactions',
+  'getVipTransactionsIfChanged',
+  'getVipTransactionsLastUpdated',
   'getPointsEvents',
   'getPointsEventsIfChanged',
   'getPointsEventsLastUpdated',
@@ -564,11 +584,13 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSeasonStatus',
   'getUnlockedRewards',
   'getVIPDashboard',
+  'getVipEquityMultiplier',
   'getVipRefereeDashboard',
   'handleAuthenticationTrigger',
   'hasActiveSeason',
   'hasActivityChanged',
   'hasPointsEventsChanged',
+  'hasVipTransactionsChanged',
   'invalidateReferralDetailsCache',
   'invalidateSubscriptionAndAccounts',
   'invalidateSubscriptionCache',
@@ -577,6 +599,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'isVipFeatureEnabled',
   'linkAccountsToSubscriptionCandidate',
   'linkAccountToSubscriptionCandidate',
+  'lookupVipTransaction',
   'logout',
   'optIn',
   'optInToCampaign',
@@ -616,6 +639,18 @@ export class RewardsController extends BaseController<
   // Cleared when the promise settles (success or failure).
   #vipFeesFetchInFlight: Map<string, Promise<VipFeesResponseDto | 0>> =
     new Map();
+  /**
+   * In-memory display cache for equity multiplier. Keyed by
+   * `${subscriptionId}::${holdingsUsd}`. Not Redux / not program truth.
+   */
+  #vipEquityMultiplierCache: Map<
+    string,
+    { payload: VipEquityMultiplierDto; lastFetched: number }
+  > = new Map();
+  #vipEquityMultiplierInFlight: Map<
+    string,
+    Promise<VipEquityMultiplierDto | null>
+  > = new Map();
   #perpsTradingParticipantOutcomeCache: Map<
     string,
     {
@@ -773,6 +808,31 @@ export class RewardsController extends BaseController<
     };
   }
 
+  #convertVipTransactionsToState(
+    transactions: PaginatedVipTransactionsDto,
+  ): VipTransactionsState {
+    return {
+      results: transactions.results.map((transaction) => ({
+        ...transaction,
+      })),
+      has_more: transactions.has_more,
+      cursor: transactions.cursor,
+      lastFetched: Date.now(),
+    };
+  }
+
+  #convertVipTransactionsStateToDto(
+    state: VipTransactionsState,
+  ): PaginatedVipTransactionsDto {
+    return {
+      results: state.results.map((transaction) => ({
+        ...transaction,
+      })),
+      has_more: state.has_more,
+      cursor: state.cursor,
+    };
+  }
+
   constructor({
     messenger,
     state,
@@ -832,6 +892,8 @@ export class RewardsController extends BaseController<
     this.#participantOutcomeCache.clear();
     this.#perpsTradingParticipantOutcomeCache.clear();
     this.#predictThePitchParticipantOutcomeCache.clear();
+    this.#vipEquityMultiplierCache.clear();
+    this.#vipEquityMultiplierInFlight.clear();
     this.update(() => ({
       ...getRewardsControllerDefaultState(),
       rewardsEnvUrl,
@@ -933,6 +995,16 @@ export class RewardsController extends BaseController<
     campaignId: string,
   ): string {
     return `${subscriptionId}:${campaignId}`;
+  }
+
+  /**
+   * Create VIP transactions composite key for state storage
+   */
+  #createVIPCompositeKey(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): string {
+    return `${subscriptionId}:${type}`;
   }
 
   #matchesSeasonSubscriptionCacheKey(
@@ -4591,6 +4663,139 @@ export class RewardsController extends BaseController<
     });
   }
 
+  async getVipTransactions(
+    params: GetVipTransactionsDto,
+  ): Promise<PaginatedVipTransactionsDto> {
+    if (!this.isVipFeatureEnabled()) {
+      return { results: [], has_more: false, cursor: null };
+    }
+
+    const { subscriptionId, type, cursor, forceFresh } = params;
+    if (cursor) {
+      return this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:getVipTransactions',
+            subscriptionId,
+            type,
+            cursor,
+          ),
+        subscriptionId,
+      );
+    }
+
+    if (forceFresh) {
+      return this.#withAuthRetry(
+        () => this.getVipTransactionsIfChanged(subscriptionId, type),
+        subscriptionId,
+      );
+    }
+
+    const key = this.#createVIPCompositeKey(subscriptionId, type);
+    return wrapWithCache<PaginatedVipTransactionsDto>({
+      key,
+      ttl: VIP_TRANSACTIONS_CACHE_THRESHOLD_MS,
+      readCache: (cacheKey) => {
+        const cached = this.state.vipTransactions[cacheKey];
+        return cached
+          ? {
+              payload: this.#convertVipTransactionsStateToDto(cached),
+              lastFetched: cached.lastFetched,
+            }
+          : undefined;
+      },
+      fetchFresh: () =>
+        this.#withAuthRetry(
+          () => this.getVipTransactionsIfChanged(subscriptionId, type),
+          subscriptionId,
+        ),
+      writeCache: (cacheKey, transactions) => {
+        this.update((state) => {
+          state.vipTransactions[cacheKey] =
+            this.#convertVipTransactionsToState(transactions);
+        });
+      },
+    });
+  }
+
+  async getVipTransactionsIfChanged(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<PaginatedVipTransactionsDto> {
+    if (!this.isVipFeatureEnabled()) {
+      return { results: [], has_more: false, cursor: null };
+    }
+
+    const key = this.#createVIPCompositeKey(subscriptionId, type);
+    if (!(await this.hasVipTransactionsChanged(subscriptionId, type))) {
+      const cached = this.state.vipTransactions[key];
+      return cached
+        ? this.#convertVipTransactionsStateToDto(cached)
+        : { results: [], has_more: false, cursor: null };
+    }
+
+    return this.messenger.call(
+      'RewardsDataService:getVipTransactions',
+      subscriptionId,
+      type,
+      null,
+    );
+  }
+
+  async getVipTransactionsLastUpdated(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<Date | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:getVipTransactionsLastUpdated',
+          subscriptionId,
+          type,
+        ),
+      subscriptionId,
+    );
+  }
+
+  async hasVipTransactionsChanged(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<boolean> {
+    if (!this.isVipFeatureEnabled()) return false;
+
+    const cached =
+      this.state.vipTransactions[
+        this.#createVIPCompositeKey(subscriptionId, type)
+      ];
+    const cachedLatestTimestamp = cached?.results[0]?.timestamp;
+    if (!cachedLatestTimestamp) return true;
+
+    const lastUpdated = await this.getVipTransactionsLastUpdated(
+      subscriptionId,
+      type,
+    );
+    return lastUpdated
+      ? lastUpdated.toISOString() !== cachedLatestTimestamp
+      : true;
+  }
+
+  async lookupVipTransaction(
+    subscriptionId: string,
+    key: string,
+  ): Promise<VipTransactionDto | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:lookupVipTransaction',
+          subscriptionId,
+          key,
+        ),
+      subscriptionId,
+    );
+  }
+
   /**
    * Get the VIP dashboard with caching.
    * @param subscriptionId - The subscription ID for authentication
@@ -4665,6 +4870,64 @@ export class RewardsController extends BaseController<
         });
       },
     });
+  }
+
+  /**
+   * Display-only equity multiplier estimate from client-supplied holdings.
+   * Must never be persisted as program truth or feed warrant settlement
+   * (RWDS-1485). Client balance is untrusted; cache is holdings-keyed TTL only.
+   */
+  async getVipEquityMultiplier(
+    subscriptionId: string,
+    holdingsUsd: string,
+  ): Promise<VipEquityMultiplierDto | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+
+    const cacheKey = `${subscriptionId}::${holdingsUsd}`;
+    const cached = this.#vipEquityMultiplierCache.get(cacheKey);
+    if (
+      cached &&
+      Date.now() - cached.lastFetched < VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS
+    ) {
+      return cached.payload;
+    }
+
+    const inFlight = this.#vipEquityMultiplierInFlight.get(cacheKey);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const fetchPromise = (async (): Promise<VipEquityMultiplierDto | null> => {
+      try {
+        const result = await this.#withAuthRetry(
+          () =>
+            this.messenger.call(
+              'RewardsDataService:getVipEquityMultiplier',
+              subscriptionId,
+              holdingsUsd,
+            ),
+          subscriptionId,
+        );
+        if (result) {
+          this.#vipEquityMultiplierCache.set(cacheKey, {
+            payload: result,
+            lastFetched: Date.now(),
+          });
+        }
+        return result;
+      } catch (error) {
+        Logger.log(
+          'RewardsController: Failed to get VIP equity multiplier:',
+          error instanceof Error ? error.message : String(error),
+        );
+        throw error;
+      } finally {
+        this.#vipEquityMultiplierInFlight.delete(cacheKey);
+      }
+    })();
+
+    this.#vipEquityMultiplierInFlight.set(cacheKey, fetchPromise);
+    return fetchPromise;
   }
 
   /**
@@ -4976,6 +5239,11 @@ export class RewardsController extends BaseController<
         delete state.vipDashboard?.[subscriptionId];
         delete state.vipRefereeDashboard?.[subscriptionId];
         delete state.vipPerpsFees?.[subscriptionId];
+        deleteMatchingCacheEntries(
+          state.vipTransactions,
+          (key) =>
+            key === subscriptionId || key.startsWith(`${subscriptionId}:`),
+        );
         delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
         delete state.subscriptionReferralDetails?.[subscriptionId];
       }

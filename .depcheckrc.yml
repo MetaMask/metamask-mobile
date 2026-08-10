@@ -41,6 +41,8 @@ ignores:
   # ESBuild is used for AI E2E script compilation
   - 'esbuild'
   - 'esbuild-register'
+  # Used via `node -r @babel/register` in package.json scripts (not an import)
+  - '@babel/register'
   # tsx runs all scripts/tooling/*.ts files directly (CLI wrapper, MCP server, yarn pre/post hooks, report CLI)
   - 'tsx'
   # agent-device is used as a CLI (`yarn agent-device`), not imported
@@ -49,6 +51,11 @@ ignores:
   - 'xml2js'
   # jest-junit is used as a Jest reporter in tests/jest.e2e.detox.config.js
   - 'jest-junit'
+  # Required directly only by scripts/babel/named-capturing-groups-regex.test.ts
+  # (a regression guard for the @react-native/babel-preset patch). It's provided
+  # transitively via @expo/metro-config + Metro, so we don't declare it as a
+  # direct dependency.
+  - 'babel-preset-expo'
 
   # tsconfig path alias pointing to app/controllers/perps (not an npm package)
   - '@metamask/perps-controller'
@@ -79,7 +86,6 @@ ignores:
   - 'chromedriver'
   - 'execa'
   - 'jetifier'
-  - 'metro-react-native-babel-preset'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
   - 'prettier-2'
@@ -150,6 +156,9 @@ ignores:
 
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'
+
+  # Consumed by the Yarn plugin and agent hooks, outside of app source
+  - '@metamask/tooling-insight'
 
   # Babel plugins referenced in babel.config.js by their short name (without
   # the `babel-plugin-` prefix). Babel resolves them correctly at build time

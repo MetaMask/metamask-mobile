@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Hex } from '@metamask/utils';
@@ -42,6 +43,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../UI/Earn/constants/musd';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -71,7 +73,7 @@ const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_HUB_EVENTS_CONSTANTS;
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const CashTokensFullView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { hasMusdBalanceOnAnyChain, tokenBalanceByChain } = useMusdBalance();
@@ -214,9 +216,12 @@ const CashTokensFullView = () => {
         .build(),
     );
 
-    goToBuy({
-      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-    });
+    goToBuy(
+      {
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+      },
+      { surface: RAMPS_BUY_CUF_SURFACE.CASH },
+    );
   }, [createEventBuilder, goToBuy, trackEvent]);
 
   const balanceHeading = useMemo(

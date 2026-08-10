@@ -5,6 +5,7 @@ import {
   selectTokensByAddress,
   selectTokensLength,
   selectIgnoreTokens,
+  selectAllTokens,
   selectAllTokensFlat,
   selectTokensByChainIdAndAddress,
   selectTokensByChainIdAndWalletAddress,
@@ -127,6 +128,120 @@ describe('TokensController Selectors', () => {
 
       expect(selectTokensByAddress(stateWithoutTokens)).toStrictEqual({});
     });
+
+    it('returns a stable reference when called twice with the same state', () => {
+      selectTokens.clearCache();
+      selectTokensByAddress.clearCache();
+
+      const first = selectTokensByAddress(mockRootState);
+      const second = selectTokensByAddress(mockRootState);
+
+      expect(first).toBe(second);
+    });
+
+    it('returns a stable reference across equal-content states', () => {
+      selectTokens.clearCache();
+      selectTokensByAddress.clearCache();
+
+      const equalContentState = {
+        ...mockRootState,
+        engine: {
+          backgroundState: {
+            TokensController: {
+              ...mockTokensControllerState,
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [mockToken],
+                  '0xAddress2': [mockToken2],
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const first = selectTokensByAddress(mockRootState);
+      const second = selectTokensByAddress(equalContentState);
+
+      expect(first).toBe(second);
+      expect(first).toStrictEqual({
+        '0xToken1': mockToken,
+      });
+    });
+
+    it('returns a stable empty-object reference for empty tokens', () => {
+      selectTokens.clearCache();
+      selectTokensByAddress.clearCache();
+
+      const emptyStateA = {
+        ...mockRootState,
+        engine: {
+          backgroundState: {
+            TokensController: {
+              ...mockTokensControllerState,
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [],
+                },
+              },
+              tokens: [],
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+      const emptyStateB = {
+        ...mockRootState,
+        engine: {
+          backgroundState: {
+            TokensController: {
+              ...mockTokensControllerState,
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [],
+                },
+              },
+              tokens: [],
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const first = selectTokensByAddress(emptyStateA);
+      const second = selectTokensByAddress(emptyStateB);
+
+      expect(first).toBe(second);
+      expect(first).toStrictEqual({});
+    });
   });
 
   describe('selectTokensLength', () => {
@@ -220,6 +335,88 @@ describe('TokensController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectAllTokensFlat(stateWithoutAllTokens)).toStrictEqual([]);
+    });
+
+    it('returns a stable reference when called twice with the same state', () => {
+      selectAllTokens.clearCache();
+      selectAllTokensFlat.clearCache();
+
+      const first = selectAllTokensFlat(mockRootState);
+      const second = selectAllTokensFlat(mockRootState);
+
+      expect(first).toBe(second);
+    });
+
+    it('returns a stable reference across equal-content states', () => {
+      selectAllTokens.clearCache();
+      selectAllTokensFlat.clearCache();
+
+      const equalContentState = {
+        ...mockRootState,
+        engine: {
+          backgroundState: {
+            TokensController: {
+              ...mockTokensControllerState,
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [mockToken],
+                  '0xAddress2': [mockToken2],
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const first = selectAllTokensFlat(mockRootState);
+      const second = selectAllTokensFlat(equalContentState);
+
+      expect(first).toBe(second);
+      expect(first).toStrictEqual([mockToken, mockToken2]);
+    });
+
+    it('returns a stable empty-array reference for empty tokens', () => {
+      selectAllTokens.clearCache();
+      selectAllTokensFlat.clearCache();
+
+      const emptyStateA = {
+        ...mockRootState,
+        engine: {
+          backgroundState: {
+            TokensController: {
+              ...mockTokensControllerState,
+              allTokens: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+      const emptyStateB = {
+        ...mockRootState,
+        engine: {
+          backgroundState: {
+            TokensController: {
+              ...mockTokensControllerState,
+              allTokens: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const first = selectAllTokensFlat(emptyStateA);
+      const second = selectAllTokensFlat(emptyStateB);
+
+      expect(first).toBe(second);
+      expect(first).toStrictEqual([]);
     });
   });
 

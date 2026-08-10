@@ -11,6 +11,7 @@ import {
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -262,21 +263,26 @@ jest.mock('../../components/PerpsRecentlyViewedRail', () => {
     markets: { symbol: string }[];
     onMarketPress?: (market: { symbol: string }) => void;
   }) =>
-    MockReact.createElement(
-      View,
-      { testID: 'perps-recently-viewed-rail-mock' },
-      markets.map((m) =>
-        MockReact.createElement(
-          TouchableOpacity,
-          {
-            key: m.symbol,
-            testID: `recently-viewed-row-${m.symbol}`,
-            onPress: () => onMarketPress?.(m),
-          },
-          MockReact.createElement(Text, null, m.symbol),
-        ),
-      ),
-    );
+    // Mirror the real component: render nothing when there are no markets.
+    // The rail is always mounted as the list header and handed an empty array
+    // when it should be hidden (flag off / search active / watchlist filter).
+    markets.length === 0
+      ? null
+      : MockReact.createElement(
+          View,
+          { testID: 'perps-recently-viewed-rail-mock' },
+          markets.map((m) =>
+            MockReact.createElement(
+              TouchableOpacity,
+              {
+                key: m.symbol,
+                testID: `recently-viewed-row-${m.symbol}`,
+                onPress: () => onMarketPress?.(m),
+              },
+              MockReact.createElement(Text, null, m.symbol),
+            ),
+          ),
+        );
   return {
     __esModule: true,
     default: MockPerpsRecentlyViewedRail,
@@ -482,6 +488,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   twFn.color = () => 'black';
   return {
     useTailwind: () => twFn,
+    // MMDS Input (via TextFieldSearch) reads theme for placeholder color.
+    useTheme: () => 'light',
+    Theme: { Light: 'light', Dark: 'dark' },
   };
 });
 
@@ -558,6 +567,11 @@ interface FlashListProps {
   keyExtractor: (item: PerpsMarketData, index: number) => string;
   refreshing: boolean;
   onRefresh: () => void;
+  onScroll?: (event: {
+    nativeEvent: { contentOffset: { x: number; y: number } };
+  }) => void;
+  scrollEventThrottle?: number;
+  ListHeaderComponent?: React.ReactElement | React.ComponentType | null;
 }
 
 // Mock FlashList
@@ -568,6 +582,9 @@ jest.mock('@shopify/flash-list', () => ({
     keyExtractor,
     refreshing,
     onRefresh,
+    onScroll,
+    scrollEventThrottle,
+    ListHeaderComponent,
   }: FlashListProps) => {
     const {
       TouchableOpacity: MockTouchableOpacity,
@@ -575,12 +592,21 @@ jest.mock('@shopify/flash-list', () => ({
       ScrollView,
       Text,
     } = jest.requireActual('react-native');
+    const header =
+      typeof ListHeaderComponent === 'function' ? (
+        <ListHeaderComponent />
+      ) : (
+        (ListHeaderComponent ?? null)
+      );
     return (
       <ScrollView
         testID="flash-list"
         refreshing={refreshing}
         onRefresh={onRefresh}
+        onScroll={onScroll}
+        scrollEventThrottle={scrollEventThrottle}
       >
+        {header}
         <View testID="flash-list-content">
           {data.map((item: PerpsMarketData, index: number) => (
             <View key={keyExtractor ? keyExtractor(item, index) : index}>
@@ -1062,6 +1088,7 @@ describe('PerpsMarketListView', () => {
       expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
       expect(mockNavigation.dispatch).toHaveBeenCalledWith(
         expect.objectContaining({
+          type: 'PUSH',
           payload: expect.objectContaining({
             params: expect.objectContaining({
               market: watchlistMarket,
@@ -1515,6 +1542,76 @@ describe('PerpsMarketListView', () => {
               source: 'perp_markets',
               transactionActiveAbTests,
             }),
+          }),
+        }),
+      );
+    });
+
+    it('replaces underlying market details when opened as the header picker', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-picker',
+        name: 'PerpsMarketListView',
+        params: {
+          animation: 'slide_from_bottom',
+          replaceOnSelect: true,
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+      const stackReducer = mockNavigation.dispatch.mock.calls[0][0] as (state: {
+        key: string;
+        index: number;
+        routeNames: string[];
+        routes: { key: string; name: string; params?: object }[];
+        type: string;
+        stale: boolean;
+      }) => unknown;
+
+      expect(typeof stackReducer).toBe('function');
+      expect(
+        stackReducer({
+          key: 'stack',
+          index: 2,
+          routeNames: [
+            'PerpsMarketListView',
+            'PerpsMarketDetails',
+            'PerpsMarketListView',
+          ],
+          routes: [
+            { key: 'list', name: 'PerpsMarketListView' },
+            {
+              key: 'details-btc',
+              name: 'PerpsMarketDetails',
+              params: { market: mockMarketData[0] },
+            },
+            {
+              key: 'picker',
+              name: 'PerpsMarketListView',
+              params: { replaceOnSelect: true },
+            },
+          ],
+          type: 'stack',
+          stale: false,
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          type: 'RESET',
+          payload: expect.objectContaining({
+            index: 1,
+            routes: [
+              { key: 'list', name: 'PerpsMarketListView' },
+              expect.objectContaining({
+                name: 'PerpsMarketDetails',
+                params: expect.objectContaining({
+                  market: mockMarketData[1],
+                  source: 'perp_markets',
+                }),
+              }),
+            ],
           }),
         }),
       );
@@ -2654,6 +2751,24 @@ describe('PerpsMarketListView', () => {
           }),
         }),
       );
+    });
+
+    it('keeps the search bar and both fixed filter rows above the rail', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.SORT_FILTERS),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
+        ),
+      ).toBeOnTheScreen();
     });
   });
 

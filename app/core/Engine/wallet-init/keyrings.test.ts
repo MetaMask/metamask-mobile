@@ -5,7 +5,10 @@ import {
 } from '@metamask/messenger';
 import { QrKeyring as LegacyQrKeyring } from '@metamask/eth-qr-keyring';
 import { QrKeyring } from '@metamask/eth-qr-keyring/v2';
-import { LedgerKeyring as LegacyLedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring as LegacyLedgerKeyring ,
+  LedgerDmkBridge,
+  LedgerMobileBridge,
+} from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
 import { HdKeyring as LegacyHdKeyring } from '@metamask/eth-hd-keyring';
 import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
@@ -19,9 +22,25 @@ import {
   qrKeyringBridge,
 } from './keyrings';
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
+import { isDmkEnabled } from '../../Ledger/dmk';
 
 jest.mock('../../../store', () => ({
-  store: { dispatch: jest.fn() },
+  store: {
+    dispatch: jest.fn(),
+    getState: jest.fn(() => ({})),
+  },
+}));
+
+jest.mock('../../../selectors/featureFlagController', () => ({
+  selectRemoteFeatureFlags: jest.fn(() => ({})),
+}));
+
+jest.mock('../../Ledger/dmk', () => ({
+  isDmkEnabled: jest.fn(() => false),
+}));
+
+jest.mock('@ledgerhq/device-transport-kit-react-native-ble', () => ({
+  RNBleTransportFactory: 'RNBleTransportFactory',
 }));
 
 jest.mock('../../SnapKeyring', () => ({
@@ -43,6 +62,7 @@ function getRootMessenger() {
 describe('wallet-init/keyrings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isDmkEnabled).mockReturnValue(false);
   });
 
   describe('qrKeyringBridge', () => {
@@ -79,6 +99,24 @@ describe('wallet-init/keyrings', () => {
       expect(byType[LegacyMoneyKeyring.type]()).toBeInstanceOf(
         LegacyMoneyKeyring,
       );
+    });
+
+    it('uses LedgerMobileBridge when DMK is disabled', () => {
+      jest.mocked(isDmkEnabled).mockReturnValue(false);
+      const builders = getKeyringBuilders(getRootMessenger()) ?? [];
+      const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
+      const ledger = byType[LegacyLedgerKeyring.type]() as LegacyLedgerKeyring;
+
+      expect(ledger.bridge).toBeInstanceOf(LedgerMobileBridge);
+    });
+
+    it('uses LedgerDmkBridge when DMK is enabled', () => {
+      jest.mocked(isDmkEnabled).mockReturnValue(true);
+      const builders = getKeyringBuilders(getRootMessenger()) ?? [];
+      const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
+      const ledger = byType[LegacyLedgerKeyring.type]() as LegacyLedgerKeyring;
+
+      expect(ledger.bridge).toBeInstanceOf(LedgerDmkBridge);
     });
 
     it('MoneyKeyring getMnemonic closure routes through withKeyringV2Unsafe and matches HD keyrings by id', async () => {

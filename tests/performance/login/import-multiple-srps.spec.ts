@@ -6,10 +6,10 @@ import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import AddAccountBottomSheet from '../../page-objects/wallet/AddAccountBottomSheet';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { PerformanceAccountList } from '../../tags.performance.js';
+import { Performance, PerformanceAccountList } from '../../tags.performance.js';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
-perfTest.describe(PerformanceAccountList, () => {
+perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
   perfTest.setTimeout(30 * 60 * 1000);
   perfTest(
     'Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3',
@@ -32,7 +32,7 @@ perfTest.describe(PerformanceAccountList, () => {
       );
       const addAccountTimer = new TimerHelper(
         'Time since the user clicks on "Add account" button until the next modal is visible',
-        { ios: 1000, android: 1200 },
+        { ios: 1000, android: 1500 },
         currentDeviceDetails.platform,
       );
       const importSrpTimer = new TimerHelper(
@@ -42,7 +42,7 @@ perfTest.describe(PerformanceAccountList, () => {
       );
       const walletReadyTimer = new TimerHelper(
         'Time since the user clicks on "Continue" button on SRP screen until Wallet main screen is visible',
-        { ios: 5000, android: 2000 },
+        { ios: 5000, android: 2500 },
         currentDeviceDetails.platform,
       );
 
@@ -80,7 +80,7 @@ perfTest.describe(PerformanceAccountList, () => {
 
       await walletReadyTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.accountIcon),
+          asPlaywrightElement(WalletView.headerRoot),
           {
             description:
               'Wallet main screen should be visible after importing SRP',

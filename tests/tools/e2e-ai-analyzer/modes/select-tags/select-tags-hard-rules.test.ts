@@ -25,9 +25,9 @@ describe('test-infrastructure-paths', () => {
       expect(result).toEqual(changedFiles);
     });
 
-    it('excludes regression spec files from smoke tag selection scope', () => {
+    it('excludes non-smoke paths from smoke tag selection scope', () => {
       const changedFiles = [
-        'tests/regression/accounts/change-account-name.spec.ts',
+        'tests/page-objects/wallet/AccountListBottomSheet.ts',
       ];
 
       const result = getChangedSpecFiles(changedFiles);
@@ -90,5 +90,29 @@ describe('checkHardRules', () => {
 
     expect(result).not.toBeNull();
     expect(result?.selectedTags).toContain('SmokeAccounts');
+  });
+
+  it('runs all E2E tags when locales/languages/en.json changes', () => {
+    const changedFiles = ['locales/languages/en.json'];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.reasoning).toContain('en-locale-change');
+    expect(result?.selectedTags.length).toBeGreaterThan(1);
+    expect(result?.confidence).toBe(100);
+  });
+
+  it('runs all E2E tags when en.json is among other changed files', () => {
+    const changedFiles = [
+      'locales/languages/en.json',
+      'app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.reasoning).toContain('en-locale-change');
+    expect(result?.selectedTags.length).toBeGreaterThan(1);
   });
 });

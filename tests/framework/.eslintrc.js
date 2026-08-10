@@ -6,15 +6,6 @@ module.exports = {
       rules: {
         // E2E Framework Best Practices (starting with warnings, we will be changing to errors when the migration is complete)
         'no-console': 'off',
-        'no-restricted-syntax': [
-          'warn',
-          {
-            selector:
-              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
-            message:
-              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
-          },
-        ],
       },
     },
     {
@@ -48,12 +39,6 @@ module.exports = {
         'no-restricted-syntax': [
           'warn',
           {
-            selector:
-              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
-            message:
-              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
-          },
-          {
             selector: "CallExpression[callee.name='element']",
             message:
               'Avoid direct element() calls in test specs. Use Page Object methods or Matchers utility instead to follow POM patterns.',
@@ -85,6 +70,70 @@ module.exports = {
               "Program:not(:has(CallExpression[callee.name=/^with.*Fixtures$/])):has(CallExpression[callee.name='describe']):has(CallExpression[callee.name=/^(it|test)$/])",
             message:
               'All E2E spec files must use withFixtures() or other with*Fixtures() methods for consistent test setup, mocking, and fixture management.',
+          },
+        ],
+      },
+    },
+    {
+      files: ['**/page-objects/**/*.{js,ts}', '**/flows/**/*.{js,ts}'],
+      excludedFiles: [
+        '**/page-objects/**/*.test.ts',
+        '**/page-objects/**/*.test.js',
+        '**/flows/**/*.test.ts',
+        '**/flows/**/*.test.js',
+      ],
+      rules: {
+        'no-restricted-imports': [
+          'warn',
+          {
+            patterns: [
+              {
+                group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
+                message:
+                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+              },
+              {
+                group: [
+                  '**/framework',
+                  '**/framework/index',
+                  '**/framework/index.ts',
+                  '**/framework/index.js',
+                ],
+                importNames: ['UnifiedGestures'],
+                message:
+                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    // MMQA-2174: ban UnifiedGestures in smoke specs (error)
+    {
+      files: ['**/smoke-appium/**/*.{js,ts}', '**/smoke/**/*.{js,ts}'],
+      excludedFiles: ['**/smoke-appium/**/*.test.ts', '**/smoke/**/*.test.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
+                message:
+                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+              },
+              {
+                group: [
+                  '**/framework',
+                  '**/framework/index',
+                  '**/framework/index.ts',
+                  '**/framework/index.js',
+                ],
+                importNames: ['UnifiedGestures'],
+                message:
+                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+              },
+            ],
           },
         ],
       },

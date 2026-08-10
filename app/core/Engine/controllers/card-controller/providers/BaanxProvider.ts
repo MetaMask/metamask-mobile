@@ -23,6 +23,7 @@ import {
   ARBITRARY_ALLOWANCE,
   BALANCE_SCANNER_ABI,
   SUPPORTED_ASSET_NETWORKS,
+  LINEA_PUBLIC_RPC_URL,
   cardNetworkInfos,
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
@@ -69,6 +70,7 @@ import {
   type DelegationChallengeResponse,
   emptyCardHomeData,
   isCardAuthTokenError,
+  CardProviderIds,
 } from '../provider-types';
 import AppConstants from '../../../../AppConstants';
 
@@ -203,6 +205,13 @@ function mapApiError(error: unknown, operation: string): CardProviderError {
         408,
       );
     }
+    if (error.statusCode === 429) {
+      return new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `Rate limited on ${operation}`,
+        429,
+      );
+    }
     if (error.statusCode === 0) {
       return new CardProviderError(
         CardProviderErrorCode.Network,
@@ -226,7 +235,7 @@ function mapAllowanceToFundingStatus(
 }
 
 export class BaanxProvider implements ICardProvider {
-  readonly id = 'baanx' as const;
+  readonly id = CardProviderIds.Baanx;
 
   readonly capabilities: CardProviderCapabilities = {
     authMethod: 'email_password',
@@ -251,6 +260,8 @@ export class BaanxProvider implements ICardProvider {
     supportsPinView: true,
     supportsCashback: true,
     supportsCredit: true,
+    supportsSensitiveDetailsView: false,
+    supportsTravel: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -412,6 +423,9 @@ export class BaanxProvider implements ICardProvider {
         if (isCardAuthTokenError(err)) {
           throw mapApiError(err, logContext);
         }
+        if (err instanceof CardApiError && err.statusCode === 429) {
+          throw mapApiError(err, logContext);
+        }
         Logger.error(err as Error, getErrorContext(logContext));
         return null;
       };
@@ -507,6 +521,14 @@ export class BaanxProvider implements ICardProvider {
     } catch (error) {
       if (isCardAuthTokenError(error)) {
         throw error;
+      }
+      if (
+        (error instanceof CardApiError || error instanceof CardProviderError) &&
+        error.statusCode === 429
+      ) {
+        throw error instanceof CardApiError
+          ? mapApiError(error, 'getCardHomeData')
+          : error;
       }
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
@@ -874,12 +896,34 @@ export class BaanxProvider implements ICardProvider {
         return fallback;
       }
 
-      const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
-      if (!rpcUrl) return fallback;
-      const lineaProvider = new ethers.providers.StaticJsonRpcProvider(rpcUrl, {
-        chainId: 59144,
-        name: 'linea',
-      });
+      const primaryRpcUrl = cardNetworkInfos.linea?.rpcUrl;
+      if (!primaryRpcUrl) return fallback;
+
+      const rpcCandidates = Array.from(
+        new Set(
+          [primaryRpcUrl, LINEA_PUBLIC_RPC_URL].filter(
+            (url): url is string => typeof url === 'string' && url.length > 0,
+          ),
+        ),
+      );
+
+      let lineaProvider: ethers.providers.StaticJsonRpcProvider | undefined;
+      let lastRpcError: unknown;
+      for (const rpcUrl of rpcCandidates) {
+        try {
+          const candidate = this.#createLineaProvider(rpcUrl);
+          await candidate.getBlockNumber();
+          lineaProvider = candidate;
+          break;
+        } catch (error) {
+          lastRpcError = error;
+        }
+      }
+      if (!lineaProvider) {
+        throw lastRpcError instanceof Error
+          ? lastRpcError
+          : new Error('Linea RPC unreachable');
+      }
 
       const rawAllowances = await this.#fetchOnChainAllowances(
         address,
@@ -915,8 +959,71 @@ export class BaanxProvider implements ICardProvider {
       };
     } catch (error) {
       Logger.error(error as Error, getErrorContext('getOnChainAssets'));
-      return fallback;
+      // When Linea RPC is unreachable, still surface feature-flag Linea tokens so
+      // CardHome can render the asset; useAssetBalances fills wallet balances.
+      return this.#buildLineaAssetsFromFeatureFlag(address) ?? fallback;
     }
+  }
+
+  /**
+   * Builds Inactive Linea funding rows from the card feature flag when on-chain
+   * allowance scanning is unavailable. Empty spendableBalance lets
+   * useAssetBalances fall back to MultichainBalances wallet balances.
+   */
+  #buildLineaAssetsFromFeatureFlag(address: string): CardHomeData | null {
+    const lineaChainId = 'eip155:59144';
+    const lineaChain = this.cardFeatureFlag?.chains?.[lineaChainId];
+    if (!lineaChain?.tokens?.length) return null;
+
+    const fundingAssets = lineaChain.tokens
+      .filter(
+        (t): t is SupportedToken & { address: string } =>
+          !!t && typeof t.address === 'string' && t.enabled !== false,
+      )
+      .map(
+        (t): CardFundingAsset => ({
+          symbol: t.symbol ?? '',
+          name: t.name ?? t.symbol ?? '',
+          address: t.address,
+          walletAddress: address,
+          decimals: t.decimals ?? 6,
+          chainId: lineaChainId,
+          spendableBalance: '',
+          spendingCap: '0',
+          priority: 0,
+          status: FundingAssetStatus.Inactive,
+        }),
+      )
+      .filter((asset) => asset.symbol !== '');
+
+    if (fundingAssets.length === 0) return null;
+
+    return {
+      primaryFundingAsset: fundingAssets[0],
+      fundingAssets,
+      availableFundingAssets: fundingAssets,
+      card: null,
+      account: null,
+      alerts: [],
+      actions: [{ type: 'add_funds', enabled: true }],
+      delegationSettings: null,
+    };
+  }
+
+  #createLineaProvider(rpcUrl: string): ethers.providers.StaticJsonRpcProvider {
+    // StaticJsonRpcProvider skips ethers' auto network detection.
+    // skipFetchSetup is required in React Native — without it ethers mutates
+    // fetch headers/body and Linea RPCs respond with "Invalid JSON" / noNetwork.
+    return new ethers.providers.StaticJsonRpcProvider(
+      {
+        url: rpcUrl,
+        skipFetchSetup: true,
+      },
+      {
+        name: 'linea',
+        chainId: 59144,
+      },
+    );
   }
 
   // -- On-Chain private helpers --

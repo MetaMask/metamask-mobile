@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { FundingStatus, CardFundingToken } from '../../types';
 
@@ -44,6 +45,7 @@ import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
@@ -65,7 +67,7 @@ export const createAssetSelectionModalNavigationDetails =
 
 const AssetSelectionBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     navigateToCardHomeOnPriorityToken = false,
     selectionOnly = false,
@@ -172,7 +174,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       labelOptions: [{ label: strings('card.asset_selection.update_success') }],
       iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.success.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -183,7 +184,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       labelOptions: [{ label: strings('card.asset_selection.update_error') }],
       iconName: IconName.Danger,
       iconColor: theme.colors.error.default,
-      backgroundColor: theme.colors.error.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -245,11 +245,15 @@ const AssetSelectionBottomSheet: React.FC = () => {
         // Navigation-based mode: go back with the selected token
         closeBottomSheetAndNavigate(() => {
           if (callerRoute) {
-            // Navigate back to the caller route with the selected token
-            navigation.navigate(callerRoute, {
-              ...callerParams,
-              returnedSelectedToken: token,
-            });
+            // Navigate back to the caller route with the selected token.
+            // `callerRoute` is a dynamic string from modal params.
+            navigateWithDetails(navigation, [
+              callerRoute,
+              {
+                ...callerParams,
+                returnedSelectedToken: token,
+              },
+            ]);
           } else {
             // Fallback: just go back
             navigation.goBack();

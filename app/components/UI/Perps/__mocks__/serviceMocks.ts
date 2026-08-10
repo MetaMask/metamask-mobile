@@ -9,6 +9,8 @@ import {
   type InitializationState,
   type PerpsControllerMessenger,
   type PerpsPlatformDependencies,
+  DEFAULT_PERPS_MODE,
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
 } from '@metamask/perps-controller';
 
 /**
@@ -162,6 +164,8 @@ export const createMockPerpsControllerState = (
   selectedPaymentToken: null,
   cachedMarketDataByProvider: {},
   cachedUserDataByProvider: {},
+  mode: DEFAULT_PERPS_MODE,
+  proLayoutPreferences: DEFAULT_PRO_LAYOUT_PREFERENCES,
   ...overrides,
 });
 
