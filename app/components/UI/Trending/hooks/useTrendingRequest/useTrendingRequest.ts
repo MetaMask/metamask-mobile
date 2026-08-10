@@ -6,7 +6,7 @@ import {
   TrendingTokensQueryParams,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { useTrendingChainIds } from '../useTrendingChainIds/useTrendingChainIds';
 import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { filterLowQualityTokens } from '../../utils/filterTrendingTokens';
@@ -182,12 +182,7 @@ export const useTrendingRequest = (
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
 
   // Use provided chainIds or default to trending networks
-  const chainIds = useMemo((): CaipChainId[] => {
-    if (providedChainIds.length > 0) {
-      return providedChainIds;
-    }
-    return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
-  }, [providedChainIds]);
+  const chainIds = useTrendingChainIds(providedChainIds);
 
   // Calculate thresholds based on selected chains
   const minLiquidity: number = useMemo(
