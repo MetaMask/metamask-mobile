@@ -50,8 +50,10 @@ function sanitizeRpcUrl(rpcUrl: string) {
  * where the compiler cannot lower conditional or optional-chained expressions.
  */
 function getDefaultRpcEndpointDetails(
-  networkConfig: ReturnType<
-    typeof Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+  networkConfig: NonNullable<
+    ReturnType<
+      typeof Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+    >
   >,
 ) {
   const defaultRpcEndpointIndex = networkConfig.defaultRpcEndpointIndex || 0;
