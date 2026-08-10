@@ -30,7 +30,6 @@ export const ConfirmationUIType = {
 export const ConfirmationRowComponentIDs = {
   ACCOUNT_NETWORK: 'account-network',
   ADVANCED_DETAILS: 'advanced-details',
-  ADVANCED_DETAILS_NONCE_BUTTON: 'advanced-details-nonce-button',
   APPROVE_ROW: 'approve-row',
   BRIDGE_TIME: 'bridge-time',
   FROM_TO: 'from-to',

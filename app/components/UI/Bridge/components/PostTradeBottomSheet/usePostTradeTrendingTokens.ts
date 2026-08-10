@@ -89,7 +89,17 @@ export const usePostTradeTrendingTokens = ({
     cacheTime: STALE_TIME_MS,
   });
   const tokens = useMemo(() => {
-    if (!shouldFillWithFallback || !fallbackQuery.data?.length) {
+    if (!shouldFillWithFallback) {
+      return destinationTokens;
+    }
+
+    // Hold results until the Ethereum backfill finishes so the list
+    // appears as one complete set instead of a sparse destination-only flash.
+    if (fallbackQuery.isLoading) {
+      return [];
+    }
+
+    if (!fallbackQuery.data?.length) {
       return destinationTokens;
     }
 
@@ -100,7 +110,12 @@ export const usePostTradeTrendingTokens = ({
         POST_TRADE_TRENDING_TOKENS_LIMIT - destinationTokens.length,
       ),
     ];
-  }, [destinationTokens, fallbackQuery.data, shouldFillWithFallback]);
+  }, [
+    destinationTokens,
+    fallbackQuery.data,
+    fallbackQuery.isLoading,
+    shouldFillWithFallback,
+  ]);
 
   return {
     tokens,

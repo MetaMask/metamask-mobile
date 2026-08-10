@@ -3,11 +3,11 @@ import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
-import { TextButton } from '@metamask/design-system-react-native';
 
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
+import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Name from '../../../../../../UI/Name';
@@ -56,7 +56,9 @@ const AdvancedDetailsRow = () => {
   // Nonce is always editable unless smart transactions are enabled
   const isNonceChangeDisabled = isSTXEnabledForChain && isSTXOptIn;
 
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {
+    isNonceChangeDisabled,
+  });
 
   const handleShowNonceModal = useCallback(() => {
     setShowNonceModal(true);
@@ -115,16 +117,15 @@ const AdvancedDetailsRow = () => {
                 label={strings('transaction.custom_nonce')}
                 tooltip={strings('transaction.custom_nonce_tooltip')}
               >
-                <TextButton
+                <Text
+                  variant={TextVariant.BodyMD}
+                  style={styles.nonceText}
                   onPress={
                     isNonceChangeDisabled ? undefined : handleShowNonceModal
                   }
-                  testID={
-                    ConfirmationRowComponentIDs.ADVANCED_DETAILS_NONCE_BUTTON
-                  }
                 >
-                  {String(userSelectedNonce)}
-                </TextButton>
+                  {userSelectedNonce}
+                </Text>
               </InfoRow>
             </InfoSection>
             {shouldShowData && (
@@ -172,7 +173,9 @@ const AdvancedDetailsRow = () => {
 };
 
 export function AdvancedDetailsRowSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {
+    isNonceChangeDisabled: false,
+  });
 
   return (
     <InfoSection>
