@@ -28,6 +28,7 @@ import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracki
 import { FilterButton } from '../../components/FilterBar/FilterBar';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { useTrendingChainIds } from '../../hooks/useTrendingChainIds/useTrendingChainIds';
 import type { Theme } from '../../../../../util/theme/models';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
@@ -141,6 +142,16 @@ const TrendingTokensFullView = () => {
   const sessionManager = TrendingFeedSessionManager.getInstance();
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
+  );
+  const trendingChainIds = useTrendingChainIds();
+  const trendingNetworks = useMemo(
+    () => {
+      const allowedChainIds = new Set(trendingChainIds);
+      return TRENDING_NETWORKS_LIST.filter((network) =>
+        allowedChainIds.has(network.caipChainId),
+      )
+    },
+    [trendingChainIds],
   );
   const { variant: quickBuyVariant } = useABTest(
     EXPLORE_QUICK_BUY_AB_KEY,
@@ -303,7 +314,7 @@ const TrendingTokensFullView = () => {
       searchResults={searchResults}
       isLoading={isLoading}
       onRefresh={handleRefresh}
-      allowedNetworks={TRENDING_NETWORKS_LIST}
+      allowedNetworks={trendingNetworks}
       extraFilters={timeFilterButton}
       onLoadMore={loadMore}
       isLoadingMore={isLoadingMore}
