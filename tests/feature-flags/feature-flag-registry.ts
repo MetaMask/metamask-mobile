@@ -929,7 +929,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       'US-MD': true,
       'US-HI': true,
     },
-    status: FeatureFlagStatus.Deprecated,
+    status: FeatureFlagStatus.Active,
   },
 
   carouselBanners: {
@@ -5031,7 +5031,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.58.1',
       enabled: true,
     },
-    status: FeatureFlagStatus.Deprecated,
+    status: FeatureFlagStatus.Active,
   },
 
   cardCARD338AbtestAttentionBadge: {
@@ -5054,7 +5054,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
     ],
-    status: FeatureFlagStatus.Deprecated,
+    status: FeatureFlagStatus.Active,
   },
 
   confirmations_pay_fiat: {
@@ -5097,7 +5097,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.64.1',
       enabled: true,
     },
-    status: FeatureFlagStatus.Deprecated,
+    status: FeatureFlagStatus.Active,
   },
 
   googleLoginIosUnsupportedBlockingEnabled: {
