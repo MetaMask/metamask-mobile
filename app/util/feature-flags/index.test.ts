@@ -242,7 +242,10 @@ describe('Feature Flags Utility Functions', () => {
     it('returns true for named groups without a value (percentage rollout)', () => {
       const groups = [
         { name: 'control', scope: { type: 'percentage_rollout', value: 0.5 } },
-        { name: 'treatment', scope: { type: 'percentage_rollout', value: 0.5 } },
+        {
+          name: 'treatment',
+          scope: { type: 'percentage_rollout', value: 0.5 },
+        },
       ];
 
       expect(isAbTestOptionsArray(groups)).toBe(true);
