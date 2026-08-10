@@ -38,6 +38,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useHaptics } from '../../../../../util/haptics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -144,6 +145,7 @@ const PerpsProOrderBookColumn = ({
  */
 const PerpsProMarketView = () => {
   const { styles } = useStyles(createStyles, {});
+  const { playSelection } = useHaptics();
   const navigation =
     useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const route =
@@ -186,6 +188,8 @@ const PerpsProMarketView = () => {
         return;
       }
 
+      playSelection().catch(() => undefined);
+
       // POSITION_TAB is the panel-level source; source_section distinguishes
       // which tab the row came from (same pattern as Perps home).
       // `direction` is cleared because `setParams` merges: the side belongs to
@@ -198,7 +202,7 @@ const PerpsProMarketView = () => {
         direction: undefined,
       });
     },
-    [navigation, routeMarket?.symbol],
+    [navigation, playSelection, routeMarket?.symbol],
   );
 
   // Bring the chart back into view when the active market changes (e.g. the

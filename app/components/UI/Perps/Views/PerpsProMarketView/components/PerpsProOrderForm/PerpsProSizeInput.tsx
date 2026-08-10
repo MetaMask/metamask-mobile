@@ -17,7 +17,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useRef } from 'react';
 import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { useHaptics } from '../../../../../../../util/haptics';
+import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
@@ -66,7 +66,7 @@ const PerpsProSizeInput = ({
   onFieldPress,
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
-  const { playSelection } = useHaptics();
+  const { playImpact, playSelection } = useHaptics();
   const inputRef = useRef<TextInput>(null);
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
@@ -99,6 +99,15 @@ const PerpsProSizeInput = ({
     onToggleDenomination,
     playSelection,
   ]);
+
+  const handleAddFundsPress = useCallback(() => {
+    if (!onAddFundsPress) {
+      return;
+    }
+
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    onAddFundsPress();
+  }, [onAddFundsPress, playImpact]);
 
   return (
     <Box
@@ -208,7 +217,7 @@ const PerpsProSizeInput = ({
       </Box>
       <Box twClassName="w-full border-t border-muted" />
       <ButtonBase
-        onPress={onAddFundsPress}
+        onPress={handleAddFundsPress}
         isDisabled={!onAddFundsPress}
         twClassName="h-[46px] w-full rounded-b-2xl bg-transparent px-3"
         contentWrapperProps={{

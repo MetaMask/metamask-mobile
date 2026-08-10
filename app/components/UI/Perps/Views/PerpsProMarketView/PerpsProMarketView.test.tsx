@@ -23,6 +23,9 @@ import {
 } from '../../Perps.testIds';
 import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 interface MockLiveOrderBookResult {
   orderBook: OrderBookData | null;
@@ -406,6 +409,7 @@ describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOrderFormType = 'market';
+    jest.mocked(playSelection).mockClear();
     mockRouteParams = {
       market: {
         symbol: 'BTC',
@@ -471,6 +475,7 @@ describe('PerpsProMarketView', () => {
       source_section: PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
       direction: undefined,
     });
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('attributes order-row market switches with the orders source section', () => {
@@ -554,6 +559,7 @@ describe('PerpsProMarketView', () => {
     fireEvent.press(getByTestId(getPerpsProPositionRowSelector('BTC')));
 
     expect(mockSetParams).not.toHaveBeenCalled();
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('scrolls to the top when the active market symbol changes', () => {

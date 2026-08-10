@@ -147,6 +147,11 @@ export type PerpsStackParamList = {
          * Used by the header slide-up picker.
          */
         replaceOnSelect?: boolean;
+        /**
+         * When true, fires selection haptics on market row taps.
+         * Defaults off so Lite entry points stay silent.
+         */
+        enableHaptics?: boolean;
       }
     | undefined;
 

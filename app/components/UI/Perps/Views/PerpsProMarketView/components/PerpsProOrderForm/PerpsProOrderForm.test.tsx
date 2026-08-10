@@ -334,6 +334,14 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.AVAILABLE_BALANCE));
 
       expect(onAddFundsPress).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('does not play Add funds haptics when the action is disabled', () => {
+      renderForm({ onAddFundsPress: undefined });
+
+      expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeDisabled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
