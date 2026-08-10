@@ -8,7 +8,7 @@ import Engine from '../../../../core/Engine';
 import type { CardTransactionPage } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   selectCardActiveProviderId,
-  selectCardAuthSessionId,
+  selectCardProviderUserId,
   selectIsCardAuthenticated,
 } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
@@ -36,7 +36,7 @@ jest.mock('react-redux', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 let mockIsAuthenticated = true;
 let mockProviderId: string | null = 'baanx';
-let mockAuthSessionId: string | null = 'session-1';
+let mockProviderUserId: string | null = 'user-1';
 
 let activeQueryClient: QueryClient | null = null;
 
@@ -77,7 +77,7 @@ describe('useCardTransactions', () => {
     jest.clearAllMocks();
     mockIsAuthenticated = true;
     mockProviderId = 'baanx';
-    mockAuthSessionId = 'session-1';
+    mockProviderUserId = 'user-1';
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsCardAuthenticated) {
         return mockIsAuthenticated;
@@ -85,8 +85,8 @@ describe('useCardTransactions', () => {
       if (selector === selectCardActiveProviderId) {
         return mockProviderId;
       }
-      if (selector === selectCardAuthSessionId) {
-        return mockAuthSessionId;
+      if (selector === selectCardProviderUserId) {
+        return mockProviderUserId;
       }
       return undefined;
     });
@@ -233,7 +233,7 @@ describe('useCardTransactions', () => {
     queryClient.setQueryData(
       cardQueries.transactions.keys.list(
         'baanx',
-        'session-1',
+        'user-1',
         '',
         undefined,
         undefined,
@@ -254,7 +254,7 @@ describe('useCardTransactions', () => {
         queryClient.getQueryData(
           cardQueries.transactions.keys.list(
             'baanx',
-            'session-1',
+            'user-1',
             '',
             undefined,
             undefined,
@@ -267,7 +267,7 @@ describe('useCardTransactions', () => {
     expect(result.current.hasMore).toBe(false);
   });
 
-  it('uses provider- and session-scoped query keys', async () => {
+  it('uses provider- and user-scoped query keys', async () => {
     const { Wrapper, queryClient } = createWrapper();
 
     const { result } = renderHook(() => useCardTransactions(), {
@@ -279,7 +279,7 @@ describe('useCardTransactions', () => {
       queryClient.getQueryData(
         cardQueries.transactions.keys.list(
           'baanx',
-          'session-1',
+          'user-1',
           '',
           undefined,
           undefined,
@@ -290,7 +290,7 @@ describe('useCardTransactions', () => {
       queryClient.getQueryData(
         cardQueries.transactions.keys.list(
           'immersve',
-          'session-1',
+          'user-1',
           '',
           undefined,
           undefined,
@@ -301,7 +301,7 @@ describe('useCardTransactions', () => {
       queryClient.getQueryData(
         cardQueries.transactions.keys.list(
           'baanx',
-          'session-2',
+          'user-2',
           '',
           undefined,
           undefined,

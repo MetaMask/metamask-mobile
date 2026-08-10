@@ -130,7 +130,7 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
-  authSessionId: {
+  providerUserId: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -178,7 +178,7 @@ export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
-  authSessionId: null,
+  providerUserId: null,
   lastUnauthenticatedReason: null,
   cardholderAccounts: [],
   providerData: {},
@@ -209,7 +209,6 @@ export class CardController extends BaseController<
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
-  private authSessionGeneration = 0;
   #lastFetchedAt = 0;
 
   constructor({
@@ -527,14 +526,9 @@ export class CardController extends BaseController<
   ): void {
     this.update((s) => {
       s.isAuthenticated = false;
-      s.authSessionId = null;
+      s.providerUserId = null;
       s.lastUnauthenticatedReason = reason;
     });
-  }
-
-  #createAuthSessionId(): string {
-    this.authSessionGeneration += 1;
-    return `${Date.now()}:${this.authSessionGeneration}`;
   }
 
   clearLastUnauthenticatedReason(): void {
@@ -698,7 +692,8 @@ export class CardController extends BaseController<
       }
       this.update((s) => {
         s.isAuthenticated = true;
-        s.authSessionId = this.#createAuthSessionId();
+        s.providerUserId =
+          tokenSet.providerUserId ?? tokenSet.cardholderAccountId ?? null;
         s.lastUnauthenticatedReason = null;
         s.cardHomeData = null;
         s.cardHomeDataStatus = 'idle';
@@ -757,7 +752,7 @@ export class CardController extends BaseController<
     this.invalidateFetch();
     this.update((s) => {
       s.isAuthenticated = false;
-      s.authSessionId = null;
+      s.providerUserId = null;
       s.lastUnauthenticatedReason = reason;
       s.cardHomeData = null;
       s.cardHomeDataStatus = 'idle';
@@ -874,7 +869,11 @@ export class CardController extends BaseController<
     const validity = provider.validateTokens(tokens);
 
     if (validity === 'valid') {
-      this.#markAuthenticatedWithLocation(pid, tokens.location);
+      this.#markAuthenticatedWithLocation(
+        pid,
+        tokens.location,
+        tokens.providerUserId ?? tokens.cardholderAccountId ?? null,
+      );
       return tokens;
     }
 
@@ -907,9 +906,20 @@ export class CardController extends BaseController<
     tokens: CardAuthTokens,
   ): Promise<CardAuthTokens | null> {
     try {
-      const fresh = await this.getActiveProvider().refreshTokens(tokens);
+      const refreshed = await this.getActiveProvider().refreshTokens(tokens);
+      const fresh: CardAuthTokens = {
+        ...refreshed,
+        providerUserId:
+          refreshed.providerUserId ??
+          tokens.providerUserId ??
+          tokens.cardholderAccountId,
+      };
       await CardTokenStore.set(pid, fresh);
-      this.#markAuthenticatedWithLocation(pid, fresh.location);
+      this.#markAuthenticatedWithLocation(
+        pid,
+        fresh.location,
+        fresh.providerUserId ?? fresh.cardholderAccountId ?? null,
+      );
       return fresh;
     } catch (error) {
       Logger.error(error as Error, {
@@ -995,10 +1005,14 @@ export class CardController extends BaseController<
     return this.#executeWithAuthRetry(tokens, operation);
   }
 
-  #markAuthenticatedWithLocation(pid: string, location: string): void {
+  #markAuthenticatedWithLocation(
+    pid: string,
+    location: string,
+    providerUserId: string | null,
+  ): void {
     this.update((s) => {
       s.isAuthenticated = true;
-      s.authSessionId ??= this.#createAuthSessionId();
+      s.providerUserId = providerUserId;
       s.lastUnauthenticatedReason = null;
       (s.providerData as unknown as Record<string, Record<string, string>>)[
         pid

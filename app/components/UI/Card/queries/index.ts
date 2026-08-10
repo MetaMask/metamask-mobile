@@ -16,7 +16,7 @@ const transactionKeys = {
   all: () => ['card', 'transactions'] as const,
   list: (
     providerId: string | null,
-    authSessionId: string | null,
+    providerUserId: string,
     searchQuery: string,
     fromDate?: number,
     toDate?: number,
@@ -24,7 +24,7 @@ const transactionKeys = {
     [
       ...transactionKeys.all(),
       providerId,
-      authSessionId,
+      providerUserId,
       searchQuery,
       fromDate,
       toDate,

@@ -490,6 +490,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt:
         Date.now() + response.refresh_token_expires_in * 1000,
       location: tokens.location,
+      providerUserId: tokens.providerUserId,
     };
   }
 
@@ -1632,6 +1633,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt:
         Date.now() + tokenResponse.refresh_token_expires_in * 1000,
       location: metadata.location,
+      providerUserId: loginResponse.userId,
     };
 
     return { done: true, tokenSet };

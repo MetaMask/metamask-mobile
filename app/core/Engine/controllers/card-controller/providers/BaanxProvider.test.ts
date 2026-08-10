@@ -534,6 +534,7 @@ describe('BaanxProvider', () => {
       accessTokenExpiresAt: 1,
       refreshTokenExpiresAt: 2,
       location: 'international',
+      providerUserId: 'baanx-user-1',
     };
 
     const buildProvider = (request: jest.Mock) =>
@@ -618,6 +619,7 @@ describe('BaanxProvider', () => {
           accessToken: 'new-at',
           refreshToken: 'new-rt',
           location: 'international',
+          providerUserId: 'baanx-user-1',
           accessTokenExpiresAt: Date.now() + 60_000,
           refreshTokenExpiresAt: Date.now() + 120_000,
         });

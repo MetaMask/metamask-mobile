@@ -78,6 +78,8 @@ export interface CardAuthTokens {
   accessTokenExpiresAt: number;
   refreshTokenExpiresAt?: number;
   location: string;
+  /** Stable user identifier issued by the active card provider. */
+  providerUserId?: string;
   cardholderAccountId?: string;
   accountAddress?: string;
   keyringId?: string;

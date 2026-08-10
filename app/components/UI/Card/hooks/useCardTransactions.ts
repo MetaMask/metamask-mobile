@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import {
   selectCardActiveProviderId,
-  selectCardAuthSessionId,
+  selectCardProviderUserId,
   selectIsCardAuthenticated,
 } from '../../../../selectors/cardController';
 import type {
@@ -58,7 +58,10 @@ export function useCardTransactions(
   const queryClient = useQueryClient();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const providerId = useSelector(selectCardActiveProviderId);
-  const authSessionId = useSelector(selectCardAuthSessionId);
+  const providerUserId = useSelector(selectCardProviderUserId);
+  // Token sets created before provider user IDs were introduced use an
+  // isolated legacy scope. Every new Baanx/Immersve login stores a stable ID.
+  const transactionCacheUserId = providerUserId ?? 'legacy';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -81,7 +84,7 @@ export function useCardTransactions(
   const query = useInfiniteQuery({
     queryKey: cardQueries.transactions.keys.list(
       providerId,
-      authSessionId,
+      transactionCacheUserId,
       debouncedSearch,
       fromDate,
       toDate,
@@ -99,9 +102,7 @@ export function useCardTransactions(
       });
     },
     getNextPageParam: (lastPage: CardTransactionPage) => lastPage.nextCursor,
-    enabled: Boolean(
-      cardController && isAuthenticated && providerId && authSessionId,
-    ),
+    enabled: Boolean(cardController && isAuthenticated && providerId),
   });
 
   const items = useMemo(

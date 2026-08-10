@@ -397,6 +397,7 @@ export class ImmersveProvider implements ICardProvider {
         ? (decodeJwtExpiryMs(response.refreshToken) ?? undefined)
         : undefined,
       location: IMMERSVE_LOCATION,
+      providerUserId: response.cardholderAccountId,
       cardholderAccountId: response.cardholderAccountId,
       accountAddress: session._metadata.address as string | undefined,
     };
@@ -447,6 +448,7 @@ export class ImmersveProvider implements ICardProvider {
         ? (decodeJwtExpiryMs(refreshToken) ?? undefined)
         : undefined,
       location: tokens.location,
+      providerUserId: tokens.providerUserId ?? tokens.cardholderAccountId,
       cardholderAccountId: tokens.cardholderAccountId,
       accountAddress: tokens.accountAddress,
       keyringId: tokens.keyringId,

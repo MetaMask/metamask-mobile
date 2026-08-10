@@ -266,6 +266,7 @@ const mockTokenSet: CardAuthTokens = {
   accessTokenExpiresAt: FIXED_NOW + 3_600_000,
   refreshTokenExpiresAt: FIXED_NOW + 86_400_000,
   location: 'international',
+  providerUserId: 'baanx-user-1',
 };
 
 const mockUnauthorizedError = new CardProviderError(
@@ -309,7 +310,7 @@ describe('CardController', () => {
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,
-      authSessionId: null,
+      providerUserId: null,
       lastUnauthenticatedReason: null,
       cardholderAccounts: [],
       providerData: {},
@@ -496,7 +497,7 @@ describe('CardController — auth methods', () => {
 
       expect(mockTokenStore.set).toHaveBeenCalledWith('baanx', mockTokenSet);
       expect(controller.state.isAuthenticated).toBe(true);
-      expect(controller.state.authSessionId).toEqual(expect.any(String));
+      expect(controller.state.providerUserId).toBe('baanx-user-1');
       expect(controller.state.providerData.baanx).toStrictEqual({
         location: 'international',
       });
@@ -723,7 +724,7 @@ describe('CardController — auth methods', () => {
       mockTokenStore.remove.mockResolvedValue(true);
       const controller = buildController(provider, {
         isAuthenticated: true,
-        authSessionId: 'session-1',
+        providerUserId: 'baanx-user-1',
       });
 
       await controller.logout();
@@ -731,7 +732,7 @@ describe('CardController — auth methods', () => {
       expect(provider.logout).toHaveBeenCalledWith(mockTokenSet);
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
       expect(controller.state.isAuthenticated).toBe(false);
-      expect(controller.state.authSessionId).toBeNull();
+      expect(controller.state.providerUserId).toBeNull();
       expect(controller.state.lastUnauthenticatedReason).toBeNull();
     });
 
