@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { BackHandler } from 'react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -18,6 +19,7 @@ import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
@@ -283,6 +285,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
+      canGoBack: mockCanGoBack,
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -304,6 +307,7 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
     mockRefetchPosition.mockResolvedValue(undefined);
     mockRefreshProfile.mockResolvedValue(undefined);
     mockHandleFetch.mockResolvedValue({});
@@ -369,7 +373,8 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades yet')).toBeOnTheScreen();
   });
 
-  it('calls goBack when the back button is pressed', () => {
+  it('calls goBack when the back button is pressed and a screen can be popped', () => {
+    mockCanGoBack.mockReturnValue(true);
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
@@ -378,6 +383,37 @@ describe('TraderPositionView', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to Wallet Home when the back button is pressed at the stack root', () => {
+    // Cold-start push lands this screen as the stack root with nothing to pop.
+    mockCanGoBack.mockReturnValue(false);
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('consumes the Android hardware back event and routes to Wallet Home at the stack root', () => {
+    // Regression guard for "hardware back closes the app": the registered
+    // handler must return true (consume the event) instead of bubbling to the OS.
+    mockCanGoBack.mockReturnValue(false);
+    const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const hardwareBackHandler = addEventListenerSpy.mock.calls.find(
+      ([event]) => event === 'hardwareBackPress',
+    )?.[1] as (() => boolean) | undefined;
+
+    expect(hardwareBackHandler?.()).toBe(true);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    addEventListenerSpy.mockRestore();
   });
 
   it('navigates to the trader profile when the trader name is pressed', () => {

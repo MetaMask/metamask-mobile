@@ -4,9 +4,25 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import SocialTradersTabsView from './SocialTradersTabsView';
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      canGoBack: mockCanGoBack,
+    }),
+  };
+});
 
 jest.mock('../analytics', () => {
   const actual = jest.requireActual('../analytics');
@@ -140,10 +156,35 @@ jest.mock('../FeedView/components/FeedSpotBuyAction', () => {
 describe('SocialTradersTabsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
     mockHasSpotItem = true;
     mockDeferBuyActionRef = false;
     mockAttachBuyActionRef = null;
     mockOnSpotAvailabilityChange = undefined;
+  });
+
+  it('calls goBack when the back button is pressed and a screen can be popped', () => {
+    mockCanGoBack.mockReturnValue(true);
+    renderWithProvider(<SocialTradersTabsView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.HOME_TABS);
+  });
+
+  it('navigates to Wallet Home when the back button is pressed at the stack root', () => {
+    mockCanGoBack.mockReturnValue(false);
+    renderWithProvider(<SocialTradersTabsView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('renders the header, tabs, and both pages', () => {
