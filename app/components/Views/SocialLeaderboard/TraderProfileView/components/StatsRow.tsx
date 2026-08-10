@@ -14,6 +14,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { TraderStats } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 import { getTraderHeadlineStatsDisplay } from '../utils/getTraderHeadlineStatsDisplay';
+import { EM_DASH } from '../../utils/formatters';
 
 export interface StatsRowProps {
   stats: TraderStats;
@@ -102,7 +103,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats, holdTimeMinutes }) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
-          {holdTimeMinutes != null ? formatHoldTime(holdTimeMinutes) : '\u2014'}
+          {holdTimeMinutes != null ? formatHoldTime(holdTimeMinutes) : EM_DASH}
         </Text>
         <Text
           variant={TextVariant.BodySm}
