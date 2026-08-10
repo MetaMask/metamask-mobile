@@ -71,11 +71,11 @@ jobs:
       - get_requirements
     # Bounded so a future caching/CocoaPods regression fails fast instead of silently
     # ballooning past the merge queue's re-basing cadence (see #33442 / #34552 incident).
-    # 45m (not tighter) verified empirically: a fully cold-cache run (no yarn/bundler/
-    # CocoaPods-specs cache yet) took ~29m end-to-end in #34563 — 30m cut it off mid
-    # cache-save. Still far below the ~80-90m #33442 regression and well inside the
-    # merge queue's re-basing cadence.
-    timeout-minutes: 45
+    # 35m verified empirically in #34563: a cold-cache run took ~29m end-to-end (no
+    # CocoaPods caching at all — see comment below on why that was dropped). Still far
+    # below the ~80-90m #33442 regression and well inside the merge queue's re-basing
+    # cadence.
+    timeout-minutes: 35
     # Set at job level (not just on the Ruby setup step) so it also applies to the
     # later `yarn setup:github-ci` step, which runs `bundle exec pod install` without
     # an explicit --gemfile flag. Without this, Bundler falls back to a plain $PATH
@@ -96,25 +96,15 @@ jobs:
         with:
           ruby-version: '3.2.9'
           bundler-cache: true
-      # Only caches the CocoaPods specs/trunk index (~/.cocoapods/repos), never ios/Pods
-      # or the CocoaPods download cache — caching those in #33442 produced a ~2.2GB blob
-      # that took ~77 minutes to extract on macos-latest, which repeatedly got superseded
-      # by the merge queue's re-basing before it could finish. This mirrors the pattern
-      # already used in .github/actions/setup-e2e-env/action.yml ("Restore CocoaPods
-      # specs cache"), though empirically that cache is itself ~1.6GB (not small — it's
-      # the full public specs/trunk index, not scoped to this project's deps), so this
-      # gets a real (not token) timeout. continue-on-error means a slow/failed
-      # restore/save never blocks the job — it just falls back to a normal `pod install`.
-      - name: Restore CocoaPods specs cache
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/cache@v4
-        continue-on-error: true
-        timeout-minutes: 15
-        with:
-          path: ~/.cocoapods/repos
-          key: ${{ runner.os }}-check-diff-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-check-diff-cocoapods-specs-
+      # No CocoaPods caching here (deliberately). #33442 cached ios/Pods + the CocoaPods
+      # download cache (~2.2GB) which took ~77m to extract on macos-latest and repeatedly
+      # got superseded by the merge queue's re-basing before finishing. A narrower cache
+      # of just ~/.cocoapods/repos (the pattern used in
+      # .github/actions/setup-e2e-env/action.yml) was tried here too, but verified
+      # empirically (#34563) to be ~1.6GB and consistently time out at 15m without ever
+      # completing a restore — pure overhead with continue-on-error masking it, no actual
+      # speedup. Plain `pod install` (~13-15m, the pre-#33442 baseline) is faster and
+      # more predictable than any CocoaPods cache tried so far for this job.
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
