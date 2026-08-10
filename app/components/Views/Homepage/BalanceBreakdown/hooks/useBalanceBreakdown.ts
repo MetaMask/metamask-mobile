@@ -181,5 +181,5 @@ export function useBalanceBreakdown(): BreakdownData {
     perpsSlice.valueFiat,
   ]);
 
-  return { hero, slices };
+  return useMemo(() => ({ hero, slices }), [hero, slices]);
 }
