@@ -341,16 +341,35 @@ describe('MoneyLinkCardSheet', () => {
   });
 
   describe('card animation sequencing', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('holds the card animation while the sheet is still opening', () => {
       renderWithProvider(<MoneyLinkCardSheet />);
 
       expect(mockCardFlipProps.current?.shouldPlay).toBe(false);
     });
 
-    it('starts the card animation once the sheet has fully opened', () => {
+    it('keeps holding the card animation for a beat after the sheet has opened', () => {
       renderWithProvider(<MoneyLinkCardSheet />);
 
       act(() => mockSheetOnOpenRef.current?.());
+
+      expect(mockCardFlipProps.current?.shouldPlay).toBe(false);
+    });
+
+    it('starts the card animation once the beat after the open has elapsed', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      act(() => mockSheetOnOpenRef.current?.());
+      act(() => {
+        jest.runAllTimers();
+      });
 
       expect(mockCardFlipProps.current?.shouldPlay).toBe(true);
     });
@@ -360,6 +379,9 @@ describe('MoneyLinkCardSheet', () => {
       const { rerender } = renderWithProvider(<MoneyLinkCardSheet />);
 
       act(() => mockSheetOnOpenRef.current?.());
+      act(() => {
+        jest.runAllTimers();
+      });
       mockSelectCardHomeDataStatus.mockReturnValue('success');
       rerender(<MoneyLinkCardSheet />);
 

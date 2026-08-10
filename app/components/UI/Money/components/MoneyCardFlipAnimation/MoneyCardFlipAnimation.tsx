@@ -10,6 +10,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardFlipAnimationEnabledFlag } from '../../selectors/featureFlags';
+import {
+  MONEY_SHEET_ENTRANCE_DURATION_MS,
+  MONEY_SHEET_ENTRANCE_TRANSLATE_Y,
+} from '../../constants/sheetEntrance';
 import { useReduceMotionState } from '../../hooks/useReduceMotion';
 import CardTiltAnimation from '../../../../../animations/card_tilt_v1.3.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
@@ -37,9 +41,11 @@ const RIVE_ARTBOARD_METAL = 'Card Tilt Y Animation - Metal';
 /** One-shot flip timeline present on both variant artboards. */
 const RIVE_FLIP_ANIMATION = 'yAnimation';
 
-const ENTRANCE_DURATION_MS = 250;
-const ENTRANCE_TRANSLATE_Y = 10;
-const ENTRANCE_INITIAL_OPACITY = 0.5;
+// Step 0 of the sheet's entrance wave; the remaining steps are staggered off
+// the same cadence in `constants/sheetEntrance`.
+const ENTRANCE_DURATION_MS = MONEY_SHEET_ENTRANCE_DURATION_MS;
+const ENTRANCE_TRANSLATE_Y = MONEY_SHEET_ENTRANCE_TRANSLATE_Y;
+const ENTRANCE_INITIAL_OPACITY = 0;
 
 interface MoneyCardFlipAnimationProps {
   /**
