@@ -68,7 +68,11 @@ jobs:
       - get_requirements
     # Bounded so a future caching/CocoaPods regression fails fast instead of silently
     # ballooning past the merge queue's re-basing cadence (see #33442 / #34552 incident).
-    timeout-minutes: 30
+    # 45m (not tighter) verified empirically: a fully cold-cache run (no yarn/bundler/
+    # CocoaPods-specs cache yet) took ~29m end-to-end in #34563 — 30m cut it off mid
+    # cache-save. Still far below the ~80-90m #33442 regression and well inside the
+    # merge queue's re-basing cadence.
+    timeout-minutes: 45
     # Set at job level (not just on the Ruby setup step) so it also applies to the
     # later `yarn setup:github-ci` step, which runs `bundle exec pod install` without
     # an explicit --gemfile flag. Without this, Bundler falls back to a plain $PATH
