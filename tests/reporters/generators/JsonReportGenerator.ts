@@ -162,9 +162,13 @@ export class JsonReportGenerator {
         /[^a-zA-Z0-9]/g,
         '_',
       );
+      const safeOsVersion = this.sanitizeFileSegment(
+        deviceData.device.osVersion,
+        20,
+      );
       const jsonPath = path.join(
         reportsDir,
-        `performance-metrics-${testName}-${safeDeviceName}-${deviceData.device.osVersion}.json`,
+        `performance-metrics-${testName}-${safeDeviceName}-${safeOsVersion}.json`,
       );
       fs.writeFileSync(jsonPath, JSON.stringify(deviceData.metrics, null, 2));
       logger.info(`Device-specific report saved: ${jsonPath}`);

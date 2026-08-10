@@ -87,6 +87,25 @@ describe('JsonReportGenerator', () => {
     ).toBe(true);
   });
 
+  it('sanitizes regex characters in device OS report filenames', () => {
+    const data = makeReportData({
+      metrics: [
+        makeMetricsEntry({
+          device: {
+            name: 'Pixel.*',
+            osVersion: '13.*|14.*',
+            provider: 'testmu',
+          },
+        }),
+      ],
+    });
+
+    const files = generator.generate(data, '/reports');
+
+    expect(files[0]).not.toMatch(/[|*]/u);
+    expect(files[0]).toContain('13___14__');
+  });
+
   it('groups metrics by device key', () => {
     const data = makeReportData({
       metrics: [
