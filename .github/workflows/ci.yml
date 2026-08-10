@@ -62,6 +62,9 @@ jobs:
   check-diff:
     name: Check diff
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest' }}
+    # TEST-ONLY: no-op comment to force a fresh CI run (including a merge_group run once
+    # queued) to validate the CocoaPods specs cache fix in #34562. Safe to drop on merge.
+    # Run 2: verifying an actual cache HIT restores quickly (prior runs were cache misses).
     # NAMESPACE-SHADOW: macOS job — runs on Namespace shadow only when NAMESPACE_SHADOW_AUTO_DISPATCH=true (iOS pipeline)
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') }}
     needs:
