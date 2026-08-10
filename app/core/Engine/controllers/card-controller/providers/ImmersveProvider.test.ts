@@ -290,6 +290,7 @@ describe('ImmersveProvider', () => {
       });
       expect(result.done).toBe(true);
       expect(result.tokenSet?.accessToken).toBe(accessJwt);
+      expect(result.tokenSet?.providerUserId).toBe('cardholder-1');
       expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
       expect(result.tokenSet?.accountAddress).toBe('0xabc');
       expect(result.tokenSet?.location).toBe('international');
@@ -370,6 +371,7 @@ describe('ImmersveProvider', () => {
         { origin: 'https://app.immersve.com' },
       );
       expect(refreshed.accessToken).toBe(accessJwt);
+      expect(refreshed.providerUserId).toBe('cardholder-1');
       expect(refreshed.cardholderAccountId).toBe('cardholder-1');
       expect(refreshed.accountAddress).toBe('0xabc');
       expect(refreshed.keyringId).toBe(TOKENS.keyringId);
