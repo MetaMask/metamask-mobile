@@ -418,7 +418,15 @@ jobs:
       - verify-release-branch
       - setup-dependencies
       - prepare
+    # approval is intentionally skipped for non-production channels, so the default implicit
+    # success() (which treats a skipped dependency as failing) must be overridden here.
     if: >
+      always() && !cancelled() &&
+      needs.fingerprint-comparison.result == 'success' &&
+      needs.validate-pr.result == 'success' &&
+      needs.verify-release-branch.result == 'success' &&
+      needs.setup-dependencies.result == 'success' &&
+      needs.prepare.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
@@ -442,7 +450,14 @@ jobs:
       - validate-pr
       - setup-dependencies
       - prepare
+    # approval is intentionally skipped for non-production channels, so the default implicit
+    # success() (which treats a skipped dependency as failing) must be overridden here.
     if: >
+      always() && !cancelled() &&
+      needs.fingerprint-comparison.result == 'success' &&
+      needs.validate-pr.result == 'success' &&
+      needs.setup-dependencies.result == 'success' &&
+      needs.prepare.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'android')
