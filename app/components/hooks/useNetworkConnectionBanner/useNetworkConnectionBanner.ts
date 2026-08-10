@@ -42,6 +42,39 @@ function sanitizeRpcUrl(rpcUrl: string) {
     : 'custom';
 }
 
+/**
+ * Resolve the endpoint the network currently talks to, plus — for a custom
+ * endpoint — an Infura endpoint on the same network we could switch it to.
+ *
+ * Lives at module scope because its caller reads it from inside a try/catch,
+ * where the compiler cannot lower conditional or optional-chained expressions.
+ */
+function getDefaultRpcEndpointDetails(
+  networkConfig: ReturnType<
+    typeof Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+  >,
+) {
+  const defaultRpcEndpointIndex = networkConfig.defaultRpcEndpointIndex || 0;
+  const rpcUrl =
+    networkConfig.rpcEndpoints[defaultRpcEndpointIndex]?.url ||
+    networkConfig.rpcEndpoints[0]?.url;
+
+  const isInfuraEndpoint = getIsMetaMaskInfuraEndpointUrl(
+    rpcUrl,
+    infuraProjectId,
+  );
+
+  const infuraNetworkClientId = isInfuraEndpoint
+    ? undefined
+    : networkConfig.rpcEndpoints.find(
+        (endpoint, index) =>
+          index !== defaultRpcEndpointIndex &&
+          getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
+      )?.networkClientId;
+
+  return { rpcUrl, isInfuraEndpoint, infuraNetworkClientId };
+}
+
 const useNetworkConnectionBanner = (): {
   networkConnectionBannerState: NetworkConnectionBannerState;
   updateRpc: (
@@ -153,28 +186,8 @@ const useNetworkConnectionBanner = (): {
             continue;
           }
 
-          const defaultRpcEndpointIndex =
-            networkConfig.defaultRpcEndpointIndex || 0;
-          const rpcUrl =
-            networkConfig.rpcEndpoints[defaultRpcEndpointIndex]?.url ||
-            networkConfig.rpcEndpoints[0]?.url;
-
-          const isInfuraEndpoint = getIsMetaMaskInfuraEndpointUrl(
-            rpcUrl,
-            infuraProjectId,
-          );
-
-          // For custom endpoints (non-Infura), check if there's an Infura
-          // endpoint available for this network that we can switch to
-          let infuraNetworkClientId: string | undefined;
-          if (!isInfuraEndpoint) {
-            const infuraEndpoint = networkConfig.rpcEndpoints.find(
-              (endpoint, index) =>
-                index !== defaultRpcEndpointIndex &&
-                getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
-            );
-            infuraNetworkClientId = infuraEndpoint?.networkClientId;
-          }
+          const { rpcUrl, isInfuraEndpoint, infuraNetworkClientId } =
+            getDefaultRpcEndpointDetails(networkConfig);
 
           failedNetworks.push({
             chainId: evmEnabledNetworkChainId,
@@ -371,28 +384,29 @@ const useNetworkConnectionBanner = (): {
           replacementSelectedRpcEndpointIndex: infuraEndpointIndex,
         },
       );
-
-      // Hide banner immediately to prevent stale "Switch to MetaMask default RPC" button
-      // The normal status check logic will re-show it with fresh data if network is still unavailable
-      dispatch(hideNetworkConnectionBanner());
-
-      // Show success toast
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings(
-              'network_connection_banner.updated_to_metamask_default',
-            ),
-          },
-        ],
-        iconName: IconName.Confirmation,
-        hasNoTimeout: false,
-      });
     } catch {
       // Error is already handled by updateNetwork which shows a warning
       // Do not show success toast on failure
+      return;
     }
+
+    // Hide banner immediately to prevent stale "Switch to MetaMask default RPC" button
+    // The normal status check logic will re-show it with fresh data if network is still unavailable
+    dispatch(hideNetworkConnectionBanner());
+
+    // Show success toast
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: strings(
+            'network_connection_banner.updated_to_metamask_default',
+          ),
+        },
+      ],
+      iconName: IconName.Confirmation,
+      hasNoTimeout: false,
+    });
   }, [
     networkConnectionBannerState,
     trackEvent,
