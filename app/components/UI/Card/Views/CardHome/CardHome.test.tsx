@@ -640,6 +640,7 @@ const BAANX_CAPABILITIES = {
   supportsPushProvisioning: true,
   onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
   supportsPinView: true,
+  supportsPinSet: false,
   supportsCashback: true,
   supportsCredit: true,
   supportsSensitiveDetailsView: false,
