@@ -1,9 +1,9 @@
 import {
-  getPerpsModeAnalyticsProperties,
+  getTradingModeAnalyticsProperties,
   getPerpsUtmAttributionProperties,
   hasPerpsUtmAttribution,
   parsePerpsUtmFromPath,
-  PERPS_MODE_ANALYTICS_PROPERTY,
+  TRADING_MODE_ANALYTICS_PROPERTY,
   setPerpsUtmAttribution,
   toPerpsEntryAttribution,
 } from './perpsAnalyticsAttribution';
@@ -136,11 +136,11 @@ describe('perpsAnalyticsAttribution', () => {
     });
   });
 
-  describe('getPerpsModeAnalyticsProperties', () => {
+  describe('getTradingModeAnalyticsProperties', () => {
     it('returns the current Lite/Pro mode from the selector', () => {
       mockSelectPerpsMode.mockReturnValue(PerpsMode.Pro);
-      expect(getPerpsModeAnalyticsProperties()).toEqual({
-        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+      expect(getTradingModeAnalyticsProperties()).toEqual({
+        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
       });
       expect(mockSelectPerpsMode).toHaveBeenCalledWith(mockGetState());
     });
@@ -149,8 +149,8 @@ describe('perpsAnalyticsAttribution', () => {
       mockSelectPerpsMode.mockImplementation(() => {
         throw new Error('store unavailable');
       });
-      expect(getPerpsModeAnalyticsProperties()).toEqual({
-        [PERPS_MODE_ANALYTICS_PROPERTY]: DEFAULT_PERPS_MODE,
+      expect(getTradingModeAnalyticsProperties()).toEqual({
+        [TRADING_MODE_ANALYTICS_PROPERTY]: DEFAULT_PERPS_MODE,
       });
       expect(DevLogger.log).toHaveBeenCalled();
     });

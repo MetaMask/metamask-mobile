@@ -9,7 +9,7 @@ import PerpsModeToggle from './PerpsModeToggle';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { GLOW_TOTAL_MS } from './PerpsModeSwitchPill';
-import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
+import { TRADING_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
 
 const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -171,19 +171,21 @@ describe('PerpsModeToggle', () => {
     expect(getAllByText('Pro').length).toBeGreaterThan(0);
   });
 
-  it('calls onChange with the newly selected mode', () => {
+  it('calls onChange with the newly selected mode', async () => {
     const onChange = jest.fn();
     const { getByTestId } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={onChange} />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
 
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(PerpsMode.Pro);
   });
 
-  it('tracks a Perps UI interaction event carrying the new mode on change', () => {
+  it('tracks a Perps UI interaction event carrying the new mode after onChange applies it', async () => {
     const { getByTestId } = render(
       <PerpsModeToggle
         mode={PerpsMode.Lite}
@@ -192,7 +194,9 @@ describe('PerpsModeToggle', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
 
     expect(mockTrack).toHaveBeenCalledTimes(1);
     expect(mockTrack).toHaveBeenCalledWith(
@@ -200,37 +204,59 @@ describe('PerpsModeToggle', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
       },
     );
   });
 
-  it('omits the source property when no source is provided', () => {
+  it('does not track when onChange reports the mode was not applied', async () => {
+    const onChange = jest.fn().mockResolvedValue(false);
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Lite}
+        onChange={onChange}
+        source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+      />,
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
+
+    expect(onChange).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('omits the source property when no source is provided', async () => {
     const { getByTestId } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={jest.fn()} />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
       },
     );
   });
 
-  it('does not call onChange or track when re-selecting the already active mode', () => {
+  it('does not call onChange or track when re-selecting the already active mode', async () => {
     const onChange = jest.fn();
     const { getByTestId } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={onChange} />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+    });
 
     expect(onChange).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalled();
@@ -252,7 +278,7 @@ describe('PerpsModeToggle', () => {
     expect(getAllByText('Pro').length).toBeGreaterThan(0);
   });
 
-  it('finishes the active-pill animation before changing mode', () => {
+  it('finishes the active-pill animation before changing mode', async () => {
     jest.useFakeTimers();
     const onChange = jest.fn();
     const { getByTestId } = render(
@@ -268,7 +294,7 @@ describe('PerpsModeToggle', () => {
 
     expect(onChange).not.toHaveBeenCalled();
     expect(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT)).toBeDisabled();
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
     });
 
@@ -280,7 +306,7 @@ describe('PerpsModeToggle', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
+        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       },

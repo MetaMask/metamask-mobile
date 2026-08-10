@@ -1,6 +1,6 @@
 import {
-  getPerpsModeAnalyticsProperties,
-  PERPS_MODE_ANALYTICS_PROPERTY,
+  getTradingModeAnalyticsProperties,
+  TRADING_MODE_ANALYTICS_PROPERTY,
 } from '../../components/UI/Perps/utils/perpsAnalyticsAttribution';
 
 /** MetaMetrics Perps event names are prefixed with "Perp " (see MetaMetrics.events). */
@@ -25,13 +25,13 @@ const cloneEventWithProperties = <
 };
 
 /**
- * Attach Lite/Pro `perps_mode` to every Perps MetaMetrics event.
+ * Attach Lite/Pro `trading_mode` to every Perps MetaMetrics event.
  *
- * Explicit caller `perps_mode` wins (mode toggle / selection emit the selected
+ * Explicit caller `trading_mode` wins (mode toggle / selection emit the selected
  * next mode). Search intent keeps using `mode` (`PERPS_EVENT_PROPERTY.MODE`)
  * so existing dashboards stay compatible.
  */
-export const enrichWithPerpsMode = <
+export const enrichWithTradingMode = <
   T extends {
     name: string;
     properties: Record<string, unknown>;
@@ -43,8 +43,8 @@ export const enrichWithPerpsMode = <
     return event;
   }
 
-  const modeProperties = getPerpsModeAnalyticsProperties();
-  if (!(PERPS_MODE_ANALYTICS_PROPERTY in modeProperties)) {
+  const modeProperties = getTradingModeAnalyticsProperties();
+  if (!(TRADING_MODE_ANALYTICS_PROPERTY in modeProperties)) {
     return event;
   }
 

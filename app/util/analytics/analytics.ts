@@ -17,7 +17,7 @@ import {
   enrichWithABTests,
   getRemoteFeatureFlagsFromState,
 } from './enrichWithABTests';
-import { enrichWithPerpsMode } from './enrichWithPerpsMode';
+import { enrichWithTradingMode } from './enrichWithTradingMode';
 
 /**
  * Analytics helper interface
@@ -59,13 +59,13 @@ const trackEvent = (event: AnalyticsTrackingEvent): void => {
 
   try {
     enrichedEvent = enrichWithABTests(
-      enrichWithPerpsMode(event),
+      enrichWithTradingMode(event),
       getRemoteFeatureFlagsFromState(store.getState()),
     );
   } catch {
     // Best-effort enrichment — never block emission if mode/AB lookup fails.
     try {
-      enrichedEvent = enrichWithPerpsMode(event);
+      enrichedEvent = enrichWithTradingMode(event);
     } catch {
       enrichedEvent = event;
     }

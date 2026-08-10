@@ -455,7 +455,7 @@ const PerpsMarketListView = ({
     ];
     // mode: chips/category narrow the set → discovery; a short ticker-like
     // token → intent; free-text or empty context → browse.
-    // Interface Lite/Pro uses `perps_mode` (see getPerpsModeAnalyticsProperties).
+    // Interface Lite/Pro uses `trading_mode` (see getTradingModeAnalyticsProperties).
     const mode = activeChips.length
       ? 'discovery'
       : /^[a-z0-9]{1,6}$/.test(normalizedQuery)

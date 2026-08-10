@@ -13,7 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
+import { TRADING_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
 import { type PerpsModeToggleProps } from './PerpsModeToggle.types';
 import PerpsProGradientLabel from './PerpsProGradientLabel';
 import PerpsModeSwitchPill from './PerpsModeSwitchPill';
@@ -45,20 +45,26 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   const { track } = usePerpsEventTracking();
 
   const handleChange = useCallback(
-    (value: string) => {
+    async (value: string) => {
       const nextMode = value as PerpsMode;
       if (nextMode === mode) {
+        return;
+      }
+
+      // Defer analytics until the parent confirms the mode was applied.
+      // Chooser gate handlers return false when they open the sheet instead of
+      // switching — otherwise we would count dismissals as mode switches.
+      const applied = await onChange?.(nextMode);
+      if (applied === false) {
         return;
       }
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_MODE_ANALYTICS_PROPERTY]: nextMode,
+        [TRADING_MODE_ANALYTICS_PROPERTY]: nextMode,
         ...(source ? { [PERPS_EVENT_PROPERTY.SOURCE]: source } : {}),
       });
-
-      onChange?.(nextMode);
     },
     [mode, onChange, source, track],
   );
