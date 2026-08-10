@@ -1,6 +1,3 @@
-/* eslint-disable import-x/no-nodejs-modules */
-import { createRequire } from 'node:module';
-
 import {
   MobilePlatformDriver,
   type SessionLaunchInput,
@@ -81,18 +78,8 @@ interface AndroidPlatformAdapterDependencies {
   readonly readinessIntervalMs?: number;
 }
 
-interface AndroidBackendConstructorDependencies {
-  readonly resolvePackageJson?: () => string;
-  readonly requireModule?: (modulePath: string) => unknown;
-}
-
-type AdbBackendConstructor = new (serial: string) => DeviceBackend;
-
-const nodeRequire = createRequire(__filename);
-let cachedAdbBackendConstructor: AdbBackendConstructor | undefined;
-
 export function isAdbBackend(backend: DeviceBackend): boolean {
-  return backend instanceof getAndroidBackendConstructor().AdbBackend;
+  return backend.kind === 'adb';
 }
 
 export class AndroidPlatformAdapter implements MobilePlatformAdapter {
@@ -411,72 +398,4 @@ async function closeAndroidApp(
 
 function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
-
-export function getAndroidBackendConstructor(): {
-  AdbBackend: AdbBackendConstructor;
-};
-export function getAndroidBackendConstructor(
-  dependencies: AndroidBackendConstructorDependencies,
-): { AdbBackend: AdbBackendConstructor };
-export function getAndroidBackendConstructor(
-  dependencies?: AndroidBackendConstructorDependencies,
-): { AdbBackend: AdbBackendConstructor } {
-  if (dependencies) {
-    return loadAndroidBackendConstructor(dependencies);
-  }
-
-  cachedAdbBackendConstructor ??= loadAndroidBackendConstructor({}).AdbBackend;
-  return { AdbBackend: cachedAdbBackendConstructor };
-}
-
-function loadAndroidBackendConstructor(
-  dependencies: AndroidBackendConstructorDependencies,
-): { AdbBackend: AdbBackendConstructor } {
-  try {
-    const packageJsonPath =
-      dependencies.resolvePackageJson?.() ??
-      nodeRequire.resolve('@metamask/device-mcp/package.json');
-    // device-mcp has no public AdbBackend export. This path couples us to its
-    // current CJS build layout solely to verify the backend created for Android.
-    const modulePath = packageJsonPath.replace(
-      /package\.json$/u,
-      'dist/backends/adb-backend.cjs',
-    );
-    const moduleExports: unknown =
-      dependencies.requireModule?.(modulePath) ?? nodeRequire(modulePath);
-    const adbBackend = getAdbBackendExport(moduleExports);
-
-    if (typeof adbBackend !== 'function') {
-      throw new Error('The module does not export an AdbBackend constructor.');
-    }
-
-    return { AdbBackend: adbBackend as AdbBackendConstructor };
-  } catch (error) {
-    if (error instanceof AndroidLaunchError) {
-      throw error;
-    }
-
-    const detail = error instanceof Error ? ` ${error.message}` : '';
-    throw new AndroidLaunchError({
-      code: 'MM_INVALID_CONFIG',
-      message:
-        'Android ADB backend is unavailable because this workflow assumes @metamask/device-mcp provides its internal dist/backends/adb-backend.cjs module.' +
-        detail,
-      remediation:
-        'Install a compatible @metamask/device-mcp version or update this workflow for its public backend API.',
-    });
-  }
-}
-
-function getAdbBackendExport(moduleExports: unknown): unknown {
-  if (
-    typeof moduleExports !== 'object' ||
-    moduleExports === null ||
-    !('AdbBackend' in moduleExports)
-  ) {
-    return undefined;
-  }
-
-  return moduleExports.AdbBackend;
 }

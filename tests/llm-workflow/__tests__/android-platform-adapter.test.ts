@@ -15,7 +15,6 @@ import {
 } from '../android/metro-watch-attach';
 import {
   AndroidPlatformAdapter,
-  getAndroidBackendConstructor,
   isAdbBackend,
 } from '../android/platform-adapter';
 import {
@@ -77,6 +76,7 @@ describe('AndroidPlatformAdapter', () => {
       mainActivity: 'io.metamask/io.metamask.MainActivity',
     });
     backend = {
+      kind: 'adb',
       platform: 'android',
       openApp: jest.fn().mockResolvedValue(undefined),
       closeApp: jest.fn().mockResolvedValue(undefined),
@@ -167,30 +167,10 @@ describe('AndroidPlatformAdapter', () => {
     expect(wrappedBackend.closeApp).toHaveBeenCalledWith('io.metamask');
   });
 
-  it('recognizes the production AdbBackend constructor without connecting', () => {
-    const { AdbBackend } = getAndroidBackendConstructor();
-    const actualBackend = new AdbBackend('emulator-5554');
-
-    expect(isAdbBackend(actualBackend)).toBe(true);
-    expect(isAdbBackend({ platform: 'android' } as DeviceBackend)).toBe(false);
-  });
-
-  it('reports an unavailable internal ADB backend module as invalid configuration', () => {
-    expect(() =>
-      getAndroidBackendConstructor({
-        resolvePackageJson: () => '/mock/device-mcp/package.json',
-        requireModule: () => {
-          throw new Error('Cannot find module');
-        },
-      }),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'MM_INVALID_CONFIG',
-        message: expect.stringContaining(
-          'assumes @metamask/device-mcp provides its internal dist/backends/adb-backend.cjs module',
-        ),
-      }),
-    );
+  it('identifies the ADB backend by its public kind discriminator', () => {
+    expect(isAdbBackend({ kind: 'adb' } as DeviceBackend)).toBe(true);
+    expect(isAdbBackend({ kind: 'appium' } as DeviceBackend)).toBe(false);
+    expect(isAdbBackend({ kind: 'idb' } as DeviceBackend)).toBe(false);
   });
 
   it('does not accept process liveness without a recognized startup screen', async () => {

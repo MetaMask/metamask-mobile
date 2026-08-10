@@ -168,7 +168,8 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
           'A launch is in progress. Wait for it to complete before running `mm cleanup`.',
       });
     }
-    if (!this.hasActiveSession()) {
+
+    if (!this.hasActiveSession() && this.adapter === undefined) {
       return false;
     }
 
@@ -337,7 +338,11 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   private assertLaunchAvailable(requestedPlatform: MobilePlatform): void {
-    if (this.launchInProgress || this.hasActiveSession()) {
+    if (
+      this.launchInProgress ||
+      this.hasActiveSession() ||
+      this.adapter !== undefined
+    ) {
       throw this.createPlatformError(this.activePlatform ?? requestedPlatform, {
         code: 'MM_SESSION_ALREADY_RUNNING',
         message: this.launchInProgress

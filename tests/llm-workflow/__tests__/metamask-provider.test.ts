@@ -250,6 +250,49 @@ describe('MetaMaskMobileSessionManager', () => {
     expect(iosCleanup).toHaveBeenCalledTimes(2);
   });
 
+  it('retains the adapter when partial-launch teardown fails and cleans it up on a later cleanup', async () => {
+    androidLaunch.mockRejectedValueOnce(new Error('readiness failed'));
+    androidCleanup.mockRejectedValueOnce(new Error('teardown failed'));
+
+    await expect(
+      manager.launch(
+        createLaunchInput({ platform: 'android', deviceId: 'emulator-5554' }),
+      ),
+    ).rejects.toMatchObject({
+      name: 'AndroidLaunchError',
+      code: 'MM_LAUNCH_FAILED',
+      message: 'readiness failed',
+    });
+    expect(androidCleanup).toHaveBeenCalledTimes(1);
+    expect(manager.hasActiveSession()).toBe(false);
+
+    await expect(manager.cleanup()).resolves.toBe(true);
+    expect(androidCleanup).toHaveBeenCalledTimes(2);
+    expect(manager.hasActiveSession()).toBe(false);
+  });
+
+  it('blocks a relaunch while a failed partial-launch teardown is still pending', async () => {
+    androidLaunch.mockRejectedValueOnce(new Error('readiness failed'));
+    androidCleanup.mockRejectedValueOnce(new Error('teardown failed'));
+
+    await expect(
+      manager.launch(
+        createLaunchInput({ platform: 'android', deviceId: 'emulator-5554' }),
+      ),
+    ).rejects.toBeInstanceOf(AndroidLaunchError);
+
+    const relaunch = manager.launch(
+      createLaunchInput({ platform: 'android', deviceId: 'emulator-5554' }),
+    );
+    await expect(relaunch).rejects.toMatchObject({
+      name: 'AndroidLaunchError',
+      code: 'MM_SESSION_ALREADY_RUNNING',
+    });
+    expect(androidLaunch).toHaveBeenCalledTimes(1);
+
+    await expect(manager.cleanup()).resolves.toBe(true);
+  });
+
   it('delegates partial-failure teardown, resets session state, and retains workflow capabilities', async () => {
     const stateSnapshot = {} as StateSnapshotCapability;
     manager.setWorkflowContext({ stateSnapshot } as WorkflowContext);

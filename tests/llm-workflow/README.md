@@ -38,7 +38,7 @@ Run `yarn mm:doctor` to verify the iOS toolchain. `mm launch` does not search bu
 - `io.metamask/io.metamask.MainActivity` available as the launcher activity
 - No worktree/current-directory `.device-session` override, because Android requires the ADB backend rather than Appium
 
-The Android workflow never starts, stops, restarts, clears, wipes, or deletes an emulator. It never installs, uninstalls, replaces, or clears app data. The core CLI launch option `--extension-path` is rejected on Android because this workflow has no APK lifecycle. Programmatic iOS lifecycle fields such as `reinstall`, `resetAppData`, `appBundlePath`, and `allowFoxCodeMismatch` are also rejected by the Android adapter; they are not core 0.6.0 launch flags.
+The Android workflow never starts, stops, restarts, clears, wipes, or deletes an emulator. It never installs, uninstalls, replaces, or clears app data. The core CLI launch option `--extension-path` is rejected on Android because this workflow has no APK lifecycle. Programmatic iOS lifecycle fields such as `reinstall`, `resetAppData`, `appBundlePath`, and `allowFoxCodeMismatch` are also rejected by the Android adapter; they are not core 0.8.0 launch flags.
 
 During an active Android session, the workflow temporarily sets the emulator's three global system animation scales to zero to make UiAutomator idle-state snapshots more reliable. Cleanup restores every value changed by the session, including after partial-launch and cleanup failures.
 
@@ -149,7 +149,7 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 - Emulator-only; no physical-device support.
 - No emulator lifecycle management, APK discovery/build/install, app-data reset, Appium fallback, clipboard, WebView switching, Flask-specific handling, or CI support.
-- Android UI snapshots are locally serialized because `@metamask/device-mcp` 0.3.0 uses a shared `/sdcard/window_dump.xml`. One retry is performed only for recognized transient UiAutomator idle-state, killed/exit-137, or missing-dump failures. The upstream package should eventually provide unique dump paths and single-snapshot composite discovery.
+- Android UI snapshots are locally serialized because `@metamask/device-mcp` 0.3.3 uses a shared `/sdcard/window_dump.xml`. One retry is performed only for recognized transient UiAutomator idle-state, killed/exit-137, or missing-dump failures. The upstream package should eventually provide unique dump paths and single-snapshot composite discovery.
 - Live validation was completed on AVD `Medium_Phone_API_36.1` (`emulator-5554`) with installed package `io.metamask`. Explicit Android launch succeeded and returned a loaded state with `extensionId: io.metamask` after activity resolution was updated to normalize Android's `io.metamask/.MainActivity` shorthand exactly.
 - The live unlock-screen session validated `describe-screen`, `list-testids`, `get-state`, screenshots, `type --testid`, `get-text --testid`, `wait-for`, valid `run-steps`, and `click --testid`. A screenshot path was returned. An intentionally invalid credential was used only to exercise typing and clicking; successful wallet unlock and home-screen navigation were not attempted.
 - Android resource IDs and app test IDs were observable and usable. Test IDs including `login`, `login-password-input`, and `log-in-button` worked without changes to `SCREEN_DETECTION_MAP`.
@@ -178,4 +178,4 @@ Launch errors use the core `ErrorCode` set, because `@metamask/client-mcp-core` 
 | `MM_NO_ACTIVE_SESSION`    | Run `yarn mm launch`.                                                                                                                                                                                                                                             |
 | `MM_TARGET_NOT_FOUND`     | Run `yarn mm describe-screen` and use fresh refs.                                                                                                                                                                                                                 |
 
-Mobile platform support comes from `@metamask/client-mcp-core` 0.6.0; `@metamask/device-mcp` 0.3.0 supplies the device backends.
+Mobile platform support comes from `@metamask/client-mcp-core` 0.8.0; `@metamask/device-mcp` 0.3.3 supplies the device backends. The Android adapter identifies the ADB backend via `@metamask/device-mcp`'s public `DeviceBackend.kind` discriminator (added in 0.3.3).
