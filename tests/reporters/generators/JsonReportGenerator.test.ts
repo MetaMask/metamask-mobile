@@ -82,7 +82,7 @@ describe('JsonReportGenerator', () => {
     ).toBe(true);
     expect(
       paths.some(
-        (p: string) => p.includes('iPhone_14_Pro') && p.includes('16.1'),
+        (p: string) => p.includes('iPhone_14_Pro') && p.includes('16_1'),
       ),
     ).toBe(true);
   });
