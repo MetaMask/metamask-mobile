@@ -1707,6 +1707,70 @@ describe('getRpcMethodMiddleware', () => {
     });
   });
 
+  describe('PPOM origin sanitization for signature requests', () => {
+    async function sendPersonalSignRequest(
+      middlewareOptions: Partial<Parameters<typeof getRpcMethodMiddleware>[0]>,
+    ) {
+      setupSignature();
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: hostMock,
+        ...middlewareOptions,
+      });
+
+      // `origin` is normally stamped on the request by the bridge's origin
+      // middleware; simulate it explicitly here.
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'personal_sign',
+        params: [dataMock, addressMock],
+        origin: 'https://self-reported.example',
+      };
+
+      MockEngine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      return await callMiddleware({
+        middleware,
+        request: request as unknown as JsonRpcRequest<JsonRpcParams>,
+      });
+    }
+
+    // Security invariant: for remote transports the request origin is
+    // self-reported by the dapp and unverifiable, so it must never reach the
+    // security scan, where Blockaid treats the URL as a core heuristic that
+    // can flip a verdict between malicious and benign.
+    it.each([
+      ['WalletConnect', { isWalletConnect: true }],
+      ['SDK v1', { analytics: { isRemoteConn: true } }],
+      [
+        'MetaMask Connect (MWP)',
+        { analytics: { isRemoteConn: true, transport: 'mwp' } },
+      ],
+    ])(
+      'drops the self-reported origin from PPOM validation for %s requests',
+      async (_label, middlewareOptions) => {
+        const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+        await sendPersonalSignRequest(middlewareOptions);
+
+        expect(spy).toBeCalledTimes(1);
+        expect(spy.mock.calls[0][0].origin).toBeUndefined();
+      },
+    );
+
+    it('keeps the origin on PPOM validation for in-app browser requests', async () => {
+      const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+      await sendPersonalSignRequest({});
+
+      expect(spy).toBeCalledTimes(1);
+      expect(spy.mock.calls[0][0].origin).toBe('https://self-reported.example');
+    });
+  });
+
   describe.each([
     ['eth_signTypedData_v3', 'V3'],
     ['eth_signTypedData_v4', 'V4'],

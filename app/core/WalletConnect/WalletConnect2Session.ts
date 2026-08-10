@@ -19,6 +19,7 @@ import {
 } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -858,11 +859,29 @@ class WalletConnect2Session {
         securityAlertResponse: undefined,
       });
 
+      // Record the transport keyed by transaction id so the confirmation UI
+      // (useIsExternalAppRequest) can render the "External app" treatment:
+      // `unverifiedOrigin` is a self-reported domain the UI must not present
+      // as verified, and TransactionMeta cannot carry client-only fields.
+      store.dispatch(
+        updateConfirmationMetric({
+          id: trx.transactionMeta.id,
+          params: {
+            properties: {
+              request_source: AppConstants.REQUEST_SOURCES.WC,
+            },
+          },
+        }),
+      );
+
       const reqObject = {
         id: requestEvent.id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin: unverifiedOrigin,
+        // No `origin`: it would be the dapp's self-reported URL, which is
+        // unverifiable over WalletConnect and must never influence the
+        // security scan (Blockaid treats the URL as a core heuristic that
+        // can flip a verdict between malicious and benign).
         params: [
           {
             from: methodParams[0].from,
