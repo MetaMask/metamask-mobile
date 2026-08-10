@@ -52,11 +52,10 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
   useIsFocused: jest.fn(() => true),
-  NavigationContainer: ({ children }: { children: React.ReactNode }) =>
-    children,
 }));
 
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
