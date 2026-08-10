@@ -622,6 +622,10 @@ describe('SharedDeeplinkManager', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('returns DeeplinkManager instance from getInstance', () => {
     const instance = SharedDeeplinkManager.getInstance();
 
@@ -710,8 +714,9 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
   it('calls getLatestReferringParams immediately for cold start deeplink check', async () => {
     (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
     DeeplinkManager.start();
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('processes cold start deeplink when non-branch link is found', async () => {
@@ -720,8 +725,9 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
       '+non_branch_link': mockDeeplink,
     });
     DeeplinkManager.start();
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+    });
   });
 
   it('rewrites cold start Branch link using $deeplink_path from getLatestReferringParams', async () => {
@@ -732,9 +738,10 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
         'https://metamask-alternate.app.link/1WkF6GmE40b?amount=500',
     });
     DeeplinkManager.start();
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({
-      uri: 'https://link.metamask.io/swap?amount=500',
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({
+        uri: 'https://link.metamask.io/swap?amount=500',
+      });
     });
   });
 
@@ -745,8 +752,9 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
       '+non_branch_link': mockDeeplink,
     });
     DeeplinkManager.start();
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+    });
   });
 
   it('subscribes to Branch deeplink events', async () => {
@@ -760,8 +768,9 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
     const mockUri = 'https://link.metamask.io/home';
     callback({ uri: mockUri });
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    });
   });
 
   it('rewrites Branch short link to link.metamask.io when +clicked_branch_link and $deeplink_path are present', async () => {
@@ -776,9 +785,10 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
       },
     });
 
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({
-      uri: 'https://link.metamask.io/swap?amount=1000000&from=eip155%3A1%2Ferc20%3A0xabc',
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({
+        uri: 'https://link.metamask.io/swap?amount=1000000&from=eip155%3A1%2Ferc20%3A0xabc',
+      });
     });
   });
 
@@ -792,8 +802,9 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
       params: { '+clicked_branch_link': false },
     });
 
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    });
   });
 
   it('passes URI through unchanged when $deeplink_path is missing', async () => {
@@ -806,8 +817,9 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
       params: { '+clicked_branch_link': true },
     });
 
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    });
   });
 
   it('strips leading slash from $deeplink_path when rewriting', async () => {
@@ -822,9 +834,10 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
       },
     });
 
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(handleDeeplink).toHaveBeenCalledWith({
-      uri: 'https://link.metamask.io/swap/token',
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({
+        uri: 'https://link.metamask.io/swap/token',
+      });
     });
   });
 });

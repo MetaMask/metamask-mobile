@@ -415,22 +415,14 @@ describe('handleMetaMaskProtocol', () => {
   });
 
   describe('when url start with ${PREFIXES.METAMASK}${ACTIONS.WC} or with ${PREFIXES.METAMASK}/${ACTIONS.WC}', () => {
-    beforeEach(() => {
-      const urls = [
-        `${PREFIXES.METAMASK}${ACTIONS.WC}`,
-        `${PREFIXES.METAMASK}/${ACTIONS.WC}`,
-      ];
-
-      const randomIndex = Math.floor(Math.random() * urls.length);
-
-      url = urls[randomIndex];
-    });
-
-    it('calls WC2Manager.getInstance().connect', async () => {
+    it.each([
+      `${PREFIXES.METAMASK}${ACTIONS.WC}`,
+      `${PREFIXES.METAMASK}/${ACTIONS.WC}`,
+    ])('calls WC2Manager.getInstance().connect for %s', async (wcUrl) => {
       await handleMetaMaskDeeplink({
         handled,
         params,
-        url,
+        url: wcUrl,
         origin,
         wcURL,
       });

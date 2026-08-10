@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react-native';
 import { handleDeeplink, resetDeeplinkDeduplication } from '../handleDeeplink';
 import { checkForDeeplink } from '../../../../actions/user';
 import { saveAttribution } from '../../../redux/slices/attribution';
@@ -329,7 +330,9 @@ describe('handleDeeplink', () => {
 
       handleDeeplink({ uri: mwpUri });
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mocked' });
+      });
 
       expect(mockDetectAppInstallation).toHaveBeenCalled();
       expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
@@ -349,14 +352,15 @@ describe('handleDeeplink', () => {
 
       handleDeeplink({ uri: mwpUri });
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mocked' });
+      });
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         route: DeepLinkRoute.MMC_MWP,
         signature: SignatureStatus.MISSING,
         was_app_installed: false,
       });
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mocked' });
     });
 
     it('logs error when detectAppInstallation rejects', async () => {
@@ -365,13 +369,14 @@ describe('handleDeeplink', () => {
 
       handleDeeplink({ uri: mwpUri });
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          installError,
+          'DeepLinkAnalytics: Failed to track MWP deep link event',
+        );
+      });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        installError,
-        'DeepLinkAnalytics: Failed to track MWP deep link event',
-      );
     });
 
     it('still routes to SDKConnectV2 even if analytics fails', async () => {
@@ -381,13 +386,11 @@ describe('handleDeeplink', () => {
 
       expect(mockHandleMwpDeeplink).toHaveBeenCalledWith(mwpUri);
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalled();
+      });
 
       expect(mockHandleMwpDeeplink).toHaveBeenCalledTimes(1);
     });
   });
 });
-
-function flushPromises(): Promise<void> {
-  return new Promise((resolve) => setImmediate(resolve));
-}
