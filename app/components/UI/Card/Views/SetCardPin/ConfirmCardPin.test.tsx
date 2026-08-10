@@ -17,6 +17,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -25,7 +26,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 const mockSetCardPin = jest.fn();
 const mockLogout = jest.fn();
 const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: jest.fn() },
+  current: { showToast: mockShowToast, closeToast: mockCloseToast },
 };
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -224,6 +225,10 @@ describe('ConfirmCardPin', () => {
     setPinDraft('1337');
     mockSetCardPin.mockResolvedValue(undefined);
     mockLogout.mockResolvedValue(undefined);
+    mockToastRef.current = {
+      showToast: mockShowToast,
+      closeToast: mockCloseToast,
+    };
   });
 
   afterEach(() => {
@@ -276,6 +281,28 @@ describe('ConfirmCardPin', () => {
           }),
         }),
       );
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+    });
+
+    const toastOptions = mockShowToast.mock.calls[0][0] as {
+      closeButtonOptions: { onPress: () => void };
+    };
+    toastOptions.closeButtonOptions.onPress();
+    expect(mockCloseToast).toHaveBeenCalled();
+  });
+
+  it('still resets to Card Home when toast ref is unavailable', async () => {
+    mockToastRef.current = null as unknown as typeof mockToastRef.current;
+    const { getByTestId } = renderConfirmCardPin();
+    enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
+    fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
+
+    await waitFor(() => {
+      expect(mockSetCardPin).toHaveBeenCalledWith('card-1', '1337');
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],
