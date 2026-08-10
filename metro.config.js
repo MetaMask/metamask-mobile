@@ -126,6 +126,13 @@ const DMK_REFLECT_METADATA_IMPORTERS = [
   'node_modules/@inversifyjs/',
 ];
 
+const isDmkReflectMetadataImporter = (originModulePath) => {
+  const normalizedOrigin = (originModulePath ?? '').replace(/\\/g, '/');
+  return DMK_REFLECT_METADATA_IMPORTERS.some((fragment) =>
+    normalizedOrigin.includes(fragment),
+  );
+};
+
 module.exports = function (baseConfig) {
   return getSentryExpoConfig(__dirname, {
     getDefaultConfig: (projectRoot, options) => {
@@ -258,9 +265,7 @@ module.exports = function (baseConfig) {
               // resolve normally to their package-local copy.
               if (
                 moduleName === 'reflect-metadata' &&
-                DMK_REFLECT_METADATA_IMPORTERS.some((fragment) =>
-                  context.originModulePath?.includes(fragment),
-                )
+                isDmkReflectMetadataImporter(context.originModulePath)
               ) {
                 return {
                   filePath: require.resolve(
