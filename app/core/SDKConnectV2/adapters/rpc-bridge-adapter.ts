@@ -7,6 +7,11 @@ import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 import { ImageSourcePropType } from 'react-native';
 import { ConnectionInfo } from '../types/connection-info';
+import {
+  RemoteTransport,
+  stampOriginProvenance,
+  removeOriginProvenance,
+} from '../../OriginProvenance';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
 import { whenStoreReady } from '../utils/when-store-ready';
@@ -25,6 +30,19 @@ export class RPCBridgeAdapter
   constructor(connInfo: ConnectionInfo) {
     super();
     this.connInfo = connInfo;
+    // Stamp the connection's provenance at the entry point: the MWP
+    // connection id is the unspoofable connection identity; the dapp
+    // metadata in the connection request is self-reported and display-only
+    // (MCWP-771).
+    stampOriginProvenance({
+      connectionId: connInfo.id,
+      transport: RemoteTransport.MMConnect,
+      selfReported: {
+        url: connInfo.metadata.dapp.url,
+        name: connInfo.metadata.dapp.name,
+        icon: connInfo.metadata.dapp.icon,
+      },
+    });
     this.processQueue = this.processQueue.bind(this);
     this.ensureInitialized();
   }
@@ -41,6 +59,7 @@ export class RPCBridgeAdapter
    * Disposes of the adapter, cleaning up listeners and connections.
    */
   public dispose(): void {
+    removeOriginProvenance(this.connInfo.id);
     this.messenger?.tryUnsubscribe(
       'KeyringController:unlock',
       this.processQueue,

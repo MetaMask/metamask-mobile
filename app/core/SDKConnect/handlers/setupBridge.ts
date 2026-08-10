@@ -9,6 +9,7 @@ import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
+import { RemoteTransport, stampOriginProvenance } from '../../OriginProvenance';
 import DevLogger from '../utils/DevLogger';
 import handleSendMessage from './handleSendMessage';
 import { ImageSourcePropType } from 'react-native';
@@ -52,6 +53,19 @@ export const setupBridge = ({
   ) {
     throw new Error('Connections from metamask origin are not allowed');
   }
+
+  // Stamp the connection's provenance at the entry point: the SDK channelId
+  // is the unspoofable connection identity; originatorInfo is self-reported
+  // by the dapp and display-only (MCWP-771).
+  stampOriginProvenance({
+    connectionId: connection.channelId,
+    transport: RemoteTransport.SDKv1,
+    selfReported: {
+      url: selfReportedUrl,
+      name: selfReportedTitle,
+      icon: selfReportedIcon,
+    },
+  });
 
   const backgroundBridge = new BackgroundBridge({
     webview: null,

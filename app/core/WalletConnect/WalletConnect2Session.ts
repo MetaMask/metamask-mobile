@@ -21,6 +21,12 @@ import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
 import {
+  RemoteTransport,
+  getRequestSourceForTransport,
+  stampOriginProvenance,
+  removeOriginProvenance,
+} from '../OriginProvenance';
+import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
@@ -133,6 +139,15 @@ class WalletConnect2Session {
     DevLogger.log(
       `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
     );
+
+    // Stamp the connection's provenance at the entry point: the channelId is
+    // the unspoofable connection identity; the session peer metadata is
+    // self-reported by the dapp and display-only (MCWP-771).
+    stampOriginProvenance({
+      connectionId: channelId,
+      transport: RemoteTransport.WalletConnect,
+      selfReported: { url, name, icon: icons?.[0] },
+    });
 
     this.backgroundBridge = backgroundBridgeFactory.create({
       webview: null,
@@ -838,6 +853,7 @@ class WalletConnect2Session {
   };
 
   removeListeners = async () => {
+    removeOriginProvenance(this.channelId);
     this.backgroundBridge.onDisconnect();
   };
 
@@ -868,7 +884,9 @@ class WalletConnect2Session {
           id: trx.transactionMeta.id,
           params: {
             properties: {
-              request_source: AppConstants.REQUEST_SOURCES.WC,
+              request_source: getRequestSourceForTransport(
+                RemoteTransport.WalletConnect,
+              ),
             },
           },
         }),

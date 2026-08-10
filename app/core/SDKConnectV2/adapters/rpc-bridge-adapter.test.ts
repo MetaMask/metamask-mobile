@@ -2,6 +2,7 @@
 import Engine from '../../Engine';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { ConnectionInfo } from '../types/connection-info';
+import { getOriginProvenance, RemoteTransport } from '../../OriginProvenance';
 import { RPCBridgeAdapter } from './rpc-bridge-adapter';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
@@ -195,6 +196,27 @@ describe('RPCBridgeAdapter', () => {
       await new Promise(process.nextTick);
 
       expect(backgroundBridgeInstance.onMessage).toHaveBeenCalledWith(request);
+    });
+  });
+
+  describe('Origin Provenance', () => {
+    it('stamps the connection provenance on construction and drops it on dispose', () => {
+      // The MWP connection id is the unspoofable connection identity; the
+      // dapp metadata is self-reported and display-only (MCWP-771).
+      expect(getOriginProvenance('mock-connection-id')).toStrictEqual({
+        connectionId: 'mock-connection-id',
+        transport: RemoteTransport.MMConnect,
+        isVerified: false,
+        selfReported: {
+          url: 'https://mockdapp.com',
+          name: 'MockDApp',
+          icon: undefined,
+        },
+      });
+
+      adapter.dispose();
+
+      expect(getOriginProvenance('mock-connection-id')).toBeUndefined();
     });
   });
 

@@ -20,6 +20,7 @@ import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
 import { addTransaction } from '../../util/transaction-controller';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
+import { getOriginProvenance, RemoteTransport } from '../OriginProvenance';
 
 jest.mock('../../util/transaction-controller', () => ({
   ...jest.requireActual('../../util/transaction-controller'),
@@ -344,6 +345,25 @@ describe('WalletConnect2Session', () => {
     expect((session as any).topicByRequestId).toEqual({
       '1': mockSession.topic,
     });
+  });
+
+  it('stamps the connection provenance on construction and drops it on removeListeners', async () => {
+    // The channelId is the unspoofable connection identity; the peer
+    // metadata is self-reported by the dapp and display-only (MCWP-771).
+    expect(getOriginProvenance('test-channel')).toStrictEqual({
+      connectionId: 'test-channel',
+      transport: RemoteTransport.WalletConnect,
+      isVerified: false,
+      selfReported: {
+        url: 'https://example.com',
+        name: 'Test App',
+        icon: undefined,
+      },
+    });
+
+    await session.removeListeners();
+
+    expect(getOriginProvenance('test-channel')).toBeUndefined();
   });
 
   it('normalizes URLs without protocol for legacy session compatibility', () => {
