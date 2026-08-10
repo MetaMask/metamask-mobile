@@ -57,11 +57,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(
-      ['predict', 'v1', 'venues', venueId, 'status'],
-      undefined,
-      options,
-    );
+    return this.#get(['v1', 'venues', venueId, 'status'], undefined, options);
   }
 
   fetchEvents(
@@ -69,11 +65,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     params: FetchEventsParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(
-      ['predict', 'v1', 'venues', venueId, 'events'],
-      params,
-      options,
-    );
+    return this.#get(['v1', 'venues', venueId, 'events'], params, options);
   }
 
   fetchEvent(
@@ -82,7 +74,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     options?: PredictReadOptions,
   ): Promise<unknown> {
     return this.#get(
-      ['predict', 'v1', 'venues', venueId, 'events', eventId],
+      ['v1', 'venues', venueId, 'events', eventId],
       undefined,
       options,
     );

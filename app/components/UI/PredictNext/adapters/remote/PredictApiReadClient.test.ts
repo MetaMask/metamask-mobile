@@ -36,7 +36,7 @@ describe('PredictApiReadClient', () => {
     await client.fetchVenueStatus(venueId);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/api/predict/v1/venues/kalshi/status',
+      'https://predict.example/api/v1/venues/kalshi/status',
       {
         method: 'GET',
         headers: {
@@ -55,7 +55,7 @@ describe('PredictApiReadClient', () => {
     await client.fetchEvents(venueId, { cursor: 'next page', limit: 20 });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/api/predict/v1/venues/kalshi/events?cursor=next+page&limit=20',
+      'https://predict.example/api/v1/venues/kalshi/events?cursor=next+page&limit=20',
       expect.any(Object),
     );
   });
@@ -66,7 +66,7 @@ describe('PredictApiReadClient', () => {
     await client.fetchEvent(venueId, eventId);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/api/predict/v1/venues/kalshi/events/event%2Fone',
+      'https://predict.example/api/v1/venues/kalshi/events/event%2Fone',
       expect.any(Object),
     );
   });
