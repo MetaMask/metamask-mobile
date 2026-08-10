@@ -16,7 +16,11 @@ import {
 } from '@metamask/ramps-controller';
 import { getRampsEnvironment } from '../../../../core/Engine/controllers/ramps-controller/ramps-service-init';
 import { REDIRECTION_URL } from '../constants';
-import { generateThemeParameters } from '../utils/depositUtils';
+import {
+  generateThemeParameters,
+  generateWidgetThemeParameters,
+} from '../utils/depositUtils';
+import { selectRampsTransakWidgetUrlProxyEnabled } from '../../../../selectors/featureFlagController/deposit';
 import type {
   AddressFormData,
   BasicInfoFormData,
@@ -25,6 +29,7 @@ import { createCheckoutNavDetails } from '../Views/Checkout';
 import { createV2EnterEmailNavDetails } from '../Views/NativeFlow/EnterEmail';
 import { createKycWebviewNavDetails } from '../Views/NativeFlow/KycWebview';
 import useAnalytics from './useAnalytics';
+import { buildHeadlessOrderFailedProps } from '../utils/headlessOrderFailedProps';
 import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
@@ -46,6 +51,15 @@ import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import {
+  endOpenRampsBuyCufChildrenByName,
+  endRampsBuyCufTrace,
+} from '../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../util/trace';
 
 // The native provider code must match the environment that `refreshOrder` /
 // `getOrderFromCallback` poll (from `getRampsEnvironment()`). Dev/UAT expose
@@ -195,8 +209,13 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     getUserLimits,
     requestOtt,
     generatePaymentWidgetUrl,
+    createWidgetUrl,
     submitPurposeOfUsageForm,
   } = useTransakController();
+
+  const isTransakWidgetUrlProxyEnabled = useSelector(
+    selectRampsTransakWidgetUrlProxyEnabled,
+  );
 
   const { userRegion } = useRampsUserRegion();
   const { selectedPaymentMethod } = useRampsPaymentMethods();
@@ -226,25 +245,28 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       if (!session) {
         return;
       }
-      trackEvent('RAMPS_ORDER_FAILED', {
-        ramp_type: 'HEADLESS',
-        ramp_surface: session.params?.rampSurface,
-        // TRAM-3696: present when the failure occurs after an order exists.
-        ...(providerOrderId && { provider_order_id: providerOrderId }),
-        amount_source: Number(quote?.fiatAmount ?? session.params?.amount ?? 0),
-        amount_destination: 0,
-        payment_method_id: selectedPaymentMethod?.id || '',
-        region: regionIsoCode,
-        chain_id: (selectedToken?.chainId as string) || '',
-        currency_destination: selectedToken?.assetId || '',
-        currency_destination_symbol: selectedToken?.symbol || undefined,
-        currency_source: quote?.fiatCurrency || fiatCurrency || '',
-        error_message: parseUserFacingError(
-          error,
-          strings('deposit.buildQuote.unexpectedError'),
-        ),
-        is_authenticated: true,
-      });
+      trackEvent(
+        'RAMPS_ORDER_FAILED',
+        buildHeadlessOrderFailedProps({
+          rampSurface: session.params?.rampSurface,
+          // TRAM-3696: present when the failure occurs after an order exists.
+          providerOrderId,
+          amountSource: Number(
+            quote?.fiatAmount ?? session.params?.amount ?? 0,
+          ),
+          amountDestination: 0,
+          paymentMethodId: selectedPaymentMethod?.id || '',
+          region: regionIsoCode,
+          chainId: (selectedToken?.chainId as string) || '',
+          currencyDestination: selectedToken?.assetId || '',
+          currencyDestinationSymbol: selectedToken?.symbol || undefined,
+          currencySource: quote?.fiatCurrency || fiatCurrency || '',
+          errorMessage: parseUserFacingError(
+            error,
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        }),
+      );
     },
     [
       headlessSessionId,
@@ -424,6 +446,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
+      // Native child CUF ends when the order is created (before Order Details).
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId,
+      });
+
       // Headless mode: fire `onOrderCreated`, close the session, and pop
       // out of the ramp stack so the caller regains foreground. The
       // consumer drives post-order UI themselves — no RAMPS_ORDER_DETAILS.
@@ -437,6 +465,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             'useTransakRouting: onOrderCreated callback threw',
           );
         }
+        // Parent Buy E2E CUF expects Order Details; headless never shows it.
+        endRampsBuyCufTrace({
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.HEADLESS,
+            orderId,
+          },
+        });
         closeSession(headlessSessionId, { reason: 'completed' });
         dismissActiveHeadlessFlow();
         return;
@@ -850,18 +886,28 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   shouldUpdate: false,
                 });
               } else {
-                const ottResponse = await requestOtt();
+                let paymentUrl: string;
 
-                if (!ottResponse) {
-                  throw new Error('Failed to get OTT token');
+                if (isTransakWidgetUrlProxyEnabled) {
+                  paymentUrl = await createWidgetUrl(
+                    quote,
+                    walletAddress || '',
+                    generateWidgetThemeParameters(themeAppearance, colors),
+                  );
+                } else {
+                  const ottResponse = await requestOtt();
+
+                  if (!ottResponse) {
+                    throw new Error('Failed to get OTT token');
+                  }
+
+                  paymentUrl = generatePaymentWidgetUrl(
+                    ottResponse.ott,
+                    quote,
+                    walletAddress || '',
+                    generateThemeParameters(themeAppearance, colors),
+                  );
                 }
-
-                const paymentUrl = generatePaymentWidgetUrl(
-                  ottResponse.ott,
-                  quote,
-                  walletAddress || '',
-                  generateThemeParameters(themeAppearance, colors),
-                );
 
                 if (!paymentUrl) {
                   throw new Error('Failed to generate payment URL');
@@ -1023,6 +1069,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       transakCreateOrder,
       requestOtt,
       generatePaymentWidgetUrl,
+      createWidgetUrl,
+      isTransakWidgetUrlProxyEnabled,
       checkUserLimits,
       walletAddress,
       themeAppearance,

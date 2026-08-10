@@ -93,6 +93,13 @@ export type VipTierDto = {
   name: string;
   tier: number;
   pointsRequirement: number;
+  /**
+   * Lower 30d-points threshold to KEEP this tier once held (vs
+   * `pointsRequirement` to REACH it). `null` when no maintain threshold is
+   * configured for the tier — the reach requirement then also governs keeping
+   * it. Sourced from `/vip/me` (backend PR #737).
+   */
+  maintainPointsRequirement: number | null;
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;
@@ -123,6 +130,12 @@ export type VipLocalizedTextDto = {
   equityLockedDescription: string;
   equityUnlockedTitle: string;
   equityUnlockedDescription: string;
+  /**
+   * Copy for when the equity multiplier request itself fails. Carried here
+   * rather than on that response, which returns no strings when it fails.
+   */
+  equityMultiplierFailedTitle: string;
+  equityMultiplierFailedDescription: string;
   topTierDescription: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
   // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
@@ -132,6 +145,50 @@ export type VipLocalizedTextDto = {
   nextTierRevenueShareDelta: string;
   nextTierReferralPointsDelta: string;
 };
+
+/**
+ * Display-only equity multiplier from POST /vip/equity-multiplier.
+ * Never persist as program truth; never feed settlement (RWDS-1485).
+ */
+/**
+ * Display state of the multiplier, driven only by holdings against the
+ * configured band. `below_floor` — multiplier is 1.0. `active` — more holdings
+ * earn more. `at_cap` — maxed, nothing left to gain.
+ */
+export type VipEquityMultiplierState = 'below_floor' | 'active' | 'at_cap';
+
+/**
+ * Copy already resolved server-side for the current state and fully
+ * interpolated. Render as-is; never branch on `state` to pick copy, or a
+ * future state will need a mobile release.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierLocalizedTextDto = {
+  title: string;
+  description: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierUnavailableDto = {
+  available: false;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierAvailableDto = {
+  available: true;
+  multiplier: string;
+  state: VipEquityMultiplierState;
+  progressPercent: number;
+  tierNumber: number;
+  tierName: string;
+  capUsd: string;
+  computedAt: string;
+  localizedText: VipEquityMultiplierLocalizedTextDto;
+};
+
+export type VipEquityMultiplierDto =
+  | VipEquityMultiplierUnavailableDto
+  | VipEquityMultiplierAvailableDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipDashboardDto = {

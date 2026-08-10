@@ -1,5 +1,9 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -10,9 +14,6 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
   AssetType,
   isHighlightedItemInAssetList,
@@ -26,11 +27,11 @@ import {
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
 import {
+  TransactionType,
   hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
@@ -45,12 +46,12 @@ import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 export interface PayWithModalParams {
   /**
    * When > 1, PayWithModal owns navigation on close by dispatching
-   * `StackActions.pop(N)` atomically instead of relying on the legacy
-   * `BottomSheet`'s built-in `navigation.goBack()`. Set to 2 by the new Pay
-   * With bottom sheet's "Other assets" launcher so picking a token pops both
-   * this modal AND the bottom sheet underneath in a single navigator
-   * dispatch — avoids the Android view-hierarchy race that crashes with
-   * `IllegalStateException` on two adjacent pops.
+   * `StackActions.pop(N)` atomically instead of relying on BottomSheet's
+   * `goBack` callback. Set to 2 by the new Pay With bottom sheet's "Other
+   * assets" launcher so picking a token pops both this modal AND the bottom
+   * sheet underneath in a single navigator dispatch — avoids the Android
+   * view-hierarchy race that crashes with `IllegalStateException` on two
+   * adjacent pops.
    */
   dismissOnSelectCount?: number;
 }
@@ -137,6 +138,19 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      if (
+        payToken &&
+        payToken.address.toLowerCase() === token.address.toLowerCase() &&
+        payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
+      ) {
+        close(() => {
+          if (dismissOnSelectCount > 1) {
+            navigation.dispatch(StackActions.pop(dismissOnSelectCount));
+          }
+        });
+        return;
+      }
+
       const onClosed = async () => {
         if (dismissOnSelectCount > 1) {
           navigation.dispatch(StackActions.pop(dismissOnSelectCount));
@@ -223,6 +237,7 @@ export function PayWithModal() {
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
+      payToken,
       setPayToken,
       transactionMeta,
     ],
@@ -283,7 +298,7 @@ export function PayWithModal() {
       isFullscreen
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
-      shouldNavigateBack={dismissOnSelectCount <= 1}
+      goBack={dismissOnSelectCount <= 1 ? () => navigation.goBack() : undefined}
       onClose={(hasCallback) => {
         // Swipe/overlay/back-button dismiss: navigate back manually.
         // X button or token selection: postCallback handles it (hasCallback=true).
@@ -292,7 +307,7 @@ export function PayWithModal() {
         }
       }}
     >
-      <HeaderStandard title={modalTitle} onClose={handleClose} />
+      <BottomSheetHeader onClose={handleClose}>{modalTitle}</BottomSheetHeader>
       <Asset
         includeNoBalance
         hideNfts

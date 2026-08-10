@@ -9,19 +9,25 @@
  * Handles:
  * - Imported Wallet Tests: *-imported-wallet-test-results-*
  * - Onboarding Tests: *-onboarding-flow-test-results-*
- * - MM-Connect Tests: *-mm-connect-test-results-*
  */
 
 import fs from 'fs';
 import path from 'path';
 
 /**
- * Get build variant and display type from environment (rc = normal, exp = experimental).
+ * Get build variant and display type from environment.
  * @returns {{ buildVariant: string, buildType: string }}
  */
 function getBuildTypeInfo() {
   const variant = (process.env.BUILD_VARIANT || 'rc').toLowerCase();
-  const buildType = variant === 'exp' ? 'Experimental' : 'Normal';
+  let buildType = 'Normal';
+  if (variant === 'exp') {
+    buildType = 'Experimental';
+  } else if (variant === 'rc') {
+    buildType = 'RC';
+  } else if (variant === 'e2e') {
+    buildType = 'E2E';
+  }
   return { buildVariant: variant, buildType };
 }
 
@@ -30,15 +36,12 @@ function getBuildTypeInfo() {
  * Used so Slack category status can reflect quality-gate failures even when
  * CI jobs exit green by design.
  * @param {string|null|undefined} testFilePath
- * @returns {'onboarding'|'imported-wallet'|'mm-connect'}
+ * @returns {'onboarding'|'imported-wallet'}
  */
 function resolveScenarioFromTestFilePath(testFilePath) {
   const pathValue = testFilePath || '';
   if (pathValue.includes('/performance/onboarding/')) {
     return 'onboarding';
-  }
-  if (pathValue.includes('/performance/mm-connect/')) {
-    return 'mm-connect';
   }
   return 'imported-wallet';
 }
@@ -205,18 +208,6 @@ function extractPlatformScenarioAndDevice(filePath) {
     scenario = 'onboarding';
     scenarioKey = 'Onboarding';
     console.log(`✅ Detected iOS Onboarding test`);
-  } else if (fullPath.includes('android-mm-connect-test-results')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'mm-connect';
-    scenarioKey = 'MMConnect';
-    console.log(`✅ Detected Android MM-Connect test`);
-  } else if (fullPath.includes('ios-mm-connect-test-results')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'mm-connect';
-    scenarioKey = 'MMConnect';
-    console.log(`✅ Detected iOS MM-Connect test`);
   } else {
     console.log(`⚠️ Could not determine platform/scenario from path`);
     console.log(`🔍 Full path: ${filePath}`);
@@ -225,8 +216,7 @@ function extractPlatformScenarioAndDevice(filePath) {
   // Extract device info from path
   const deviceMatch = pathParts.find(part =>
     part.includes('-imported-wallet-test-results-') ||
-    part.includes('-onboarding-flow-test-results-') ||
-    part.includes('-mm-connect-test-results-')
+    part.includes('-onboarding-flow-test-results-')
   );
 
   if (deviceMatch) {
@@ -236,7 +226,6 @@ function extractPlatformScenarioAndDevice(filePath) {
 
     // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion (5 parts)
     // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion (5 parts)
-    // Pattern: android-mm-connect-test-results-DeviceName-OSVersion (5 parts)
     const deviceInfoStart = 5;
     
     if (parts.length >= deviceInfoStart + 1) {
@@ -258,7 +247,7 @@ function extractPlatformScenarioAndDevice(filePath) {
   } else {
     console.log(`⚠️ No device match found in path parts`);
     console.log(
-      `🔍 Looking for patterns: -imported-wallet-test-results-, -onboarding-flow-test-results-, or -mm-connect-test-results-`
+      `🔍 Looking for patterns: -imported-wallet-test-results- or -onboarding-flow-test-results-`
     );
     console.log(`🔍 Available parts:`, pathParts);
   }
@@ -514,7 +503,6 @@ function createSummary(groupedResults) {
   const failedTestsByCategory = {
     onboarding: { android: 0, ios: 0 },
     'imported-wallet': { android: 0, ios: 0 },
-    'mm-connect': { android: 0, ios: 0 },
   };
 
   const uniqueFailedTestNames = new Set();

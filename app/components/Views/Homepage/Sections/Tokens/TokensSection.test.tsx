@@ -49,10 +49,9 @@ jest.mock(
 );
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance: (
-    state: unknown,
-    chainIds: string[],
-  ) => mockSortedTokenKeys(state, chainIds),
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance:
+    (chainIds: string[]) => (state: unknown) =>
+      mockSortedTokenKeys(state, chainIds),
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
@@ -244,7 +243,10 @@ jest.mock('./components/PopularTokenRow', () => {
               jest
                 .requireMock('../../../../UI/Ramp/hooks/useRampNavigation')
                 .useRampNavigation()
-                .goToBuy({ assetId: token.assetId }),
+                .goToBuy(
+                  { assetId: token.assetId },
+                  { buyFlowOrigin: 'homeTokenList' },
+                ),
           },
           ReactActual.createElement(Text, null, 'Buy'),
         ),
@@ -429,9 +431,12 @@ describe('TokensSection', () => {
     const buyButtons = screen.getAllByText('Buy');
     fireEvent.press(buyButtons[0]);
 
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    });
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      },
+      { buyFlowOrigin: 'homeTokenList' },
+    );
   });
 
   it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance)', () => {

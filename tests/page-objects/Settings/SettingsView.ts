@@ -10,6 +10,7 @@ import {
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import type { ScrollContainer } from '../../framework/index';
 
 class SettingsView {
   get title(): EncapsulatedElementType {
@@ -77,8 +78,10 @@ class SettingsView {
     });
   }
 
-  get scrollViewIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
+  get scrollViewIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
+      SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID,
+    );
   }
 
   async scrollToLockButton(): Promise<void> {

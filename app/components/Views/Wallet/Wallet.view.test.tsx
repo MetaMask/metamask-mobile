@@ -6,9 +6,13 @@ import {
 import { initialStateWallet } from '../../../../tests/component-view/presets/wallet';
 import { renderComponentViewScreen } from '../../../../tests/component-view/render';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
+import { MoneyBalanceCardTestIds } from '../../UI/Money/components/MoneyBalanceCard/MoneyBalanceCard.testIds';
+import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
+import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingSteps/walletHomeOnboardingStepsModel';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 import Wallet from './index';
 import React from 'react';
 
@@ -94,6 +98,52 @@ describeForPlatforms('Wallet', () => {
 
     expect(
       await findByTestId(`route-${Routes.SETTINGS_VIEW}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to Explore search when the header search button is pressed', async () => {
+    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
+      extraRoutes: [
+        { name: Routes.QR_TAB_SWITCHER },
+        { name: Routes.EXPLORE_SEARCH },
+      ],
+      overrides: {
+        settings: {
+          basicFunctionalityEnabled: true,
+        },
+        engine: {
+          backgroundState: {
+            MultichainNetworkController: {
+              isEvmSelected: true,
+            },
+            RewardsController: {
+              activeAccount: null,
+            },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>,
+    });
+
+    const searchButton = getByTestId(
+      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+    );
+
+    // Icon-only button, so screen readers have nothing to announce without this.
+    expect(searchButton).toHaveAccessibleName(
+      strings('wallet.search_accessibility_label'),
+    );
+
+    fireEvent.press(searchButton);
+
+    expect(
+      await findByTestId(`route-${Routes.EXPLORE_SEARCH}`),
     ).toBeOnTheScreen();
   });
 
@@ -236,6 +286,76 @@ describeForPlatforms('Wallet', () => {
       );
 
       expect(getByTestId(WalletViewSelectorsIDs.CARD_BUTTON)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Money balance card', () => {
+    /** Money account enabled + geo-eligible, so only the checklist can hide the card. */
+    const renderMoneyAccountVisibleWallet = (
+      onboarding: Record<string, unknown>,
+    ) =>
+      renderWalletWithState((builder) =>
+        builder
+          .withRemoteFeatureFlags({
+            moneyEnableMoneyAccount: {
+              enabled: true,
+              minimumVersion: '0.0.0',
+            },
+            moneyAccountGeoBlockedCountries: { blockedRegions: ['GB'] },
+          })
+          .withOverrides({
+            ...walletStateOverrides,
+            engine: {
+              backgroundState: {
+                ...walletStateOverrides.engine.backgroundState,
+                GeolocationController: {
+                  location: 'US',
+                },
+              },
+            },
+            onboarding: {
+              completedOnboarding: true,
+              walletHomeOnboardingStepsEligible: true,
+              walletHomeOnboardingSkipInitialBalanceWait: true,
+              ...onboarding,
+            },
+          } as unknown as Record<string, unknown>),
+      );
+
+    it('hides the Money balance card while the onboarding checklist is showing', () => {
+      const { getByTestId, queryByTestId } = renderMoneyAccountVisibleWallet({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 0 },
+      });
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.LABEL),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the Money balance card after the user skips the last checklist step', () => {
+      // This preset leaves `pushNotificationOsPromptRequested` unset, so the notifications
+      // step is part of the flow (TMCU-924).
+      const lastStepIndex =
+        walletHomeOnboardingVisibleSteps({ includeNotificationsStep: true })
+          .length - 1;
+      const { getByTestId, queryByTestId } = renderMoneyAccountVisibleWallet({
+        walletHomeOnboardingSteps: {
+          suppressedReason: null,
+          stepIndex: lastStepIndex,
+        },
+      });
+
+      fireEvent.press(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      );
+
+      expect(
+        queryByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.LABEL)).toBeOnTheScreen();
     });
   });
 });

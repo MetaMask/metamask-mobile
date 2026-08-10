@@ -102,6 +102,7 @@ import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
+import { clearBrazeUser } from '../Braze';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -165,6 +166,17 @@ class AuthenticationService {
     await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
     if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
       ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+    }
+  };
+
+  private clearSessionScopedProviderTokens = async (): Promise<void> => {
+    try {
+      await depositResetProviderToken();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to clear deposit provider token during wallet setup',
+      );
     }
   };
 
@@ -569,6 +581,7 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
+      await this.clearSessionScopedProviderTokens();
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -610,6 +623,8 @@ class AuthenticationService {
         parsedSeed,
         clearEngine,
       );
+
+      await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
         Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
@@ -1678,6 +1693,7 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
+    clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state

@@ -66,11 +66,23 @@ jobs:
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
+    # Set at job level (not just on the Ruby setup step) so it also applies to the
+    # later `yarn setup:github-ci` step, which runs `bundle exec pod install` without
+    # an explicit --gemfile flag. Without this, Bundler falls back to a plain $PATH
+    # lookup for `pod`, which can silently use the runner's ambient CocoaPods instead
+    # of the version pinned in ios/Gemfile.lock.
+    env:
+      BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
+      - name: Configure Namespace CocoaPods cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: cocoapods
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -78,8 +90,7 @@ jobs:
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
           ruby-version: '3.2.9'
-        env:
-          BUNDLE_GEMFILE: ios/Gemfile
+          bundler-cache: true
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -87,6 +98,17 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
+      - name: Restore CocoaPods cache
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/.cocoapods/repos
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-check-diff-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-check-diff-pods-
       - name: Restore .metamask folder
         id: restore-metamask
         uses: actions/cache@v4
@@ -1032,7 +1054,7 @@ jobs:
           fi
 
   component-view-tests:
-    name: Component view tests
+    name: Component view tests (${{ matrix.shard }})
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
@@ -1041,7 +1063,7 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1067,7 +1089,7 @@ jobs:
         run: mkdir -p tests/results
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/2 \
+            --shard=${{ matrix.shard }}/3 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
@@ -1214,7 +1236,8 @@ jobs:
     name: 'Run Performance Tests (PR)'
     # Run when:
     # - run-performance-tests label is on the PR (forced run, all tests), OR
-    # - smart-e2e-selection ran and AI selected performance tags.
+    # - the PR targets main and Smart E2E Selection chose performance tags.
+    # PRs targeting release/* or stable only run performance tests via the label.
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
     # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
@@ -1228,26 +1251,32 @@ jobs:
         (
           needs.get_requirements.outputs.run_performance == 'true' ||
           (
+            github.event.pull_request.base.ref == 'main' &&
             needs.smart-e2e-selection.result == 'success' &&
             needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
           )
         )
       }}
-    needs: [get_requirements, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
       performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
+      source_ref: ${{ github.sha }}
       pr_number: ${{ github.event.pull_request.number }}
+      # Test-only PRs use the latest main APKs directly. PRs with app changes
+      # leave this false so the build workflow can use fingerprint reuse.
       reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
     permissions:
       contents: write
       id-token: write
       actions: write
       pull-requests: write
+      statuses: write
 
   build-android-apks:
     name: 'Build Android APKs'
@@ -1327,31 +1356,8 @@ jobs:
           # See: https://github.com/MetaMask/metamask-mobile/pull/31217
           retention-days: 30
 
-  e2e-smoke-tests-android:
-    name: 'Android E2E Smoke Tests'
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux-runner job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: >-
-      ${{
-        inputs.runner_provider != 'bitrise' &&
-        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
-        !cancelled() &&
-        needs.build-android-apks.result == 'success' &&
-        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [get_requirements, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
-    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
-    with:
-      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+  # Detox Android E2E smoke workflow removed — tags fully migrated to Appium
+  # (run-appium-smoke-tests-android.yml).
 
   build-ios-apps:
     name: 'Build iOS Apps'
@@ -1387,28 +1393,8 @@ jobs:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
-  e2e-smoke-tests-ios:
-    name: 'iOS E2E Smoke Tests'
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.ios-tests-ready.result == 'success' &&
-        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
-    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
-    with:
-      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+  # Detox iOS E2E smoke workflow removed — tags fully migrated to Appium
+  # (run-appium-smoke-tests-ios.yml).
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
@@ -1444,7 +1430,8 @@ jobs:
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
     # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests, or change page-objects/selectors/locators/framework
+    # PRs: skipped by default; add run-appium-ios-tests, or change
+    # page-objects/selectors/locators/framework/smoke-appium
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
@@ -1495,7 +1482,7 @@ jobs:
       test_suite_tag: FixtureValidation
       split_number: 1
       total_splits: 1
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'
       # Appium iOS is pinned to Cirrus (current), same as appium-smoke-tests-ios.
@@ -1743,8 +1730,6 @@ jobs:
       - sonar-cloud-quality-gate-status
       - build-android-apks
       - build-ios-apps
-      - e2e-smoke-tests-android
-      - e2e-smoke-tests-ios
       - appium-smoke-tests-android
       - appium-smoke-tests-ios
     steps:
@@ -1767,7 +1752,7 @@ jobs:
         with:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
-          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|appium-smoke-tests-android|appium-smoke-tests-ios)$'
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|appium-smoke-tests-android|appium-smoke-tests-ios)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 

@@ -22,8 +22,13 @@ import {
   useTokenWatchlistRemoveItemMutation,
   useTokenWatchlistUpdateListMutation,
 } from './useTokenWatchlistMutations';
+import { syncPriceAlertsWatchlistMirror } from '../../PriceAlerts/syncWatchlistMirror';
 
 const drainBatcher = () => tokenWatchlistBatcher.flush();
+
+const mockedSyncMirror = syncPriceAlertsWatchlistMirror as jest.MockedFunction<
+  typeof syncPriceAlertsWatchlistMirror
+>;
 
 // Override React Query's batch notify function to prevent teardown crashes.
 // The default uses react-native's unstable_batchedUpdates which tries to
@@ -49,6 +54,10 @@ jest.mock('../storage', () => ({
   EMPTY_BLOB: { assets: [], version: 1 },
   readFromTokenWatchList: jest.fn(),
   writeToTokenWatchList: jest.fn(),
+}));
+
+jest.mock('../../PriceAlerts/syncWatchlistMirror', () => ({
+  syncPriceAlertsWatchlistMirror: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockedRead = readFromTokenWatchList as jest.MockedFunction<
@@ -110,12 +119,20 @@ const readHydratedCache = (queryClient: QueryClient) =>
   );
 
 const baseBeforeEach = (initialStorage: WatchlistBlob = EMPTY_BLOB) => {
+  // Reset any leaked client from a prior test that skipped afterEach (J9).
+  if (activeQueryClient) {
+    activeQueryClient.getMutationCache().clear();
+    activeQueryClient.getQueryCache().clear();
+    activeQueryClient.clear();
+    activeQueryClient = null;
+  }
   jest.clearAllMocks();
   mockedRead.mockResolvedValue(initialStorage);
   mockedWrite.mockResolvedValue(undefined);
 };
 
 const baseAfterEach = async () => {
+  jest.restoreAllMocks();
   // Drain any pending batch left over from the test so it cannot fire
   // against the next test's mocks. `flush()` is a no-op when the queue
   // is empty.
@@ -209,6 +226,10 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
       assets: scenario.expectedWrittenAssets,
       version: 1,
     });
+    expect(mockedSyncMirror).toHaveBeenCalledWith(
+      scenario.initialStorage.assets,
+      scenario.expectedWrittenAssets,
+    );
   });
 
   it('optimistically updates the blob cache before the storage write completes', async () => {
@@ -596,6 +617,40 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
       assets: [ASSET_A],
       version: 1,
     });
+  });
+
+  it('does not invalidate hydrated when add is unwatched before add settles', async () => {
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, { assets: [ASSET_A], version: 1 });
+    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+    const { result: add } = renderHook(
+      () => useTokenWatchlistAddItemMutation(),
+      { wrapper: Wrapper },
+    );
+    const { result: remove } = renderHook(
+      () => useTokenWatchlistRemoveItemMutation(),
+      { wrapper: Wrapper },
+    );
+
+    await act(async () => {
+      const pendingAdd = add.current.mutateAsync(ASSET_B);
+      const pendingRemove = remove.current.mutateAsync(ASSET_B);
+      await drainBatcher();
+      await Promise.all([pendingAdd, pendingRemove]);
+    });
+
+    expect(invalidateSpy).not.toHaveBeenCalledWith({
+      queryKey: tokenWatchlistQueryKeys.hydrated,
+    });
+    expect(readCache(queryClient)).toStrictEqual({
+      assets: [ASSET_A],
+      version: 1,
+    });
+    expect(readHydratedCache(queryClient)).toStrictEqual(
+      hydratedFor([ASSET_A]),
+    );
   });
 
   it('lets a replace op overwrite any add/remove ops submitted before it in the same batch', async () => {

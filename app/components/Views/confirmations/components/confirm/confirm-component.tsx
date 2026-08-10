@@ -12,7 +12,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
@@ -28,7 +28,10 @@ import Info from '../info-root';
 import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
 import styleSheet from './confirm-component.styles';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
@@ -39,7 +42,6 @@ import {
 } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
 
@@ -203,7 +205,6 @@ export const Confirm = ({
   return (
     <BottomSheet
       onClose={() => onReject()}
-      shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
       testID={ConfirmationUIType.MODAL}
     >

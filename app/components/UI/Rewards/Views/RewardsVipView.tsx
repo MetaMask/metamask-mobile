@@ -38,6 +38,7 @@ import VipFeeTile, {
   VIP_FEE_TILE_WIDTH,
 } from '../components/Vip/VipFeeTile';
 import VipPointsSection from '../components/Vip/VipPointsSection';
+import VipEquityMultiplierSection from '../components/Vip/VipEquityMultiplierSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
 import VipSwapsVolumeInfoSheet from '../components/Vip/VipSwapsVolumeInfoSheet';
@@ -156,6 +157,13 @@ const RewardsVipViewContent: React.FC = () => {
       pointsRemaining: formatCompactValue(
         dashboard.progress.remainingPointsToNextTier,
       ),
+    });
+  })();
+  const maintainSubline = (() => {
+    const maintainPoints = currentTierDetails?.maintainPointsRequirement;
+    if (maintainPoints == null || maintainPoints === 0) return undefined;
+    return strings('rewards.vip.maintain_this_tier', {
+      points: formatCompactValue(maintainPoints),
     });
   })();
 
@@ -328,7 +336,9 @@ const RewardsVipViewContent: React.FC = () => {
                   currentTier={dashboard.currentTier}
                   programName={dashboard.program.name}
                   progress={dashboard.progress}
+                  currentPoints={dashboard.volume.points}
                   subline={progressSubline}
+                  maintainSubline={maintainSubline}
                   memberIdTitle={dashboard.localizedText.memberIdTitle}
                   memberId={referralCode ?? ''}
                 />
@@ -445,6 +455,14 @@ const RewardsVipViewContent: React.FC = () => {
                 }
                 equityUnlockedDescription={
                   dashboard.localizedText.equityUnlockedDescription
+                }
+              />
+              <VipEquityMultiplierSection
+                failedTitle={
+                  dashboard.localizedText.equityMultiplierFailedTitle
+                }
+                failedDescription={
+                  dashboard.localizedText.equityMultiplierFailedDescription
                 }
               />
             </>

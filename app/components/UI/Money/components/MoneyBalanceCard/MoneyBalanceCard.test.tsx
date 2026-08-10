@@ -166,6 +166,7 @@ describe('MoneyBalanceCard', () => {
     mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
     mockSelectPrivacyMode.mockReturnValue(false);
     mockUseMoneyNavigation.mockReturnValue({
+      isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);

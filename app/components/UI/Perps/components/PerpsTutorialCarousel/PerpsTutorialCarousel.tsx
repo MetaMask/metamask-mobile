@@ -45,6 +45,7 @@ import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../../constants/perpsConfig';
+import { useGetPerpsHomeNavigationTarget } from '../../utils/perpsModeSwitch';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
@@ -145,6 +146,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     route.params?.source ?? PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON;
   const redirectScreen = route.params?.redirectScreen;
   const redirectParams = route.params?.redirectParams;
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const [currentTab, setCurrentTab] = useState(0);
@@ -270,16 +272,22 @@ const PerpsTutorialCarousel: React.FC = () => {
   );
 
   const navigateAfterTutorial = useCallback(() => {
-    const navParams: Record<string, unknown> = {
-      screen: redirectScreen ?? Routes.PERPS.PERPS_HOME,
-    };
-    if (redirectParams) {
-      navParams.params = redirectParams;
+    // No explicit redirect was requested by the caller: fall back to the
+    // Pro-aware default (TAT-3612) so Perps Home is never shown while Pro
+    // mode is active, e.g. after the user switched to Pro mode but hadn't
+    // completed onboarding yet.
+    const { screen, params } = redirectScreen
+      ? { screen: redirectScreen, params: redirectParams }
+      : getPerpsHomeNavigationTarget();
+
+    const navParams: Record<string, unknown> = { screen };
+    if (params && Object.keys(params).length > 0) {
+      navParams.params = params;
     }
     NavigationService.navigation.dispatch(
       StackActions.replace(Routes.PERPS.ROOT, navParams),
     );
-  }, [redirectScreen, redirectParams]);
+  }, [redirectScreen, redirectParams, getPerpsHomeNavigationTarget]);
 
   const handleContinue = useCallback(async () => {
     // Prevent double-tap on Android - if timeout exists, we're still debouncing
