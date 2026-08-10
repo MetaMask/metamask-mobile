@@ -5,7 +5,7 @@ run-name: >-
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'release/*']
   pull_request:
     types:
       - opened
@@ -1427,7 +1427,7 @@ jobs:
 
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
-    # Main push/schedule: always run when the iOS build succeeded.
+    # Main/release push and main schedule: always run when the iOS build succeeded.
     # PRs: skipped by default; add run-appium-ios-tests, or change
     # page-objects/selectors/locators/framework/smoke-appium
     # (same smart-selected tags as other E2E jobs).
@@ -1437,8 +1437,15 @@ jobs:
         needs.ios-tests-ready.result == 'success' &&
         (
           (
+            github.event_name == 'push' &&
+            (
+              github.ref == 'refs/heads/main' ||
+              startsWith(github.ref, 'refs/heads/release/')
+            )
+          ) ||
+          (
             github.ref == 'refs/heads/main' &&
-            (github.event_name == 'push' || github.event_name == 'schedule')
+            github.event_name == 'schedule'
           ) ||
           (
             github.event_name == 'pull_request' &&
