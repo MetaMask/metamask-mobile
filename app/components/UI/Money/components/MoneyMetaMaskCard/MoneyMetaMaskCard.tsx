@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -26,7 +25,6 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import MoneyCardTiltAnimation from '../MoneyCardTiltAnimation';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
-import styles from './MoneyMetaMaskCard.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -35,9 +33,12 @@ import {
   CardScreens,
 } from '../../../Card/util/metrics';
 
-import mmCardRegular from '../../../../../images/mm_card_regular.png';
-import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
+
+// The link layout gives the card slightly more room than the upsell and manage
+// rows, which use the component's default thumbnail size.
+const LINK_CARD_WIDTH = 111;
+const LINK_CARD_HEIGHT = 70;
 
 interface MoneyMetaMaskCardProps {
   /**
@@ -216,9 +217,10 @@ const LinkContent = ({
           twClassName="gap-4"
           testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
         >
-          <Image
-            source={showMetalCard ? mmCardMetal : mmCardRegular}
-            style={styles.linkCardImage}
+          <MoneyCardTiltAnimation
+            isMetalCard={showMetalCard}
+            width={LINK_CARD_WIDTH}
+            height={LINK_CARD_HEIGHT}
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
           <Box twClassName="gap-2 flex-1 justify-center">

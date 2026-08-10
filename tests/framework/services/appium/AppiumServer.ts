@@ -99,7 +99,7 @@ export async function startAppiumServer(
       'yarn',
       [
         'appium',
-        '--allow-insecure=chromedriver_autodownload,adb_shell',
+        '--allow-insecure=uiautomator2:chromedriver_autodownload,uiautomator2:adb_shell',
         '--port',
         String(port),
         '--address',
