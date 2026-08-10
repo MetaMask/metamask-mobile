@@ -1,0 +1,43 @@
+tests/llm-workflow/README.md
+  s_5ed6595e8536b8::t_b6d02779722668 70-72,75
+  s_5ed6595e8536b8::t_dd6a0e42eea986 76
+tests/llm-workflow/metamask-provider.ts
+  s_5ed6595e8536b8::t_64504cdd8f50b7 350
+tests/llm-workflow/__tests__/metamask-provider.test.ts
+  s_5ed6595e8536b8::t_155dc77d9e9349 206
+  s_5ed6595e8536b8::t_15bea1d4e63cf6 200-201
+  s_5ed6595e8536b8::t_f973a292e8f615 184,192,197-199,202-204,207-208
+  s_5ed6595e8536b8::t_283d509fb3396f 205
+  s_b3b6c47ef53f72::t_d2959a0ca3265c 209-210
+tests/llm-workflow/android/platform-adapter.ts
+  s_5ed6595e8536b8::t_38038794a7123c 313
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "dbe502a3e4686775b229bb4919a8f1ae12912763",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  },
+  "sessions": {
+    "s_5ed6595e8536b8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_013537187ffe2mp0Svs3V1nK4l",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_b3b6c47ef53f72": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1428ed09-1a1a-4f08-96a9-08cf05d4af6c",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
