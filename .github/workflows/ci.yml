@@ -1266,6 +1266,8 @@ jobs:
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
       pr_number: ${{ github.event.pull_request.number }}
+      # Test-only PRs use the latest main APKs directly. PRs with app changes
+      # leave this false so the build workflow can use fingerprint reuse.
       reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
