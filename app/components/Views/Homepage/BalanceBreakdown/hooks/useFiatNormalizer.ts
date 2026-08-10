@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import {
@@ -27,5 +27,8 @@ export function useFiatNormalizer() {
     [usdRate, userCurrency],
   );
 
-  return { toUserCurrency, userCurrency };
+  return useMemo(
+    () => ({ toUserCurrency, userCurrency }),
+    [toUserCurrency, userCurrency],
+  );
 }
