@@ -1,8 +1,9 @@
-import type {
-  AccountTreePayload,
-  AccountWalletPayloadId,
-  AccountGroupPayloadId,
-  VersionedState,
+import {
+  AccountTreeSnapshot,
+  type AccountTreePayload,
+  type AccountWalletPayloadId,
+  type AccountGroupPayloadId,
+  type VersionedState,
 } from '@metamask/account-tree-controller';
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
@@ -284,19 +285,28 @@ export class QrSyncController extends BaseController<
   }
 
   /**
-   * Phase B (new-user): marks vault creation complete so Phase C can proceed.
+   * Phase B (new-user): imports the pending account tree and marks vault
+   * creation complete so Phase C can proceed.
    *
    * Called from `Authentication.newWalletAndRestore` after the primary vault
-   * is created. Sets `provisioningStatus = 'secrets_imported'` without doing
-   * any vault work — secondary wallet imports have moved to Phase C via
-   * `AccountTreeController:importState`.
+   * is created. Calls `AccountTreeController:importState` to import secondary
+   * wallets and apply metadata while the vault is unlocked, then sets
+   * `provisioningStatus = 'secrets_imported'`.
    */
-  public finalizeVaultCreation(): void {
+  public async finalizeVaultCreation(): Promise<void> {
     if (
       this.state.provisioningStatus !==
       QrSyncProvisioningStatuses.AWAITING_PASSWORD
     ) {
       return;
+    }
+
+    const { pendingPayload } = this.state;
+    if (pendingPayload) {
+      await this.messenger.call(
+        'AccountTreeController:importState',
+        await AccountTreeSnapshot.deserialize(pendingPayload),
+      );
     }
 
     this.update((state) => {

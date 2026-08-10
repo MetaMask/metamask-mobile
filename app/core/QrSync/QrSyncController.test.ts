@@ -23,6 +23,18 @@ import {
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import { QR_SYNC_MWP_DEEPLINK_PREFIX } from './services/qr-sync-validation';
 import type { QrSyncSyncReadyMessage } from './types';
+
+jest.mock('@metamask/account-tree-controller', () => {
+  const actual = jest.requireActual('@metamask/account-tree-controller');
+  return {
+    ...actual,
+    AccountTreeSnapshot: {
+      ...actual.AccountTreeSnapshot,
+      deserialize: jest.fn((payload: unknown) => Promise.resolve(payload)),
+    },
+  };
+});
+
 jest.mock('./services/create-qr-sync-wallet-client');
 
 const mockCreateQrSyncWalletClient =
@@ -132,6 +144,26 @@ const buildMessenger = (): QrSyncControllerMessenger =>
   new Messenger({
     namespace: QR_SYNC_CONTROLLER_NAME,
   });
+
+const buildMessengerWithImportState = (
+  mockImportState: jest.Mock,
+): QrSyncControllerMessenger => {
+  // AccountTreeController:importState lives in the AccountTreeController namespace.
+  // Build a parent messenger for that namespace, register the handler, then create
+  // a QrSyncController child with the action delegated down.
+  const atcMessenger = new Messenger({
+    namespace: 'AccountTreeController',
+  });
+  atcMessenger.registerActionHandler(
+    'AccountTreeController:importState',
+    mockImportState,
+  );
+  return atcMessenger.buildChild({
+    namespace: QR_SYNC_CONTROLLER_NAME,
+    actions: ['AccountTreeController:importState'],
+    events: [],
+  }) as unknown as QrSyncControllerMessenger;
+};
 
 interface MockWalletClientHarness {
   client: jest.Mocked<WalletClient>;
@@ -674,8 +706,13 @@ describe('QrSyncController', () => {
       );
     });
 
-    it('finalizeVaultCreation sets SECRETS_IMPORTED when in AWAITING_PASSWORD', async () => {
-      const controller = buildController({
+    it('finalizeVaultCreation sets SECRETS_IMPORTED and calls importState when in AWAITING_PASSWORD', async () => {
+      const mockImportState = jest.fn().mockResolvedValue(undefined);
+      const messenger = buildMessengerWithImportState(mockImportState);
+      const controller = new QrSyncController({
+        messenger,
+        keyManager: {} as IKeyManager,
+        relayUrl: TEST_RELAY_URL,
         getIsOnboardingCompleted: () => false,
       });
       const walletClient = buildMockWalletClient();
@@ -688,17 +725,21 @@ describe('QrSyncController', () => {
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       );
 
-      controller.finalizeVaultCreation();
+      await controller.finalizeVaultCreation();
 
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.SECRETS_IMPORTED,
       );
+      expect(mockImportState).toHaveBeenCalledTimes(1);
+      expect(mockImportState).toHaveBeenCalledWith(
+        controller.state.pendingPayload,
+      );
     });
 
-    it('finalizeVaultCreation is a no-op when not in AWAITING_PASSWORD', () => {
+    it('finalizeVaultCreation is a no-op when not in AWAITING_PASSWORD', async () => {
       const controller = buildController();
 
-      controller.finalizeVaultCreation();
+      await controller.finalizeVaultCreation();
 
       expect(controller.state.provisioningStatus).toBeNull();
     });

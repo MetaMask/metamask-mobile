@@ -37,7 +37,7 @@ export type QrSyncControllerState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type QrSyncControllerFinalizeVaultCreationAction = {
   type: `${typeof QR_SYNC_CONTROLLER_NAME}:finalizeVaultCreation`;
-  handler: () => void;
+  handler: () => Promise<void>;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
