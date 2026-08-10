@@ -85,22 +85,44 @@ export const usePerpsMarketFills = ({
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Account switches and refresh can overlap in-flight REST fetches. Track the
+  // latest request so only the current one may write state — same pattern as
+  // usePerpsMarketData and usePerpsMarketForAsset.
+  const isMountedRef = useRef(true);
+  const requestIdRef = useRef(0);
+
   // Fetch historical fills via REST API (limited to last 3 months for performance)
   const fetchRestFills = useCallback(async (isRefresh = false) => {
+    const requestId = ++requestIdRef.current;
+    const isCurrentRequest = () =>
+      requestIdRef.current === requestId && isMountedRef.current;
+
     const controller = Engine.context.PerpsController;
     if (!controller) {
+      if (!isCurrentRequest()) {
+        return;
+      }
       setIsHistoryLoading(false);
       setHistoryError('Perps controller is unavailable');
       return;
     }
 
     if (!isRefresh) {
+      if (!isCurrentRequest()) {
+        return;
+      }
       setIsHistoryLoading(true);
+    }
+    if (!isCurrentRequest()) {
+      return;
     }
     setHistoryError(null);
 
     try {
       if (!controller.getActiveProviderOrNull()) {
+        if (!isCurrentRequest()) {
+          return;
+        }
         setHistoryError('No active Perps provider');
         return;
       }
@@ -118,8 +140,14 @@ export const usePerpsMarketFills = ({
         },
         { forceRefresh: isRefresh },
       );
+      if (!isCurrentRequest()) {
+        return;
+      }
       setRestFills(fills);
     } catch (err) {
+      if (!isCurrentRequest()) {
+        return;
+      }
       const error = ensureError(err, 'usePerpsMarketFills.fetchFills');
       setHistoryError(error.message);
 
@@ -138,10 +166,18 @@ export const usePerpsMarketFills = ({
         },
       });
     } finally {
-      if (!isRefresh) {
+      if (!isRefresh && isCurrentRequest()) {
         setIsHistoryLoading(false);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // Fetch historical fills on mount and when account changes (background, non-blocking)

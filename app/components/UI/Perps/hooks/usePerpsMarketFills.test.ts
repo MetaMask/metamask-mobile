@@ -1,12 +1,17 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { usePerpsMarketFills } from './usePerpsMarketFills';
 import { usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
 import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
 
+const mockSelectedAccountByScope = jest.fn(() => ({
+  address: '0xAccount1',
+}));
+
 // Mock dependencies
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => () => ({ address: '0xMockAddress' })),
+  useSelector: jest.fn(() => mockSelectedAccountByScope),
 }));
 
 jest.mock('./stream', () => ({
@@ -31,6 +36,8 @@ jest.mock('../../../../util/Logger', () => ({
 const mockUsePerpsLiveFills = usePerpsLiveFills as jest.MockedFunction<
   typeof usePerpsLiveFills
 >;
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const mockGetActiveProviderOrNull = Engine.context.PerpsController
   .getActiveProviderOrNull as jest.MockedFunction<
@@ -94,6 +101,8 @@ describe('usePerpsMarketFills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectedAccountByScope.mockReturnValue({ address: '0xAccount1' });
+    mockUseSelector.mockImplementation(() => mockSelectedAccountByScope);
 
     // Set up mock provider
     mockProvider = {
@@ -659,6 +668,140 @@ describe('usePerpsMarketFills', () => {
       // Assert
       expect(result.current.fills).toHaveLength(1);
       expect(result.current.fills[0].symbol).toBe('ETH');
+    });
+  });
+
+  describe('stale in-flight REST fetches', () => {
+    it('ignores stale fetch errors when a newer fetch succeeds', async () => {
+      // Arrange
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      let rejectFirstFetch: ((error: Error) => void) | undefined;
+      const staleFetch = new Promise<OrderFill[]>((_resolve, reject) => {
+        rejectFirstFetch = reject;
+      });
+      const currentAccountFill = createMockFill({
+        orderId: 'current-account-fill',
+        symbol: 'BTC',
+      });
+
+      mockProvider.getOrderFills
+        .mockReturnValueOnce(staleFetch)
+        .mockResolvedValueOnce([currentAccountFill]);
+
+      const { result, rerender } = renderHook(() =>
+        usePerpsMarketFills({ symbol: 'BTC' }),
+      );
+
+      mockSelectedAccountByScope.mockReturnValue({ address: '0xAccount2' });
+      rerender({ symbol: 'BTC' });
+
+      await waitFor(() => {
+        expect(result.current.fills).toHaveLength(1);
+      });
+      expect(result.current.historyError).toBeNull();
+
+      await act(async () => {
+        rejectFirstFetch?.(new Error('Stale error'));
+        await Promise.resolve();
+      });
+
+      expect(result.current.historyError).toBeNull();
+      expect(result.current.fills[0].orderId).toBe('current-account-fill');
+      expect(mockLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('ignores stale fetch fills when the account changes', async () => {
+      // Arrange
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      let resolveFirstFetch: ((value: OrderFill[]) => void) | undefined;
+      const staleFetch = new Promise<OrderFill[]>((resolve) => {
+        resolveFirstFetch = resolve;
+      });
+      const staleAccountFill = createMockFill({
+        orderId: 'stale-account-fill',
+        symbol: 'BTC',
+      });
+      const currentAccountFill = createMockFill({
+        orderId: 'current-account-fill',
+        symbol: 'BTC',
+      });
+
+      mockProvider.getOrderFills
+        .mockReturnValueOnce(staleFetch)
+        .mockResolvedValueOnce([currentAccountFill]);
+
+      const { result, rerender } = renderHook(() =>
+        usePerpsMarketFills({ symbol: 'BTC' }),
+      );
+
+      mockSelectedAccountByScope.mockReturnValue({ address: '0xAccount2' });
+      rerender({ symbol: 'BTC' });
+
+      await waitFor(() => {
+        expect(result.current.fills).toHaveLength(1);
+      });
+      expect(result.current.fills[0].orderId).toBe('current-account-fill');
+
+      await act(async () => {
+        resolveFirstFetch?.([staleAccountFill]);
+        await Promise.resolve();
+      });
+
+      expect(result.current.fills).toHaveLength(1);
+      expect(result.current.fills[0].orderId).toBe('current-account-fill');
+    });
+
+    it('preserves loading while a superseding fetch is in flight', async () => {
+      // Arrange
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      let resolveFirstFetch: ((value: OrderFill[]) => void) | undefined;
+      let resolveSecondFetch: ((value: OrderFill[]) => void) | undefined;
+      const firstFetch = new Promise<OrderFill[]>((resolve) => {
+        resolveFirstFetch = resolve;
+      });
+      const secondFetch = new Promise<OrderFill[]>((resolve) => {
+        resolveSecondFetch = resolve;
+      });
+
+      mockProvider.getOrderFills
+        .mockReturnValueOnce(firstFetch)
+        .mockReturnValueOnce(secondFetch);
+
+      const { result, rerender } = renderHook(() =>
+        usePerpsMarketFills({ symbol: 'BTC' }),
+      );
+
+      mockSelectedAccountByScope.mockReturnValue({ address: '0xAccount2' });
+      rerender({ symbol: 'BTC' });
+
+      expect(result.current.isHistoryLoading).toBe(true);
+
+      await act(async () => {
+        resolveFirstFetch?.([]);
+        await Promise.resolve();
+      });
+
+      expect(result.current.isHistoryLoading).toBe(true);
+
+      await act(async () => {
+        resolveSecondFetch?.([mockBtcFill1]);
+        await Promise.resolve();
+      });
+
+      expect(result.current.isHistoryLoading).toBe(false);
+      expect(result.current.fills).toHaveLength(1);
     });
   });
 });
