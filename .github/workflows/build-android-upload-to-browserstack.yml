@@ -54,6 +54,13 @@ on:
           (app JS unchanged). When false, fingerprint hit still reuses native
           APKs but repacks the JS bundle like E2E.
         default: false
+      reuse_latest_main_builds:
+        required: false
+        type: boolean
+        description: >-
+          When true, use the newest matching APK artifacts from a main-branch
+          run without requiring a fingerprint.
+        default: false
       lt_username:
         required: false
         type: string
@@ -155,7 +162,7 @@ jobs:
     needs: [check-builds-needed]
     if: >-
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
-      inputs.source_fingerprint
+      (inputs.source_fingerprint || inputs.reuse_latest_main_builds)
     outputs:
       found: ${{ steps.finalize.outputs.found }}
       run-id: ${{ steps.finalize.outputs.run-id }}
@@ -178,6 +185,7 @@ jobs:
           github-token: ${{ github.token }}
           workflow-file: ci.yml
           main-branch-only: ${{ inputs.main_branch_only }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
 
       - name: Find reusable performance APKs on run-performance-e2e.yml
@@ -190,6 +198,7 @@ jobs:
           github-token: ${{ github.token }}
           workflow-file: run-performance-e2e.yml
           main-branch-only: ${{ inputs.main_branch_only }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
 
       - name: Find reusable performance APKs on run-performance-e2e-manual.yml
@@ -202,6 +211,7 @@ jobs:
           github-token: ${{ github.token }}
           workflow-file: run-performance-e2e-manual.yml
           main-branch-only: ${{ inputs.main_branch_only }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
 
       # Select a candidate run only. found=true is deferred until both APK downloads
