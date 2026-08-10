@@ -1,4 +1,4 @@
-import { previousValueComparator } from './value-compartor';
+import { previousValueComparator } from './value-comparator';
 
 describe('previousValueComparator', () => {
   it('passes initialValue as previous and first argument as next on first call', () => {
