@@ -120,6 +120,8 @@ export enum TraceName {
   OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  SwapQuoteFetch = 'Swap Quote Fetch',
+  SwapTokenSearch = 'Swap Token Search',
   Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
