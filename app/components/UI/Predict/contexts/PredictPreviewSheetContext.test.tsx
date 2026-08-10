@@ -1150,6 +1150,18 @@ describe('PredictPreviewSheetContext', () => {
       expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
     });
 
+    it('does not cancel the attempt if the sheet reopens another way', () => {
+      showRetryToast();
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('open-buy'));
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
+    });
+
     it('cancels the pending clear timer on provider unmount', () => {
       const { unmount } = showRetryToast();
 
