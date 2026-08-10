@@ -52,7 +52,7 @@ describe('card feature flag readers', () => {
       ).toBe(true);
     });
 
-    it('unwraps the progressive-rollout envelope', () => {
+    it('unwraps a value-wrapped flag', () => {
       expect(
         readCardProviderEnabled(
           {
@@ -64,6 +64,63 @@ describe('card feature flag readers', () => {
           IMMERSVE,
         ),
       ).toBe(true);
+    });
+
+    // A gradual-rollout flag is authored as an array of threshold cohorts;
+    // RemoteFeatureFlagController collapses it to the selected cohort's `value`
+    // before it reaches `remoteFeatureFlags`, so readers only ever see that.
+    describe('gradual rollout', () => {
+      it('enables for the resolved enabled cohort', () => {
+        expect(
+          readCardProviderEnabled(
+            { cardImmersve: { enabled: true, minimumVersion: '8.0.0' } },
+            IMMERSVE,
+          ),
+        ).toBe(true);
+      });
+
+      it('stays off for the resolved disabled cohort (not in rollout)', () => {
+        expect(
+          readCardProviderEnabled(
+            { cardImmersve: { enabled: false, minimumVersion: '0.0.0' } },
+            IMMERSVE,
+          ),
+        ).toBe(false);
+      });
+
+      it('still version-gates a user inside the enabled cohort', () => {
+        mockGetVersion.mockReturnValue('8.0.0');
+        expect(
+          readCardProviderEnabled(
+            { cardImmersve: { enabled: true, minimumVersion: '9.0.0' } },
+            IMMERSVE,
+          ),
+        ).toBe(false);
+      });
+
+      // Guards the resolved-vs-raw contract on CardRemoteFeatureFlags: handing
+      // readers `rawRemoteFeatureFlags` would pass the un-collapsed cohort array
+      // through and switch the provider off for everyone.
+      it('does not enable when handed a raw, un-resolved cohort array', () => {
+        const rawRolloutFlag = [
+          {
+            scope: { type: 'threshold', value: 0.25 },
+            thresholdName: 'enabled',
+            thresholdVersion: 2,
+            value: { enabled: true, minimumVersion: '0.0.0' },
+          },
+          {
+            scope: { type: 'threshold', value: 1 },
+            thresholdName: 'disabled',
+            thresholdVersion: 2,
+            value: { enabled: false, minimumVersion: '0.0.0' },
+          },
+        ];
+
+        expect(
+          readCardProviderEnabled({ cardImmersve: rawRolloutFlag }, IMMERSVE),
+        ).toBe(false);
+      });
     });
 
     it('gates off when the binary is below minimumVersion', () => {

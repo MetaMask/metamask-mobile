@@ -19,10 +19,17 @@ import type {
 } from './types';
 
 /**
- * Raw `RemoteFeatureFlagController.remoteFeatureFlags`. Readers take this
- * rather than `RootState` so `CardController` — which reaches flags through
- * `messenger.call('RemoteFeatureFlagController:getState')` and cannot use
- * reselect — runs the exact same resolution as the UI selectors.
+ * `RemoteFeatureFlagController.remoteFeatureFlags` — the **resolved** flag bag.
+ * Readers take this rather than `RootState` so `CardController` — which reaches
+ * flags through `messenger.call('RemoteFeatureFlagController:getState')` and
+ * cannot use reselect — runs the exact same resolution as the UI selectors.
+ *
+ * It must be the resolved bag, never `rawRemoteFeatureFlags`. A gradual-rollout
+ * flag is authored as an array of threshold cohorts and the controller collapses
+ * it to the selected cohort's `value` (`{ enabled, minimumVersion }`) before it
+ * lands here. Passing the raw bag would hand `validatedVersionGatedFeatureFlag`
+ * an array it cannot read, silently switching the provider off for everyone.
+ * See `handleMoney.ts` for the same distinction drawn at a deeplink handler.
  */
 export type CardRemoteFeatureFlags = Record<string, unknown> | null | undefined;
 
@@ -76,8 +83,17 @@ export function readCardFeatureFlag(
 /**
  * Whether a provider is available.
  *
- * Resolution order: the `card<Provider>` switch (version-gated, and
- * rollout-wrapper aware) -> the local env override -> false.
+ * Resolution order: the `card<Provider>` switch -> the local env override ->
+ * false.
+ *
+ * The switch is expected to be a gradual-rollout flag. The controller has
+ * already picked the cohort by the time we see it, so the value here is a plain
+ * `{ enabled, minimumVersion }` and needs no rollout-specific handling: a user
+ * outside the rollout gets the disabled cohort and resolves to `false`, which
+ * for a provider switch means the same thing as off — routing falls through to
+ * {@link FALLBACK_CARD_PROVIDER_ID}. Distinguishing "not in rollout" from
+ * "disabled" (as `handleMoney.ts` does, via `rawRemoteFeatureFlags`) would only
+ * be needed to show a rollout-specific message.
  *
  * `CardController` and the onboarding UI must both route through this, or they
  * can disagree about whether a provider is on.
