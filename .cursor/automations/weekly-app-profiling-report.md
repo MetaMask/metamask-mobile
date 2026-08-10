@@ -31,8 +31,8 @@ in the **last 7 days**, then send a Slack DM to **Javier Vera**
 3) your own final **AI insights to investigate**, based only on app-profiling data
 
 The Slack message must be a short executive summary, not a data dump.
-The message must start with this disclaimer immediately below the title:
-`:warning: *Disclaimer:* This report is for TESTING purposes only and should not be treated as a production alert.`
+The footer must contain the setup note, testing disclaimer, and CC mention in
+that order.
 
 ## Steps
 
@@ -59,6 +59,8 @@ Using only the collected app-profiling data, write:
    - Skip low-confidence scenarios (`n < 3`) unless the metric is extreme.
    - Mention a PR number only as a neutral reference to a profiling artifact, if needed.
    - Do not repeat every scenario or every investigation lead.
+   - Group the executive summary by team.
+   - Start every executive-summary bullet with the relevant Slack team tag(s).
    - End with exactly 3 or fewer prioritized actions.
    - English, Slack-friendly markdown, concise.
 
@@ -70,8 +72,9 @@ Using only the collected app-profiling data, write:
    - **Do NOT wrap the message (or any section) in a ``` code fence**
    - Slack wraps wide tables badly; keep the compact card format from `slack.md`
    - Prefer Slack mrkdwn (`*bold*`, links like `<url|label>`) over GitHub-flavored tables
-   - The final Slack message should contain only: executive summary, top findings,
-     up to 3 data-driven leads, up to 3 AI insights, and up to 3 priority actions
+   - The final Slack message should contain only: title, window, executive summary
+     grouped by team, data details, up to 3 profiling leads, up to 3 AI insights,
+     up to 3 priority actions, and the final setup/disclaimer/CC footer
    - Keep all raw app-profiling metrics and all scenarios in `report.json`;
      do not paste raw details into Slack
 
@@ -79,6 +82,52 @@ Using only the collected app-profiling data, write:
    `slack_send_message` tool. Do not post to a public channel unless explicitly
    asked. If the message is long, split into 2 messages (metrics first, then
    leads + AI insights) instead of forcing a table.
+
+## Required Slack structure
+
+Use this order:
+
+*Weekly App Profiling Report*
+
+*Window:* [start date] → [end date]
+
+*Executive summary*
+
+- <@TEAM_ID> [Profiling insight supported by metrics]
+- <@TEAM_ID> [Profiling insight supported by metrics]
+- <@TEAM_ID> [Profiling insight supported by metrics]
+
+*Data details*
+
+*<@TEAM_ID> Scenario name*
+
+Profiling samples: n=[sample count]
+
+CPU avg: [value] · Memory avg: [value] · Memory max: [value]
+
+Slow frames: [value] · Issues: [value] · App size: [value]
+
+*Profiling leads*
+
+[No more than 3 concise profiling-based leads.]
+
+*AI insights to investigate*
+
+[No more than 3 concise profiling-based insights.]
+
+*Priority actions*
+
+1. [Action based only on profiling data]
+2. [Action based only on profiling data]
+3. [Action based only on profiling data]
+
+*Setup:* Weekly BrowserStack app-profiling rollup (last 7 days)
+
+*Disclaimer:* This report is for TESTING purposes only and should not be treated as a production alert.
+
+*CC:* <@UEYQL2PEV>
+
+Do not add device, PR-count, run-count, pass-count, failure-count, or artifact-download metadata to the Slack message.
 
 6. In your final agent reply, include:
    - the Slack message link

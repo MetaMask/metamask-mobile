@@ -75,10 +75,16 @@ test('Slack output uses compact sections instead of a wide table', () => {
   assert.equal(message.includes('| Scenario |'), false);
   assert.equal(
     message.includes(
-      ':warning: *Disclaimer:* This report is for TESTING purposes only',
+      '*Disclaimer:* This report is for TESTING purposes only',
     ),
     true,
   );
+  assert.equal(message.indexOf('*Setup:*') < message.indexOf('*Disclaimer:*'), true);
+  assert.equal(message.includes('*Executive summary*'), true);
+  assert.equal(message.includes('*Data details*'), true);
+  assert.equal(message.includes('Device:'), false);
+  assert.equal(message.includes('PRs:'), false);
+  assert.equal(message.includes('artifact downloads'), false);
   assert.equal(message.includes('Fail'), false);
   assert.equal(message.includes('testError'), false);
   assert.equal(message.includes('quality gate'), false);
