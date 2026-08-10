@@ -42,7 +42,6 @@ import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSou
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 import { useDepositPrefillAmount } from './useDepositPrefillAmount';
-import { useConfirmationContext } from '../../context/confirmation-context';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -145,7 +144,6 @@ export function useTransactionCustomAmount({
   const payTokenKey = `${payToken?.chainId ?? ''}:${
     payToken?.address.toLowerCase() ?? ''
   }`;
-  const { setIsMaxDeposit } = useConfirmationContext();
 
   useEffect(() => {
     depositMaxHumanRef.current = null;
@@ -155,8 +153,7 @@ export function useTransactionCustomAmount({
     prefetchedQuotePayTokenKeyRef.current = undefined;
     setPrefetchedQuoteAmountHuman(undefined);
     setPrefetchedQuotePayTokenKey(undefined);
-    setIsMaxDeposit(false);
-  }, [payToken?.address, payToken?.chainId, setIsMaxDeposit]);
+  }, [payToken?.address, payToken?.chainId]);
 
   const { isAmountUpdateQuotePipelineEnabled, updateTransactionPayAmount } =
     useUpdateTransactionPayAmount();
@@ -365,7 +362,6 @@ export function useTransactionCustomAmount({
       depositMaxHumanRef.current = null;
       userHasEditedRef.current = true;
       amountChangeTimeRef.current = Date.now();
-      setIsMaxDeposit(false);
 
       if (lastAmountInputTypeRef.current !== 'manual') {
         lastAmountInputTypeRef.current = 'manual';
@@ -384,7 +380,6 @@ export function useTransactionCustomAmount({
       fiatMaxAmount,
       isMaxAmount,
       setIsMax,
-      setIsMaxDeposit,
       setConfirmationMetric,
     ],
   );
@@ -453,11 +448,6 @@ export function useTransactionCustomAmount({
         depositMaxHumanRef.current = null;
       }
 
-      // Flag a Max money account deposit so the insufficient-funds alert can
-      // skip it — the submitted token amount is clamped to the raw balance, so
-      // it can never truly exceed the balance despite fiat-rounding drift.
-      setIsMaxDeposit(isMaxMoneyAccountDeposit);
-
       setAmountFiat(newAmount);
       return true;
     },
@@ -471,7 +461,6 @@ export function useTransactionCustomAmount({
       payToken?.balanceRaw,
       payToken?.decimals,
       setIsMax,
-      setIsMaxDeposit,
       setConfirmationMetric,
     ],
   );
@@ -488,9 +477,9 @@ export function useTransactionCustomAmount({
     if (depositPrefill.hasPrefilled) {
       amountChangeTimeRef.current = Date.now();
       // Uncapped percentage prefills go through the same Max/percentage path
-      // as the keypad buttons so money-account Max gets isMaxAmount,
-      // isMaxDeposit, and depositMaxHumanRef — matching other Max deposits.
-      // Limit-capped amounts are not a true Max and must use the literal value.
+      // as the keypad buttons so money-account Max gets isMaxAmount and
+      // depositMaxHumanRef — matching other Max deposits. Limit-capped
+      // amounts are not a true Max and must use the literal value.
       if (
         depositPrefill.percentage !== undefined &&
         !depositPrefill.isLimitCapped
@@ -502,7 +491,6 @@ export function useTransactionCustomAmount({
     } else if (prevHasPrefilled.current) {
       setAmountFiat('0');
       depositMaxHumanRef.current = null;
-      setIsMaxDeposit(false);
       if (isMaxAmount) {
         setIsMax(false);
       }
@@ -594,7 +582,10 @@ function useTokenBalance(tokenUsdRate: number | undefined) {
         .toNumber()
     : 0;
 
-  const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
+  const { withdrawableMusd } = useMoneyAccountBalance();
+
+  const withdrawableMusdRaw =
+    withdrawableMusd?.multipliedBy(tokenUsdRate).toNumber() ?? 0;
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -614,9 +605,7 @@ function useTokenBalance(tokenUsdRate: number | undefined) {
     if (withdrawableMusd === undefined) {
       return 0;
     }
-    return tokenUsdRate
-      ? withdrawableMusd.multipliedBy(tokenUsdRate).toNumber()
-      : 0;
+    return withdrawableMusdRaw;
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
@@ -624,14 +613,10 @@ function useTokenBalance(tokenUsdRate: number | undefined) {
   }
 
   if (paymentOverride === PaymentOverride.MoneyAccount) {
-    if (!withdrawableFiatRaw) {
+    if (!withdrawableMusd) {
       return 0;
     }
-    // ROUND_DOWN to cents before Max/percentage math so we never set an
-    // amount above the spendable withdrawable balance after display rounding.
-    return new BigNumber(withdrawableFiatRaw)
-      .decimalPlaces(2, BigNumber.ROUND_DOWN)
-      .toNumber();
+    return withdrawableMusdRaw;
   }
 
   return payTokenBalanceUsd;
