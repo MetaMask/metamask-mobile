@@ -389,7 +389,9 @@ jobs:
     needs:
       - fingerprint-comparison
       - validate-pr
-    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
+    if: >
+      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
+      inputs.channel == 'production'
     runs-on: ubuntu-latest
     steps:
       - name: Get token
@@ -418,7 +420,7 @@ jobs:
       - prepare
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      needs.approval.result == 'success' &&
+      (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
     uses: ./.github/workflows/eas-update-platform.yml
     with:
@@ -442,7 +444,7 @@ jobs:
       - prepare
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      needs.approval.result == 'success' &&
+      (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'android')
     uses: ./.github/workflows/eas-update-platform.yml
     with:
