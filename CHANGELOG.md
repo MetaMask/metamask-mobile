@@ -7,6 +7,117 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.6.0]
+
+### Added
+
+- Added Money Account deposit CTAs for eligible stablecoin assets (#34022)
+- Added time frame and sort filters to the social leaderboard, aligned the homepage "Top traders" section with the leaderboard, and improved the leaderboard and feed scrolling layout with a collapsing header (#34047)
+- Added support for event-specific content in the Predict feed carousel (#33875)
+- Added esports match markets and game and map tabs to Predict sports markets (#34006)
+- Added persisted collapse and expand behavior to the Perps Pro inline chart (#33888)
+- Added the Pro mode market detail header with asset identity, watchlist, and Lite and Pro mode controls (#33899)
+- Added an asset to favorites when an alert is created (#33965)
+- Added live price and a scrollable market statistics bar to the Perps Pro market view (#33846)
+- Added a Robinhood Chain promotional banner to the Swaps screen empty state (#33985)
+- Added Robinhood Chain to the networks that support smart transactions (#33876)
+- Added a feature flag to control the Earnings section on Money Home (#33989)
+- Added a smoothed device-tilt parallax effect to the coins on the Money first-deposit screen (#33863)
+- Added swipe-to-dismiss for in-app toasts (#33598)
+- Added swipe-to-dismiss for in-app notifications (#33600)
+- Added A/B-gated haptic feedback to Swap and Bridge interactions (#33732)
+- Added Pro-mode positions and orders tabs with open-position and open-order cards, unrealized profit and loss summaries, and market-only position filtering (#33755)
+- Added an interactive chart to the Perps Pro market view (#33750)
+- Added First Predict On Us to onboarding (#32860)
+- Added Stellar send flow support (#33563)
+- Added slippage settings to Swaps before a quote is available (#33797)
+- Added First Predict On Us splash and order-sheet interfaces (#32859)
+- Added remotely configurable messages to the Predict feed (#33478)
+- Added Immersve Card spendable balance based on on-chain wallet balance and allowance (#33743)
+- Added a card-flip animation to the Money Account link-card sheet (#33704)
+- Added a live order book to the Perps Pro market view (#33664)
+- Added a VIP transactions screen for viewing Perps and Swap fills that counted toward VIP points (#33680)
+- Added VIP tier maintenance thresholds to tier details and the VIP dashboard (#33959)
+- Added MetaMask extension wallet and account names when adding a device as an existing user (#33696)
+
+### Changed
+
+- Changed Swap and Bridge quote displays and confirmation checks to use the latest quote data, including price impact and total gas fees (#33559)
+- Changed the Money Account screen by removing section arrows and the bottom "Add funds" button and simplifying the card section (#33912)
+- Changed social notification preferences to take effect immediately (#33856)
+- Changed NFT loading to begin when the section is visible and show loading placeholders (#33645)
+- Updated IPFS gateway settings from the retired Infura gateway to the default gateway (#33908)
+- Reduced Hyperliquid API calls on Token Details pages (#33851)
+- Updated the Money Account upgrade flow to use current vault configuration (#33782)
+- Excluded timed-out onboarding traces from performance reporting (#33318)
+- Updated the design system and aligned Perps screen spacing (#33788)
+- Changed account, wallet, and import screens to open as right-sliding cards with swipe-back navigation (#33670)
+- Added feature-flag support for deprecating the legacy tokens controller (#33570)
+- Changed wallet balance calculations to use unified asset balances when enabled (#33967)
+- Updated What's Happening cards and detail view to use the latest MetaMask design system components and layout (#33958)
+- Updated the Perps close position screen to use the new slider and validation text styling (#33952)
+- Improved Money Account deposit quote loading performance (#33433)
+- Updated the Quick Buy bottom sheet layout, colors, keypad behavior, and amount formatting to match the latest Trade design (#34015)
+- Updated English copy for Money stablecoin and token-detail CTAs (#34023)
+- Improved the loading performance of the Money potential earnings list for wallets holding many tokens (#33982)
+- Updated Perps market-detail alert banners to use the latest design system styling (#33883)
+- Updated the Rive animation runtime to improve Android stability (#33834)
+- Updated Money Account API requests to use profile authentication when available (#33978)
+- Updated Predict homepage featured markets for August 2026 (#33911)
+- Updated the Perps limit price bottom sheet to use the MetaMask Design System (#33683)
+- Updated Money Account earnings to show live monthly and lifetime interest with info tooltips (#33845)
+- Improved watchlist drag-and-drop behavior and prevented tokens from reappearing after being quickly watched and unwatched (#33803)
+- Updated the Send action icon on wallet home and token details (#33878)
+- Improved performance and reduced device heat when viewing Predict Crypto Up/Down markets (#33757)
+- Improved the styling of Money transaction details (#33499)
+- Updated Immersve Card funding approval to use the maximum spending limit and improved Immersve onboarding (#33655)
+
+### Removed
+
+- Removed the default placeholder from price alerts (#33904)
+- Removed duplicate staking API call on Ethereum Token Details page (#33854)
+- Removed the border from the bottom edge of bottom sheets (#33739)
+- Removed the price alerts feature flag (#33599)
+- Removed the Batch Sell promotional banner from the Swap source token picker (#33742)
+
+### Fixed
+
+- Fixed token imports to return to the full token list after completion (#34039)
+- Fixed Money activity filters so card transactions appear only in the appropriate tabs (#33862)
+- Fixed stale destination exchange rates in Swap and Bridge quotes (#33955)
+- Updated in-app toast styling for consistency (#33766) (#33767) (#33769) (#33770) (#33771) (#33772) (#33773) (#33774) (#33775)
+- Fixed fullscreen Perps charts so older price history can load when using the fallback chart (#33881)
+- Fixed Android push notifications showing the MetaMask fox icon twice (#34065)
+- Fixed Perps Home being reachable while Pro mode is active; Pro-mode users now always land on a market page instead (#34052)
+- Fixed wallet activity push notifications overlapping transaction toasts while the app is open (#34043)
+- Fixed the Perps trade and close-position amount sliders lagging, flickering, and changing values on release (#33590)
+- Fixed DeFi balances failing to aggregate loans correctly (#34010)
+- Fixed Quick Buy so tapping an amount above the balance shows "Add funds" immediately (#33994)
+- Fixed Weekly Top Traders cards so the whole card shows a pressed state when tapped (#33988)
+- Fixed WalletConnect connections hanging indefinitely on Android (#33871)
+- Fixed sentence case for the "Weekly top traders" section label and "Top traders" feed title (#33917)
+- Fixed the Money onboarding animation to display the live APY consistently (#33903)
+- Fixed Hyperliquid mark and mid-price streaming errors caused by missing Hermes support (#33870)
+- Fixed issues on Rootstock, Stable, Mantle, Metis, and Gnosis networks (#32796)
+- Fixed spacing between token symbols and price changes on empty-watchlist token cards (#33859)
+- Fixed the add-device import-canceled screen to remain in the waiting state and show sync errors when available (#33885)
+- Fixed some Perps orders failing when paid with another token (#33822)
+- Fixed the Money onboarding parallax animation to respond reliably and move in the correct direction (#33848)
+- Fixed OneKey hardware wallet detection so unsupported Predict and MM Pay flows show the hardware wallet alert (#33637)
+- Fixed Activity filter bottom sheets rendering under the tab bar when Activity is shown as a tab (#33794)
+- Fixed Token Details header icon order (#33819)
+- Fixed Immersve Card KYC prerequisites for spendable amounts and restored the KYC webview back button (#33790)
+- Fixed sponsored network-fee transfers to show the "Paid by MetaMask" label in activity (#33778)
+- Fixed WalletConnect connections for mixed EVM and non-EVM chains without an attached EVM account (#33672)
+- Kept amount entry visible while Swap quotes load (#33762)
+- Fixed broken price alerts (#33785)
+- Fixed an error from the Money Home parallax animation when the animation was off-screen (#33718)
+- Fixed duplicate Ramps transaction completed analytics events after app relaunch (#33357)
+
+### Security
+
+- Updated the phishing protection component (#33756)
+
 ## [8.5.0]
 
 ### Added
@@ -13056,7 +13167,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.5.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.6.0...HEAD
+[8.6.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.5.0...v8.6.0
 [8.5.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.4.0...v8.5.0
 [8.4.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.3.0...v8.4.0
 [8.3.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.2.1...v8.3.0

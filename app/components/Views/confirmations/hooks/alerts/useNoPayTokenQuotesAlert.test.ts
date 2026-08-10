@@ -15,14 +15,12 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
-  useTransactionPayQuotes,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
 } from '../pay/useTransactionPayData';
 import {
   TransactionPayQuote,
   TransactionPayRequiredToken,
-  TransactionPaySourceAmount,
 } from '@metamask/transaction-pay-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
@@ -52,9 +50,8 @@ function runHook() {
 
 describe('useNoPayTokenQuotesAlert', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
-  const useTransactionPaySourceAmountsMock = jest.mocked(
-    useTransactionPaySourceAmounts,
+  const useTransactionPayQuotesRawMock = jest.mocked(
+    useTransactionPayQuotesRaw,
   );
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
@@ -78,12 +75,16 @@ describe('useNoPayTokenQuotesAlert', () => {
     } as ReturnType<typeof useTransactionPayToken>);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
-    useTransactionPayQuotesMock.mockReturnValue(undefined);
-    useTransactionPaySourceAmountsMock.mockReturnValue([
-      {} as TransactionPaySourceAmount,
-    ]);
+    useTransactionPayQuotesRawMock.mockReturnValue(undefined);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
-    useTransactionPayRequiredTokensMock.mockReturnValue([]);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+        amountRaw: '10000',
+        skipIfBalance: false,
+      } as TransactionPayRequiredToken,
+    ]);
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
       canSelectWithdrawToken: false,
@@ -108,7 +109,7 @@ describe('useNoPayTokenQuotesAlert', () => {
   });
 
   it('returns no alerts if quotes available', () => {
-    useTransactionPayQuotesMock.mockReturnValue([
+    useTransactionPayQuotesRawMock.mockReturnValue([
       {} as TransactionPayQuote<Json>,
     ]);
 
@@ -134,8 +135,7 @@ describe('useNoPayTokenQuotesAlert', () => {
       amountFiat: '50.00',
     });
 
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
-    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesRawMock.mockReturnValue([]);
 
     const { result } = runHook();
 
@@ -159,119 +159,131 @@ describe('useNoPayTokenQuotesAlert', () => {
       rampsQuote: { id: 'quote-1' },
     } as never);
 
-    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesRawMock.mockReturnValue([]);
 
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert for fiat when sourceAmounts is non-empty but no rampsQuote', () => {
+  it('returns no alerts for fiat when amount is not entered', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
     } as ReturnType<typeof useTransactionPayToken>);
 
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
       selectedPaymentMethodId: 'pm-card',
-      amountFiat: '50.00',
     });
 
-    useTransactionPaySourceAmountsMock.mockReturnValue([
-      {} as TransactionPaySourceAmount,
-    ]);
-    useTransactionPayQuotesMock.mockReturnValue([]);
-
-    const { result } = runHook();
-
-    expect(result.current).toEqual([
-      expect.objectContaining({
-        key: AlertKeys.NoPayTokenQuotes,
-        severity: Severity.Danger,
-        isBlocking: true,
-      }),
-    ]);
-  });
-
-  it('returns no alerts for fiat when amount is not entered', () => {
-    jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
-      selectedPaymentMethodId: 'pm-card',
-    });
-
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
-    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesRawMock.mockReturnValue([]);
 
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
   });
 
-  // Non-post-quote: `sourceAmount.targetTokenAddress` is a required-token
-  // address, so matching it against a `skipIfBalance` required token means the
-  // only required token is optional (gas) and no quote is needed.
-  it('returns no alerts when all source amounts target skipIfBalance required tokens (non-post-quote)', () => {
-    const optionalTokenAddress =
-      '0x0000000000000000000000000000000000000000' as Hex;
+  describe('non-fiat input gating', () => {
+    it('returns no alert when no required token amount has reached the controller', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([]);
 
-    useTransactionPaySourceAmountsMock.mockReturnValue([
-      {
-        targetTokenAddress: optionalTokenAddress,
-      } as TransactionPaySourceAmount,
-    ]);
+      const { result } = runHook();
 
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        address: optionalTokenAddress,
-        skipIfBalance: true,
-      } as TransactionPayRequiredToken,
-    ]);
+      expect(result.current).toStrictEqual([]);
+    });
 
-    const { result } = runHook();
+    it('returns no alert when the required token amount is zero', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
 
-    expect(result.current).toStrictEqual([]);
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when the only required token is skipped by balance', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: true,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns alert once a positive required token amount has reached the controller', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('returns no alert when isMaxAmount is set but the amount has not yet reached the controller', () => {
+      jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns alert when isMaxAmount is set and a positive amount has reached the controller', () => {
+      jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
+    });
   });
 
-  // Regression for #29297: perps withdraw $0.1 → ETH on Ethereum. The
-  // destination native token address (`0x0…0`) was false-matching the
-  // Arbitrum native gas required token (also `0x0…0`, `skipIfBalance: true`),
-  // making `isOptionalOnly` true and suppressing the "No quotes" alert, which
-  // let the UI render a huge bogus `targetNetwork` fee.
-  it('returns alert for post-quote even when sourceAmount target address false-matches a skipIfBalance required token', () => {
-    const nativeTokenAddress =
-      '0x0000000000000000000000000000000000000000' as Hex;
-
+  it('returns alert for post-quote when a required token has a positive amount and no quotes', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-
-    useTransactionPaySourceAmountsMock.mockReturnValue([
-      {
-        targetTokenAddress: nativeTokenAddress,
-      } as TransactionPaySourceAmount,
-    ]);
-
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        address: nativeTokenAddress,
-        chainId: '0xa4b1' as Hex,
-        skipIfBalance: true,
-      } as TransactionPayRequiredToken,
-    ]);
-
-    const { result } = runHook();
-
-    expect(result.current).toEqual([
-      expect.objectContaining({
-        key: AlertKeys.NoPayTokenQuotes,
-        severity: Severity.Danger,
-        isBlocking: true,
-      }),
-    ]);
-  });
-
-  it('returns alert for post-quote when sourceAmounts is non-empty but a required token has a positive amount and no quotes', () => {
-    useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([
-      { address: ADDRESS_MOCK, chainId: CHAIN_ID_MOCK } as never,
-    ]);
-    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesRawMock.mockReturnValue([]);
 
     useTransactionPayRequiredTokensMock.mockReturnValue([
       {
@@ -293,16 +305,20 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
-  it('returns no alerts for post-quote with empty sourceAmounts when the required token amount is zero', () => {
+  it('returns no alerts for post-quote when a no-op raw quote is present', () => {
+    // A direct, same-token route returns a no-op quote rather than an empty
+    // list. Raw quotes are non-empty, so the alert is suppressed even though
+    // the filtered quote list would be empty.
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
-    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesRawMock.mockReturnValue([
+      {} as TransactionPayQuote<Json>,
+    ]);
 
     useTransactionPayRequiredTokensMock.mockReturnValue([
       {
         address: ADDRESS_MOCK,
         chainId: CHAIN_ID_MOCK,
-        amountRaw: '0',
+        amountRaw: '10000',
         skipIfBalance: false,
       } as TransactionPayRequiredToken,
     ]);
@@ -312,12 +328,9 @@ describe('useNoPayTokenQuotesAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert for post-quote with non-empty sourceAmounts when isMaxAmount is true', () => {
+  it('returns alert for post-quote when isMaxAmount is true', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([
-      { address: ADDRESS_MOCK, chainId: CHAIN_ID_MOCK } as never,
-    ]);
-    useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesRawMock.mockReturnValue([]);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
 
     useTransactionPayRequiredTokensMock.mockReturnValue([
@@ -347,8 +360,7 @@ describe('useNoPayTokenQuotesAlert', () => {
         payToken: undefined,
       } as ReturnType<typeof useTransactionPayToken>);
       useIsTransactionPayLoadingMock.mockReturnValue(false);
-      useTransactionPayQuotesMock.mockReturnValue([]);
-      useTransactionPaySourceAmountsMock.mockReturnValue([]);
+      useTransactionPayQuotesRawMock.mockReturnValue([]);
       useTransactionPayIsPostQuoteMock.mockReturnValue(false);
       useTransactionPayRequiredTokensMock.mockReturnValue([
         {
@@ -403,7 +415,7 @@ describe('useNoPayTokenQuotesAlert', () => {
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
       } as never);
-      useTransactionPayQuotesMock.mockReturnValue([
+      useTransactionPayQuotesRawMock.mockReturnValue([
         {} as TransactionPayQuote<Json>,
       ]);
 
@@ -432,8 +444,7 @@ describe('useNoPayTokenQuotesAlert', () => {
     });
 
     beforeEach(() => {
-      useTransactionPayQuotesMock.mockReturnValue([]);
-      useTransactionPaySourceAmountsMock.mockReturnValue([]);
+      useTransactionPayQuotesRawMock.mockReturnValue([]);
       useTransactionPayWithdrawMock.mockReturnValue({
         isWithdraw: true,
         canSelectWithdrawToken: true,
@@ -470,7 +481,12 @@ describe('useNoPayTokenQuotesAlert', () => {
     });
 
     it('returns no alerts when the destination token and pay config are set', () => {
+      // A configured same-token withdraw resolves to a direct no-op route,
+      // which is returned as a non-empty raw quote list.
       useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+      useTransactionPayQuotesRawMock.mockReturnValue([
+        {} as TransactionPayQuote<Json>,
+      ]);
 
       const { result } = runHook();
 
@@ -514,8 +530,7 @@ describe('useNoPayTokenQuotesAlert', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: undefined,
       } as ReturnType<typeof useTransactionPayToken>);
-      useTransactionPayQuotesMock.mockReturnValue([]);
-      useTransactionPaySourceAmountsMock.mockReturnValue([]);
+      useTransactionPayQuotesRawMock.mockReturnValue([]);
       useTransactionPayRequiredTokensMock.mockReturnValue([
         {
           address: ADDRESS_MOCK,
@@ -545,13 +560,16 @@ describe('useNoPayTokenQuotesAlert', () => {
       expect(result.current).toStrictEqual([]);
     });
 
-    it('returns no alerts when a payment token is set', () => {
+    it('returns no alerts when a payment token is set and quotes are available', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: ADDRESS_MOCK,
           chainId: CHAIN_ID_MOCK,
         },
       } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesRawMock.mockReturnValue([
+        {} as TransactionPayQuote<Json>,
+      ]);
 
       const { result } = runHook();
 

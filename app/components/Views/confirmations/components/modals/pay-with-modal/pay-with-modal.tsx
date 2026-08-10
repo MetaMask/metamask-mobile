@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
@@ -25,11 +26,11 @@ import {
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
 import {
+  TransactionType,
   hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
@@ -41,7 +42,7 @@ import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredi
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 
-interface PayWithModalParams {
+export interface PayWithModalParams {
   /**
    * When > 1, PayWithModal owns navigation on close by dispatching
    * `StackActions.pop(N)` atomically instead of relying on the legacy
@@ -55,7 +56,7 @@ interface PayWithModalParams {
 }
 
 export function PayWithModal() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
@@ -136,6 +137,19 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      if (
+        payToken &&
+        payToken.address.toLowerCase() === token.address.toLowerCase() &&
+        payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
+      ) {
+        close(() => {
+          if (dismissOnSelectCount > 1) {
+            navigation.dispatch(StackActions.pop(dismissOnSelectCount));
+          }
+        });
+        return;
+      }
+
       const onClosed = async () => {
         if (dismissOnSelectCount > 1) {
           navigation.dispatch(StackActions.pop(dismissOnSelectCount));
@@ -222,6 +236,7 @@ export function PayWithModal() {
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
+      payToken,
       setPayToken,
       transactionMeta,
     ],

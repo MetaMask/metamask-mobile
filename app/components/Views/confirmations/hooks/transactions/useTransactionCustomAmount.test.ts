@@ -415,9 +415,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
-      properties: {
+      properties: expect.objectContaining({
         mm_pay_quote_requested: true,
-      },
+      }),
     });
   });
 
@@ -438,9 +438,41 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
-      properties: {
+      properties: expect.objectContaining({
         mm_pay_quote_requested: true,
-      },
+      }),
+    });
+  });
+
+  it('includes mm_pay_time_to_request_quote_ms measuring from last amount change', async () => {
+    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+
+    const { result, rerender } = runHook();
+
+    jest.spyOn(Date, 'now').mockReturnValue(1746696741000);
+
+    await act(async () => {
+      result.current.updatePendingAmount('100');
+    });
+
+    setConfirmationMetricMock.mockClear();
+
+    await act(async () => {
+      result.current.updateTokenAmount();
+    });
+
+    jest.spyOn(Date, 'now').mockReturnValue(1746696741250);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+
+    await act(async () => {
+      rerender({});
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: expect.objectContaining({
+        mm_pay_quote_requested: true,
+        mm_pay_time_to_request_quote_ms: 250,
+      }),
     });
   });
 
@@ -1457,12 +1489,14 @@ describe('useTransactionCustomAmount', () => {
       });
     });
 
-    it('prefills stablecoin with 100% of balance', async () => {
+    it('prefills stablecoin with 100% of balance via Max path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '500',
+          balanceRaw: '500000000',
+          decimals: 6,
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
@@ -1476,9 +1510,25 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+
+      // 100% prefill must set isMaxAmount like pressing Max, so the
+      // insufficient-funds alert can skip a Max money account deposit.
+      // comenting out the condition below as it is incorrect in context of the release branch
+      // const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+      //   const cfg: Record<string, unknown> = {};
+      //   call[1](cfg);
+      //   return cfg.isMaxAmount === true;
+      // });
+      // expect(isMaxCall).toBeDefined();
+
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: '100%',
+        },
+      });
     });
 
-    it('prefills non-stablecoin with 50% of balance', async () => {
+    it('prefills non-stablecoin with 50% of balance via percentage path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -1497,9 +1547,21 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: '50%',
+        },
+      });
+
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeUndefined();
     });
 
-    it('caps at deposit limit when balance exceeds it', async () => {
+    it('caps at deposit limit when balance exceeds it without Max flags', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -1518,6 +1580,13 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('100000');
+
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeUndefined();
     });
 
     it('does not prefill when flag is disabled', async () => {

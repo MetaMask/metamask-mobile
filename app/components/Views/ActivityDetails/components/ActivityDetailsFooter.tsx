@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Button,
   ButtonSize,
@@ -15,7 +16,7 @@ import {
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
 function useOpenWebview() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   return useCallback(
     ({ title, url }: { title?: string; url: string }) => {
       navigation.navigate(Routes.WEBVIEW.MAIN, {
