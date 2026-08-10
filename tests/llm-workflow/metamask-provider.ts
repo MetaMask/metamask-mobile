@@ -347,7 +347,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
         code: 'MM_SESSION_ALREADY_RUNNING',
         message: this.launchInProgress
           ? 'A launch is already in progress. Wait for it to complete or run `mm cleanup` first.'
-          : 'A session is already active. Run `mm cleanup` first.',
+          : 'A session is already active. Run `mm cleanup` first, or use `--force` to replace it.',
       });
     }
   }

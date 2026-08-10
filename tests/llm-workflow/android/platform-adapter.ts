@@ -310,7 +310,7 @@ function hasExactResumedMetaMaskActivity(
   output: string,
   expectedActivity: string,
 ): boolean {
-  return output.split('\n').some((line) => {
+  return output.split(/\r?\n/u).some((line) => {
     const isResumedLine =
       line.includes('mResumedActivity') || line.includes('topResumedActivity');
     if (!isResumedLine) {

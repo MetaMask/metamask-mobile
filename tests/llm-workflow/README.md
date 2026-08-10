@@ -67,7 +67,12 @@ yarn mm cleanup
 
 # Also request simulator shutdown when using the supported iOS cleanup option
 yarn mm cleanup --shutdown
+
+# Replace an active session in one step instead of running cleanup first
+yarn mm launch --force
 ```
+
+Launching while a session is already active fails with `MM_SESSION_ALREADY_RUNNING`. Run `yarn mm cleanup` first, or pass `--force` to clean up the active session and launch in a single step.
 
 There is no alternate launch context. Supplying `--context e2e`, non-default state initialization, fixtures, contract seeding, or E2E ports is rejected.
 

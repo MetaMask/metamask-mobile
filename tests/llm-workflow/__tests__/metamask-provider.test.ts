@@ -181,7 +181,7 @@ describe('MetaMaskMobileSessionManager', () => {
     );
   });
 
-  it('rejects a second launch while a session is active', async () => {
+  it('rejects a second launch while a session is active and hints at --force', async () => {
     await manager.launch(createLaunchInput());
 
     const secondLaunch = manager.launch(createLaunchInput());
@@ -189,8 +189,23 @@ describe('MetaMaskMobileSessionManager', () => {
     await expect(secondLaunch).rejects.toMatchObject({
       name: 'IOSLaunchError',
       code: 'MM_SESSION_ALREADY_RUNNING',
+      message: expect.stringContaining('--force'),
     });
     expect(createIOSAdapter).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows a launch after cleanup clears the active session (core --force path)', async () => {
+    await manager.launch(createLaunchInput());
+
+    // Core `launchTool` runs `cleanup()` before `launch()` for `--force`; the
+    // session manager no longer handles `force`, so this guards that contract.
+    await expect(manager.cleanup()).resolves.toBe(true);
+
+    await expect(manager.launch(createLaunchInput())).resolves.toMatchObject({
+      extensionId: 'io.metamask.MetaMask',
+      state: { isLoaded: true },
+    });
+    expect(createIOSAdapter).toHaveBeenCalledTimes(2);
   });
 
   it('returns false when cleanup has no active session', async () => {
