@@ -137,6 +137,7 @@ export interface CardProviderCapabilities {
   supportsPushProvisioning: boolean;
   onboarding: CardOnboardingCapability;
   supportsPinView: boolean;
+  supportsPinSet: boolean;
   supportsCashback: boolean;
   supportsCredit: boolean;
   supportsSensitiveDetailsView: boolean;
@@ -573,6 +574,11 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
   ): Promise<CardSecureView>;
+  setCardPin?(
+    cardId: string,
+    newPin: string,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
   getCardSensitiveDetails?(
     tokens: CardAuthTokens,
   ): Promise<CardSensitiveDetails>;
