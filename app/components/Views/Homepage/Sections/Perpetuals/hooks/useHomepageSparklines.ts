@@ -7,7 +7,7 @@ export interface UseHomepageSparklinesResult {
   sparklines: Record<string, number[]>;
 }
 
-type MarketTrend = [number, string][] | undefined;
+type MarketTrend = [number, string][];
 
 /**
  * `trend` is populated by the paired @metamask/perps-controller change (see
@@ -28,11 +28,11 @@ function downsample(data: number[], targetLength: number): number[] {
   return result;
 }
 
-function extractCloses(trend: MarketTrend): number[] {
+function extractCloses(trend: MarketTrend | undefined): number[] {
   if (!trend || trend.length === 0) return [];
   return trend
-    .map(([, price]) => parseFloat(String(price)))
-    .filter((price) => !isNaN(price));
+    .map(([, price]) => Number.parseFloat(String(price)))
+    .filter((price) => !Number.isNaN(price));
 }
 
 /**

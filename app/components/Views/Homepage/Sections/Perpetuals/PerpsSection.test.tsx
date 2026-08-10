@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsSection from './PerpsSection';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -754,7 +754,9 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={1} ref={ref} />,
       );
 
-      await ref.current?.refresh();
+      await act(async () => {
+        await ref.current?.refresh();
+      });
 
       expect(refresh).toHaveBeenCalledTimes(1);
     });
