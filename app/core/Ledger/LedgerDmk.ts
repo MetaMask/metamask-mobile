@@ -1,5 +1,8 @@
 import { type Observable } from 'rxjs';
-import { type DiscoveredDevice } from '@ledgerhq/device-management-kit';
+import {
+  type DeviceManagementKit,
+  type DiscoveredDevice,
+} from '@ledgerhq/device-management-kit';
 import { LedgerDmkBridge } from '@metamask/eth-ledger-bridge-keyring';
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { createHardwareWalletError } from '../HardwareWallet/errors';
@@ -50,8 +53,8 @@ const getLedgerDmkBridge = (): Promise<LedgerDmkBridge> =>
  * Connect a Ledger device via a DMK session and return the running app name.
  *
  * Called by `LedgerBluetoothDmkAdapter` after it has discovered and connected
- * to the device through the shared DMK singleton. The session ID is forwarded
- * to the keyring's bridge via `updateSessionId`.
+ * to the device through the keyring bridge's shared DMK. The session ID is
+ * forwarded to the keyring's bridge via `updateSessionId`.
  *
  * @param sessionId - The DMK session ID from the adapter's connection.
  * @param deviceId - The device ID to connect to.
@@ -84,6 +87,24 @@ export const connectLedgerDmkHardware = async (
   throwIfLedgerOperationAborted(abortSignal);
   const result = await bridge.getAppNameAndVersion();
   return result.appName;
+};
+
+/**
+ * Listen for available Ledger devices via the keyring bridge's shared DMK.
+ *
+ * Uses `listenToAvailableDevices` (lists paired/known devices, including
+ * already-connected ones) rather than the bridge's `startDiscovering`
+ * active-scan path. Devices discovered here are valid for
+ * {@link connectLedgerDmkDevice}.
+ *
+ * @param args - Optional DMK `listenToAvailableDevices` options.
+ * @returns An observable that emits arrays of discovered devices.
+ */
+export const listenToLedgerDmkAvailableDevices = async (
+  ...args: Parameters<DeviceManagementKit['listenToAvailableDevices']>
+): Promise<ReturnType<DeviceManagementKit['listenToAvailableDevices']>> => {
+  const bridge = await getLedgerDmkBridge();
+  return bridge.dmk.listenToAvailableDevices(...args);
 };
 
 /**
