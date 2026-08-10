@@ -266,6 +266,7 @@ const mockTokenSet: CardAuthTokens = {
   accessTokenExpiresAt: FIXED_NOW + 3_600_000,
   refreshTokenExpiresAt: FIXED_NOW + 86_400_000,
   location: 'international',
+  providerUserId: 'baanx-user-1',
 };
 
 const mockUnauthorizedError = new CardProviderError(
@@ -309,6 +310,7 @@ describe('CardController', () => {
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,
+      providerUserId: null,
       lastUnauthenticatedReason: null,
       cardholderAccounts: [],
       providerData: {},
@@ -495,6 +497,7 @@ describe('CardController — auth methods', () => {
 
       expect(mockTokenStore.set).toHaveBeenCalledWith('baanx', mockTokenSet);
       expect(controller.state.isAuthenticated).toBe(true);
+      expect(controller.state.providerUserId).toBe('baanx-user-1');
       expect(controller.state.providerData.baanx).toStrictEqual({
         location: 'international',
       });
@@ -721,6 +724,7 @@ describe('CardController — auth methods', () => {
       mockTokenStore.remove.mockResolvedValue(true);
       const controller = buildController(provider, {
         isAuthenticated: true,
+        providerUserId: 'baanx-user-1',
       });
 
       await controller.logout();
@@ -728,6 +732,7 @@ describe('CardController — auth methods', () => {
       expect(provider.logout).toHaveBeenCalledWith(mockTokenSet);
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
       expect(controller.state.isAuthenticated).toBe(false);
+      expect(controller.state.providerUserId).toBeNull();
       expect(controller.state.lastUnauthenticatedReason).toBeNull();
     });
 
@@ -2560,6 +2565,7 @@ describe('CardController — getCapabilities', () => {
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsTransactionHistory: true,
   };
 
   it('returns base capabilities', () => {
@@ -4048,6 +4054,48 @@ describe('CardController — data pass-throughs', () => {
       await expect(
         controller.withdrawCashback({ amount: '5' } as never),
       ).rejects.toThrow('Cashback withdrawal not supported');
+    });
+  });
+
+  describe('listTransactions', () => {
+    it('delegates to the provider with params and tokens', async () => {
+      const page = {
+        items: [{ id: 'tx-1' }],
+        nextCursor: 'cursor-1',
+      };
+      const mockList = jest.fn().mockResolvedValue(page);
+      const provider = buildMockProvider({ listTransactions: mockList });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.listTransactions({
+        cursor: 'cursor-0',
+        searchQuery: 'uber',
+      });
+
+      expect(result).toStrictEqual(page);
+      expect(mockList).toHaveBeenCalledWith(
+        { cursor: 'cursor-0', searchQuery: 'uber' },
+        mockTokenSet,
+      );
+    });
+
+    it('defaults to empty params', async () => {
+      const mockList = jest.fn().mockResolvedValue({ items: [] });
+      const provider = buildMockProvider({ listTransactions: mockList });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await controller.listTransactions();
+
+      expect(mockList).toHaveBeenCalledWith({}, mockTokenSet);
+    });
+
+    it('throws when the provider does not support transaction history', async () => {
+      const provider = buildMockProvider({ listTransactions: undefined });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.listTransactions()).rejects.toThrow(
+        'Transaction history not supported',
+      );
     });
   });
 

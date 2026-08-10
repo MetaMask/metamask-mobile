@@ -644,6 +644,7 @@ const BAANX_CAPABILITIES = {
   supportsCredit: true,
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
+  supportsTransactionHistory: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
