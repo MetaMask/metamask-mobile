@@ -39,23 +39,26 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
     paddingVertical: 4,
   },
-  button: {
+  iconButton: {
     flex: 1,
-  },
-  subsequentButton: {
-    flex: 1,
-    marginLeft: 16,
+    paddingLeft: 0,
+    paddingRight: 4,
   },
   quickBuyButton: {
     width: 48,
     height: 48,
-    marginLeft: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderRadius: 999,
+  },
+  earnButton: {
+    flex: 1,
+    paddingLeft: 0,
+    paddingRight: 0,
   },
 });
 
@@ -328,7 +331,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       variant={
         hasTokenBalance ? ButtonVariant.Primary : ButtonVariant.Secondary
       }
-      style={showSwapButton ? styles.subsequentButton : styles.button}
+      style={styles.earnButton}
       twClassName={
         hasTokenBalance ? successBg : `bg-transparent ${successBorder}`
       }
@@ -361,7 +364,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               variant={
                 swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
               }
-              style={styles.button}
+              style={styles.iconButton}
               twClassName={
                 swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
               }
@@ -397,11 +400,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               variant={
                 buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
               }
-              style={
-                showSwapButton || (isMoneyEarnCtaActive && !hasTokenBalance)
-                  ? styles.subsequentButton
-                  : styles.button
-              }
+              style={styles.iconButton}
               twClassName={
                 buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
               }
@@ -460,7 +459,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         </View>
         {isMoneyEarnCtaActive && !moneyEarnCta?.isLoading && (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             twClassName="mt-2 text-center"
           >
