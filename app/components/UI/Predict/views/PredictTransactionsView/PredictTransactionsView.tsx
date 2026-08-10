@@ -528,7 +528,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE}
       >
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-          {strings('predict.error.description')}
+          {strings('predict.error.description_short')}
         </Text>
         <Pressable
           accessibilityRole="button"

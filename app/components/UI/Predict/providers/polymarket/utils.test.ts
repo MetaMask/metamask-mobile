@@ -1625,6 +1625,7 @@ describe('polymarket utils', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/events/keyset?limit=20&tag_slug=wimbledon&order=volume24hr',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
       const requestedUrl = String(mockFetch.mock.calls[0][0]);
       expect(requestedUrl).not.toContain('liquidity_min');
@@ -1640,6 +1641,7 @@ describe('polymarket utils', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         `https://gamma-api.polymarket.com/events/keyset?limit=10&${PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS}`,
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
       const requestedUrl = String(mockFetch.mock.calls[0][0]);
       expect(requestedUrl).toContain('tag_id=100639');
@@ -2354,7 +2356,10 @@ describe('polymarket utils', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
@@ -2441,7 +2446,10 @@ describe('polymarket utils', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/clob-markets/condition-1`,
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
@@ -2745,7 +2753,10 @@ describe('polymarket utils', () => {
     );
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
@@ -2857,12 +2868,18 @@ describe('polymarket utils', () => {
     expect(mockFetch).toHaveBeenNthCalledWith(
       1,
       `${v2ClobBaseUrl}/book?token_id=token-1`,
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
       2,
       `${v2ClobBaseUrl}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
@@ -2907,12 +2924,18 @@ describe('polymarket utils', () => {
     expect(mockFetch).toHaveBeenNthCalledWith(
       1,
       `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
       2,
       `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 

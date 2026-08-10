@@ -2692,7 +2692,7 @@
       "categories_title": "Categories",
       "popular_today_placeholder": "Popular today",
       "trending_title": "Trending",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "trending_unable_to_load": "Couldn't connect to Predictions. Check your connection and try again."
     },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
@@ -2984,21 +2984,21 @@
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
     "balance_error": {
-      "title": "Couldn't load your balance",
-      "description": "Your funds are safe. Check your connection and try again.",
-      "retry": "Retry"
+      "title": "Couldn't connect to Predictions",
+      "description": "Check your connection and try again. If it continues, try a different network.",
+      "retry": "Try again"
     },
     "portfolio": {
       "available_amount": "{{amount}} available",
       "value_accessibility": "Portfolio value, {{value}}",
-      "value_hidden_accessibility": "Portfolio value hidden"
+      "value_hidden_accessibility": "Portfolio value hidden",
+      "value_unavailable_accessibility": "Portfolio value unavailable"
     },
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
     "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
@@ -3183,10 +3183,11 @@
       "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
-      "title": "Unable to connect to predictions",
-      "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
+      "title": "Couldn't connect to Predictions",
+      "description": "Check your connection and try again. If it continues, try a different network.",
+      "description_short": "Couldn't connect to Predictions. Check your connection and try again.",
       "chart_connection_error": "There is an issue connecting. Please try again later.",
-      "retry": "Retry"
+      "retry": "Try again"
     },
     "error_messages": {
       "not_eligible": "Not available in your region",

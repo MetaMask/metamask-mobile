@@ -38,6 +38,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     hasClaimableWinnings,
     isClaimPending,
     isLoading,
+    error,
     openPositionCount,
     portfolioValue,
     positionsBadgeCount,
@@ -155,6 +156,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
         availableBalance={availableBalance}
         isHidden={Boolean(privacyMode)}
         isLoading={isLoading}
+        hasError={Boolean(error)}
         portfolioValue={portfolioValue}
         showPnlLine={showPnlLine}
         totalUnrealizedPnlAmount={totalUnrealizedPnlAmount}

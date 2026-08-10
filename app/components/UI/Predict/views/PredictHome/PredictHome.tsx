@@ -33,6 +33,8 @@ import PredictTrendingSection from './components/PredictTrendingSection';
 import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
 import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
+import PredictOffline from '../../components/PredictOffline';
+import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
 
 /**
  * Redesigned Predict homepage shell (PRED-834).
@@ -126,6 +128,12 @@ const PredictHome: React.FC = () => {
 
   const withdrawUnavailableSheetRef =
     useRef<PredictWithdrawUnavailableSheetRef>(null);
+  const {
+    error: homeError,
+    markets: homeMarkets,
+    refetch: retryHome,
+  } = usePredictTrendingSection();
+  const showHomeError = Boolean(homeError) && homeMarkets.length === 0;
   const handleDepositWalletWithdrawPress = useCallback(() => {
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
@@ -147,80 +155,88 @@ const PredictHome: React.FC = () => {
           onSearchPress={handleShowSearch}
         />
 
-        <Animated.ScrollView
-          testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
-          onScroll={onScroll}
-          onLayout={setViewportHeight}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('px-4 pb-8')}
-        >
-          <Box
-            testID={PredictHomeSelectorsIDs.TITLE_SECTION}
-            onLayout={handleTitleLayout}
-            twClassName="pt-2 pb-2"
+        {showHomeError ? (
+          <PredictOffline onRetry={retryHome} />
+        ) : (
+          <Animated.ScrollView
+            testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
+            onScroll={onScroll}
+            onLayout={setViewportHeight}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-4 pb-8')}
           >
-            <Text
-              testID={PredictHomeSelectorsIDs.TITLE}
-              variant={TextVariant.HeadingMd}
+            <Box
+              testID={PredictHomeSelectorsIDs.TITLE_SECTION}
+              onLayout={handleTitleLayout}
+              twClassName="pt-2 pb-2"
             >
-              {strings('wallet.predict')}
-            </Text>
-          </Box>
+              <Text
+                testID={PredictHomeSelectorsIDs.TITLE}
+                variant={TextVariant.HeadingMd}
+              >
+                {strings('wallet.predict')}
+              </Text>
+            </Box>
 
-          <Box twClassName="gap-6">
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.BeforePortfolio}
-            />
-            <PredictPortfolioModule
-              onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-            />
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterPortfolio}
-            />
-            <Box
-              testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
-              onLayout={registerSection(PredictEventValues.SECTION_ID.LIVE_NOW)}
-            >
-              <PredictLiveNowSection />
+            <Box twClassName="gap-6">
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.BeforePortfolio}
+              />
+              <PredictPortfolioModule
+                onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+              />
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterPortfolio}
+              />
+              <Box
+                testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.LIVE_NOW,
+                )}
+              >
+                <PredictLiveNowSection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterLiveNow}
+              />
+              <Box
+                testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.CATEGORIES,
+                )}
+              >
+                <PredictCategoriesSection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterCategories}
+              />
+              <Box
+                testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.POPULAR_TODAY,
+                )}
+              >
+                <PredictPopularTodaySection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterPopularToday}
+              />
+              <Box
+                testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
+                onLayout={registerSection(
+                  PredictEventValues.SECTION_ID.TRENDING,
+                )}
+              >
+                <PredictTrendingSection />
+              </Box>
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterTrending}
+              />
             </Box>
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterLiveNow}
-            />
-            <Box
-              testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
-              onLayout={registerSection(
-                PredictEventValues.SECTION_ID.CATEGORIES,
-              )}
-            >
-              <PredictCategoriesSection />
-            </Box>
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterCategories}
-            />
-            <Box
-              testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
-              onLayout={registerSection(
-                PredictEventValues.SECTION_ID.POPULAR_TODAY,
-              )}
-            >
-              <PredictPopularTodaySection />
-            </Box>
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterPopularToday}
-            />
-            <Box
-              testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
-              onLayout={registerSection(PredictEventValues.SECTION_ID.TRENDING)}
-            >
-              <PredictTrendingSection />
-            </Box>
-            <PredictFeedBanner
-              position={PredictFeedBannerPosition.AfterTrending}
-            />
-          </Box>
-        </Animated.ScrollView>
+          </Animated.ScrollView>
+        )}
 
         <PredictSearchOverlay
           isVisible={isSearchVisible}

@@ -12,6 +12,8 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'predict.portfolio.available_amount': `${params?.amount} available`,
       'predict.portfolio.value_accessibility': `Portfolio value, ${params?.value}`,
       'predict.portfolio.value_hidden_accessibility': 'Portfolio value hidden',
+      'predict.portfolio.value_unavailable_accessibility':
+        'Portfolio value unavailable',
       'predict.unrealized_pnl_value': `${params?.amount} (${params?.percent})`,
     };
     return mockStrings[key] || key;
@@ -105,5 +107,15 @@ describe('PredictPortfolioSummary', () => {
     expect(StyleSheet.flatten(secondarySkeleton.props.style).height).toBe(
       typography.sBodySM.lineHeight,
     );
+  });
+
+  it('renders dashes instead of zero values when portfolio loading fails', () => {
+    renderSummary({ hasError: true });
+
+    expect(screen.queryByText('$0.00')).toBeNull();
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(
+      screen.getByLabelText('Portfolio value unavailable'),
+    ).toBeOnTheScreen();
   });
 });

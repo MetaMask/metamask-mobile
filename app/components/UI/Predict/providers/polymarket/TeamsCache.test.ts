@@ -100,6 +100,7 @@ describe('TeamsCache', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/teams?league=nfl',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
     });
 
@@ -117,6 +118,7 @@ describe('TeamsCache', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         `https://gamma-api.polymarket.com/teams?league=${teamLeague}`,
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
     });
 

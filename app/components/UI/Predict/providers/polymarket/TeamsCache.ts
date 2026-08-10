@@ -4,6 +4,7 @@ import Logger from '../../../../../util/Logger';
 import type { PredictSportsLeague } from '../../types';
 import { getPolymarketTeamLeague } from '../../utils/gameParser';
 import type { PolymarketApiTeam } from './types';
+import { fetchWithTimeout } from './fetchWithTimeout';
 import { getPolymarketEndpoints } from './utils';
 
 import { POLYMARKET_PROVIDER_ID } from './constants';
@@ -159,7 +160,7 @@ export class TeamsCache {
     );
 
     try {
-      const response = await fetch(url);
+      const response = await fetchWithTimeout(url);
 
       if (!response.ok) {
         const errorMessage = `Failed to fetch teams for ${league}: ${response.status}`;

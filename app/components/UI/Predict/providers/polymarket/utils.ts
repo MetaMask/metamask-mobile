@@ -39,6 +39,7 @@ import {
   getSportsMarketTeamLogo,
   resolveNegRiskMoneylineShortTitles,
 } from './sportsUtils';
+import { fetchWithTimeout } from './fetchWithTimeout';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -349,7 +350,7 @@ export const deriveApiKey = async ({
     clobVersion,
     clobBaseUrl,
   })}/auth/derive-api-key`;
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     method: 'GET',
     headers,
   });
@@ -371,7 +372,7 @@ export const createApiKey = async ({
 }) => {
   const headers = await getL1Headers({ address });
   const url = `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`;
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     method: 'POST',
     headers,
     body: '',
@@ -403,9 +404,12 @@ export const getClobMarketInfo = async ({
     return cachedMarketInfo;
   }
 
-  const response = await fetch(`${clobEndpoint}/clob-markets/${conditionId}`, {
-    method: 'GET',
-  });
+  const response = await fetchWithTimeout(
+    `${clobEndpoint}/clob-markets/${conditionId}`,
+    {
+      method: 'GET',
+    },
+  );
 
   if (!response.ok) {
     throw new Error('Failed to get CLOB market info');
@@ -639,7 +643,7 @@ export const getOrderBook = async ({
   clobVersion?: 'v1' | 'v2';
   clobBaseUrl?: string;
 }) => {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${getClobEndpoint({ clobVersion, clobBaseUrl })}/book?token_id=${tokenId}`,
     {
       method: 'GET',
@@ -1274,7 +1278,7 @@ const fetchKeysetEvents = async (
   errorMessage: string,
   malformedMessage = 'Malformed keyset events response',
 ): Promise<PolymarketApiEventsKeysetResponse> => {
-  const response = await fetch(endpoint);
+  const response = await fetchWithTimeout(endpoint);
 
   if (!response.ok) {
     throw new Error(errorMessage);
@@ -1628,7 +1632,7 @@ export const fetchRelatedTagsFromPolymarketApi = async (
 
   DevLogger.log('Fetching related tags via Polymarket API:', endpoint);
 
-  const response = await fetch(endpoint);
+  const response = await fetchWithTimeout(endpoint);
 
   if (!response.ok) {
     throw new Error('Failed to fetch related tags');
@@ -1735,7 +1739,7 @@ export const searchEventsFromPolymarketApi = async ({
   });
 
   const endpoint = `${GAMMA_API_ENDPOINT}/public-search?${queryParams.toString()}`;
-  const response = await fetch(endpoint);
+  const response = await fetchWithTimeout(endpoint);
 
   if (!response.ok) {
     throw new Error('Failed to search markets');
@@ -1762,7 +1766,7 @@ export const fetchCarouselFromPolymarketApi = async (): Promise<
 
   DevLogger.log('Fetching carousel data from:', HOMEPAGE_CAROUSEL_ENDPOINT);
 
-  const response = await fetch(HOMEPAGE_CAROUSEL_ENDPOINT);
+  const response = await fetchWithTimeout(HOMEPAGE_CAROUSEL_ENDPOINT);
   if (!response.ok) {
     throw new Error('Failed to fetch carousel data');
   }
@@ -1799,7 +1803,9 @@ export const getMarketDetailsFromGammaApi = async ({
   marketId: string;
 }): Promise<PolymarketApiEvent> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(`${GAMMA_API_ENDPOINT}/events/${marketId}`);
+  const response = await fetchWithTimeout(
+    `${GAMMA_API_ENDPOINT}/events/${marketId}`,
+  );
 
   if (!response.ok) {
     throw new Error('Failed to get market details');
@@ -2231,7 +2237,7 @@ export const getMarketPositions = async ({
   address: string;
 }) => {
   const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${DATA_API_ENDPOINT}/positions?eventId=${marketId}&user=${address}`,
   );
   if (!response.ok) {

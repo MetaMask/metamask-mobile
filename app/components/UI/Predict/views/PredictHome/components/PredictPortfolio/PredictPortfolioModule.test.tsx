@@ -71,6 +71,8 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'predict.portfolio.available_amount': `${params?.amount} available`,
       'predict.portfolio.value_accessibility': `Portfolio value, ${params?.value}`,
       'predict.portfolio.value_hidden_accessibility': 'Portfolio value hidden',
+      'predict.portfolio.value_unavailable_accessibility':
+        'Portfolio value unavailable',
       'predict.tabs.positions': 'Positions',
       'predict.unrealized_pnl_value': `${params?.amount} (${params?.percent})`,
     };
