@@ -17,15 +17,19 @@ import { getProviderByChainId } from '../../../../util/notifications/methods/com
 import { calcTokenValue } from '../../../../util/transactions';
 
 /**
- * Converts a human-readable amount (e.g. "10.5") to mUSD base units, rounding
- * up so the user is never short of the amount they asked for.
+ * Converts a human-readable amount (e.g. "10.5") to mUSD base units.
  * @param amountHuman - Human-readable amount.
+ * @param rounding - Rounding mode; defaults to `ROUND_UP` so the user is
+ * never short of the amount they asked for.
  * @returns The amount in mUSD base units.
  */
-function toMusdBaseUnits(amountHuman: string): bigint {
+function toMusdBaseUnits(
+  amountHuman: string,
+  rounding: BigNumber.RoundingMode = BigNumber.ROUND_UP,
+): bigint {
   return BigInt(
     calcTokenValue(amountHuman, MUSD_DECIMALS)
-      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .decimalPlaces(0, rounding)
       .toFixed(0),
   );
 }
@@ -38,10 +42,14 @@ function toMusdBaseUnits(amountHuman: string): bigint {
  * amount, and the vault builders reject it rather than encode a call that cannot
  * succeed, so callers no-op instead.
  * @param amountHuman - Human-readable amount.
+ * @param rounding - Rounding mode passed through to {@link toMusdBaseUnits}.
  * @returns The amount in mUSD base units, or `undefined` if it is zero.
  */
-function toNonZeroMusdBaseUnits(amountHuman: string): bigint | undefined {
-  const amount = toMusdBaseUnits(amountHuman);
+function toNonZeroMusdBaseUnits(
+  amountHuman: string,
+  rounding?: BigNumber.RoundingMode,
+): bigint | undefined {
+  const amount = toMusdBaseUnits(amountHuman, rounding);
   return amount === 0n ? undefined : amount;
 }
 
@@ -66,20 +74,14 @@ export async function updateMoneyAccountDepositTokenAmount(
   );
   if (!vaultConfig) return [];
 
-  const amount = toNonZeroMusdBaseUnits(amountHuman);
+  // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
+  // more mUSD than the source balance can fund (ROUND_UP was pushing past it).
+  const amount = toNonZeroMusdBaseUnits(amountHuman, BigNumber.ROUND_DOWN);
   if (amount === undefined) return [];
 
   const chainIdHex = transactionMeta.chainId as Hex;
   const provider = getProviderByChainId(chainIdHex);
   if (!provider) return [];
-
-  // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
-  // more mUSD than the source balance can fund (ROUND_UP was pushing past it).
-  const amount = BigInt(
-    calcTokenValue(amountHuman, MUSD_DECIMALS)
-      .decimalPlaces(0, BigNumber.ROUND_DOWN)
-      .toFixed(0),
-  );
 
   const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount,

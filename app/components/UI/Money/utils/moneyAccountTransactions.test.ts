@@ -164,14 +164,14 @@ describe('moneyAccountTransactions', () => {
       });
     });
 
-    it('rounds the amount up to the next base unit', async () => {
+    it('rounds the amount down to the previous base unit', async () => {
       await updateMoneyAccountDepositTokenAmount(
         MOCK_TRANSACTION_META,
         '1.0000005',
       );
 
       expect(mockBuildDepositBatch).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: BigInt(1_000_001) }),
+        expect.objectContaining({ amount: BigInt(1_000_000) }),
       );
     });
 
@@ -223,15 +223,14 @@ describe('moneyAccountTransactions', () => {
       },
     );
 
-    it('still encodes a sub-base-unit amount, which rounds up to 1', async () => {
-      await updateMoneyAccountDepositTokenAmount(
-        MOCK_TRANSACTION_META,
-        '0.0000001',
-      );
-
-      expect(mockBuildDepositBatch).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: BigInt(1) }),
-      );
+    it('no-ops for a sub-base-unit amount, which rounds down to 0', async () => {
+      expect(
+        await updateMoneyAccountDepositTokenAmount(
+          MOCK_TRANSACTION_META,
+          '0.0000001',
+        ),
+      ).toStrictEqual([]);
+      expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     });
   });
 
