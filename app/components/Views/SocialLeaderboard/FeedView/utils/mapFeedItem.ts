@@ -17,6 +17,7 @@ import {
   formatSignedUsd,
   formatUsd,
 } from '../../utils/formatters';
+import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
 import type {
   FeedAction,
@@ -28,10 +29,6 @@ import type {
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
-
-/** Trade timestamps from the social API may be in seconds or milliseconds. */
-const toMs = (timestamp: number): number =>
-  timestamp < 1e12 ? timestamp * 1000 : timestamp;
 
 interface FeedItemPresentation {
   valueLabel: string;
@@ -55,7 +52,7 @@ function findTriggeringTrade(
   }
 
   const exact = trades.find(
-    (trade) => toMs(trade.timestamp) === feedTimestampMs,
+    (trade) => tradeTimestampToMs(trade.timestamp) === feedTimestampMs,
   );
   if (exact) {
     return exact;
@@ -63,7 +60,9 @@ function findTriggeringTrade(
 
   return trades.reduce(
     (latest, trade) =>
-      toMs(trade.timestamp) > toMs(latest.timestamp) ? trade : latest,
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
     trades[0],
   );
 }
@@ -313,7 +312,7 @@ function mapSpotFeedItem(
 export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const { timestamp, trades } = coreItem;
 
-  const timestampMs = toMs(timestamp);
+  const timestampMs = tradeTimestampToMs(timestamp);
   const isPerp = isPerpPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
   const isClosed = isFeedItemClosed(coreItem, trade);
