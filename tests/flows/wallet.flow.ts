@@ -706,7 +706,7 @@ export const dismissPushNotificationExistingUserSheet =
         }),
       );
       await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
-        timeout: 5_000,
+        timeout: 2_000,
         description: 'Push notification existing user sheet',
       });
 
