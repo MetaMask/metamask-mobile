@@ -162,6 +162,7 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     partnerAccountId: '',
     fundingChannelId: '',
     spenderAddress: '',
+    secureApiBaseUrl: '',
   },
   immersveCountries: ['GB'],
 };
@@ -187,6 +188,8 @@ export interface ImmersveProgramConfig {
   fundingChannelId?: string;
   spenderAddress?: string;
   apiBaseUrl?: string;
+  /** Separate Immersve secure host used for set-PIN (and similar) calls. */
+  secureApiBaseUrl?: string;
   appUrl?: string;
 }
 

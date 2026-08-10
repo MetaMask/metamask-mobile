@@ -129,6 +129,11 @@ jest.mock('../components/ViewPinBottomSheet', () => {
   return () => <View testID="view-pin-bottom-sheet" />;
 });
 
+jest.mock('../Views/SetCardPin', () => {
+  const { View } = require('react-native');
+  return () => <View testID="set-card-pin" />;
+});
+
 jest.mock('../components/MoneyUnlinkCardSheet', () => {
   const { View } = require('react-native');
   return () => <View testID="money-unlink-card-sheet" />;
@@ -178,6 +183,9 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'Cashback',
     CREDIT_REDEEM: 'CreditRedeem',
+    SET_PIN: 'CardSetPin',
+    CONFIRM_PIN: 'CardConfirmPin',
+    SET_PIN_SUCCESS: 'CardSetPinSuccess',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {
