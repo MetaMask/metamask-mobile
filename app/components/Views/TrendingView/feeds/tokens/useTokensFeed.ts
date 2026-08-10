@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
@@ -68,24 +68,25 @@ export const useTokensFeed = ({
   useFeedRefresh(refresh, refetch);
 
   /**
-   * firstPageSizeRef records how many items were in the first page response so
-   * that subsequent pages can be appended without resorting. A single effect
-   * handles both concerns: reset on query change (and bail out immediately so
-   * a stale data.length is never captured on the same render), then capture the
-   * boundary once the initial load settles.
+   * How many items the first page response held, so that subsequent pages can
+   * be appended without resorting. Recorded together with the query it was
+   * measured for: once the query changes the boundary no longer applies, and
+   * the whole list is sorted again until the new first page settles.
    */
-  const firstPageSizeRef = useRef<number | null>(null);
-  const prevQueryRef = useRef(query);
+  const [firstPage, setFirstPage] = useState<{
+    query?: string;
+    size: number;
+  } | null>(null);
 
   useEffect(() => {
-    if (prevQueryRef.current !== query) {
-      firstPageSizeRef.current = null;
-      prevQueryRef.current = query;
+    if (isLoading || isLoadingMore) {
       return;
     }
-    if (!isLoading && !isLoadingMore && firstPageSizeRef.current === null) {
-      firstPageSizeRef.current = data.length;
-    }
+    setFirstPage((previous) =>
+      previous && previous.query === query
+        ? previous
+        : { query, size: data.length },
+    );
   }, [query, isLoading, isLoadingMore, data.length]);
 
   const filteredData = useMemo(() => {
@@ -94,12 +95,13 @@ export const useTokensFeed = ({
     if (query?.trim()) {
       // Sort only the first-page slice; subsequent pages are appended as-is so
       // that pagination order is preserved rather than interleaved by market cap.
-      const boundary = firstPageSizeRef.current ?? data.length;
-      const firstPage = data
+      const boundary =
+        firstPage && firstPage.query === query ? firstPage.size : data.length;
+      const firstPageAssets = data
         .slice(0, boundary)
         .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
       const rest = data.slice(boundary);
-      searched = [...firstPage, ...rest];
+      searched = [...firstPageAssets, ...rest];
     } else {
       searched = fuseSearch(
         data,
@@ -117,10 +119,7 @@ export const useTokensFeed = ({
         !resultType || resultType === 'Verified' || resultType === 'Benign'
       );
     });
-    // firstPageSizeRef is a ref — intentionally excluded from deps so that
-    // boundary captures the snapshot set by the effect, not a stale closure.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, query, hideRiskyTokens]);
+  }, [data, query, hideRiskyTokens, firstPage]);
 
   return {
     data: filteredData,
