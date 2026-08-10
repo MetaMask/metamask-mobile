@@ -16,6 +16,8 @@ export function usePinEntry({ disabled = false }: UsePinEntryOptions = {}) {
 
   const unmaskTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   const clearTimers = useCallback(() => {
     if (unmaskTimerRef.current) {
@@ -32,6 +34,7 @@ export function usePinEntry({ disabled = false }: UsePinEntryOptions = {}) {
 
   const resetToEmpty = useCallback(() => {
     clearTimers();
+    valueRef.current = '';
     setValue('');
     setRevealedIndex(null);
     setIsError(false);
@@ -52,20 +55,21 @@ export function usePinEntry({ disabled = false }: UsePinEntryOptions = {}) {
 
   const appendDigit = useCallback(
     (digit: string) => {
-      if (disabled || isInputLocked || value.length >= PIN_LENGTH) {
+      if (disabled || isInputLocked || valueRef.current.length >= PIN_LENGTH) {
         return;
       }
       setIsError(false);
       setErrorMessage(null);
-      const next = `${value}${digit}`;
+      const next = `${valueRef.current}${digit}`;
+      valueRef.current = next;
       setValue(next);
       revealLastDigit(next.length);
     },
-    [disabled, isInputLocked, value, revealLastDigit],
+    [disabled, isInputLocked, revealLastDigit],
   );
 
   const deleteDigit = useCallback(() => {
-    if (disabled || isInputLocked || value.length === 0) {
+    if (disabled || isInputLocked || valueRef.current.length === 0) {
       return;
     }
     setIsError(false);
@@ -75,8 +79,10 @@ export function usePinEntry({ disabled = false }: UsePinEntryOptions = {}) {
       unmaskTimerRef.current = null;
     }
     setRevealedIndex(null);
-    setValue((prev) => prev.slice(0, -1));
-  }, [disabled, isInputLocked, value.length]);
+    const next = valueRef.current.slice(0, -1);
+    valueRef.current = next;
+    setValue(next);
+  }, [disabled, isInputLocked]);
 
   const lockWithError = useCallback(
     (message: string) => {
@@ -93,6 +99,7 @@ export function usePinEntry({ disabled = false }: UsePinEntryOptions = {}) {
     (message: string, onAfterReset?: () => void) => {
       lockWithError(message);
       errorTimerRef.current = setTimeout(() => {
+        valueRef.current = '';
         setValue('');
         setIsError(false);
         setErrorMessage(null);

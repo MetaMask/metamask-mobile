@@ -7,11 +7,12 @@ import {
   CardProviderErrorCode,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { SetCardPinSelectors } from './SetCardPin.testIds';
-import { clearPinDraft, setPinDraft } from './pinDraftStore';
+import { clearPinDraft, getPinDraft, setPinDraft } from './pinDraftStore';
 import { PIN_ERROR_RESET_DELAY_MS } from './constants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockReset = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -37,7 +38,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
-    reset: jest.fn(),
+    reset: mockReset,
   }),
 }));
 
@@ -241,15 +242,31 @@ describe('ConfirmCardPin', () => {
     });
   });
 
-  it('submits matching PINs and navigates to success', async () => {
+  it('submits matching PINs and resets stack to success', async () => {
     const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
     enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
     fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
     await waitFor(() => {
       expect(mockSetCardPin).toHaveBeenCalledWith('card-1', '1337');
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SET_PIN_SUCCESS);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [
+          { name: Routes.CARD.HOME },
+          { name: Routes.CARD.SET_PIN_SUCCESS },
+        ],
+      });
     });
+  });
+
+  it('clears draft PIN when confirm header back is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    expect(getPinDraft()).toBe('1337');
+
+    fireEvent.press(getByTestId('confirm-back'));
+
+    expect(getPinDraft()).toBeNull();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('routes auth failures to CardAuthentication', async () => {
@@ -297,7 +314,13 @@ describe('ConfirmCardPin', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SET_PIN_SUCCESS);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [
+          { name: Routes.CARD.HOME },
+          { name: Routes.CARD.SET_PIN_SUCCESS },
+        ],
+      });
     });
   });
 });

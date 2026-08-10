@@ -112,6 +112,7 @@ const MainRoutes = () => {
       <ScreensStack.Screen
         name={Routes.CARD.SET_PIN_SUCCESS}
         component={SetCardPinSuccess}
+        options={{ gestureEnabled: false }}
       />
       <ScreensStack.Screen
         name={Routes.CARD.AUTHENTICATION}

@@ -69,4 +69,33 @@ describe('usePinEntry', () => {
     expect(result.current.isInputLocked).toBe(false);
     expect(onAfterReset).toHaveBeenCalled();
   });
+
+  it('keeps all digits when keypad presses are batched before re-render', () => {
+    const { result } = renderHook(() => usePinEntry());
+
+    act(() => {
+      result.current.handleKeypadChange({
+        value: '1',
+        valueAsNumber: 1,
+        pressedKey: Keys.Digit1,
+      });
+      result.current.handleKeypadChange({
+        value: '3',
+        valueAsNumber: 3,
+        pressedKey: Keys.Digit3,
+      });
+      result.current.handleKeypadChange({
+        value: '3',
+        valueAsNumber: 3,
+        pressedKey: Keys.Digit3,
+      });
+      result.current.handleKeypadChange({
+        value: '7',
+        valueAsNumber: 7,
+        pressedKey: Keys.Digit7,
+      });
+    });
+
+    expect(result.current.value).toBe('1337');
+  });
 });

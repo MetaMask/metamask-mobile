@@ -87,6 +87,7 @@ const ConfirmCardPin: React.FC = () => {
     if (submittingRef.current || isPending) {
       return;
     }
+    clearPinDraft();
     setIsTerminalForbidden(false);
     resetToEmpty();
     navigation.goBack();
@@ -144,7 +145,14 @@ const ConfirmCardPin: React.FC = () => {
           })
           .build(),
       );
-      navigation.navigate(Routes.CARD.SET_PIN_SUCCESS);
+      // Replace the set/confirm stack so system back cannot return to Confirm.
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: Routes.CARD.HOME },
+          { name: Routes.CARD.SET_PIN_SUCCESS },
+        ],
+      });
     } catch (error) {
       const kind = classifySetCardPinError(error);
       const httpStatus =
