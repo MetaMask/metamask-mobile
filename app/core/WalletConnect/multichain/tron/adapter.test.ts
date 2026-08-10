@@ -276,6 +276,7 @@ describe('multichain/tron', () => {
 
       expect(mockedCallTronSnap).toHaveBeenCalledWith({
         origin: 'channelId',
+        originMetadata: MOCK_ORIGIN_METADATA,
         connectedAddresses: ['tron:728126428:TTestAddress'],
         scope: 'tron:728126428',
         requestId: 1,
