@@ -43,16 +43,15 @@ const styles = StyleSheet.create({
 
 interface QuickBuyTradeModeToggleProps {
   testID?: string;
-  buyOnly?: boolean;
 }
 
 /**
  * Neutral Buy/Sell segmented control (white selected / dark unselected).
  * Color for trade direction lives on the confirm CTA, not this toggle.
+ * Rendered only when both Buy and Sell are available (see QuickBuyToolbar).
  */
 const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   testID = 'quick-buy-trade-mode-toggle',
-  buyOnly = false,
 }) => {
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
   const { colors } = useTheme();
@@ -75,7 +74,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   };
 
   useEffect(() => {
-    if (buyOnly || !buyLayout) return;
+    if (!buyLayout) return;
     const target = tradeMode === 'buy' ? 0 : 1;
 
     if (prevTradeModeRef.current === null) {
@@ -91,7 +90,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
         dampingRatio: 0.75,
       });
     }
-  }, [tradeMode, buyLayout, buyOnly, slideProgress]);
+  }, [tradeMode, buyLayout, slideProgress]);
 
   const sliderStyle = useAnimatedStyle(() => {
     const progress = slideProgress.value;
@@ -110,29 +109,6 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   }, [selectedColor]);
 
   const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
-
-  if (buyOnly) {
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="border border-muted rounded-xl p-1"
-        testID={testID}
-      >
-        <Box
-          twClassName="rounded-lg px-4 py-1"
-          style={{ backgroundColor: selectedColor }}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryInverse}
-          >
-            {strings('social_leaderboard.quick_buy.buy_label')}
-          </Text>
-        </Box>
-      </Box>
-    );
-  }
 
   return (
     <Box
