@@ -1,5 +1,5 @@
 import { BrokenCircuitError } from '@metamask/controller-utils';
-import { buildPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
+import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
 import { KALSHI_VENUE_ID, type PredictEntityId } from '../types';
 
 const status = {
@@ -26,6 +26,20 @@ const event = {
 };
 
 describe('PredictNext public market data', () => {
+  const harnesses: ReturnType<typeof createPredictNextIntegrationHarness>[] =
+    [];
+  const buildPredictNextIntegrationHarness = (
+    ...args: Parameters<typeof createPredictNextIntegrationHarness>
+  ) => {
+    const harness = createPredictNextIntegrationHarness(...args);
+    harnesses.push(harness);
+    return harness;
+  };
+
+  afterEach(() => {
+    harnesses.splice(0).forEach((harness) => harness.destroy());
+  });
+
   it('reads venue status through the real controller-to-transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: status,

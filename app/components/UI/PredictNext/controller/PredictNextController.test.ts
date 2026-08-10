@@ -89,6 +89,32 @@ describe('PredictNextController', () => {
     ).toThrow();
   });
 
+  it('surfaces service construction failures', () => {
+    const messenger = createMessenger();
+    const serviceMessenger: Messenger<
+      'PredictMarketDataService',
+      PredictMarketDataServiceActions,
+      PredictMarketDataServiceEvents
+    > = new Messenger({
+      namespace: 'PredictMarketDataService',
+      parent: messenger,
+    });
+    serviceMessenger.registerActionHandler(
+      'PredictMarketDataService:invalidateQueries',
+      jest.fn(),
+    );
+    const controller = new PredictNextController({
+      messenger,
+      baseUrl: 'https://predict.example/',
+      clientVersion: '1.0.0',
+    });
+
+    const act = () => controller.initialize();
+
+    expect(act).toThrow();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
   it('removes service actions permanently on destroy', () => {
     const messenger = createMessenger();
     const controller = new PredictNextController({

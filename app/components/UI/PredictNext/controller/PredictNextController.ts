@@ -49,30 +49,33 @@ export class PredictNextController {
       return;
     }
 
+    let client: PredictApiReadClient;
     try {
-      const client = new PredictApiReadClient({
+      client = new PredictApiReadClient({
         baseUrl: this.#options.baseUrl,
         clientVersion: this.#options.clientVersion,
         fetch: this.#options.fetch,
-      });
-      const adapter = new KalshiRemoteAdapter(client);
-      const messenger: PredictMarketDataServiceMessenger = new Messenger({
-        namespace: PREDICT_MARKET_DATA_SERVICE_NAME,
-        parent: this.#options.messenger,
-      });
-      this.#service = new PredictMarketDataService({
-        messenger,
-        marketData: adapter.marketData,
-        venueId: adapter.venueId,
-        policyOptions: this.#options.policyOptions,
       });
     } catch (error) {
       Logger.error(
         error instanceof Error
           ? error
-          : new Error('PredictNext initialization failed.'),
+          : new Error('PredictNext configuration is malformed.'),
       );
+      return;
     }
+
+    const adapter = new KalshiRemoteAdapter(client);
+    const messenger: PredictMarketDataServiceMessenger = new Messenger({
+      namespace: PREDICT_MARKET_DATA_SERVICE_NAME,
+      parent: this.#options.messenger,
+    });
+    this.#service = new PredictMarketDataService({
+      messenger,
+      marketData: adapter.marketData,
+      venueId: adapter.venueId,
+      policyOptions: this.#options.policyOptions,
+    });
   }
 
   destroy(): void {
