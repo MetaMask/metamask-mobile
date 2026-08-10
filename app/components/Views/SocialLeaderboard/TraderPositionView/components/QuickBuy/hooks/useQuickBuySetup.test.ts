@@ -5,24 +5,24 @@ import { zeroAddress } from 'ethereumjs-util';
 import {
   useAssetMetadata,
   AssetType,
-} from '../../../../../UI/Bridge/hooks/useAssetMetadata';
-import { selectIsBridgeEnabledSourceFactory } from '../../../../../../core/redux/slices/bridge';
-import { getNativeSourceToken } from '../../../../../UI/Bridge/utils/tokenUtils';
-import { useQuickBuySetup } from './hooks/useQuickBuySetup';
-import type { QuickBuyTarget } from './types';
+} from '../../../../../../UI/Bridge/hooks/useAssetMetadata';
+import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
+import { getNativeSourceToken } from '../../../../../../UI/Bridge/utils/tokenUtils';
+import { useQuickBuySetup } from './useQuickBuySetup';
+import type { QuickBuyTarget } from '../types';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata', () => ({
-  ...jest.requireActual('../../../../../UI/Bridge/hooks/useAssetMetadata'),
+jest.mock('../../../../../../UI/Bridge/hooks/useAssetMetadata', () => ({
+  ...jest.requireActual('../../../../../../UI/Bridge/hooks/useAssetMetadata'),
   useAssetMetadata: jest.fn(),
 }));
 
-jest.mock('../../../../../UI/Bridge/utils/tokenUtils', () => ({
-  ...jest.requireActual('../../../../../UI/Bridge/utils/tokenUtils'),
+jest.mock('../../../../../../UI/Bridge/utils/tokenUtils', () => ({
+  ...jest.requireActual('../../../../../../UI/Bridge/utils/tokenUtils'),
   getNativeSourceToken: jest.fn(),
 }));
 
