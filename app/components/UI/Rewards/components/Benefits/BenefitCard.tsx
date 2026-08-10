@@ -28,10 +28,10 @@ const BenefitCard = ({ benefit }: Props) => {
   const tw = useTailwind();
   const benefitImageTestId = `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`;
 
-  const remainingTime =
-    benefit.actionDate == null
-      ? null
-      : formatDateRemaining(benefit.actionDate, Date.now());
+  const remainingTime = formatDateRemaining(
+    benefit.actionDate ?? benefit.validTo,
+    Date.now(),
+  );
   const companyName = benefit.companyName?.trim();
 
   return (
@@ -55,29 +55,14 @@ const BenefitCard = ({ benefit }: Props) => {
         </Box>
 
         <Box twClassName="flex-1 gap-1">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2"
-          >
+          <Box>
             <Text
               variant={TextVariant.HeadingSm}
-              twClassName="text-default flex-1"
+              twClassName="text-default"
               numberOfLines={1}
             >
               {benefit.longTitle}
             </Text>
-            {companyName ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                twClassName="max-w-[40%]"
-                numberOfLines={1}
-              >
-                {companyName}
-              </Text>
-            ) : null}
           </Box>
           <Text
             variant={TextVariant.BodyMd}
@@ -86,23 +71,42 @@ const BenefitCard = ({ benefit }: Props) => {
           >
             {benefit.shortDescription}
           </Text>
-          {remainingTime != null && (
+          {(remainingTime != null || companyName) && (
             <Box
               gap={1}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
             >
-              <Icon
-                name={IconName.Clock}
-                size={IconSize.Md}
-                color={IconColor.IconAlternative}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {remainingTime}
-              </Text>
+              {remainingTime != null && (
+                <Box
+                  gap={1}
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                >
+                  <Icon
+                    name={IconName.Clock}
+                    size={IconSize.Md}
+                    color={IconColor.IconAlternative}
+                  />
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {remainingTime}
+                  </Text>
+                </Box>
+              )}
+              {companyName ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  twClassName="max-w-[40%]"
+                  numberOfLines={1}
+                >
+                  {companyName}
+                </Text>
+              ) : null}
             </Box>
           )}
         </Box>

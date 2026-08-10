@@ -91,6 +91,15 @@ describe('BenefitCard', () => {
       expect(getByText('Pudgy Penguins')).toBeOnTheScreen();
     });
 
+    it('renders the company name in the remaining-time row', () => {
+      const benefit = createBenefit({ companyName: 'Pudgy Penguins' });
+      const { getByText } = render(<BenefitCard benefit={benefit} />);
+
+      expect(getByText('Pudgy Penguins').parent).toBe(
+        getByText('1mo 3d').parent?.parent,
+      );
+    });
+
     it('does not render an empty company label when companyName is null', () => {
       const benefit = createBenefit({ companyName: null });
       const { queryByText } = render(<BenefitCard benefit={benefit} />);
@@ -171,14 +180,18 @@ describe('BenefitCard', () => {
       expect(getByText('1mo 3d')).toBeOnTheScreen();
     });
 
-    it('does not call formatter and hides remaining time when actionDate is null', () => {
+    it('uses validTo when actionDate is null', () => {
       const benefit = createBenefit({
         actionDate: null,
+        validTo: '2026-12-31T23:59:59Z',
       });
-      const { queryByText } = render(<BenefitCard benefit={benefit} />);
+      const { getByText } = render(<BenefitCard benefit={benefit} />);
 
-      expect(mockFormatDateRemaining).not.toHaveBeenCalled();
-      expect(queryByText('1mo 3d')).toBeNull();
+      expect(mockFormatDateRemaining).toHaveBeenCalledWith(
+        benefit.validTo,
+        expect.any(Number),
+      );
+      expect(getByText('1mo 3d')).toBeOnTheScreen();
     });
 
     it('hides remaining time when formatter returns null', () => {

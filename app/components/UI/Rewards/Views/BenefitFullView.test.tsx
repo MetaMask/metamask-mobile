@@ -375,16 +375,19 @@ describe('BenefitFullView', () => {
     expect(queryByText('1mo 3d')).toBeNull();
   });
 
-  it('does not format remaining time when actionDate is null', () => {
+  it('uses validTo when actionDate is null', () => {
     mockRouteBenefit = {
       ...mockBenefit,
       actionDate: null as unknown as string,
     };
 
-    const { queryByText } = render(<BenefitFullView />);
+    const { getByText } = render(<BenefitFullView />);
 
-    expect(mockFormatDateRemaining).not.toHaveBeenCalled();
-    expect(queryByText('1mo 3d')).toBeNull();
+    expect(mockFormatDateRemaining).toHaveBeenCalledWith(
+      mockRouteBenefit.validTo,
+      expect.any(Number),
+    );
+    expect(getByText('1mo 3d')).toBeOnTheScreen();
   });
 
   it('does not render company label when companyName is null', () => {

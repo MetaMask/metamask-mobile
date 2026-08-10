@@ -112,10 +112,8 @@ const BenefitFullView = () => {
 
   const remainingTime = useMemo(
     () =>
-      benefit.actionDate == null
-        ? null
-        : formatDateRemaining(benefit.actionDate, Date.now()),
-    [benefit.actionDate],
+      formatDateRemaining(benefit.actionDate ?? benefit.validTo, Date.now()),
+    [benefit.actionDate, benefit.validTo],
   );
   const companyName = benefit.companyName?.trim();
 
