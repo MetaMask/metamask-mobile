@@ -111,9 +111,8 @@ const BenefitFullView = () => {
   };
 
   const remainingTime = useMemo(
-    () =>
-      formatDateRemaining(benefit.actionDate ?? benefit.validTo, Date.now()),
-    [benefit.actionDate, benefit.validTo],
+    () => formatDateRemaining(benefit.validTo, Date.now()),
+    [benefit.validTo],
   );
   const companyName = benefit.companyName?.trim();
 
@@ -185,7 +184,7 @@ const BenefitFullView = () => {
                 )}
                 {companyName ? (
                   <Text
-                    variant={TextVariant.BodyMd}
+                    variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     twClassName="max-w-[55%]"
                     numberOfLines={1}

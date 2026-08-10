@@ -28,10 +28,7 @@ const BenefitCard = ({ benefit }: Props) => {
   const tw = useTailwind();
   const benefitImageTestId = `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`;
 
-  const remainingTime = formatDateRemaining(
-    benefit.actionDate ?? benefit.validTo,
-    Date.now(),
-  );
+  const remainingTime = formatDateRemaining(benefit.validTo, Date.now());
   const companyName = benefit.companyName?.trim();
 
   return (
@@ -65,7 +62,7 @@ const BenefitCard = ({ benefit }: Props) => {
             </Text>
           </Box>
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             numberOfLines={3}
           >
@@ -86,11 +83,11 @@ const BenefitCard = ({ benefit }: Props) => {
                 >
                   <Icon
                     name={IconName.Clock}
-                    size={IconSize.Md}
+                    size={IconSize.Sm}
                     color={IconColor.IconAlternative}
                   />
                   <Text
-                    variant={TextVariant.BodyMd}
+                    variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                   >
                     {remainingTime}
