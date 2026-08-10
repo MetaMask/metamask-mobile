@@ -62,6 +62,11 @@ const mockedCallTronSnap = (createSnapCaller as unknown as () => jest.Mock)();
 const mockedGetCaipAccountIdsFromCaip25CaveatValue =
   getCaipAccountIdsFromCaip25CaveatValue as jest.Mock;
 
+const MOCK_ORIGIN_METADATA = {
+  transport: 'WalletConnect',
+  selfReportedOrigin: 'https://metamask.io',
+};
+
 describe('multichain/tron', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -253,6 +258,7 @@ describe('multichain/tron', () => {
 
       const result = await tronAdapter.handleRequest({
         origin: 'channelId',
+        originMetadata: MOCK_ORIGIN_METADATA,
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
@@ -297,6 +303,7 @@ describe('multichain/tron', () => {
 
       await tronAdapter.handleRequest({
         origin: 'channelId',
+        originMetadata: MOCK_ORIGIN_METADATA,
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
