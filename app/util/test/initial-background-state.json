@@ -727,6 +727,7 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "providerUserId": null,
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
