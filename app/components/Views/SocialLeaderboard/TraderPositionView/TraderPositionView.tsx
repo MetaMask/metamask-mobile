@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -34,16 +33,8 @@ import {
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
-import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
-import { useTheme } from '../../../../util/theme';
 import TraderPositionBuyCta from './components/TraderPositionBuyCta';
 import {
   narrowQuickBuyOriginalEntryPoint,
@@ -89,6 +80,7 @@ import {
 } from '@metamask/perps-controller';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { useCopyTokenContractAddress } from '../../../UI/TokenDetails/hooks/useCopyTokenContractAddress';
 import { parseAssetIdForNavigation } from '../../../UI/TokenDetails/utils/parseAssetIdForNavigation';
 import type { Trade } from '@metamask/social-controllers';
 import {
@@ -106,8 +98,6 @@ const TraderPositionView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
-  const { colors } = useTheme();
-  const { toastRef } = useContext(ToastContext);
 
   const {
     traderId,
@@ -213,28 +203,11 @@ const TraderPositionView = () => {
     });
   }, [navigation, traderId, traderName]);
 
-  const handleCopyTokenAddress = useCallback(async () => {
-    if (!displayPosition?.tokenAddress) {
-      return;
-    }
-
-    await ClipboardManager.setString(displayPosition.tokenAddress);
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.CheckBold,
-      iconColor: colors.accent03.dark,
-      backgroundColor: colors.accent03.normal,
-      labelOptions: [
-        { label: strings('detected_tokens.address_copied_to_clipboard') },
-      ],
-      hasNoTimeout: false,
-    });
-  }, [
-    colors.accent03.dark,
-    colors.accent03.normal,
-    displayPosition?.tokenAddress,
-    toastRef,
-  ]);
+  // Reuses the token page's copy hook (clipboard write + the shared "Public
+  // address copied to clipboard" toast) so both surfaces behave identically.
+  const handleCopyTokenAddress = useCopyTokenContractAddress(
+    displayPosition?.tokenAddress ?? null,
+  );
 
   // Quick Buy `source` is always the trade screen; upstream journey attribution
   // is carried separately on `original_entry_point`.

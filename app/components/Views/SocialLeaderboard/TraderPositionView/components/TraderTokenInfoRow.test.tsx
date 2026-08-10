@@ -134,13 +134,16 @@ describe('TraderTokenInfoRow', () => {
     );
     expect(onTokenPress).toHaveBeenCalledTimes(1);
 
-    // Copy is now a separate, independent control (not the whole box).
+    // Copy trails the secondary line as its own tap target: it copies without
+    // triggering the surrounding token navigation.
+    onTokenPress.mockClear();
     fireEvent.press(
       screen.getByTestId(
         TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
       ),
     );
     expect(onCopyTokenAddress).toHaveBeenCalledTimes(1);
+    expect(onTokenPress).not.toHaveBeenCalled();
   });
 
   it('keeps the spot copy affordance and never renders the perp link', () => {

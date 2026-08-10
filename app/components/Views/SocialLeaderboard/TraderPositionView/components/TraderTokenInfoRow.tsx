@@ -4,8 +4,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
-  Icon,
   IconColor,
   IconName,
   IconSize,
@@ -16,7 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import React from 'react';
-import { Pressable, TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- shared Perps stream provider (UI layer, not a route)
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
@@ -86,7 +87,7 @@ const TokenIdentityPerpLinkInner: React.FC<TokenIdentityPerpLinkProps> = ({
 
   // Mirror the disabled Trade CTA — never link to an unsupported market.
   if (!isSupported) {
-    return <Box twClassName="flex-1 min-w-0">{children}</Box>;
+    return <Box twClassName="flex-1 min-w-0 mr-3">{children}</Box>;
   }
 
   return (
@@ -99,7 +100,7 @@ const TokenIdentityPerpLinkInner: React.FC<TokenIdentityPerpLinkProps> = ({
         { symbol: displaySymbol },
       )}
       style={({ pressed }) => [
-        tw.style('shrink min-w-0'),
+        tw.style('flex-1 min-w-0 mr-3'),
         pressed ? { opacity: 0.7 } : null,
       ]}
     >
@@ -151,7 +152,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
       ) : (
         <AvatarToken name={symbol} size={AvatarTokenSize.Lg} />
       )}
-      <Box twClassName="shrink min-w-0">
+      <Box twClassName="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -174,40 +175,64 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             />
           ) : null}
         </Box>
-        {pricePercentChange != null ? (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName={
-              pricePercentChange >= 0
-                ? 'text-success-default'
-                : 'text-error-default'
-            }
-            numberOfLines={1}
-          >
-            {formatPercent(pricePercentChange)}{' '}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          {pricePercentChange != null ? (
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName={`shrink ${
+                pricePercentChange >= 0
+                  ? 'text-success-default'
+                  : 'text-error-default'
+              }`}
+              numberOfLines={1}
+            >
+              {formatPercent(pricePercentChange)}{' '}
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {activeTimePeriodLabel}
+              </Text>
+            </Text>
+          ) : (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              {activeTimePeriodLabel}
+              {'\u2014'}
             </Text>
-          </Text>
-        ) : (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {'\u2014'}
-          </Text>
-        )}
+          )}
+          {/* Same copy control as the token page (see TokenDetailsInlineHeader):
+              trails the secondary line and is its own tap target, so it copies
+              without triggering the surrounding token navigation. */}
+          {canCopyTokenAddress ? (
+            <ButtonIcon
+              iconName={IconName.Copy}
+              size={ButtonIconSize.Xs}
+              onPress={onCopyTokenAddress}
+              iconProps={{
+                color: IconColor.IconAlternative,
+                size: IconSize.Sm,
+              }}
+              testID={copyTokenAddressTestID}
+              accessibilityLabel={strings('token.contract_address')}
+            />
+          ) : null}
+        </Box>
       </Box>
     </Box>
   );
 
   // The identity (avatar + symbol + change) is the navigation target: perps
   // link to the market page (same nav as the Trade CTA), spot links to the
-  // token page. The copy-address control sits beside it as its own tap target
-  // (spot only — perps have no on-chain address).
-  let identity: React.ReactNode;
+  // token page. The copy control lives inline at the end of the secondary line
+  // (see `content`) and captures its own taps, so copying never navigates.
   if (isPerp && onTokenNavigate && perpMarketSymbol) {
-    identity = (
+    return (
       <TokenIdentityPerpLink
         symbol={perpMarketSymbol}
         displaySymbol={symbol}
@@ -217,8 +242,10 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
         {content}
       </TokenIdentityPerpLink>
     );
-  } else if (onTokenPress) {
-    identity = (
+  }
+
+  if (onTokenPress) {
+    return (
       <Pressable
         onPress={onTokenPress}
         testID={tokenNavigateTestID}
@@ -228,42 +255,16 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
           { symbol },
         )}
         style={({ pressed }) => [
-          tw.style('shrink min-w-0'),
+          tw.style('flex-1 min-w-0 mr-3'),
           pressed ? { opacity: 0.7 } : null,
         ]}
       >
         {content}
       </Pressable>
     );
-  } else {
-    identity = <Box twClassName="shrink min-w-0">{content}</Box>;
   }
 
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={2}
-      twClassName="flex-1 min-w-0 mr-3"
-    >
-      {identity}
-      {canCopyTokenAddress ? (
-        <TouchableOpacity
-          onPress={onCopyTokenAddress}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          testID={copyTokenAddressTestID}
-          accessibilityRole="button"
-          accessibilityLabel={`Copy ${symbol} token address`}
-        >
-          <Icon
-            name={IconName.Copy}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </TouchableOpacity>
-      ) : null}
-    </Box>
-  );
+  return <Box twClassName="flex-1 min-w-0 mr-3">{content}</Box>;
 };
 
 interface TraderHeaderStatProps {
