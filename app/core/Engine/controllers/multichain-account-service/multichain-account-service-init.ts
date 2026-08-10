@@ -11,7 +11,7 @@ import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-
 import { MessengerClientInitFunction } from '../../types';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 import { isStellarAccountsFeatureEnabled } from '../../../../multichain-stellar/remote-feature-flag';
-import { previousValueComparator } from '../../../../util/value-compartor';
+import { previousValueComparator } from '../../../../util/value-comparator';
 
 const mergedFlags = (state: RemoteFeatureFlagControllerState) => ({
   ...state.remoteFeatureFlags,
