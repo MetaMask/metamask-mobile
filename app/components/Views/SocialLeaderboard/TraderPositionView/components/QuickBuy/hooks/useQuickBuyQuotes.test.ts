@@ -1,30 +1,30 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../../../core/Engine';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import Engine from '../../../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import {
   useQuickBuyQuotes,
   QUICK_BUY_QUOTE_DEBOUNCE_MS,
-} from './hooks/useQuickBuyQuotes';
+} from './useQuickBuyQuotes';
 import {
   isQuoteStreamingEnabled,
   streamQuickBuyQuotes,
-} from './utils/streamQuickBuyQuotes';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
+} from '../utils/streamQuickBuyQuotes';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import {
   selectDestAddress,
   selectIsSlippageUserOverride,
   selectSlippage,
-} from '../../../../../../core/redux/slices/bridge';
+} from '../../../../../../../core/redux/slices/bridge';
 import {
   selectGasIncludedQuoteParams,
   selectSourceWalletAddress,
-} from '../../../../../../selectors/bridge';
-import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../../../selectors/featureFlagController/socialLeaderboard';
-import Logger from '../../../../../../util/Logger';
+} from '../../../../../../../selectors/bridge';
+import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../../../../selectors/featureFlagController/socialLeaderboard';
+import Logger from '../../../../../../../util/Logger';
 
-jest.mock('../../../../../../util/Logger', () => ({
+jest.mock('../../../../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
@@ -36,7 +36,7 @@ jest.mock('react-redux', () => ({
   shallowEqual: jest.fn(),
 }));
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
@@ -47,24 +47,24 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../../util/analytics/analytics', () => ({
+jest.mock('../../../../../../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn(() => false),
   },
 }));
 
-jest.mock('../../../../../../selectors/featureFlagController', () => ({
+jest.mock('../../../../../../../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlags: jest.fn(() => ({ bridgeConfig: {} })),
 }));
 
 jest.mock(
-  '../../../../../../selectors/featureFlagController/socialLeaderboard',
+  '../../../../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialAIQuickBuyStreamQuotesEnabled: jest.fn(() => true),
   }),
 );
 
-jest.mock('../../../../../../core/redux/slices/bridge', () => ({
+jest.mock('../../../../../../../core/redux/slices/bridge', () => ({
   selectDestAddress: jest.fn(),
   selectIsSlippageUserOverride: jest.fn(() => false),
   selectSlippage: jest.fn(),
@@ -75,19 +75,19 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   })),
 }));
 
-jest.mock('../../../../../../selectors/bridge', () => ({
+jest.mock('../../../../../../../selectors/bridge', () => ({
   selectGasIncludedQuoteParams: jest.fn(),
   selectSourceWalletAddress: jest.fn(),
 }));
 
-jest.mock('./utils/streamQuickBuyQuotes', () => ({
+jest.mock('../utils/streamQuickBuyQuotes', () => ({
   isQuoteStreamingEnabled: jest.fn(() => false),
   streamQuickBuyQuotes: jest.fn(),
 }));
 
 const mockTrack = jest.fn();
-jest.mock('../../../analytics', () => {
-  const actual = jest.requireActual('../../../analytics');
+jest.mock('../../../../analytics', () => {
+  const actual = jest.requireActual('../../../../analytics');
   return {
     ...actual,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
