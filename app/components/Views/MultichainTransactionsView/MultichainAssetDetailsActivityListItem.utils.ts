@@ -2,7 +2,7 @@ import type { Transaction } from '@metamask/keyring-api';
 import type { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
@@ -44,4 +44,4 @@ export const getMultichainTransactionDetailEventProperties = ({
   };
 };
 
-export { TRANSACTION_DETAIL_EVENTS };
+export { ACTIVITY_DETAIL_EVENTS };
