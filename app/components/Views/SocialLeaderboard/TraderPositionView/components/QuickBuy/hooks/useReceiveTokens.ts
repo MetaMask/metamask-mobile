@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { isNonEvmChainId, isSolanaChainId } from '@metamask/bridge-controller';
-import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import type { CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
@@ -54,7 +54,8 @@ const STABLECOIN_CANDIDATES: BridgeToken[] = (() => {
       typeof token.chainId === 'string' &&
       (token.chainId.startsWith('0x') ||
         isSolanaChainId(token.chainId) ||
-        token.chainId === TrxScope.Mainnet),
+        token.chainId === TrxScope.Mainnet ||
+        token.chainId === XlmScope.Pubnet),
   );
   const seen = new Set(primaries.map(getTokenKey));
   const extras = RECEIVE_STABLECOIN_CANDIDATES.filter(
@@ -137,6 +138,7 @@ export const useReceiveTokens = (
   );
   const solanaAccount = selectAccountByScope(SolScope.Mainnet);
   const tronAccount = selectAccountByScope(TrxScope.Mainnet);
+  const stellarAccount = selectAccountByScope(XlmScope.Pubnet);
   const bitcoinAccount = selectAccountByScope(BtcScope.Mainnet);
 
   // Non-EVM accounts in the selected group, keyed by the CAIP chain id the
@@ -146,9 +148,10 @@ export const useReceiveTokens = (
     () => ({
       [SolScope.Mainnet]: solanaAccount,
       [TrxScope.Mainnet]: tronAccount,
+      [XlmScope.Pubnet]: stellarAccount,
       [BtcScope.Mainnet]: bitcoinAccount,
     }),
-    [solanaAccount, tronAccount, bitcoinAccount],
+    [solanaAccount, tronAccount, stellarAccount, bitcoinAccount],
   );
 
   const candidates = useMemo(
@@ -195,6 +198,7 @@ export const useReceiveTokens = (
             allNetworkConfigs,
             solanaAccount: solanaAccount ?? undefined,
             tronAccount: tronAccount ?? undefined,
+            stellarAccount: stellarAccount ?? undefined,
             bitcoinAccount: bitcoinAccount ?? undefined,
             multichainBalances,
             multichainRates: multichainRates as Record<
@@ -219,6 +223,7 @@ export const useReceiveTokens = (
       allNetworkConfigs,
       solanaAccount,
       tronAccount,
+      stellarAccount,
       bitcoinAccount,
       multichainBalances,
       multichainRates,
