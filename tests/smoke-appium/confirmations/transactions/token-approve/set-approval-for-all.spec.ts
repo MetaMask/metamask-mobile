@@ -64,9 +64,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-// Skipped: Android CI flake — CDP click succeeds but confirm-button never
-// appears (flaky/failed in CI). Un-skip after sheet-open is stable.
-appiumTest.describe.skip(
+appiumTest.describe(
   SmokeConfirmations('Token Approve - setApprovalForAll method'),
   () => {
     appiumTest.describe.configure({ timeout: 2500000 });
