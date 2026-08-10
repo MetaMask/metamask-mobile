@@ -432,6 +432,14 @@ const PerpsProOrderForm = ({
     onTPSLPress();
   }, [onTPSLPress, playImpact]);
 
+  const handleExpandOrderBook = useCallback(() => {
+    if (!onExpandOrderBook) {
+      return;
+    }
+    playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    onExpandOrderBook();
+  }, [onExpandOrderBook, playImpact]);
+
   const handlePlaceOrderPress = useCallback(() => {
     playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onPlaceOrderPress();
@@ -496,7 +504,7 @@ const PerpsProOrderForm = ({
                 iconName={IconName.Book}
                 accessibilityLabel={strings('perps.order_book.expand')}
                 size={ButtonIconSize.Md}
-                onPress={onExpandOrderBook}
+                onPress={handleExpandOrderBook}
                 testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON}
               />
             ) : null}

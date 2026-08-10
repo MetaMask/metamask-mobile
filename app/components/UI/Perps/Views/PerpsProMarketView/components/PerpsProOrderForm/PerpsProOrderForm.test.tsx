@@ -716,6 +716,7 @@ describe('PerpsProOrderForm', () => {
       );
 
       expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     });
   });
 
