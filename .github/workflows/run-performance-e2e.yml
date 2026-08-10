@@ -170,7 +170,9 @@ concurrency:
   # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
   group: >-
     ${{
-      (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') &&
+      github.event_name == 'workflow_call' &&
+      format('performance-e2e-reusable-{0}', github.run_id) ||
+      github.event_name == 'workflow_dispatch' &&
       format('performance-e2e-manual-{0}', github.run_id) ||
       format(
         'performance-e2e-{0}-{1}-{2}',
