@@ -4,14 +4,18 @@ import { isRelaySupported } from '../../../../../util/transactions/transaction-r
 import { Hex } from '@metamask/utils';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
-import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 
 /**
  * Hook to determine if gasless transactions are supported for the current confirmation context.
  *
  * Gasless support can be enabled in two ways:
  * - Via Smart Transactions (sendBundle): Supported when smart transactions are enabled and sendBundle is supported for the chain. Works for all account types including hardware wallets, since only standard EIP-1559 signing is required.
- * - Via 7702 relay: Supported when the current account is upgraded, the chain supports atomic batch, relay is available, and the transaction is not a contract deployment. Hardware wallets are excluded from this path because they cannot sign EIP-7702 authorization lists. The check uses the paying account, which for Money Account deposits is the funding account rather than `txParams.from`.
+ * - Via 7702 relay: Supported when the current account is upgraded, the chain supports atomic batch, relay is available, and the transaction is not a contract deployment. Hardware wallets are excluded from this path because they cannot sign EIP-7702 authorization lists.
+ *
+ * The check is intentionally based on `txParams.from` — the account that signs
+ * the confirmed transaction. MM Pay funding accounts never sign this
+ * transaction, and the pay controller separately excludes non-HD payers from
+ * 7702 when building funding transactions.
  *
  * @returns An object containing:
  * - `isSupported`: `true` if gasless transactions are supported via either sendBundle or 7702.
@@ -20,7 +24,6 @@ import { useTransactionPayingAccount } from '../transactions/useTransactionPayin
  */
 export function useIsGaslessSupported() {
   const transactionMeta = useTransactionMetadataRequest();
-  const payingAccount = useTransactionPayingAccount();
 
   const { chainId, txParams } = transactionMeta ?? {};
 
@@ -42,8 +45,9 @@ export function useIsGaslessSupported() {
       return isRelaySupported(chainId as Hex);
     }, [chainId, shouldCheck7702Eligibility]);
 
+  const fromAddress = txParams?.from;
   const isHardwareWallet = Boolean(
-    payingAccount && isHardwareAccount(payingAccount),
+    fromAddress && isHardwareAccount(fromAddress),
   );
 
   const is7702Supported = Boolean(

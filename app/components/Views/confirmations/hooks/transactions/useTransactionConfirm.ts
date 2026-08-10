@@ -66,10 +66,18 @@ export function useTransactionConfirm() {
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
-  const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
+  // Signer of the confirmed transaction; gates signing-related paths.
+  const isSignerHardwareWallet = isHardwareAccount(
+    transactionMetadata?.txParams?.from ?? '',
+  );
+
+  // Payer may differ from the signer (MM Pay funding account); a hardware
+  // payer signs funding transactions on-device after approval, so keep the
+  // confirmation waiting to drive the awaiting UI and surface errors.
+  const isPayerHardwareWallet = isHardwareAccount(payingAccount ?? '');
 
   const waitForResult =
-    isHardwareWallet ||
+    isPayerHardwareWallet ||
     (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
@@ -138,7 +146,7 @@ export function useTransactionConfirm() {
 
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
-      } else if (selectedGasFeeToken && !isHardwareWallet) {
+      } else if (selectedGasFeeToken && !isSignerHardwareWallet) {
         handleGasless7702(updatedMetadata);
       }
 
@@ -229,7 +237,7 @@ export function useTransactionConfirm() {
       tryEnableEvmNetwork,
       type,
       waitForResult,
-      isHardwareWallet,
+      isSignerHardwareWallet,
     ],
   );
 
