@@ -23,9 +23,8 @@ export const selectRawFeatureFlags = createSelector(
 
 const selectRemoteFeatureFlagsMerged = createSelector(
   selectRemoteFeatureFlagControllerState,
-  // As of @metamask/remote-feature-flag-controller@5, `localOverrides` are
-  // merged into `remoteFeatureFlags` at the controller level, so consumers
-  // receive effective flag values directly (no app-side merge needed).
+  // `remoteFeatureFlags` already has `localOverrides` applied, so consumers
+  // receive the effective flag values with no app-side merge needed.
   (remoteFeatureFlagControllerState) =>
     remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
 );
@@ -65,9 +64,8 @@ export const selectRawRemoteFeatureFlags = createSelector(
 );
 
 /**
- * Maps threshold feature flag names to their selected group name. Populated by
- * @metamask/remote-feature-flag-controller@5 for threshold/A-B flags, where the
- * selected group name is stored separately from the flag value.
+ * Maps threshold feature flag names to their selected group name, which the
+ * controller stores separately from the flag value for threshold and A/B flags.
  *
  * Respects the basic functionality gate (returns `{}` when disabled), mirroring
  * `selectRemoteFeatureFlags`, so A/B assignment stays off when the user has

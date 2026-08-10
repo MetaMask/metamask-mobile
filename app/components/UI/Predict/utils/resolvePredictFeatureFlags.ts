@@ -51,9 +51,8 @@ function resolveVersionGatedBooleanFlag(
 /**
  * Resolves the Predict feature flags used by both the controller and selectors.
  *
- * As of @metamask/remote-feature-flag-controller@5, `localOverrides` are merged
- * into `remoteFeatureFlags` at the controller level, so this reads the effective
- * flag values directly (dev override screen still works).
+ * Reads the effective flag values from `remoteFeatureFlags`, which already has
+ * `localOverrides` applied, so the dev override screen still works.
  *
  * @param rawState - Raw RemoteFeatureFlagController state slices used by Predict.
  * @returns The normalized Predict feature flag set.
