@@ -52,13 +52,7 @@
   },
   "CurrencyRateController": {
     "currentCurrency": "usd",
-    "currencyRates": {
-      "ETH": {
-        "conversionDate": 0,
-        "conversionRate": 0,
-        "usdConversionRate": null
-      }
-    }
+    "currencyRates": {}
   },
   "DelegationController": {},
   "NetworkController": {
