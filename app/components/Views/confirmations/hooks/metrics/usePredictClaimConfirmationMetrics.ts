@@ -1,8 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  selectPredictClaimFiat,
-  selectPredictClaimPnl,
-  selectPredictPayablePositions,
+  selectPredictWinFiat,
+  selectPredictWinPnl,
+  selectPredictWonPositions,
 } from '../../../../UI/Predict/selectors/predictController';
 import { useEffect, useMemo } from 'react';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
@@ -15,20 +15,20 @@ export function usePredictClaimConfirmationMetrics() {
   const transactionId = txMeta?.id ?? '';
   const fromAddress = txMeta?.txParams?.from ?? '0x0';
 
-  const payablePositions = useSelector((state: RootState) =>
-    selectPredictPayablePositions(state, fromAddress),
+  const winPositions = useSelector((state: RootState) =>
+    selectPredictWonPositions(state, fromAddress),
   );
 
   const predict_claim_value_usd = useSelector((state: RootState) =>
-    selectPredictClaimFiat(state, fromAddress),
+    selectPredictWinFiat(state, fromAddress),
   );
   const predict_pnl = useSelector((state: RootState) =>
-    selectPredictClaimPnl(state, fromAddress),
+    selectPredictWinPnl(state, fromAddress),
   );
 
   const predict_market_title = useMemo(
-    () => payablePositions.map((p) => p.title),
-    [payablePositions],
+    () => winPositions.map((p) => p.title),
+    [winPositions],
   );
 
   useEffect(() => {

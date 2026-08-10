@@ -8,8 +8,8 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import {
-  selectPredictClaimFiat,
-  selectPredictClaimPnl,
+  selectPredictWinFiat,
+  selectPredictWinPnl,
 } from '../../../../../UI/Predict/selectors/predictController';
 import {
   formatPercentage,
@@ -28,10 +28,10 @@ export function PredictClaimAmount() {
     useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
 
   const winningsFiat = useSelector((state: RootState) =>
-    selectPredictClaimFiat(state, selectedAddress),
+    selectPredictWinFiat(state, selectedAddress),
   );
   const winningsPnl = useSelector((state: RootState) =>
-    selectPredictClaimPnl(state, selectedAddress),
+    selectPredictWinPnl(state, selectedAddress),
   );
 
   if (!(winningsFiat && winningsPnl)) {
