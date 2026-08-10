@@ -67,7 +67,7 @@ import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import { useTraderPositions, useTraderProfile } from './hooks';
-import { resolveQuickBuyOriginalEntryPointFromProfile } from '../TraderPositionView/components/QuickBuy/analytics';
+import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,

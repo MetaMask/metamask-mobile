@@ -17,8 +17,8 @@ import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
-} from '../../TraderPositionView/components/QuickBuy';
-import { useQuickBuySetup } from '../../TraderPositionView/components/QuickBuy/hooks/useQuickBuySetup';
+} from '../../../../UI/QuickBuy';
+import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
 import {
   TOP_TRADERS_BUY_ACTION_AB_KEY,
   TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,

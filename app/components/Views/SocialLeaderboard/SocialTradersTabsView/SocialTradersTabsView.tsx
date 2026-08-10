@@ -43,7 +43,7 @@ import FeedSpotBuyAction, {
 } from '../FeedView/components/FeedSpotBuyAction';
 import TopTradersView from '../TopTradersView';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
+import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import {
   TabsBar,
   type TabItem,
