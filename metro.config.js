@@ -108,30 +108,11 @@ const LEDGER_DMK_ESM_PACKAGES = [
   '@ledgerhq/signer-utils',
 ];
 
-// Path fragments matched against `originModulePath` in `resolveRequest`
-// to scope the `reflect-metadata` idempotent shim to the Ledger DMK
-// closure (the only consumer of `reflect-metadata@0.2.x` in this app).
-// All five LEDGER_DMK_ESM_PACKAGES, plus their DI substrate (inversify
-// and `@inversifyjs/*`), live under one of these path fragments. Other
-// consumers (e.g. the nested `reflect-metadata@0.1.14` copies bundled
-// inside `@consensys/*-ramps-sdk`, which use their own package-local
-// copy and don't share the registry symbol) resolve normally to their
-// own `reflect-metadata`.
-//
-// See `app/shims/reflect-metadata-once.js` for the rationale on why
-// the second IIFE execution must be short-circuited.
-const DMK_REFLECT_METADATA_IMPORTERS = [
-  'node_modules/@ledgerhq/',
-  'node_modules/inversify',
-  'node_modules/@inversifyjs/',
-];
-
-const isDmkReflectMetadataImporter = (originModulePath) => {
-  const normalizedOrigin = (originModulePath ?? '').replace(/\\/g, '/');
-  return DMK_REFLECT_METADATA_IMPORTERS.some((fragment) =>
-    normalizedOrigin.includes(fragment),
-  );
-};
+// Scope the `reflect-metadata` idempotent shim to the Ledger DMK
+// closure.
+const {
+  isDmkReflectMetadataImporter,
+} = require('./metro.dmkReflectMetadataImporter');
 
 module.exports = function (baseConfig) {
   return getSentryExpoConfig(__dirname, {
