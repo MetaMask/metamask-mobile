@@ -148,6 +148,7 @@ describe('TokenNotAvailableModal', () => {
     expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
       screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+      pop: true,
     });
   });
 
@@ -182,6 +183,7 @@ describe('TokenNotAvailableModal', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
       screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+      pop: true,
     });
   });
 
@@ -267,7 +269,11 @@ describe('TokenNotAvailableModal', () => {
       fireEvent.press(getByText('Change token'));
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.WALLET.TOKENS_FULL_VIEW,
+        undefined,
+        { pop: true },
+      );
     });
 
     it('calls goBack once when modal is dismissed without a pending action', () => {
@@ -294,7 +300,11 @@ describe('TokenNotAvailableModal', () => {
       fireEvent.press(getByText('Change token'));
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.WALLET.HOME },
+        { pop: true },
+      );
     });
 
     it('navigates to Home when modal is dismissed without a pending action', () => {
@@ -302,7 +312,11 @@ describe('TokenNotAvailableModal', () => {
 
       capturedOnClose?.(false);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.WALLET.HOME },
+        { pop: true },
+      );
     });
   });
 });

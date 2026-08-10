@@ -79,13 +79,20 @@ function TokenNotAvailableModal() {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (buyFlowOrigin === 'tokenInfo') {
         // Token Info buy flow: return to the Tokens Full View screen
-        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW as never);
+        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, undefined, {
+          pop: true,
+        });
       } else if (buyFlowOrigin === 'homeTokenList') {
         // Home token list buy flow: return to home screen
-        navigation.navigate(Routes.WALLET.HOME as never);
+        navigation.navigate(
+          Routes.HOME_TABS,
+          { screen: Routes.WALLET.HOME },
+          { pop: true },
+        );
       } else {
         navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
           screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+          pop: true,
         });
       }
     });
@@ -146,10 +153,15 @@ function TokenNotAvailableModal() {
           navigation.goBack();
         } else if (buyFlowOrigin === 'homeTokenList') {
           // Home token list buy flow: return to home screen
-          navigation.navigate(Routes.WALLET.HOME as never);
+          navigation.navigate(
+            Routes.HOME_TABS,
+            { screen: Routes.WALLET.HOME },
+            { pop: true },
+          );
         } else {
           navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
             screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+            pop: true,
           });
         }
       }
