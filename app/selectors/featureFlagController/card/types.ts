@@ -57,6 +57,8 @@ export interface ImmersveProgramConfig {
   fundingChannelId?: string;
   spenderAddress?: string;
   apiBaseUrl?: string;
+  /** Separate Immersve secure host used for set-PIN (and similar) calls. */
+  secureApiBaseUrl?: string;
   appUrl?: string;
 }
 

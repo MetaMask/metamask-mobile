@@ -113,6 +113,12 @@ export const selectIsCardAuthenticated = createSelector(
     cardState?.isAuthenticated ?? false,
 );
 
+export const selectCardProviderUserId = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    cardState?.providerUserId ?? null,
+);
+
 export const selectCardLastUnauthenticatedReason = createSelector(
   selectCardControllerState,
   (

@@ -170,6 +170,7 @@ export const DEFAULT_IMMERSVE_CONFIG: ImmersveProgramConfig = {
   partnerAccountId: '',
   fundingChannelId: '',
   spenderAddress: '',
+  secureApiBaseUrl: '',
 };
 
 /** Fallback for the `cardImmersveCountries` flag. */

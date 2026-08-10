@@ -266,10 +266,12 @@ export class ImmersveProvider implements ICardProvider {
     supportsPushProvisioning: false,
     onboarding: { type: 'webview', url: '' },
     supportsPinView: false,
+    supportsPinSet: true,
     supportsCashback: false,
     supportsCredit: false,
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
+    supportsTransactionHistory: false,
   };
 
   private readonly service: ImmersveService;
@@ -306,6 +308,18 @@ export class ImmersveProvider implements ICardProvider {
 
   private get appUrl(): string {
     return this.programConfig.appUrl || this.config.appUrl;
+  }
+
+  private get secureApiBaseUrl(): string {
+    const url =
+      this.programConfig.secureApiBaseUrl || this.config.secureBaseUrl;
+    if (!url) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Immersve secureApiBaseUrl is not configured',
+      );
+    }
+    return url;
   }
 
   private requireProgramValue(
@@ -396,6 +410,7 @@ export class ImmersveProvider implements ICardProvider {
         ? (decodeJwtExpiryMs(response.refreshToken) ?? undefined)
         : undefined,
       location: IMMERSVE_LOCATION,
+      providerUserId: response.cardholderAccountId,
       cardholderAccountId: response.cardholderAccountId,
       accountAddress: session._metadata.address as string | undefined,
     };
@@ -446,6 +461,7 @@ export class ImmersveProvider implements ICardProvider {
         ? (decodeJwtExpiryMs(refreshToken) ?? undefined)
         : undefined,
       location: tokens.location,
+      providerUserId: tokens.providerUserId ?? tokens.cardholderAccountId,
       cardholderAccountId: tokens.cardholderAccountId,
       accountAddress: tokens.accountAddress,
       keyringId: tokens.keyringId,
@@ -765,6 +781,34 @@ export class ImmersveProvider implements ICardProvider {
       await this.service.post(`/api/cards/${cardId}/unfreeze`, {}, tokens);
     } catch (error) {
       throw mapApiError(error, 'unfreezeCard');
+    }
+  }
+
+  async setCardPin(
+    cardId: string,
+    newPin: string,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    try {
+      await this.service.request(`/api/cards/${cardId}/set-pin`, {
+        method: 'POST',
+        body: { newPin },
+        tokenSet: tokens,
+        baseURL: this.secureApiBaseUrl,
+      });
+    } catch (error) {
+      if (!(error instanceof CardApiError && error.statusCode === 401)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('setCardPin', {
+            httpStatus:
+              error instanceof CardApiError ? error.statusCode : undefined,
+            errorCode:
+              error instanceof CardApiError ? error.errorCode : undefined,
+          }),
+        );
+      }
+      throw mapApiError(error, 'setCardPin');
     }
   }
 

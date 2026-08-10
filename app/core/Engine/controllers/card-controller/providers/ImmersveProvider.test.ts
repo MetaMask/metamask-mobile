@@ -34,6 +34,7 @@ const mockReadErc20AllowanceAndBalance =
 const CONFIG: ImmersveProviderConfig = {
   apiKey: 'test-key',
   baseUrl: 'https://api.test.immersve.com',
+  secureBaseUrl: 'https://test-sec.immersve.com',
   clientApplicationId: 'client-app-1',
   appUrl: 'https://app.immersve.com',
 };
@@ -69,6 +70,7 @@ function createProvider(
     get: jest.Mock;
     post: jest.Mock;
     patch: jest.Mock;
+    request: jest.Mock;
   };
   const provider = new ImmersveProvider({
     service,
@@ -286,6 +288,7 @@ describe('ImmersveProvider', () => {
       });
       expect(result.done).toBe(true);
       expect(result.tokenSet?.accessToken).toBe(accessJwt);
+      expect(result.tokenSet?.providerUserId).toBe('cardholder-1');
       expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
       expect(result.tokenSet?.accountAddress).toBe('0xabc');
       expect(result.tokenSet?.location).toBe('international');
@@ -366,6 +369,7 @@ describe('ImmersveProvider', () => {
         { origin: 'https://app.immersve.com' },
       );
       expect(refreshed.accessToken).toBe(accessJwt);
+      expect(refreshed.providerUserId).toBe('cardholder-1');
       expect(refreshed.cardholderAccountId).toBe('cardholder-1');
       expect(refreshed.accountAddress).toBe('0xabc');
       expect(refreshed.keyringId).toBe(TOKENS.keyringId);
@@ -840,6 +844,7 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.supportsSensitiveDetailsView).toBe(true);
       expect(provider.capabilities.supportsFundingLimits).toBe(false);
       expect(provider.capabilities.supportsPinView).toBe(false);
+      expect(provider.capabilities.supportsPinSet).toBe(true);
       expect(provider.capabilities.supportsTravel).toBe(false);
     });
   });
@@ -1323,6 +1328,61 @@ describe('ImmersveProvider', () => {
       await expect(
         provider.getCardSensitiveDetails(TOKENS),
       ).rejects.toMatchObject({ code: CardProviderErrorCode.NoCard });
+    });
+  });
+
+  describe('setCardPin', () => {
+    it('posts to the secure host set-pin endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.request.mockResolvedValue({});
+
+      await provider.setCardPin('card-1', '1337', TOKENS);
+
+      expect(service.request).toHaveBeenCalledWith(
+        '/api/cards/card-1/set-pin',
+        expect.objectContaining({
+          method: 'POST',
+          body: { newPin: '1337' },
+          tokenSet: TOKENS,
+          baseURL: 'https://test-sec.immersve.com',
+        }),
+      );
+    });
+
+    it('prefers feature-flag secureApiBaseUrl over config', async () => {
+      const { provider, service } = createProvider({
+        ...PROGRAM_CONFIG,
+        secureApiBaseUrl: 'https://ff-sec.example.com',
+      });
+      service.request.mockResolvedValue({});
+
+      await provider.setCardPin('card-1', '2468', TOKENS);
+
+      expect(service.request).toHaveBeenCalledWith(
+        '/api/cards/card-1/set-pin',
+        expect.objectContaining({
+          baseURL: 'https://ff-sec.example.com',
+        }),
+      );
+    });
+
+    it('maps INVALID_PIN_FORMAT to Forbidden with errorCode', async () => {
+      const { provider, service } = createProvider();
+      service.request.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/cards/card-1/set-pin',
+          JSON.stringify({ errorCode: 'INVALID_PIN_FORMAT' }),
+        ),
+      );
+
+      await expect(
+        provider.setCardPin('card-1', '1111', TOKENS),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        errorCode: 'INVALID_PIN_FORMAT',
+      });
+      expect(Logger.error).toHaveBeenCalled();
     });
   });
 });
