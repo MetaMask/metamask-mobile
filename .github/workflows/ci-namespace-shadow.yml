@@ -39,7 +39,7 @@ on:
       - "**/*.md"
       - ".github/CODEOWNERS"
   push:
-    branches: [main]
+    branches: [main, 'release/*']
   workflow_dispatch:
 
 concurrency:
