@@ -1747,9 +1747,10 @@ describe('useTransactionCustomAmount', () => {
       },
     };
 
-    it('uses withdrawableFiatRaw as balance when payment override is MoneyAccount', async () => {
+    it('uses withdrawableMusd (× USD rate) as balance when payment override is MoneyAccount', async () => {
+      useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
-        withdrawableFiatRaw: '750.50',
+        withdrawableMusd: new BigNumber(750.5),
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({
@@ -1769,10 +1770,26 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('750.50');
     });
 
-    it('returns 0 when payment override is MoneyAccount but withdrawableFiatRaw is undefined', async () => {
+    it('returns 0 when payment override is MoneyAccount but withdrawableMusd is undefined', async () => {
       useMoneyAccountBalanceMock.mockReturnValue({
-        withdrawableFiatRaw: undefined,
+        withdrawableMusd: undefined,
       } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.simpleSend,
+          id: transactionIdMock,
+          chainId: '0x1' as Hex,
+          txParams: { from: '0xabc' },
+        } as unknown as Partial<TransactionMeta>,
+        stateOverrides: moneyAccountStateOverrides,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('0');
     });
 
     const addMusdTransactionMeta = {
