@@ -42,6 +42,7 @@ export interface PredictMarketDataServiceGetEventsAction {
     venueId: PredictVenueId,
     params: EventListParams,
     cursor?: string,
+    options?: PredictReadOptions,
   ) => Promise<GetEventsResult>;
 }
 
@@ -78,6 +79,7 @@ const RETRYABLE_CODES = new Set([
   PredictErrorCode.VENUE_UNAVAILABLE,
 ]);
 
+/** Returns whether a Predict error is safe to retry. */
 export const isRetryablePredictError = (error: unknown): boolean =>
   error instanceof PredictError && RETRYABLE_CODES.has(error.code);
 
@@ -91,6 +93,7 @@ export interface PredictMarketDataServiceOptions {
   >;
 }
 
+/** Owns cached, retryable public market-data reads for one Venue. */
 export class PredictMarketDataService extends BaseDataService<
   typeof PREDICT_MARKET_DATA_SERVICE_NAME,
   PredictMarketDataServiceMessenger
@@ -131,7 +134,7 @@ export class PredictMarketDataService extends BaseDataService<
     );
   }
 
-  getVenueStatus(
+  async getVenueStatus(
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<GetVenueStatusResult> {
@@ -147,10 +150,11 @@ export class PredictMarketDataService extends BaseDataService<
     });
   }
 
-  getEvents(
+  async getEvents(
     venueId: PredictVenueId,
     params: EventListParams,
     cursor?: string,
+    options?: PredictReadOptions,
   ): Promise<GetEventsResult> {
     this.#assertVenue(venueId);
     const descriptor = marketDataQueries.getEvents(venueId, params);
@@ -161,7 +165,7 @@ export class PredictMarketDataService extends BaseDataService<
         queryFn: ({ pageParam, signal }) =>
           this.#marketData.fetchEvents(
             { ...params, cursor: pageParam as string | undefined },
-            { signal },
+            { signal: options?.signal ?? signal },
           ) as Promise<Json & GetEventsResult>,
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       },
@@ -169,7 +173,7 @@ export class PredictMarketDataService extends BaseDataService<
     );
   }
 
-  getEvent(
+  async getEvent(
     venueId: PredictVenueId,
     eventId: PredictEntityId,
     options?: PredictReadOptions,

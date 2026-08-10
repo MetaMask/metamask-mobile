@@ -15,6 +15,7 @@ export const MARKET_DATA_EVENT_STALE_TIME = 60_000;
 export type EventListParams = Omit<FetchEventsParams, 'cursor'>;
 
 export interface MarketDataQueries {
+  /** Builds the Venue Status query descriptor. */
   getVenueStatus(
     venueId: PredictVenueId,
   ): PredictQueryDescriptor<

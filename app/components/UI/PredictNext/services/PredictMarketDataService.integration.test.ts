@@ -132,18 +132,19 @@ describe('PredictNext public market data', () => {
     harness.destroy();
   });
 
-  it('rejects unsupported Venues without an HTTP attempt', () => {
+  it('rejects unsupported Venues without an HTTP attempt', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: status,
     }));
 
-    const act = () =>
-      harness.messenger.call(
-        'PredictMarketDataService:getVenueStatus',
-        'other' as typeof KALSHI_VENUE_ID,
-      );
+    const result = harness.messenger.call(
+      'PredictMarketDataService:getVenueStatus',
+      'other' as typeof KALSHI_VENUE_ID,
+    );
 
-    expect(act).toThrow('This prediction venue is not supported.');
+    await expect(result).rejects.toThrow(
+      'This prediction venue is not supported.',
+    );
     expect(harness.fetchMock).not.toHaveBeenCalled();
     harness.destroy();
   });

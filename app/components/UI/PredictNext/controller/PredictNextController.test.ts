@@ -1,4 +1,5 @@
 import { Messenger } from '@metamask/messenger';
+import Logger from '../../../../util/Logger';
 import type {
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents,
@@ -8,6 +9,8 @@ import {
   PredictNextController,
   type PredictNextControllerMessenger,
 } from './PredictNextController';
+
+jest.mock('../../../../util/Logger');
 
 const createMessenger = (): PredictNextControllerMessenger =>
   new Messenger<
@@ -23,6 +26,10 @@ const status: PredictVenueStatus = {
 };
 
 describe('PredictNextController', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('registers service actions once across repeated initialization', async () => {
     const messenger = createMessenger();
     const fetchMock = jest.fn().mockResolvedValue({
@@ -47,7 +54,7 @@ describe('PredictNextController', () => {
     controller.destroy();
   });
 
-  it('leaves service actions unavailable for missing configuration', () => {
+  it('logs and leaves service actions unavailable for missing configuration', () => {
     const messenger = createMessenger();
     const controller = new PredictNextController({
       messenger,
@@ -56,6 +63,27 @@ describe('PredictNextController', () => {
 
     controller.initialize();
 
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'PredictNext configuration is missing.',
+      }),
+    );
+    expect(() =>
+      messenger.call('PredictMarketDataService:getVenueStatus', status.venueId),
+    ).toThrow();
+  });
+
+  it('logs malformed configuration without registering service actions', () => {
+    const messenger = createMessenger();
+    const controller = new PredictNextController({
+      messenger,
+      baseUrl: 'not a URL',
+      clientVersion: '1.0.0',
+    });
+
+    controller.initialize();
+
+    expect(Logger.error).toHaveBeenCalledWith(expect.any(Error));
     expect(() =>
       messenger.call('PredictMarketDataService:getVenueStatus', status.venueId),
     ).toThrow();

@@ -6,6 +6,7 @@ import {
 } from '../queries/marketDataQueries';
 import type { PredictVenueId } from '../types';
 
+/** Reads paginated Events for a Venue. */
 export const useEventList = (
   venueId: PredictVenueId,
   params: EventListParams,

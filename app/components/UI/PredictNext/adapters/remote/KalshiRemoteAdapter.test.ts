@@ -145,6 +145,14 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
+  it.each([500, 502, 504])('maps HTTP %s to NETWORK_ERROR', async (status) => {
+    client.fetchEvents.mockRejectedValue(new PredictHttpError(status));
+
+    await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.NETWORK_ERROR }),
+    );
+  });
+
   it('maps other transport failures to INVALID_RESPONSE', async () => {
     client.fetchEvents.mockRejectedValue(new Error('network detail'));
 

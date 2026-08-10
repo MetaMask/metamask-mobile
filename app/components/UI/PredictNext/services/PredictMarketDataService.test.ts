@@ -39,14 +39,30 @@ describe('PredictMarketDataService', () => {
     return service;
   };
 
-  it('rejects unsupported venues before invoking the adapter', () => {
+  it('rejects unsupported venues before invoking the adapter', async () => {
     const marketData = createMarketData();
     const service = buildService(marketData);
 
-    const act = () => service.getVenueStatus('other' as PredictVenueId);
+    const result = service.getVenueStatus('other' as PredictVenueId);
 
-    expect(act).toThrow('This prediction venue is not supported.');
+    await expect(result).rejects.toThrow(
+      'This prediction venue is not supported.',
+    );
     expect(marketData.fetchVenueStatus).not.toHaveBeenCalled();
+  });
+
+  it('forwards Event list cancellation to the adapter', async () => {
+    const marketData = createMarketData();
+    marketData.fetchEvents.mockResolvedValue({ items: [] });
+    const service = buildService(marketData);
+    const signal = new AbortController().signal;
+
+    await service.getEvents(KALSHI_VENUE_ID, {}, undefined, { signal });
+
+    expect(marketData.fetchEvents).toHaveBeenCalledWith(
+      { cursor: undefined },
+      { signal },
+    );
   });
 
   it('retries transient errors twice after the initial attempt', async () => {

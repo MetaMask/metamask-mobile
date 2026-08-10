@@ -1,5 +1,6 @@
 import type { CreateServicePolicyOptions } from '@metamask/controller-utils';
 import { Messenger } from '@metamask/messenger';
+import Logger from '../../../../util/Logger';
 import { KalshiRemoteAdapter } from '../adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../adapters/remote/PredictApiReadClient';
 import {
@@ -29,6 +30,7 @@ export interface PredictNextControllerOptions {
   >;
 }
 
+/** Composes and owns the PredictNext service graph. */
 export class PredictNextController {
   readonly #options: PredictNextControllerOptions;
   #service?: PredictMarketDataService;
@@ -39,7 +41,11 @@ export class PredictNextController {
   }
 
   initialize(): void {
-    if (this.#service || this.#destroyed || !this.#options.baseUrl) {
+    if (this.#service || this.#destroyed) {
+      return;
+    }
+    if (!this.#options.baseUrl) {
+      Logger.error(new Error('PredictNext configuration is missing.'));
       return;
     }
 
@@ -60,8 +66,12 @@ export class PredictNextController {
         venueId: adapter.venueId,
         policyOptions: this.#options.policyOptions,
       });
-    } catch {
-      // Missing or malformed configuration disables only PredictNext.
+    } catch (error) {
+      Logger.error(
+        error instanceof Error
+          ? error
+          : new Error('PredictNext initialization failed.'),
+      );
     }
   }
 

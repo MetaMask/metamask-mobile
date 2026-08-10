@@ -19,6 +19,10 @@ const mapError = (error: unknown): never => {
     throw error;
   }
 
+  if (error instanceof TypeError) {
+    throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
+  }
+
   if (error instanceof PredictHttpError) {
     if (error.status === 429) {
       throw PredictError.from(PredictErrorCode.RATE_LIMITED);
@@ -26,11 +30,9 @@ const mapError = (error: unknown): never => {
     if (error.status === 503) {
       throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE);
     }
-    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
-  }
-
-  if (error instanceof TypeError) {
-    throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
+    if (error.status >= 500) {
+      throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
+    }
   }
 
   throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
