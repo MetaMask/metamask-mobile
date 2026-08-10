@@ -274,7 +274,7 @@ describe('JsonReportGenerator', () => {
 
       expect(profilingFile).toBeDefined();
       expect(profilingFile).not.toMatch(/[|*]/u);
-      expect(profilingFile).toContain('13__14_');
+      expect(profilingFile).toContain('13___14__');
     });
 
     it('creates the app-profiling directory when missing', () => {
