@@ -80,7 +80,7 @@ describe('KalshiRemoteAdapter', () => {
     });
 
     await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.UNKNOWN }),
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
 
@@ -96,7 +96,7 @@ describe('KalshiRemoteAdapter', () => {
     client.fetchEvent.mockResolvedValue(createEvent({ id: 'event-2' }));
 
     await expect(adapter.marketData.fetchEvent(eventId)).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.UNKNOWN }),
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
 
@@ -120,7 +120,7 @@ describe('KalshiRemoteAdapter', () => {
     });
 
     await expect(adapter.marketData.fetchVenueStatus()).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.UNKNOWN }),
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
 
@@ -145,11 +145,11 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it('maps other transport failures to UNKNOWN', async () => {
+  it('maps other transport failures to INVALID_RESPONSE', async () => {
     client.fetchEvents.mockRejectedValue(new Error('network detail'));
 
     await expect(adapter.marketData.fetchEvents({})).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.UNKNOWN }),
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });
 

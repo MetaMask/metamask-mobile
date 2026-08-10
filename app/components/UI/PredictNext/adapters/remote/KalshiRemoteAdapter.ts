@@ -26,9 +26,14 @@ const mapError = (error: unknown): never => {
     if (error.status === 503) {
       throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE);
     }
+    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
   }
 
-  throw PredictError.from(PredictErrorCode.UNKNOWN);
+  if (error instanceof TypeError) {
+    throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
+  }
+
+  throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
 };
 
 export class KalshiRemoteAdapter {
@@ -42,7 +47,7 @@ export class KalshiRemoteAdapter {
           const value = await client.fetchVenueStatus(this.venueId, options);
           const result = parsePredictVenueStatus(value);
           if (result.venueId !== this.venueId) {
-            throw PredictError.from(PredictErrorCode.UNKNOWN);
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;
         } catch (error) {
@@ -54,7 +59,7 @@ export class KalshiRemoteAdapter {
           const value = await client.fetchEvents(this.venueId, params, options);
           const result = parsePredictEventsPage(value);
           if (result.items.some((event) => event.venueId !== this.venueId)) {
-            throw PredictError.from(PredictErrorCode.UNKNOWN);
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;
         } catch (error) {
@@ -66,7 +71,7 @@ export class KalshiRemoteAdapter {
           const value = await client.fetchEvent(this.venueId, eventId, options);
           const result = parsePredictEvent(value);
           if (result.venueId !== this.venueId || result.id !== eventId) {
-            throw PredictError.from(PredictErrorCode.UNKNOWN);
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;
         } catch (error) {
