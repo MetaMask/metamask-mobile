@@ -5,6 +5,7 @@ import {
   BoxFlexDirection,
   Button,
   ButtonBaseSize,
+  ButtonVariant,
   Icon,
   IconColor,
   IconName,
@@ -105,15 +106,15 @@ const PredictBuyErrorBanner = ({
         </Text>
         {showAction && (
           <Button
+            variant={ButtonVariant.Primary}
             size={ButtonBaseSize.Sm}
             onPress={onActionPress}
+            twClassName="self-start"
             testID={
               actionTestID ?? `${testID ?? 'predict-buy-error-banner'}-action`
             }
           >
-            <Text variant={TextVariant.BodySm} twClassName="font-medium">
-              {actionLabel}
-            </Text>
+            {actionLabel}
           </Button>
         )}
       </Box>

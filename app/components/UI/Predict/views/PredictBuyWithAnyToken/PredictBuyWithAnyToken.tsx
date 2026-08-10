@@ -305,12 +305,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       paymentTokenSymbol: activeOrder?.paymentTokenSymbol,
     });
     handleAddFunds();
+    onClose?.();
   }, [
     analyticsProperties,
     preview?.sharePrice,
     activeOrder?.paymentTokenAddress,
     activeOrder?.paymentTokenSymbol,
     handleAddFunds,
+    onClose,
   ]);
 
   const paymentFailurePromptedRef = useRef(false);
