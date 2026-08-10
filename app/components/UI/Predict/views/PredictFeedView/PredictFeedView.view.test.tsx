@@ -147,7 +147,7 @@ describe('PredictFeedView (component view)', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the offline state and loads markets after Retry', async () => {
+  it('shows the offline state and loads markets after Try again', async () => {
     const listMarketsSpy = jest.spyOn(
       Engine.context.PredictController,
       'listMarkets',
@@ -175,7 +175,7 @@ describe('PredictFeedView (component view)', () => {
       nextCursor: null,
     });
 
-    fireEvent.press(await findByText('Retry'));
+    fireEvent.press(await findByText('Try again'));
 
     await waitFor(() => {
       expect(listMarketsSpy.mock.calls.length).toBeGreaterThan(
