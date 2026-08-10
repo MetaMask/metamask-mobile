@@ -64,9 +64,18 @@ permissions:
   statuses: write
 
 concurrency:
-  # Manual runs are isolated by ref and variant so they do not block the
-  # scheduled cadence.
-  group: performance-e2e-trigger-${{ github.event_name == 'schedule' && github.event.schedule || github.ref }}-${{ github.event_name == 'schedule' && 'scheduled' || inputs.build_variant }}
+  # Each manual dispatch gets its own group so multiple manual runs can execute
+  # concurrently. Scheduled runs remain grouped by schedule/ref.
+  group: >-
+    ${{
+      github.event_name == 'workflow_dispatch' &&
+      format('performance-e2e-manual-{0}', github.run_id) ||
+      format(
+        'performance-e2e-trigger-{0}-{1}',
+        github.ref,
+        github.event.schedule || 'scheduled'
+      )
+    }}
   cancel-in-progress: false
 
 jobs:
