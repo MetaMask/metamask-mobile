@@ -1,8 +1,10 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import AndroidWebViewCdpHelpers, {
-  isAndroidWebViewCdpScrollEnabled,
+  isAndroidWebViewCdpEnabled,
 } from './AndroidWebViewCdpHelpers';
+import Gestures from './Gestures';
+import Matchers from './Matchers';
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
 import PlaywrightContextHelpers from './PlaywrightContextHelpers';
 import { getDriver } from './PlaywrightUtilities';
@@ -195,7 +197,7 @@ export async function scrollAndroidWebIdIntoView(
 
   // Prefer CDP DOM scroll when pageUrl is known — avoids slow UiScrollable sweeps.
   // Never uses Chromedriver; failures fall through to native scroll.
-  if (options.pageUrl && isAndroidWebViewCdpScrollEnabled()) {
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
     const cdpScrolled =
       await AndroidWebViewCdpHelpers.scrollElementByIdIntoView(webId, {
         pageUrl: options.pageUrl,
@@ -241,6 +243,15 @@ export async function tapAndroidWebId(
 ): Promise<void> {
   logger.debug(options.description ?? `Android native WebView tap: ${webId}`);
 
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpTapped = await AndroidWebViewCdpHelpers.tapElementById(webId, {
+      pageUrl: options.pageUrl,
+    });
+    if (cdpTapped) {
+      return;
+    }
+  }
+
   // Re-find until enabled so we don't hold a stale disabled node across React re-renders.
   let elem!: PlaywrightElement;
   await Utilities.waitUntil(
@@ -275,6 +286,18 @@ export async function fillAndroidWebId(
   value: string,
   options: AndroidWebViewFillOptions = {},
 ): Promise<void> {
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpFilled = await AndroidWebViewCdpHelpers.fillElementById(
+      webId,
+      value,
+      { pageUrl: options.pageUrl },
+    );
+    if (cdpFilled) {
+      await PlaywrightGestures.hideKeyboard().catch(() => undefined);
+      return;
+    }
+  }
+
   const elem = await scrollAndroidWebIdIntoView(webId, options);
   await elem.click();
   await elem.clear().catch((error) => {
@@ -291,6 +314,49 @@ export async function readAndroidWebIdText(
   webId: string,
   options: AndroidWebViewReadOptions = {},
 ): Promise<string> {
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpText = await AndroidWebViewCdpHelpers.readElementTextById(webId, {
+      pageUrl: options.pageUrl,
+    });
+    if (cdpText !== undefined) {
+      return cdpText;
+    }
+  }
+
   const elem = await scrollAndroidWebIdIntoView(webId, options);
   return elem.getText();
+}
+
+export async function selectAndroidWebId(
+  webId: string,
+  optionText: string,
+  options: AndroidWebViewTapOptions = {},
+): Promise<void> {
+  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+    const cdpSelected = await AndroidWebViewCdpHelpers.selectOptionById(
+      webId,
+      optionText,
+      { pageUrl: options.pageUrl },
+    );
+    if (cdpSelected) {
+      return;
+    }
+  }
+
+  await tapAndroidWebId(webId, {
+    ...options,
+    timeout: options.timeout ?? 60_000,
+    description: options.description ?? `WebView select open "${webId}"`,
+  });
+  await Gestures.waitAndTap(Matchers.getElementByText(optionText), {
+    elemDescription: `WebView select option "${optionText}"`,
+    timeout: 30_000,
+  });
+}
+
+export async function blurAndroidWebView(pageUrl: string): Promise<void> {
+  if (pageUrl && isAndroidWebViewCdpEnabled()) {
+    await AndroidWebViewCdpHelpers.blurActiveElement(pageUrl);
+  }
+  await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }

@@ -36,6 +36,10 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     ({ 'confirm.title.money_account_add_money': 'Add funds' })[key] ?? key,
 }));
 
+jest.mock('../../../../../UI/Ramp/hooks/useEnsureCompatibleProvider', () => ({
+  useEnsureCompatibleProvider: jest.fn(),
+}));
+
 describe('MoneyAccountDepositInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
