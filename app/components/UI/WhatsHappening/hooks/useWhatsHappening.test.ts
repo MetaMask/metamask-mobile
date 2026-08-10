@@ -1,9 +1,12 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import Logger from '../../../../util/Logger';
 import {
   isWhatsHappeningSectionVisible,
   useWhatsHappening,
+  WHATS_HAPPENING_FETCH_FAILED,
 } from './useWhatsHappening';
+
 const mockFetchMarketOverview = jest.fn();
 const mockFetchFrontPageItem = jest.fn();
 
@@ -21,11 +24,19 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.Mock;
+const mockLoggerError = Logger.error as jest.Mock;
 
 /**
  * Configures the feature-flag selector the hook reads. The deep-linked
@@ -120,16 +131,16 @@ describe('useWhatsHappening', () => {
     expect(result.current.items).toHaveLength(0);
   });
 
-  it('respects the limit parameter', async () => {
+  it('returns all trends from the API without client-side slicing', async () => {
     mockFetchMarketOverview.mockResolvedValue({
       ...mockOverview,
       trends: [mockTrend, mockTrend, mockTrend],
     });
-    const { result } = renderHook(() => useWhatsHappening(2));
+    const { result } = renderHook(() => useWhatsHappening());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.items).toHaveLength(2);
+    expect(result.current.items).toHaveLength(3);
   });
 
   it('sets error and clears items on fetch failure', async () => {
@@ -140,15 +151,17 @@ describe('useWhatsHappening', () => {
 
     expect(result.current.items).toHaveLength(0);
     expect(result.current.error).toBe('Network error');
+    expect(mockLoggerError).toHaveBeenCalled();
   });
 
-  it('sets fallback error message for non-Error rejections', async () => {
+  it('sets fallback error flag for non-Error rejections', async () => {
     mockFetchMarketOverview.mockRejectedValue('unknown');
     const { result } = renderHook(() => useWhatsHappening());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.error).toBe('Failed to fetch trending items');
+    expect(result.current.error).toBe(WHATS_HAPPENING_FETCH_FAILED);
+    expect(mockLoggerError).toHaveBeenCalled();
   });
 
   it('does not start loading and returns empty state when disabled', async () => {
@@ -174,6 +187,28 @@ describe('useWhatsHappening', () => {
     await result.current.refresh();
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
+  });
+
+  it('does not update state after unmount during fetch', async () => {
+    let resolveOverview: ((value: typeof mockOverview) => void) | undefined;
+    mockFetchMarketOverview.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveOverview = resolve;
+        }),
+    );
+
+    const { result, unmount } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(true));
+
+    unmount();
+
+    await act(async () => {
+      resolveOverview?.(mockOverview);
+      await Promise.resolve();
+    });
+
+    expect(mockLoggerError).not.toHaveBeenCalled();
   });
 
   it('returns items and no error when an asset is missing sourceAssetId and name', async () => {
@@ -219,9 +254,7 @@ describe('useWhatsHappening', () => {
   });
 
   it('does not fetch when enabled option is false', async () => {
-    const { result } = renderHook(() =>
-      useWhatsHappening(5, { enabled: false }),
-    );
+    const { result } = renderHook(() => useWhatsHappening({ enabled: false }));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -256,7 +289,7 @@ describe('useWhatsHappening', () => {
       mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
 
       const { result } = renderHook(() =>
-        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
+        useWhatsHappening({ outdatedItemId: mockFrontPage.id }),
       );
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -278,7 +311,7 @@ describe('useWhatsHappening', () => {
       });
 
       const { result } = renderHook(() =>
-        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
+        useWhatsHappening({ outdatedItemId: mockFrontPage.id }),
       );
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -307,7 +340,7 @@ describe('useWhatsHappening', () => {
       });
 
       const { result } = renderHook(() =>
-        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
+        useWhatsHappening({ outdatedItemId: mockFrontPage.id }),
       );
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -315,7 +348,7 @@ describe('useWhatsHappening', () => {
       expect(result.current.items[0].isOutdated).toBe(false);
     });
 
-    it('keeps the total capped at the limit with the outdated item first', async () => {
+    it('keeps all trends when prepending an outdated item', async () => {
       mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
       mockFetchMarketOverview.mockResolvedValue({
         ...mockOverview,
@@ -323,11 +356,11 @@ describe('useWhatsHappening', () => {
       });
 
       const { result } = renderHook(() =>
-        useWhatsHappening(2, { outdatedItemId: mockFrontPage.id }),
+        useWhatsHappening({ outdatedItemId: mockFrontPage.id }),
       );
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      expect(result.current.items).toHaveLength(2);
+      expect(result.current.items).toHaveLength(3);
       expect(result.current.items[0].isOutdated).toBe(true);
     });
 
@@ -336,7 +369,7 @@ describe('useWhatsHappening', () => {
       mockFetchMarketOverview.mockResolvedValue(null);
 
       const { result } = renderHook(() =>
-        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
+        useWhatsHappening({ outdatedItemId: mockFrontPage.id }),
       );
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -348,7 +381,7 @@ describe('useWhatsHappening', () => {
       mockFetchFrontPageItem.mockRejectedValue(new Error('boom'));
 
       const { result } = renderHook(() =>
-        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
+        useWhatsHappening({ outdatedItemId: mockFrontPage.id }),
       );
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -361,7 +394,7 @@ describe('useWhatsHappening', () => {
       mockFetchFrontPageItem.mockResolvedValue(null);
 
       const { result } = renderHook(() =>
-        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
+        useWhatsHappening({ outdatedItemId: mockFrontPage.id }),
       );
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 

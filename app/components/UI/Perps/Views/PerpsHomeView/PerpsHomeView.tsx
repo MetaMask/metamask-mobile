@@ -95,10 +95,7 @@ import {
 } from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
-import {
-  WhatsHappeningSource,
-  MAX_ITEMS_DISPLAYED,
-} from '../../../../UI/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
   useWhatsHappening,
   isWhatsHappeningSectionVisible,
@@ -211,7 +208,7 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
-  const whatsHappeningFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const whatsHappeningFeed = useWhatsHappening();
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
     isWhatsHappeningSectionVisible({
