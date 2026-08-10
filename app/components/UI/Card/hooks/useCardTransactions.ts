@@ -59,8 +59,8 @@ export function useCardTransactions(
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const providerId = useSelector(selectCardActiveProviderId);
   const providerUserId = useSelector(selectCardProviderUserId);
-  // Token sets created before provider user IDs were introduced use an
-  // isolated legacy scope. Every new Baanx/Immersve login stores a stable ID.
+  // Existing production Card auth tokens predate providerUserId. Keep those
+  // users isolated by provider until their next login stores the stable ID.
   const transactionCacheUserId = providerUserId ?? 'legacy';
 
   useEffect(() => {

@@ -201,6 +201,32 @@ function isBaanxCursorPayload(value: unknown): value is BaanxCursorPayload {
   );
 }
 
+/**
+ * Detects Baanx returning page 0 for an out-of-range page request.
+ *
+ * If new transactions arrive between requests, a wrapped page contains those
+ * unseen rows followed by a prefix of the original page 0. A real next page
+ * instead contains a suffix of the original page 0 followed by older unseen
+ * rows. Comparing this ordering avoids treating a shifted real page as the end.
+ */
+function isWrappedTransactionPage(
+  items: BaanxTransactionRaw[],
+  pageZeroIds: string[],
+): boolean {
+  const pageZeroIdSet = new Set(pageZeroIds);
+  const firstKnownIndex = items.findIndex((item) => pageZeroIdSet.has(item.id));
+  if (firstKnownIndex === -1) {
+    return false;
+  }
+
+  const knownSuffix = items.slice(firstKnownIndex);
+  if (knownSuffix.some((item) => !pageZeroIdSet.has(item.id))) {
+    return false;
+  }
+
+  return knownSuffix.every((item, index) => item.id === pageZeroIds[index]);
+}
+
 // Earliest block where the FoxConnect spender contracts were deployed on Linea.
 // Used as fromBlock for Approval event log queries to avoid scanning from genesis.
 const SPENDERS_DEPLOYED_BLOCK = 2715910;
@@ -669,9 +695,9 @@ export class BaanxProvider implements ICardProvider {
    * Baanx paginates with a 0-indexed `page` query param and a server-fixed
    * page size, wrapped here into an opaque cursor. Requesting a page past the
    * end returns page 0 again rather than an empty list, so the cursor also
-   * carries page 0's row ids. If a later page overlaps those ids, we've
-   * wrapped and the list is exhausted, even if a new transaction changed the
-   * first row during pagination.
+   * carries page 0's ordered row ids. Their position on later pages
+   * distinguishes a wrapped page 0 from a real page shifted by newly-arrived
+   * transactions.
    *
    * `params.limit` is accepted for interface compatibility but ignored: the
    * page size is fixed server-side.
@@ -721,8 +747,7 @@ export class BaanxProvider implements ICardProvider {
       if (
         page > 0 &&
         pageZeroIds.length > 0 &&
-        items.filter((item) => pageZeroIds.includes(item.id)).length >=
-          Math.ceil(Math.min(items.length, pageZeroIds.length) / 2)
+        isWrappedTransactionPage(items, pageZeroIds)
       ) {
         return { items: [] };
       }

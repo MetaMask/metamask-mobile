@@ -1395,6 +1395,35 @@ describe('BaanxProvider — listTransactions', () => {
     expect(secondPage.nextCursor).toBeDefined();
   });
 
+  it('does not treat a half-page shift from new transactions as wraparound', async () => {
+    const firstPageRows = Array.from({ length: 20 }, (_, i) =>
+      buildRawTransaction({ id: `tx-${i}` }),
+    );
+    const secondPageRows = [
+      ...firstPageRows.slice(10),
+      ...Array.from({ length: 10 }, (_, i) =>
+        buildRawTransaction({ id: `older-tx-${i}` }),
+      ),
+    ];
+    const get = jest
+      .fn()
+      .mockResolvedValueOnce(firstPageRows)
+      .mockResolvedValueOnce(secondPageRows);
+    const provider = buildProvider(get);
+
+    const firstPage = await provider.listTransactions({}, tokens);
+    const secondPage = await provider.listTransactions(
+      { cursor: firstPage.nextCursor },
+      tokens,
+    );
+
+    expect(secondPage.items).toHaveLength(20);
+    expect(secondPage.items.map(({ id }) => id)).toStrictEqual(
+      secondPageRows.map(({ id }) => id),
+    );
+    expect(secondPage.nextCursor).toBeDefined();
+  });
+
   it('rejects a cursor issued by a different provider', async () => {
     const get = jest.fn().mockResolvedValue([]);
     const foreignCursor = encodeCardCursor(CardProviderIds.Immersve, {
