@@ -5950,6 +5950,46 @@ describe('PredictController', () => {
       });
     });
 
+    it('preserves payment-stage error after successful re-init', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Deposit reverted',
+          errorStage: 'payment',
+        });
+
+        const result = await controller.initPayWithAnyToken();
+
+        expect(result.success).toBe(true);
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit reverted',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+      });
+    });
+
+    it('clears non-payment error after successful re-init', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Order placement failed',
+          errorStage: 'order',
+        });
+
+        const result = await controller.initPayWithAnyToken();
+
+        expect(result.success).toBe(true);
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage,
+        ).toBeUndefined();
+      });
+    });
+
     it('uses predict deposit transaction when setup transactions are present', async () => {
       const setupTransaction = {
         params: {

@@ -3003,8 +3003,13 @@ export class PredictController extends BaseController<
       });
       submittedBatchId = batchId;
 
+      // Keep payment-stage errors sticky so reopen still shows the Add funds
+      // banner after a depositAndOrder failure + successful re-init (PRED-1026).
       this.update((state) => {
-        if (state.activeBuyOrders[address]) {
+        if (
+          state.activeBuyOrders[address] &&
+          state.activeBuyOrders[address].errorStage !== 'payment'
+        ) {
           delete state.activeBuyOrders[address].error;
           delete state.activeBuyOrders[address].errorStage;
         }

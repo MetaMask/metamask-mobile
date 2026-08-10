@@ -791,6 +791,11 @@ describe('PredictPreviewSheetContext', () => {
       expect(mockToastShowToast).toHaveBeenCalledTimes(1);
       const toastCall = mockToastShowToast.mock.calls[0][0];
       expect(toastCall.closeButtonOptions.label).toBe('Add funds');
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'payment_failure_prompted',
+        }),
+      );
 
       act(() => {
         jest.advanceTimersByTime(3000);

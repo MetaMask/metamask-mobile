@@ -30,7 +30,8 @@ import { useAppThemeFromContext } from '../../../../util/theme';
 import {
   PredictEventValues,
   PredictTradeStatus,
- PredictDismissalMethod } from '../constants/eventNames';
+  PredictDismissalMethod,
+} from '../constants/eventNames';
 import {
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictBottomSheetEnabledFlag,
@@ -392,6 +393,23 @@ export const PredictPreviewSheetProvider: React.FC<
 
     const lastParams = lastBuyParamsRef.current;
     const isPaymentFailure = activeOrder?.errorStage === 'payment';
+    const toastAnalyticsProperties = {
+      marketId: lastParams.market?.id,
+      marketTitle: lastParams.market?.title,
+      marketCategory: lastParams.market?.category,
+      entryPoint: lastParams.entryPoint,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+    };
+
+    if (isPaymentFailure) {
+      Engine.context.PredictController.trackPredictOrderEvent({
+        status: PredictTradeStatus.PAYMENT_FAILURE_PROMPTED,
+        analyticsProperties: toastAnalyticsProperties,
+        paymentTokenAddress: activeOrder?.paymentTokenAddress,
+        paymentTokenSymbol: activeOrder?.paymentTokenSymbol,
+      });
+    }
+
     // Use `closeButtonOptions` (with `ButtonVariants.Link`) rather than
     // `linkButtonOptions` so the Retry / Add funds sits inline on the right of
     // the row (`[icon] [label] [action]`) instead of stacked below the label.
@@ -430,14 +448,7 @@ export const PredictPreviewSheetProvider: React.FC<
           if (isPaymentFailure) {
             Engine.context.PredictController.trackPredictOrderEvent({
               status: PredictTradeStatus.ADD_FUNDS_SUBMITTED,
-              analyticsProperties: {
-                marketId: lastParams.market?.id,
-                marketTitle: lastParams.market?.title,
-                marketCategory: lastParams.market?.category,
-                entryPoint: lastParams.entryPoint,
-                transactionType:
-                  PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
-              },
+              analyticsProperties: toastAnalyticsProperties,
               paymentTokenAddress: activeOrder?.paymentTokenAddress,
               paymentTokenSymbol: activeOrder?.paymentTokenSymbol,
             });
