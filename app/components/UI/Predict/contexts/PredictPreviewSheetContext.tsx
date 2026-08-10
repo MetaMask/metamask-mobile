@@ -55,6 +55,7 @@ import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWi
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
+import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
 import { getBuyOutcomeImage } from '../utils/sports';
@@ -488,6 +489,9 @@ export const PredictPreviewSheetProvider: React.FC<
     if (!isPaymentFailure) {
       clearErrorTimerRef.current = setTimeout(() => {
         clearErrorTimerRef.current = null;
+        Engine.context.PredictController.cancelRetryablePredictBuyAttempt(
+          PREDICT_BUY_CANCELLATION_REASONS.RETRY_PROMPT_EXPIRED,
+        );
         clearOrderError();
       }, 3000);
     }

@@ -12,6 +12,7 @@ import type {
   PredictBuyPreviewParams,
   PredictSellPreviewParams,
 } from '../types/navigation';
+import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import Routes from '../../../../constants/navigation/Routes';
 import { predictBuyPreviewOrderInitiatedRef } from '../views/PredictBuyPreview/PredictBuyPreview';
 
@@ -1100,6 +1101,11 @@ describe('PredictPreviewSheetContext', () => {
       );
       fireEvent.press(screen.getByTestId('dismiss-sheet'));
 
+      // `clearOrderError` is called by the dismiss path; reset so subsequent
+      // assertions only count timer-driven calls.
+      mockClearOrderError.mockClear();
+      mockCancelRetryablePredictBuyAttempt.mockClear();
+
       mockActiveOrder = { state: 'preview', error: 'order/failed' };
       rerender(
         <PredictPreviewSheetProvider>
@@ -1110,15 +1116,20 @@ describe('PredictPreviewSheetContext', () => {
       return { rerender, unmount };
     };
 
-    it('clears the order error after the toast auto-dismisses (~3s)', () => {
+    it('cancels the attempt and clears the error after toast auto-dismiss', () => {
       showRetryToast();
       expect(mockToastShowToast).toHaveBeenCalledTimes(1);
       expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
 
       act(() => {
         jest.advanceTimersByTime(3000);
       });
 
+      expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledTimes(1);
+      expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledWith(
+        PREDICT_BUY_CANCELLATION_REASONS.RETRY_PROMPT_EXPIRED,
+      );
       expect(mockClearOrderError).toHaveBeenCalledTimes(1);
     });
 
@@ -1136,6 +1147,7 @@ describe('PredictPreviewSheetContext', () => {
       });
 
       expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
     });
 
     it('cancels the pending clear timer on provider unmount', () => {
@@ -1148,6 +1160,7 @@ describe('PredictPreviewSheetContext', () => {
       });
 
       expect(mockClearOrderError).not.toHaveBeenCalled();
+      expect(mockCancelRetryablePredictBuyAttempt).not.toHaveBeenCalled();
     });
   });
 
