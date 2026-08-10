@@ -11,7 +11,12 @@ import {
   selectLocalOverrides,
   selectRawRemoteFeatureFlags,
 } from '../selectors/featureFlagController';
-import { FeatureFlagInfo, getFeatureFlagType } from '../util/feature-flags';
+import {
+  FeatureFlagInfo,
+  FeatureFlagType,
+  getFeatureFlagType,
+  isAbTestOptionsArray,
+} from '../util/feature-flags';
 import Engine from '../core/Engine';
 import type { Json } from '@metamask/utils';
 
@@ -81,11 +86,19 @@ export const FeatureFlagOverrideProvider: React.FC<
       const currentValue = featureFlagsWithOverrides?.[key];
       const isOverridden = hasOverride(key);
 
+      // A/B flags resolve to a single group's value, so the effective value no
+      // longer carries the `{ name, value }` shape. Detect them from the raw
+      // group array (still stored in `rawRemoteFeatureFlags`) so the override
+      // screen keeps showing the variant picker.
+      const type = isAbTestOptionsArray(originalValue)
+        ? FeatureFlagType.FeatureFlagAbTest
+        : getFeatureFlagType(currentValue ?? originalValue);
+
       const flagValue = {
         key,
         value: currentValue,
         originalValue,
-        type: getFeatureFlagType(currentValue ?? originalValue),
+        type,
         isOverridden,
       };
       allFlags[key] = flagValue;
