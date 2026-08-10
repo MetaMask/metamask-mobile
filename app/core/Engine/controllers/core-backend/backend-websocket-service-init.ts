@@ -48,10 +48,8 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
         const { backendWebSocketConnection } =
           remoteFeatureFlagState?.remoteFeatureFlags || {};
 
-        // As of @metamask/remote-feature-flag-controller@5, threshold flags
-        // resolve to their value directly (a boolean here) instead of the
-        // legacy `{ name, value }` wrapper. Support both shapes so the service
-        // still connects on v5.
+        // The flag can be a bare boolean or a legacy `{ value }` wrapper.
+        // Treat both shapes as enabled when the resolved value is truthy.
         if (
           typeof backendWebSocketConnection === 'object' &&
           backendWebSocketConnection !== null &&

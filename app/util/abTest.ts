@@ -10,8 +10,7 @@ const getFlagVariantName = (flagValue: unknown): string | undefined => {
     return flagValue;
   }
 
-  // Legacy `{ name, value }` threshold wrapper shape (pre
-  // @metamask/remote-feature-flag-controller@5). Kept as a fallback.
+  // Some flags carry the variant name in a `{ name, value }` wrapper.
   if (
     flagValue &&
     typeof flagValue === 'object' &&
@@ -27,14 +26,12 @@ const getFlagVariantName = (flagValue: unknown): string | undefined => {
 /**
  * Resolves the A/B test variant for a flag.
  *
- * As of @metamask/remote-feature-flag-controller@5, threshold flags return the
- * selected value directly and the selected group name is stored separately in
- * `featureFlagThresholdGroups`. We read the variant name from the flag value
- * first, since the controller merges `localOverrides` into `remoteFeatureFlags`
- * (so a local override can force a variant), and fall back to the threshold
- * group for the normal remote case where the flag value carries no variant name.
+ * Threshold flags expose the selected value directly, with the selected group
+ * name stored separately in `featureFlagThresholdGroups`. Reads the variant name
+ * from the flag value first (so a local override can force a variant), then falls
+ * back to the threshold group when the flag value carries no variant name.
  *
- * @param featureFlags - The resolved remote feature flags (with local overrides merged).
+ * @param featureFlags - The resolved remote feature flags (local overrides already applied).
  * @param flagKey - The A/B test flag key.
  * @param validVariants - The declared variant names for the test.
  * @param thresholdGroups - The `featureFlagThresholdGroups` map from controller state.
