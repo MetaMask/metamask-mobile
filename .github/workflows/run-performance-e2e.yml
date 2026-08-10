@@ -930,7 +930,6 @@ jobs:
     if: >-
       always() && !cancelled() &&
       inputs.enable_testmu_benchmark != false &&
-      inputs.enable_testmu_standard == true &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') &&
