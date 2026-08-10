@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { waitFor } from '@testing-library/react-native';
 import {
   RewardsController,
   getRewardsControllerDefaultState,
@@ -172,6 +173,10 @@ const mockSignBitcoinRewardsMessage =
 const mockSignTronRewardsMessage =
   signTronRewardsMessage as jest.MockedFunction<typeof signTronRewardsMessage>;
 const MockRewardsDataServiceClass = jest.mocked(RewardsDataService);
+
+// Fixed reference instant for test data, so timestamps never depend on the
+// wall clock (Date.now() is mocked, new Date() is not).
+const FIXED_NOW_ISO = '2024-06-01T12:00:00.000Z';
 
 // Test constants - CAIP-10 format addresses
 const CAIP_ACCOUNT_1: CaipAccountId = 'eip155:1:0x123' as CaipAccountId;
@@ -2070,7 +2075,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const olderTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
         const newerTimestamp = new Date(now.getTime() - 1000); // 1 second ago
 
@@ -2138,7 +2143,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const olderTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
         const newerTimestamp = new Date(now.getTime() - 1000); // 1 second ago
 
@@ -2204,11 +2209,11 @@ describe('RewardsController', () => {
             {
               id: 'event-1',
               type: 'SWAP' as const,
-              timestamp: new Date(),
+              timestamp: new Date(FIXED_NOW_ISO),
               value: 50,
               bonus: { bips: 0, bonuses: [] },
               accountAddress: '0x123',
-              updatedAt: new Date(),
+              updatedAt: new Date(FIXED_NOW_ISO),
               payload: null,
             },
           ],
@@ -2262,7 +2267,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const earliestTimestamp = new Date(now.getTime() - 10000); // 10 seconds ago
         const middleTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
         const latestTimestamp = new Date(now.getTime() - 1000); // 1 second ago
@@ -2345,7 +2350,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const eventTimestamp = new Date(now.getTime() - 1000);
         const cachedTimestamp = new Date(now.getTime() - 5000);
 
@@ -2406,7 +2411,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const eventTimestamp = new Date(now.getTime() - 1000); // 1 second ago
         const cachedTimestamp = new Date(now.getTime() - 1500); // 1.5 seconds ago
 
@@ -2467,7 +2472,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const eventTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago (oldest)
         const newerBalanceTimestamp = new Date(now.getTime() - 1000); // 1 second ago
         const newerSeasonStatusTimestamp = new Date(now.getTime() - 2000); // 2 seconds ago
@@ -2527,7 +2532,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const olderTimestamp = new Date(now.getTime() - 5000);
         const newerTimestamp = new Date(now.getTime() - 1000);
 
@@ -2720,12 +2725,18 @@ describe('RewardsController', () => {
             })),
             has_more: oldPointsEvents.has_more,
             cursor: oldPointsEvents.cursor,
-            lastFetched: Date.now() - 10000, // Stale data
+            // Older than the 1 minute cache threshold, so the read is served
+            // from cache and a background refresh is kicked off.
+            lastFetched: Date.now() - 90000,
           };
         });
 
-        // Mock the messenger to return fresh data
-        mockMessenger.call.mockResolvedValue(freshPointsEvents);
+        // Mock the messenger so the background refresh reports a newer
+        // last-updated timestamp and then returns the fresh page.
+        mockMessenger.call.mockImplementation(((action: string) =>
+          action === 'RewardsDataService:getPointsEventsLastUpdated'
+            ? Promise.resolve(new Date('2024-01-01T11:00:00Z'))
+            : Promise.resolve(freshPointsEvents)) as any);
 
         // Act
         const result = await testableController.getPointsEvents(mockRequest);
@@ -2733,8 +2744,15 @@ describe('RewardsController', () => {
         // Assert
         expect(result).toEqual(oldPointsEvents); // Should return stale data immediately
 
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        // Wait for the SWR background refresh to write the fresh page to cache.
+        // The write happens immediately before the swrCallback, so once it lands
+        // the publish decision has already been made.
+        await waitFor(() =>
+          expect(
+            testableController.state.pointsEvents['current:sub-123']
+              .lastFetched,
+          ).toBe(Date.now()),
+        );
 
         // Verify that the pointsEventsUpdated event was NOT emitted
         expect(mockMessenger.publish).not.toHaveBeenCalledWith(
@@ -2764,7 +2782,9 @@ describe('RewardsController', () => {
             results: [],
             has_more: false,
             cursor: null,
-            lastFetched: Date.now() - 10000, // Stale data
+            // Older than the 1 minute cache threshold, so a background refresh
+            // is kicked off.
+            lastFetched: Date.now() - 90000,
           };
         });
 
@@ -2777,8 +2797,13 @@ describe('RewardsController', () => {
         // Assert
         expect(result).toEqual(emptyPointsEvents); // Should return stale data immediately
 
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        // Wait for the SWR background refresh to write the fresh page to cache.
+        await waitFor(() =>
+          expect(
+            testableController.state.pointsEvents['current:sub-123']
+              .lastFetched,
+          ).toBe(Date.now()),
+        );
 
         // Verify that the pointsEventsUpdated event was NOT emitted
         expect(mockMessenger.publish).not.toHaveBeenCalledWith(
@@ -2836,22 +2861,22 @@ describe('RewardsController', () => {
 
         // Mock the messenger to return fresh data and last updated timestamp
         mockMessenger.call
-          .mockResolvedValueOnce(new Date()) // Second call for getPointsEventsLastUpdated
+          .mockResolvedValueOnce(new Date(FIXED_NOW_ISO)) // Second call for getPointsEventsLastUpdated
           .mockResolvedValueOnce(freshPointsEvents); // First call for getPointsEvents
 
         // Act
         await testableController.getPointsEvents(mockRequest);
 
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Verify that the pointsEventsUpdated event was emitted
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Emitting pointsEventsUpdated event due to new points events',
-          {
-            seasonId: 'current',
-            subscriptionId: 'sub-123',
-          },
+        // Verify that the pointsEventsUpdated event was emitted by the SWR
+        // background refresh.
+        await waitFor(() =>
+          expect(mockLogger.log).toHaveBeenCalledWith(
+            'RewardsController: Emitting pointsEventsUpdated event due to new points events',
+            {
+              seasonId: 'current',
+              subscriptionId: 'sub-123',
+            },
+          ),
         );
       });
     });
@@ -2926,11 +2951,11 @@ describe('RewardsController', () => {
             {
               id: 'fresh-event-1',
               type: 'PERPS' as const,
-              timestamp: new Date(),
+              timestamp: new Date(FIXED_NOW_ISO),
               value: 200,
               bonus: { bips: 0, bonuses: [] },
               accountAddress: '0x123',
-              updatedAt: new Date(),
+              updatedAt: new Date(FIXED_NOW_ISO),
               payload: null,
             },
           ],
@@ -3091,11 +3116,11 @@ describe('RewardsController', () => {
             {
               id: 'typed-event-1',
               type: 'SWAP' as const,
-              timestamp: new Date(),
+              timestamp: new Date(FIXED_NOW_ISO),
               value: 200,
               bonus: { bips: 0, bonuses: [] },
               accountAddress: '0x123',
-              updatedAt: new Date(),
+              updatedAt: new Date(FIXED_NOW_ISO),
               payload: null,
             },
           ],
@@ -7458,6 +7483,8 @@ describe('RewardsController', () => {
         equityLockedDescription: 'Body copy',
         equityUnlockedTitle: 'VIP allocation unlocked',
         equityUnlockedDescription: 'Unlocked body copy',
+        equityMultiplierFailedTitle: 'Estimate failed',
+        equityMultiplierFailedDescription: 'Estimate failed body copy',
       },
       ...overrides,
     });
@@ -7715,6 +7742,220 @@ describe('RewardsController', () => {
       expect(
         controller.state.subscriptions[mockSubscriptionId].features.vip.enabled,
       ).toBe(false);
+    });
+  });
+
+  describe('getVipEquityMultiplier', () => {
+    const mockSubscriptionId = 'sub-equity';
+    const mockHoldingsUsd = '5000000';
+
+    const createMockEquityMultiplier = (overrides = {}) => ({
+      available: true as const,
+      multiplier: '1.0889',
+      state: 'active' as const,
+      progressPercent: 44.444444,
+      capUsd: '10000000',
+      tierNumber: 6,
+      tierName: 'VIP 6',
+      computedAt: '2099-06-30T14:52:00.000Z',
+      localizedText: {
+        title: 'Estimated equity multiplier',
+        description: '1.09x active. Accumulate more mUSD to increase.',
+      },
+      ...overrides,
+    });
+
+    const createController = (isVipDisabled = () => false) =>
+      new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled,
+      });
+
+    it('returns the fetched multiplier for the requested holdings', async () => {
+      const payload = createMockEquityMultiplier();
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(payload);
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toEqual(payload);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('returns null without calling the data service when VIP is disabled', async () => {
+      controller = createController(() => true);
+      mockMessenger.call.mockClear();
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('serves a cached payload for repeated identical holdings', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      mockMessenger.call.mockClear();
+      const second = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(second).toEqual(createMockEquityMultiplier());
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('refetches when the holdings amount changes', async () => {
+      controller = createController();
+      mockMessenger.call.mockImplementation(((...args: any[]) =>
+        Promise.resolve(
+          createMockEquityMultiplier({ capUsd: args[2] as string }),
+        )) as any);
+
+      const first = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      const second = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        '7000000',
+      );
+
+      expect(first?.available === true && first.capUsd).toBe(mockHoldingsUsd);
+      expect(second?.available === true && second.capUsd).toBe('7000000');
+    });
+
+    it('refetches once the holdings-keyed cache entry expires', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      // Cache TTL is 5 minutes; advance past it.
+      jest.spyOn(Date, 'now').mockReturnValue(123 + 1000 * 60 * 5 + 1);
+      mockMessenger.call.mockClear();
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('dedupes concurrent requests for the same holdings', async () => {
+      controller = createController();
+      let resolveFetch:
+        | ((value: ReturnType<typeof createMockEquityMultiplier>) => void)
+        | undefined;
+      mockMessenger.call.mockImplementation(
+        (() =>
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          })) as any,
+      );
+
+      const first = controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      const second = controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      resolveFetch?.(createMockEquityMultiplier());
+      const [firstResult, secondResult] = await Promise.all([first, second]);
+
+      expect(firstResult).toEqual(secondResult);
+      expect(
+        mockMessenger.call.mock.calls.filter(
+          ([action]) => action === 'RewardsDataService:getVipEquityMultiplier',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not cache an unavailable response payload of null', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockResolvedValue(null);
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('logs and rethrows when the equity multiplier call fails', async () => {
+      controller = createController();
+      mockLogger.log.mockClear();
+      mockMessenger.call.mockRejectedValue(new Error('Equity API failed'));
+
+      await expect(
+        controller.getVipEquityMultiplier(mockSubscriptionId, mockHoldingsUsd),
+      ).rejects.toThrow('Equity API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get VIP equity multiplier:',
+        'Equity API failed',
+      );
+    });
+
+    it('allows a retry after a failed request', async () => {
+      controller = createController();
+      mockMessenger.call.mockRejectedValueOnce(new Error('transient'));
+
+      await expect(
+        controller.getVipEquityMultiplier(mockSubscriptionId, mockHoldingsUsd),
+      ).rejects.toThrow('transient');
+
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+      const retried = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(retried).toEqual(createMockEquityMultiplier());
     });
   });
 
@@ -10213,7 +10454,7 @@ describe('RewardsController', () => {
       const seasonState: SeasonStateDto = {
         balance: 50,
         currentTierId: 'tier-1',
-        updatedAt: new Date(),
+        updatedAt: new Date(FIXED_NOW_ISO),
       };
 
       // Act
@@ -10246,7 +10487,7 @@ describe('RewardsController', () => {
       const seasonState: SeasonStateDto = {
         balance: 0,
         currentTierId: 'bronze',
-        updatedAt: new Date(),
+        updatedAt: new Date(FIXED_NOW_ISO),
       };
 
       // Act
@@ -10276,7 +10517,7 @@ describe('RewardsController', () => {
       const seasonState: SeasonStateDto = {
         balance: largeBalance,
         currentTierId: 'platinum',
-        updatedAt: new Date(),
+        updatedAt: new Date(FIXED_NOW_ISO),
       };
 
       // Act
@@ -10651,6 +10892,8 @@ describe('RewardsController', () => {
                 equityLockedDescription: 'Body copy',
                 equityUnlockedTitle: 'VIP allocation unlocked',
                 equityUnlockedDescription: 'Unlocked body copy',
+                equityMultiplierFailedTitle: 'Estimate failed',
+                equityMultiplierFailedDescription: 'Estimate failed body copy',
               },
               lastFetched: 123,
             },
@@ -13759,15 +14002,18 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Act
-      const result = await testController.getCandidateSubscriptionId();
+      try {
+        // Act
+        const result = await testController.getCandidateSubscriptionId();
 
-      // Assert
-      expect(result).toBe(mockSubscriptionId);
-      expect(delaysCalled.length).toBe(2); // Should add delay between accounts 0-1 and 1-2
-
-      // Restore original setTimeout
-      global.setTimeout = originalSetTimeout;
+        // Assert
+        expect(result).toBe(mockSubscriptionId);
+        expect(delaysCalled.length).toBe(2); // Should add delay between accounts 0-1 and 1-2
+      } finally {
+        // Restore original setTimeout even if an assertion fails, so the stub
+        // cannot leak into later tests.
+        global.setTimeout = originalSetTimeout;
+      }
     });
 
     describe('candidate subscription ID coverage', () => {
@@ -19884,14 +20130,14 @@ describe('RewardsController', () => {
         expect(result).toBe('stale-value');
 
         // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
+        await waitFor(() =>
+          expect(mockSwrCallback).toHaveBeenCalledWith(
+            'stale-value',
+            'fresh-value',
+          ),
+        );
         expect(mockFetchFresh).toHaveBeenCalled();
         expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
-        expect(mockSwrCallback).toHaveBeenCalledWith(
-          'stale-value',
-          'fresh-value',
-        );
       });
     });
 
