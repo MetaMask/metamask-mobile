@@ -1574,15 +1574,12 @@ describe('MoneyHomeView', () => {
       // and MoneyEarnings renders. moneyFormatUsd is mocked to return '$0.00'
       // for all API and fallback values, exercising the no-plus-prefix path.
       mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$3.00',
         totalFiatRaw: '3',
         isBalanceLoading: false,
-        apyDecimal: 0.05,
-        apyPercent: 5,
-        apyPercentFormatted: '5%',
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
         moneyBalanceQuery: { data: undefined, isLoading: false },
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

@@ -169,23 +169,11 @@ describe('MoneyPotentialEarningsView', () => {
       apyPercent: 4,
       apyDecimal: 0.04,
       apyPercentFormatted: '4%',
-      totalFiatFormatted: '$10,000.00',
-      totalFiatRaw: '10000',
-      tokenTotal: undefined,
-      isBalanceLoading: false,
       vaultApyQuery: {
         data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
       },
-      moneyBalanceQuery: {
-        data: {
-          musdBalance: '10000000000',
-          vmusdValueInMusd: '0',
-          totalBalance: '10000000000',
-        },
-        isLoading: false,
-      },
-    } as ReturnType<typeof useMoneyVaultApy>);
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
   });
 
   it('renders the container', () => {
