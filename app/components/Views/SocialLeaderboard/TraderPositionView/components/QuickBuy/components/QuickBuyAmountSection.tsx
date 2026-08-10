@@ -46,6 +46,11 @@ interface QuickBuyAmountSectionProps {
   sourceSymbol?: string;
   /** When true, shows a blinking caret after the editable digits (keypad open). */
   showCursor?: boolean;
+  /**
+   * When true, use tighter top padding (buy-only header has a short title
+   * instead of the Buy/Sell toggle).
+   */
+  compactTop?: boolean;
   // Custom-amount input is temporarily disabled (numpad removed). The slider is
   // the only input path for now, but these props remain on the interface so the
   // controller wiring is preserved for when the keyboard path is restored.
@@ -96,6 +101,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   sourceCryptoAmount,
   sourceSymbol,
   showCursor = false,
+  compactTop = false,
   onAmountAreaPress,
 }) => {
   const tw = useTailwind();
@@ -235,7 +241,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       gap={2}
-      twClassName="px-4 pt-6 pb-4"
+      twClassName={compactTop ? 'px-4 pt-4 pb-4' : 'px-4 pt-6 pb-4'}
       testID="quick-buy-amount-area"
     >
       {editingPrimary ?? (

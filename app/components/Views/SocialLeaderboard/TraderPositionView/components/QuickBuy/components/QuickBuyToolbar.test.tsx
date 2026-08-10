@@ -36,15 +36,16 @@ describe('QuickBuyToolbar', () => {
     });
   });
 
-  it('hides the trade mode toggle when only buy mode is enabled', () => {
+  it('shows a Buy title instead of the trade mode toggle when only buy mode is enabled', () => {
     render(<QuickBuyToolbar />);
     expect(screen.queryByTestId('quick-buy-trade-mode-toggle')).toBeNull();
+    expect(screen.getByTestId('quick-buy-buy-only-title')).toBeOnTheScreen();
     expect(
-      screen.queryByText('social_leaderboard.quick_buy.buy_label'),
-    ).toBeNull();
+      screen.getByText('social_leaderboard.quick_buy.buy_label'),
+    ).toBeOnTheScreen();
   });
 
-  it('hides the trade mode toggle when sell is unavailable due to zero balance', () => {
+  it('shows a Buy title when sell is unavailable due to zero balance', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
@@ -54,6 +55,7 @@ describe('QuickBuyToolbar', () => {
     });
     render(<QuickBuyToolbar />);
     expect(screen.queryByTestId('quick-buy-trade-mode-toggle')).toBeNull();
+    expect(screen.getByTestId('quick-buy-buy-only-title')).toBeOnTheScreen();
   });
 
   it('renders the Buy/Sell toggle when both modes are enabled and sellable', () => {
@@ -66,6 +68,7 @@ describe('QuickBuyToolbar', () => {
     });
     render(<QuickBuyToolbar />);
     expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-buy-only-title')).toBeNull();
   });
 
   it('shows the edit quick amounts gear when quickAmountPills is enabled', () => {
