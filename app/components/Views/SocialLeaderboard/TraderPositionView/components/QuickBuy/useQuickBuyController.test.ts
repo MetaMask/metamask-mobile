@@ -2517,6 +2517,48 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
+    it('refreshes the frozen sell quote rate when re-entering sell mode for the same token', () => {
+      let positionToken = createPositionToken({ currencyExchangeRate: 2000 });
+      (usePositionTokenBalance as jest.Mock).mockImplementation(
+        () => positionToken,
+      );
+      (useReceiveTokens as jest.Mock).mockReturnValue([
+        createSellReceiveNative(),
+      ]);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.setTradeMode('sell');
+      });
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      expect(result.current.sourceTokenAmount).toBe('0.01');
+
+      act(() => {
+        result.current.setTradeMode('buy');
+      });
+      positionToken = createPositionToken({ currencyExchangeRate: 2500 });
+      rerender(props);
+
+      act(() => {
+        result.current.setTradeMode('sell');
+      });
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      expect(result.current.sourceTokenAmount).toBe('0.008');
+    });
+
     it('resets tradeMode to buy when the position token balance becomes zero', () => {
       (usePositionTokenBalance as jest.Mock).mockReturnValue(
         createPositionToken(),
