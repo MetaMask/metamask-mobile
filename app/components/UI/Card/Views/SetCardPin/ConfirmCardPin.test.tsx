@@ -1,27 +1,33 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { AppState } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { SetCardPinSelectors } from './SetCardPin.testIds';
-import { clearPinDraft, getPinDraft } from './pinDraftStore';
+import { clearPinDraft, getPinDraft, setPinDraft } from './pinDraftStore';
 import { PIN_ERROR_RESET_DELAY_MS } from './constants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockReset = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
+const mockSetCardPin = jest.fn();
+const mockLogout = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       CardController: {
-        setCardPin: jest.fn(),
-        logout: jest.fn(),
+        setCardPin: (...args: unknown[]) => mockSetCardPin(...args),
+        logout: (...args: unknown[]) => mockLogout(...args),
       },
     },
   },
@@ -32,7 +38,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
-    reset: jest.fn(),
+    reset: mockReset,
   }),
 }));
 
@@ -45,6 +51,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn(), log: jest.fn() },
 }));
 
 jest.mock(
@@ -72,7 +83,9 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 jest.mock('../../hooks/useCardHeaderHandlers', () => ({
-  useCardHeaderHandlers: () => ({ onBack: jest.fn() }),
+  useCardHeaderHandlers: jest.fn((mode: string) =>
+    mode === 'back' ? { onBack: jest.fn() } : {},
+  ),
 }));
 
 jest.mock('../../../../Base/Keypad', () => {
@@ -122,19 +135,6 @@ jest.mock('../../../../Base/Keypad', () => {
           ReactActual.createElement(Text, null, digit),
         ),
       ),
-      ReactActual.createElement(
-        Pressable,
-        {
-          testID: 'keypad-delete-button',
-          onPress: () =>
-            onChange({
-              value: '',
-              valueAsNumber: 0,
-              pressedKey: KeysEnum.Back,
-            }),
-        },
-        ReactActual.createElement(Text, null, 'Del'),
-      ),
     );
 
   return {
@@ -162,7 +162,11 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxFlexDirection: { Row: 'row' },
     BoxAlignItems: { Center: 'center' },
     BoxJustifyContent: { Center: 'center' },
-    HeaderStandard: () => <View testID="header-standard" />,
+    HeaderStandard: ({ onBack }: { onBack?: () => void }) => (
+      <Pressable testID="confirm-back" onPress={onBack}>
+        <Text>Back</Text>
+      </Pressable>
+    ),
     Button: ({
       children,
       onPress,
@@ -190,7 +194,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-import SetCardPin from './SetCardPin';
+import ConfirmCardPin from './ConfirmCardPin';
 
 const enterPin = (pressKey: (testID: string) => void, digits: string) => {
   for (const digit of digits) {
@@ -198,21 +202,14 @@ const enterPin = (pressKey: (testID: string) => void, digits: string) => {
   }
 };
 
-describe('SetCardPin', () => {
-  let appStateHandler: ((state: string) => void) | undefined;
-
+describe('ConfirmCardPin', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     clearPinDraft();
-    jest
-      .spyOn(AppState, 'addEventListener')
-      .mockImplementation((event, handler) => {
-        if (event === 'change') {
-          appStateHandler = handler as (state: string) => void;
-        }
-        return { remove: jest.fn() } as never;
-      });
+    setPinDraft('1337');
+    mockSetCardPin.mockResolvedValue(undefined);
+    mockLogout.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -222,56 +219,108 @@ describe('SetCardPin', () => {
     jest.useRealTimers();
   });
 
-  it('keeps continue disabled until four digits are entered', () => {
-    const { getByTestId } = renderWithProvider(<SetCardPin />);
-    expect(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON)).toBeDisabled();
-
-    enterPin((id) => fireEvent.press(getByTestId(id)), '133');
-    expect(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON)).toBeDisabled();
-
-    fireEvent.press(getByTestId('keypad-key-7'));
-    expect(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON)).toBeEnabled();
+  it('navigates back when draft PIN is missing', () => {
+    clearPinDraft();
+    renderWithProvider(<ConfirmCardPin />);
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('stores the PIN draft and navigates to confirm on continue', () => {
-    const { getByTestId } = renderWithProvider(<SetCardPin />);
-    enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
-    fireEvent.press(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON));
-
-    expect(getPinDraft()).toBe('1337');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.CONFIRM_PIN, {
-      cardId: 'card-1',
-    });
-  });
-
-  it('shows repeating PIN error then resets after delay', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(<SetCardPin />);
-    enterPin((id) => fireEvent.press(getByTestId(id)), '1111');
-    fireEvent.press(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON));
+  it('shows mismatch error then returns to set PIN', async () => {
+    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    enterPin((id) => fireEvent.press(getByTestId(id)), '1338');
+    fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
     expect(getByTestId(SetCardPinSelectors.INLINE_ERROR)).toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockSetCardPin).not.toHaveBeenCalled();
 
     await act(async () => {
       jest.advanceTimersByTime(PIN_ERROR_RESET_DELAY_MS);
     });
 
-    await waitFor(() => {
-      expect(queryByTestId(SetCardPinSelectors.INLINE_ERROR)).toBeNull();
-      expect(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON)).toBeDisabled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SET_PIN, {
+      cardId: 'card-1',
     });
   });
 
-  it('clears PIN state when the app backgrounds', async () => {
-    const { getByTestId } = renderWithProvider(<SetCardPin />);
+  it('submits matching PINs and resets stack to success', async () => {
+    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
     enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
-    expect(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON)).toBeEnabled();
+    fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
-    await act(async () => {
-      appStateHandler?.('background');
+    await waitFor(() => {
+      expect(mockSetCardPin).toHaveBeenCalledWith('card-1', '1337');
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [
+          { name: Routes.CARD.HOME },
+          { name: Routes.CARD.SET_PIN_SUCCESS },
+        ],
+      });
+    });
+  });
+
+  it('clears draft PIN when confirm header back is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    expect(getPinDraft()).toBe('1337');
+
+    fireEvent.press(getByTestId('confirm-back'));
+
+    expect(getPinDraft()).toBeNull();
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('routes auth failures to CardAuthentication', async () => {
+    mockSetCardPin.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        'Forbidden',
+        403,
+        'LIVENESS_MISMATCH',
+      ),
+    );
+    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
+    fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
+
+    await waitFor(() => {
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+      });
+    });
+  });
+
+  it('ignores back while submit is pending', async () => {
+    let resolveSetCardPin: (() => void) | undefined;
+    mockSetCardPin.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSetCardPin = resolve;
+        }),
+    );
+    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
+    fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
+
+    await waitFor(() => {
+      expect(mockSetCardPin).toHaveBeenCalled();
     });
 
-    expect(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON)).toBeDisabled();
-    expect(getPinDraft()).toBeNull();
+    fireEvent.press(getByTestId('confirm-back'));
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveSetCardPin?.();
+    });
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [
+          { name: Routes.CARD.HOME },
+          { name: Routes.CARD.SET_PIN_SUCCESS },
+        ],
+      });
+    });
   });
 });
