@@ -65,19 +65,13 @@ if [ -f "$SUMMARY_FILE" ]; then
         local platform="$2"
         local category="$3"
 
-        # Preserve SKIPPED (job never ran). Upgrade PASSED/UNKNOWN when summary
-        # has failures for this category/platform (including quality gates).
-        if [[ "$status" == *"SKIPPED"* ]]; then
-            echo "$status"
-            return
-        fi
-        if [[ "$status" == *"FAILED"* ]]; then
-            echo "$status"
-            return
-        fi
-
+        # Aggregated test failures, including quality-gate failures, take
+        # precedence over the GitHub job conclusion. Jobs can be reported as
+        # skipped when their reusable-workflow name is not matched.
         if category_has_failures "$platform" "$category"; then
             echo "❌ FAILED"
+        elif [[ "$status" == *"SKIPPED"* || "$status" == *"FAILED"* ]]; then
+            echo "$status"
         else
             echo "$status"
         fi
@@ -112,8 +106,13 @@ if [ -f "$SUMMARY_FILE" ]; then
                 # Collect all matching job conclusions (matrix can have multiple devices).
                 local conclusions
                 conclusions=$(echo "$jobStatuses" | jq -r \
-                    --arg p "$platform" --arg t "$test_type" \
-                    '.jobs[] | select(.name | contains($p) and contains($t)) | .conclusion')
+                    --arg p "${platform,,}" --arg t "${test_type,,}" \
+                    '.jobs[]
+                    | select(
+                        (.name | ascii_downcase | contains($p))
+                        and (.name | ascii_downcase | contains($t))
+                      )
+                    | .conclusion')
                 
                 if [ -z "$(echo "$conclusions" | sed '/^$/d')" ]; then
                     echo "⏭️ SKIPPED"
