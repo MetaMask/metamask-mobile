@@ -31,6 +31,7 @@ import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import {
@@ -151,6 +152,10 @@ jest.mock(
 );
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -372,6 +377,7 @@ const CARD_TX: AccountsApiActivity = {
 const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInterest = jest.mocked(useMoneyAccountInterest);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 
@@ -453,6 +459,7 @@ const expectTestIdBefore = (
 
 describe('MoneyHomeView', () => {
   let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
+  let defaultMoneyVaultApy: ReturnType<typeof useMoneyVaultApy>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -530,13 +537,6 @@ describe('MoneyHomeView', () => {
       isBalanceUnavailable: false,
       lastKnownTotalFiatFormatted: undefined,
       refetchBalance: mockRefetchBalance,
-      apyDecimal: 0.05,
-      apyPercent: 5,
-      apyPercentFormatted: '5%',
-      vaultApyQuery: {
-        data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
-        isLoading: false,
-      },
       moneyBalanceQuery: {
         data: {
           musdBalance: '1000000',
@@ -548,7 +548,17 @@ describe('MoneyHomeView', () => {
         isLoading: false,
       },
     } as unknown as ReturnType<typeof useMoneyAccountBalance>;
+    defaultMoneyVaultApy = {
+      apyDecimal: 0.05,
+      apyPercent: 5,
+      apyPercentFormatted: '5%',
+      vaultApyQuery: {
+        data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
+        isLoading: false,
+      },
+    } as unknown as ReturnType<typeof useMoneyVaultApy>;
     mockUseMoneyAccountBalance.mockReturnValue(defaultMoneyAccountBalance);
+    mockUseMoneyVaultApy.mockReturnValue(defaultMoneyVaultApy);
 
     mockUseMusdBalance.mockReturnValue({
       hasMusdBalanceOnAnyChain: true,

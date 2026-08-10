@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyPotentialEarningsView from './MoneyPotentialEarningsView';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import Routes from '../../../../../constants/navigation/Routes';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -105,7 +105,7 @@ jest.mock('../../hooks/useMoneyDepositTokens', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -157,7 +157,7 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
-const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockMoneyFormatFiat = jest.mocked(moneyFormatFiat);
 
 describe('MoneyPotentialEarningsView', () => {
@@ -165,7 +165,7 @@ describe('MoneyPotentialEarningsView', () => {
     jest.clearAllMocks();
     mockTokens = mockDepositTokens;
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4,
       apyDecimal: 0.04,
       apyPercentFormatted: '4%',
@@ -185,7 +185,7 @@ describe('MoneyPotentialEarningsView', () => {
         },
         isLoading: false,
       },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
   });
 
   it('renders the container', () => {

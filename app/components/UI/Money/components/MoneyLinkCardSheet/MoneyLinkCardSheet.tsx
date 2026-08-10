@@ -23,7 +23,7 @@ import {
 } from '../../../../../selectors/cardController';
 import Engine from '../../../../../core/Engine';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { CardType } from '../../../Card/types';
 import MoneyCardFlipAnimation from '../MoneyCardFlipAnimation';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
@@ -54,7 +54,7 @@ const MoneyLinkCardSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const cardHomeData = useSelector(selectCardHomeData);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);

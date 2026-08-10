@@ -5,7 +5,7 @@ import MoneyLinkCardSheet from './MoneyLinkCardSheet';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import {
   selectCardHomeData,
   selectCardHomeDataStatus,
@@ -64,7 +64,7 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   useMoneyAccountCardLinkage: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -118,8 +118,9 @@ const mockUseMoneyAccountCardLinkage =
   useMoneyAccountCardLinkage as jest.MockedFunction<
     typeof useMoneyAccountCardLinkage
   >;
-const mockUseMoneyAccountBalance =
-  useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
+const mockUseMoneyVaultApy = useMoneyVaultApy as jest.MockedFunction<
+  typeof useMoneyVaultApy
+>;
 const mockSelectCardHomeData = selectCardHomeData as unknown as jest.Mock;
 const mockSelectCardHomeDataStatus =
   selectCardHomeDataStatus as unknown as jest.Mock;
@@ -135,9 +136,9 @@ describe('MoneyLinkCardSheet', () => {
     mockUseMoneyAccountCardLinkage.mockReturnValue({
       confirmLinkInBackground: mockConfirmLinkInBackground,
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4,
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
     mockSelectCardHomeData.mockReturnValue({
       card: { type: CardType.VIRTUAL },
     });
@@ -247,9 +248,9 @@ describe('MoneyLinkCardSheet', () => {
   });
 
   it('interpolates the live vault APY into the description', () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 7,
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
 
     const { getByText, queryByText } = renderWithProvider(
       <MoneyLinkCardSheet />,
@@ -263,9 +264,9 @@ describe('MoneyLinkCardSheet', () => {
   });
 
   it('falls back to no-APY copy when the vault APY query has not resolved yet', () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: undefined,
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
 
     const { getByText, queryByText } = renderWithProvider(
       <MoneyLinkCardSheet />,
