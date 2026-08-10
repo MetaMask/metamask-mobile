@@ -4,7 +4,7 @@ A Venue adapter is PredictNext's translation boundary for one prediction-market 
 
 ## Capability shape
 
-One registered adapter exposes focused capabilities that vary independently:
+One adapter exposes focused capabilities that vary independently:
 
 ```typescript
 interface VenueAdapter {
@@ -26,9 +26,9 @@ Structural presence is executable truth. Product capability metadata may control
 
 ## Public and account-scoped data
 
-Public Event, Market, Outcome, price, and Venue-status reads are scoped by `venueId`. They do not require a selected wallet or fake Venue Session.
+Public Event, Market, Outcome, Bid Price, Ask Price, and Venue Status reads are scoped by `venueId`. The first Kalshi browse slice is deliberately unauthenticated and does not require a selected wallet or fake Venue Session.
 
-If transport authentication is required for a nominally public endpoint, the remote adapter handles it internally. The visible query remains Venue-scoped unless its result is personalized.
+A later account-scoped route must use explicit required authentication. Do not opportunistically attach identity to public reads unless the contract and cache scope are intentionally personalized.
 
 Account Readiness, Account Setup, portfolio, trading, and funding are account-scoped. Product modules use a session-bound client or equivalent narrow handle; they never receive credentials or raw Venue sessions.
 
@@ -36,8 +36,9 @@ Account Readiness, Account Setup, portfolio, trading, and funding are account-sc
 
 - Predict User identity is distinct from Funding Wallet and Venue Account.
 - The backend authorizes account-scoped requests from authenticated MetaMask identity, not client-supplied identity fields.
-- Every Event, Market, Outcome, Order, Position, query key, route, and durable Venue Operation is Venue-qualified.
-- A raw Venue identifier is meaningful only with `venueId`.
+- Every root Event, query key, route, and durable Venue Operation is Venue-qualified.
+- Nested Markets and Outcomes carry their own opaque identifiers and inherit Venue and parent scope through containment.
+- A raw Venue identifier is meaningful only with its containing `venueId`.
 - Canonical entities contain no raw credentials, PII/KYC values, or authentication subjects.
 
 See [`../CONTEXT.md`](../CONTEXT.md) for terminology.
@@ -69,26 +70,37 @@ Services orchestrate product workflows above this boundary.
 The first walking-skeleton adapter should implement only the reads required by [PRED-1158](https://consensyssoftware.atlassian.net/browse/PRED-1158). A minimal shape is:
 
 ```typescript
+interface PredictReadOptions {
+  signal?: AbortSignal;
+}
+
 interface VenueMarketDataAdapter {
-  fetchVenueStatus(): Promise<PredictVenueStatus>;
+  fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
   fetchEvents(
     params: FetchEventsParams,
+    options?: PredictReadOptions,
   ): Promise<PaginatedResult<PredictEvent>>;
-  fetchEvent(eventId: string): Promise<PredictEvent>;
-  fetchPrices(params: PriceQuery[]): Promise<MarketPrices>;
+  fetchEvent(
+    eventId: PredictEntityId,
+    options?: PredictReadOptions,
+  ): Promise<PredictEvent>;
 }
 ```
 
-Only add price history, search, carousel, account, portfolio, trading, funding, or live-data operations when an active product slice requires them.
+Event list and detail include the initial optional `bidPrice` and `askPrice` snapshot on each Outcome. There is no separate price operation in the first slice. Future live data may identify an Event, Market, and Outcome and patch these prices in cached Events.
 
-The market-data service resolves this capability by `venueId`:
+Only add price history, batch price reads, search, carousel, account, portfolio, trading, funding, or live-data operations when an active product slice requires them.
+
+The first Kalshi-only market-data service receives the capability directly from the composition root:
 
 ```text
 market-data service
-  -> adapter registry.get(venueId).marketData
+  -> injected Kalshi marketData capability
     -> Kalshi remote adapter
       -> MetaMask Predict backend
 ```
+
+Add a Venue registry only when the product must resolve multiple Venue adapters by `venueId` at runtime. Environment selection belongs in injected transport configuration, and tests inject doubles.
 
 ## Session-bound account capabilities
 

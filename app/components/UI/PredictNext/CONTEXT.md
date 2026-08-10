@@ -120,6 +120,14 @@ _Avoid_: UI request, transient loading state
 The Predict User's available settlement-currency amount in a Venue Account, ready for placing Orders.
 _Avoid_: Funds, wallet balance, raw token amount
 
+**Ask Price**:
+The lowest currently available per-share price to buy an Outcome, expressed in settlement currency. A missing Ask Price means no current buy quote; it does not mean zero.
+_Avoid_: Price, buy price, Yes ask
+
+**Bid Price**:
+The highest currently available per-share price to sell an Outcome, expressed in settlement currency. A missing Bid Price means no current sell quote; it does not mean zero.
+_Avoid_: Price, sell price, Yes bid
+
 **Volume**:
 Total settlement currency traded on a Market or Event across all users.
 _Avoid_: Liquidity

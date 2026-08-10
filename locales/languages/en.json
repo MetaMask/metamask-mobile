@@ -2676,7 +2676,7 @@
       "hard_to_understand": "Hard to understand",
       "harmful_or_offensive": "Harmful or offensive",
       "something_else": "Something else",
-      "additional_feedback_label": "Additional feedback (optional)",
+      "additional_feedback_label": "Additional feedback",
       "additional_feedback_placeholder": "How can we improve?",
       "characters_remaining": "{{count}} characters remaining",
       "submit": "Submit"

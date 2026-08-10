@@ -45,6 +45,7 @@ on:
         description: >-
           @expo/fingerprint hash from native-build-fingerprint. When set, try to
           reuse prior BrowserStack performance APKs (repack JS unless test-only).
+          This is the reuse path for branches with app changes.
         default: ''
       main_branch_only:
         required: false
@@ -53,6 +54,14 @@ on:
           When true (test-only PRs), search mainly on main and skip JS repack
           (app JS unchanged). When false, fingerprint hit still reuses native
           APKs but repacks the JS bundle like E2E.
+        default: false
+      reuse_latest_main_builds:
+        required: false
+        type: boolean
+        description: >-
+          When true, use the newest matching APK artifacts from a main-branch
+          run without requiring a fingerprint, then upload them to BrowserStack
+          as-is. This mode is intended for test-only changes.
         default: false
     outputs:
       with-srp-browserstack-url:
@@ -137,7 +146,7 @@ jobs:
     needs: [check-builds-needed]
     if: >-
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
-      inputs.source_fingerprint
+      (inputs.source_fingerprint || inputs.reuse_latest_main_builds)
     outputs:
       found: ${{ steps.finalize.outputs.found }}
       run-id: ${{ steps.finalize.outputs.run-id }}
@@ -161,6 +170,7 @@ jobs:
           workflow-file: ci.yml
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
 
       - name: Find reusable performance APKs on run-performance-e2e.yml
         id: find-perf
@@ -173,6 +183,7 @@ jobs:
           workflow-file: run-performance-e2e.yml
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
 
       - name: Find reusable performance APKs on run-performance-e2e-manual.yml
         id: find-manual
@@ -185,6 +196,7 @@ jobs:
           workflow-file: run-performance-e2e-manual.yml
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
 
       # Select a candidate run only. found=true is deferred until both APK downloads
       # succeed (mirrors build-android-e2e.yml gate: never skip native build on lookup alone).
