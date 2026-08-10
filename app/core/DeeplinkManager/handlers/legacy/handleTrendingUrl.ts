@@ -8,7 +8,7 @@ import {
   EXPLORE_TAB_INDEX,
   type ExploreTabIndex,
 } from '../../../../constants/navigation/exploreTabIndices';
-import { TRENDING_NETWORKS_LIST } from '../../../../components/UI/Trending/utils/trendingNetworksList';
+import { TRENDING_CAIP_CHAIN_IDS } from '../../../../components/UI/Trending/utils/trendingNetworks.constants';
 import type { TimeOption } from '../../../../components/UI/Trending/components/TrendingTokensBottomSheet';
 import type { TrendingTokensFullViewParams } from '../../../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { ExploreFeedRouteParams } from '../../../../components/Views/TrendingView/TrendingView';
@@ -124,9 +124,7 @@ const isExploreTimeframeDeeplinkParam = (
   );
 
 /** Chains the trending tokens view can filter by. */
-const TRENDING_CAIP_CHAIN_IDS = new Set<CaipChainId>(
-  TRENDING_NETWORKS_LIST.map((network) => network.caipChainId),
-);
+const TRENDING_CHAIN_ID_SET = new Set<CaipChainId>(TRENDING_CAIP_CHAIN_IDS);
 
 /**
  * Normalizes a `?chainId=` value to a CAIP chain id, accepting the EVM
@@ -163,7 +161,7 @@ const getTrendingChainFilterParam = (
   }
 
   const caipChainId = normalizeChainIdParam(chainIdParam);
-  return caipChainId && TRENDING_CAIP_CHAIN_IDS.has(caipChainId)
+  return caipChainId && TRENDING_CHAIN_ID_SET.has(caipChainId)
     ? [caipChainId]
     : undefined;
 };
