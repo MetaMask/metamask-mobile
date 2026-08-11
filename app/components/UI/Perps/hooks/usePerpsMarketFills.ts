@@ -168,7 +168,7 @@ export const usePerpsMarketFills = ({
         },
       });
     } finally {
-      if (!isRefresh && isCurrentRequest()) {
+      if (isCurrentRequest()) {
         setIsHistoryLoading(false);
       }
     }

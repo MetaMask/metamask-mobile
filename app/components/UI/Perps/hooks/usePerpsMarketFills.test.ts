@@ -731,6 +731,58 @@ describe('usePerpsMarketFills', () => {
 
       consoleError.mockRestore();
     });
+
+    it('clears history loading when refresh supersedes initial fetch', async () => {
+      // Arrange
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      let resolveInitialFetch: ((value: OrderFill[]) => void) | undefined;
+      let resolveRefreshFetch: ((value: OrderFill[]) => void) | undefined;
+      const initialFetch = new Promise<OrderFill[]>((resolve) => {
+        resolveInitialFetch = resolve;
+      });
+      const refreshFetch = new Promise<OrderFill[]>((resolve) => {
+        resolveRefreshFetch = resolve;
+      });
+
+      mockProvider.getOrderFills
+        .mockReturnValueOnce(initialFetch)
+        .mockReturnValueOnce(refreshFetch);
+
+      const { result } = renderHook(() =>
+        usePerpsMarketFills({ symbol: 'BTC' }),
+      );
+
+      expect(result.current.isHistoryLoading).toBe(true);
+
+      let refreshPromise: Promise<void> | undefined;
+      await act(async () => {
+        refreshPromise = result.current.refresh();
+      });
+
+      await act(async () => {
+        resolveRefreshFetch?.([mockBtcFill1]);
+        await refreshPromise;
+      });
+
+      expect(result.current.isHistoryLoading).toBe(false);
+      expect(result.current.historyError).toBeNull();
+      expect(result.current.fills).toHaveLength(1);
+
+      await act(async () => {
+        resolveInitialFetch?.([
+          createMockFill({ orderId: 'stale-initial-fill', symbol: 'BTC' }),
+        ]);
+        await Promise.resolve();
+      });
+
+      expect(result.current.isHistoryLoading).toBe(false);
+      expect(result.current.fills).toHaveLength(1);
+      expect(result.current.fills[0].orderId).toBe('btc-1');
+    });
   });
 
   describe('throttleMs option', () => {
