@@ -51,6 +51,9 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
+// TEMP perf (Remove before merge): anchor T0 (CTA->VISIBLE metric) at the actual
+// CTA press so the metric captures the full tap-to-visible.
+import { perfCtaPress } from '../../../../Views/confirmations/utils/perf-marker';
 
 const log = createProjectLogger('money-add-money-sheet');
 
@@ -111,6 +114,9 @@ const MoneyAddMoneySheet: React.FC = () => {
   // letting it race the unmount.
   const startDeposit = useCallback(
     (options?: InitiateDepositOptions) => {
+      // TEMP perf (Remove before merge): T0 — fire at the button press, before
+      // the sheet close animation, so the metric captures the full tap-to-visible.
+      perfCtaPress();
       if (hasPendingTransaction) {
         log('Rejecting pending transaction before starting deposit');
         rejectPendingTransactions();

@@ -44,6 +44,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+// TEMP perf (Remove before merge): single CTA->VISIBLE metric.
+import { perfConfirmationVisible } from '../../utils/perf-marker';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -196,6 +198,7 @@ export const Confirm = ({
         edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
         style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
+        onLayout={perfConfirmationVisible}
       >
         <ConfirmWrapped styles={styles} route={route} />
       </SafeAreaView>
@@ -209,7 +212,11 @@ export const Confirm = ({
       style={styles.bottomSheetDialogSheet}
       testID={ConfirmationUIType.MODAL}
     >
-      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
+      <View
+        testID={approvalRequest?.type}
+        style={styles.confirmContainer}
+        onLayout={perfConfirmationVisible}
+      >
         <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>
