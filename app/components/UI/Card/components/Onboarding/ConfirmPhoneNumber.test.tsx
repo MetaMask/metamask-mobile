@@ -394,6 +394,7 @@ describe('ConfirmPhoneNumber Component', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.CONFIRM_PHONE_NUMBER,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -419,6 +420,7 @@ describe('ConfirmPhoneNumber Component', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
       });
       expect(mockTrackEvent).toHaveBeenCalled();

@@ -13,6 +13,7 @@ enum CardScreens {
   VERIFY_IDENTITY = 'VERIFY_IDENTITY',
   VERIFYING_VERIFF_KYC = 'VERIFYING_VERIFF_KYC',
   KYC_PROCESSING = 'KYC_PROCESSING',
+  IMMERSVE_KYC_WEBVIEW = 'IMMERSVE_KYC_WEBVIEW',
   FUNDING_APPROVAL = 'FUNDING_APPROVAL',
   KYC_PENDING = 'KYC_PENDING',
   KYC_FAILED = 'KYC_FAILED',
@@ -83,6 +84,17 @@ enum CardActions {
   MONEY_LINK_CARD_SHEET_CLOSE_BUTTON = 'MONEY_LINK_CARD_SHEET_CLOSE_BUTTON',
   UNLINK_MONEY_ACCOUNT_BUTTON = 'UNLINK_MONEY_ACCOUNT_BUTTON',
   SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON = 'SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON',
+  FUNDING_APPROVAL_CONFIRM = 'FUNDING_APPROVAL_CONFIRM',
+  FUNDING_APPROVAL_RETRY = 'FUNDING_APPROVAL_RETRY',
+  KYC_WEBVIEW_RETRY = 'KYC_WEBVIEW_RETRY',
+  KYC_WEBVIEW_CLOSE = 'KYC_WEBVIEW_CLOSE',
+  KYC_WEBVIEW_COMPLETED = 'KYC_WEBVIEW_COMPLETED',
+  KYC_WEBVIEW_LOAD_ERROR = 'KYC_WEBVIEW_LOAD_ERROR',
+  KYC_REOPEN = 'KYC_REOPEN',
+  KYC_PENDING_TIMEOUT = 'KYC_PENDING_TIMEOUT',
+  IMMERSVE_RESUME_ONBOARDING = 'IMMERSVE_RESUME_ONBOARDING',
+  IMMERSVE_PROVISIONING_RESUME = 'IMMERSVE_PROVISIONING_RESUME',
+  IMMERSVE_ONBOARDING_ROUTED = 'IMMERSVE_ONBOARDING_ROUTED',
 }
 
 enum CardDeeplinkActions {
@@ -131,6 +143,18 @@ const deriveCardState = ({
   return 'no_card';
 };
 
+/**
+ * Merges Card analytics properties with a required `provider` dimension
+ * (`baanx` | `immersve`) so funnels can be segmented by card provider.
+ */
+const withCardProvider = (
+  provider: string | null | undefined,
+  properties: Record<string, unknown> = {},
+): Record<string, unknown> => ({
+  provider,
+  ...properties,
+});
+
 export {
   CardScreens,
   CardActions,
@@ -139,5 +163,6 @@ export {
   CardFlow,
   CardLinkingFailureReason,
   deriveCardState,
+  withCardProvider,
 };
 export type { CardState };

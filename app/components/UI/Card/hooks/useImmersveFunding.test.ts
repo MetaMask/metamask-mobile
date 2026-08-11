@@ -1,6 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { awaitTransactionConfirmed } from '../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useImmersveFunding } from './useImmersveFunding';
 import type { CardSmartContractWriteParams } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
@@ -18,6 +20,10 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../../util/Logger', () => ({ error: jest.fn() }));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: (fn: () => unknown) => fn(),
@@ -61,6 +67,13 @@ const accountsModule = jest.requireMock(
   selectSelectedInternalAccountByScope: jest.Mock;
 };
 
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties.mockReturnValue({ build: mockBuild }),
+}));
+
 const APPROVE_WRITE: CardSmartContractWriteParams = {
   abi: [
     {
@@ -85,6 +98,14 @@ const APPROVE_WRITE: CardSmartContractWriteParams = {
 describe('useImmersveFunding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+    (useAnalytics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
     accountsModule.selectSelectedInternalAccountByScope.mockImplementation(
       () => () => ({
         address: MOCK_ACCOUNT_ADDRESS,
@@ -124,6 +145,12 @@ describe('useImmersveFunding', () => {
 
     expect(mockCard.createCard).toHaveBeenCalledWith('fs-1');
     expect(card).toStrictEqual({ cardId: 'card-1' });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED,
+    );
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_FUNDING_PROCESS_COMPLETED,
+    );
   });
 
   it('executeFunding submits the encoded write on Base and returns the tx hash', async () => {
@@ -152,6 +179,15 @@ describe('useImmersveFunding', () => {
     );
     expect(txHash).toBe('0xtxhash');
     expect(result.current.error).toBeNull();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED,
+    );
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_FUNDING_PROCESS_COMPLETED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: 'immersve', step: 'approve' }),
+    );
   });
 
   it('executeFunding overrides the approve amount when provided', async () => {

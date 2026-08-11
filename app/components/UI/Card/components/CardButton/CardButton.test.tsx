@@ -8,7 +8,9 @@ import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.test
 const mockTrackEvent = jest.fn();
 const mockBuiltEvent = { name: 'Card Button Viewed', properties: {} };
 const mockBuild = jest.fn().mockReturnValue(mockBuiltEvent);
+const mockAddProperties = jest.fn().mockReturnThis();
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
   build: mockBuild,
 });
 
@@ -24,11 +26,12 @@ jest.mock('../../../../../util/Logger', () => ({ log: jest.fn() }));
 interface RenderOptions {
   /** Set to 0 to simulate flags not yet loaded. Defaults to 1 (resolved). */
   cacheTimestamp?: number;
+  activeProviderId?: string | null;
 }
 
 function renderWithProvider(
   component: React.ComponentType,
-  { cacheTimestamp = 1 }: RenderOptions = {},
+  { cacheTimestamp = 1, activeProviderId = 'baanx' }: RenderOptions = {},
 ) {
   return renderScreen(
     component,
@@ -41,6 +44,11 @@ function renderWithProvider(
             RemoteFeatureFlagController: {
               ...backgroundState.RemoteFeatureFlagController,
               cacheTimestamp,
+            },
+            CardController: {
+              ...(backgroundState as { CardController?: object })
+                .CardController,
+              activeProviderId,
             },
           },
         },
@@ -55,7 +63,9 @@ describe('CardButton Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBuild.mockReturnValue(mockBuiltEvent);
+    mockAddProperties.mockReturnThis();
     mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
       build: mockBuild,
     });
   });
@@ -98,6 +108,7 @@ describe('CardButton Component', () => {
           category: 'Card Button Viewed',
         }),
       );
+      expect(mockAddProperties).toHaveBeenCalledWith({ provider: 'baanx' });
       expect(mockBuild).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith(mockBuiltEvent);
@@ -112,6 +123,20 @@ describe('CardButton Component', () => {
           />
         ),
         { cacheTimestamp: 0 },
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not fire event when active provider is not yet known', () => {
+      renderWithProvider(
+        () => (
+          <CardButton
+            onPress={mockOnPress}
+            touchAreaSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          />
+        ),
+        { activeProviderId: null },
       );
 
       expect(mockTrackEvent).not.toHaveBeenCalled();

@@ -520,6 +520,7 @@ describe('ConfirmEmail Component', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.CONFIRM_EMAIL,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -548,6 +549,7 @@ describe('ConfirmEmail Component', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.CONFIRM_EMAIL_BUTTON,
       });
       expect(mockTrackEvent).toHaveBeenCalled();

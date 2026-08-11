@@ -14,7 +14,8 @@ import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
@@ -58,9 +59,11 @@ const Complete = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.COMPLETE,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.COMPLETE,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -69,9 +72,11 @@ const Complete = () => {
     setIsLoading(true);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.COMPLETE_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.COMPLETE_BUTTON,
+          }),
+        )
         .build(),
     );
 

@@ -1424,6 +1424,7 @@ describe('MoneyHomeView', () => {
       MetaMetricsEvents.CARD_BUTTON_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: null,
       screen: CardScreens.MONEY_HOME,
       entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
       action: CardActions.MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON,
@@ -1442,6 +1443,7 @@ describe('MoneyHomeView', () => {
       MetaMetricsEvents.CARD_VIEWED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: null,
       screen: CardScreens.MONEY_HOME,
       entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
     });

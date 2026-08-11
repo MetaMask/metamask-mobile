@@ -14,7 +14,8 @@ import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { selectHasCardholderAccounts } from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
@@ -52,9 +53,11 @@ const CardWelcome = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.WELCOME,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.WELCOME,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -102,9 +105,11 @@ const CardWelcome = () => {
   const handleButtonPress = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VERIFY_ACCOUNT_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.VERIFY_ACCOUNT_BUTTON,
+          }),
+        )
         .build(),
     );
 

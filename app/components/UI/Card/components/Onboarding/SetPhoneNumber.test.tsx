@@ -331,6 +331,7 @@ describe('SetPhoneNumber Component', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.SET_PHONE_NUMBER,
       });
       expect(mockTrackEvent).toHaveBeenCalled();

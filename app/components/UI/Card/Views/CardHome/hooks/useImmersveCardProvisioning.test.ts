@@ -44,6 +44,15 @@ jest.mock('../../../hooks/useImmersveOnboardingRouter', () => ({
   useImmersveOnboardingRouter: () => mockRoute,
 }));
 
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
+    })),
+  }),
+}));
+
 const mockResolve = jest.fn();
 jest.mock('../../../util/immersveResume', () => ({
   resolveImmersveFundingSourceId: (args: unknown) => mockResolve(args),

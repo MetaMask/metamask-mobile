@@ -84,6 +84,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../util/metrics', () => ({
   CardScreens: { FUNDING_APPROVAL: 'FUNDING_APPROVAL' },
+  CardActions: {
+    FUNDING_APPROVAL_CONFIRM: 'FUNDING_APPROVAL_CONFIRM',
+    FUNDING_APPROVAL_RETRY: 'FUNDING_APPROVAL_RETRY',
+  },
+  withCardProvider: (
+    provider: string | null | undefined,
+    properties: Record<string, unknown> = {},
+  ) => ({
+    provider,
+    ...properties,
+  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {

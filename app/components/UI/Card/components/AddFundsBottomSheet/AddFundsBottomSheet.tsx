@@ -29,6 +29,8 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { withCardProvider } from '../../util/metrics';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
@@ -64,6 +66,7 @@ const AddFundsBottomSheet: React.FC = () => {
     priorityToken,
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
@@ -94,9 +97,9 @@ const AddFundsBottomSheet: React.FC = () => {
       });
     });
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
-      ).build(),
+      createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED)
+        .addProperties(withCardProvider(activeProviderId))
+        .build(),
     );
 
     trackEvent(
@@ -123,6 +126,7 @@ const AddFundsBottomSheet: React.FC = () => {
     goToBuy,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     priorityToken,
     buttonClickData,
   ]);

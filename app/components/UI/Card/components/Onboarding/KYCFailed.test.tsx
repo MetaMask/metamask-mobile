@@ -12,6 +12,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => jest.fn()),
+  useSelector: jest.fn(() => 'baanx'),
 }));
 
 jest.mock('../../../../../core/redux/slices/card', () => ({
@@ -23,6 +24,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardScreens: {
     KYC_FAILED: 'KYC_FAILED',
   },
@@ -389,6 +391,7 @@ describe('KYCFailed Component', () => {
       const addPropertiesCall =
         mockCreateEventBuilder.mock.results[0].value.addProperties;
       expect(addPropertiesCall).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: 'KYC_FAILED',
       });
     });

@@ -7,7 +7,8 @@ import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { CardActions } from '../util/metrics';
+import { CardActions, withCardProvider } from '../util/metrics';
+import { selectCardActiveProviderId } from '../../../../selectors/cardController';
 import { Linking } from 'react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Logger from '../../../../util/Logger';
@@ -35,6 +36,7 @@ export const useNavigateToInternalBrowserPage = (
   navigation: AppNavigationProp,
 ) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigateToInternalBrowserPage = useCallback(
@@ -67,13 +69,15 @@ export const useNavigateToInternalBrowserPage = (
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              action,
+            }),
+          )
           .build(),
       );
     },
-    [browserTabs, navigation, trackEvent, createEventBuilder],
+    [browserTabs, navigation, trackEvent, createEventBuilder, activeProviderId],
   );
 
   return {
@@ -91,6 +95,7 @@ export const useNavigateToCardPage = (
 ) => {
   const { navigateToInternalBrowserPage } =
     useNavigateToInternalBrowserPage(navigation);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigateToTravelPage = useCallback(() => {
@@ -109,12 +114,19 @@ export const useNavigateToCardPage = (
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.NAVIGATE_TO_CARD_TOS_PAGE,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.NAVIGATE_TO_CARD_TOS_PAGE,
+          }),
+        )
         .build(),
     );
-  }, [cardTermsAndConditionsUrl, trackEvent, createEventBuilder]);
+  }, [
+    cardTermsAndConditionsUrl,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
 
   return {
     navigateToTravelPage,

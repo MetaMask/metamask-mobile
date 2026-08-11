@@ -589,6 +589,7 @@ describe('PhysicalAddress Component', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.RESIDENTIAL_ADDRESS,
       });
       expect(mockTrackEvent).toHaveBeenCalled();

@@ -29,6 +29,7 @@ jest.mock('../../../../../core/Analytics', () => ({
 }));
 
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardActions: {
     CASHBACK_BUTTON: 'CASHBACK_BUTTON',
     CREDIT_BUTTON: 'CREDIT_BUTTON',

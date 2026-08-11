@@ -10,6 +10,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'baanx'),
+}));
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
@@ -385,6 +389,7 @@ describe('KYCPending Component', () => {
       const addPropertiesCall =
         mockCreateEventBuilder.mock.results[0].value.addProperties;
       expect(addPropertiesCall).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: 'KYC_PENDING',
       });
     });

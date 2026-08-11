@@ -27,7 +27,9 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions } from '../../util/metrics';
+import { CardActions, withCardProvider } from '../../util/metrics';
+import { useSelector } from 'react-redux';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
 import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
 import {
@@ -71,6 +73,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
 
   // Read card data from state instead of navigation params
   const {
@@ -193,22 +196,24 @@ const AssetSelectionBottomSheet: React.FC = () => {
     async (token: CardFundingToken) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.ASSET_ITEM_SELECT_TOKEN_BOTTOMSHEET,
-            bottomsheet_selected_token_symbol: token.symbol,
-            bottomsheet_selected_token_chain_id: token.caipChainId,
-            bottomsheet_selected_token_limit_amount: isNaN(
-              Number(token.spendableBalance),
-            )
-              ? 0
-              : Number(token.spendableBalance),
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              action: CardActions.ASSET_ITEM_SELECT_TOKEN_BOTTOMSHEET,
+              bottomsheet_selected_token_symbol: token.symbol,
+              bottomsheet_selected_token_chain_id: token.caipChainId,
+              bottomsheet_selected_token_limit_amount: isNaN(
+                Number(token.spendableBalance),
+              )
+                ? 0
+                : Number(token.spendableBalance),
+            }),
+          )
           .build(),
       );
 
       await updateFundingPriority(token);
     },
-    [updateFundingPriority, trackEvent, createEventBuilder],
+    [updateFundingPriority, trackEvent, createEventBuilder, activeProviderId],
   );
 
   const isPriorityToken = useCallback(

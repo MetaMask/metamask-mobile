@@ -27,10 +27,13 @@ import MoneyCardTiltAnimation from '../MoneyCardTiltAnimation';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useSelector } from 'react-redux';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import {
   CardActions,
   CardEntryPoint,
   CardScreens,
+  withCardProvider,
 } from '../../../Card/util/metrics';
 
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
@@ -321,20 +324,23 @@ const MoneyMetaMaskCard = ({
   analyticsReady = true,
 }: MoneyMetaMaskCardProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedViewRef = useRef(false);
   const cardType = showMetalCard ? 'metal' : 'virtual';
 
   const buildAnalyticsProperties = useCallback(
-    (action?: CardActions) => ({
-      screen: analyticsScreen,
-      entrypoint: analyticsEntryPoint,
-      mode,
-      card_type: cardType,
-      flow: analyticsFlow,
-      card_state: analyticsCardState,
-      action,
-    }),
+    (action?: CardActions) =>
+      withCardProvider(activeProviderId, {
+        screen: analyticsScreen,
+        entrypoint: analyticsEntryPoint,
+        mode,
+        card_type: cardType,
+        flow: analyticsFlow,
+        card_state: analyticsCardState,
+        action,
+      }),
     [
+      activeProviderId,
       analyticsScreen,
       analyticsEntryPoint,
       mode,

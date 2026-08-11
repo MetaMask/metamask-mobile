@@ -32,7 +32,8 @@ import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -243,10 +244,12 @@ const PersonalDetails = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.PERSONAL_DETAILS_BUTTON,
-            country_of_residence: selectedCountry?.key,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.PERSONAL_DETAILS_BUTTON,
+              country_of_residence: selectedCountry?.key,
+            }),
+          )
           .build(),
       );
       const { user } = await registerPersonalDetails({
@@ -282,9 +285,11 @@ const PersonalDetails = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.PERSONAL_DETAILS,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.PERSONAL_DETAILS,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);

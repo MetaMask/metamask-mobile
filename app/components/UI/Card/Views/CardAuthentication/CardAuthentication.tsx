@@ -5,7 +5,13 @@ import {
   CommonActions,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
   Box,
@@ -38,7 +44,8 @@ import {
   selectImmersveOnboardingEnabled,
 } from '../../../../../selectors/featureFlagController/card';
 import { CardMessageBoxType, type CardLocation } from '../../types';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import SelectField from '../../components/Onboarding/SelectField';
 import NavigationService from '../../../../../core/NavigationService';
@@ -94,6 +101,7 @@ const CardAuthentication = () => {
   const isUkMode = selection === 'uk';
   const selectedLocation: CardLocation =
     selection === 'uk' ? 'international' : selection;
+  const lastTrackedAuthView = useRef<string | null>(null);
 
   const accountName = useAccountGroupName();
   const selectAccountByScope = useSelector(
@@ -200,15 +208,27 @@ const CardAuthentication = () => {
     const screenName = isOtpStep
       ? CardScreens.OTP_AUTHENTICATION
       : CardScreens.AUTHENTICATION;
+    const provider = isUkMode
+      ? CardProviderIds.Immersve
+      : CardProviderIds.Baanx;
+    // Fire once per screen+provider so UK toggles update attribution without
+    // spamming identical re-renders.
+    const viewKey = `${screenName}:${provider}`;
+    if (lastTrackedAuthView.current === viewKey) {
+      return;
+    }
+    lastTrackedAuthView.current = viewKey;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: screenName,
-        })
+        .addProperties(
+          withCardProvider(provider, {
+            screen: screenName,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder, isOtpStep]);
+  }, [trackEvent, createEventBuilder, isOtpStep, isUkMode]);
 
   const performLogin = useCallback(
     async (otpCode?: string) => {
@@ -218,9 +238,11 @@ const CardAuthentication = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action,
+            }),
+          )
           .build(),
       );
 
@@ -335,9 +357,11 @@ const CardAuthentication = () => {
   const handleForgotPassword = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.AUTHENTICATION_FORGOT_PASSWORD,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.AUTHENTICATION_FORGOT_PASSWORD,
+          }),
+        )
         .build(),
     );
     navigation.navigate(Routes.CARD.MODALS.ID, {
@@ -361,9 +385,11 @@ const CardAuthentication = () => {
     if (!immersveAddress) return;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.AUTHENTICATION_LOGIN_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.AUTHENTICATION_LOGIN_BUTTON,
+          }),
+        )
         .build(),
     );
     setUkError(null);
@@ -374,6 +400,7 @@ const CardAuthentication = () => {
         address: immersveAddress,
         showAccountExistsToast: false,
         navigateFromRoot: true,
+        entrypoint: 'authentication',
       });
     } catch (err) {
       setUkError(getCardProviderErrorMessage(err));

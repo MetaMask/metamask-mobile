@@ -273,6 +273,7 @@ describe('Complete Component', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.COMPLETE,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -293,6 +294,7 @@ describe('Complete Component', () => {
         );
       });
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.COMPLETE_BUTTON,
       });
       expect(mockTrackEvent).toHaveBeenCalled();

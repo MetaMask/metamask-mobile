@@ -26,6 +26,10 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'baanx'),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     if (key === 'card.card_spending_limit.spend_and_earn_description_apy') {
@@ -116,6 +120,7 @@ describe('SpendAndEarnPromoCard', () => {
       MetaMetricsEvents.CARD_VIEWED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.SPENDING_LIMIT,
       entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
       flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
@@ -140,6 +145,7 @@ describe('SpendAndEarnPromoCard', () => {
       MetaMetricsEvents.CARD_BUTTON_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.SPENDING_LIMIT,
       entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
       flow: CardFlow.MONEY_ACCOUNT_LINKAGE,

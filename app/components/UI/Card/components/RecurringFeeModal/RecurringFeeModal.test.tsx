@@ -192,6 +192,7 @@ describe('RecurringFeeModal', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.RECURRING_FEE_GOT_IT,
         screen: CardScreens.REVIEW_ORDER,
       });

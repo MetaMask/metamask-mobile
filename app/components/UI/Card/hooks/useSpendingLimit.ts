@@ -58,7 +58,8 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { CardActions, CardScreens } from '../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../util/metrics';
+import { selectCardActiveProviderId } from '../../../../selectors/cardController';
 
 export type LimitType = 'full' | 'restricted';
 
@@ -148,6 +149,7 @@ const useSpendingLimit = ({
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { sdk } = useCardSDK();
 
   const initialLimitState = initialToken
@@ -317,23 +319,26 @@ const useSpendingLimit = ({
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen,
-          flow,
-          musd_linea_balance: musdOnLinea?.tokenFiatAmount ?? 0,
-          top_card_chain_asset: topCardToken
-            ? toNetworkAsset(topCardToken)
-            : null,
-          top_wallet_chain_asset: topWalletToken
-            ? toNetworkAsset(topWalletToken)
-            : null,
-          top_wallet_asset_balance: topWalletToken?.tokenFiatAmount ?? 0,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen,
+            flow,
+            musd_linea_balance: musdOnLinea?.tokenFiatAmount ?? 0,
+            top_card_chain_asset: topCardToken
+              ? toNetworkAsset(topCardToken)
+              : null,
+            top_wallet_chain_asset: topWalletToken
+              ? toNetworkAsset(topWalletToken)
+              : null,
+            top_wallet_asset_balance: topWalletToken?.tokenFiatAmount ?? 0,
+          }),
+        )
         .build(),
     );
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     flow,
     allTokens,
     walletTokens,
@@ -506,7 +511,11 @@ const useSpendingLimit = ({
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.OTHER_TOKEN_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.OTHER_TOKEN_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -530,6 +539,7 @@ const useSpendingLimit = ({
     selectedToken,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     routeParams,
   ]);
 
@@ -604,7 +614,11 @@ const useSpendingLimit = ({
   const submit = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.ENABLE_TOKEN_CONFIRM_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.ENABLE_TOKEN_CONFIRM_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -713,6 +727,7 @@ const useSpendingLimit = ({
     navigation,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     isMoneyAccountSource,
     confirmMoneyAccountLinkInBackground,
   ]);
@@ -722,27 +737,39 @@ const useSpendingLimit = ({
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON,
+          }),
+        )
         .build(),
     );
 
     navigation.goBack();
-  }, [navigation, trackEvent, createEventBuilder, isLoading]);
+  }, [navigation, trackEvent, createEventBuilder, activeProviderId, isLoading]);
 
   const skip = useCallback(() => {
     if (isLoading) return;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON,
-          skipped: true,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON,
+            skipped: true,
+          }),
+        )
         .build(),
     );
 
     navigateToCardHome();
-  }, [trackEvent, createEventBuilder, isLoading, navigateToCardHome]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+    isLoading,
+    navigateToCardHome,
+  ]);
 
   return {
     // State

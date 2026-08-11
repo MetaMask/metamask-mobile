@@ -58,6 +58,7 @@ import {
   selectHasMetalCard,
   selectIsCardholder,
   selectIsCardStateResolved,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import {
@@ -80,6 +81,7 @@ import {
   CardFlow,
   CardScreens,
   deriveCardState,
+  withCardProvider,
 } from '../../../Card/util/metrics';
 
 import { TraceName } from '../../../../../util/trace';
@@ -114,6 +116,7 @@ const MoneyHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
@@ -471,16 +474,24 @@ const MoneyHomeView = () => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          screen: CardScreens.MONEY_HOME,
-          entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
-          action: CardActions.MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
+            action: CardActions.MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON,
+          }),
+        )
         .build(),
     );
 
     navigateToCardHome();
-  }, [trackButtonClicked, trackEvent, createEventBuilder, navigateToCardHome]);
+  }, [
+    trackButtonClicked,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+    navigateToCardHome,
+  ]);
 
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow({
@@ -495,13 +506,15 @@ const MoneyHomeView = () => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.MONEY_HOME,
-          entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const handleApyInfoPress = useCallback(() => {
     trackTooltipClicked({

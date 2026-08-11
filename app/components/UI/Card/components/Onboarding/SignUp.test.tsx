@@ -360,20 +360,47 @@ describe('SignUp Component', () => {
   });
 
   describe('Analytics', () => {
-    it('tracks CARD_VIEWED event on mount', () => {
+    it('tracks CARD_VIEWED event once country is known', async () => {
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+
       render(
-        <Provider store={store}>
+        <Provider store={storeWithGeo}>
           <SignUp />
         </Provider>,
       );
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_VIEWED,
-      );
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.CARD_VIEWED,
+        );
+      });
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.SIGN_UP,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_VIEWED with immersve provider for Immersve countries', async () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+
+      render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          provider: 'immersve',
+          screen: CardScreens.SIGN_UP,
+        });
+      });
     });
 
     it('tracks CARD_BUTTON_CLICKED with SIGN_UP_BUTTON when continue is pressed', async () => {
@@ -410,6 +437,7 @@ describe('SignUp Component', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.SIGN_UP_BUTTON,
       });
       expect(mockTrackEvent).toHaveBeenCalled();

@@ -12,7 +12,9 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import WaitingKYCImage from '../../../../../images/waiting-kyc-card.png';
 import {
   Box,
@@ -23,6 +25,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { colors as importedColors } from '../../../../../styles/common';
+import { useSelector } from 'react-redux';
 
 // Threshold for small screen adjustments
 const SMALL_SCREEN_THRESHOLD = 700;
@@ -35,6 +38,7 @@ const KYCPending = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   // Responsive image dimensions based on current window dimensions
@@ -49,12 +53,14 @@ const KYCPending = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.KYC_PENDING,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId ?? CardProviderIds.Baanx, {
+            screen: CardScreens.KYC_PENDING,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME);

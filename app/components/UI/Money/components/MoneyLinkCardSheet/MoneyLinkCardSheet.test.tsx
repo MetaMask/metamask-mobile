@@ -110,6 +110,7 @@ jest.mock('../../hooks/useMoneyVaultApy', () => ({
 jest.mock('../../../../../selectors/cardController', () => ({
   selectCardHomeData: jest.fn(),
   selectCardHomeDataStatus: jest.fn(),
+  selectCardActiveProviderId: jest.fn(() => 'baanx'),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -205,6 +206,7 @@ describe('MoneyLinkCardSheet', () => {
       MetaMetricsEvents.CARD_VIEWED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.MONEY_LINK_CARD_SHEET,
       entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
       origin_entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
@@ -235,6 +237,7 @@ describe('MoneyLinkCardSheet', () => {
       MetaMetricsEvents.CARD_VIEWED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.MONEY_LINK_CARD_SHEET,
       entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
       origin_entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
@@ -252,6 +255,7 @@ describe('MoneyLinkCardSheet', () => {
       MetaMetricsEvents.CARD_VIEWED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.MONEY_LINK_CARD_SHEET,
       entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
       origin_entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
@@ -474,6 +478,7 @@ describe('MoneyLinkCardSheet', () => {
       MetaMetricsEvents.CARD_BUTTON_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.MONEY_LINK_CARD_SHEET,
       entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
       origin_entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
@@ -513,6 +518,7 @@ describe('MoneyLinkCardSheet', () => {
       MetaMetricsEvents.CARD_BUTTON_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.MONEY_LINK_CARD_SHEET,
       entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
       origin_entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,

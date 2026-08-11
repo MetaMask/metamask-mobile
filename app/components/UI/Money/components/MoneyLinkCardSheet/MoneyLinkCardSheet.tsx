@@ -21,6 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import Engine from '../../../../../core/Engine';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
@@ -39,6 +40,7 @@ import {
   CardActions,
   CardEntryPoint,
   CardScreens,
+  withCardProvider,
 } from '../../../Card/util/metrics';
 
 interface MoneyLinkCardSheetRouteParams {
@@ -76,6 +78,7 @@ const MoneyLinkCardSheet = () => {
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { apyPercent } = useMoneyVaultApy();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const cardHomeData = useSelector(selectCardHomeData);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isMetalCard = cardHomeData?.card?.type === CardType.METAL;
@@ -98,17 +101,20 @@ const MoneyLinkCardSheet = () => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.MONEY_LINK_CARD_SHEET,
-          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
-          origin_entrypoint: originEntryPoint,
-          card_type: cardType,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.MONEY_LINK_CARD_SHEET,
+            entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+            origin_entrypoint: originEntryPoint,
+            card_type: cardType,
+          }),
+        )
         .build(),
     );
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     originEntryPoint,
     cardType,
     isCardDataReady,
@@ -138,29 +144,39 @@ const MoneyLinkCardSheet = () => {
   const handleClose = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          screen: CardScreens.MONEY_LINK_CARD_SHEET,
-          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
-          origin_entrypoint: originEntryPoint,
-          action: CardActions.MONEY_LINK_CARD_SHEET_CLOSE_BUTTON,
-          card_type: cardType,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.MONEY_LINK_CARD_SHEET,
+            entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+            origin_entrypoint: originEntryPoint,
+            action: CardActions.MONEY_LINK_CARD_SHEET_CLOSE_BUTTON,
+            card_type: cardType,
+          }),
+        )
         .build(),
     );
 
     sheetRef.current?.onCloseBottomSheet();
-  }, [trackEvent, createEventBuilder, originEntryPoint, cardType]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+    originEntryPoint,
+    cardType,
+  ]);
 
   const handleConfirm = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          screen: CardScreens.MONEY_LINK_CARD_SHEET,
-          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
-          origin_entrypoint: originEntryPoint,
-          action: CardActions.MONEY_LINK_CARD_SHEET_CONFIRM_BUTTON,
-          card_type: cardType,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.MONEY_LINK_CARD_SHEET,
+            entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+            origin_entrypoint: originEntryPoint,
+            action: CardActions.MONEY_LINK_CARD_SHEET_CONFIRM_BUTTON,
+            card_type: cardType,
+          }),
+        )
         .build(),
     );
 
@@ -172,6 +188,7 @@ const MoneyLinkCardSheet = () => {
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     originEntryPoint,
     cardType,
     confirmLinkInBackground,

@@ -17,6 +17,7 @@ import {
   selectIsMoneyAccountDelegatedForCard,
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -245,6 +246,7 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectMoneyAccountVedaTokenConfig) return state.vedaConfig;
     if (selector === selectIsCardResidencyBlocked)
       return state.isResidencyBlocked;
+    if (selector === selectCardActiveProviderId) return 'baanx';
     return undefined;
   });
 };
@@ -1206,6 +1208,7 @@ describe('useMoneyAccountCardLinkage', () => {
         MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_COMPLETED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         is_revoke: false,
@@ -1309,6 +1312,7 @@ describe('useMoneyAccountCardLinkage', () => {
         MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.CONTROLLER_FAILED,
@@ -1375,6 +1379,7 @@ describe('useMoneyAccountCardLinkage', () => {
         MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.USER_CANCELLED,
@@ -1405,6 +1410,7 @@ describe('useMoneyAccountCardLinkage', () => {
         MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_STARTED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.PRECONDITION_FAILED,
@@ -1428,6 +1434,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(returned).toBe(false);
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
@@ -1449,6 +1456,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(returned).toBe(false);
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.PRECONDITION_FAILED,

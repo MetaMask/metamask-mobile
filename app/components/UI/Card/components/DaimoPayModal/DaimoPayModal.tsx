@@ -21,7 +21,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import DaimoPayService, {
   DaimoPayEvent,
   DaimoPayEventType,
@@ -146,9 +147,11 @@ const DaimoPayModal: React.FC = () => {
   const handleClose = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_USER_CANCELED)
-        .addProperties({
-          screen: CardScreens.DAIMO_PAY,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.DAIMO_PAY,
+          }),
+        )
         .build(),
     );
     navigation.goBack();
@@ -158,10 +161,12 @@ const DaimoPayModal: React.FC = () => {
     (txHash?: string, chainId?: number) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_COMPLETED)
-          .addProperties({
-            screen: CardScreens.DAIMO_PAY,
-            chain_id: chainId,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              screen: CardScreens.DAIMO_PAY,
+              chain_id: chainId,
+            }),
+          )
           .build(),
       );
 
@@ -215,10 +220,12 @@ const DaimoPayModal: React.FC = () => {
     (errorMessage?: string) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_FAILED)
-          .addProperties({
-            screen: CardScreens.DAIMO_PAY,
-            error: errorMessage,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              screen: CardScreens.DAIMO_PAY,
+              error: errorMessage,
+            }),
+          )
           .build(),
       );
 
@@ -332,9 +339,11 @@ const DaimoPayModal: React.FC = () => {
         case 'modalOpened':
           trackEvent(
             createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_VIEWED)
-              .addProperties({
-                screen: CardScreens.DAIMO_PAY,
-              })
+              .addProperties(
+                withCardProvider(CardProviderIds.Baanx, {
+                  screen: CardScreens.DAIMO_PAY,
+                }),
+              )
               .build(),
           );
           break;
@@ -346,9 +355,11 @@ const DaimoPayModal: React.FC = () => {
         case 'paymentStarted':
           trackEvent(
             createEventBuilder(MetaMetricsEvents.CARD_METAL_CHECKOUT_STARTED)
-              .addProperties({
-                screen: CardScreens.DAIMO_PAY,
-              })
+              .addProperties(
+                withCardProvider(CardProviderIds.Baanx, {
+                  screen: CardScreens.DAIMO_PAY,
+                }),
+              )
               .build(),
           );
           startPolling();

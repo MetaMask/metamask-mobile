@@ -24,12 +24,14 @@ import {
   CardEntryPoint,
   CardScreens,
   deriveCardState,
+  withCardProvider,
 } from '../../../Card/util/metrics';
 import { useSelector } from 'react-redux';
 import {
   selectIsCardholder,
   selectCardHomeDataStatus,
   selectIsCardStateResolved,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -43,6 +45,7 @@ export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
 
 const MoneyOnboardingCard = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedCardStepViewRef = useRef(false);
 
   const {
@@ -122,12 +125,14 @@ const MoneyOnboardingCard = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            screen: CardScreens.MONEY_HOME,
-            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
-            card_state: cardState,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              screen: CardScreens.MONEY_HOME,
+              entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+              action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
+              card_state: cardState,
+            }),
+          )
           .build(),
       );
 
@@ -140,6 +145,7 @@ const MoneyOnboardingCard = () => {
       trackOnboardingEvent,
       trackEvent,
       createEventBuilder,
+      activeProviderId,
       cardState,
     ],
   );
@@ -156,12 +162,14 @@ const MoneyOnboardingCard = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            screen: CardScreens.MONEY_HOME,
-            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
-            card_state: cardState,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              screen: CardScreens.MONEY_HOME,
+              entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+              action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
+              card_state: cardState,
+            }),
+          )
           .build(),
       );
 
@@ -173,6 +181,7 @@ const MoneyOnboardingCard = () => {
       trackOnboardingEvent,
       trackEvent,
       createEventBuilder,
+      activeProviderId,
       cardState,
     ],
   );
@@ -229,16 +238,19 @@ const MoneyOnboardingCard = () => {
     hasTrackedCardStepViewRef.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.MONEY_HOME,
-          entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-          card_state: cardState,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+            card_state: cardState,
+          }),
+        )
         .build(),
     );
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     effectiveCurrentStep,
     isBalanceLoading,
     isCardAnalyticsReady,

@@ -21,7 +21,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
@@ -79,9 +80,11 @@ const VerifyIdentity = () => {
   const handleContinue = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VERIFY_IDENTITY_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.VERIFY_IDENTITY_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -119,9 +122,11 @@ const VerifyIdentity = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.VERIFY_IDENTITY,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.VERIFY_IDENTITY,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);

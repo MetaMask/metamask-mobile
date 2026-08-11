@@ -46,7 +46,8 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import Logger from '../../../../../util/Logger';
 import { Linking } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -451,9 +452,11 @@ const PhysicalAddress = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
+            }),
+          )
           .build(),
       );
 
@@ -639,9 +642,11 @@ const PhysicalAddress = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.RESIDENTIAL_ADDRESS,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.RESIDENTIAL_ADDRESS,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
