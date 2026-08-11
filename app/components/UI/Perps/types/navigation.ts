@@ -185,11 +185,13 @@ export type PerpsStackParamList = {
     source?: string;
     buttonClicked?: string;
     buttonLocation?: string;
+    enableHaptics?: boolean;
   };
 
   PerpsAdjustMargin: {
     position: Position;
     mode: 'add' | 'remove';
+    enableHaptics?: boolean;
   };
 
   // Action selection routes

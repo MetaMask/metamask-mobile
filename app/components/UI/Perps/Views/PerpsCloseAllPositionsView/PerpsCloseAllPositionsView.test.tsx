@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import PerpsCloseAllPositionsView from './PerpsCloseAllPositionsView';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -10,11 +10,13 @@ import {
 } from '../../hooks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn(), goBack: jest.fn() })),
 }));
+jest.mock('../../../../../util/haptics');
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -145,6 +147,31 @@ describe('PerpsCloseAllPositionsView', () => {
       accountOptedIn: true,
       account: mockRewardAccountOptedIn as unknown as InternalAccount,
     });
+  });
+
+  it('keeps close-all confirmation haptics off by default', () => {
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
+
+    fireEvent.press(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON),
+    );
+
+    expect(mockCloseAllHook.handleCloseAll).toHaveBeenCalledTimes(1);
+    expect(playImpact).not.toHaveBeenCalled();
+  });
+
+  it('plays PrimaryCTA once for opted-in close-all confirmation', () => {
+    const { getByTestId } = render(
+      <PerpsCloseAllPositionsView enableHaptics />,
+    );
+
+    fireEvent.press(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON),
+    );
+
+    expect(mockCloseAllHook.handleCloseAll).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('renders loading state when initially loading positions', () => {
