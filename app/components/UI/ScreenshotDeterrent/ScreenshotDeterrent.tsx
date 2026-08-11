@@ -19,9 +19,10 @@ const CAPTURE_RELEASE_DELAY_MS = 500;
 let activeScreenCaptureBlocks = 0;
 let pendingCaptureRelease: ReturnType<typeof setTimeout> | undefined;
 
-// Both calls resolve to a promise on Android and to a plain value on iOS, where
-// they are no-ops. A rejection only means the activity was missing, which the
-// next call recovers from, so it is swallowed rather than left unobserved.
+// PreventScreenshot.forbid/allow are themselves no-ops on iOS (see
+// PreventScreenshot.js for why); on Android a rejection only means the
+// activity was missing, which the next call recovers from, so it is
+// swallowed rather than left unobserved.
 const runCaptureCall = (call: () => unknown) => {
   Promise.resolve(call()).catch(() => undefined);
 };
