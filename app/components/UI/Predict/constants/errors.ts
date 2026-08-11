@@ -84,4 +84,10 @@ export const getPredictErrorMessages = () =>
     [PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED]: strings(
       'predict.error_messages.market_bettable_check_failed',
     ),
+    [PREDICT_ERROR_CODES.DEPOSIT_FAILED]: strings(
+      'predict.error_messages.deposit_failed',
+    ),
+    [PREDICT_ERROR_CODES.WITHDRAW_FAILED]: strings(
+      'predict.error_messages.withdraw_failed',
+    ),
   }) as const;
