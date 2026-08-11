@@ -20,7 +20,7 @@ export interface DeviceMatrix {
 
 // Gestures
 
-import { LanguageAndLocale } from 'detox/detox';
+import { LanguageAndLocale } from './legacy-detox-shim';
 import { DappVariants } from './Constants.ts';
 import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
