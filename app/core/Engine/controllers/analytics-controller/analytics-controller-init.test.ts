@@ -25,7 +25,7 @@ type InternalAccounts = AccountsControllerState['internalAccounts']['accounts'];
 jest.mock('@metamask/analytics-controller', () => ({
   ...jest.requireActual('@metamask/analytics-controller'),
   AnalyticsController: jest.fn().mockImplementation(() => ({
-    init: jest.fn(),
+    init: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -42,8 +42,12 @@ jest.mock('../../../../util/test/utils', () => ({
 }));
 
 jest.mock('../../../Braze', () => ({
-  getBrazePlugin: jest.fn().mockReturnValue({}),
+  getBrazePlugin: jest.fn().mockReturnValue({ name: 'braze' }),
 }));
+
+jest.mock('../../../../util/analytics/appVersionSegmentPlugin', () =>
+  jest.fn().mockImplementation(() => ({ name: 'appVersion' })),
+);
 
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
@@ -154,6 +158,7 @@ describe('analyticsControllerInit', () => {
         state: expect.objectContaining({ analyticsId: 'test-analytics-id' }),
         platformAdapter: expect.any(Object),
         isAnonymousEventsFeatureEnabled: true,
+        isGeolocationEnabled: false,
       });
     });
 
@@ -182,8 +187,13 @@ describe('analyticsControllerInit', () => {
   describe('platform adapter', () => {
     it('uses standard platform adapter when not in E2E', () => {
       const { createPlatformAdapter } = jest.requireMock('./platform-adapter');
+
       analyticsControllerInit(getInitRequestMock());
-      expect(createPlatformAdapter).toHaveBeenCalled();
+
+      expect(createPlatformAdapter).toHaveBeenCalledWith([
+        { name: 'braze' },
+        { name: 'appVersion' },
+      ]);
     });
 
     it('uses E2E platform adapter when hasTestOverrides is true', () => {
