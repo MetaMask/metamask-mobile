@@ -653,40 +653,12 @@ class TestDApp {
     contractAddress,
     scrollTo,
   }: ContractNavigationParams): Promise<void> {
+    await Browser.tapUrlInputBox();
     const params = new URLSearchParams({ contract: contractAddress });
     if (scrollTo) {
       params.set('scrollTo', scrollTo);
     }
-    const url = `${getDappUrl(0)}/?${params.toString()}`;
-
-    const navigate = async (): Promise<void> => {
-      await Browser.tapUrlInputBox();
-      await Browser.navigateToURL(url);
-    };
-
-    if (!FrameworkDetector.isAppium() || !scrollTo) {
-      await navigate();
-      return;
-    }
-
-    // Appium's post-submit URL-editor dismissal can cancel navigation; the
-    // target button only enables once the contract page bound, so retry until it does.
-    await Utilities.executeWithRetry(
-      async () => {
-        await navigate();
-        await Utilities.waitUntil(
-          async () => {
-            const button = await PlaywrightMatchers.getElementById(scrollTo);
-            return button.isEnabled().catch(() => false);
-          },
-          { timeout: 15_000, interval: 500 },
-        );
-      },
-      {
-        timeout: 60_000,
-        description: `Test dapp contract page loaded (#${scrollTo} enabled)`,
-      },
-    );
+    await Browser.navigateToURL(`${getDappUrl(0)}/?${params.toString()}`);
   }
 
   async switchChainFromTestDapp(): Promise<void> {
