@@ -41,17 +41,38 @@ function clearStaleParentState(): void {
   parentSpan = undefined;
 }
 
-function resolveParentContext(): TraceContext {
+/**
+ * Whether the module still considers the Buy E2E parent open.
+ *
+ * Consent-buffered `trace()` calls return `undefined` and never register in
+ * `tracesByKey`, so a missing `getTraceContext` entry is only treated as
+ * out-of-band cleanup when we previously held a real span.
+ */
+function hasLiveParent(): boolean {
+  if (!parentOpId) {
+    return false;
+  }
+
+  if (parentSpan === undefined) {
+    // Buffered start (metrics consent not yet granted) — keep single-flight.
+    return true;
+  }
+
   if (
-    !parentOpId ||
     getTraceContext({
       name: TraceName.RampBuyToOrderDetails,
       id: parentOpId,
     }) === undefined
   ) {
-    if (parentOpId) {
-      clearStaleParentState();
-    }
+    clearStaleParentState();
+    return false;
+  }
+
+  return true;
+}
+
+function resolveParentContext(): TraceContext {
+  if (!hasLiveParent()) {
     return undefined;
   }
   return parentSpan;
@@ -102,7 +123,7 @@ export function startRampsBuyCufTrace({
   startTime,
   data,
 }: StartRampsBuyCufTraceOptions = {}): string {
-  if (resolveParentContext() && parentOpId) {
+  if (hasLiveParent() && parentOpId) {
     return parentOpId;
   }
 

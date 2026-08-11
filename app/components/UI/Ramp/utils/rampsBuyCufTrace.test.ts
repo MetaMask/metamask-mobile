@@ -41,6 +41,7 @@ describe('rampsBuyCufTrace', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetRampsBuyCufTraceForTests();
+    mockTrace.mockReturnValue({ mocked: 'parent-span' });
     mockGetTraceContext.mockReturnValue({ mocked: 'parent-span' });
   });
 
@@ -107,6 +108,59 @@ describe('rampsBuyCufTrace', () => {
     expect(
       startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK }),
     ).not.toEqual(first);
+  });
+
+  it('keeps single-flight when the parent start was consent-buffered', () => {
+    mockTrace.mockReturnValue(undefined);
+    mockGetTraceContext.mockReturnValue(undefined);
+
+    const first = startRampsBuyCufTrace({
+      surface: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
+    });
+
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+    expect(getRampsBuyCufParentContext()).toBeUndefined();
+    expect(
+      startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK }),
+    ).toEqual(first);
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends a consent-buffered parent without clearing it as stale first', () => {
+    mockTrace.mockReturnValue(undefined);
+    mockGetTraceContext.mockReturnValue(undefined);
+
+    const opId = startRampsBuyCufTrace();
+    endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.RampBuyToOrderDetails,
+        id: opId,
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      }),
+    );
+    expect(hasActiveRampsBuyCufTrace()).toBe(false);
+  });
+
+  it('starts standalone quote fetches while the parent is consent-buffered', () => {
+    mockTrace.mockReturnValue(undefined);
+    mockGetTraceContext.mockReturnValue(undefined);
+    startRampsBuyCufTrace();
+    mockTrace.mockClear();
+    mockTrace.mockReturnValue(undefined);
+
+    const opId = startRampsBuyQuoteFetchTrace();
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.RampBuyQuoteFetch,
+        id: opId,
+        parentContext: undefined,
+        forceTransaction: true,
+      }),
+    );
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
   });
 
   it('ignores end when the id does not match the open parent', () => {
