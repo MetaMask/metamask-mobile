@@ -95,7 +95,7 @@ describe('DepositKeyboard', () => {
     });
 
     const doneButton = getByTestId('deposit-keyboard-done-button');
-    expect(getByText(strings('confirm.edit_amount_done'))).toBeDefined();
+    expect(getByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
     expect(doneButton).toBeDisabled();
 
     fireEvent.press(doneButton);
