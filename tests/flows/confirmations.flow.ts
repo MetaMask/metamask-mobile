@@ -29,6 +29,119 @@ const LOCAL_CHAIN_NAME = 'Local RPC';
 const LOCAL_CHAIN_CAIP = 'eip155:1337';
 const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
+const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
+const ANDROID_CONFIRM_POLL_MS = 3_000;
+const DAPP_BUTTON_READY_TIMEOUT_MS = 20_000;
+const DAPP_BUTTON_READY_POLL_MS = 500;
+/** Re-run the dapp's contract binding if it is still missing after this long. */
+const DAPP_CONTRACT_RELOAD_AFTER_MS = 8_000;
+/**
+ * `contractIsDeployed` fills these from the `?contract=` query param. When
+ * `initializeContracts()` throws, the listener still enables every button but
+ * leaves the address blank, so the handlers call into an undefined contract.
+ */
+const CONTRACT_ADDRESS_ELEMENT_IDS = [
+  'erc20TokenAddresses',
+  'erc721TokenAddresses',
+  'erc1155TokenAddresses',
+];
+
+interface TestDappButtonState {
+  href: string;
+  documentReady: boolean;
+  hasEthereum: boolean;
+  hasButton: boolean;
+  buttonDisabled: boolean;
+  contractParam: string | null;
+  contractBound: boolean;
+}
+
+const readTestDappButtonState = (
+  pageUrl: string,
+  buttonId: string,
+): Promise<TestDappButtonState | null> =>
+  ChromeCdpHelpers.evaluateInWebView<TestDappButtonState>(
+    pageUrl,
+    `(() => {
+      const el = document.getElementById(${JSON.stringify(buttonId)});
+      const contractIds = ${JSON.stringify(CONTRACT_ADDRESS_ELEMENT_IDS)};
+      return {
+        href: location.href,
+        documentReady: document.readyState === 'complete',
+        hasEthereum: typeof window.ethereum !== 'undefined',
+        hasButton: Boolean(el),
+        buttonDisabled: Boolean(
+          el &&
+            (('disabled' in el && el.disabled) ||
+              el.getAttribute('aria-disabled') === 'true'),
+        ),
+        contractParam: new URLSearchParams(location.search).get('contract'),
+        contractBound: contractIds.some((id) => {
+          const node = document.getElementById(id);
+          return Boolean(node && (node.textContent || '').trim());
+        }),
+      };
+    })()`,
+  );
+
+const isTestDappButtonReady = (state: TestDappButtonState | null): boolean =>
+  Boolean(
+    state?.documentReady &&
+      state.hasEthereum &&
+      state.hasButton &&
+      !state.buttonDisabled &&
+      (!state.contractParam || state.contractBound),
+  );
+
+/**
+ * The URL bar shows the dapp URL before the page finishes loading, before the
+ * provider is injected, and before the dapp binds the contract from
+ * `?contract=`. A tap issued in that window clicks a real DOM node and reports
+ * success, but no confirmation is ever requested.
+ *
+ * Contract binding only happens while initializing the provider, so a reload is
+ * the only way to recover a page that came up without it.
+ */
+const waitForTestDappButtonReady = async (
+  pageUrl: string,
+  buttonId: string,
+  timeoutMs = DAPP_BUTTON_READY_TIMEOUT_MS,
+): Promise<TestDappButtonState | null> => {
+  const startedAt = Date.now();
+  let state: TestDappButtonState | null = null;
+  let reloaded = false;
+
+  try {
+    await Utilities.waitUntil(
+      async () => {
+        state = await readTestDappButtonState(pageUrl, buttonId);
+        if (isTestDappButtonReady(state)) {
+          return true;
+        }
+
+        if (
+          !reloaded &&
+          state?.contractParam &&
+          !state.contractBound &&
+          Date.now() - startedAt >= DAPP_CONTRACT_RELOAD_AFTER_MS
+        ) {
+          reloaded = true;
+          await ChromeCdpHelpers.evaluateInWebView(
+            pageUrl,
+            'location.reload()',
+          );
+        }
+
+        return false;
+      },
+      { timeout: timeoutMs, interval: DAPP_BUTTON_READY_POLL_MS },
+    );
+  } catch {
+    // Return the last observed state so the caller can include diagnostics.
+  }
+
+  return state;
+};
 
 export {
   LOCAL_CHAIN_CAIP,
@@ -38,9 +151,6 @@ export {
 
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
- *
- * Android: CDP can report a successful DOM click without MetaMask opening
- * the confirmation sheet. Retry the click when confirm-button never appears.
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -50,40 +160,39 @@ const tapTestDappButtonAndWaitForConfirm = async (
   const confirmTimeoutMs = 30_000;
 
   if (PlatformDetector.isAndroidAppium()) {
-    ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    const maxAttempts = 3;
-    // Short per-attempt wait so we can re-click within a reasonable budget.
-    const perAttemptConfirmTimeoutMs = 12_000;
-    let lastError: unknown;
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      if (attempt > 1) {
-        ChromeCdpHelpers.resetMetaMaskWebViewCache();
-      }
-      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-        pageUrl,
-        buttonId,
+    let dismissedPushSheet = false;
+    let lastState: TestDappButtonState | null = null;
+    try {
+      await Utilities.executeWithRetry(
+        async () => {
+          lastState = await waitForTestDappButtonReady(pageUrl, buttonId);
+          await WebView.tapById(buttonId, {
+            pageUrl,
+            description,
+          });
+          try {
+            await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
+          } catch (error) {
+            if (!dismissedPushSheet) {
+              dismissedPushSheet = true;
+              await dismissPushNotificationExistingUserSheet();
+            }
+            throw error;
+          }
+        },
+        { timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS },
       );
-      if (!clicked) {
-        lastError = new Error(
-          `CDP could not click #${buttonId} (${description}) on attempt ${attempt}/${maxAttempts}`,
-        );
-        continue;
-      }
-      try {
-        await FooterActions.waitForConfirmButton(perAttemptConfirmTimeoutMs);
-        return;
-      } catch (error) {
-        lastError = error;
-      }
+    } catch (error) {
+      throw new Error(
+        `Confirmation sheet never opened after tapping #${buttonId} (${description}); ` +
+          `last dapp state=${JSON.stringify(lastState)}; cause=${
+            error instanceof Error ? error.message : String(error)
+          }`,
+      );
     }
-    throw lastError instanceof Error
-      ? lastError
-      : new Error(
-          `Confirmation sheet did not open after clicking #${buttonId} (${description}) in ${maxAttempts} attempts`,
-        );
+    return;
   }
 
-  await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(pageUrl, buttonId);
   await WebView.tapById(buttonId, {
     pageUrl,
     description,

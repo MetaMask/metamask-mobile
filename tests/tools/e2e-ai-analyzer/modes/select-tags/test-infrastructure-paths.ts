@@ -65,10 +65,7 @@ export function getFrameworkInfraChanges(changedFiles: string[]): string[] {
  * Spec file path prefixes for E2E smoke tests.
  * Smart E2E selection covers smoke tags only.
  */
-export const SPEC_PATH_PREFIXES = [
-  'tests/smoke/',
-  'tests/smoke-appium/',
-] as const;
+export const SPEC_PATH_PREFIXES = ['tests/smoke-appium/'] as const;
 
 const SPEC_FILE_PATTERN = /\.spec\./;
 

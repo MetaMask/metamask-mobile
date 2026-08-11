@@ -1,4 +1,4 @@
-import { web, system } from 'detox';
+import { web, system, element, by } from './legacy-detox-shim';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
