@@ -48,4 +48,15 @@ describe('useMoneyAccountDepositAssetId', () => {
 
     expect(result.current).toBe(MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD]);
   });
+
+  it('falls back to the Monad asset id when the vault chain has no mUSD deployment', () => {
+    // The shared resolver returns `undefined` here; the Monad default is client
+    // policy applied in this hook. Without it the deposit entry-point gate would
+    // compare against an undefined asset id.
+    withVaultConfig({ chainId: CHAIN_IDS.ARBITRUM });
+
+    const { result } = renderHook(() => useMoneyAccountDepositAssetId());
+
+    expect(result.current).toBe(MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD]);
+  });
 });

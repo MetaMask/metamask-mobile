@@ -17,9 +17,9 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
-  buildMoneyAccountDepositBatch,
-  buildMoneyAccountWithdrawBatch,
-} from '../utils/moneyAccountTransactions';
+  buildMoneyAccountDepositPlaceholderBatch,
+  buildMoneyAccountWithdrawPlaceholderBatch,
+} from '@metamask/money-account-utils';
 import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
@@ -71,7 +71,16 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../utils/moneyAccountTransactions');
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositPlaceholderBatch: jest.fn(),
+  buildMoneyAccountWithdrawPlaceholderBatch: jest.fn(),
+  // The mock vault chain here is Arbitrum, which has no mUSD deployment, so the
+  // real resolver would throw. The address itself is not under test.
+  getMoneyAccountDepositAssetAddress: jest.fn(
+    () => '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  ),
+}));
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
@@ -123,12 +132,12 @@ const mockAddTransactionBatch = addTransactionBatch as jest.MockedFunction<
   typeof addTransactionBatch
 >;
 const mockBuildDepositBatch =
-  buildMoneyAccountDepositBatch as jest.MockedFunction<
-    typeof buildMoneyAccountDepositBatch
+  buildMoneyAccountDepositPlaceholderBatch as jest.MockedFunction<
+    typeof buildMoneyAccountDepositPlaceholderBatch
   >;
 const mockBuildWithdrawBatch =
-  buildMoneyAccountWithdrawBatch as jest.MockedFunction<
-    typeof buildMoneyAccountWithdrawBatch
+  buildMoneyAccountWithdrawPlaceholderBatch as jest.MockedFunction<
+    typeof buildMoneyAccountWithdrawPlaceholderBatch
   >;
 const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   .findNetworkClientIdByChainId as jest.MockedFunction<
@@ -222,11 +231,11 @@ describe('useMoneyAccountDeposit', () => {
     setupSelectors();
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
-    mockBuildDepositBatch.mockResolvedValue({
+    // The placeholder batch is synchronous and carries no calldata.
+    mockBuildDepositBatch.mockReturnValue({
       approveTx: {
         params: {
           to: '0xtoken' as Hex,
-          data: '0xapprove' as Hex,
           value: '0x0' as Hex,
         },
         type: 'tokenMethodApprove' as never,
@@ -234,7 +243,6 @@ describe('useMoneyAccountDeposit', () => {
       depositTx: {
         params: {
           to: '0xteller' as Hex,
-          data: '0xdeposit' as Hex,
           value: '0x0' as Hex,
         },
         type: 'moneyAccountDeposit' as never,
@@ -285,14 +293,10 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit();
     });
 
-    expect(mockBuildDepositBatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        amount: BigInt(0),
-        chainId: MOCK_VAULT_CONFIG.chainId,
-        boringVault: MOCK_VAULT_CONFIG.boringVault,
-        initialiseWithoutData: true,
-      }),
-    );
+    expect(mockBuildDepositBatch).toHaveBeenCalledWith({
+      chainId: MOCK_VAULT_CONFIG.chainId,
+      tellerAddress: MOCK_VAULT_CONFIG.tellerAddress,
+    });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.AdvancedCustomAmount,
@@ -483,7 +487,9 @@ describe('useMoneyAccountDeposit', () => {
   it('backs out and shows a failure toast when deposit batch building fails', async () => {
     const buildError = new Error('deposit batch build failed');
     const onDepositSetupFailure = jest.fn();
-    mockBuildDepositBatch.mockRejectedValue(buildError);
+    mockBuildDepositBatch.mockImplementation(() => {
+      throw buildError;
+    });
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
@@ -615,19 +621,18 @@ describe('useMoneyAccountWithdrawal', () => {
     setupSelectors();
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
-    mockBuildWithdrawBatch.mockResolvedValue({
+    // The placeholder batch is synchronous and carries no calldata.
+    mockBuildWithdrawBatch.mockReturnValue({
       withdrawTx: {
         params: {
           to: '0xteller' as Hex,
-          data: '0xwithdraw' as Hex,
           value: '0x0' as Hex,
         },
         type: 'moneyAccountWithdraw' as never,
       },
       transferTx: {
         params: {
-          to: '0xusdc' as Hex,
-          data: '0xtransfer' as Hex,
+          to: '0xmusd' as Hex,
           value: '0x0' as Hex,
         },
         type: 'tokenMethodTransfer' as never,
@@ -687,19 +692,12 @@ describe('useMoneyAccountWithdrawal', () => {
       await result.current.initiateWithdrawal();
     });
 
-    // Hook calls the builder with a placeholder amount of 0n; MM Pay rewrites
-    // the calldata via `updateMoneyAccountWithdrawTokenAmount` once the user
-    // picks an amount on the confirmation screen.
-    expect(mockBuildWithdrawBatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        amount: BigInt(0),
-        chainId: MOCK_VAULT_CONFIG.chainId,
-        tellerAddress: MOCK_VAULT_CONFIG.tellerAddress,
-        accountantAddress: MOCK_VAULT_CONFIG.accountantAddress,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT.address,
-        recipient: MOCK_RECIPIENT,
-      }),
-    );
+    // MM Pay writes the calldata via `updateMoneyAccountWithdrawTokenAmount`
+    // once the user picks an amount, so the hook only resolves the call targets.
+    expect(mockBuildWithdrawBatch).toHaveBeenCalledWith({
+      chainId: MOCK_VAULT_CONFIG.chainId,
+      tellerAddress: MOCK_VAULT_CONFIG.tellerAddress,
+    });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.AdvancedCustomAmount,
@@ -790,7 +788,9 @@ describe('useMoneyAccountWithdrawal', () => {
 
   it('backs out and shows a failure toast when withdrawal batch building fails', async () => {
     const buildError = new Error('withdrawal batch build failed');
-    mockBuildWithdrawBatch.mockRejectedValue(buildError);
+    mockBuildWithdrawBatch.mockImplementation(() => {
+      throw buildError;
+    });
 
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 

@@ -7,9 +7,12 @@ import { createDeferredPromise, type Hex } from '@metamask/utils';
 import {
   buildMoneyAccountDepositBatch,
   getMoneyAccountDepositAssetAddress,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import ReduxService from '../../../../core/redux/ReduxService';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  type MoneyAccountVaultConfig,
+  selectMoneyAccountVaultConfig,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Engine from '../../index';
 import { updateMoneyAccountDepositAmount } from './money-account-amount-update';
@@ -18,7 +21,11 @@ jest.mock('@metamask/transaction-controller', () => ({
   ...jest.requireActual('@metamask/transaction-controller'),
   updateEIP7702BatchData: jest.fn(),
 }));
-jest.mock('../../../../components/UI/Money/utils/moneyAccountTransactions');
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositBatch: jest.fn(),
+  getMoneyAccountDepositAssetAddress: jest.fn(),
+}));
 jest.mock('../../../../core/redux/ReduxService', () => ({
   __esModule: true,
   default: { store: { getState: jest.fn().mockReturnValue({}) } },
@@ -44,12 +51,12 @@ const SECOND_ASSET_ADDRESS =
 const APPROVE_DATA = '0x1234' as Hex;
 const DEPOSIT_DATA = '0x5678' as Hex;
 const BATCH_DATA = '0x9abc' as Hex;
-const VAULT_CONFIG = {
+const VAULT_CONFIG: MoneyAccountVaultConfig = {
   chainId: CHAIN_ID,
-  boringVault: '0xBoringVault',
-  tellerAddress: '0xTeller',
-  accountantAddress: '0xAccountant',
-  lensAddress: '0xLens',
+  boringVault: '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae',
+  tellerAddress: '0x2d49ea58a4c70b62c8b56de971310d9e999c8117',
+  accountantAddress: '0x7382c5b8b51b8c4f127b3123c1039581baa5a06b',
+  lensAddress: '0xa816ecd922de94c6879ad23b9a884db257f20947',
 };
 
 const selectVaultConfigMock = jest.mocked(selectMoneyAccountVaultConfig);
@@ -121,6 +128,17 @@ describe('updateMoneyAccountDepositAmount', () => {
       callback(currentTransaction);
       return currentTransaction;
     });
+  });
+
+  it('commits nothing for a zero amount and does not call the builder', async () => {
+    // Pay pushes every amount change, including a cleared field. The builder
+    // rejects zero rather than encode a deposit that mints nothing.
+    await expect(
+      updateMoneyAccountDepositAmount(currentTransaction, '0'),
+    ).resolves.toBe(false);
+
+    expect(buildDepositBatchMock).not.toHaveBeenCalled();
+    expect(updateTransactionMetadataMock).not.toHaveBeenCalled();
   });
 
   it('prepares and commits one coherent update without re-simulation', async () => {

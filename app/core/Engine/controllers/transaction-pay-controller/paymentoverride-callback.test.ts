@@ -12,7 +12,7 @@ import type { Hex } from '@metamask/utils';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -21,7 +21,11 @@ import { calcTokenValue } from '../../../../util/transactions';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 import { getPaymentOverrideData } from './paymentoverride-callback';
 
-jest.mock('../../../../components/UI/Money/utils/moneyAccountTransactions');
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositBatch: jest.fn(),
+  buildMoneyAccountWithdrawBatch: jest.fn(),
+}));
 jest.mock('../../../../components/UI/Earn/constants/musd', () => ({
   MUSD_DECIMALS: 18,
 }));
@@ -57,11 +61,11 @@ const MOCK_AUTHORIZATION_LIST = [
 ];
 
 const MOCK_VAULT_CONFIG = {
-  tellerAddress: '0xTeller',
-  accountantAddress: '0xAccountant',
-  boringVault: '0xBoringVault',
-  lensAddress: '0xLens',
-};
+  tellerAddress: '0x2d49ea58a4c70b62c8b56de971310d9e999c8117',
+  accountantAddress: '0x7382c5b8b51b8c4f127b3123c1039581baa5a06b',
+  boringVault: '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae',
+  lensAddress: '0xa816ecd922de94c6879ad23b9a884db257f20947',
+} as const;
 
 const MOCK_PROVIDER = {} as never;
 

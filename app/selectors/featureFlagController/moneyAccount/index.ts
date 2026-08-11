@@ -1,4 +1,9 @@
 import { createSelector } from 'reselect';
+import {
+  isStrictHexString,
+  isValidHexAddress,
+  type Hex,
+} from '@metamask/utils';
 import { selectRemoteFeatureFlags } from '..';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
@@ -55,11 +60,11 @@ export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
 );
 
 export interface MoneyAccountVaultConfig {
-  chainId: string;
-  boringVault: string;
-  tellerAddress: string;
-  accountantAddress: string;
-  lensAddress: string;
+  chainId: Hex;
+  boringVault: Hex;
+  tellerAddress: Hex;
+  accountantAddress: Hex;
+  lensAddress: Hex;
 }
 
 export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
@@ -70,13 +75,63 @@ export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
   lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
 };
 
+const VAULT_CONFIG_ADDRESS_KEYS = [
+  'boringVault',
+  'tellerAddress',
+  'accountantAddress',
+  'lensAddress',
+] as const;
+
+/**
+ * Parses the raw `moneyAccountVaultConfig` remote feature flag into a config
+ * whose chain id and addresses are known-good `Hex`.
+ *
+ * These addresses become the `spender` of an ERC-20 `approve` and the target of
+ * the vault calls, so they are validated once here rather than asserted with
+ * `as Hex` at every call site. A malformed flag yields `undefined`, which the
+ * existing `if (!vaultConfig)` guards already treat as "Money is unavailable" —
+ * the deposit and withdraw entry points stay hidden instead of failing partway
+ * through a confirmation.
+ * @param raw - The raw remote feature flag value.
+ * @returns The parsed vault config, or `undefined` if any field is missing or
+ * malformed.
+ */
+export const parseMoneyAccountVaultConfig = (
+  raw: unknown,
+): MoneyAccountVaultConfig | undefined => {
+  if (typeof raw !== 'object' || raw === null) {
+    return undefined;
+  }
+
+  const candidate = raw as Record<string, unknown>;
+  const { chainId } = candidate;
+  if (!isStrictHexString(chainId)) {
+    return undefined;
+  }
+
+  const addresses = {} as Record<
+    (typeof VAULT_CONFIG_ADDRESS_KEYS)[number],
+    Hex
+  >;
+  for (const key of VAULT_CONFIG_ADDRESS_KEYS) {
+    const value = candidate[key];
+    // `isValidHexAddress` accepts all-lowercase or a valid ERC-55 checksum,
+    // matching what ethers will accept when it encodes the calldata.
+    if (!isStrictHexString(value) || !isValidHexAddress(value)) {
+      return undefined;
+    }
+    addresses[key] = value;
+  }
+
+  return { chainId, ...addresses };
+};
+
 export const getMoneyAccountVaultConfig = (
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): MoneyAccountVaultConfig | undefined => {
-  const remoteConfig =
-    remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
-      | MoneyAccountVaultConfig
-      | undefined;
+  const remoteConfig = parseMoneyAccountVaultConfig(
+    remoteFeatureFlags?.moneyAccountVaultConfig,
+  );
   if (remoteConfig) {
     return remoteConfig;
   }

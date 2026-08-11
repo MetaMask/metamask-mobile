@@ -9,7 +9,7 @@ import type { Hex } from '@metamask/utils';
 import {
   buildMoneyAccountDepositBatch,
   getMoneyAccountDepositAssetAddress,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import { MUSD_DECIMALS } from '../../../../components/UI/Earn/constants/musd';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -93,6 +93,14 @@ async function updateMoneyAccountDepositAmountInternal(
   const amountRaw = calcTokenValue(amountHuman, MUSD_DECIMALS)
     .decimalPlaces(0, BigNumber.ROUND_DOWN)
     .toFixed(0);
+
+  // Pay pushes every amount change, including the field being cleared. There is
+  // nothing to commit for a zero amount, and the deposit builder rejects it
+  // rather than encode a deposit that mints nothing.
+  if (BigInt(amountRaw) === 0n) {
+    return false;
+  }
+
   const depositAssetAddress = getMoneyAccountDepositAssetAddress(chainId);
   const buildResult = await buildMoneyAccountDepositBatch({
     amount: BigInt(amountRaw),
