@@ -60,14 +60,8 @@ export function useComplianceGate(address?: AddressInput) {
 
   const isComplianceEnabled = useSelector(selectComplianceEnabled);
   const rawIsBlocked = useSelector(selectAreAnyWalletsBlocked(addresses));
-  const rawComplianceStatusMap = useSelector(selectWalletComplianceStatusMap);
-  // Defaults to {} so a test/selector returning undefined can't crash the
-  // freshness lookup below, without creating a new object identity on every
-  // render when the selector already returns a value.
-  const complianceStatusMap = useMemo(
-    () => rawComplianceStatusMap ?? {},
-    [rawComplianceStatusMap],
-  );
+  const complianceStatusMap =
+    useSelector(selectWalletComplianceStatusMap) ?? {};
   const { showAccessRestrictedModal } = useAccessRestrictedModal();
 
   const isBlocked = isComplianceEnabled && rawIsBlocked;
@@ -79,31 +73,12 @@ export function useComplianceGate(address?: AddressInput) {
     );
   }, [addresses, addressKey]);
 
-  // True when every address already has a compliance result recorded within
-  // the freshness window, so the prefetch effect can reuse it instead of
-  // firing a redundant network request.
-  const hasFreshCachedResult = useCallback(
-    (addressesToCheck: string[]) => {
-      if (addressesToCheck.length === 0) return false;
-      const now = Date.now();
-      return addressesToCheck.every((addr) => {
-        const status = complianceStatusMap[addr];
-        if (!status) return false;
-        return (
-          now - new Date(status.checkedAt).getTime() <
-          COMPLIANCE_CACHE_FRESHNESS_MS
-        );
-      });
-    },
-    [complianceStatusMap],
-  );
-
-  // Latest-value refs so the prefetch effect can read the freshest cache
-  // state without depending on it — the map/rawIsBlocked update as a *result*
-  // of the effect's own fetch, so depending on them directly would cause the
-  // effect to re-run again right after every fetch completes.
-  const hasFreshCachedResultRef = useRef(hasFreshCachedResult);
-  hasFreshCachedResultRef.current = hasFreshCachedResult;
+  // Latest-value refs so the prefetch effect can check freshness without
+  // depending on these — both update as a *result* of the effect's own
+  // fetch, so depending on them directly would cause the effect to re-run
+  // again right after every fetch completes.
+  const complianceStatusMapRef = useRef(complianceStatusMap);
+  complianceStatusMapRef.current = complianceStatusMap;
   const rawIsBlockedRef = useRef(rawIsBlocked);
   rawIsBlockedRef.current = rawIsBlocked;
 
@@ -154,9 +129,21 @@ export function useComplianceGate(address?: AddressInput) {
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
 
-    // Skip the network round-trip when a recent result already covers every
-    // address in this set — trust the Redux-cached status instead.
-    if (hasFreshCachedResultRef.current(addresses)) {
+    // Skip the network round-trip when every address in this set already
+    // has a compliance result recorded within the freshness window — trust
+    // the Redux-cached status instead.
+    const now = Date.now();
+    const isFresh =
+      addresses.length > 0 &&
+      addresses.every((addr) => {
+        const status = complianceStatusMapRef.current[addr];
+        return (
+          !!status &&
+          now - new Date(status.checkedAt).getTime() <
+            COMPLIANCE_CACHE_FRESHNESS_MS
+        );
+      });
+    if (isFresh) {
       prefetchBlockedRef.current = rawIsBlockedRef.current;
       prefetchRef.current = { addressKey, promise: Promise.resolve() };
       return;
