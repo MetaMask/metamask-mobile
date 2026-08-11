@@ -2043,7 +2043,7 @@ export type SubscriptionBenefitDto = {
   longDescription: string;
   thumbnail: string;
   validFrom: string;
-  validTo: string;
+  validTo: string | null;
   url: string;
   actionDate: string | null;
   chain: string;
