@@ -8,19 +8,14 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../../../../component-library/hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      rowContainer: {},
-      row: {},
-      valueContainer: {},
-      modalRoot: {},
-      searchContainer: {},
-      searchInput: {},
-      list: {},
-      accountItem: {},
-      accountItemSelected: {},
-      accountItemLeft: {},
-    },
+  useStyles: (
+    styleFn: (params: {
+      theme: typeof mockTheme;
+      vars?: Record<string, unknown>;
+    }) => Record<string, Record<string, unknown>>,
+    vars?: Record<string, unknown>,
+  ) => ({
+    styles: styleFn({ theme: mockTheme, vars }),
     theme: mockTheme,
   }),
 }));
@@ -39,17 +34,6 @@ jest.mock(
     };
   },
 );
-
-jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
-    IconColor: { Alternative: 'Alternative' },
-    IconName: { ArrowDown: 'ArrowDown', Search: 'Search', Close: 'Close' },
-    IconSize: { Sm: 'Sm', Md: 'Md' },
-  };
-});
 
 const TEST_IDS = {
   ROW: 'account-picker-row',

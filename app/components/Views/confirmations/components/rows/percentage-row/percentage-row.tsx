@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { StyleSheet, Linking } from 'react-native';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 import {
-  FontWeight,
   IconName,
   KeyValueRow,
   KeyValueRowVariant,
   Text,
   TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { strings } from '../../../../../../../locales/i18n';
@@ -74,15 +72,10 @@ export function PercentageRow() {
           onPress: () => setIsTooltipOpen(true),
           testID: 'info-row-tooltip-open-btn',
         }}
-        value={
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-          >
-            {MUSD_CONVERSION_APY}%
-          </Text>
-        }
+        value={`${MUSD_CONVERSION_APY}%`}
+        valueTextProps={{
+          color: TextColor.SuccessDefault,
+        }}
       />
       <TooltipModal
         open={isTooltipOpen}

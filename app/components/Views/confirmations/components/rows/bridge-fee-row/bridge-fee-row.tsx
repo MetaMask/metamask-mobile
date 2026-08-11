@@ -7,10 +7,8 @@ import {
 } from '@metamask/transaction-controller';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -148,11 +146,16 @@ function TransactionFeeRow({
       ? TextColor.ErrorDefault
       : TextColor.TextDefault;
 
+  const keyColor = isDisabled ? TextColor.TextMuted : TextColor.TextAlternative;
+
   return (
     <Box testID="bridge-fee-row">
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('confirm.label.transaction_fees')}
+        keyTextProps={{
+          color: keyColor,
+        }}
         keyEndButtonIconProps={
           tooltipContent
             ? {
@@ -163,23 +166,34 @@ function TransactionFeeRow({
                   }
                 },
                 testID: 'info-row-tooltip-open-btn',
+                iconProps: {
+                  color: tooltipDisabled
+                    ? IconColor.IconMuted
+                    : IconColor.IconAlternative,
+                },
               }
             : undefined
         }
         value={
-          paidByMetaMask ? (
-            <PaidByLabel />
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={valueColor}
-              testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
-            >
-              {feeTotalUsd}
-            </Text>
-          )
+          paidByMetaMask
+            ? strings('transactions.paid_by_metamask')
+            : feeTotalUsd
         }
+        valueStartAccessory={
+          paidByMetaMask ? (
+            <Icon
+              name={IconName.CheckBold}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Sm}
+            />
+          ) : undefined
+        }
+        valueTextProps={{
+          color: paidByMetaMask ? TextColor.SuccessDefault : valueColor,
+          testID: paidByMetaMask
+            ? ConfirmationRowComponentIDs.PAID_BY_METAMASK
+            : ConfirmationRowComponentIDs.TRANSACTION_FEE,
+        }}
       />
       {tooltipContent && (
         <TooltipModal
@@ -190,30 +204,6 @@ function TransactionFeeRow({
           tooltipTestId="info-row-tooltip"
         />
       )}
-    </Box>
-  );
-}
-
-function PaidByLabel() {
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={1}
-      testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
-    >
-      <Icon
-        name={IconName.CheckBold}
-        color={IconColor.SuccessDefault}
-        size={IconSize.Sm}
-      />
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.SuccessDefault}
-      >
-        {strings('transactions.paid_by_metamask')}
-      </Text>
     </Box>
   );
 }

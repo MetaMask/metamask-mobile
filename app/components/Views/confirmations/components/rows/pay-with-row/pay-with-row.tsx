@@ -167,7 +167,7 @@ function PayWithRowLayout({
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
+          color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
           testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
         >
           {`(${balance})`}

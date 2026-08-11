@@ -1,12 +1,8 @@
 import React, { useMemo } from 'react';
 import {
   Box,
-  FontWeight,
   KeyValueRow,
   KeyValueRowVariant,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
@@ -79,16 +75,10 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('confirm.label.you_receive')}
-        value={
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            testID={ConfirmationRowComponentIDs.RECEIVE}
-          >
-            {receiveUsd}
-          </Text>
-        }
+        value={receiveUsd}
+        valueTextProps={{
+          testID: ConfirmationRowComponentIDs.RECEIVE,
+        }}
       />
     </Box>
   );

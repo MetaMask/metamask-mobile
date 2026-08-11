@@ -42,36 +42,19 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../../../../component-library/hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      rowContainer: {},
-      row: {},
-      valueContainer: {},
-      modalRoot: {},
-      searchContainer: {},
-      searchInput: {},
-      list: {},
-      accountItem: {},
-      accountItemSelected: {},
-      accountItemLeft: {},
-    },
-  }),
-}));
-
-jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
-  const RN = jest.requireActual('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RR = require('react');
-  const MockIcon = (props: Record<string, unknown>) =>
-    RR.createElement(RN.View, { testID: `mock-icon-${props.name}` });
-  MockIcon.displayName = 'MockIcon';
+jest.mock('../../../../../../component-library/hooks/useStyles', () => {
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
   return {
-    __esModule: true,
-    default: MockIcon,
-    IconColor: { Alternative: 'Alternative' },
-    IconName: { Search: 'Search', ArrowDown: 'ArrowDown' },
-    IconSize: { Sm: 'Sm', Md: 'Md' },
+    useStyles: (
+      styleFn: (params: {
+        theme: typeof mockTheme;
+        vars?: Record<string, unknown>;
+      }) => Record<string, Record<string, unknown>>,
+      vars?: Record<string, unknown>,
+    ) => ({
+      styles: styleFn({ theme: mockTheme, vars }),
+      theme: mockTheme,
+    }),
   };
 });
 

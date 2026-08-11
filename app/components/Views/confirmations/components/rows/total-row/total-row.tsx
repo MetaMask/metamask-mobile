@@ -1,12 +1,9 @@
 import React, { useMemo } from 'react';
 import {
   Box,
-  FontWeight,
   KeyValueRow,
   KeyValueRowVariant,
-  Text,
   TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
@@ -59,16 +56,16 @@ export function TotalRow() {
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('confirm.label.total')}
-        value={
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={textColor}
-            testID={ConfirmationRowComponentIDs.TOTAL}
-          >
-            {totalUsd}
-          </Text>
-        }
+        keyTextProps={{
+          color: isHeadlessBuyInProgress
+            ? TextColor.TextMuted
+            : TextColor.TextAlternative,
+        }}
+        value={totalUsd}
+        valueTextProps={{
+          color: textColor,
+          testID: ConfirmationRowComponentIDs.TOTAL,
+        }}
       />
     </Box>
   );

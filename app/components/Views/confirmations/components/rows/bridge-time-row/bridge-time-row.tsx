@@ -3,10 +3,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   KeyValueRow,
   KeyValueRowVariant,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   useIsTransactionPayLoading,
@@ -57,16 +53,10 @@ export function BridgeTimeRow() {
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
       keyLabel={strings('confirm.label.bridge_estimated_time')}
-      value={
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          testID={ConfirmationRowComponentIDs.BRIDGE_TIME}
-        >
-          {formattedSeconds}
-        </Text>
-      }
+      value={formattedSeconds}
+      valueTextProps={{
+        testID: ConfirmationRowComponentIDs.BRIDGE_TIME,
+      }}
     />
   );
 }
