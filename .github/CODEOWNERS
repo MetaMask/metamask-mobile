@@ -237,6 +237,7 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 
 # Predict Team
 app/components/UI/Predict/                                    @MetaMask/predict
+app/components/UI/PredictNext/                                @MetaMask/predict
 app/core/Engine/controllers/predict-controller                @MetaMask/predict
 app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
 app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts  @MetaMask/predict
@@ -371,12 +372,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-android.yml            @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
-.github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-android.yml               @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-android-flask.yml         @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-ios.yml                   @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-ios-flask.yml             @MetaMask/qa
 .github/workflows/rerun-ci-on-skipped-e2e-labels.yml            @MetaMask/qa
 .github/workflows/update-e2e-fixtures.yml                       @MetaMask/qa
 .github/workflows/qa-stats.yml                                  @MetaMask/qa

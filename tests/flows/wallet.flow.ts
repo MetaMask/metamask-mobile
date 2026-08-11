@@ -57,6 +57,7 @@ import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/Experience
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
+import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -705,7 +706,7 @@ export const dismissPushNotificationExistingUserSheet =
         }),
       );
       await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
-        timeout: 5_000,
+        timeout: 2_000,
         description: 'Push notification existing user sheet',
       });
 
@@ -761,10 +762,18 @@ export const loginToAppPlaywright = async (
   const { scenarioType = 'login' } = options;
 
   const dismissPostLoginModals = async (): Promise<void> => {
-    await PlaywrightUtilities.wait(500);
-    await dismissPushNotificationExistingUserSheet();
-    await dismissExperienceEnhancerModal();
+    startPhase('modal_dismissal');
+    try {
+      await PlaywrightUtilities.wait(500);
+      await dismissPushNotificationExistingUserSheet();
+      await dismissExperienceEnhancerModal();
+    } finally {
+      // Resume test_body after login + modals (exclusive phases).
+      startPhase('test_body');
+    }
   };
+
+  startPhase('login');
 
   await dismissAndroidSystemOverlaysPlaywright();
 

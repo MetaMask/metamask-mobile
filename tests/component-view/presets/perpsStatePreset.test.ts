@@ -1,4 +1,4 @@
-import { initialStatePerps } from './perpsStatePreset';
+import { initialStatePerps, initialStatePerpsPro } from './perpsStatePreset';
 
 describe('initialStatePerps', () => {
   it('returns a builder with build method', () => {
@@ -43,6 +43,25 @@ describe('initialStatePerps', () => {
       key: 'tokenFiatAmount',
       order: 'dsc',
       sortCallback: 'stringNumeric',
+    });
+  });
+
+  it('builds Pro state with layout preferences', () => {
+    const state = initialStatePerpsPro().build();
+
+    const perps = state?.engine?.backgroundState?.PerpsController as
+      | {
+          mode?: string;
+          proLayoutPreferences?: {
+            orderBookExpanded?: boolean;
+            chartExpanded?: boolean;
+          };
+        }
+      | undefined;
+    expect(perps?.mode).toBe('pro');
+    expect(perps?.proLayoutPreferences).toMatchObject({
+      orderBookExpanded: false,
+      chartExpanded: false,
     });
   });
 });

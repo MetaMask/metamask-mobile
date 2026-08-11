@@ -225,6 +225,7 @@ export default class PlaywrightGestures {
       checkForStable?: boolean;
       enabledStableReads?: number;
       postEnabledSettleMs?: number;
+      elemDescription?: string;
     },
   ): Promise<void> {
     const {
@@ -236,6 +237,7 @@ export default class PlaywrightGestures {
       checkForStable = false,
       enabledStableReads = 3,
       postEnabledSettleMs,
+      elemDescription,
     } = options || {};
 
     if (checkForDisplayed) {
@@ -264,7 +266,13 @@ export default class PlaywrightGestures {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
-    await debugElementAction(logger, 'Wait and tap element', elem);
+    await debugElementAction(
+      logger,
+      elemDescription
+        ? `Wait and tap element: ${elemDescription}`
+        : 'Wait and tap element',
+      elem,
+    );
     await elem.unwrap().click();
   }
 

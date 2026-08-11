@@ -6,7 +6,10 @@ import {
   PlaywrightGestures,
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
+import {
+  dismisspredictionsModalPlaywright,
+  dismissPushNotificationExistingUserSheet,
+} from '../../flows/wallet.flow';
 import {
   Performance,
   System,
@@ -40,7 +43,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 
 /* Seedless Onboarding: Apple Login */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  test.setTimeout(300000);
+  test.setTimeout(360000);
 
   test(
     'Seedless Onboarding: Apple Login New User',
@@ -63,7 +66,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer4 = new TimerHelper(
         'Apple: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 6000 },
+        { ios: 5000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
@@ -90,6 +93,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       });
 
       await OnboardingSheet.tapAppleLoginButton();
+      await SocialLoginView.dismissUpdateModalIfPresent();
 
       let isNewUser = true;
 
@@ -134,9 +138,14 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         }
         await PlaywrightGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
-        await measureCreatePasswordToOnboardingSuccess(timer4);
-
+        //await measureCreatePasswordToOnboardingSuccess(timer4);
+        await timer4.measure(async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(OnboardingSuccessView.doneButton),
+          );
+        });
         await OnboardingSuccessView.tapDone();
+        await dismissPushNotificationExistingUserSheet();
 
         // Optional Predict GTM: measure Done → modal when present (no pre-wait).
         const predictGtmOnboardingModalEnabled =

@@ -5,6 +5,7 @@ import {
   getExploreSearchResultCount,
   getTotalSectionResultCount,
   trackExplorePredictTrendingAssetViewed,
+  trackExploreSearchOpened,
   trackExploreSectionSeeAll,
   useInstrumentedSearchEffect,
 } from './analytics';
@@ -213,6 +214,35 @@ describe('Explore search analytics', () => {
         trade_type: 'Predict',
         implementation_type: 'native',
       });
+    });
+  });
+
+  describe('trackExploreSearchOpened', () => {
+    it.each([['home' as const], ['explore' as const]])(
+      'tracks the opened interaction with entry_point %s',
+      (entryPoint) => {
+        trackExploreSearchOpened(entryPoint);
+
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+        const event = mockTrackEvent.mock.calls[0][0];
+
+        expect(event.name).toBe(
+          MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+        );
+        expect(event.properties).toEqual({
+          interaction_type: 'opened',
+          search_query: '',
+          entry_point: entryPoint,
+        });
+      },
+    );
+
+    it('fires once per call so re-entering search re-fires', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchOpened('explore');
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     });
   });
 
