@@ -394,8 +394,9 @@ function rememberOnboardingAccountType(
 }
 
 /**
- * Resolve the attributes a span starts with, adding the journey's account type to
- * onboarding spans that do not already set one of their own.
+ * Resolve the attributes a span starts with. Tags are mirrored into attributes,
+ * with data taking precedence, and onboarding spans inherit the journey's account
+ * type when they do not set one of their own.
  *
  * @param request - The trace request being started.
  * @returns The attributes to open the span with.
