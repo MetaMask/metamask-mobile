@@ -3,9 +3,10 @@ import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import Utilities from '../framework/Utilities';
+import Utilities, { sleep } from '../framework/Utilities';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
+import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import FooterActions from '../page-objects/Browser/Confirmations/FooterActions';
 import RowComponents from '../page-objects/Browser/Confirmations/RowComponents';
 import TestDApp from '../page-objects/Browser/TestDApp';
@@ -34,6 +35,7 @@ const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
 /** Per-tap wait for the confirmation sheet (gas estimation can exceed a few seconds). */
 const ANDROID_CONFIRM_AFTER_TAP_MS = 15_000;
 const TEST_DAPP_PROVIDER_READY_TIMEOUT_MS = 30_000;
+const TEST_DAPP_ACCOUNTS_HYDRATE_TIMEOUT_MS = 30_000;
 const TEST_DAPP_BUTTON_ENABLED_TIMEOUT_MS = 30_000;
 
 export {
@@ -84,41 +86,127 @@ const waitForTestDappProviderReady = async (pageUrl: string): Promise<void> => {
   }
 };
 
+type TestDappConnectionState = {
+  accountsUi: string;
+  ethAccountCount: number;
+  connectLabel: string;
+  hasProviderRequest: boolean;
+};
+
+const readTestDappConnectionState = async (
+  pageUrl: string,
+): Promise<TestDappConnectionState | null> =>
+  ChromeCdpHelpers.evaluateInWebView<TestDappConnectionState>(
+    pageUrl,
+    `(async () => {
+      const accountsEl = document.getElementById(${JSON.stringify(
+        TestDappSelectorsWebIDs.ACCOUNTS_TEXT,
+      )});
+      const connectEl = document.getElementById(${JSON.stringify(
+        TestDappSelectorsWebIDs.CONNECT_BUTTON,
+      )});
+      const eth = window.ethereum;
+      let ethAccounts = [];
+      if (eth && typeof eth.request === 'function') {
+        try {
+          ethAccounts = await eth.request({ method: 'eth_accounts' });
+        } catch (_error) {
+          ethAccounts = [];
+        }
+      }
+      return {
+        accountsUi: (accountsEl?.textContent || '')
+          .replace(/^Accounts:\\s*/i, '')
+          .trim(),
+        ethAccountCount: Array.isArray(ethAccounts) ? ethAccounts.length : 0,
+        connectLabel: (connectEl?.textContent || '').trim(),
+        hasProviderRequest: Boolean(eth && typeof eth.request === 'function'),
+      };
+    })()`,
+  );
+
+const isTestDappAccountsHydrated = (
+  state: TestDappConnectionState | null,
+): boolean =>
+  Boolean(
+    state?.hasProviderRequest &&
+      state.ethAccountCount > 0 &&
+      state.accountsUi.length > 0,
+  );
+
 /**
- * After navigation/reload, fixture permissions can inject `window.ethereum`
- * without the Test Dapp firing UI gate events, so action buttons stay disabled
- * (and `#sendEIP1559Button` stays hidden until base-fee support is advertised).
- * Emit the same CustomEvents the dapp listens for — do not call
- * `eth_requestAccounts` here (it can open/queue a connect sheet and block txs).
+ * After navigation/reload, MetaMask may inject `window.ethereum` before the
+ * Test Dapp finishes `initializeProvider` → `handleNewAccounts`. Faking
+ * `globalConnectionChange` enables buttons while `src.provider` / accounts stay
+ * unset (CI screenshots: "NOT CONNECTED", Account `undefined`). Click Connect
+ * so the dapp runs its real eth_requestAccounts handler; approve the sheet only
+ * if it appears (fixture permissions often resolve without UI).
  */
-const ensureTestDappConnectionEvents = async (
+const ensureTestDappAccountsHydrated = async (
   pageUrl: string,
 ): Promise<void> => {
-  await ChromeCdpHelpers.evaluateInWebView<boolean>(
-    pageUrl,
-    `(() => {
-      document.dispatchEvent(
-        new CustomEvent('globalConnectionChange', {
-          detail: { connected: true },
-        }),
+  const deadline = Date.now() + TEST_DAPP_ACCOUNTS_HYDRATE_TIMEOUT_MS;
+  let lastConnectClickAt = 0;
+
+  while (Date.now() < deadline) {
+    const state = await readTestDappConnectionState(pageUrl);
+    if (isTestDappAccountsHydrated(state)) {
+      return;
+    }
+
+    // Click Connect whenever the dapp is not hydrated yet. Fixture permissions
+    // usually resolve eth_requestAccounts without a sheet; that still runs
+    // handleNewAccounts and sets `src.connected`.
+    if (
+      state?.hasProviderRequest &&
+      state.connectLabel !== 'Connected' &&
+      Date.now() - lastConnectClickAt >= 1_500
+    ) {
+      lastConnectClickAt = Date.now();
+      await ChromeCdpHelpers.evaluateInWebView<boolean>(
+        pageUrl,
+        `(() => {
+          const el = document.getElementById(${JSON.stringify(
+            TestDappSelectorsWebIDs.CONNECT_BUTTON,
+          )});
+          if (!el || typeof el.click !== 'function') return false;
+          if ('disabled' in el && Boolean(el.disabled)) return false;
+          el.click();
+          return true;
+        })()`,
       );
-      document.dispatchEvent(
-        new CustomEvent('blockBaseFeePerGasUpdate', {
-          detail: { supported: true },
-        }),
-      );
-      return true;
-    })()`,
+
+      try {
+        await Assertions.expectElementToBeVisible(
+          ConnectBottomSheet.connectButton,
+          {
+            timeout: 2_500,
+            description: 'Connect account sheet after Test Dapp Connect',
+          },
+        );
+        await ConnectBottomSheet.tapConnectButton();
+      } catch {
+        // Already permitted — eth_requestAccounts resolves without a sheet.
+      }
+    }
+
+    await sleep(400);
+  }
+
+  const finalState = await readTestDappConnectionState(pageUrl);
+  throw new Error(
+    `Test dapp accounts never hydrated within ${TEST_DAPP_ACCOUNTS_HYDRATE_TIMEOUT_MS}ms` +
+      ` (state=${JSON.stringify(finalState)})`,
   );
 };
 
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
  *
- * Android: wait for provider + UI gate events + enabled control, then tap like
- * signature smokes (`WebView.tapById`). Wait long enough after each tap for gas
- * estimation — re-tapping every few seconds rejects in-flight `eth_sendTransaction`
- * and leaves the Test Dapp showing errors like "Creation Failed".
+ * Android: wait for provider + real Test Dapp account hydration + enabled
+ * control, then tap like signature smokes (`WebView.tapById`). Wait long enough
+ * after each tap for gas estimation — re-tapping every few seconds rejects
+ * in-flight `eth_sendTransaction` ("Creation Failed" on the Test Dapp).
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -129,7 +217,7 @@ const tapTestDappButtonAndWaitForConfirm = async (
 
   if (FrameworkDetector.isAppium()) {
     await waitForTestDappProviderReady(pageUrl);
-    await ensureTestDappConnectionEvents(pageUrl);
+    await ensureTestDappAccountsHydrated(pageUrl);
     await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
       pageUrl,
       buttonId,
