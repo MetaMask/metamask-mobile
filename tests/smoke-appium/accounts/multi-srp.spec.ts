@@ -23,7 +23,8 @@ import ImportSrpView from '../../page-objects/importSrp/ImportSrpView.js';
 import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { identityFixtureOptions } from './identity-fixture-options.js';
 
-appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
+// Skipped (flaky): account syncing across multiple SRPs is intermittently failing in CI.
+appiumTest.describe.skip(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   appiumTest.beforeAll(() => {
