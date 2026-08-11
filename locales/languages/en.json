@@ -2445,7 +2445,7 @@
     "failed_to_load_market_data": "Failed to load market data",
     "data_updates_automatically": "Data updates automatically every few seconds",
     "tap_to_retry": "Tap to retry",
-    "search_by_token_symbol": "Search by token symbol",
+    "search_by_token_symbol": "Search",
     "no_favorites_found": "No markets in watchlist",
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
     "watchlist": {

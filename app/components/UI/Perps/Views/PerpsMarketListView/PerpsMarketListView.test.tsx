@@ -862,9 +862,7 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByPlaceholderText('Search by token symbol'),
-      ).toBeOnTheScreen();
+      expect(screen.getByPlaceholderText('Search')).toBeOnTheScreen();
     });
 
     it('disables autocorrect and autocapitalize on the search input', () => {
@@ -2821,7 +2819,7 @@ describe('PerpsMarketListView', () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Verify search input is visible
-      const searchInput = screen.getByPlaceholderText('Search by token symbol');
+      const searchInput = screen.getByPlaceholderText('Search');
       expect(searchInput).toBeOnTheScreen();
 
       // Verify all markets are still displayed (whitespace is trimmed)
