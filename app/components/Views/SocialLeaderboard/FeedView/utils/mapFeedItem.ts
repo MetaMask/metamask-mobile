@@ -119,8 +119,8 @@ function buildSubHeader(
     };
   }
 
-  const price =
-    trade.tokenAmount > 0 ? Math.abs(trade.usdCost / trade.tokenAmount) : null;
+  const tokenAmount = Math.abs(trade.tokenAmount);
+  const price = tokenAmount > 0 ? Math.abs(trade.usdCost) / tokenAmount : null;
 
   // Guard against sub-cent prices rendering as a misleading "$0.00".
   if (price != null && price >= 0.01) {

@@ -281,6 +281,62 @@ describe('mapFeedItem', () => {
     );
   });
 
+  it('derives sub-header price from negative tokenAmount on a short enter fill', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        perpPositionType: 'short',
+        perpLeverage: 5,
+        currentValueUSD: 36_300,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'enter',
+            tokenAmount: -0.568,
+            usdCost: -36_300,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'short',
+            perpLeverage: 5,
+          },
+        ],
+        timestamp: 1_700_000_000,
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$36.3K',
+      contextValueLabel: '$63,908.45',
+      contextKind: 'price',
+    });
+  });
+
+  it('derives sub-header price from negative tokenAmount on a perp exit fill', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: -250,
+            usdCost: -40_429,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$40.4K',
+      contextValueLabel: '$161.72',
+      contextKind: 'price',
+    });
+  });
+
   it('omits market cap on perp trades even when Clicker provides it', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({
