@@ -1,3 +1,115 @@
+/* eslint-disable import-x/no-commonjs -- ESLint config must use CommonJS */
+const {
+  pageObjectsAndFlows: dualFrameworkPoFlowBurndown,
+  smokeAppium: dualFrameworkSmokeBurndown,
+} = require('./dual-framework-burndown.js');
+
+/** Shared dual-framework import restrictions (MMQA-2230). */
+const dualFrameworkRestrictedImportOptions = {
+  patterns: [
+    {
+      group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
+      message:
+        'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+    },
+    {
+      group: [
+        '**/FrameworkDetector',
+        '**/FrameworkDetector.ts',
+        '**/FrameworkDetector.js',
+      ],
+      message:
+        'Do not import FrameworkDetector in POs/specs. Use Gestures/Assertions/Matchers (Appium-only).',
+    },
+    {
+      group: [
+        '**/EncapsulatedElement',
+        '**/EncapsulatedElement.ts',
+        '**/EncapsulatedElement.js',
+      ],
+      importNames: [
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
+      ],
+      message:
+        'Do not use encapsulated()/asPlaywrightElement/asDetoxElement. Prefer Matchers + Gestures/Assertions.',
+    },
+    {
+      group: [
+        '**/encapsulatedAction',
+        '**/encapsulatedAction.ts',
+        '**/encapsulatedAction.js',
+      ],
+      message:
+        'Do not import encapsulatedAction. Prefer Gestures/Assertions from tests/framework.',
+    },
+    {
+      group: [
+        '**/PlaywrightMatchers',
+        '**/PlaywrightMatchers.ts',
+        '**/PlaywrightGestures',
+        '**/PlaywrightGestures.ts',
+        '**/PlaywrightAssertions',
+        '**/PlaywrightAssertions.ts',
+        '**/PlaywrightWebMatchers',
+        '**/PlaywrightWebMatchers.ts',
+        '**/PlaywrightAdapter',
+        '**/PlaywrightAdapter.ts',
+      ],
+      message:
+        'Do not import Playwright* dual-framework APIs in POs/specs. Use Gestures/Assertions/Matchers.',
+    },
+    {
+      // Only bare `from '.../framework'` / index re-exports (not framework/EncapsulatedElement etc.)
+      group: [
+        '**/framework/index',
+        '**/framework/index.ts',
+        '**/framework/index.js',
+      ],
+      importNames: [
+        'UnifiedGestures',
+        'FrameworkDetector',
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
+        'PlaywrightMatchers',
+        'PlaywrightGestures',
+        'PlaywrightAssertions',
+        'PlaywrightWebMatchers',
+      ],
+      message:
+        'Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers.',
+    },
+    // Bare package-style imports that resolve to tests/framework/index
+    {
+      group: [
+        '../../framework',
+        '../framework',
+        '../../../framework',
+        '../../../../framework',
+        '../../../../../framework',
+      ],
+      importNames: [
+        'UnifiedGestures',
+        'FrameworkDetector',
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
+        'PlaywrightMatchers',
+        'PlaywrightGestures',
+        'PlaywrightAssertions',
+        'PlaywrightWebMatchers',
+      ],
+      message:
+        'Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers.',
+    },
+  ],
+};
+
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   overrides: [
@@ -74,6 +186,7 @@ module.exports = {
         ],
       },
     },
+    // MMQA-2230: ban dual-framework imports in new PO/flow files (error)
     {
       files: ['**/page-objects/**/*.{js,ts}', '**/flows/**/*.{js,ts}'],
       excludedFiles: [
@@ -81,61 +194,41 @@ module.exports = {
         '**/page-objects/**/*.test.js',
         '**/flows/**/*.test.ts',
         '**/flows/**/*.test.js',
+        ...dualFrameworkPoFlowBurndown,
       ],
       rules: {
         'no-restricted-imports': [
-          'warn',
-          {
-            patterns: [
-              {
-                group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
-                message:
-                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-              },
-              {
-                group: [
-                  '**/framework',
-                  '**/framework/index',
-                  '**/framework/index.ts',
-                  '**/framework/index.js',
-                ],
-                importNames: ['UnifiedGestures'],
-                message:
-                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-              },
-            ],
-          },
+          'error',
+          dualFrameworkRestrictedImportOptions,
         ],
       },
     },
-    // MMQA-2174: ban UnifiedGestures in smoke specs (error)
+    // MMQA-2230: allowlisted PO/flow dual-framework debt (warn until Phase 3)
     {
-      files: ['**/smoke-appium/**/*.{js,ts}', '**/smoke/**/*.{js,ts}'],
-      excludedFiles: ['**/smoke-appium/**/*.test.ts', '**/smoke/**/*.test.ts'],
+      files: dualFrameworkPoFlowBurndown,
+      rules: {
+        'no-restricted-imports': ['warn', dualFrameworkRestrictedImportOptions],
+      },
+    },
+    // MMQA-2230: ban dual-framework imports in new smoke-appium files (error)
+    {
+      files: ['**/smoke-appium/**/*.{js,ts}'],
+      excludedFiles: [
+        '**/smoke-appium/**/*.test.ts',
+        ...dualFrameworkSmokeBurndown,
+      ],
       rules: {
         'no-restricted-imports': [
           'error',
-          {
-            patterns: [
-              {
-                group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
-                message:
-                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-              },
-              {
-                group: [
-                  '**/framework',
-                  '**/framework/index',
-                  '**/framework/index.ts',
-                  '**/framework/index.js',
-                ],
-                importNames: ['UnifiedGestures'],
-                message:
-                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-              },
-            ],
-          },
+          dualFrameworkRestrictedImportOptions,
         ],
+      },
+    },
+    // MMQA-2230: allowlisted smoke-appium dual-framework debt (warn)
+    {
+      files: dualFrameworkSmokeBurndown,
+      rules: {
+        'no-restricted-imports': ['warn', dualFrameworkRestrictedImportOptions],
       },
     },
   ],
