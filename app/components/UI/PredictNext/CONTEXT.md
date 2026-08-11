@@ -41,7 +41,7 @@ _Avoid_: Venue Account, sub-wallet
 ### Core Data Model
 
 **Event**:
-A group of related binary Markets on a single topic, such as "2026 NBA Finals" or "Will ETH hit $5k?".
+A product grouping of one or more related binary Markets on a single topic, such as "2026 NBA Finals" or "Will ETH hit $5k?". A Venue's recurring series is a separate grouping and is not a canonical Event.
 _Avoid_: Market, PredictMarket
 
 **Market**:
@@ -49,7 +49,7 @@ A single binary question within an Event, resolved as Yes or No, such as "Lakers
 _Avoid_: Outcome, PredictOutcome, condition
 
 **Outcome**:
-One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label.
+One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome has a Venue-qualified identifier that may be native to the Venue or deterministically derived by the adapter when the Venue exposes only a side label; this identifier is not necessarily a token identifier.
 _Avoid_: OutcomeToken, token, share
 
 **Position**:
@@ -120,6 +120,14 @@ _Avoid_: UI request, transient loading state
 The Predict User's available settlement-currency amount in a Venue Account, ready for placing Orders.
 _Avoid_: Funds, wallet balance, raw token amount
 
+**Ask Price**:
+The lowest currently available per-share price to buy an Outcome, expressed in settlement currency. A missing Ask Price means no current buy quote; it does not mean zero.
+_Avoid_: Price, buy price, Yes ask
+
+**Bid Price**:
+The highest currently available per-share price to sell an Outcome, expressed in settlement currency. A missing Bid Price means no current sell quote; it does not mean zero.
+_Avoid_: Price, sell price, Yes bid
+
 **Volume**:
 Total settlement currency traded on a Market or Event across all users.
 _Avoid_: Liquidity
@@ -180,6 +188,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Account Setup can change Account Readiness from setup-required to ready.
 - Account Readiness is distinct from Balance and Venue Status; a Predict User can be ready with zero Balance, or funded while a Venue is unavailable.
 - Each Event originates from exactly one Venue and contains one or more Markets.
+- A Venue's recurring Series is distinct from the canonical Event grouping.
 - Each Market contains exactly two Outcomes, typically Yes and No.
 - Each Position is tied to exactly one Outcome.
 - Each Order targets exactly one Outcome and may produce zero or more Fills.

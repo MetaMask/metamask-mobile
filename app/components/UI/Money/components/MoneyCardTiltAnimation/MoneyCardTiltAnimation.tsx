@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -12,7 +12,7 @@ import {
   pitchToParallaxValue,
   tiltToParallaxValue,
 } from '../../utils/parallax';
-import CardTiltAnimation from '../../../../../animations/card_tilt_v1.5.riv';
+import CardTiltAnimation from '../../../../../animations/card_tilt_v1.6.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styles from './MoneyCardTiltAnimation.styles';
@@ -21,7 +21,7 @@ import { MoneyCardTiltAnimationTestIds } from './MoneyCardTiltAnimation.testIds'
 const log = createProjectLogger('money-card-tilt');
 
 // -- Rive names ------------------------------------------------------------
-// These MUST match the names authored in card_tilt_v1.5.riv. If the Rive
+// These MUST match the names authored in card_tilt_v1.6.riv. If the Rive
 // designer renames any of these, update the constants here.
 //
 // The per-variant artboards are rendered directly so the component needs no
@@ -38,14 +38,24 @@ const RIVE_ARTBOARD_METAL = 'CardTiltMetal';
 const RIVE_PROPERTY_X = 'xValue';
 const RIVE_PROPERTY_Y = 'yValue';
 
+/** Thumbnail size used by the Money home card rows. */
+const DEFAULT_WIDTH = 104;
+const DEFAULT_HEIGHT = 66;
+
 interface MoneyCardTiltAnimationProps {
   /** Which card variant to show. */
   isMetalCard: boolean;
+  /** Rendered width in points. Defaults to the Money home thumbnail size. */
+  width?: number;
+  /** Rendered height in points. Defaults to the Money home thumbnail size. */
+  height?: number;
   testID?: string;
 }
 
 const MoneyCardTiltAnimation = ({
   isMetalCard,
+  width = DEFAULT_WIDTH,
+  height = DEFAULT_HEIGHT,
   testID,
 }: MoneyCardTiltAnimationProps) => {
   const flagEnabled = useSelector(selectMoneyCardTiltAnimationEnabledFlag);
@@ -78,6 +88,8 @@ const MoneyCardTiltAnimation = ({
     ? RIVE_ARTBOARD_METAL
     : RIVE_ARTBOARD_DIGITAL;
 
+  const size = useMemo(() => ({ width, height }), [width, height]);
+
   let content: React.ReactNode;
   if (animate) {
     content = (
@@ -90,7 +102,7 @@ const MoneyCardTiltAnimation = ({
         artboardName={artboardName}
         dataBinding={AutoBind(true)}
         fit={Fit.Contain}
-        style={styles.media}
+        style={size}
         onError={handleError}
         testID={MoneyCardTiltAnimationTestIds.RIVE}
       />
@@ -99,7 +111,7 @@ const MoneyCardTiltAnimation = ({
     content = (
       <Image
         source={isMetalCard ? mmCardMetal : mmCardRegular}
-        style={styles.staticImage}
+        style={[size, styles.staticImage]}
         resizeMode="contain"
         testID={MoneyCardTiltAnimationTestIds.STATIC_IMAGE}
       />
@@ -108,7 +120,7 @@ const MoneyCardTiltAnimation = ({
 
   return (
     <Box
-      style={styles.container}
+      style={size}
       testID={testID ?? MoneyCardTiltAnimationTestIds.CONTAINER}
     >
       {content}
