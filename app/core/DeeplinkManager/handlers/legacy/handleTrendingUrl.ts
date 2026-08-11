@@ -1,38 +1,20 @@
-import { isCaipChainId, type CaipChainId } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  EXPLORE_TAB_INDEX,
-  type ExploreTabIndex,
-} from '../../../../constants/navigation/exploreTabIndices';
-import type { TimeOption } from '../../../../components/UI/Trending/components/TrendingTokensBottomSheet';
-import type { TrendingTokensFullViewParams } from '../../../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { ExploreFeedRouteParams } from '../../../../components/Views/TrendingView/TrendingView';
-import type { ExploreSearchRouteParams } from '../../../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
-import type { RootStackParamList } from '../../../NavigationService/types';
 import type {
   DeeplinkIntent,
   MainStackDeeplinkNavigationTarget,
 } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
+import {
+  getExploreScreen,
+  getExploreTab,
+  type ExploreScreenRoute,
+  type ExploreTabRoute,
+} from './handleTrendingUrl.schema';
 
 interface HandleTrendingUrlParams {
   actionPath: string;
 }
-
-/** Query params supported by the trending/explore deeplink. */
-const TRENDING_QUERY_PARAM = {
-  /** Selects a full-screen view pushed above the Explore tab. */
-  SCREEN: 'screen',
-  /** Selects a tab inside the Explore (Trending) view. */
-  TAB: 'tab',
-  /** Prefills Explore search when used with `screen=search`. */
-  QUERY: 'q',
-  QUERY_ALT: 'query',
-  /** Filters the trending tokens view to a single chain. */
-  CHAIN_ID: 'chainId',
-  /** Preselects the trending tokens time filter. */
-  TIMEFRAME: 'timeframe',
-} as const;
 
 /**
  * Entry surface reported to Explore analytics (`tab_switched.source`) when a
@@ -41,180 +23,28 @@ const TRENDING_QUERY_PARAM = {
 const DEEPLINK_ENTRY_SOURCE = 'deeplink';
 
 /**
- * `?tab=` values — one per tab of the Explore (Trending) view.
- * e.g. https://link.metamask.io/trending?tab=crypto
- */
-export const EXPLORE_TAB_DEEPLINK_PARAM = {
-  NOW: 'now',
-  MACRO: 'macro',
-  RWAS: 'rwas',
-  CRYPTO: 'crypto',
-  SPORTS: 'sports',
-  SITES: 'sites',
-} as const;
-
-export type ExploreTabDeeplinkParam =
-  (typeof EXPLORE_TAB_DEEPLINK_PARAM)[keyof typeof EXPLORE_TAB_DEEPLINK_PARAM];
-
-const EXPLORE_TAB_PARAM_TO_INDEX: Record<
-  ExploreTabDeeplinkParam,
-  ExploreTabIndex
-> = {
-  [EXPLORE_TAB_DEEPLINK_PARAM.NOW]: EXPLORE_TAB_INDEX.NOW,
-  [EXPLORE_TAB_DEEPLINK_PARAM.MACRO]: EXPLORE_TAB_INDEX.MACRO,
-  [EXPLORE_TAB_DEEPLINK_PARAM.RWAS]: EXPLORE_TAB_INDEX.RWAS,
-  [EXPLORE_TAB_DEEPLINK_PARAM.CRYPTO]: EXPLORE_TAB_INDEX.CRYPTO,
-  [EXPLORE_TAB_DEEPLINK_PARAM.SPORTS]: EXPLORE_TAB_INDEX.SPORTS,
-  [EXPLORE_TAB_DEEPLINK_PARAM.SITES]: EXPLORE_TAB_INDEX.SITES,
-};
-
-/**
- * `?screen=` values — full-screen views reachable from Explore.
- * e.g. https://link.metamask.io/trending?screen=trending-tokens
- */
-export const EXPLORE_SCREEN_DEEPLINK_PARAM = {
-  STOCKS: 'stocks',
-  TRENDING_TOKENS: 'trending-tokens',
-  SITES: 'sites',
-  FAVORITE_SITES: 'favorite-sites',
-  SEARCH: 'search',
-} as const;
-
-export type ExploreScreenDeeplinkParam =
-  (typeof EXPLORE_SCREEN_DEEPLINK_PARAM)[keyof typeof EXPLORE_SCREEN_DEEPLINK_PARAM];
-
-/**
- * `?timeframe=` values — one per {@link TimeOption} of the trending tokens view.
- * e.g. https://link.metamask.io/trending?screen=trending-tokens&timeframe=1h
- */
-export const EXPLORE_TIMEFRAME_DEEPLINK_PARAM = {
-  FIVE_MINUTES: '5m',
-  ONE_HOUR: '1h',
-  SIX_HOURS: '6h',
-  TWENTY_FOUR_HOURS: '24h',
-} as const satisfies Record<string, `${TimeOption}`>;
-
-export type ExploreTimeframeDeeplinkParam =
-  (typeof EXPLORE_TIMEFRAME_DEEPLINK_PARAM)[keyof typeof EXPLORE_TIMEFRAME_DEEPLINK_PARAM];
-
-const isExploreTabDeeplinkParam = (
-  value: string,
-): value is ExploreTabDeeplinkParam =>
-  Object.values(EXPLORE_TAB_DEEPLINK_PARAM).includes(
-    value as ExploreTabDeeplinkParam,
-  );
-
-const isExploreScreenDeeplinkParam = (
-  value: string,
-): value is ExploreScreenDeeplinkParam =>
-  Object.values(EXPLORE_SCREEN_DEEPLINK_PARAM).includes(
-    value as ExploreScreenDeeplinkParam,
-  );
-
-const isExploreTimeframeDeeplinkParam = (
-  value: string,
-): value is ExploreTimeframeDeeplinkParam =>
-  Object.values(EXPLORE_TIMEFRAME_DEEPLINK_PARAM).includes(
-    value as ExploreTimeframeDeeplinkParam,
-  );
-
-/**
- * `?chainId=` values must be CAIP chain ids (e.g. `eip155:4663`); anything
- * else is dropped so the view opens unfiltered.
- */
-const getTrendingChainFilterParam = (
-  urlParams: URLSearchParams,
-): CaipChainId[] | undefined => {
-  const chainIdParam = urlParams.get(TRENDING_QUERY_PARAM.CHAIN_ID)?.trim();
-  return chainIdParam && isCaipChainId(chainIdParam)
-    ? [chainIdParam]
-    : undefined;
-};
-
-const getTrendingTimeframeParam = (
-  urlParams: URLSearchParams,
-): TimeOption | undefined => {
-  const timeframeParam = urlParams
-    .get(TRENDING_QUERY_PARAM.TIMEFRAME)
-    ?.toLowerCase();
-  if (!timeframeParam || !isExploreTimeframeDeeplinkParam(timeframeParam)) {
-    return undefined;
-  }
-  // Safe: the `satisfies` on EXPLORE_TIMEFRAME_DEEPLINK_PARAM pins its values
-  // to TimeOption's.
-  return timeframeParam as TimeOption;
-};
-
-const getTrendingTokensViewParams = (
-  urlParams: URLSearchParams,
-): TrendingTokensFullViewParams | undefined => {
-  const initialNetwork = getTrendingChainFilterParam(urlParams);
-  const initialTimeOption = getTrendingTimeframeParam(urlParams);
-
-  if (!initialNetwork && !initialTimeOption) {
-    return undefined;
-  }
-  return {
-    ...(initialNetwork && { initialNetwork }),
-    ...(initialTimeOption && { initialTimeOption }),
-  };
-};
-
-/**
- * These views are MainNavigator stack screens above the tabs, so they are
+ * Full-screen views are MainNavigator stack screens above the tabs, so they are
  * main-stack targets. Back from them should return to the Explore tab, not
  * Wallet — matching in-app navigation, where they are entered from Explore.
  */
-const exploreFullScreenTarget = (
-  routeName: string,
-  params?: object,
-): MainStackDeeplinkNavigationTarget => ({
-  type: 'main-stack',
-  routeName,
-  ...(params && { params }),
-  backTab: Routes.TRENDING_VIEW,
-});
-
-type ExploreScreenTargetBuilder = (
+const screenTarget = (
+  { route, getParams }: ExploreScreenRoute,
   urlParams: URLSearchParams,
-) => MainStackDeeplinkNavigationTarget;
+): MainStackDeeplinkNavigationTarget => {
+  const params = getParams?.(urlParams);
+  const hasParams = params !== undefined && Object.keys(params).length > 0;
 
-const getExploreSearchQueryParam = (
-  urlParams: URLSearchParams,
-): ExploreSearchRouteParams | undefined => {
-  const query =
-    urlParams.get(TRENDING_QUERY_PARAM.QUERY) ||
-    urlParams.get(TRENDING_QUERY_PARAM.QUERY_ALT);
-  const initialQuery = query?.trim();
-  return initialQuery ? { initialQuery } : undefined;
+  return {
+    type: 'main-stack',
+    routeName: route,
+    ...(hasParams && { params }),
+    backTab: Routes.TRENDING_VIEW,
+  };
 };
 
-const EXPLORE_SCREEN_TARGETS: Record<
-  ExploreScreenDeeplinkParam,
-  ExploreScreenTargetBuilder
-> = {
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS]: () =>
-    exploreFullScreenTarget(Routes.WALLET.RWA_TOKENS_FULL_VIEW),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS]: (urlParams) =>
-    exploreFullScreenTarget(
-      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-      getTrendingTokensViewParams(urlParams),
-    ),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.SITES]: () =>
-    exploreFullScreenTarget(Routes.SITES_FULL_VIEW),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES]: () =>
-    exploreFullScreenTarget(Routes.SITES_FULL_VIEW, {
-      mode: 'favorites',
-    } satisfies RootStackParamList['SitesFullView']),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH]: (urlParams) =>
-    exploreFullScreenTarget(
-      Routes.EXPLORE_SEARCH,
-      getExploreSearchQueryParam(urlParams),
-    ),
-};
-
-const exploreTabTarget = (
-  initialTab: ExploreTabIndex,
+const tabTarget = (
+  { index, getParams }: ExploreTabRoute,
+  urlParams: URLSearchParams,
 ): DeeplinkIntent['target'] => ({
   type: 'home-tab',
   routeName: Routes.TRENDING_VIEW,
@@ -223,8 +53,9 @@ const exploreTabTarget = (
   params: {
     screen: Routes.TRENDING_FEED,
     params: {
-      initialTab,
+      initialTab: index,
       source: DEEPLINK_ENTRY_SOURCE,
+      ...getParams?.(urlParams),
     } satisfies ExploreFeedRouteParams,
   },
 });
@@ -234,39 +65,26 @@ const getUrlParams = (actionPath: string): URLSearchParams =>
 
 /**
  * Resolves the trending/explore deeplink:
- * - `?screen=<view>` opens a full-screen view above the Explore tab (see {@link EXPLORE_SCREEN_DEEPLINK_PARAM}).
- * - `?screen=search&q=<query>` (or `query=`) opens Explore search with the query prefilled.
- * - `?screen=trending-tokens` supports `chainId=<caip>` (chain filter) and `timeframe=<5m|1h|6h|24h>` (time filter).
- * - `?chainId=<chainId>` without `screen`/`tab` opens the trending tokens view filtered to that chain.
- * - Invalid `chainId`/`timeframe` values are dropped; the view opens unfiltered.
- * - `?tab=<tab>` opens Explore with the given tab preselected (see {@link EXPLORE_TAB_DEEPLINK_PARAM}).
- * - Anything else falls back to the Explore tab on its default tab.
+ * - `?screen=<view>` opens a full-screen view above the Explore tab.
+ * - `?tab=<tab>` opens Explore with the given tab preselected.
+ * - Anything else, including a value neither one accepts, falls back to the Explore tab on its default tab.
+ *
+ * The accepted values, and the query params each one reads, live in
+ * `handleTrendingUrl.schema.ts`.
  */
 export const createTrendingDeeplinkIntent = ({
   actionPath,
 }: HandleTrendingUrlParams): DeeplinkIntent => {
   const urlParams = getUrlParams(actionPath);
-  const screenParam = urlParams.get(TRENDING_QUERY_PARAM.SCREEN)?.toLowerCase();
-  const tabParam = urlParams.get(TRENDING_QUERY_PARAM.TAB)?.toLowerCase();
 
-  if (screenParam && isExploreScreenDeeplinkParam(screenParam)) {
-    return { target: EXPLORE_SCREEN_TARGETS[screenParam](urlParams) };
+  const screen = getExploreScreen(urlParams);
+  if (screen) {
+    return { target: screenTarget(screen, urlParams) };
   }
 
-  if (tabParam && isExploreTabDeeplinkParam(tabParam)) {
-    return { target: exploreTabTarget(EXPLORE_TAB_PARAM_TO_INDEX[tabParam]) };
-  }
-
-  // A chainId param alone implies the trending tokens view — the only Explore
-  // surface that can apply it (e.g. `?chainId=eip155:8453` with no `screen=`).
-  // An invalid value still lands there, just without the filter.
-  if (urlParams.has(TRENDING_QUERY_PARAM.CHAIN_ID)) {
-    return {
-      target: exploreFullScreenTarget(
-        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-        getTrendingTokensViewParams(urlParams),
-      ),
-    };
+  const tab = getExploreTab(urlParams);
+  if (tab) {
+    return { target: tabTarget(tab, urlParams) };
   }
 
   return {

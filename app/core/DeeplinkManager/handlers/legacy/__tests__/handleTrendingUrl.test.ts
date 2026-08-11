@@ -1,12 +1,7 @@
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import { EXPLORE_TAB_INDEX } from '../../../../../constants/navigation/exploreTabIndices';
-import {
-  handleTrendingUrl,
-  EXPLORE_SCREEN_DEEPLINK_PARAM,
-  EXPLORE_TAB_DEEPLINK_PARAM,
-  EXPLORE_TIMEFRAME_DEEPLINK_PARAM,
-} from '../handleTrendingUrl';
+import { handleTrendingUrl } from '../handleTrendingUrl';
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
@@ -25,6 +20,8 @@ describe('handleTrendingUrl', () => {
     { description: 'default explore view', actionPath: '' },
     { description: 'unknown screen param', actionPath: '?screen=unknown' },
     { description: 'unknown tab param', actionPath: '?tab=unknown' },
+    { description: 'uppercase screen param', actionPath: '?screen=STOCKS' },
+    { description: 'uppercase tab param', actionPath: '?tab=CRYPTO' },
   ])('falls back to trending view for $description', async ({ actionPath }) => {
     await handleTrendingUrl({ actionPath });
 
@@ -41,31 +38,12 @@ describe('handleTrendingUrl - explore tabs (tab=...)', () => {
   });
 
   it.each([
-    {
-      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.NOW,
-      expectedIndex: EXPLORE_TAB_INDEX.NOW,
-    },
-    {
-      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.MACRO,
-      expectedIndex: EXPLORE_TAB_INDEX.MACRO,
-    },
-    {
-      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.RWAS,
-      expectedIndex: EXPLORE_TAB_INDEX.RWAS,
-    },
-    {
-      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.CRYPTO,
-      expectedIndex: EXPLORE_TAB_INDEX.CRYPTO,
-    },
-    {
-      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.SPORTS,
-      expectedIndex: EXPLORE_TAB_INDEX.SPORTS,
-    },
-    {
-      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.SITES,
-      expectedIndex: EXPLORE_TAB_INDEX.SITES,
-    },
-    { tabParam: 'CRYPTO', expectedIndex: EXPLORE_TAB_INDEX.CRYPTO },
+    { tabParam: 'now', expectedIndex: EXPLORE_TAB_INDEX.NOW },
+    { tabParam: 'macro', expectedIndex: EXPLORE_TAB_INDEX.MACRO },
+    { tabParam: 'rwas', expectedIndex: EXPLORE_TAB_INDEX.RWAS },
+    { tabParam: 'crypto', expectedIndex: EXPLORE_TAB_INDEX.CRYPTO },
+    { tabParam: 'sports', expectedIndex: EXPLORE_TAB_INDEX.SPORTS },
+    { tabParam: 'sites', expectedIndex: EXPLORE_TAB_INDEX.SITES },
   ])(
     'navigates to the Explore feed with tab=$tabParam preselected',
     async ({ tabParam, expectedIndex }) => {
@@ -92,41 +70,54 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
 
   it.each([
     {
-      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS,
+      screenParam: 'stocks',
       expectedRoute: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
     },
     {
-      screenParam: 'STOCKS',
-      expectedRoute: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-    },
-    {
-      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS,
+      screenParam: 'trending-tokens',
       expectedRoute: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
     },
     {
-      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SITES,
+      screenParam: 'sites',
       expectedRoute: Routes.SITES_FULL_VIEW,
     },
     {
-      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES,
+      screenParam: 'favorite-sites',
       expectedRoute: Routes.SITES_FULL_VIEW,
       expectedParams: { mode: 'favorites' },
     },
     {
-      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      screenParam: 'search',
       expectedRoute: Routes.EXPLORE_SEARCH,
     },
     {
-      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      screenParam: 'search',
       actionPath: '?screen=search&q=ethereum',
       expectedRoute: Routes.EXPLORE_SEARCH,
       expectedParams: { initialQuery: 'ethereum' },
     },
     {
-      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      screenParam: 'search',
+      actionPath: '?screen=search&q=%20ethereum%20',
+      expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: { initialQuery: 'ethereum' },
+    },
+    {
+      screenParam: 'search',
       actionPath: '?screen=search&query=bitcoin',
       expectedRoute: Routes.EXPLORE_SEARCH,
       expectedParams: { initialQuery: 'bitcoin' },
+    },
+    {
+      screenParam: 'search',
+      actionPath: '?screen=search&q=&query=bitcoin',
+      expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: { initialQuery: 'bitcoin' },
+    },
+    {
+      screenParam: 'search',
+      actionPath: '?screen=search&q=%20%20',
+      expectedRoute: Routes.EXPLORE_SEARCH,
     },
   ])(
     'activates Explore tab then navigates to the full view for screen=$screenParam',
@@ -210,11 +201,11 @@ describe('handleTrendingUrl - trending tokens chain filter (chainId=...)', () =>
     },
   );
 
-  it('opens the filtered trending tokens view when only chainId is provided', async () => {
-    await handleTrendingUrl({ actionPath: '?chainId=eip155:4663' });
+  it('trims a padded chain id', async () => {
+    await handleTrendingUrl({
+      actionPath: '?screen=trending-tokens&chainId=%20eip155%3A4663%20',
+    });
 
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
     expect(mockNavigate).toHaveBeenNthCalledWith(
       2,
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
@@ -222,18 +213,20 @@ describe('handleTrendingUrl - trending tokens chain filter (chainId=...)', () =>
     );
   });
 
-  it('opens the unfiltered trending tokens view when only an invalid chainId is provided', async () => {
-    await handleTrendingUrl({ actionPath: '?chainId=8453' });
+  it.each([
+    { description: 'a valid', chainIdParam: 'eip155:4663' },
+    { description: 'an invalid', chainIdParam: '8453' },
+  ])(
+    'falls back to the Explore tab when only $description chainId is provided',
+    async ({ chainIdParam }) => {
+      await handleTrendingUrl({ actionPath: `?chainId=${chainIdParam}` });
 
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
-    expect(mockNavigate).toHaveBeenNthCalledWith(
-      2,
-      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-    );
-  });
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    },
+  );
 
-  it('prioritizes tab over an implied chain-filtered trending tokens view', async () => {
+  it('ignores chainId when a tab is named', async () => {
     await handleTrendingUrl({ actionPath: '?tab=crypto&chainId=eip155:1' });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
@@ -264,7 +257,7 @@ describe('handleTrendingUrl - trending tokens time filter (timeframe=...)', () =
     jest.clearAllMocks();
   });
 
-  it.each(Object.values(EXPLORE_TIMEFRAME_DEEPLINK_PARAM))(
+  it.each(['5m', '1h', '6h', '24h'])(
     'opens the trending tokens view with timeframe=%s preselected',
     async (timeframeParam) => {
       await handleTrendingUrl({
@@ -280,21 +273,12 @@ describe('handleTrendingUrl - trending tokens time filter (timeframe=...)', () =
     },
   );
 
-  it('accepts an uppercase timeframe value', async () => {
+  it.each([
+    { description: 'an unknown', timeframeParam: '2d' },
+    { description: 'an uppercase', timeframeParam: '24H' },
+  ])('ignores $description timeframe value', async ({ timeframeParam }) => {
     await handleTrendingUrl({
-      actionPath: '?screen=trending-tokens&timeframe=24H',
-    });
-
-    expect(mockNavigate).toHaveBeenNthCalledWith(
-      2,
-      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-      { initialTimeOption: EXPLORE_TIMEFRAME_DEEPLINK_PARAM.TWENTY_FOUR_HOURS },
-    );
-  });
-
-  it('ignores an unknown timeframe value', async () => {
-    await handleTrendingUrl({
-      actionPath: '?screen=trending-tokens&timeframe=2d',
+      actionPath: `?screen=trending-tokens&timeframe=${timeframeParam}`,
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(2);
@@ -322,7 +306,7 @@ describe('handleTrendingUrl - trending tokens time filter (timeframe=...)', () =
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
       {
         initialNetwork: ['eip155:4663'],
-        initialTimeOption: EXPLORE_TIMEFRAME_DEEPLINK_PARAM.SIX_HOURS,
+        initialTimeOption: '6h',
       },
     );
   });
