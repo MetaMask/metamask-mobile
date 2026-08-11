@@ -67,7 +67,8 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-appiumTest.describe(
+// Skipped: flaky on main, confirm-button not in hierarchy. See #34581.
+appiumTest.describe.skip(
   SmokeConfirmations('Token Approve - increaseAllowance method'),
   () => {
     appiumTest.describe.configure({ timeout: 2500000 });
