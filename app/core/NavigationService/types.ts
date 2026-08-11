@@ -984,7 +984,6 @@ export type RootStackParamList = {
   PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
-  PredictGTMModal: undefined;
 
   // Social Leaderboard routes
   TopTradersView:
