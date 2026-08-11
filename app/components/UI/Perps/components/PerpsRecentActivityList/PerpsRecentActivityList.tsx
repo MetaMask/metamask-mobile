@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   ListItem,
@@ -24,7 +25,7 @@ import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 
@@ -39,7 +40,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activityTitle = strings('perps.home.recent_activity');
 
@@ -54,7 +55,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     (transaction: PerpsTransaction) => {
       if (transaction.fill) {
         trackEvent(
-          createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+          createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
             .addProperties({
               transaction_type: `perps_${transaction.type}`,
               transaction_status: 'confirmed',

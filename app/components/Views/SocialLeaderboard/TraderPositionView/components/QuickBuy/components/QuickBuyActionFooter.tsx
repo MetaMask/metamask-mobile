@@ -18,16 +18,12 @@ import { strings } from '../../../../../../../../locales/i18n';
 import QuickBuyBanners from '../QuickBuyBanners';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
-import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
+import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
   const {
-    sliderPercent,
-    isSliderDisabled,
-    handleSliderChange,
-    handleSliderDragEnd,
     confirmButtonState,
     getButtonLabel,
     hasValidAmount,
@@ -41,6 +37,8 @@ const QuickBuyActionFooter: React.FC = () => {
     destBalanceFiat,
     selectedDestStable,
     features,
+    totalAmountFiat,
+    isPriceImpactError,
     setActiveScreen,
   } = useQuickBuyContext();
 
@@ -50,15 +48,7 @@ const QuickBuyActionFooter: React.FC = () => {
 
   return (
     <Box twClassName="px-4">
-      {/* Slider — reduced top padding to tighten gap with the amount section */}
-      <Box twClassName="pt-2 pb-3">
-        <QuickBuyPercentageSlider
-          value={sliderPercent}
-          onValueChange={handleSliderChange}
-          disabled={isSliderDisabled}
-          onDragEnd={handleSliderDragEnd}
-        />
-      </Box>
+      <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 
       {features.quickAmountPills ? (
         <Box twClassName="pb-3">
@@ -66,7 +56,6 @@ const QuickBuyActionFooter: React.FC = () => {
         </Box>
       ) : null}
 
-      {/* Pay with / Receive with row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -115,7 +104,28 @@ const QuickBuyActionFooter: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
+      {totalAmountFiat || isPriceImpactError ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="pb-5"
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.quick_buy.total')}
+          </Text>
+
+          <QuickBuyRateTag
+            label={totalAmountFiat}
+            onPress={
+              features.quoteDetails
+                ? () => setActiveScreen('quoteDetails')
+                : undefined
+            }
+            isHighPriceImpact={isPriceImpactError}
+          />
+        </Box>
+      ) : null}
 
       <QuickBuyConfirmButton
         state={confirmButtonState}
@@ -123,6 +133,7 @@ const QuickBuyActionFooter: React.FC = () => {
         hasValidAmount={hasValidAmount}
         isDisabled={isConfirmDisabled}
         onPress={handleBuy}
+        tradeMode={tradeMode}
         testID="quick-buy-confirm-button"
       />
 

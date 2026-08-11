@@ -17,20 +17,18 @@ import {
   formatSignedUsd,
   formatUsd,
 } from '../../utils/formatters';
+import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
 import type {
   FeedAction,
   FeedItem,
   FeedPerpItem,
   FeedSpotItem,
+  FeedSubHeader,
 } from '../types';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
-
-/** Trade timestamps from the social API may be in seconds or milliseconds. */
-const toMs = (timestamp: number): number =>
-  timestamp < 1e12 ? timestamp * 1000 : timestamp;
 
 interface FeedItemPresentation {
   valueLabel: string;
@@ -54,7 +52,7 @@ function findTriggeringTrade(
   }
 
   const exact = trades.find(
-    (trade) => toMs(trade.timestamp) === feedTimestampMs,
+    (trade) => tradeTimestampToMs(trade.timestamp) === feedTimestampMs,
   );
   if (exact) {
     return exact;
@@ -62,7 +60,9 @@ function findTriggeringTrade(
 
   return trades.reduce(
     (latest, trade) =>
-      toMs(trade.timestamp) > toMs(latest.timestamp) ? trade : latest,
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
     trades[0],
   );
 }
@@ -98,23 +98,39 @@ function resolveAction(isPerp: boolean, isClosed: boolean): FeedAction {
 
 /**
  * Builds the row sub-header from real API fields only: the triggering trade's
- * USD size, plus a derived per-unit price when it is meaningful (the API does
- * not expose a historical market cap, so that part of the Figma is omitted).
+ * USD size, plus either historical market cap at trade time (spot) or a derived
+ * per-unit price when it is meaningful.
  */
-function buildSubHeader(trade: Trade | undefined): string {
+function buildSubHeader(
+  trade: Trade | undefined,
+  isSpot: boolean,
+): FeedSubHeader {
   if (!trade) {
-    return '';
+    return { sizeLabel: '' };
   }
 
-  const size = formatAbbreviatedUsd(Math.abs(trade.usdCost));
+  const sizeLabel = formatAbbreviatedUsd(Math.abs(trade.usdCost));
+
+  if (isSpot && trade.marketCap != null) {
+    return {
+      sizeLabel,
+      contextValueLabel: formatAbbreviatedUsd(trade.marketCap),
+      contextKind: 'marketCap',
+    };
+  }
+
   const price =
     trade.tokenAmount > 0 ? Math.abs(trade.usdCost / trade.tokenAmount) : null;
 
   // Guard against sub-cent prices rendering as a misleading "$0.00".
   if (price != null && price >= 0.01) {
-    return `${size} at ${formatUsd(price)}`;
+    return {
+      sizeLabel,
+      contextValueLabel: formatUsd(price),
+      contextKind: 'price',
+    };
   }
-  return size;
+  return { sizeLabel };
 }
 
 function realizedPnlPercent(
@@ -223,7 +239,7 @@ function mapPerpFeedItem(
   presentation: FeedItemPresentation,
   action: FeedAction,
   timestampMs: number,
-  subHeader: string,
+  subHeader: FeedSubHeader,
 ): FeedPerpItem {
   const { targetSymbol } = getSupportedXyzPerpMarketSymbol(
     coreItem.tokenSymbol,
@@ -258,7 +274,7 @@ function mapSpotFeedItem(
   presentation: FeedItemPresentation,
   action: FeedAction,
   timestampMs: number,
-  subHeader: string,
+  subHeader: FeedSubHeader,
 ): FeedSpotItem | null {
   const chain = chainNameToId(coreItem.chain);
   if (!chain) {
@@ -296,12 +312,12 @@ function mapSpotFeedItem(
 export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const { timestamp, trades } = coreItem;
 
-  const timestampMs = toMs(timestamp);
+  const timestampMs = tradeTimestampToMs(timestamp);
   const isPerp = isPerpPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
   const isClosed = isFeedItemClosed(coreItem, trade);
   const action = resolveAction(isPerp, isClosed);
-  const subHeader = buildSubHeader(trade);
+  const subHeader = buildSubHeader(trade, !isPerp);
   const presentation = buildFeedItemPresentation(coreItem, isClosed);
 
   if (isPerp) {

@@ -298,6 +298,29 @@ jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
 }));
 
+jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    region: null,
+    onboardingDocuments: [],
+    permanentDocuments: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
+const mockResumePendingAction = jest.fn();
+let mockImmersvePendingAction: { type: string } | null = null;
+jest.mock('./hooks/useImmersveCardProvisioning', () => ({
+  useImmersveCardProvisioning: () => ({
+    isProvisioning: false,
+    isReconciling: false,
+    pendingAction: mockImmersvePendingAction,
+    resumePendingAction: mockResumePendingAction,
+  }),
+}));
+
 jest.mock('../../hooks/useCreditBalance', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -572,6 +595,7 @@ import { CardHomeSelectors } from './CardHome.testIds';
 import { CARD_SUPPORT_EMAIL } from '../../constants';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CardEntryPoint } from '../../util/metrics';
+import { MoneyMetaMaskCardTestIds } from '../../../Money/components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
 
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
@@ -616,10 +640,12 @@ const BAANX_CAPABILITIES = {
   supportsPushProvisioning: true,
   onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
   supportsPinView: true,
+  supportsPinSet: false,
   supportsCashback: true,
   supportsCredit: true,
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
+  supportsTransactionHistory: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
@@ -711,7 +737,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Change your Card funding source',
       'money.metamask_card.unlink_card_sheet_another_money_account':
         'another Money account',
-      'money.metamask_card.link_title': 'Link MetaMask Card',
+      'money.metamask_card.link_title': 'Link card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
         'Spend your balance and earn on purchases.',
@@ -839,9 +865,6 @@ function setupMockSelectors(
       return config.selectedAccount;
     if (selectorString.includes('selectCardholderAccounts'))
       return config.cardholderAccounts;
-    if (selectorString.includes('selectEvmTokens')) return [mockPriorityToken];
-    if (selectorString.includes('selectEvmTokenFiatBalances'))
-      return ['1000.00'];
 
     return [];
   });
@@ -1136,6 +1159,8 @@ function render() {
 
 describe('CardHome Component', () => {
   beforeEach(() => {
+    mockImmersvePendingAction = null;
+    mockResumePendingAction.mockClear();
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -1534,6 +1559,9 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).not.toBeOnTheScreen();
       expect(screen.getByText('Unlink Money account')).toBeOnTheScreen();
       expect(
         screen.getByText('Change your Card funding source'),
@@ -1557,6 +1585,9 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
       ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('hides the unlink row when there is no active primary Money Account', () => {
@@ -1927,6 +1958,23 @@ describe('CardHome Component', () => {
         'mailto:support@metamask.io',
       );
     });
+  });
+
+  it('shows the pending verification warning and continues from the CTA', () => {
+    mockImmersvePendingAction = { type: 'kyc' };
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('confirm-button'));
+    expect(mockResumePendingAction).toHaveBeenCalledTimes(1);
   });
 
   it('displays correct priority token information', async () => {
@@ -2806,14 +2854,16 @@ describe('CardHome Component', () => {
   });
 
   describe('Data refresh on focus', () => {
-    it('calls refetch when the screen gains focus', () => {
-      mockRefetchAllData.mockClear();
+    it('calls fetchCardHomeData when the screen gains focus', () => {
+      const fetchSpy = Engine.context.CardController
+        .fetchCardHomeData as jest.Mock;
+      fetchSpy.mockClear();
 
       jest.mocked(useFocusEffect).mockImplementation((cb) => cb());
 
       render();
 
-      expect(mockRefetchAllData).toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledWith();
 
       jest.mocked(useFocusEffect).mockImplementation(jest.fn());
     });
@@ -6838,10 +6888,10 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText(strings('money.metamask_card.link_title')),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText(strings('money.metamask_card.link_card')),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -6878,25 +6928,7 @@ describe('CardHome Component', () => {
 
       render();
 
-      fireEvent.press(
-        screen.getByText(strings('money.metamask_card.link_card')),
-      );
-
-      expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
-        screen: Routes.CARD.HOME,
-        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
-      });
-    });
-
-    it('calls startLinkFlow when the title row (header) is pressed', () => {
-      setupMockSelectors({ cardHomeDataStatus: 'success' });
-      setupLinkageMock();
-
-      render();
-
-      fireEvent.press(
-        screen.getByText(strings('money.metamask_card.link_title')),
-      );
+      fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON));
 
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
         screen: Routes.CARD.HOME,

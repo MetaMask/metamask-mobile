@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
@@ -31,6 +32,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
@@ -139,10 +141,13 @@ function buildSections(items: MoneyActivityItem[]): ActivitySection[] {
 }
 
 const MoneyActivityView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
   const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
     useMoneyAnalytics({
@@ -225,13 +230,18 @@ const MoneyActivityView = () => {
     </Box>
   );
 
-  const renderItem = ({ item }: { item: MoneyActivityItem }) => (
-    <MoneyActivityRow
-      item={item}
-      moneyAddress={moneyAddress}
-      onPress={mockDataEnabled ? undefined : handleItemPress}
-      privacyMode={privacyMode}
-    />
+  const isRowPressEnabled = !mockDataEnabled && activityDetailsEnabled;
+
+  const renderItem = useCallback(
+    ({ item }: { item: MoneyActivityItem }) => (
+      <MoneyActivityRow
+        item={item}
+        moneyAddress={moneyAddress}
+        onPress={isRowPressEnabled ? handleItemPress : undefined}
+        privacyMode={privacyMode}
+      />
+    ),
+    [moneyAddress, isRowPressEnabled, handleItemPress, privacyMode],
   );
 
   // Pages are shared across all three tabs (one cursor stream), so reaching the

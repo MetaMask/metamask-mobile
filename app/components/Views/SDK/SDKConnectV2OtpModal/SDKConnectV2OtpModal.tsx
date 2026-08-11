@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -62,7 +63,7 @@ const computeSecondsLeft = (effectiveDeadline: number): number =>
 
 const SDKConnectV2OtpModal: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: SDKConnectV2OtpModalParams }, 'params'>>();
   const { otp, deadline } = route.params ?? { otp: '', deadline: 0 };

@@ -645,6 +645,31 @@ export type RewardsControllerGetBenefitsAction = {
   handler: RewardsController['getBenefits'];
 };
 
+export type RewardsControllerGetVipTransactionsAction = {
+  type: `RewardsController:getVipTransactions`;
+  handler: RewardsController['getVipTransactions'];
+};
+
+export type RewardsControllerGetVipTransactionsIfChangedAction = {
+  type: `RewardsController:getVipTransactionsIfChanged`;
+  handler: RewardsController['getVipTransactionsIfChanged'];
+};
+
+export type RewardsControllerGetVipTransactionsLastUpdatedAction = {
+  type: `RewardsController:getVipTransactionsLastUpdated`;
+  handler: RewardsController['getVipTransactionsLastUpdated'];
+};
+
+export type RewardsControllerHasVipTransactionsChangedAction = {
+  type: `RewardsController:hasVipTransactionsChanged`;
+  handler: RewardsController['hasVipTransactionsChanged'];
+};
+
+export type RewardsControllerLookupVipTransactionAction = {
+  type: `RewardsController:lookupVipTransaction`;
+  handler: RewardsController['lookupVipTransaction'];
+};
+
 /**
  * Get the VIP dashboard with caching.
  * @param subscriptionId - The subscription ID for authentication
@@ -653,6 +678,16 @@ export type RewardsControllerGetBenefitsAction = {
 export type RewardsControllerGetVIPDashboardAction = {
   type: `RewardsController:getVIPDashboard`;
   handler: RewardsController['getVIPDashboard'];
+};
+
+/**
+ * Display-only equity multiplier estimate from client-supplied holdings.
+ * Must never be persisted as program truth or feed warrant settlement
+ * (RWDS-1485). Client balance is untrusted; cache is holdings-keyed TTL only.
+ */
+export type RewardsControllerGetVipEquityMultiplierAction = {
+  type: `RewardsController:getVipEquityMultiplier`;
+  handler: RewardsController['getVipEquityMultiplier'];
 };
 
 /**
@@ -882,7 +917,13 @@ export type RewardsControllerMethodActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
+  | RewardsControllerGetVipTransactionsAction
+  | RewardsControllerGetVipTransactionsIfChangedAction
+  | RewardsControllerGetVipTransactionsLastUpdatedAction
+  | RewardsControllerHasVipTransactionsChangedAction
+  | RewardsControllerLookupVipTransactionAction
   | RewardsControllerGetVIPDashboardAction
+  | RewardsControllerGetVipEquityMultiplierAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction

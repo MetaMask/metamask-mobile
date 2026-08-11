@@ -8,7 +8,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
@@ -37,10 +38,7 @@ import {
   PredictOutcomeToken,
   type PredictMarketBuyButtonPress,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -77,8 +75,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 }) => {
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();

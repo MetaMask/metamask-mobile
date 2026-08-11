@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
@@ -29,6 +30,8 @@ import {
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
+import { getBetaSupportUrl } from '../../utils';
 
 const styles = StyleSheet.create({
   list: {
@@ -63,25 +66,28 @@ interface LinkedOffDeviceAccountsSheetProps {
 const LinkedOffDeviceAccountsSheet: React.FC<
   LinkedOffDeviceAccountsSheetProps
 > = ({ accounts, onClose }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const handleContactSupport = useCallback(() => {
-    let supportUrl;
+    const betaSupportUrl = getBetaSupportUrl();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    const openWebview = (url: string) =>
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url,
+          title: strings('app_settings.contact_support'),
+        },
+      });
 
-    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
+    if (betaSupportUrl) {
+      openWebview(betaSupportUrl);
+      return;
+    }
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: supportUrl,
-        title: strings('app_settings.contact_support'),
-      },
-    });
-  }, [navigation]);
+    openSupportWithConsent(openWebview, METAMASK_SUPPORT_URL);
+  }, [navigation, openSupportWithConsent]);
 
   const handleCopy = useCallback(async (address: string) => {
     try {

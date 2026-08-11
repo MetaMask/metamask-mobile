@@ -5,12 +5,8 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -23,7 +19,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
-import { strings } from '../../../../../../locales/i18n';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
 import PredictBuyAmountSection from './components/PredictBuyAmountSection';
@@ -120,8 +115,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
@@ -239,7 +233,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isBelowMinimum,
     isInsufficientBalance,
     isCurrentTokenInsufficient,
-    isPayRouteUnavailable,
     hasAlternativeBalance,
     isPaySystemSettling,
     isPaymentSelectorNavigationLocked,
@@ -253,14 +246,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     totalPayForPredictBalance,
     hasBlockingPayAlerts,
   });
-
-  // Reuse the existing no-pay-token-quotes copy when the betslip blocks a bet
-  // because no usable pay route to pUSD is available.
-  const effectiveBlockingPayAlertMessage =
-    blockingPayAlertMessage ??
-    (isPayRouteUnavailable
-      ? strings('alert_system.no_pay_token_quotes.message')
-      : null);
 
   const {
     errorMessage,
@@ -278,7 +263,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isConfirming,
     isPayFeesLoading,
     isPaySystemSettling,
-    blockingPayAlertMessage: effectiveBlockingPayAlertMessage,
+    blockingPayAlertMessage,
     outcomeTokenPrice: getDisplayBuyPrice(outcomeToken),
     isSheetMode,
   });

@@ -65,9 +65,12 @@ import MANTLE_NATIVE from './mantle-native.png';
 import TEMPO_NATIVE from './tempo-native.png';
 import ARC_NATIVE from './arc-native-token-logo.png';
 import ROBINHOOD from './robinhood.png';
+import GNOSIS_NATIVE from './gnosis-native-token-logo.png';
+import SOMNIA_NATIVE from './somnia.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
+import STELLAR from './xlm.png';
 
 export default {
   PALM,
@@ -97,6 +100,8 @@ export default {
   TRX: TRON,
   sTRX: TRON,
   ///: END:ONLY_INCLUDE_IF
+  STELLAR,
+  XLM: STELLAR,
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,
@@ -147,4 +152,6 @@ export default {
   PATHUSD: TEMPO_NATIVE,
   USDC: ARC_NATIVE,
   ROBINHOOD,
+  XDAI: GNOSIS_NATIVE,
+  SOMI: SOMNIA_NATIVE,
 };

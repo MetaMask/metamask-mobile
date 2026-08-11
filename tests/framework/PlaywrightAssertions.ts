@@ -44,6 +44,10 @@ export default class PlaywrightAssertions {
    * (`isExisting`). This avoids the multiple internal HTTP round-trips that
    * WebdriverIO's `waitForDisplayed` performs on each iteration.
    *
+   * Implicit wait is set once for the whole poll (not per attempt) so cloud
+   * Appium providers do not pay 2× `setTimeout` RTT every probe — that
+   * overhead was inflating performance timers.
+   *
    * When measuring, only the successful confirm (+ probe) counts as infra.
    * A shorter poll interval reduces detection lag without zeroing app time.
    */
@@ -62,31 +66,41 @@ export default class PlaywrightAssertions {
       ? this.POLL_INTERVAL_WHILE_MEASURING_MS
       : this.POLL_INTERVAL_MS;
     const start = Date.now();
-    while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
-      const remaining = timeout - (Date.now() - start);
-      if (remaining <= 0) {
-        break;
-      }
-      const t0 = Date.now();
-      try {
-        const exists = await withImplicitWait(this.POLL_IMPLICIT_WAIT_MS, () =>
-          el.unwrap().isExisting(),
-        );
-        if (exists) {
-          const displayed = await el.isVisible();
-          if (displayed) {
-            if (tracking) {
-              recordSuccessPollCommand(Date.now() - t0);
-              await this.probeOverhead(el);
-            }
-            return;
+
+    const found = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
           }
+          const t0 = Date.now();
+          try {
+            const exists = await el.unwrap().isExisting();
+            if (exists) {
+              const displayed = await el.isVisible();
+              if (displayed) {
+                if (tracking) {
+                  recordSuccessPollCommand(Date.now() - t0);
+                  await this.probeOverhead(el);
+                }
+                return true;
+              }
+            }
+          } catch {
+            // element not ready yet
+          }
+          await sleep(Math.min(interval, remaining));
         }
-      } catch {
-        // element not ready yet
-      }
-      await sleep(Math.min(interval, remaining));
+        return false;
+      },
+    );
+
+    if (found) {
+      return;
     }
+
     const remainingTimeout = timeout - (Date.now() - start);
     await el.waitForDisplayed({
       timeout: Math.max(interval, remainingTimeout),
@@ -124,6 +138,48 @@ export default class PlaywrightAssertions {
     }
     logger.debug('Waiting for element to be visible');
     await this.pollUntilVisible(el, this.getTimeout(options));
+  }
+
+  /**
+   * Asserts that a target element eventually exists in the hierarchy.
+   * Prefer this over {@link expectElementToBeVisible} for BottomSheet /
+   * confirmation children that report isDisplayed=false while on screen.
+   */
+  static async expectElementToExist(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description = options.description ?? 'element';
+    const start = Date.now();
+
+    const found = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout) {
+          try {
+            if (await el.unwrap().isExisting()) {
+              return true;
+            }
+          } catch {
+            // element not ready yet
+          }
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
+          }
+          await sleep(Math.min(this.POLL_INTERVAL_MS, remaining));
+        }
+        return false;
+      },
+    );
+
+    if (!found) {
+      throw new Error(
+        `Element "${description}" not in hierarchy after ${timeout}ms`,
+      );
+    }
   }
 
   /**
@@ -215,6 +271,33 @@ export default class PlaywrightAssertions {
       await sleep(interval);
     }
     throw new Error(`Expected element text "${expected}" within ${timeout}ms`);
+  }
+
+  /**
+   * Polls until an element's text content is not the forbidden value.
+   */
+  static async expectElementNotToHaveText(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    forbidden: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description =
+      options.description ?? `element text is not "${forbidden}"`;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const text = await el.textContent();
+        if (text === forbidden) {
+          throw new Error(`Element still has forbidden text "${forbidden}"`);
+        }
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
   }
 
   static async expectElementToNotBeVisible(
@@ -351,7 +434,9 @@ export default class PlaywrightAssertions {
       if (
         error instanceof Error &&
         (error.message.includes('No elements found for XPath') ||
-          error.message.includes('No elements found'))
+          error.message.includes('No elements found') ||
+          error.message.includes('returned only 0 elements') ||
+          error.message.includes('Index out of bounds'))
       ) {
         return;
       }

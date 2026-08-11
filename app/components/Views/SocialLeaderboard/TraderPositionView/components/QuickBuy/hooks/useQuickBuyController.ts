@@ -229,7 +229,7 @@ export interface UseQuickBuyControllerResult {
   handleSliderChange: (percent: number) => void;
   handleSliderDragEnd: (percent: number) => void;
   /** Buy-mode preset fiat pill tap — commits amount and fetches quote immediately. */
-  handleQuickAmountPress: (fiatValue: number, presetTierUsd?: number) => void;
+  handleQuickAmountPress: (fiatValue: number, presetValue?: number) => void;
   /** USD → user display currency rate for fallback pill conversion. */
   usdToCurrentCurrencyRate: number | undefined;
   handleAmountAreaPress: () => void;
@@ -296,7 +296,6 @@ export function useQuickBuyController(
   const [sliderPercent, setSliderPercent] = useState(0);
   const lastSliderPercentRef = useRef(0);
   const [isPresetAddFundsMode, setIsPresetAddFundsMode] = useState(false);
-  const hasAppliedOpenDefaultRef = useRef(false);
   // Deduplicates consecutive handleSliderDragEnd calls with the same
   // user-currency amount (can happen when Tap + Pan both fire onEnd for a pure
   // tap gesture).
@@ -602,6 +601,37 @@ export function useQuickBuyController(
     liveSourceCurrencyExchangeRate && liveSourceCurrencyExchangeRate > 0,
   );
 
+  // Buy mode freezes the quote conversion rate via the pay-with `useState`
+  // snapshot (`selectedSourceToken`). Sell mode's `positionToken` is
+  // selector-driven, so without an explicit freeze every market-data tick
+  // retargets `sourceTokenAmount` for the same fiat input — quotes look
+  // stale/`isPendingQuoteRefresh` and Sell stays disabled with no error label
+  // (TSA-976). Keep display rates live above; freeze only the rate used to
+  // convert committed fiat into the quote request amount.
+  const sellQuoteExchangeRateRef = useRef<number | undefined>(undefined);
+  const sellQuoteSourceTokenKeyRef = useRef<string | undefined>(undefined);
+  const positionTokenKey =
+    positionToken?.address != null && positionToken.chainId != null
+      ? getTokenKey(positionToken)
+      : undefined;
+  if (positionTokenKey !== sellQuoteSourceTokenKeyRef.current) {
+    sellQuoteSourceTokenKeyRef.current = positionTokenKey;
+    sellQuoteExchangeRateRef.current = positionToken?.currencyExchangeRate;
+  } else if (
+    sellQuoteExchangeRateRef.current == null &&
+    positionToken?.currencyExchangeRate != null &&
+    positionToken.currencyExchangeRate > 0
+  ) {
+    // Price arrived after the token was already selected — adopt it once so
+    // the first committed amount can convert; later ticks stay frozen.
+    sellQuoteExchangeRateRef.current = positionToken.currencyExchangeRate;
+  }
+  const sellQuoteExchangeRate = sellQuoteExchangeRateRef.current;
+  const quoteSourceExchangeRate =
+    tradeMode === 'sell'
+      ? sellQuoteExchangeRate
+      : sourceToken?.currencyExchangeRate;
+
   // The live balance for whichever token is the *source* this mode: the
   // resynced pay-with token in buy mode, or the already-live position token in
   // sell mode.
@@ -633,14 +663,14 @@ export function useQuickBuyController(
       return latestSourceBalance.displayBalance;
     }
     if (hasSourcePrice) {
-      if (!quotedFiatAmount || !sourceToken?.currencyExchangeRate) {
+      if (!quotedFiatAmount || !quoteSourceExchangeRate) {
         return undefined;
       }
       // `currencyExchangeRate` is user-currency-per-token and `quotedFiatAmount`
       // is in the user's display currency, so fiat / rate yields token units.
       const fiat = parseFloat(quotedFiatAmount);
       if (isNaN(fiat) || fiat <= 0) return undefined;
-      return (fiat / sourceToken.currencyExchangeRate).toString();
+      return (fiat / quoteSourceExchangeRate).toString();
     }
     // Unpriced path: source amount is entered directly in token units.
     if (!sourceAmountTokens) return undefined;
@@ -651,9 +681,9 @@ export function useQuickBuyController(
     hasSourcePrice,
     isMaxSourceAmount,
     latestSourceBalance?.displayBalance,
+    quoteSourceExchangeRate,
     quotedFiatAmount,
     sourceAmountTokens,
-    sourceToken?.currencyExchangeRate,
   ]);
 
   useEffect(() => {
@@ -702,6 +732,17 @@ export function useQuickBuyController(
     ],
   );
 
+  // When a buy pill exceeds balance the CTA routes to Ramp (Add funds) and no
+  // quote is ever used, so suppress the amount fed to the quotes hook. Passing
+  // undefined makes useQuickBuyQuotes short-circuit via its `!sourceTokenAmount`
+  // guard (resetQuotesIdle) — no bridge request and no blocking loading state,
+  // so the Add funds button is actionable immediately. The exported
+  // `sourceTokenAmount` is intentionally left untouched (still drives balance
+  // checks, the redux dispatch, and display).
+  const quotesSourceTokenAmount = isPresetAddFundsMode
+    ? undefined
+    : sourceTokenAmount;
+
   const {
     activeQuote,
     sortedQuotes,
@@ -719,7 +760,7 @@ export function useQuickBuyController(
   } = useQuickBuyQuotes({
     sourceToken,
     destToken,
-    sourceTokenAmount,
+    sourceTokenAmount: quotesSourceTokenAmount,
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
     immediateFetchToken,
@@ -781,7 +822,7 @@ export function useQuickBuyController(
     }
     const total = activeQuote.totalNetworkFee?.valueInCurrency;
     if (total != null && isNumberValue(total)) return parseFloat(total);
-    const effective = activeQuote.gasFee?.effective?.valueInCurrency;
+    const effective = activeQuote.gasFee?.total?.valueInCurrency;
     if (effective != null && isNumberValue(effective))
       return parseFloat(effective);
     return null;
@@ -1091,7 +1132,7 @@ export function useQuickBuyController(
   );
 
   const handleQuickAmountPress = useCallback(
-    (fiatValue: number, presetTierUsd?: number) => {
+    (fiatValue: number, presetValue?: number) => {
       if (!Number.isFinite(fiatValue) || fiatValue <= 0) {
         return;
       }
@@ -1125,7 +1166,7 @@ export function useQuickBuyController(
         tradeMode === 'buy' ? sourceToken?.symbol : undefined,
         undefined,
         tradeMode === 'sell' ? destToken?.symbol : undefined,
-        presetTierUsd,
+        presetValue,
       );
     },
     [
@@ -1138,18 +1179,6 @@ export function useQuickBuyController(
       lastInputMethodRef,
     ],
   );
-
-  // Default the slider to 50% once per sheet open when spendable balance is known.
-  useEffect(() => {
-    if (hasAppliedOpenDefaultRef.current) {
-      return;
-    }
-    if (!hasSourcePrice || maxSpendFiat <= 0) {
-      return;
-    }
-    hasAppliedOpenDefaultRef.current = true;
-    handleSliderDragEnd(50);
-  }, [hasSourcePrice, maxSpendFiat, handleSliderDragEnd]);
 
   const handleAmountAreaPress = useCallback(() => {
     // Priced flows are fiat-first, so typing in fiat keeps the keyboard digits
@@ -1229,14 +1258,23 @@ export function useQuickBuyController(
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
       const previousToken = selectedSourceToken?.symbol ?? '';
-      if (token.symbol !== previousToken) {
+      const tokenChanged =
+        !selectedSourceToken ||
+        getTokenKey(token) !== getTokenKey(selectedSourceToken);
+
+      if (tokenChanged && token.symbol !== previousToken) {
         trackPayWithSelected(token.symbol, previousToken);
       }
       isManualSelectionRef.current = true;
       setSelectedSourceToken(token);
-      resetAmountState();
+      // Preserve amount across pay-with changes. Only drop max-balance mode when
+      // the token identity changes — re-selecting the same token must keep max
+      // so we still spend the exact on-chain balance (not a fiat round-trip).
+      if (tokenChanged) {
+        setIsMaxSourceAmount(false);
+      }
     },
-    [resetAmountState, selectedSourceToken?.symbol, trackPayWithSelected],
+    [selectedSourceToken, trackPayWithSelected],
   );
 
   const handleSelectDestStable = useCallback(
@@ -1253,7 +1291,6 @@ export function useQuickBuyController(
 
   const handleAmountChange = useCallback(
     (text: string) => {
-      setIsPresetAddFundsMode(false);
       lastInputMethodRef.current =
         QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT;
       const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
@@ -1268,17 +1305,34 @@ export function useQuickBuyController(
         : (sourceToken?.decimals ?? 18);
       if (parts.length === 2 && parts[1].length > maxFractionDigits) return;
       if (hasSourcePrice) {
+        // Match pill behavior: over-balance buy amounts switch the CTA to
+        // Add funds instead of disabled Insufficient funds.
+        const numeric = Number(normalized);
+        const exceedsBalance =
+          tradeMode === 'buy' &&
+          maxSpendFiat > 0 &&
+          Number.isFinite(numeric) &&
+          numeric > maxSpendFiat;
+        setIsPresetAddFundsMode(exceedsBalance);
+
         setFiatAmount(normalized);
         setQuotedFiatAmount(normalized);
         lastCommittedFiatRef.current = normalized;
       } else {
+        setIsPresetAddFundsMode(false);
         setSourceAmountTokens(normalized);
       }
       lastSliderPercentRef.current = 0;
       setSliderPercent(0);
       setIsMaxSourceAmount(false);
     },
-    [hasSourcePrice, sourceToken?.decimals, lastInputMethodRef],
+    [
+      hasSourcePrice,
+      maxSpendFiat,
+      sourceToken?.decimals,
+      tradeMode,
+      lastInputMethodRef,
+    ],
   );
 
   // Debounced track for custom amount entries — fires once after the user
@@ -1312,6 +1366,20 @@ export function useQuickBuyController(
     lastInputMethodRef,
     lastTrackedAmountRef,
   ]);
+
+  // When the pay-with token changes, maxSpendFiat updates under a preserved
+  // fiat amount — recompute Add-funds so the CTA matches the new balance.
+  useEffect(() => {
+    if (!hasSourcePrice || tradeMode !== 'buy') {
+      return;
+    }
+    const numeric = Number(fiatAmount);
+    if (!Number.isFinite(numeric) || numeric <= 0 || maxSpendFiat <= 0) {
+      setIsPresetAddFundsMode(false);
+      return;
+    }
+    setIsPresetAddFundsMode(numeric > maxSpendFiat);
+  }, [fiatAmount, maxSpendFiat, hasSourcePrice, tradeMode]);
 
   const handleConfirm = useCallback(async () => {
     if (isPresetAddFundsMode && tradeMode === 'buy' && sourceToken) {
@@ -1590,11 +1658,27 @@ export function useQuickBuyController(
         sourceTokenAmount,
         sourceToken.decimals,
       ).toFixed(0);
-      const sent = calcTokenValue(
-        activeQuote.sentAmount.amount,
-        sourceToken.decimals,
-      ).toFixed(0);
-      return sent === requested;
+      // Prefer `sentAmount` (full wallet deduction). Required for gas-included /
+      // gas-sponsored quotes where `quote.srcTokenAmount` is the post-fee
+      // routing amount and would never equal the request.
+      const sentAmountDecimal = activeQuote.sentAmount?.amount;
+      if (sentAmountDecimal != null && sentAmountDecimal !== '') {
+        const sent = calcTokenValue(
+          sentAmountDecimal,
+          sourceToken.decimals,
+        ).toFixed(0);
+        if (sent === requested) {
+          return true;
+        }
+      }
+      // Fallback when `sentAmount` is missing (partial QuoteMetadata) or inflated
+      // by src-token protocol fees on top of an already-full request amount:
+      // match the quote's atomic routing amount against the request.
+      const srcTokenAmountAtomic = activeQuote.quote?.srcTokenAmount;
+      return (
+        srcTokenAmountAtomic != null &&
+        String(srcTokenAmountAtomic) === requested
+      );
     } catch {
       return false;
     }
@@ -1674,7 +1758,10 @@ export function useQuickBuyController(
   }
 
   let confirmButtonState: 'idle' | 'loading' | 'success' = 'idle';
-  if (isConfirmLoading || isBlockingQuoteLoad) {
+  // In add-funds mode the CTA routes to Ramp and never needs a quote, so a rare
+  // mid-flight fetch (tapping an over-balance pill while a prior valid-amount
+  // fetch is still settling) must not spin the Add funds button.
+  if (!isPresetAddFundsMode && (isConfirmLoading || isBlockingQuoteLoad)) {
     confirmButtonState = 'loading';
   }
 

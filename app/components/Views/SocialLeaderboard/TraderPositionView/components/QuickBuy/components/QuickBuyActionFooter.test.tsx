@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import QuickBuyActionFooter from './QuickBuyActionFooter';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
@@ -9,10 +9,6 @@ jest.mock('../useQuickBuyContext', () => ({
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
-}));
-
-jest.mock('./QuickBuyPercentageSlider', () => ({
-  QuickBuyPercentageSlider: () => null,
 }));
 
 jest.mock('./QuickBuyQuickAmounts', () => {
@@ -30,6 +26,20 @@ jest.mock('./QuickBuyTokenIcon', () => ({
   default: () => null,
 }));
 
+jest.mock('./QuickBuyRateTag', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ label, onPress }: { label?: string; onPress?: () => void }) =>
+      ReactMock.createElement(
+        Pressable,
+        { testID: 'quick-buy-rate-tag-pressable', onPress },
+        ReactMock.createElement(Text, { testID: 'quick-buy-rate-tag' }, label),
+      ),
+  };
+});
+
 jest.mock('../QuickBuyBanners', () => ({
   __esModule: true,
   default: () => null,
@@ -46,10 +56,6 @@ jest.mock('../QuickBuyConfirmButton', () => {
 });
 
 const baseContext = {
-  sliderPercent: 0,
-  isSliderDisabled: false,
-  handleSliderChange: jest.fn(),
-  handleSliderDragEnd: jest.fn(),
   confirmButtonState: 'idle' as const,
   getButtonLabel: () => 'Buy',
   hasValidAmount: false,
@@ -63,8 +69,11 @@ const baseContext = {
   destBalanceFiat: undefined,
   destToken: undefined,
   selectedDestStable: undefined,
-  features: { payWithSheet: true },
+  totalAmountFiat: '$123.75',
+  isPriceImpactError: false,
+  features: { payWithSheet: true, quoteDetails: true },
   setActiveScreen: jest.fn(),
+  isKeypadOpen: false,
 };
 
 describe('QuickBuyActionFooter', () => {
@@ -93,7 +102,11 @@ describe('QuickBuyActionFooter', () => {
   it('renders quick-amount pills when the feature flag is enabled', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      features: { payWithSheet: true, quickAmountPills: true },
+      features: {
+        payWithSheet: true,
+        quickAmountPills: true,
+        quoteDetails: true,
+      },
     });
     render(<QuickBuyActionFooter />);
     expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
@@ -102,9 +115,49 @@ describe('QuickBuyActionFooter', () => {
   it('hides quick-amount pills when the feature flag is disabled', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      features: { payWithSheet: true, quickAmountPills: false },
+      features: {
+        payWithSheet: true,
+        quickAmountPills: false,
+        quoteDetails: true,
+      },
     });
     render(<QuickBuyActionFooter />);
     expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
+  });
+
+  it('renders the total row and navigates to quote details when pressed', () => {
+    const setActiveScreen = jest.fn();
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      setActiveScreen,
+    });
+
+    render(<QuickBuyActionFooter />);
+
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.total'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('$123.75')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('quick-buy-rate-tag-pressable'));
+    expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
+  });
+
+  it('keeps the footer interactive while the keypad is open', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      isKeypadOpen: true,
+      features: {
+        payWithSheet: true,
+        quickAmountPills: true,
+        quoteDetails: true,
+      },
+    });
+
+    render(<QuickBuyActionFooter />);
+
+    expect(screen.queryByTestId('quick-buy-footer-reveal')).toBeNull();
+    expect(screen.getByTestId('quick-buy-pay-with-button')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
   });
 });

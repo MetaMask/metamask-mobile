@@ -155,11 +155,14 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
   },
   immersve: {
+    enabled: false,
     network: 'base-sepolia',
     cardProgramId: '',
     clientApplicationId: '',
     partnerAccountId: '',
     fundingChannelId: '',
+    spenderAddress: '',
+    secureApiBaseUrl: '',
   },
   immersveCountries: ['GB'],
 };
@@ -177,12 +180,16 @@ export interface CardFeatureFlag {
 }
 
 export interface ImmersveProgramConfig {
+  enabled?: boolean;
   network?: string;
   cardProgramId?: string;
   clientApplicationId?: string;
   partnerAccountId?: string;
   fundingChannelId?: string;
+  spenderAddress?: string;
   apiBaseUrl?: string;
+  /** Separate Immersve secure host used for set-PIN (and similar) calls. */
+  secureApiBaseUrl?: string;
   appUrl?: string;
 }
 
@@ -273,11 +280,6 @@ export const selectCardFiatCreditFeatureEnabled = createSelector(
 );
 
 export const selectImmersveOnboardingEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
+  selectCardFeatureFlag,
+  (cardFeatureFlag) => Boolean(cardFeatureFlag.immersve?.enabled),
 );

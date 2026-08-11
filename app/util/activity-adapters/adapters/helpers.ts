@@ -10,9 +10,11 @@ import type { CaipChainId, Hex } from '@metamask/utils';
 import {
   TransactionStatus,
   TransactionType,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import type { TransactionGroup } from './transaction-group';
 import type { ActivityFee, Status, TokenAmount } from '../types';
+import { GAS_FEE_SPONSORED } from '../fees';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
@@ -38,6 +40,37 @@ export function getNetworkFeeAmount(
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Determines whether a transaction should display its network fee as sponsored.
+ *
+ * Mirrors the existing transaction-details sponsorship rules: the transaction
+ * must be marked as gas-sponsored, while hardware wallets, revoke-delegation
+ * transactions, terminal transactions with no gas paid, and failed
+ * transactions with no gas used are not shown as paid by MetaMask.
+ */
+export function isTransactionGasFeeSponsored({
+  transaction,
+  isHardwareWalletAccount = false,
+}: {
+  transaction: TransactionMeta | undefined;
+  isHardwareWalletAccount?: boolean;
+}): boolean {
+  if (!transaction) {
+    return false;
+  }
+
+  const { isGasFeeSponsored, status, type } = transaction;
+
+  return Boolean(
+    isGasFeeSponsored &&
+      type !== TransactionType.revokeDelegation &&
+      !isHardwareWalletAccount &&
+      status !== TransactionStatus.rejected &&
+      status !== TransactionStatus.dropped &&
+      !(status === TransactionStatus.failed && !transaction.txReceipt?.gasUsed),
+  );
 }
 
 /**
@@ -70,11 +103,32 @@ function addLayer1FeeToNetworkFeeAmount(
  * `getLocalTransactionFees` + `buildBaseNetworkFee`.
  */
 export function getLocalTransactionFees(
-  transactionGroup: Pick<TransactionGroup, 'primaryTransaction'>,
+  transactionGroup: Pick<TransactionGroup, 'primaryTransaction'> &
+    Partial<
+      Pick<TransactionGroup, 'initialTransaction' | 'isHardwareWalletAccount'>
+    >,
   nativeAsset: ActivityTokenMetadata | undefined,
   nativeSymbol: string | undefined,
 ): ActivityFee[] | undefined {
-  const { primaryTransaction } = transactionGroup;
+  const {
+    initialTransaction,
+    isHardwareWalletAccount = false,
+    primaryTransaction,
+  } = transactionGroup;
+  const transaction =
+    primaryTransaction.isGasFeeSponsored || !initialTransaction
+      ? primaryTransaction
+      : initialTransaction;
+
+  if (
+    isTransactionGasFeeSponsored({
+      transaction,
+      isHardwareWalletAccount,
+    })
+  ) {
+    return [{ type: GAS_FEE_SPONSORED }];
+  }
+
   const l2Amount = getNetworkFeeAmount(
     primaryTransaction.txReceipt?.gasUsed,
     primaryTransaction.txReceipt?.effectiveGasPrice ??

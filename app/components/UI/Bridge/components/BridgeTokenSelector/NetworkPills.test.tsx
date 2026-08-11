@@ -7,12 +7,22 @@ import {
   selectAllowedChainRanking,
   selectVisiblePillChainIds,
 } from '../../../../../core/redux/slices/bridge';
+import { useABTest } from '../../../../../hooks';
+import { useChainValueOrder } from '../../hooks/useChainValueOrder';
 
 const mockDispatch = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks', () => ({
+  useABTest: jest.fn(),
+}));
+
+jest.mock('../../hooks/useChainValueOrder', () => ({
+  useChainValueOrder: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.Mock;
@@ -107,6 +117,12 @@ describe('NetworkPills', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    jest.mocked(useABTest).mockReturnValue({
+      variant: { orderByValue: false },
+      variantName: 'control',
+      isActive: true,
+    });
+    jest.mocked(useChainValueOrder).mockReturnValue(mockChainRanking);
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectAllowedChainRanking) {
         return mockChainRanking;
@@ -119,6 +135,18 @@ describe('NetworkPills', () => {
   });
 
   describe('rendering', () => {
+    it('does not calculate holdings order for control', () => {
+      render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(useChainValueOrder).not.toHaveBeenCalled();
+    });
+
     it('renders All pill and first MAX_VISIBLE_PILLS chain pills', () => {
       const { getByText, queryByText } = render(
         <NetworkPills
@@ -235,6 +263,39 @@ describe('NetworkPills', () => {
       expect(getByText('Ethereum')).toBeTruthy();
       // 5th entry should not be visible
       expect(queryByText('BNB Chain')).toBeNull();
+    });
+
+    it('shows the first four holdings-ranked networks for treatment', () => {
+      const treatmentRanking = [
+        mockChainRanking[4],
+        mockChainRanking[5],
+        mockChainRanking[6],
+        mockChainRanking[0],
+        mockChainRanking[1],
+        mockChainRanking[2],
+        mockChainRanking[3],
+      ];
+      jest.mocked(useABTest).mockReturnValue({
+        variant: { orderByValue: true },
+        variantName: 'treatment',
+        isActive: true,
+      });
+      jest.mocked(useChainValueOrder).mockReturnValue(treatmentRanking);
+
+      const { getByText, queryByText } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(getByText('Polygon')).toBeOnTheScreen();
+      expect(getByText('Optimism')).toBeOnTheScreen();
+      expect(getByText('Arbitrum')).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(queryByText('BNB Chain')).not.toBeOnTheScreen();
+      expect(getByText('+3 more')).toBeOnTheScreen();
     });
   });
 
@@ -427,6 +488,185 @@ describe('NetworkPills', () => {
         type: 'bridge/setVisiblePillChainIds',
         payload: ['eip155:10', 'eip155:137', 'eip155:1', 'eip155:56'],
       });
+    });
+
+    it('promotes a non-visible network within the treatment ranking', () => {
+      const treatmentRanking = [
+        mockChainRanking[4],
+        mockChainRanking[5],
+        mockChainRanking[6],
+        mockChainRanking[0],
+        mockChainRanking[1],
+        mockChainRanking[2],
+        mockChainRanking[3],
+      ];
+      jest.mocked(useABTest).mockReturnValue({
+        variant: { orderByValue: true },
+        variantName: 'treatment',
+        isActive: true,
+      });
+      jest.mocked(useChainValueOrder).mockReturnValue(treatmentRanking);
+      const { rerender } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      rerender(
+        <NetworkPills
+          selectedChainId={'eip155:56' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setVisiblePillChainIds',
+        payload: ['eip155:56', 'eip155:137', 'eip155:10', 'eip155:42161'],
+      });
+    });
+
+    it('keeps a session-pinned promoted chain after treatment ranking changes', () => {
+      const treatmentRanking = [
+        mockChainRanking[4],
+        mockChainRanking[5],
+        mockChainRanking[6],
+        mockChainRanking[0],
+        mockChainRanking[1],
+        mockChainRanking[2],
+        mockChainRanking[3],
+      ];
+      const pinnedVisibleChainIds = [
+        'eip155:56',
+        'eip155:137',
+        'eip155:10',
+        'eip155:42161',
+      ] as CaipChainId[];
+      // Live ranking would no longer include BNB in the top four.
+      const reorderedTreatmentRanking = [
+        mockChainRanking[4],
+        mockChainRanking[5],
+        mockChainRanking[6],
+        mockChainRanking[0],
+        mockChainRanking[2],
+        mockChainRanking[3],
+        mockChainRanking[1],
+      ];
+
+      jest.mocked(useABTest).mockReturnValue({
+        variant: { orderByValue: true },
+        variantName: 'treatment',
+        isActive: true,
+      });
+      jest.mocked(useChainValueOrder).mockReturnValue(treatmentRanking);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectAllowedChainRanking) {
+          return mockChainRanking;
+        }
+        if (selector === selectVisiblePillChainIds) {
+          return pinnedVisibleChainIds;
+        }
+        return undefined;
+      });
+
+      const { rerender, getByText, queryByText } = render(
+        <NetworkPills
+          selectedChainId={'eip155:56' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(getByText('BNB Chain')).toBeOnTheScreen();
+
+      mockDispatch.mockClear();
+      jest
+        .mocked(useChainValueOrder)
+        .mockReturnValue(reorderedTreatmentRanking);
+
+      rerender(
+        <NetworkPills
+          selectedChainId={'eip155:56' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(getByText('BNB Chain')).toBeOnTheScreen();
+      expect(queryByText('Bitcoin')).not.toBeOnTheScreen();
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'bridge/setVisiblePillChainIds',
+        }),
+      );
+    });
+  });
+
+  describe('watchlist filter', () => {
+    const mockOnWatchlistFilterPress = jest.fn();
+
+    it('renders watchlist filter when enabled', () => {
+      const { getByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          showWatchlistFilter
+          isWatchlistFilterActive={false}
+          onWatchlistFilterPress={mockOnWatchlistFilterPress}
+        />,
+      );
+
+      expect(getByTestId('bridge-watchlist-filter-watchlist')).toBeTruthy();
+    });
+
+    it('calls onWatchlistFilterPress when watchlist pill is pressed', () => {
+      const { getByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          showWatchlistFilter
+          isWatchlistFilterActive={false}
+          onWatchlistFilterPress={mockOnWatchlistFilterPress}
+        />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+      expect(mockOnWatchlistFilterPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render watchlist filter when callback is missing', () => {
+      const { queryByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          showWatchlistFilter
+          isWatchlistFilterActive={false}
+        />,
+      );
+
+      expect(queryByTestId('bridge-watchlist-filter-watchlist')).toBeNull();
+    });
+
+    it('keeps All and network pills inactive when watchlist filter is active', () => {
+      const { getByText } = render(
+        <NetworkPills
+          selectedChainId={'eip155:1' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          showWatchlistFilter
+          isWatchlistFilterActive
+          onWatchlistFilterPress={mockOnWatchlistFilterPress}
+        />,
+      );
+
+      fireEvent.press(getByText('All'));
+      expect(mockOnChainSelect).toHaveBeenCalledWith(undefined);
     });
   });
 });

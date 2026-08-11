@@ -5,8 +5,10 @@ import {
 import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import { EncapsulatedElementType } from '../../framework';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class NetworkListModal {
   get networkScroll(): EncapsulatedElementType {
@@ -61,7 +63,7 @@ class NetworkListModal {
     network: string,
     custom = false,
   ): Promise<EncapsulatedElementType> {
-    if (device.getPlatform() === 'android' || !custom) {
+    if ((await PlatformDetector.isAndroid()) || !custom) {
       return Matchers.getElementByText(network);
     }
 
@@ -74,6 +76,16 @@ class NetworkListModal {
     await Gestures.waitAndTap(this.deleteNetworkButton);
   }
 
+  async confirmDeleteNetwork(): Promise<void> {
+    await Gestures.waitAndTap(
+      PlaywrightMatchers.getElementByText(
+        NetworkListModalSelectorsText.DELETE_NETWORK,
+        true,
+      ),
+      { elemDescription: 'Confirm delete network' },
+    );
+  }
+
   async scrollToTopOfNetworkList(): Promise<void> {
     await Gestures.swipe(this.networkScroll, 'down', {
       speed: 'fast',
@@ -81,8 +93,8 @@ class NetworkListModal {
   }
 
   async changeNetworkTo(networkName: string, custom = false): Promise<void> {
-    const elem = this.getCustomNetwork(networkName, custom);
-    await Gestures.waitAndTap(elem);
+    const elem = await this.getCustomNetwork(networkName, custom);
+    await Gestures.waitAndTap(elem as unknown as EncapsulatedElementType);
   }
 
   /**
@@ -157,6 +169,23 @@ class NetworkListModal {
       elemDescription: `Network ${networkName}`,
       checkVisibility: false,
       checkEnabled: false,
+    });
+  }
+
+  async tapNetworkRowMenuButton(networkName: string): Promise<void> {
+    const escapedName = networkName.replace(/'/g, "\\'");
+    const menuId = 'button-menu-select-test-id';
+    const menuButton = PlaywrightMatchers.getElementByXPath(
+      `(//*[contains(@text,'${escapedName}') or contains(@content-desc,'${escapedName}') or contains(@name,'${escapedName}') or contains(@label,'${escapedName}')]/ancestor::*[contains(@resource-id,'network-list-item-') or contains(@name,'network-list-item-') or contains(@label,'network-list-item-')][1])//*[@resource-id='${menuId}' or @content-desc='${menuId}' or @name='${menuId}']`,
+    );
+    await Gestures.waitAndTap(menuButton, {
+      elemDescription: `Network row menu button for ${networkName}`,
+    });
+  }
+
+  async closeNetworkManager(): Promise<void> {
+    await Gestures.waitAndTap(Matchers.getElementByID('button-icon'), {
+      elemDescription: 'Close NetworkManager bottom sheet',
     });
   }
 

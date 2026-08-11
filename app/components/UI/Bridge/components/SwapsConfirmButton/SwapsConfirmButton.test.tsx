@@ -20,15 +20,26 @@ import { RootState } from '../../../../../reducers';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
-import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
+import {
+  setSlippage,
+  setSlippageUserOverride,
+  setSourceAmount,
+} from '../../../../../core/redux/slices/bridge';
 import {
   ChainId,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
-import { SecurityDataType } from '../../types';
+import { SecurityDataType, BridgeViewMode } from '../../types';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
+import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
+import {
+  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+  SwapsCtaButtonColorVariant,
+} from './abTestConfig';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -76,10 +87,6 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock('../../../../../selectors/bridge', () => ({
   ...jest.requireActual('../../../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(),
-}));
-
-jest.mock('../../../../../hooks', () => ({
-  useABTest: jest.fn(() => ({ variant: { showPostTradeModal: true } })),
 }));
 
 // Mock hasMinimumRequiredVersion so that selectBridgeFeatureFlags does not call
@@ -304,6 +311,33 @@ const mockState: DeepPartial<RootState> = {
   },
 };
 
+function createAbTestState(
+  variantName?: SwapsCtaButtonColorVariant,
+  bridgeViewMode = BridgeViewMode.Unified,
+): DeepPartial<RootState> {
+  return {
+    ...mockState,
+    engine: {
+      ...mockState.engine,
+      backgroundState: {
+        ...mockState.engine?.backgroundState,
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            bridgeConfigV2: defaultBridgeConfigV2,
+            ...(variantName && {
+              [SWAPS_CTA_BUTTON_COLOR_AB_KEY]: { name: variantName },
+            }),
+          },
+        },
+      },
+    },
+    bridge: {
+      ...mockState.bridge,
+      bridgeViewMode,
+    },
+  };
+}
+
 describe('SwapsConfirmButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -324,6 +358,117 @@ describe('SwapsConfirmButton', () => {
       id: 'tx-meta-id',
       hash: '0xabc',
       status: 'submitted',
+    });
+  });
+
+  describe('CTA color A/B test', () => {
+    it('uses Primary when the CTA experiment is unresolved', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: createAbTestState() },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.variant).toBe(ButtonVariant.Primary);
+      expect(button.props.twClassName).toBeUndefined();
+      expect(button.props.textProps).toBeUndefined();
+    });
+
+    it('uses Primary for the control assignment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Control),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.variant).toBe(ButtonVariant.Primary);
+      expect(button.props.twClassName).toBeUndefined();
+      expect(button.props.textProps).toBeUndefined();
+    });
+
+    it('uses the success color for the treatment assignment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
+      expect(button.props.textProps).toEqual({
+        color: TextColor.SuccessInverse,
+      });
+    });
+
+    it('uses the success color outside Unified mode for treatment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(
+            SwapsCtaButtonColorVariant.Treatment,
+            BridgeViewMode.Swap,
+          ),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
+    });
+
+    it('preserves existing transaction attribution when submitting treatment', async () => {
+      const existingAssignment = createActiveABTestAssignment(
+        'existingExperiment',
+        'control',
+      );
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+          transactionActiveAbTests={[existingAssignment]}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+          quoteResponse: mockActiveQuote,
+          location: MetaMetricsSwapsEventSource.MainView,
+          transactionActiveAbTests: [existingAssignment],
+        });
+      });
     });
   });
 
@@ -922,6 +1067,107 @@ describe('SwapsConfirmButton', () => {
       expect(button.props.accessibilityState?.disabled).toBe(false);
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
+
+    it('shows loading when user slippage changes before quote refresh starts', () => {
+      const { getByTestId, store } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      act(() => {
+        store.dispatch(setSlippageUserOverride('3.5'));
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(button.props.accessibilityState?.busy).toBe(true);
+    });
+
+    it('enables confirmation after the custom-slippage quote settles', () => {
+      const customSlippageQuote = {
+        ...mockActiveQuote,
+        quote: {
+          ...mockActiveQuote.quote,
+          slippage: 3.5,
+        },
+      };
+      let quoteData = {
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockActiveQuote,
+        isLoading: false,
+      };
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => quoteData);
+      const state = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          slippage: '3.5',
+          isSlippageUserOverride: true,
+        },
+      };
+      const { getByTestId, rerender } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state },
+      );
+      quoteData = {
+        ...quoteData,
+        isLoading: true,
+      };
+      rerender(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+      );
+      quoteData = {
+        ...quoteData,
+        activeQuote: customSlippageQuote,
+        isLoading: false,
+      };
+
+      rerender(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+      );
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+          .accessibilityState?.disabled,
+      ).toBe(false);
+    });
+
+    it('keeps confirmation enabled when the backend hydrates slippage', () => {
+      const { getByTestId, store } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      act(() => {
+        store.dispatch(setSlippage('0.5'));
+      });
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+          .accessibilityState?.disabled,
+      ).toBe(false);
+    });
   });
 
   describe('Quote Expired (needsNewQuote)', () => {
@@ -1024,7 +1270,7 @@ describe('SwapsConfirmButton', () => {
       });
 
       expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
-      expect(mockUpdateQuoteParams).toHaveBeenCalled();
+      expect(mockUpdateQuoteParams).toHaveBeenCalledWith({ isRefresh: true });
       // Should NOT call submitBridgeTx
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });

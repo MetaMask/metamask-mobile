@@ -23,6 +23,7 @@ import {
   ARBITRARY_ALLOWANCE,
   BALANCE_SCANNER_ABI,
   SUPPORTED_ASSET_NETWORKS,
+  LINEA_PUBLIC_RPC_URL,
   cardNetworkInfos,
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
@@ -33,6 +34,7 @@ import {
   generateState,
 } from '../../../../../components/UI/Card/util/pkceHelpers';
 import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
+import { networkToCaipChainId } from '../../../../../components/UI/Card/util/redeemDestination';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
   CardAccountStatus,
@@ -69,7 +71,16 @@ import {
   type DelegationChallengeResponse,
   emptyCardHomeData,
   isCardAuthTokenError,
+  CardProviderIds,
+  CardTransactionStatus,
+  CardTransactionType,
+  CardMerchantCategory,
+  type CardTransaction,
+  type CardTransactionFundingSource,
+  type CardTransactionListParams,
+  type CardTransactionPage,
 } from '../provider-types';
+import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
 import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -92,6 +103,128 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
     tags: { feature: 'card', provider: 'baanx' },
     context: { name: 'BaanxProvider', data: { method, ...extra } },
   };
+}
+
+// -- Transactions (GET /v1/card/transactions) --
+
+/**
+ * Cursor payload for Baanx page-based pagination. `pg` is the next 0-indexed
+ * page to fetch; `i` contains page 0's row ids, used to detect the API's
+ * out-of-range behavior (it silently returns page 0 again instead of an empty
+ * page).
+ */
+interface BaanxCursorPayload {
+  pg: number;
+  /** IDs from page 0, used to detect the API wrapping back to page 0. */
+  i?: string[];
+}
+
+// The Baanx API has no page-size parameter; the server returns fixed-size
+// pages. A short page is therefore the last one. This is the smallest page
+// size observed, so `length < BAANX_MIN_FULL_PAGE` safely means "no more
+// pages" (worst case: one extra request that returns empty).
+const BAANX_MIN_FULL_PAGE = 20;
+
+interface BaanxFundingSourceRaw {
+  id?: string;
+  address?: string;
+  network?: string;
+  txHash?: string;
+  currency?: string;
+  amount?: string;
+  fees?: string;
+  swapFee?: string;
+}
+
+interface BaanxTransactionRaw {
+  id: string;
+  cardId?: string;
+  panLast4?: string;
+  transactionId?: string;
+  dateTime: string;
+  sign: 'DEBIT' | 'CREDIT';
+  merchantNameLocation?: string;
+  merchantType?: string;
+  merchantId?: string;
+  mcc?: number;
+  mccCategory?: string;
+  transactionCurrency: string;
+  amountInTransactionCurrency: string;
+  feesInTransactionCurrency?: string;
+  originalCurrency?: string;
+  amountInOriginalCurrency?: string;
+  feesInOriginalCurrency?: string;
+  billingConversionRate?: string;
+  status: 'CONFIRMED' | 'PENDING' | 'DECLINED' | 'REVERTED';
+  declineReason?: string;
+  fundingSources?: BaanxFundingSourceRaw[];
+}
+
+const BAANX_STATUS_MAP: Record<
+  BaanxTransactionRaw['status'],
+  CardTransactionStatus
+> = {
+  PENDING: CardTransactionStatus.Pending,
+  CONFIRMED: CardTransactionStatus.Completed,
+  DECLINED: CardTransactionStatus.Failed,
+  REVERTED: CardTransactionStatus.Reversed,
+};
+
+const BAANX_MCC_CATEGORY_MAP: Record<string, CardMerchantCategory> = {
+  SUBSCRIPTIONS: CardMerchantCategory.Subscriptions,
+  FOOD: CardMerchantCategory.Food,
+  TRAVEL: CardMerchantCategory.Travel,
+  ENTERTAINMENT: CardMerchantCategory.Entertainment,
+  HEALTH: CardMerchantCategory.Health,
+  ATM: CardMerchantCategory.Atm,
+  UTILITIES: CardMerchantCategory.Utilities,
+  MISC: CardMerchantCategory.Misc,
+};
+
+/** Baanx date filters take ISO date-only strings (YYYY-MM-DD). */
+function toDateOnly(epochMs: number): string {
+  return new Date(epochMs).toISOString().slice(0, 10);
+}
+
+function isBaanxCursorPayload(value: unknown): value is BaanxCursorPayload {
+  if (value == null || typeof value !== 'object') {
+    return false;
+  }
+  const payload = value as Partial<BaanxCursorPayload>;
+  if (!Number.isSafeInteger(payload.pg) || (payload.pg ?? 0) <= 0) {
+    return false;
+  }
+  return (
+    Array.isArray(payload.i) &&
+    payload.i.length > 0 &&
+    payload.i.every((id) => typeof id === 'string' && id.length > 0)
+  );
+}
+
+/**
+ * Detects Baanx returning page 0 for an out-of-range page request.
+ *
+ * If new transactions arrive between requests, a wrapped page contains those
+ * unseen rows followed by a prefix of the original page 0. A real next page
+ * instead contains a suffix of the original page 0 followed by older unseen
+ * rows. Comparing this ordering avoids treating a shifted real page as the end.
+ */
+function isWrappedTransactionPage(
+  items: BaanxTransactionRaw[],
+  pageZeroIds: string[],
+): boolean {
+  const pageZeroIdSet = new Set(pageZeroIds);
+  const firstKnownIndex = items.findIndex((item) => pageZeroIdSet.has(item.id));
+  if (firstKnownIndex === -1) {
+    return false;
+  }
+
+  const knownSuffix = items.slice(firstKnownIndex);
+  if (knownSuffix.some((item) => !pageZeroIdSet.has(item.id))) {
+    return false;
+  }
+
+  return knownSuffix.every((item, index) => item.id === pageZeroIds[index]);
 }
 
 // Earliest block where the FoxConnect spender contracts were deployed on Linea.
@@ -203,6 +336,13 @@ function mapApiError(error: unknown, operation: string): CardProviderError {
         408,
       );
     }
+    if (error.statusCode === 429) {
+      return new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `Rate limited on ${operation}`,
+        429,
+      );
+    }
     if (error.statusCode === 0) {
       return new CardProviderError(
         CardProviderErrorCode.Network,
@@ -226,7 +366,7 @@ function mapAllowanceToFundingStatus(
 }
 
 export class BaanxProvider implements ICardProvider {
-  readonly id = 'baanx' as const;
+  readonly id = CardProviderIds.Baanx;
 
   readonly capabilities: CardProviderCapabilities = {
     authMethod: 'email_password',
@@ -249,10 +389,12 @@ export class BaanxProvider implements ICardProvider {
       kycProvider: 'veriff',
     },
     supportsPinView: true,
+    supportsPinSet: false,
     supportsCashback: true,
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsTransactionHistory: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -375,6 +517,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt:
         Date.now() + response.refresh_token_expires_in * 1000,
       location: tokens.location,
+      providerUserId: tokens.providerUserId,
     };
   }
 
@@ -412,6 +555,9 @@ export class BaanxProvider implements ICardProvider {
       (logContext: string) =>
       (err: unknown): null => {
         if (isCardAuthTokenError(err)) {
+          throw mapApiError(err, logContext);
+        }
+        if (err instanceof CardApiError && err.statusCode === 429) {
           throw mapApiError(err, logContext);
         }
         Logger.error(err as Error, getErrorContext(logContext));
@@ -510,6 +656,14 @@ export class BaanxProvider implements ICardProvider {
       if (isCardAuthTokenError(error)) {
         throw error;
       }
+      if (
+        (error instanceof CardApiError || error instanceof CardProviderError) &&
+        error.statusCode === 429
+      ) {
+        throw error instanceof CardApiError
+          ? mapApiError(error, 'getCardHomeData')
+          : error;
+      }
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
     }
@@ -533,6 +687,85 @@ export class BaanxProvider implements ICardProvider {
         );
       }
       throw mapApiError(error, 'getCardDetails');
+    }
+  }
+
+  /**
+   * Lists card transactions (newest first) from `GET /v1/card/transactions`.
+   *
+   * Baanx paginates with a 0-indexed `page` query param and a server-fixed
+   * page size, wrapped here into an opaque cursor. Requesting a page past the
+   * end returns page 0 again rather than an empty list, so the cursor also
+   * carries page 0's ordered row ids. Their position on later pages
+   * distinguishes a wrapped page 0 from a real page shifted by newly-arrived
+   * transactions.
+   *
+   * `params.limit` is accepted for interface compatibility but ignored: the
+   * page size is fixed server-side.
+   */
+  async listTransactions(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage> {
+    try {
+      const decodedCursor = params.cursor
+        ? decodeCardCursor<unknown>(params.cursor, this.id)
+        : null;
+      if (params.cursor && !isBaanxCursorPayload(decodedCursor)) {
+        throw new CardProviderError(
+          CardProviderErrorCode.Unknown,
+          'Invalid transaction pagination cursor',
+        );
+      }
+      const cursorPayload = isBaanxCursorPayload(decodedCursor)
+        ? decodedCursor
+        : null;
+      const page = cursorPayload?.pg ?? 0;
+      const pageZeroIds = cursorPayload?.i ?? [];
+
+      const query = new URLSearchParams();
+      query.set('page', String(page));
+      if (params.searchQuery) {
+        query.set('searchKey', params.searchQuery);
+      }
+      // The API rejects a lone dateFrom/dateTo; only send them as a pair.
+      if (params.fromDate != null && params.toDate != null) {
+        query.set('dateFrom', toDateOnly(params.fromDate));
+        query.set('dateTo', toDateOnly(params.toDate));
+      }
+
+      const raw = await this.service.get<BaanxTransactionRaw[]>(
+        `/v1/card/transactions?${query.toString()}`,
+        tokens,
+      );
+      const items = Array.isArray(raw) ? raw : [];
+
+      if (items.length === 0) {
+        return { items: [] };
+      }
+
+      // Out-of-range page wrapped back to page 0: treat as end of list.
+      if (
+        page > 0 &&
+        pageZeroIds.length > 0 &&
+        isWrappedTransactionPage(items, pageZeroIds)
+      ) {
+        return { items: [] };
+      }
+
+      const mapped = items.map((tx) => this.mapBaanxTransaction(tx));
+      if (items.length < BAANX_MIN_FULL_PAGE) {
+        return { items: mapped };
+      }
+
+      const nextCursor = encodeCardCursor(this.id, {
+        pg: page + 1,
+        i: page === 0 ? items.map((item) => item.id) : pageZeroIds,
+      } satisfies BaanxCursorPayload);
+
+      return { items: mapped, nextCursor };
+    } catch (error) {
+      throw mapApiError(error, 'listTransactions');
     }
   }
 
@@ -876,12 +1109,34 @@ export class BaanxProvider implements ICardProvider {
         return fallback;
       }
 
-      const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
-      if (!rpcUrl) return fallback;
-      const lineaProvider = new ethers.providers.StaticJsonRpcProvider(rpcUrl, {
-        chainId: 59144,
-        name: 'linea',
-      });
+      const primaryRpcUrl = cardNetworkInfos.linea?.rpcUrl;
+      if (!primaryRpcUrl) return fallback;
+
+      const rpcCandidates = Array.from(
+        new Set(
+          [primaryRpcUrl, LINEA_PUBLIC_RPC_URL].filter(
+            (url): url is string => typeof url === 'string' && url.length > 0,
+          ),
+        ),
+      );
+
+      let lineaProvider: ethers.providers.StaticJsonRpcProvider | undefined;
+      let lastRpcError: unknown;
+      for (const rpcUrl of rpcCandidates) {
+        try {
+          const candidate = this.#createLineaProvider(rpcUrl);
+          await candidate.getBlockNumber();
+          lineaProvider = candidate;
+          break;
+        } catch (error) {
+          lastRpcError = error;
+        }
+      }
+      if (!lineaProvider) {
+        throw lastRpcError instanceof Error
+          ? lastRpcError
+          : new Error('Linea RPC unreachable');
+      }
 
       const rawAllowances = await this.#fetchOnChainAllowances(
         address,
@@ -917,8 +1172,71 @@ export class BaanxProvider implements ICardProvider {
       };
     } catch (error) {
       Logger.error(error as Error, getErrorContext('getOnChainAssets'));
-      return fallback;
+      // When Linea RPC is unreachable, still surface feature-flag Linea tokens so
+      // CardHome can render the asset; useAssetBalances fills wallet balances.
+      return this.#buildLineaAssetsFromFeatureFlag(address) ?? fallback;
     }
+  }
+
+  /**
+   * Builds Inactive Linea funding rows from the card feature flag when on-chain
+   * allowance scanning is unavailable. Empty spendableBalance lets
+   * useAssetBalances fall back to MultichainBalances wallet balances.
+   */
+  #buildLineaAssetsFromFeatureFlag(address: string): CardHomeData | null {
+    const lineaChainId = 'eip155:59144';
+    const lineaChain = this.cardFeatureFlag?.chains?.[lineaChainId];
+    if (!lineaChain?.tokens?.length) return null;
+
+    const fundingAssets = lineaChain.tokens
+      .filter(
+        (t): t is SupportedToken & { address: string } =>
+          !!t && typeof t.address === 'string' && t.enabled !== false,
+      )
+      .map(
+        (t): CardFundingAsset => ({
+          symbol: t.symbol ?? '',
+          name: t.name ?? t.symbol ?? '',
+          address: t.address,
+          walletAddress: address,
+          decimals: t.decimals ?? 6,
+          chainId: lineaChainId,
+          spendableBalance: '',
+          spendingCap: '0',
+          priority: 0,
+          status: FundingAssetStatus.Inactive,
+        }),
+      )
+      .filter((asset) => asset.symbol !== '');
+
+    if (fundingAssets.length === 0) return null;
+
+    return {
+      primaryFundingAsset: fundingAssets[0],
+      fundingAssets,
+      availableFundingAssets: fundingAssets,
+      card: null,
+      account: null,
+      alerts: [],
+      actions: [{ type: 'add_funds', enabled: true }],
+      delegationSettings: null,
+    };
+  }
+
+  #createLineaProvider(rpcUrl: string): ethers.providers.StaticJsonRpcProvider {
+    // StaticJsonRpcProvider skips ethers' auto network detection.
+    // skipFetchSetup is required in React Native — without it ethers mutates
+    // fetch headers/body and Linea RPCs respond with "Invalid JSON" / noNetwork.
+    return new ethers.providers.StaticJsonRpcProvider(
+      {
+        url: rpcUrl,
+        skipFetchSetup: true,
+      },
+      {
+        name: 'linea',
+        chainId: 59144,
+      },
+    );
   }
 
   // -- On-Chain private helpers --
@@ -1341,6 +1659,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt:
         Date.now() + tokenResponse.refresh_token_expires_in * 1000,
       location: metadata.location,
+      providerUserId: loginResponse.userId,
     };
 
     return { done: true, tokenSet };
@@ -1495,6 +1814,112 @@ export class BaanxProvider implements ICardProvider {
       lastFour: response.panLast4,
       holderName: response.holderName,
       isFreezable: response.isFreezable,
+    };
+  }
+
+  private mapBaanxTransaction(raw: BaanxTransactionRaw): CardTransaction {
+    const isDebit = raw.sign === 'DEBIT';
+    const category = raw.mccCategory
+      ? BAANX_MCC_CATEGORY_MAP[raw.mccCategory.toUpperCase()]
+      : undefined;
+    const merchantType = raw.merchantType ?? '';
+    const isAtm =
+      category === CardMerchantCategory.Atm ||
+      merchantType.toUpperCase().includes('ATM');
+
+    let type: CardTransactionType;
+    if (!isDebit) {
+      type = CardTransactionType.Refund;
+    } else if (isAtm) {
+      type = CardTransactionType.Withdrawal;
+    } else {
+      type = CardTransactionType.Purchase;
+    }
+
+    const { name, city } = this.parseMerchantNameLocation(
+      raw.merchantNameLocation,
+    );
+
+    const fundingSources: CardTransactionFundingSource[] = (
+      raw.fundingSources ?? []
+    ).map((fs) => ({
+      txHash: fs.txHash,
+      address: fs.address,
+      network: fs.network,
+      chainId: networkToCaipChainId(fs.network),
+      amount: fs.amount,
+      currency: fs.currency,
+      fees: fs.fees,
+      swapFee: fs.swapFee,
+    }));
+
+    const declineMessage = raw.declineReason?.trim();
+
+    return {
+      id: raw.id,
+      providerId: this.id,
+      timestamp: new Date(raw.dateTime).getTime(),
+      // Unknown future statuses must never be represented as successful.
+      status: BAANX_STATUS_MAP[raw.status] ?? CardTransactionStatus.Pending,
+      type,
+      isDebit,
+      billingAmount: {
+        value: raw.amountInTransactionCurrency,
+        currency: raw.transactionCurrency,
+      },
+      originalAmount:
+        raw.originalCurrency &&
+        raw.amountInOriginalCurrency &&
+        raw.originalCurrency !== raw.transactionCurrency
+          ? {
+              value: raw.amountInOriginalCurrency,
+              currency: raw.originalCurrency,
+            }
+          : undefined,
+      feeAmount:
+        raw.feesInTransactionCurrency && raw.feesInTransactionCurrency !== '0'
+          ? {
+              value: raw.feesInTransactionCurrency,
+              currency: raw.transactionCurrency,
+            }
+          : undefined,
+      conversionRate: raw.billingConversionRate,
+      merchant: name
+        ? {
+            name,
+            city,
+            id: raw.merchantId,
+            mcc: raw.mcc != null ? String(raw.mcc) : undefined,
+            category,
+          }
+        : undefined,
+      description: raw.merchantNameLocation,
+      reference: raw.transactionId,
+      cardLastFour: raw.panLast4,
+      declineReason: declineMessage ? { message: declineMessage } : undefined,
+      fundingSources,
+    };
+  }
+
+  /**
+   * Baanx concatenates merchant name and location into one field, e.g.
+   * "WWW.ALIEXPRESS.COM, LONDON". The city is the segment after the last
+   * comma; merchant names may themselves contain commas.
+   */
+  private parseMerchantNameLocation(combined?: string): {
+    name?: string;
+    city?: string;
+  } {
+    if (!combined?.trim()) {
+      return {};
+    }
+    const lastComma = combined.lastIndexOf(',');
+    if (lastComma === -1) {
+      return { name: combined.trim() };
+    }
+    return {
+      name: combined.slice(0, lastComma).trim(),
+      city: combined.slice(lastComma + 1).trim() || undefined,
     };
   }
 

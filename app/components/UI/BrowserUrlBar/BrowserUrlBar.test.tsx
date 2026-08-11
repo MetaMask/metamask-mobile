@@ -344,6 +344,33 @@ describe('BrowserUrlBar', () => {
       });
     });
 
+    describe('dismissEditing method', () => {
+      it('unfocuses without calling onCancel', () => {
+        const onCancelMock = jest.fn();
+        const onBlurMock = jest.fn();
+        const setIsUrlBarFocusedMock = jest.fn();
+        const props = {
+          ...defaultProps,
+          onCancel: onCancelMock,
+          onBlur: onBlurMock,
+          setIsUrlBarFocused: setIsUrlBarFocusedMock,
+          isUrlBarFocused: true,
+        };
+
+        renderWithProvider(<BrowserUrlBar {...props} ref={urlBarRef} />, {
+          state: mockInitialState,
+        });
+
+        act(() => {
+          urlBarRef.current?.dismissEditing();
+        });
+
+        expect(setIsUrlBarFocusedMock).toHaveBeenCalledWith(false);
+        expect(onBlurMock).toHaveBeenCalledTimes(1);
+        expect(onCancelMock).not.toHaveBeenCalled();
+      });
+    });
+
     describe('focus method', () => {
       it('exposes focus method through imperative handle', () => {
         // Arrange

@@ -24,9 +24,6 @@ const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx',
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
   'app/components/UI/AccountInfoCard/index.js',
-  'app/components/UI/AssetOverview/Price/Price.advanced.tsx',
-  'app/components/UI/AssetOverview/Price/Price.legacy.tsx',
-  'app/components/UI/AssetOverview/utils/marketDetails.ts',
   'app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx',
   'app/components/UI/Bridge/components/QuoteSelectorView/index.tsx',
   'app/components/UI/Bridge/hooks/useBridgeQuoteData/index.ts',
@@ -44,7 +41,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Card/hooks/useCardDelegation.ts',
   'app/components/UI/Card/hooks/useNeedsGasFaucet.ts',
   'app/components/UI/Card/sdk/CardSDK.ts',
-  'app/components/UI/CollectibleOverview/index.js',
   'app/components/UI/Earn/Views/EarnInputView/EarnInputView.test.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/Erc20TokenHero/index.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/index.tsx',
@@ -88,11 +84,7 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.test.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.tsx',
   'app/components/UI/Stake/hooks/useBalance.ts',
-  'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.test.ts',
-  'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.ts',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
@@ -104,9 +96,7 @@ const utilNumberImportBurndownFiles = [
   'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/native-value-display/native-value-display.tsx',
   'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/value-display/value-display.tsx',
   'app/components/Views/confirmations/components/transactions/custom-amount/custom-amount.tsx',
-  'app/components/Views/confirmations/context/send-context/utils.ts',
   'app/components/Views/confirmations/external/staking/hooks/useStakingDetails.ts',
-  'app/components/Views/confirmations/hooks/earn/useCustomAmount.tsx',
   'app/components/Views/confirmations/hooks/gas/useCancelSpeedupGas/useCancelSpeedupGas.ts',
   'app/components/Views/confirmations/hooks/send/useBalance.ts',
   'app/components/Views/confirmations/hooks/send/useCurrencyConversions.ts',
@@ -119,10 +109,8 @@ const utilNumberImportBurndownFiles = [
   'app/components/hooks/useGetFormattedTokensPerChain.tsx',
   'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
   'app/core/Engine/Engine.ts',
-  'app/core/Engine/controllers/gas-fee-controller/gas-fee-controller-init.test.ts',
   'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
-  'app/selectors/assets/assets-list.ts',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
   // `app/util/**` importers of `./number` or `../number` (resolves to `index.js`);
@@ -268,6 +256,55 @@ module.exports = {
           //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
           //   message: 'Use a hash name instead.',
           // },
+        ],
+      },
+    },
+    // MMQA-2174 / MMQA-2173: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
+    {
+      files: ['tests/page-objects/**/*.{js,ts}', 'tests/flows/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/page-objects/**/*.test.ts',
+        'tests/page-objects/**/*.test.js',
+        'tests/flows/**/*.test.ts',
+        'tests/flows/**/*.test.js',
+      ],
+      rules: {
+        // UnifiedGestures Identifier stays out of this error list so legacy PO
+        // usages remain warn-only via no-restricted-imports (MMQA-2174).
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+        ],
+      },
+    },
+    {
+      files: ['tests/smoke-appium/**/*.{js,ts}', 'tests/smoke/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/smoke-appium/**/*.test.ts',
+        'tests/smoke/**/*.test.ts',
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
+          },
         ],
       },
     },

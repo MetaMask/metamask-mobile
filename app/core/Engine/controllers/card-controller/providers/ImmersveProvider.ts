@@ -1,10 +1,17 @@
 import type { CaipChainId } from '@metamask/utils';
+import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
 import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import {
+  ARBITRUM_SEPOLIA_RPC_URL,
+  BASE_MAINNET_RPC_URL,
+  BASE_SEPOLIA_RPC_URL,
+} from '../../../../../components/UI/Card/constants';
 import {
   immersveNetworkToFundingToken,
   type ImmersveFundingTokenInfo,
 } from '../../../../../components/UI/Card/util/immersveFunding';
+import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/util/onChainAllowance';
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
@@ -24,6 +31,7 @@ import {
   CardProviderCapabilities,
   CardProviderError,
   CardProviderErrorCode,
+  CardProviderIds,
   CardSensitiveDetails,
   CardSpendingPrerequisitesParams,
   CardSpendingPrerequisitesResult,
@@ -44,7 +52,27 @@ const IMMERSVE_LOCATION = 'international';
 const IMMERSVE_KYC_TYPE = 'immersve-conducted';
 const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
 const IMMERSVE_SPENDABLE_CURRENCY = 'USD';
-const IMMERSVE_SPENDABLE_AMOUNT = 999999999;
+
+const IMMERSVE_FUNDING_NETWORK_RPC: Record<
+  string,
+  { chainId: number; primaryRpcUrl: string; publicFallback: string }
+> = {
+  'base-mainnet': {
+    chainId: 8453,
+    primaryRpcUrl: BASE_MAINNET_RPC_URL,
+    publicFallback: 'https://mainnet.base.org',
+  },
+  'base-sepolia': {
+    chainId: 84532,
+    primaryRpcUrl: BASE_SEPOLIA_RPC_URL,
+    publicFallback: 'https://sepolia.base.org',
+  },
+  'arbitrum-sepolia': {
+    chainId: 421614,
+    primaryRpcUrl: ARBITRUM_SEPOLIA_RPC_URL,
+    publicFallback: 'https://sepolia-rollup.arbitrum.io/rpc',
+  },
+};
 
 const USD_STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT']);
 
@@ -185,8 +213,10 @@ interface ImmersveCardListItem {
   isBlocked: boolean;
   status: ImmersveCardApiStatus;
   fundingSourceIds: string[];
+  cardProgramId?: string;
   panLast4?: string;
   network?: string;
+  regionCode?: string;
 }
 
 interface ImmersveCardListResponse {
@@ -218,8 +248,13 @@ interface ImmersvePanTokenResponse {
   callbackUrl: string;
 }
 
+export interface CardResumeInfo {
+  cardProgramId?: string;
+  fundingSourceIds: string[];
+}
+
 export class ImmersveProvider implements ICardProvider {
-  readonly id = 'immersve' as const;
+  readonly id = CardProviderIds.Immersve;
 
   readonly capabilities: CardProviderCapabilities = {
     authMethod: 'siwe',
@@ -231,10 +266,12 @@ export class ImmersveProvider implements ICardProvider {
     supportsPushProvisioning: false,
     onboarding: { type: 'webview', url: '' },
     supportsPinView: false,
+    supportsPinSet: true,
     supportsCashback: false,
     supportsCredit: false,
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
+    supportsTransactionHistory: false,
   };
 
   private readonly service: ImmersveService;
@@ -271,6 +308,18 @@ export class ImmersveProvider implements ICardProvider {
 
   private get appUrl(): string {
     return this.programConfig.appUrl || this.config.appUrl;
+  }
+
+  private get secureApiBaseUrl(): string {
+    const url =
+      this.programConfig.secureApiBaseUrl || this.config.secureBaseUrl;
+    if (!url) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Immersve secureApiBaseUrl is not configured',
+      );
+    }
+    return url;
   }
 
   private requireProgramValue(
@@ -361,6 +410,7 @@ export class ImmersveProvider implements ICardProvider {
         ? (decodeJwtExpiryMs(response.refreshToken) ?? undefined)
         : undefined,
       location: IMMERSVE_LOCATION,
+      providerUserId: response.cardholderAccountId,
       cardholderAccountId: response.cardholderAccountId,
       accountAddress: session._metadata.address as string | undefined,
     };
@@ -411,6 +461,7 @@ export class ImmersveProvider implements ICardProvider {
         ? (decodeJwtExpiryMs(refreshToken) ?? undefined)
         : undefined,
       location: tokens.location,
+      providerUserId: tokens.providerUserId ?? tokens.cardholderAccountId,
       cardholderAccountId: tokens.cardholderAccountId,
       accountAddress: tokens.accountAddress,
       keyringId: tokens.keyringId,
@@ -547,7 +598,7 @@ export class ImmersveProvider implements ICardProvider {
         {
           cardProgramId: this.requireProgramValue('cardProgramId'),
           fundingSourceId,
-          spendableAmount: IMMERSVE_SPENDABLE_AMOUNT,
+          spendableAmount: '1',
           spendableCurrency: IMMERSVE_SPENDABLE_CURRENCY,
           kycType: IMMERSVE_KYC_TYPE,
           kycRedirectUrl: params.kycRedirectUrl,
@@ -576,6 +627,27 @@ export class ImmersveProvider implements ICardProvider {
       );
     } catch (error) {
       throw mapApiError(error, 'createCard');
+    }
+  }
+
+  async getResumeCardInfo(
+    tokens: CardAuthTokens,
+  ): Promise<CardResumeInfo | null> {
+    try {
+      const card = await this.resolveCurrentCard(tokens);
+      if (!card) {
+        return null;
+      }
+      const detail = await this.service.get<ImmersveCardDetail>(
+        `/api/cards/${card.id}`,
+        tokens,
+      );
+      return {
+        cardProgramId: detail.cardProgramId,
+        fundingSourceIds: detail.fundingSourceIds ?? [],
+      };
+    } catch (error) {
+      throw mapApiError(error, 'getResumeCardInfo');
     }
   }
 
@@ -640,7 +712,11 @@ export class ImmersveProvider implements ICardProvider {
         `/api/cards/${card.id}`,
         tokens,
       );
-      const cardDetails = this.mapImmersveCard(detail);
+      const cardDetails = this.mapImmersveCard({
+        ...detail,
+        // LIST is the AC source for regionCode; detail may omit it.
+        regionCode: detail.regionCode ?? card.regionCode,
+      });
       const fundingAssets = await this.fetchFundingAssets(
         detail.fundingSourceIds ?? [],
         tokens,
@@ -683,7 +759,10 @@ export class ImmersveProvider implements ICardProvider {
         `/api/cards/${card.id}`,
         tokens,
       );
-      return this.mapImmersveCard(detail);
+      return this.mapImmersveCard({
+        ...detail,
+        regionCode: detail.regionCode ?? card.regionCode,
+      });
     } catch (error) {
       throw mapApiError(error, 'getCardDetails');
     }
@@ -702,6 +781,34 @@ export class ImmersveProvider implements ICardProvider {
       await this.service.post(`/api/cards/${cardId}/unfreeze`, {}, tokens);
     } catch (error) {
       throw mapApiError(error, 'unfreezeCard');
+    }
+  }
+
+  async setCardPin(
+    cardId: string,
+    newPin: string,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    try {
+      await this.service.request(`/api/cards/${cardId}/set-pin`, {
+        method: 'POST',
+        body: { newPin },
+        tokenSet: tokens,
+        baseURL: this.secureApiBaseUrl,
+      });
+    } catch (error) {
+      if (!(error instanceof CardApiError && error.statusCode === 401)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('setCardPin', {
+            httpStatus:
+              error instanceof CardApiError ? error.statusCode : undefined,
+            errorCode:
+              error instanceof CardApiError ? error.errorCode : undefined,
+          }),
+        );
+      }
+      throw mapApiError(error, 'setCardPin');
     }
   }
 
@@ -738,6 +845,7 @@ export class ImmersveProvider implements ICardProvider {
       lastFour: detail.panLast4 ?? '',
       holderName: detail.cardholderName,
       isFreezable: status === CardStatus.ACTIVE || status === CardStatus.FROZEN,
+      regionCode: detail.regionCode,
     };
   }
 
@@ -772,17 +880,19 @@ export class ImmersveProvider implements ICardProvider {
       ),
     );
 
-    const assets = details.map((detail) =>
-      detail ? this.mapFundingSource(detail, tokens) : null,
+    const assets = await Promise.all(
+      details.map((detail) =>
+        detail ? this.mapFundingSource(detail, tokens) : Promise.resolve(null),
+      ),
     );
 
     return assets.filter((asset): asset is CardFundingAsset => asset !== null);
   }
 
-  private mapFundingSource(
+  private async mapFundingSource(
     fundingSource: ImmersveFundingSourceDetail,
     tokens: CardAuthTokens,
-  ): CardFundingAsset | null {
+  ): Promise<CardFundingAsset | null> {
     let tokenInfo: ImmersveFundingTokenInfo;
     try {
       tokenInfo = immersveNetworkToFundingToken(fundingSource.network);
@@ -795,11 +905,15 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     const symbol = fundingSource.balanceCurrency ?? 'USDC';
-    // Immersve always reports a funding-source balance of 0, so we leave the
-    // balance empty and let the client resolve the real on-chain balance from
-    // the asset controllers (useAssetBalances) for the wallet address.
     const walletAddress =
       tokens.accountAddress ?? fundingSource.externalId ?? '';
+
+    const { spendableBalance, spendingCap } =
+      await this.resolveOnChainSpendableBalance(
+        walletAddress,
+        tokenInfo,
+        fundingSource.network,
+      );
 
     return {
       symbol,
@@ -808,11 +922,98 @@ export class ImmersveProvider implements ICardProvider {
       walletAddress,
       decimals: tokenInfo.decimals,
       chainId: tokenInfo.caipChainId as CaipChainId,
-      spendableBalance: '',
-      spendingCap: '',
+      spendableBalance,
+      spendingCap,
       priority: 0,
       status: FundingAssetStatus.Active,
       assumeUsdParity: isUsdStablecoin(symbol),
     };
+  }
+
+  private async resolveOnChainSpendableBalance(
+    walletAddress: string,
+    tokenInfo: ImmersveFundingTokenInfo,
+    network: string | undefined,
+  ): Promise<{ spendableBalance: string; spendingCap: string }> {
+    const empty = { spendableBalance: '', spendingCap: '' };
+    const spender = this.programConfig.spenderAddress;
+    if (!spender || !walletAddress || !ethers.utils.isAddress(walletAddress)) {
+      return empty;
+    }
+
+    try {
+      const provider = await this.createFundingNetworkProvider(network);
+      if (!provider) return empty;
+
+      const { spendableBalance, allowance } =
+        await readErc20AllowanceAndBalance(
+          provider,
+          tokenInfo.tokenAddress,
+          walletAddress,
+          spender,
+          tokenInfo.decimals,
+        );
+
+      return { spendableBalance, spendingCap: allowance };
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        getErrorContext('resolveOnChainSpendableBalance', {
+          walletAddress,
+          network,
+          token: tokenInfo.tokenAddress,
+        }),
+      );
+      return empty;
+    }
+  }
+
+  private async createFundingNetworkProvider(
+    network: string | undefined,
+  ): Promise<ethers.providers.StaticJsonRpcProvider | null> {
+    const resolvedNetwork = network ?? this.network;
+    const rpcConfig = IMMERSVE_FUNDING_NETWORK_RPC[resolvedNetwork];
+    if (!rpcConfig) {
+      Logger.error(
+        new Error(`Unsupported Immersve funding network: ${resolvedNetwork}`),
+        getErrorContext('createFundingNetworkProvider', {
+          network: resolvedNetwork,
+        }),
+      );
+      return null;
+    }
+
+    const { chainId, primaryRpcUrl, publicFallback } = rpcConfig;
+    const rpcCandidates = Array.from(
+      new Set(
+        [primaryRpcUrl, publicFallback].filter(
+          (url): url is string => typeof url === 'string' && url.length > 0,
+        ),
+      ),
+    );
+
+    let lastRpcError: unknown;
+    for (const rpcUrl of rpcCandidates) {
+      try {
+        const candidate = new ethers.providers.StaticJsonRpcProvider(
+          { url: rpcUrl, skipFetchSetup: true },
+          { name: resolvedNetwork, chainId },
+        );
+        await candidate.getBlockNumber();
+        return candidate;
+      } catch (error) {
+        lastRpcError = error;
+      }
+    }
+
+    if (lastRpcError) {
+      Logger.error(
+        lastRpcError as Error,
+        getErrorContext('createFundingNetworkProvider', {
+          network: resolvedNetwork,
+        }),
+      );
+    }
+    return null;
   }
 }

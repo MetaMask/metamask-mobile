@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
 import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { CardApiError } from '../services/BaanxService';
@@ -12,14 +13,28 @@ import {
   type CardAuthSession,
   type CardAuthTokens,
 } from '../provider-types';
-import { BASE_SEPOLIA_USDC_TOKEN_ADDRESS } from '../../../../../components/UI/Card/constants';
+import {
+  ARBITRUM_SEPOLIA_RPC_URL,
+  ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+  BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+} from '../../../../../components/UI/Card/constants';
+import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/util/onChainAllowance';
 import { ImmersveProvider } from './ImmersveProvider';
 
 jest.mock('../../../../../util/Logger');
+jest.mock('../../../../../components/UI/Card/util/onChainAllowance', () => ({
+  readErc20AllowanceAndBalance: jest.fn(),
+}));
+
+const mockReadErc20AllowanceAndBalance =
+  readErc20AllowanceAndBalance as jest.MockedFunction<
+    typeof readErc20AllowanceAndBalance
+  >;
 
 const CONFIG: ImmersveProviderConfig = {
   apiKey: 'test-key',
   baseUrl: 'https://api.test.immersve.com',
+  secureBaseUrl: 'https://test-sec.immersve.com',
   clientApplicationId: 'client-app-1',
   appUrl: 'https://app.immersve.com',
 };
@@ -30,6 +45,14 @@ const FEATURE_FLAG: CardFeatureFlag = {
     cardProgramId: 'program-1',
     partnerAccountId: 'partner-1',
     fundingChannelId: 'base-channel',
+  },
+  immersveCountries: ['GB'],
+};
+
+const FEATURE_FLAG_WITH_SPENDER: CardFeatureFlag = {
+  immersve: {
+    ...FEATURE_FLAG.immersve,
+    spenderAddress: '0x2222222222222222222222222222222222222222',
   },
   immersveCountries: ['GB'],
 };
@@ -51,6 +74,7 @@ function createProvider(featureFlag: CardFeatureFlag | null = FEATURE_FLAG) {
     get: jest.Mock;
     post: jest.Mock;
     patch: jest.Mock;
+    request: jest.Mock;
   };
   const provider = new ImmersveProvider({
     service,
@@ -77,10 +101,17 @@ describe('ImmersveProvider', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.setSystemTime(FIXED_NOW);
+    jest.spyOn(ethers.providers, 'StaticJsonRpcProvider').mockImplementation(
+      () =>
+        ({
+          getBlockNumber: jest.fn().mockResolvedValue(1),
+        }) as unknown as ethers.providers.StaticJsonRpcProvider,
+    );
   });
 
   afterEach(() => {
     jest.resetAllMocks();
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -261,6 +292,7 @@ describe('ImmersveProvider', () => {
       });
       expect(result.done).toBe(true);
       expect(result.tokenSet?.accessToken).toBe(accessJwt);
+      expect(result.tokenSet?.providerUserId).toBe('cardholder-1');
       expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
       expect(result.tokenSet?.accountAddress).toBe('0xabc');
       expect(result.tokenSet?.location).toBe('international');
@@ -341,6 +373,7 @@ describe('ImmersveProvider', () => {
         { origin: 'https://app.immersve.com' },
       );
       expect(refreshed.accessToken).toBe(accessJwt);
+      expect(refreshed.providerUserId).toBe('cardholder-1');
       expect(refreshed.cardholderAccountId).toBe('cardholder-1');
       expect(refreshed.accountAddress).toBe('0xabc');
       expect(refreshed.keyringId).toBe(TOKENS.keyringId);
@@ -676,7 +709,7 @@ describe('ImmersveProvider', () => {
         expect.objectContaining({
           cardProgramId: 'program-1',
           fundingSourceId: 'fs-1',
-          spendableAmount: 999999999,
+          spendableAmount: '1',
           spendableCurrency: 'USD',
           kycType: 'immersve-conducted',
           kycRegion: 'GB',
@@ -698,7 +731,7 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/api/spending-prerequisites',
         expect.objectContaining({
-          spendableAmount: 999999999,
+          spendableAmount: '1',
           spendableCurrency: 'USD',
           kycType: 'immersve-conducted',
         }),
@@ -751,6 +784,62 @@ describe('ImmersveProvider', () => {
         code: CardProviderErrorCode.ServerError,
       });
     });
+
+    it('getResumeCardInfo returns null when the account has no card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+
+      await expect(provider.getResumeCardInfo(TOKENS)).resolves.toBeNull();
+    });
+
+    it('getResumeCardInfo returns the card program and funding sources', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation((path: string) => {
+        if (path.includes('/cards?')) {
+          return Promise.resolve({
+            items: [
+              {
+                id: 'card-1',
+                accountId: 'cardholder-1',
+                type: 'virtual',
+                createdAt: '2024-01-02T00:00:00.000Z',
+                modifiedAt: '2024-01-02T00:00:00.000Z',
+                expiresAt: '2029-01-01T00:00:00.000Z',
+                isBlocked: false,
+                status: 'active',
+                fundingSourceIds: ['fs-arbitrum'],
+              },
+            ],
+          });
+        }
+        if (path === '/api/cards/card-1') {
+          return Promise.resolve({
+            id: 'card-1',
+            cardProgramId: 'program-arbitrum',
+            fundingSourceIds: ['fs-arbitrum'],
+            status: 'active',
+            isBlocked: false,
+          });
+        }
+        return Promise.resolve({});
+      });
+
+      await expect(provider.getResumeCardInfo(TOKENS)).resolves.toStrictEqual({
+        cardProgramId: 'program-arbitrum',
+        fundingSourceIds: ['fs-arbitrum'],
+      });
+    });
+
+    it('getResumeCardInfo maps API failures', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
+        new CardApiError(500, '/api/accounts/cardholder-1/cards', 'down'),
+      );
+
+      await expect(provider.getResumeCardInfo(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.ServerError,
+      });
+    });
   });
 
   describe('capabilities (card-read)', () => {
@@ -759,6 +848,7 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.supportsSensitiveDetailsView).toBe(true);
       expect(provider.capabilities.supportsFundingLimits).toBe(false);
       expect(provider.capabilities.supportsPinView).toBe(false);
+      expect(provider.capabilities.supportsPinSet).toBe(true);
       expect(provider.capabilities.supportsTravel).toBe(false);
     });
   });
@@ -871,6 +961,7 @@ describe('ImmersveProvider', () => {
         lastFour: '1234',
         holderName: 'John Doe',
         isFreezable: true,
+        regionCode: undefined,
       });
       expect(data.primaryFundingAsset).toStrictEqual({
         symbol: 'USDC',
@@ -890,6 +981,36 @@ describe('ImmersveProvider', () => {
       ]);
     });
 
+    it('maps regionCode from Immersve card detail onto CardHomeData.card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'GB' }] },
+          cardDetail: { ...activeCardDetail, regionCode: 'GB' },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card?.regionCode).toBe('GB');
+    });
+
+    it('falls back to LIST regionCode when card detail omits it', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'AU' }] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card?.regionCode).toBe('AU');
+    });
+
     it('swallows non-auth errors and returns empty data', async () => {
       const { provider, service } = createProvider();
       service.get.mockRejectedValue(
@@ -900,6 +1021,172 @@ describe('ImmersveProvider', () => {
 
       expect(data.card).toBeNull();
       expect(data.fundingAssets).toStrictEqual([]);
+    });
+
+    it('populates spendableBalance as min(wallet, allowance) when spender is configured', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '30.0',
+        allowance: '15.0',
+        spendableBalance: '15',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+        fundingAddress,
+        '0x2222222222222222222222222222222222222222',
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '15',
+        spendingCap: '15.0',
+        status: FundingAssetStatus.Active,
+        walletAddress: fundingAddress,
+      });
+    });
+
+    it('uses wallet balance when it is lower than the allowance', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '10.0',
+        allowance: '100.0',
+        spendableBalance: '10',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '10',
+        spendingCap: '100.0',
+      });
+    });
+
+    it('falls back to empty spendableBalance when the on-chain read fails', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockRejectedValue(
+        new Error('rpc unavailable'),
+      );
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '',
+        spendingCap: '',
+        status: FundingAssetStatus.Active,
+      });
+    });
+
+    it('skips the on-chain read when spenderAddress is unset', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(mockReadErc20AllowanceAndBalance).not.toHaveBeenCalled();
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '',
+        spendingCap: '',
+      });
+    });
+
+    it('reads on-chain allowance on Arbitrum Sepolia for arbitrum-sepolia funding', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'arbitrum-sepolia',
+          },
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '20.0',
+        allowance: '8.0',
+        spendableBalance: '8',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      expect(ethers.providers.StaticJsonRpcProvider).toHaveBeenCalledWith(
+        { url: ARBITRUM_SEPOLIA_RPC_URL, skipFetchSetup: true },
+        { name: 'arbitrum-sepolia', chainId: 421614 },
+      );
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+        fundingAddress,
+        '0x2222222222222222222222222222222222222222',
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '8',
+        spendingCap: '8.0',
+        chainId: 'eip155:421614',
+      });
     });
   });
 
@@ -1045,6 +1332,63 @@ describe('ImmersveProvider', () => {
       await expect(
         provider.getCardSensitiveDetails(TOKENS),
       ).rejects.toMatchObject({ code: CardProviderErrorCode.NoCard });
+    });
+  });
+
+  describe('setCardPin', () => {
+    it('posts to the secure host set-pin endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.request.mockResolvedValue({});
+
+      await provider.setCardPin('card-1', '1337', TOKENS);
+
+      expect(service.request).toHaveBeenCalledWith(
+        '/api/cards/card-1/set-pin',
+        expect.objectContaining({
+          method: 'POST',
+          body: { newPin: '1337' },
+          tokenSet: TOKENS,
+          baseURL: 'https://test-sec.immersve.com',
+        }),
+      );
+    });
+
+    it('prefers feature-flag secureApiBaseUrl over config', async () => {
+      const { provider, service } = createProvider({
+        immersve: {
+          ...FEATURE_FLAG.immersve,
+          secureApiBaseUrl: 'https://ff-sec.example.com',
+        },
+      });
+      service.request.mockResolvedValue({});
+
+      await provider.setCardPin('card-1', '2468', TOKENS);
+
+      expect(service.request).toHaveBeenCalledWith(
+        '/api/cards/card-1/set-pin',
+        expect.objectContaining({
+          baseURL: 'https://ff-sec.example.com',
+        }),
+      );
+    });
+
+    it('maps INVALID_PIN_FORMAT to Forbidden with errorCode', async () => {
+      const { provider, service } = createProvider();
+      service.request.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/cards/card-1/set-pin',
+          JSON.stringify({ errorCode: 'INVALID_PIN_FORMAT' }),
+        ),
+      );
+
+      await expect(
+        provider.setCardPin('card-1', '1111', TOKENS),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        errorCode: 'INVALID_PIN_FORMAT',
+      });
+      expect(Logger.error).toHaveBeenCalled();
     });
   });
 });

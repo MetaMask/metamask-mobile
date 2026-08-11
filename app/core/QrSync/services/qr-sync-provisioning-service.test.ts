@@ -613,7 +613,40 @@ describe('QrSyncProvisioningService', () => {
       );
     });
 
-    it('marks provisioning failed and rethrows when metadata provisioning fails', async () => {
+    it('skips unenriched mnemonic entries and still completes provisioning', async () => {
+      const metadataWithoutEntropy = createSecretsImportedMetadata();
+      metadataWithoutEntropy.entries = metadataWithoutEntropy.entries.map(
+        (entry) =>
+          entry.type === QrSyncSecretTypes.MNEMONIC
+            ? { ...entry, entropySource: undefined }
+            : entry,
+      );
+
+      mockMessenger.call = createProvisionMessengerCallMock();
+      mockMessenger.call.mockImplementation(
+        (action: string, ...args: unknown[]) => {
+          if (action === 'QrSyncController:getState') {
+            return createSecretsImportedState({
+              provisioningMetadata: metadataWithoutEntropy,
+            });
+          }
+
+          return createProvisionMessengerCallMock()(action, ...args);
+        },
+      );
+
+      await provisionService.provisionFromMetadata();
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'QrSyncController:completeProvisioning',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'QrSyncController:markProvisioningFailed',
+      );
+      expect(mockReportQrSyncFailure).toHaveBeenCalled();
+    });
+
+    it('continues provisioning other entries when one mnemonic entry fails', async () => {
       mockMessenger.call = jest.fn((action: string) => {
         if (action === 'QrSyncController:getState') {
           return createSecretsImportedState();
@@ -623,19 +656,22 @@ describe('QrSyncProvisioningService', () => {
           return [];
         }
 
+        if (action === 'AccountTreeController:syncWithUserStorage') {
+          return Promise.resolve();
+        }
+
         return undefined;
       });
 
-      await expect(provisionService.provisionFromMetadata()).rejects.toThrow(
-        `Unable to resolve account tree wallet for entropy source ${PRIMARY_ENTROPY_SOURCE}`,
-      );
+      await provisionService.provisionFromMetadata();
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'QrSyncController:markProvisioningFailed',
-      );
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'QrSyncController:completeProvisioning',
       );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'QrSyncController:markProvisioningFailed',
+      );
+      expect(mockReportQrSyncFailure).toHaveBeenCalled();
     });
 
     it('throws when provisioning status is not secrets_imported', async () => {

@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import {
@@ -36,29 +38,35 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type ClosePositionsResult,
+  type Position,
 } from '@metamask/perps-controller';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
   onClose?: () => void;
+  /** When provided, only these positions are shown and closed. */
+  positions?: Position[];
 }
 
 const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   sheetRef: externalSheetRef,
   onClose: onExternalClose,
+  positions: propPositions,
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();
 
-  // Fetch positions from live stream
-  const { positions, isInitialLoading } = usePerpsLivePositions({
+  // Fetch positions from live stream (used only when no positions prop is passed)
+  const liveResult = usePerpsLivePositions({
     throttleMs: 1000,
   });
+  const positions = propPositions ?? liveResult.positions;
+  const isInitialLoading = propPositions ? false : liveResult.isInitialLoading;
 
   // Fetch current prices for fee calculations (throttled to avoid excessive updates)
   const symbols = useMemo(
@@ -319,33 +327,37 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         {strings('perps.close_all_modal.title')}
       </BottomSheetHeader>
 
-      <Box paddingHorizontal={4} twClassName="py-2">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          style={styles.description}
-          testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
-        >
-          {strings('perps.close_all_modal.description')}
-        </Text>
+      <Box twClassName="py-2">
+        <Box paddingHorizontal={4}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            style={styles.description}
+            testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
+          >
+            {strings('perps.close_all_modal.description')}
+          </Text>
+        </Box>
 
         {isClosing ? (
-          <View
-            style={styles.loadingContainer}
-            testID={PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE}
-          >
-            <ActivityIndicator
-              size="large"
-              color={theme.colors.primary.default}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              style={styles.loadingText}
+          <Box paddingHorizontal={4}>
+            <View
+              style={styles.loadingContainer}
+              testID={PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE}
             >
-              {strings('perps.close_all_modal.closing')}
-            </Text>
-          </View>
+              <ActivityIndicator
+                size="large"
+                color={theme.colors.primary.default}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={styles.loadingText}
+              >
+                {strings('perps.close_all_modal.closing')}
+              </Text>
+            </View>
+          </Box>
         ) : (
           <PerpsCloseSummary
             totalMargin={calculations.totalMargin}

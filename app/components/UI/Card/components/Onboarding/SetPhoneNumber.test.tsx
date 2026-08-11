@@ -7,6 +7,15 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { CardError, CardErrorType } from '../../types';
 import useRegions from '../../hooks/useRegions';
 import SetPhoneNumber from './SetPhoneNumber';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardScreens } from '../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
 // Mock whenEngineReady to prevent async polling after test teardown
 jest.mock('../../../../../util/analytics/whenEngineReady', () => ({
@@ -44,15 +53,11 @@ jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-// Immersve contact-details submission
-const mockPatchContactDetails = jest.fn();
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    CardController: {
-      patchContactDetails: (...args: unknown[]) =>
-        mockPatchContactDetails(...args),
-    },
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 // Capture setOnValueChange callbacks and navigation args so tests can simulate
@@ -312,6 +317,24 @@ describe('SetPhoneNumber Component', () => {
     });
 
     store = createTestStore();
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with SET_PHONE_NUMBER screen on mount', () => {
+      render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.SET_PHONE_NUMBER,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('Initial Render', () => {
@@ -1362,51 +1385,6 @@ describe('SetPhoneNumber Component', () => {
       const navigateCall = mockNavigate.mock.calls[0];
       const regionsArg = navigateCall[1]?.params?.regions || [];
       expect(regionsArg.length).toBeGreaterThan(1);
-    });
-  });
-
-  describe('Immersve mode', () => {
-    beforeEach(() => {
-      jest
-        .requireMock('../../../../../util/navigation/navUtils')
-        .useParams.mockReturnValue({
-          countryKey: 'GB',
-          immersve: true,
-          email: 'gb@example.com',
-        });
-    });
-
-    it('submits contact-details (no verification) and routes to the KYC processing step', async () => {
-      mockPatchContactDetails.mockResolvedValue(undefined);
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <SetPhoneNumber />
-        </Provider>,
-      );
-
-      fireEvent.changeText(
-        getByTestId('set-phone-number-phone-number-input'),
-        '7911123456',
-      );
-      await act(async () => {
-        fireEvent.press(getByTestId('set-phone-number-continue-button'));
-      });
-
-      expect(mockPatchContactDetails).toHaveBeenCalledWith({
-        email: 'gb@example.com',
-        phone: '+447911123456',
-      });
-      // No phone verification is sent in Immersve mode.
-      expect(mockSendPhoneVerification).not.toHaveBeenCalled();
-      await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'CardOnboardingKYCProcessing',
-          {
-            countryKey: 'GB',
-          },
-        ),
-      );
     });
   });
 });

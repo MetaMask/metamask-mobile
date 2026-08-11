@@ -3,6 +3,7 @@ import {
   Scope,
   UserFeedback,
   captureUserFeedback,
+  getClient,
   getGlobalScope,
 } from '@sentry/react-native';
 import {
@@ -15,6 +16,7 @@ import {
   rewriteReport,
   rewriteBreadcrumb,
   setEASUpdateContext,
+  isSentryEnabled,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
@@ -29,6 +31,7 @@ import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
 const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
 jest.mock('../../store', () => ({
@@ -188,6 +191,40 @@ describe('deriveSentryEnvironment', () => {
   });
 });
 
+describe('isSentryEnabled', () => {
+  beforeEach(() => {
+    mockedGetClient.mockReset();
+  });
+
+  it('returns false when no Sentry client exists', () => {
+    mockedGetClient.mockReturnValue(undefined);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the Sentry client is explicitly disabled', () => {
+    mockedGetClient.mockReturnValue({
+      getOptions: () => ({ enabled: false }),
+    } as ReturnType<typeof getClient>);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when the Sentry client uses the default enabled option', () => {
+    mockedGetClient.mockReturnValue({
+      getOptions: () => ({}),
+    } as ReturnType<typeof getClient>);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(true);
+  });
+});
+
 describe('excludeEvents', () => {
   const mockStore = jest.mocked(store);
   const mockDevice = jest.mocked(Device);
@@ -247,6 +284,42 @@ describe('excludeEvents', () => {
 
     expect(result).toBeTruthy();
     expect(result.start_timestamp).toBe(1234567890);
+  });
+
+  it('drops event when trace.timed_out flag is true', () => {
+    const event = {
+      transaction: 'Onboarding - Overall Journey',
+      contexts: {
+        trace: {
+          span_id: 'abc123',
+          trace_id: 'def456',
+          data: {
+            'trace.timed_out': true,
+          },
+        },
+      },
+    };
+
+    const result = excludeEvents(event);
+    expect(result).toBeNull();
+  });
+
+  it('keeps event when trace.timed_out flag is absent', () => {
+    const event = {
+      transaction: 'Onboarding - Overall Journey',
+      contexts: {
+        trace: {
+          span_id: 'abc123',
+          trace_id: 'def456',
+          data: {
+            'some.other.attr': 'value',
+          },
+        },
+      },
+    };
+
+    const result = excludeEvents(event);
+    expect(result).toBe(event);
   });
 
   it('returns main-exp for experimental environment and main build type', async () => {
@@ -901,6 +974,74 @@ describe('rewriteReport', () => {
     mockStore.getState.mockReturnValue({} as unknown as RootState);
   });
 
+  it('groups disk-full persist errors during rewriteReport', () => {
+    const report = {
+      exception: {
+        values: [
+          {
+            value:
+              "File '/var/mobile/.../persistStore/persist-root' could not be written; out of space",
+          },
+        ],
+      },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.fingerprint).toEqual(['disk-space-full', 'persist:root']);
+    expect(result.exception?.values?.[0]?.value).toBe(
+      'Device storage full: failed to persist persist:root',
+    );
+    expect(result.tags?.error_category).toBe('disk_full');
+    expect(result.tags?.persist_key).toBe('persist:root');
+  });
+
+  it('does not apply disk-full grouping to unrelated Sentry reports', () => {
+    const originalMessage =
+      'Network request failed while fetching token prices';
+    const report = {
+      exception: {
+        values: [
+          {
+            type: 'Error',
+            value: originalMessage,
+          },
+        ],
+      },
+      tags: { feature: 'token-prices' },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.fingerprint).toBeUndefined();
+    expect(result.exception?.values?.[0]?.value).toBe(originalMessage);
+    expect(result.tags?.error_category).toBeUndefined();
+    expect(result.tags?.persist_key).toBeUndefined();
+    expect(result.tags?.feature).toBe('token-prices');
+  });
+
+  it('groups multiple absolute paths for the same persist key identically', () => {
+    const messages = [
+      "File '/var/mobile/Containers/Data/Application/AAA111/Documents/persistStore/persist-root' could not be written; volume is out of space",
+      "File '/data/user/0/io.metamask/files/persistStore/persist-root' could not be written; No space left on device",
+    ];
+
+    const results = messages.map((value) =>
+      rewriteReport({
+        exception: { values: [{ value }] },
+        contexts: {},
+      }),
+    );
+
+    expect(results[0].fingerprint).toEqual(['disk-space-full', 'persist:root']);
+    expect(results[1].fingerprint).toEqual(results[0].fingerprint);
+    expect(results[0].exception?.values?.[0]?.value).toBe(
+      results[1].exception?.values?.[0]?.value,
+    );
+  });
+
   it('should remove SES from stack trace', () => {
     const report = {
       exception: {
@@ -1135,6 +1276,10 @@ describe('setEASUpdateContext', () => {
         slug: 'test-project',
       },
     };
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('sets Sentry tags for OTA update metadata', () => {

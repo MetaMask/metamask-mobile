@@ -31,8 +31,8 @@ export enum TokenDetailsSource {
   MoversSwaps = 'movers-swaps',
   /** Swap discovery feed — stocks section */
   RwasStocksSwaps = 'rwas_stocks-swaps',
-  /** Dedicated homepage trending-tokens section (A/B treatment layout) */
-  HomepageTrending = 'homepage-trending',
+  /** Robinhood Chain promo banner on the Swaps screen */
+  BannerRobinhoodSwaps = 'banner-robinhood-swaps',
   /** Swap/Bridge token selector */
   Swap = 'swap',
   /** Price alert notification deeplink */
@@ -45,6 +45,8 @@ export enum TokenDetailsSource {
   WatchlistFullscreenSearch = 'watchlist_fullscreen_search',
   /** Explore Trending Tokens — watchlist filter pill active */
   ExploreWatchlistFilter = 'explore_watchlist_filter',
+  /** Swap/Bridge token picker — watchlist filter pill active */
+  SwapWatchlistFilter = 'swap_watchlist_filter',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }

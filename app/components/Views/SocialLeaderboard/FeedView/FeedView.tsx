@@ -11,17 +11,34 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
-  ScrollView,
   SectionList,
+  type ScrollView,
   type SectionListData,
   type SectionListRenderItemInfo,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   ImpactMoment,
@@ -39,14 +56,12 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import FeedSpotBuyAction, {
-  type FeedSpotBuyActionHandle,
-} from './components/FeedSpotBuyAction';
+import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
 import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
-import { TypeFilterSelector, TypeFilterSheet } from '../components/TypeFilter';
+import { TypeFilterSelector, TypeFilterSheet } from '../components/Filters';
 import FollowingEmptyState from './components/FollowingEmptyState';
 import { useTraderFeed } from './hooks/useTraderFeed';
 import type {
@@ -55,6 +70,7 @@ import type {
   FeedSection,
   FeedTypeFilter,
 } from './types';
+import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { FeedViewSelectorsIDs } from './FeedView.testIds';
 
 const SKELETON_ROW_COUNT = 6;
@@ -62,6 +78,14 @@ const SKELETON_KEYS = Array.from(
   { length: SKELETON_ROW_COUNT },
   (_, i) => `feed-skeleton-${i}`,
 );
+
+const AnimatedSectionList = Animated.createAnimatedComponent(
+  SectionList<FeedItem, FeedSection>,
+);
+
+type AnimatedScrollHandler = React.ComponentProps<
+  typeof Animated.ScrollView
+>['onScroll'];
 
 export interface FeedViewProps {
   /**
@@ -71,6 +95,30 @@ export interface FeedViewProps {
    * to `true` for standalone use.
    */
   isActive?: boolean;
+  /**
+   * Opens the QuickBuy sheet for a spot token. The sheet is hosted by the
+   * parent (above the tab `PagerView`) rather than inside this page so it isn't
+   * clipped by the pager and can leave the content behind it interactive (no
+   * backdrop). Omitting it makes the spot Trade CTA a no-op (standalone use).
+   */
+  onQuickBuy?: (target: QuickBuyTarget) => void;
+  /**
+   * Reports whether the loaded feed currently contains at least one spot row.
+   * The parent uses this to mount the spot Buy orchestrator (and scope its A/B
+   * exposure) only when a spot Buy is actually offered — perps-only / empty
+   * feeds never expose the experiment.
+   */
+  onSpotAvailabilityChange?: (hasSpotItem: boolean) => void;
+  /**
+   * Scroll handler forwarded by the tabs container so the feed's scroll drives
+   * the parent's collapsing title. Omitting it keeps standalone behavior.
+   */
+  onScroll?: AnimatedScrollHandler;
+  /**
+   * Lets the tabs container drive this page's scroll offset so the collapsing
+   * title stays put when the user switches tabs.
+   */
+  pageRef?: React.Ref<SocialTabPageHandle>;
 }
 
 /**
@@ -82,11 +130,19 @@ export interface FeedViewProps {
  * pages. The Trade button is wired: spot rows open the QuickBuy sheet, perps
  * rows navigate to the Perps market detail page.
  */
-const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
+const FeedView: React.FC<FeedViewProps> = ({
+  isActive = true,
+  onQuickBuy,
+  onSpotAvailabilityChange,
+  onScroll,
+  pageRef,
+}) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const { track } = useSocialLeaderboardAnalytics();
+  const source = route.params?.source ?? 'nav_tab';
 
   // Default to "Following": the backend "leaderboard" scope isn't implemented
   // yet, so the feed opens on the Following scope (the only one the API serves).
@@ -96,9 +152,41 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   const typeFilterRef = useRef(typeFilter);
   audienceRef.current = audience;
   typeFilterRef.current = typeFilter;
+  // Tracks whether we've already emitted the screen-viewed event this mount.
+  // Fires when the Feed tab first becomes active (pager mounts both pages).
+  const hasFiredScreenViewedRef = useRef(false);
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
-  const buyActionRef = useRef<FeedSpotBuyActionHandle>(null);
+  // Only one of these is mounted at a time (skeletons vs. loaded sections), so
+  // the handle forwards the offset to both and lets the unmounted one no-op.
+  const skeletonScrollRef = useRef<ScrollView>(null);
+  const listRef = useRef<SectionList<FeedItem, FeedSection>>(null);
+
+  useImperativeHandle(
+    pageRef,
+    () => ({
+      scrollToOffset: (offset: number, animated = false) => {
+        listRef.current
+          ?.getScrollResponder()
+          ?.scrollTo({ y: offset, animated });
+        skeletonScrollRef.current?.scrollTo({ y: offset, animated });
+      },
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    if (!isActive || hasFiredScreenViewedRef.current) {
+      return;
+    }
+    hasFiredScreenViewedRef.current = true;
+    track(MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED, {
+      [SocialLeaderboardEventProperties.SOURCE]: source,
+      [SocialLeaderboardEventProperties.FEED_AUDIENCE]: audience,
+      [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: typeFilter,
+    });
+  }, [isActive, source, audience, typeFilter, track]);
+
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -113,13 +201,20 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     refresh,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
 
-  // Only expose the Top Traders Buy Action A/B test (and mount its QuickBuy /
-  // swaps orchestrator) when the loaded feed actually offers a spot Buy, perps
-  // rows navigate to Perps and must not pollute the experiment.
+  // Report spot availability up to the parent so it can mount the Buy Action
+  // orchestrator (and scope its A/B exposure) only when the loaded feed offers
+  // a spot Buy — perps rows navigate to Perps and must not pollute the
+  // experiment.
   const hasSpotItem = useMemo(
     () => items.some((item) => item.type === 'spot'),
     [items],
   );
+
+  // useLayoutEffect (not useEffect) so the parent mounts FeedSpotBuyAction in the
+  // same commit, before paint — spot Trade must never fire while the ref is null.
+  useLayoutEffect(() => {
+    onSpotAvailabilityChange?.(hasSpotItem);
+  }, [hasSpotItem, onSpotAvailabilityChange]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -209,7 +304,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
             : {}),
         });
 
-        buyActionRef.current?.open({
+        onQuickBuy?.({
           tokenAddress: item.tokenAddress,
           tokenSymbol: item.tokenSymbol,
           tokenName: item.tokenName,
@@ -237,7 +332,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         },
       });
     },
-    [audience, navigation, track, typeFilter],
+    [audience, navigation, onQuickBuy, track, typeFilter],
   );
 
   const handleTraderPress = useCallback(
@@ -382,34 +477,63 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     loadMore,
   ]);
 
+  // The filter row rides inside the scroll (as the list header) so it scrolls
+  // away with the feed rows instead of staying pinned.
+  const filterRow = useMemo(
+    () => (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="px-4 py-3"
+        gap={3}
+      >
+        <TypeFilterSelector
+          value={typeFilter}
+          onPress={() => setIsTypeSheetOpen(true)}
+        />
+        <FeedAudienceToggle value={audience} onChange={handleAudienceChange} />
+      </Box>
+    ),
+    [typeFilter, audience, handleAudienceChange],
+  );
+
   const content = useMemo(() => {
     if (isLoading && items.length === 0) {
       return (
-        <ScrollView
+        <Animated.ScrollView
+          ref={skeletonScrollRef}
           style={tw.style('flex-1')}
           contentContainerStyle={tw.style('pb-6')}
           showsVerticalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
           refreshControl={refreshControl}
           testID={FeedViewSelectorsIDs.LOADING}
         >
+          {filterRow}
           {SKELETON_KEYS.map((key) => (
             <FeedItemRowSkeleton key={key} />
           ))}
-        </ScrollView>
+        </Animated.ScrollView>
       );
     }
 
     return (
-      <SectionList
+      <AnimatedSectionList
+        ref={listRef}
         sections={sections}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
+        ListHeaderComponent={filterRow}
         ItemSeparatorComponent={renderItemSeparator}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderListEmpty}
         stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         contentContainerStyle={tw.style('pb-6 flex-grow')}
@@ -428,6 +552,8 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     renderItemSeparator,
     renderFooter,
     handleEndReached,
+    filterRow,
+    onScroll,
     tw,
   ]);
 
@@ -436,20 +562,6 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
       twClassName="flex-1 bg-default"
       testID={FeedViewSelectorsIDs.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-3"
-        gap={3}
-      >
-        <TypeFilterSelector
-          value={typeFilter}
-          onPress={() => setIsTypeSheetOpen(true)}
-        />
-        <FeedAudienceToggle value={audience} onChange={handleAudienceChange} />
-      </Box>
-
       {content}
 
       <TypeFilterSheet
@@ -458,10 +570,6 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         onChange={handleTypeFilterChange}
         onClose={() => setIsTypeSheetOpen(false)}
       />
-
-      {hasSpotItem && (
-        <FeedSpotBuyAction ref={buyActionRef} isActive={isActive} />
-      )}
     </Box>
   );
 };

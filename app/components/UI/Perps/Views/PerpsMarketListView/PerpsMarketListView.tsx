@@ -5,7 +5,13 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextFieldSearch,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import {
   View,
   Animated,
@@ -14,12 +20,7 @@ import {
   Platform,
 } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
@@ -54,8 +55,11 @@ import {
   RouteProp,
   useNavigation,
   useFocusEffect,
+  CommonActions,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -89,7 +93,7 @@ const PerpsMarketListView = ({
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
   const perpsNavigation = usePerpsNavigation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const variant = route.params?.variant ?? propVariant ?? 'full';
   const title = route.params?.title ?? propTitle;
@@ -102,6 +106,7 @@ const PerpsMarketListView = ({
   const defaultSortOptionId = route.params?.defaultSortOptionId;
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const replaceOnSelect = route.params?.replaceOnSelect === true;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isRecentlyViewedEnabled = useSelector(
@@ -290,26 +295,54 @@ const PerpsMarketListView = ({
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ALL_MARKETS;
         }
 
+        const detailsParams = {
+          market,
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+          source_section,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
+        };
+
+        if (replaceOnSelect) {
+          // Header slide-up picker: dismiss this list and replace the stale
+          // MARKET_DETAILS beneath it so Back does not return to the prior market.
+          navigation.dispatch((state) => {
+            const routes = state.routes.slice(0, -1);
+            if (
+              routes[routes.length - 1]?.name === Routes.PERPS.MARKET_DETAILS
+            ) {
+              routes.pop();
+            }
+            return CommonActions.reset({
+              ...state,
+              index: routes.length,
+              routes: [
+                ...routes,
+                {
+                  name: Routes.PERPS.MARKET_DETAILS,
+                  params: detailsParams,
+                },
+              ],
+            });
+          });
+          return;
+        }
+
         // Use push instead of navigate so that MARKET_LIST is always beneath
         // MARKET_DETAILS in the stack. navigate() can jump to an existing
         // MARKET_DETAILS entry (e.g. one opened from PerpsHome via the watchlist
         // component's ROOT-based navigation), which would skip MARKET_LIST on
         // back and land the user on PERPS_HOME instead.
         navigation.dispatch(
-          StackActions.push(Routes.PERPS.MARKET_DETAILS, {
-            market,
-            source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-            source_section,
-            ...(transactionActiveAbTests?.length
-              ? { transactionActiveAbTests }
-              : {}),
-          }),
+          StackActions.push(Routes.PERPS.MARKET_DETAILS, detailsParams),
         );
       }
     },
     [
       onMarketSelect,
       navigation,
+      replaceOnSelect,
       transactionActiveAbTests,
       searchQuery,
       showFavoritesOnly,
@@ -674,13 +707,13 @@ const PerpsMarketListView = ({
       return (
         <View style={styles.errorContainer}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Error}
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
             style={styles.errorText}
           >
             {strings('perps.failed_to_load_market_data')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.data_updates_automatically')}
           </Text>
         </View>
@@ -854,12 +887,14 @@ const PerpsMarketListView = ({
             onChangeText={setSearchQuery}
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
-            testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
-            autoComplete="off"
-            autoCorrect={false}
-            autoCapitalize="none"
             clearButtonProps={{
               testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
+            }}
+            inputProps={{
+              autoComplete: 'off',
+              autoCorrect: false,
+              autoCapitalize: 'none',
+              testID: PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
             }}
           />
         </View>
