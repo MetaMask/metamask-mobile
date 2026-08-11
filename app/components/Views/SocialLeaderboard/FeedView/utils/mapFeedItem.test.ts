@@ -306,7 +306,7 @@ describe('mapFeedItem', () => {
 
     expect(result?.subHeader).toEqual({
       sizeLabel: '$36.3K',
-      contextValueLabel: '$63,908.45',
+      contextValueLabel: '$63,908',
       contextKind: 'price',
     });
   });
@@ -333,6 +333,63 @@ describe('mapFeedItem', () => {
     expect(result?.subHeader).toEqual({
       sizeLabel: '$40.4K',
       contextValueLabel: '$161.72',
+      contextKind: 'price',
+    });
+  });
+
+  it('derives sub-header price for sub-cent perp fills', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        perpPositionType: 'long',
+        perpLeverage: 10,
+        currentValueUSD: 92_234,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1_451_472,
+            usdCost: 4_004.61,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 10,
+          },
+        ],
+        tokenSymbol: 'PUMP',
+        timestamp: 1_700_000_000,
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$4K',
+      contextValueLabel: '$0.002759',
+      contextKind: 'price',
+    });
+  });
+
+  it('derives sub-header price for sub-cent spot fills without market cap', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        tokenSymbol: 'PEPE',
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1_000_000,
+            usdCost: 2_759,
+            marketCap: null,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$2.8K',
+      contextValueLabel: '$0.002759',
       contextKind: 'price',
     });
   });

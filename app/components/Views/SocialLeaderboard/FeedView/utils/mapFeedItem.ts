@@ -15,6 +15,7 @@ import {
   formatAbbreviatedUsd,
   formatPercent,
   formatSignedUsd,
+  formatTradeUnitPrice,
   formatUsd,
 } from '../../utils/formatters';
 import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
@@ -122,11 +123,10 @@ function buildSubHeader(
   const tokenAmount = Math.abs(trade.tokenAmount);
   const price = tokenAmount > 0 ? Math.abs(trade.usdCost) / tokenAmount : null;
 
-  // Guard against sub-cent prices rendering as a misleading "$0.00".
-  if (price != null && price >= 0.01) {
+  if (price != null && price > 0) {
     return {
       sizeLabel,
-      contextValueLabel: formatUsd(price),
+      contextValueLabel: formatTradeUnitPrice(price),
       contextKind: 'price',
     };
   }
