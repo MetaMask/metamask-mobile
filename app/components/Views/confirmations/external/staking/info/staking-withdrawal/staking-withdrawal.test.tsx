@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
-import { getNavbar } from '../../../../components/UI/navbar/navbar';
+import useNavbar from '../../../../hooks/ui/useNavbar';
 import StakingWithdrawal from './staking-withdrawal';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
@@ -53,8 +53,9 @@ jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
-jest.mock('../../../../components/UI/navbar/navbar', () => ({
-  getNavbar: jest.fn(),
+jest.mock('../../../../hooks/ui/useNavbar', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../../utils/token', () => ({
@@ -83,7 +84,7 @@ jest.mock('@react-navigation/native', () => {
 describe('StakingWithdrawal', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockSetConfirmationMetric = jest.fn();
-  const mockGetNavbar = jest.mocked(getNavbar);
+  const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
@@ -134,16 +135,7 @@ describe('StakingWithdrawal', () => {
 
     expect(getByText('Network fee')).toBeDefined();
 
-    expect(mockGetNavbar).toHaveBeenCalled();
-    expect(mockGetNavbar).toHaveBeenCalledWith({
-      title: 'Unstake',
-      onReject: mockOnReject,
-      addBackButton: true,
-      theme: expect.any(Object),
-      mmPayRequestInProgressNavHandler: expect.objectContaining({
-        current: false,
-      }),
-    });
+    expect(mockUseNavbar).toHaveBeenCalledWith('Unstake');
   });
 
   it('tracks metrics events', async () => {
