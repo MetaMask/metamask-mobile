@@ -8984,7 +8984,7 @@
       "set_label": "PIN",
       "continue": "Continue",
       "confirm_title": "Confirm your card PIN",
-      "confirm_description": "Re-enter your PIN to confirm",
+      "confirm_description": "Enter your PIN again to confirm.",
       "confirm_label": "Confirm PIN",
       "submit": "Set PIN",
       "mismatch_error": "PINs must match.",
@@ -8992,8 +8992,8 @@
       "repeating_pin_error": "That PIN can't be used. Choose a different one.",
       "forbidden_error": "You can't set a PIN on this card right now.",
       "network_error": "Something went wrong. Please try again.",
-      "success_title": "PIN set",
-      "success_description": "Your card PIN is ready to use. Make sure you keep it safe—you won't be able to view it in the app."
+      "success_title": "Your PIN is set",
+      "success_description": "Make sure you keep it safe. You won't be able to view it in the app."
     },
     "choose_your_card": {
       "title": "Choose your card",
@@ -9376,8 +9376,8 @@
         "view_pin": "View PIN",
         "view_pin_description": "View your card PIN securely",
         "view_pin_error": "Failed to load PIN. Please try again.",
-        "set_pin": "Set card PIN",
-        "set_pin_description": "Set a 4-digit PIN for ATM and chip payments",
+        "set_pin": "Set a 4-digit PIN",
+        "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
