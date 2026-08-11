@@ -2,14 +2,13 @@ import type {
   FetchEventsParams,
   PredictEntityId,
   PredictEvent,
-  PredictEventSummary,
   PredictQueryDescriptor,
   PredictVenueId,
   PaginatedResult,
 } from '../types';
 
 export const MARKET_DATA_EVENTS_STALE_TIME = 60_000;
-export const MARKET_DATA_EVENT_STALE_TIME = 5 * 60_000;
+export const MARKET_DATA_EVENT_STALE_TIME = 60_000;
 
 export interface MarketDataQueries {
   getEvents(
@@ -26,7 +25,7 @@ export interface MarketDataQueries {
   >;
 }
 
-export type GetEventsResult = PaginatedResult<PredictEventSummary>;
+export type GetEventsResult = PaginatedResult<PredictEvent>;
 export type GetEventResult = PredictEvent;
 
 export const marketDataQueries: MarketDataQueries = {
