@@ -162,13 +162,13 @@ const PerpsHomeView = () => {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
-    async (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode): Promise<boolean> => {
       const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
         entry: 'home',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       });
       if (openedChooser) {
-        return;
+        return false;
       }
 
       // Chooser already completed — flip immediately without the sheet.
@@ -188,6 +188,7 @@ const PerpsHomeView = () => {
           ],
         });
       }
+      return true;
     },
     [navigation, setPerpsMode],
   );
