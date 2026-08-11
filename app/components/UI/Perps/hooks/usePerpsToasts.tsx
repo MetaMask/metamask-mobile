@@ -1111,13 +1111,17 @@ const usePerpsToasts = (): {
         added: (symbol: string) => ({
           ...perpsBaseToastOptions.success,
           labelOptions: getPerpsToastLabels(
-            strings('perps.watchlist.added', { symbol }),
+            strings('perps.watchlist.added', {
+              symbol: getPerpsDisplaySymbol(symbol),
+            }),
           ),
         }),
         removed: (symbol: string) => ({
           ...perpsBaseToastOptions.info,
           labelOptions: getPerpsToastLabels(
-            strings('perps.watchlist.removed', { symbol }),
+            strings('perps.watchlist.removed', {
+              symbol: getPerpsDisplaySymbol(symbol),
+            }),
           ),
         }),
         addError: {
