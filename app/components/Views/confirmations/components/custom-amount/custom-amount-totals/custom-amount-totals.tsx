@@ -4,36 +4,45 @@ import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
 import { ReceiveRow } from '../../rows/receive-row';
 import { InfoRowSkeleton } from '../../UI/info-row/info-row';
-import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 
 export function CustomAmountTotals({
   amountFiat,
   canSelectWithdrawToken,
-  stage,
+  isAddMusdIntent,
+  isAwaitingPrefillResult,
+  isLoading,
+  showPaymentDetails,
 }: Readonly<{
   amountFiat: string;
   canSelectWithdrawToken: boolean;
-  stage: CustomAmountStage;
+  isAddMusdIntent: boolean;
+  isAwaitingPrefillResult: boolean;
+  isLoading: boolean;
+  showPaymentDetails: boolean;
 }>) {
-  if (stage === CustomAmountStage.Loading) {
+  if (isLoading) {
     return <CustomAmountTotalsSkeleton />;
   }
 
-  if (stage === CustomAmountStage.NoQuote) {
-    return null;
+  if (showPaymentDetails && !isAwaitingPrefillResult) {
+    return (
+      <>
+        <BridgeFeeRow />
+        <BridgeTimeRow />
+        {canSelectWithdrawToken ? (
+          <ReceiveRow inputAmountUsd={amountFiat} />
+        ) : (
+          <TotalRow />
+        )}
+      </>
+    );
   }
 
-  return (
-    <>
-      <BridgeFeeRow />
-      <BridgeTimeRow />
-      {canSelectWithdrawToken ? (
-        <ReceiveRow inputAmountUsd={amountFiat} />
-      ) : (
-        <TotalRow />
-      )}
-    </>
-  );
+  if (isAddMusdIntent || isAwaitingPrefillResult) {
+    return <CustomAmountTotalsSkeleton />;
+  }
+
+  return null;
 }
 
 function CustomAmountTotalsSkeleton() {

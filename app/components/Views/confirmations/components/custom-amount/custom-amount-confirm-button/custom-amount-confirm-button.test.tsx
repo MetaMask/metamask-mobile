@@ -85,8 +85,6 @@ describe('CustomAmountConfirmButton', () => {
 
     useConfirmationContextMock.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
-      navHeaderConfig: null,
-      setNavHeaderConfig: noop,
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,

@@ -427,8 +427,6 @@ describe('CustomAmountInfo', () => {
 
     useConfirmationContextMock.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
-      navHeaderConfig: null,
-      setNavHeaderConfig: jest.fn(),
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
