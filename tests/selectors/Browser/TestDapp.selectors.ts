@@ -1,6 +1,9 @@
 export const TestDappSelectorsWebIDs = {
   ACCOUNTS_TEXT: 'accounts',
   CHAIN_ID_TEXT: 'chainId',
+  ACTIVE_PROVIDER_NAME: 'activeProviderName',
+  PROVIDERS_CONTAINER: 'providers',
+  USE_WINDOW_PROVIDER_BUTTON: 'useWindowProviderButton',
   TEST_DAPP_FOX_LOGO: 'mm-logo',
   TEST_DAPP_HEADING_TITLE: 'logo-text',
   APPROVE_ERC_20_TOKENS_BUTTON_ID: 'approveTokens',

@@ -90,6 +90,8 @@ interface TestDappConnectionState {
   accountsUi: string;
   ethAccountCount: number;
   connectLabel: string;
+  activeProviderName: string;
+  hasEip6963UseButton: boolean;
   hasProviderRequest: boolean;
 }
 
@@ -105,6 +107,12 @@ const readTestDappConnectionState = async (
       const connectEl = document.getElementById(${JSON.stringify(
         TestDappSelectorsWebIDs.CONNECT_BUTTON,
       )});
+      const activeNameEl = document.getElementById(${JSON.stringify(
+        TestDappSelectorsWebIDs.ACTIVE_PROVIDER_NAME,
+      )});
+      const eip6963Button = document.querySelector(
+        ${JSON.stringify(`#${TestDappSelectorsWebIDs.PROVIDERS_CONTAINER} button`)},
+      );
       const eth = window.ethereum;
       let ethAccounts = [];
       if (eth && typeof eth.request === 'function') {
@@ -120,6 +128,8 @@ const readTestDappConnectionState = async (
           .trim(),
         ethAccountCount: Array.isArray(ethAccounts) ? ethAccounts.length : 0,
         connectLabel: (connectEl?.textContent || '').trim(),
+        activeProviderName: (activeNameEl?.textContent || '').trim(),
+        hasEip6963UseButton: Boolean(eip6963Button),
         hasProviderRequest: Boolean(eth && typeof eth.request === 'function'),
       };
     })()`,
@@ -130,21 +140,62 @@ const isTestDappAccountsHydrated = (
 ): boolean =>
   Boolean(
     state?.hasProviderRequest &&
+      state.activeProviderName.length > 0 &&
       state.ethAccountCount > 0 &&
       state.accountsUi.length > 0,
   );
 
 /**
- * After navigation/reload, MetaMask may inject `window.ethereum` before the
- * Test Dapp finishes `initializeProvider` → `handleNewAccounts`. Faking
- * `globalConnectionChange` enables buttons while `src.provider` / accounts stay
- * unset (CI screenshots: "NOT CONNECTED", Account `undefined`). Click Connect
- * so the dapp runs its real eth_requestAccounts handler; approve the sheet only
- * if it appears (fixture permissions often resolve without UI).
+ * Test Dapp `initialize()` races EIP-6963 announce vs `providerDetails.length`.
+ * After reload, Active Provider often stays empty (CI: UUID/Name blank) so
+ * Connect's `globalContext.provider.request` is undefined. Click "Use MetaMask"
+ * once the EIP-6963 button renders — that runs `setActiveProviderDetail`.
+ */
+const ensureTestDappActiveProvider = async (pageUrl: string): Promise<void> => {
+  const deadline = Date.now() + TEST_DAPP_ACCOUNTS_HYDRATE_TIMEOUT_MS;
+  let lastClickAt = 0;
+
+  while (Date.now() < deadline) {
+    const state = await readTestDappConnectionState(pageUrl);
+    if (state?.activeProviderName) {
+      return;
+    }
+
+    if (state?.hasEip6963UseButton && Date.now() - lastClickAt >= 1_000) {
+      lastClickAt = Date.now();
+      await ChromeCdpHelpers.evaluateInWebView<boolean>(
+        pageUrl,
+        `(() => {
+          const btn = document.querySelector(
+            ${JSON.stringify(`#${TestDappSelectorsWebIDs.PROVIDERS_CONTAINER} button`)},
+          );
+          if (!btn || typeof btn.click !== 'function') return false;
+          btn.click();
+          return true;
+        })()`,
+      );
+    }
+
+    await sleep(400);
+  }
+
+  const finalState = await readTestDappConnectionState(pageUrl);
+  throw new Error(
+    `Test dapp active provider never selected within ${TEST_DAPP_ACCOUNTS_HYDRATE_TIMEOUT_MS}ms` +
+      ` (state=${JSON.stringify(finalState)})`,
+  );
+};
+
+/**
+ * After Active Provider is set, ensure accounts land in `#accounts` via Connect
+ * (`eth_requestAccounts` → `handleNewAccounts`). Approve the sheet only if it
+ * appears (fixture permissions often resolve without UI).
  */
 const ensureTestDappAccountsHydrated = async (
   pageUrl: string,
 ): Promise<void> => {
+  await ensureTestDappActiveProvider(pageUrl);
+
   const deadline = Date.now() + TEST_DAPP_ACCOUNTS_HYDRATE_TIMEOUT_MS;
   let lastConnectClickAt = 0;
 
@@ -154,11 +205,8 @@ const ensureTestDappAccountsHydrated = async (
       return;
     }
 
-    // Click Connect whenever the dapp is not hydrated yet. Fixture permissions
-    // usually resolve eth_requestAccounts without a sheet; that still runs
-    // handleNewAccounts and sets `src.connected`.
     if (
-      state?.hasProviderRequest &&
+      state?.activeProviderName &&
       state.connectLabel !== 'Connected' &&
       Date.now() - lastConnectClickAt >= 1_500
     ) {
