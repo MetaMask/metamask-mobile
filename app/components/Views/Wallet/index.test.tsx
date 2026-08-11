@@ -63,12 +63,6 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(() => false),
 }));
 
-// Mock the Predict feature flag selector - will be controlled per test
-let mockPredictEnabled = true;
-jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
-  selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
-}));
-
 // Control Money account feature flag per test (default false so existing tests are unaffected)
 let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
@@ -770,7 +764,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
-  mockPredictEnabled = true;
   mockMoneyAccountEnabled = false;
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
@@ -1209,14 +1202,12 @@ describe('Wallet', () => {
       // Reset flags to default state
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
-      mockPredictEnabled = true;
     });
 
     afterEach(() => {
       // Reset mocks and flags
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
-      mockPredictEnabled = true;
       jest.clearAllMocks();
     });
 
