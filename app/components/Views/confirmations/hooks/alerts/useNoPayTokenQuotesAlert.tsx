@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { hasTransactionType } from '@metamask/transaction-controller';
 
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
@@ -13,7 +13,6 @@ import {
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
   useTransactionPayQuoteError,
-  useTransactionPayQuotesLastUpdated,
   useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
@@ -23,45 +22,6 @@ import {
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
-
-/**
- * Whether quote loading has finished for the current amount.
- *
- * Suppresses empty-quote alerts in the Max / amount-commit window before the
- * controller starts (and finishes) a quote fetch. Resets when the amount key
- * changes so a prior settle cannot leak into the next request.
- *
- * On first mount, an already-idle controller with a `quotesLastUpdated`
- * timestamp is treated as settled (remount / unit tests after a completed
- * fetch).
- */
-function useHasQuoteLoadingSettledForAmount(
-  isQuotesLoading: boolean,
-  amountKey: string,
-  quotesLastUpdated: number | undefined,
-): boolean {
-  const amountKeyRef = useRef(amountKey);
-  const sawLoadingRef = useRef(false);
-  const didInitRef = useRef(false);
-
-  if (!didInitRef.current) {
-    didInitRef.current = true;
-    if (!isQuotesLoading && quotesLastUpdated !== undefined) {
-      sawLoadingRef.current = true;
-    }
-  }
-
-  if (amountKeyRef.current !== amountKey) {
-    amountKeyRef.current = amountKey;
-    sawLoadingRef.current = false;
-  }
-
-  if (isQuotesLoading) {
-    sawLoadingRef.current = true;
-  }
-
-  return sawLoadingRef.current && !isQuotesLoading;
-}
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
@@ -74,7 +34,6 @@ export function useNoPayTokenQuotesAlert() {
   const transactionMeta = useTransactionMetadataRequest();
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
   const quoteError = useTransactionPayQuoteError();
-  const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
 
   const fiatAmount = Number(fiatPayment?.amountFiat);
   const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
@@ -97,46 +56,35 @@ export function useNoPayTokenQuotesAlert() {
   // zero amount never starts quote loading. Gating empty-quote branches that
   // apply to deposits on amountRaw alone — not isMaxAmount — keeps the alert
   // quiet through that in-flight window; once the amount lands amountRaw is
-  // positive and a genuine no-quote case still fires after loading settles.
+  // positive and a genuine no-quote case still fires.
+  //
+  // Do not latch on isQuotesLoading pulses to infer "settled": the pay
+  // controller briefly pulses loading for an empty pre-fetch before the real
+  // fetch (see useCustomAmountStage), and a latch would treat that gap as a
+  // finished empty result and flash this alert again.
   const hasPositiveRequiredTokenAmount = (requiredTokens ?? []).some(
     (t) => !t.skipIfBalance && Boolean(t.amountRaw) && t.amountRaw !== '0',
-  );
-
-  const quoteAmountKey = [
-    ...(requiredTokens ?? [])
-      .filter((t) => !t.skipIfBalance)
-      .map((t) => t.amountRaw ?? '0'),
-    hasSelectedFiatPaymentMethod ? String(fiatPayment?.amountFiat ?? '') : '',
-  ].join('|');
-
-  const hasQuoteLoadingSettled = useHasQuoteLoadingSettledForAmount(
-    isQuotesLoading,
-    quoteAmountKey,
-    quotesLastUpdated,
   );
 
   const shouldShowNonFiatNoQuotesAlert =
     payToken &&
     !isQuotesLoading &&
     !quotes?.length &&
-    hasPositiveRequiredTokenAmount &&
-    hasQuoteLoadingSettled;
+    hasPositiveRequiredTokenAmount;
 
   const shouldShowFiatNoQuotesAlert =
     hasSelectedFiatPaymentMethod &&
     hasValidFiatAmount &&
     !isQuotesLoading &&
     !fiatPayment?.rampsQuote &&
-    quotes?.length === 0 &&
-    hasQuoteLoadingSettled;
+    quotes?.length === 0;
 
   const shouldShowPostQuoteNoQuotesAlert =
     isPostQuote &&
     Boolean(payToken) &&
     !isQuotesLoading &&
     !quotes?.length &&
-    hasPositiveRequiredAmount &&
-    hasQuoteLoadingSettled;
+    hasPositiveRequiredAmount;
 
   // Same amountRaw gate as the non-fiat branch: moneyAccountDeposit is the only
   // quote-required type, and Max sets isMaxAmount before amountRaw / loading.
@@ -144,8 +92,7 @@ export function useNoPayTokenQuotesAlert() {
     hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES) &&
     !isQuotesLoading &&
     !quotes?.length &&
-    hasPositiveRequiredTokenAmount &&
-    hasQuoteLoadingSettled;
+    hasPositiveRequiredTokenAmount;
 
   // Withdraws with token selection enabled must have the pay config
   // (isPostQuote) set on the controller before confirming. Blocks the

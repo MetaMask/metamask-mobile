@@ -16,7 +16,6 @@ import {
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
   useTransactionPayQuoteError,
-  useTransactionPayQuotesLastUpdated,
   useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
@@ -94,9 +93,6 @@ describe('useNoPayTokenQuotesAlert', () => {
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
     jest.mocked(useTransactionPayQuoteError).mockReturnValue(undefined);
-    // Treat the controller as already idle after a completed fetch so existing
-    // empty-quote assertions still exercise the alert once loading has settled.
-    jest.mocked(useTransactionPayQuotesLastUpdated).mockReturnValue(1);
   });
 
   it('returns alert if pay token selected and no quotes available', () => {
@@ -406,7 +402,6 @@ describe('useNoPayTokenQuotesAlert', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
       jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
       jest.mocked(useTransactionPayQuoteError).mockReturnValue(undefined);
-      jest.mocked(useTransactionPayQuotesLastUpdated).mockReturnValue(1);
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
       } as never);
@@ -444,7 +439,9 @@ describe('useNoPayTokenQuotesAlert', () => {
 
     it('returns no alert for moneyAccountDeposit when Max is set before the amount lands', () => {
       // Max sets isMaxAmount synchronously before amountRaw / quote loading.
-      // The quote-required branch must not treat isMaxAmount alone as ready.
+      // The quote-required branch must not treat isMaxAmount alone as ready —
+      // and must not latch on isQuotesLoading pulses to infer settlement
+      // (empty pre-fetch pulses would re-flash the alert).
       jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
       useTransactionPayRequiredTokensMock.mockReturnValue([
         {
@@ -458,33 +455,6 @@ describe('useNoPayTokenQuotesAlert', () => {
       const { result } = runHook();
 
       expect(result.current).toStrictEqual([]);
-    });
-
-    it('suppresses moneyAccountDeposit no-quote alert until quote loading settles', () => {
-      jest
-        .mocked(useTransactionPayQuotesLastUpdated)
-        .mockReturnValue(undefined);
-
-      const { result, rerender } = runHook();
-
-      // Amount is already on the controller, but no fetch has started yet.
-      expect(result.current).toStrictEqual([]);
-
-      useIsTransactionPayLoadingMock.mockReturnValue(true);
-      rerender({});
-
-      expect(result.current).toStrictEqual([]);
-
-      useIsTransactionPayLoadingMock.mockReturnValue(false);
-      rerender({});
-
-      expect(result.current).toEqual([
-        expect.objectContaining({
-          key: AlertKeys.NoPayTokenQuotes,
-          severity: Severity.Danger,
-          isBlocking: true,
-        }),
-      ]);
     });
 
     it('returns no alert for moneyAccountDeposit when quotes are present', () => {
