@@ -95,14 +95,18 @@ const MoneyAddMoneySheet: React.FC = () => {
     options?: InitiateDepositOptions;
   } | null>(null);
 
-  // Close the sheet (which pops the modal) and kick off the deposit in one
-  // atomic step, so the confirmation slides straight over the sheet rather than
-  // flashing back to Money home in between.
+  // Swap the sheet's modal for the confirmation in a SINGLE root-stack
+  // transaction via StackActions.replace (replaceConfirmation -> replace: true
+  // in navigateToConfirmation). This avoids the pop-then-push sequence that
+  // briefly reveals Money home between the two: replace never renders the
+  // presenting screen. We deliberately do NOT call onCloseBottomSheet here — the
+  // replace pops this modal as part of swapping the root screen, so animating
+  // the sheet closed first would just re-introduce the flash.
   const closeAndStartDeposit = useCallback(
     (options?: InitiateDepositOptions) => {
-      sheetRef.current?.onCloseBottomSheet(() => {
-        initiateDeposit(options).catch(() => undefined);
-      });
+      initiateDeposit({ ...options, replaceConfirmation: true }).catch(
+        () => undefined,
+      );
     },
     [initiateDeposit],
   );
