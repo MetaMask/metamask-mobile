@@ -6,7 +6,10 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
 import { containsUserRejectedError } from '../../../../util/middlewares';
-import { addTransactionBatch } from '../../../../util/transaction-controller';
+import {
+  addTransactionBatch,
+  startTransaction,
+} from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
@@ -171,17 +174,24 @@ export function useMoneyAccountDeposit() {
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
       };
 
-      // Navigate early for better UX; recover on failure below.
-      navigateToConfirmation({
-        ...confirmationParams,
-        stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-        replace: options?.replaceConfirmation,
-      });
-
       try {
-        // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
-        await waitForNextFrame();
+        // Navigate synchronously, on the same frame as the CTA tap, BEFORE any
+        // async work. The confirmation mounts + push-animates immediately (in
+        // its loader/skeleton state, since the approval request isn't in the
+        // store yet), so the button's press feedback flows straight into the
+        // screen transition. Deferring navigation until after the awaited batch
+        // build left a dead beat where the row un-highlighted before anything
+        // moved. None of the navigation args depend on the batch result.
+        navigateToConfirmation({
+          ...confirmationParams,
+          stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+          replace: options?.replaceConfirmation,
+        });
 
+        // For the initial deposit CTA the batch is a zero-amount placeholder
+        // (`amount: 0n`, `initialiseWithoutData: true`): the RPC call and
+        // calldata encoding inside buildMoneyAccountDepositBatch are skipped, so
+        // this resolves on a microtask with no network work.
         const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
           amount: BigInt(0),
           chainId: depositSetup.chainIdHex,
@@ -196,28 +206,41 @@ export function useMoneyAccountDeposit() {
         // We only set the transaction from the money account perspective.
         // MM Pay selects the user's account and moves funds to the money account,
         // so `from` must be the money account and `networkClientId` its chain.
-        await addTransactionBatch({
-          batchId,
-          disableHook: true,
-          disableSequential: true,
-          disableUpgrade: true,
-          from: depositSetup.moneyAccountAddress as Hex,
-          isGasFeeSponsored: depositSetup.isGasFeeSponsored,
-          isInternal: true,
-          networkClientId: depositSetup.networkClientId,
-          origin: ORIGIN_METAMASK,
-          requiredAssets: [
-            {
-              address: getMoneyAccountDepositAssetAddress(
-                depositSetup.chainIdHex,
-              ),
-              amount: '0x0' as Hex,
-              standard: 'erc20',
-            },
-          ],
-          skipInitialGasEstimate: true,
-          transactions: [approveTx, depositTx],
-        });
+        //
+        // `startTransaction` adds the transaction to state synchronously and
+        // resolves all async data (type, gas, simulation, delegation address,
+        // first time interaction) in the background, flipping `ready` to `true`
+        // once complete. The two calls are batched atomically via EIP-7702.
+        const { result } = startTransaction(
+          {
+            from: depositSetup.moneyAccountAddress as Hex,
+            calls: [
+              { ...approveTx.params, type: approveTx.type },
+              { ...depositTx.params, type: depositTx.type },
+            ],
+          },
+          {
+            batchId,
+            isGasFeeSponsored: depositSetup.isGasFeeSponsored,
+            isInternal: true,
+            networkClientId: depositSetup.networkClientId,
+            origin: ORIGIN_METAMASK,
+            requiredAssets: [
+              {
+                address: getMoneyAccountDepositAssetAddress(
+                  depositSetup.chainIdHex,
+                ),
+                amount: '0x0' as Hex,
+                standard: 'erc20',
+              },
+            ],
+            skipInitialGasEstimate: true,
+          },
+        );
+
+        // Surface background resolution / approval failures to the existing
+        // error handling below, matching the previous await semantics.
+        result.catch(() => undefined);
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
         depositIntentByBatchId.delete(batchId.toLowerCase());
