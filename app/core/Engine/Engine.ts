@@ -452,6 +452,8 @@ export class Engine {
     const subscriptionController = this.#wallet.getInstance(
       'SubscriptionController',
     );
+    const shieldController = this.#wallet.getInstance('ShieldController');
+    const claimsController = this.#wallet.getInstance('ClaimsController');
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -601,6 +603,8 @@ export class Engine {
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SubscriptionController: subscriptionController,
+      ShieldController: shieldController,
+      ClaimsController: claimsController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
@@ -1292,6 +1296,8 @@ export class Engine {
       LoggingController,
       MoneyAccountController,
       SubscriptionController,
+      ShieldController,
+      ClaimsController,
     } = this.context;
 
     // Remove all permissions.
@@ -1328,6 +1334,12 @@ export class Engine {
 
     // Subscriptions:
     SubscriptionController.clearState();
+
+    // Shield:
+    ShieldController.clearState();
+
+    // Claims:
+    ClaimsController.clearState();
   };
 
   removeAllListeners() {
@@ -1506,6 +1518,8 @@ export default {
       SignatureController,
       SmartTransactionsController,
       SubscriptionController,
+      ShieldController,
+      ClaimsController,
       TokenBalancesController,
       TokenRatesController,
       TokensController,
@@ -1582,6 +1596,8 @@ export default {
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
       SubscriptionController: SubscriptionController.state,
+      ShieldController: ShieldController.state,
+      ClaimsController: ClaimsController.state,
       TokenBalancesController: TokenBalancesController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,

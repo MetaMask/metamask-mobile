@@ -406,6 +406,24 @@ import {
   type SubscriptionServiceEvents,
 } from '@metamask/subscription-controller';
 import {
+  ShieldController,
+  type ShieldControllerActions,
+  type ShieldControllerEvents,
+  type ShieldControllerState,
+  ShieldApiService,
+  type ShieldApiServiceActions,
+  type ShieldApiServiceEvents,
+} from '@metamask/shield-controller';
+import {
+  ClaimsController,
+  type ClaimsControllerActions,
+  type ClaimsControllerStateChangeEvent,
+  type ClaimsControllerState,
+  ClaimsService,
+  type ClaimsServiceActions,
+  type ClaimsServiceEvents,
+} from '@metamask/claims-controller';
+import {
   AccountTreeController,
   AccountTreeControllerState,
   AccountTreeControllerActions,
@@ -535,6 +553,8 @@ type RequiredControllers = Omit<
   | 'RewardsDataService'
   | 'StorageService'
   | 'SubscriptionService'
+  | 'ShieldApiService'
+  | 'ClaimsService'
   | 'ComplianceService'
   | 'ChompApiService'
 >;
@@ -549,6 +569,8 @@ type OptionalControllers = Pick<
   | 'RewardsDataService'
   | 'StorageService'
   | 'SubscriptionService'
+  | 'ShieldApiService'
+  | 'ClaimsService'
   | 'ComplianceService'
   | 'ChompApiService'
 >;
@@ -651,6 +673,10 @@ export type GlobalActions =
   | StorageServiceActions
   | SubscriptionControllerActions
   | SubscriptionServiceActions
+  | ShieldControllerActions
+  | ShieldApiServiceActions
+  | ClaimsControllerActions
+  | ClaimsServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
@@ -718,6 +744,10 @@ export type GlobalEvents =
   | StorageServiceEvents
   | SubscriptionControllerEvents
   | SubscriptionServiceEvents
+  | ShieldControllerEvents
+  | ShieldApiServiceEvents
+  | ClaimsControllerStateChangeEvent
+  | ClaimsServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -853,6 +883,10 @@ export type MessengerClients = {
   StorageService: StorageService;
   SubscriptionController: SubscriptionController;
   SubscriptionService: SubscriptionService;
+  ShieldController: ShieldController;
+  ShieldApiService: ShieldApiService;
+  ClaimsController: ClaimsController;
+  ClaimsService: ClaimsService;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
@@ -949,6 +983,8 @@ export type EngineState = {
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   SubscriptionController: SubscriptionControllerState;
+  ShieldController: ShieldControllerState;
+  ClaimsController: ClaimsControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
   DeFiPositionsControllerV2: DeFiPositionsControllerV2State;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)

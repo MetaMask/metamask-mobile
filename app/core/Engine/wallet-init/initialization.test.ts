@@ -47,6 +47,14 @@ jest.mock('./instance-options/subscription-service', () => ({
     () => 'subscription-service-options',
   ),
 }));
+jest.mock('./instance-options/shield-api-service', () => ({
+  getShieldApiServiceInstanceOptions: jest.fn(
+    () => 'shield-api-service-options',
+  ),
+}));
+jest.mock('./instance-options/claims-service', () => ({
+  getClaimsServiceInstanceOptions: jest.fn(() => 'claims-service-options'),
+}));
 jest.mock('./instance-options/transaction-controller', () => ({
   getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
   setupTransactionControllerListeners: jest.fn(),
@@ -77,6 +85,8 @@ describe('initializeWallet', () => {
         seedlessOnboardingController: 'seedless-options',
         storageService: 'storage-options',
         subscriptionService: 'subscription-service-options',
+        shieldApiService: 'shield-api-service-options',
+        claimsService: 'claims-service-options',
         networkController: getNetworkControllerInstanceOptions(),
         transactionController: 'transaction-options',
       },
