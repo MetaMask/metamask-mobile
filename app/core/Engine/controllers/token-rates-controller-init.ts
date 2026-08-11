@@ -4,6 +4,8 @@ import {
   type TokenRatesControllerMessenger,
 } from '@metamask/assets-controllers';
 import { Duration, inMilliseconds } from '@metamask/utils';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../store';
 
 /**
  * Initialize the token rates controller.
@@ -21,7 +23,8 @@ export const tokenRatesControllerInit: MessengerClientInitFunction<
     state: persistedState.TokenRatesController ?? { marketData: {} },
     interval: inMilliseconds(30, Duration.Minute),
     tokenPricesService: codefiTokenApiV2,
-    isDeprecated: () => true,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('TokenRatesController')(store.getState()),
   });
 
   return {

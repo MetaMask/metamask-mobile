@@ -12,6 +12,8 @@ import { getDecimalChainId } from '../../../util/networks';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../store';
 
 /**
  * Initialize the tokenDetection controller.
@@ -76,7 +78,10 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
         // Error is logged but not thrown
       }
     },
-    isDeprecated: () => true,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('TokenDetectionController')(
+        store.getState(),
+      ),
   });
 
   return {

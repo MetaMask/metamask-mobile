@@ -5,6 +5,8 @@ import {
 } from '@metamask/assets-controllers';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../store';
 
 /**
  * Initialize the accountTracker controller.
@@ -35,7 +37,10 @@ export const accountTrackerControllerInit: MessengerClientInitFunction<
       selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     isHomepageSectionsV1Enabled: () => true,
-    isDeprecated: () => true,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('AccountTrackerController')(
+        store.getState(),
+      ),
   });
 
   return {

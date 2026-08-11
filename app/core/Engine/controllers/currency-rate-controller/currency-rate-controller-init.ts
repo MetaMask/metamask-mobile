@@ -5,6 +5,8 @@ import {
 import type { MessengerClientInitFunction } from '../../types';
 import { defaultCurrencyRateState } from './constants';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectIsControllerDeprecated } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../../store';
 
 /**
  * Initialize the CurrencyRateController.
@@ -54,7 +56,8 @@ export const currencyRateControllerInit: MessengerClientInitFunction<
     },
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     tokenPricesService: codefiTokenApiV2,
-    isDeprecated: () => true,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('CurrencyRateController')(store.getState()),
   });
 
   return { controller };

@@ -12,8 +12,19 @@ import {
   TokensControllerMessenger,
 } from '@metamask/assets-controllers';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
 
 jest.mock('@metamask/assets-controllers');
+
+jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
+  selectIsControllerDeprecated: jest
+    .fn()
+    .mockReturnValue(jest.fn().mockReturnValue(false)),
+}));
+
+jest.mock('../../../store', () => ({
+  store: { getState: jest.fn().mockReturnValue({}) },
+}));
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<
@@ -100,7 +111,37 @@ describe('tokensControllerInit', () => {
   });
 
   describe('isDeprecated', () => {
-    it('always returns true', () => {
+    it('returns false when TokensController is not deprecated', () => {
+      jest
+        .mocked(selectIsControllerDeprecated)
+        .mockReturnValue(
+          jest.fn().mockReturnValue(false) as unknown as ReturnType<
+            typeof selectIsControllerDeprecated
+          >,
+        );
+
+      tokensControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(TokensController);
+      const { isDeprecated } = controllerMock.mock.calls[0][0] as {
+        isDeprecated: () => boolean;
+      };
+
+      expect(isDeprecated()).toBe(false);
+      expect(selectIsControllerDeprecated).toHaveBeenCalledWith(
+        'TokensController',
+      );
+    });
+
+    it('returns true when TokensController is deprecated', () => {
+      jest
+        .mocked(selectIsControllerDeprecated)
+        .mockReturnValue(
+          jest.fn().mockReturnValue(true) as unknown as ReturnType<
+            typeof selectIsControllerDeprecated
+          >,
+        );
+
       tokensControllerInit(getInitRequestMock());
 
       const controllerMock = jest.mocked(TokensController);
