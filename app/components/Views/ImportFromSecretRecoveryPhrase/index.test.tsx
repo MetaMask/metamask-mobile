@@ -397,6 +397,43 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
+    it('continues after a valid 12-word SRP even when a trailing empty slot exists', async () => {
+      const { getByPlaceholderText, getByRole, getByText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      // Trailing space appends an empty 13th slot; Continue must still work.
+      fireEvent.changeText(
+        input,
+        'frame midnight talk absent spy release check below volume industry advance neglect ',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(
+        () => {
+          expect(
+            getByText(strings('import_from_seed.metamask_password')),
+          ).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
+      );
+    });
+
     it('keeps continue enabled after entering a 24-word SRP whose first 12 words are also valid', async () => {
       const { getByPlaceholderText, getByRole } = renderScreen(
         ImportFromSecretRecoveryPhrase,
