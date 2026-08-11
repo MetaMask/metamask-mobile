@@ -1,8 +1,8 @@
 /**
- * MMQA-2230 dual-framework lint burndown allowlist.
- * Files listed here may keep legacy FrameworkDetector / encapsulated /
- * Playwright* imports until the Phase 3 Element API codemod.
- * Do not add new files — migrate or use Gestures/Assertions/Matchers instead.
+ * Dual-framework lint burndown allowlist.
+ * Listed files may keep legacy FrameworkDetector / encapsulated / Playwright*
+ * imports until migrated to Gestures / Assertions / Matchers.
+ * Do not add new files.
  */
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
@@ -30,8 +30,6 @@ module.exports = {
     'tests/page-objects/Browser/SolanaTestDApp.ts',
     'tests/page-objects/Browser/TestDApp.ts',
     'tests/page-objects/Browser/TestSnaps.ts',
-    'tests/page-objects/Confirmation/TokenApproveConfirmation.ts',
-    'tests/page-objects/Confirmation/TransactionPayConfirmation.ts',
     'tests/page-objects/MMConnect/AddChainModal.ts',
     'tests/page-objects/MMConnect/AndroidScreenHelpers.ts',
     'tests/page-objects/MMConnect/BrowserPlaygroundDapp.ts',
@@ -45,8 +43,6 @@ module.exports = {
     'tests/page-objects/MultichainAccounts/AddressList.ts',
     'tests/page-objects/MultichainAccounts/SmartAccount.ts',
     'tests/page-objects/Native/ChromeBrowserView.ts',
-    'tests/page-objects/Network/NetworkEducationModal.ts',
-    'tests/page-objects/Network/NetworkListModal.ts',
     'tests/page-objects/Notifications/PushNotificationOnboardingView.ts',
     'tests/page-objects/Onboarding/AddDeviceToWalletView.ts',
     'tests/page-objects/Onboarding/AddWalletView.ts',
@@ -75,9 +71,6 @@ module.exports = {
     'tests/page-objects/Ramps/KYCScreen.ts',
     'tests/page-objects/Ramps/TokenSelectScreen.ts',
     'tests/page-objects/Send/RedesignedSendView.ts',
-    'tests/page-objects/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.ts',
-    'tests/page-objects/Settings/SecurityAndPrivacy/SrpQuizModal.ts',
-    'tests/page-objects/Settings/SettingsView.ts',
     'tests/page-objects/Stake/StakeView.ts',
     'tests/page-objects/Transactions/ActivitiesView.ts',
     'tests/page-objects/importAccount/ImportAccountView.ts',
