@@ -50,7 +50,6 @@ async function startAppiumServer() {
     'yarn',
     [
       'appium',
-      '--allow-insecure=chromedriver_autodownload',
       '--port',
       String(APPIUM_PORT),
       '--address',
