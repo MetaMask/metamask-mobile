@@ -78,6 +78,8 @@ const newOverrides = [
       'app/components/UI/Predict/providers/polymarket/protocol/definitions.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
+      'app/util/networks/network-failover.ts',
+      'app/util/networks/network-failover.test.ts',
       'tests/framework/playwrightLogger.ts',
       'tests/framework/PlaywrightUtilities.ts',
       'tests/framework/fixtures/FixtureHelper.ts',

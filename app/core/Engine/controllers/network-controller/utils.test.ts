@@ -3,7 +3,6 @@
 import assert from 'assert';
 import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
-import { QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME } from '../../../../util/networks/customNetworks';
 import {
   PRODUCTION_LIKE_ENVIRONMENTS,
   getIsQuicknodeEndpointUrl,
@@ -12,6 +11,32 @@ import {
   KNOWN_CUSTOM_ENDPOINTS,
   isPublicEndpointUrl,
 } from './utils';
+
+/**
+ * The QuickNode env var getters exercised by these tests, paired with a label.
+ * Mirrors `setQuicknodeEnvironmentVariables` below. Getters (not values) so the
+ * env is read lazily, after each test sets it.
+ */
+const QUICKNODE_ENV_VAR_GETTERS: (readonly [
+  string,
+  () => string | undefined,
+])[] = [
+  ['mainnet', () => process.env.QUICKNODE_MAINNET_URL],
+  ['linea-mainnet', () => process.env.QUICKNODE_LINEA_MAINNET_URL],
+  ['arbitrum', () => process.env.QUICKNODE_ARBITRUM_URL],
+  ['avalanche', () => process.env.QUICKNODE_AVALANCHE_URL],
+  ['optimism', () => process.env.QUICKNODE_OPTIMISM_URL],
+  ['polygon', () => process.env.QUICKNODE_POLYGON_URL],
+  ['base', () => process.env.QUICKNODE_BASE_URL],
+  ['bsc', () => process.env.QUICKNODE_BSC_URL],
+  ['sei', () => process.env.QUICKNODE_SEI_URL],
+  ['monad', () => process.env.QUICKNODE_MONAD_URL],
+  ['hyperevm', () => process.env.QUICKNODE_HYPEREVM_URL],
+  ['arc', () => process.env.QUICKNODE_ARC_URL],
+  ['robinhood', () => process.env.QUICKNODE_ROBINHOOD_URL],
+  ['zksync', () => process.env.QUICKNODE_ZKSYNC_URL],
+  ['megaeth', () => process.env.QUICKNODE_MEGAETH_URL],
+];
 
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
@@ -81,10 +106,8 @@ describe('getIsMetaMaskInfuraEndpointUrl', () => {
 });
 
 describe('getIsQuicknodeEndpointUrl', () => {
-  for (const [infuraNetwork, getQuicknodeEndpointUrl] of Object.entries(
-    QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME,
-  )) {
-    it(`returns true when given the known Quicknode URL for the Infura network '${infuraNetwork}`, async () => {
+  for (const [network, getQuicknodeEndpointUrl] of QUICKNODE_ENV_VAR_GETTERS) {
+    it(`returns true when given the known Quicknode URL for '${network}'`, async () => {
       await withChangesToEnvironmentVariables(() => {
         setQuicknodeEnvironmentVariables();
 
@@ -339,9 +362,9 @@ const ENDPOINTS_TO_TEST: (readonly [string, () => string | undefined])[] = [
     'an Infura endpoint using the MetaMask API key',
     () => `https://mainnet.infura.io/v3/${MOCK_METAMASK_INFURA_PROJECT_ID}`,
   ],
-  ...Object.entries(QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME).map(
-    ([infuraNetworkName, getUrl]) =>
-      [`the Quicknode endpoint URL for ${infuraNetworkName}`, getUrl] as const,
+  ...QUICKNODE_ENV_VAR_GETTERS.map(
+    ([network, getUrl]) =>
+      [`the Quicknode endpoint URL for ${network}`, getUrl] as const,
   ),
   ...KNOWN_CUSTOM_ENDPOINTS.map(
     ({ name, url }) =>
