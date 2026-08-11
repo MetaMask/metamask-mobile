@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import BenefitCard from './BenefitCard';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -93,11 +93,15 @@ describe('BenefitCard', () => {
 
     it('renders the company name in the remaining-time row', () => {
       const benefit = createBenefit({ companyName: 'Pudgy Penguins' });
-      const { getByText } = render(<BenefitCard benefit={benefit} />);
-
-      expect(getByText('Pudgy Penguins').parent).toBe(
-        getByText('1mo 3d').parent?.parent,
+      const { getByTestId } = render(<BenefitCard benefit={benefit} />);
+      const footer = within(
+        getByTestId(
+          `${REWARDS_VIEW_SELECTORS.BENEFIT_CARD_FOOTER}-${benefit.id}`,
+        ),
       );
+
+      expect(footer.getByText('Pudgy Penguins')).toBeOnTheScreen();
+      expect(footer.getByText('1mo 3d')).toBeOnTheScreen();
     });
 
     it('does not render an empty company label when companyName is null', () => {
@@ -168,16 +172,31 @@ describe('BenefitCard', () => {
   });
 
   describe('remaining time', () => {
-    it('formats and renders remaining time from validTo', () => {
+    it('prefers validTo when validTo and actionDate exist', () => {
       const benefit = createBenefit({
-        actionDate: '2026-09-01T00:00:00Z',
         validTo: '2026-12-31T23:59:59Z',
+        actionDate: '2026-09-01T00:00:00Z',
       });
       const { getByText } = render(<BenefitCard benefit={benefit} />);
 
       expect(mockFormatDateRemaining).toHaveBeenCalledTimes(1);
       expect(mockFormatDateRemaining).toHaveBeenCalledWith(
         benefit.validTo,
+        expect.any(Number),
+      );
+      expect(getByText('1mo 3d')).toBeOnTheScreen();
+    });
+
+    it('falls back to actionDate when validTo is unavailable', () => {
+      const benefit = createBenefit({
+        validTo: null,
+        actionDate: '2026-09-01T00:00:00Z',
+      });
+      const { getByText } = render(<BenefitCard benefit={benefit} />);
+
+      expect(mockFormatDateRemaining).toHaveBeenCalledTimes(1);
+      expect(mockFormatDateRemaining).toHaveBeenCalledWith(
+        benefit.actionDate,
         expect.any(Number),
       );
       expect(getByText('1mo 3d')).toBeOnTheScreen();

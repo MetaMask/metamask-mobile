@@ -18,7 +18,10 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants.ts';
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SubscriptionBenefitDto } from '../../../../../core/Engine/controllers/rewards-controller/types.ts';
-import { formatDateRemaining } from '../../utils/formatUtils.ts';
+import {
+  formatDateRemaining,
+  resolveBenefitEndDate,
+} from '../../utils/formatUtils.ts';
 
 interface Props {
   benefit: SubscriptionBenefitDto;
@@ -28,7 +31,14 @@ const BenefitCard = ({ benefit }: Props) => {
   const tw = useTailwind();
   const benefitImageTestId = `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`;
 
-  const remainingTime = formatDateRemaining(benefit.validTo, Date.now());
+  const remainingTimeEndDate = resolveBenefitEndDate(
+    benefit.validTo,
+    benefit.actionDate,
+  );
+  const remainingTime =
+    remainingTimeEndDate == null
+      ? null
+      : formatDateRemaining(remainingTimeEndDate, Date.now());
   const companyName = benefit.companyName?.trim();
 
   return (
@@ -74,12 +84,14 @@ const BenefitCard = ({ benefit }: Props) => {
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
+              testID={`${REWARDS_VIEW_SELECTORS.BENEFIT_CARD_FOOTER}-${benefit.id}`}
             >
-              {remainingTime != null && (
+              {remainingTime != null ? (
                 <Box
                   gap={1}
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
+                  twClassName="flex-1"
                 >
                   <Icon
                     name={IconName.Clock}
@@ -93,6 +105,8 @@ const BenefitCard = ({ benefit }: Props) => {
                     {remainingTime}
                   </Text>
                 </Box>
+              ) : (
+                <Box twClassName="flex-1" />
               )}
               {companyName ? (
                 <Text

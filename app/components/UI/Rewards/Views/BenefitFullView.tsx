@@ -24,7 +24,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BenefitFullViewRouteProp } from './BenefitFullView.types.ts';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
-import { formatDateRemaining } from '../utils/formatUtils.ts';
+import {
+  formatDateRemaining,
+  resolveBenefitEndDate,
+} from '../utils/formatUtils.ts';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
@@ -110,10 +113,10 @@ const BenefitFullView = () => {
     }
   };
 
-  const remainingTime = useMemo(
-    () => formatDateRemaining(benefit.validTo, Date.now()),
-    [benefit.validTo],
-  );
+  const remainingTime = useMemo(() => {
+    const endDate = resolveBenefitEndDate(benefit.validTo, benefit.actionDate);
+    return endDate == null ? null : formatDateRemaining(endDate, Date.now());
+  }, [benefit.actionDate, benefit.validTo]);
   const companyName = benefit.companyName?.trim();
 
   return (

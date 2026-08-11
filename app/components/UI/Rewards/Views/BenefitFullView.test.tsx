@@ -391,6 +391,21 @@ describe('BenefitFullView', () => {
     expect(getByText('1mo 3d')).toBeOnTheScreen();
   });
 
+  it('falls back to actionDate when validTo is unavailable', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      validTo: null,
+    };
+
+    const { getByText } = render(<BenefitFullView />);
+
+    expect(mockFormatDateRemaining).toHaveBeenCalledWith(
+      mockRouteBenefit.actionDate,
+      expect.any(Number),
+    );
+    expect(getByText('1mo 3d')).toBeOnTheScreen();
+  });
+
   it('does not render company label when companyName is null', () => {
     mockRouteBenefit = {
       ...mockBenefit,
