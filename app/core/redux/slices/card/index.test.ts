@@ -3,8 +3,6 @@ import cardReducer, {
   CardSliceState,
   resetCardState,
   initialState,
-  setHasViewedCardButton,
-  selectHasViewedCardButton,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
@@ -20,7 +18,6 @@ import { CardEntryPoint } from '../../../../components/UI/Card/util/metrics';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
-  hasViewedCardButton: true,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -33,7 +30,6 @@ const CARD_STATE_MOCK: CardSliceState = {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
-  hasViewedCardButton: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -44,22 +40,6 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
 };
 
 describe('Card Selectors', () => {
-  describe('selectHasViewedCardButton', () => {
-    it('returns false by default from initial state', () => {
-      const mockRootState = { card: initialState } as unknown as RootState;
-      expect(selectHasViewedCardButton(mockRootState)).toBe(false);
-    });
-
-    it('returns true when hasViewedCardButton is true', () => {
-      const stateWithFlag: CardSliceState = {
-        ...initialState,
-        hasViewedCardButton: true,
-      };
-      const mockRootState = { card: stateWithFlag } as unknown as RootState;
-      expect(selectHasViewedCardButton(mockRootState)).toBe(true);
-    });
-  });
-
   describe('selectPendingMoneyAccountCardLink', () => {
     it('returns null by default from initial state', () => {
       const mockRootState = { card: initialState } as unknown as RootState;
@@ -156,7 +136,6 @@ describe('Card Reducer', () => {
     it('should reset card state', () => {
       const currentState: CardSliceState = {
         isDaimoDemo: false,
-        hasViewedCardButton: true,
         onboarding: {
           onboardingId: null,
           contactVerificationId: null,
@@ -196,22 +175,6 @@ describe('Card Reducer', () => {
           setPendingMoneyAccountCardLink(null),
         );
         expect(state.pendingMoneyAccountCardLink).toBeNull();
-      });
-    });
-
-    describe('setHasViewedCardButton', () => {
-      it('should set hasViewedCardButton to true', () => {
-        const state = cardReducer(initialState, setHasViewedCardButton(true));
-        expect(state.hasViewedCardButton).toBe(true);
-      });
-
-      it('should set hasViewedCardButton to false when previously true', () => {
-        const current: CardSliceState = {
-          ...initialState,
-          hasViewedCardButton: true,
-        };
-        const state = cardReducer(current, setHasViewedCardButton(false));
-        expect(state.hasViewedCardButton).toBe(false);
       });
     });
 
