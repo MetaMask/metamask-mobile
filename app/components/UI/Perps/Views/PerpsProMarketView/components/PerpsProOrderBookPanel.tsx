@@ -121,7 +121,6 @@ const OrderBookRow = ({
   onSelectPrice,
   testID,
 }: OrderBookRowProps) => {
-  const { playSelection } = useHaptics();
   const depthWidth = getDepthWidth(level, maxTotal);
   const isBid = side === 'bid';
   const sideColor = isBid ? TextColor.SuccessDefault : TextColor.ErrorDefault;
@@ -180,10 +179,7 @@ const OrderBookRow = ({
   if (onSelectPrice) {
     return (
       <Pressable
-        onPress={() => {
-          playSelection().catch(() => undefined);
-          onSelectPrice(level.price);
-        }}
+        onPress={() => onSelectPrice(level.price)}
         accessibilityRole="button"
         accessibilityLabel={strings('perps.order_book.use_price', {
           price: priceLabel,
@@ -411,6 +407,18 @@ const PerpsProOrderBookPanel = ({
     playSelection().catch(() => undefined);
     setIsConfigOpen(true);
   }, [playSelection]);
+
+  const handleSelectPrice = useCallback(
+    (price: string) => {
+      if (!onSelectPrice) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      onSelectPrice(price);
+    },
+    [onSelectPrice, playSelection],
+  );
+  const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
 
   const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
@@ -732,7 +740,7 @@ const PerpsProOrderBookPanel = ({
                   depthBarColor={sellColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
-                  onSelectPrice={onSelectPrice}
+                  onSelectPrice={rowSelectPrice}
                   testID={`${testID}-ask-row-${index}`}
                 />
               ))}
@@ -779,7 +787,7 @@ const PerpsProOrderBookPanel = ({
                   depthBarColor={buyColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
-                  onSelectPrice={onSelectPrice}
+                  onSelectPrice={rowSelectPrice}
                   testID={`${testID}-bid-row-${index}`}
                 />
               ))}

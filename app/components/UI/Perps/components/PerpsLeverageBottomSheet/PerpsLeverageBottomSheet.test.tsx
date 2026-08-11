@@ -591,12 +591,28 @@ describe('PerpsLeverageBottomSheet', () => {
   });
 
   describe('Confirm and Close Actions', () => {
-    it('calls onConfirm with current leverage when confirmed', () => {
+    it('confirms without new haptics by default', () => {
       const mockOnConfirm = jest.fn();
       render(
         <PerpsLeverageBottomSheet
           {...defaultProps}
           onConfirm={mockOnConfirm}
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Set 5x'));
+
+      expect(mockOnConfirm).toHaveBeenCalledWith(5, 'slider');
+      expect(playSelection).not.toHaveBeenCalled();
+    });
+
+    it('plays selection when confirm haptics are enabled', () => {
+      const mockOnConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          onConfirm={mockOnConfirm}
+          enableConfirmHaptics
         />,
       );
 

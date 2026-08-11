@@ -147,13 +147,18 @@ jest.mock('../../../components/PerpsLeverageBottomSheet', () => {
     default: ({
       isVisible,
       onConfirm,
+      enableConfirmHaptics,
     }: {
       isVisible: boolean;
       onConfirm: (leverage: number) => void;
+      enableConfirmHaptics?: boolean;
     }) =>
       isVisible
         ? ReactActual.createElement(P, {
             testID: 'mock-leverage-confirm',
+            accessibilityLabel: enableConfirmHaptics
+              ? 'confirm-haptics-enabled'
+              : 'confirm-haptics-off',
             onPress: () => onConfirm(10),
           })
         : null,
@@ -351,6 +356,10 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onLeverageConfirm).toHaveBeenCalledWith(10);
+    expect(screen.getByTestId('mock-leverage-confirm')).toHaveProp(
+      'accessibilityLabel',
+      'confirm-haptics-enabled',
+    );
   });
 
   it('renders the leverage sheet inside the Android modal gesture root', () => {
