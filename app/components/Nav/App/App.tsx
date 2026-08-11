@@ -182,6 +182,8 @@ import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWallet
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import DesignerModeOverlay from '../../UI/DesignerMode';
+// TEMP perf overlay (Remove before merge).
+import { PerfOverlay } from '../../Views/confirmations/utils/PerfOverlay';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1504,6 +1506,8 @@ const App: React.FC = () => {
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />
+        {/* TEMP perf overlay (Remove before merge). */}
+        <PerfOverlay />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>
   );
