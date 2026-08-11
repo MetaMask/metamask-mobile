@@ -1,7 +1,7 @@
 /**
  * mUSD conversion E2E API mocks.
  * Sets up feature flags, geolocation, ramp tokens, price APIs, token API,
- * Merkl rewards, Accounts API balance overrides, and Relay quote/status.
+ * Accounts API balance overrides, and Relay quote/status.
  */
 
 import { Mockttp } from 'mockttp';
@@ -239,13 +239,6 @@ export async function setupMusdMocks(
       'i',
     ),
     response: { ...MUSD_TOKEN_API_RESPONSE, chainId: 1 },
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
-
-  await setupMockRequest(mockServer, {
-    url: /api\.merkl\.xyz\/v4\/users\/0x[a-fA-F0-9]+\/rewards\?chainId=/,
-    response: [],
     requestMethod: 'GET',
     responseCode: 200,
   });

@@ -13,7 +13,6 @@ export const CashTokensFullViewSkeletonTestIds = {
   CONTAINER: 'cash-tokens-full-view-skeleton',
   TOKEN_ROW: 'skeleton-token-row',
   EMPTY_STATE_ROW: 'skeleton-empty-state-row',
-  BONUS_SECTION: 'skeleton-bonus-section',
   CONVERT_SECTION: 'skeleton-convert-section',
 };
 
@@ -71,47 +70,6 @@ const EmptyStateRowSkeleton = () => (
       </Box>
     </Box>
     <Skeleton height={36} width={100} twClassName="rounded-lg" />
-  </Box>
-);
-
-/**
- * Mirrors AssetOverviewClaimBonus: divider, header row with tag pill,
- * two label + value rows, a full-width CTA button, and a closing divider.
- */
-const BonusSectionSkeleton = () => (
-  <Box testID={CashTokensFullViewSkeletonTestIds.BONUS_SECTION}>
-    <Box twClassName="h-px bg-border-muted my-5" />
-    <Box twClassName="px-4">
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-3"
-      >
-        <Skeleton height={20} width={120} />
-        <Skeleton height={24} width={60} twClassName="rounded-lg" />
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2"
-      >
-        <Skeleton height={16} width={160} />
-        <Skeleton height={16} width={60} />
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2"
-      >
-        <Skeleton height={16} width={160} />
-        <Skeleton height={16} width={60} />
-      </Box>
-      <Box twClassName="mt-4 mb-3">
-        <Skeleton height={48} width="100%" twClassName="rounded-full" />
-      </Box>
-    </Box>
-    <Box twClassName="h-px bg-border-muted my-5" />
   </Box>
 );
 
@@ -188,7 +146,7 @@ const ConvertSectionSkeleton = ({ tokenCount }: { tokenCount: number }) => (
  *
  * Accepts synchronous Redux-derived props so it can mirror the exact layout
  * branch the real content will take: token rows vs empty state, and whether
- * the MoneyHub bonus/convert sections appear.
+ * the MoneyHub convert section appears.
  */
 const CashTokensFullViewSkeleton = ({
   numChainsWithMusdBalance,
@@ -215,10 +173,7 @@ const CashTokensFullViewSkeleton = ({
         <EmptyStateRowSkeleton />
       )}
       {isMoneyHubEnabled && (
-        <>
-          <BonusSectionSkeleton />
-          <ConvertSectionSkeleton tokenCount={conversionTokenCount} />
-        </>
+        <ConvertSectionSkeleton tokenCount={conversionTokenCount} />
       )}
     </ScrollView>
   );

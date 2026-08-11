@@ -6,7 +6,10 @@ import {
 import { mapLocalTransaction } from './local-transaction';
 import type { TransactionGroup } from './transaction-group';
 import { toAssetId } from './shims';
-import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../components/UI/Earn/components/MerklRewards/constants';
+
+// Merkl distributor — the `from` of the Transfer log emitted by a mUSD bonus claim
+const MERKL_DISTRIBUTOR_ADDRESS =
+  '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
 
 const from = '0x9bed78535d6a03a955f1504aadba974d9a29e292';
 const to = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';

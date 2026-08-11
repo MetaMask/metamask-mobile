@@ -10,7 +10,6 @@ import { TransactionDetailsHero } from './transaction-details-hero';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
-import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../../../UI/Earn/components/MerklRewards/constants';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { ARBITRUM_USDC } from '../../../constants/perps';
@@ -29,6 +28,10 @@ jest.mock('../../../../../../selectors/transactionController', () => ({
 jest.mock('../../token-icon', () => ({
   TokenIcon: () => null,
 }));
+
+// Merkl distributor — the `from` of the Transfer log emitted by a mUSD bonus claim
+const MERKL_DISTRIBUTOR_ADDRESS =
+  '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae' as const;
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';

@@ -1,7 +1,7 @@
 /**
  * Stablecoin lending E2E API mocks.
  * Sets up feature flags, Accounts API balance overrides, lending markets,
- * lending positions, gas fees, and Merkl rewards.
+ * lending positions, and gas fees.
  */
 
 import { Mockttp } from 'mockttp';
@@ -341,14 +341,6 @@ export async function setupLendingMocks(
       },
     },
     requestMethod: 'POST',
-    responseCode: 200,
-  });
-
-  // Merkl rewards (empty — no pending claims)
-  await setupMockRequest(mockServer, {
-    url: /api\.merkl\.xyz\/v4\/users\/0x[a-fA-F0-9]+\/rewards\?chainId=/,
-    response: [],
-    requestMethod: 'GET',
     responseCode: 200,
   });
 
