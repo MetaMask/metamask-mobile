@@ -203,7 +203,11 @@ export function getAvailableTokens({
         return true;
       }
 
-      return new BigNumber(token.balance).gt(0);
+      return (
+        token.balance?.length &&
+        token.balance !== '0' &&
+        token.balance !== '0x0'
+      );
     })
     .map((token) => {
       const blocked = isTokenBlocked(token, blockedTokens);

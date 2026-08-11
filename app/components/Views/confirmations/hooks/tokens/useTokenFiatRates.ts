@@ -9,7 +9,6 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { selectStablecoins } from '../../../../../selectors/featureFlagController/stableTokens';
 import { useMemo } from 'react';
 import { useDeepMemo } from '../useDeepMemo';
-import { toChecksumAddress } from '../../../../../util/address';
 
 export interface TokenFiatRateRequest {
   address: Hex;
@@ -40,7 +39,11 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
         }
 
         const chainTokens = tokenMarketDataByAddressByChainId[chainId] ?? {};
-        const token = chainTokens[toChecksumAddress(address)];
+
+        const token = Object.entries(chainTokens).find(
+          ([t]) => t.toLowerCase() === address.toLowerCase(),
+        )?.[1];
+
         const networkConfiguration = networkConfigurations[chainId];
 
         const conversionRates =
@@ -71,7 +74,7 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
     ],
   );
 
-  return useDeepMemo(() => result, [result]);
+  return result;
 }
 
 export function useTokenFiatRate(
