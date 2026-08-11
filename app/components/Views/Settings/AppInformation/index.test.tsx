@@ -623,16 +623,17 @@ describe('AppInformation', () => {
   });
 
   describe('Auto RC OTA revision label', () => {
-    const originalDev = global.__DEV__;
+    const originalDev = (globalThis as unknown as { __DEV__: boolean })
+      .__DEV__;
 
     beforeEach(() => {
       // The OTA version string is only shown outside dev mode while running a downloaded update.
-      global.__DEV__ = false;
+      (globalThis as unknown as { __DEV__: boolean }).__DEV__ = false;
       mockIsEmbeddedLaunch = false;
     });
 
     afterEach(() => {
-      global.__DEV__ = originalDev;
+      (globalThis as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
     });
 
     const longPressFox = (
