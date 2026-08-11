@@ -267,10 +267,7 @@ export function CancelSpeedupModal({
       onBackdropPress={onClose}
       onBackButtonPress={onClose}
     >
-      <BottomSheet
-        ref={bottomSheetRef}
-        onClose={onClose}
-      >
+      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
         <BottomSheetHeader onClose={close}>{title}</BottomSheetHeader>
         <Box style={tw.style('px-3')}>
           <Box gap={4}>
