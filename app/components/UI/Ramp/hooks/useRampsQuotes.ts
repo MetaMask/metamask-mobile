@@ -167,6 +167,14 @@ export function useRampsQuotes(
     }
 
     if (!quoteCufOpIdRef.current) {
+      // No open span: if we landed on a settled cached key, adopt it so a later
+      // background refetch of that key does not look like a new identity change.
+      if (
+        quoteCufKeyRef.current !== quoteFetchKey &&
+        (quotesQuery.isSuccess || quotesQuery.isError)
+      ) {
+        quoteCufKeyRef.current = quoteFetchKey;
+      }
       return;
     }
 

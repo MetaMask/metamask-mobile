@@ -368,6 +368,60 @@ describe('useRampsQuotes', () => {
       });
     });
 
+    it('adopts a settled cached key so background refetch does not start a CUF', async () => {
+      const store = createMockStore();
+      const { Wrapper, queryClient } = createWrapper(store);
+
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        mockQuotesResponse,
+      );
+      mockStartRampsBuyQuoteFetchTrace
+        .mockReturnValueOnce('quote-cuf-op-1')
+        .mockReturnValueOnce('quote-cuf-op-2');
+
+      const { result, rerender } = renderHook<
+        ReturnType<typeof useRampsQuotes>,
+        { params: GetQuotesOptions }
+      >(({ params }) => useRampsQuotes(params), {
+        wrapper: Wrapper,
+        initialProps: { params: options },
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+      expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(1);
+
+      rerender({
+        params: {
+          ...options,
+          amount: 250,
+        },
+      });
+
+      await waitFor(() => {
+        expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(2);
+      });
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      // Back to settled cached amount 100 with no open span.
+      rerender({ params: options });
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      mockStartRampsBuyQuoteFetchTrace.mockClear();
+      await act(async () => {
+        await queryClient.invalidateQueries({ queryKey: ['ramps', 'quotes'] });
+      });
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+      expect(mockStartRampsBuyQuoteFetchTrace).not.toHaveBeenCalled();
+    });
+
     it('supersedes an in-flight quote CUF when switching to a cached amount', async () => {
       const store = createMockStore();
       const { Wrapper, queryClient } = createWrapper(store);
