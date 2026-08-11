@@ -31,6 +31,31 @@ Prefer Shape A when a direct controller call proves the contract (e.g. token wip
 
 Do **not** expand the harness into full `Engine.init` / Wallet bootstrap unless Shape D is explicitly required for an orchestration bug the current shell intentionally bypasses.
 
+## Harness inventory
+
+When a harness is added or its public boundary changes, update this section. Follow the central [`harness-extension.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md) workflow rather than documenting authoring rules here. Shared agent index: [`../../AGENTS.md`](../../AGENTS.md).
+
+### Networks — [`networks.ts`](networks.ts)
+
+- **Shape:** A — controller-level harness
+- **Real:** `NetworkController`, `NetworkEnablementController`, `MultichainNetworkController`, `TokensController` (messenger-wired; not full `Engine.init` / Wallet)
+- **Mocked:** `global.fetch`; `MultichainNetworkService.fetchNetworkActivity`; messenger stubs for `ConnectivityController:getState`, `RemoteFeatureFlagController:getState`, AccountsController account actions, `ApprovalController:addRequest`; stub eth `provider` + `TokenListService`
+- **Factory:** `buildNetworksIntegrationHarness({ seedPolygon? })`
+- **Returns:** `{ networkController, networkEnablementController, multichainNetworkController, tokensController, rootMessenger, mocks: { fetch, fetchNetworkActivity }, addCustomNetwork, removeCustomNetwork }`
+- **Helpers:** `HARNESS_CUSTOM_CHAIN_ID` (`0x64`), `HARNESS_CUSTOM_NETWORK_FIELDS`, `HARNESS_ACCOUNT_ADDRESS`, `HARNESS_MAINNET_TOKEN`, `HARNESS_CUSTOM_TOKEN`
+- **Use when:** proving NC add/remove, TokensController wipe on network remove, or sibling controller wiring with mocked I/O. Smoke: [`networks.integration.test.ts`](networks.integration.test.ts)
+- **Use cases:** see [`core-ux-use-cases.md`](core-ux-use-cases.md) (`UX-NET-HARNESS`, `UX-NET-TOKEN-WIPE`)
+
+### Networks Flow — [`networks-flow.ts`](networks-flow.ts)
+
+- **Shape:** B — hook-flow harness built on Shape A
+- **Real:** `useNetworkOperations` (`saveNetwork` / `removeNetwork`), Shape A NC / NEC / MNC
+- **Mocked:** Shape A I/O mocks; `Engine.context` pointed at Shape A controllers; `PreferencesController.setTokenNetworkFilter` recording stub; `@react-navigation/native` `useNavigation`; `useAnalytics`
+- **Factory:** `buildNetworksFlowHarness({ seedPolygon? })`
+- **Returns:** `{ controllers, renderHookWithFlow, wireEngineContext, buildReduxState, mocks: { navigate, goBack, setTokenNetworkFilter, trackEvent, identify, fetch, fetchNetworkActivity } }`
+- **Use when:** a hook call should prove custom network save/remove reaches real controllers (Test 2A). Primary tests: `app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkOperations.integration.test.ts`
+- **Use cases:** see [`core-ux-use-cases.md`](core-ux-use-cases.md) (`UX-NET-ADD`, `UX-NET-DEL`, `UX-NET-DEL-ACTIVE`)
+
 ## Coverage plan (summary)
 
 Driven by [`core-ux-use-cases.md`](core-ux-use-cases.md):
@@ -106,7 +131,7 @@ describe('My networks hook flow', () => {
 });
 ```
 
-The harness mocks the I/O / Engine shell boundary; the rest runs real. See [`../../AGENTS.md`](../../AGENTS.md) for harness inventory and the central [`integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test) for authoring rules.
+The harness mocks the I/O / Engine shell boundary; the rest runs real. See [Harness inventory](#harness-inventory) above and the central [`integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test) for authoring rules.
 
 ## Files in this folder
 

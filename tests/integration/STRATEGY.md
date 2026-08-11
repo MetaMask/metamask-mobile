@@ -108,23 +108,23 @@ Track `it.skip` counts separately (skipped tests are worse than no tests). Prefe
 
 Every domain folder under `harnesses/<domain>/` should include:
 
-1. **Harness files** (`*.ts` / `*.tsx`) with a REAL/MOCKED header — inventory in `[AGENTS.md](AGENTS.md)`.
+1. **Harness files** (`*.ts` / `*.tsx`) with a REAL/MOCKED header — inventory in that domain’s `STRATEGY.md`.
 2. **A use-case matrix** (`*-use-cases.md` or equivalent) mapping user-facing flows → primary test layer. This is the authoritative driver for what gets tested where in that domain.
-3. **Optional domain strategy** (`STRATEGY.md` or sections in the use-case doc) for rollout phases, shape tables, and estimates that are domain-specific.
+3. **Domain strategy** (`STRATEGY.md`) for harness inventory, and optionally rollout phases, shape tables, and estimates that are domain-specific.
 
 ### New domain checklist
 
 When adding `harnesses/<domain>/`:
 
-| Step | Artifact                                         | Required?                                              |
-| ---- | ------------------------------------------------ | ------------------------------------------------------ |
-| 1    | Harness file(s) + REAL/MOCKED header + factory   | Yes                                                    |
-| 2    | Use-case matrix (`*-use-cases.md` or equivalent) | Yes                                                    |
-| 3    | Inventory entry in `[AGENTS.md](AGENTS.md)`      | Yes                                                    |
-| 4    | Row in this file’s domain table                  | Yes                                                    |
-| 5    | Domain `STRATEGY.md`                             | Only if rollout / shape detail does not fit the matrix |
+| Step | Artifact                                          | Required?                                           |
+| ---- | ------------------------------------------------- | --------------------------------------------------- |
+| 1    | Harness file(s) + REAL/MOCKED header + factory    | Yes                                                 |
+| 2    | Use-case matrix (`*-use-cases.md` or equivalent)  | Yes                                                 |
+| 3    | Domain `STRATEGY.md` with harness inventory       | Yes (also holds rollout / shape detail when needed) |
+| 4    | Row in this file’s domain table                   | Yes                                                 |
+| 5    | Thin link row in [`AGENTS.md`](AGENTS.md) Domains | Yes (folder + strategy + matrix links only)         |
 
-Do **not** put domain rollout plans or coverage estimates at the `tests/integration/` root. Do **not** create a separate checklist file.
+Do **not** put domain rollout plans, coverage estimates, or Real/Mocked inventory at the `tests/integration/` root. Do **not** create a separate checklist file.
 
 | Domain             | Use-case matrix                                                                      | Domain strategy                                                    |
 | ------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
@@ -135,22 +135,22 @@ Do **not** put domain rollout plans or coverage estimates at the `tests/integrat
 
 ```
 tests/integration/                           ← shared framework (mirrors tests/component-view/)
-├── AGENTS.md                                  framework rules + per-domain harness inventory
+├── AGENTS.md                                  shared framework rules + thin domain links
 ├── STRATEGY.md                                this file (shared four-layer model)
 ├── coverage.svg                               shared coverage diagram
 └── harnesses/
     ├── <domain>/
     │   ├── <domain>.ts                        Shape A (and/or flow/component harnesses)
     │   ├── *-use-cases.md                     required: flows → primary layer
-    │   └── STRATEGY.md                        optional: domain rollout / shape detail
-    ├── perps/                                 (use-cases + STRATEGY + harnesses)
-    └── networks/                              (use-cases + STRATEGY + harnesses)
+    │   └── STRATEGY.md                        harness inventory + domain rollout / shape detail
+    ├── perps/                                 …
+    └── networks/                              …
 
 app/**/*.integration.test.ts?(x)             ← tests live beside production code
 jest.config.integration.js                   ← yarn jest -c jest.config.integration.js
 ```
 
-See `[AGENTS.md](AGENTS.md)` for harness inventory and the central `[integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test) for authoring rules.
+See [`AGENTS.md`](AGENTS.md) for the shared agent index, each domain `STRATEGY.md` for harness inventory, and the central [`integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test) for authoring rules.
 
 Run a single integration test:
 

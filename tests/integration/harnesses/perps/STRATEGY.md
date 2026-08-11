@@ -36,6 +36,37 @@ Shape C's boundary is deliberately narrow: real rendered perps UI, real perps ho
 
 The maintenance risk in Shape C is not rendering itself; it is letting the harness become "whatever mocks are needed to mount a large screen." Use Shape C only when the rendered interaction must prove it reaches real perps trading code. Keep pure visual states in CV tests, keep provider/service behaviour in Shape A/B, and add a future Shape D only when the target bug is in `PerpsController` orchestration, messenger integration, or app state glue that the current Engine shim intentionally bypasses.
 
+## Harness inventory
+
+When a harness is added or its public boundary changes, update this section. Follow the central [`harness-extension.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md) workflow rather than documenting authoring rules here. Shared agent index: [`../../AGENTS.md`](../../AGENTS.md).
+
+### Perps — [`perps.ts`](perps.ts)
+
+- **Shape:** A — provider-level harness
+- **Real:** `HyperLiquidProvider` (mobile), all of its order / close / validation logic, asset-map lookups, in-memory state transitions
+- **Mocked:** `HyperLiquidClientService`, `HyperLiquidWalletService`, `HyperLiquidSubscriptionService`, `TradingReadinessCache`, injected `streamManager` platform dependency, `hyperLiquidValidation` utility module
+- **Factory:** `buildPerpsIntegrationHarness({ isTestnet?, assetMapping?, cachedPrices? })`
+- **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
+- **Use cases:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration
+
+### Perps Flow — [`perps-flow.ts`](perps-flow.ts)
+
+- **Shape:** B — hook-flow harness built on Shape A
+- **Real:** `usePerpsTrading` consumers, `TradingService`, `HyperLiquidProvider`, validation and order/state transitions
+- **Mocked:** Shape A I/O mocks plus `app/core/Engine` as a thin `PerpsController` shim and `usePerpsNetworkManagement`
+- **Factory:** `buildPerpsFlowHarness({ isTestnet?, assetMapping?, cachedPrices? })`
+- **Returns:** `{ harness, tradingService }`, where `harness` is the Shape A provider harness
+- **Use when:** a hook call should prove the user-facing flow reaches the real `TradingService`/provider chain without rendering UI
+
+### Perps Component Flow — [`perps-component.tsx`](perps-component.tsx)
+
+- **Shape:** C — rendered-component harness built on Shape B
+- **Real:** perps React components, Redux selectors, stream/provider contexts, `usePerpsTrading` → Shape B Engine shim → real `TradingService`/provider
+- **Mocked:** Shape A/B I/O mocks, native rendering/runtime modules, toast ref, confirmation/payment app surface that is outside perps trading logic
+- **Factory:** `buildPerpsComponentHarness({ isTestnet?, assetMapping?, cachedPrices? })`
+- **Returns:** `{ renderWithFlow, renderScreenWithFlow, harness, tradingService, mocks, teardown }`
+- **Use when:** the rendered button press is the integration surface, e.g. `PerpsOrderView` place-order or `PerpsFlipPositionConfirmSheet` reverse-position. Prefer CV tests for pure UI variants that do not need real controller code.
+
 ## Coverage plan (summary)
 
 Driven by [`perps-use-cases.md`](perps-use-cases.md):
@@ -129,7 +160,7 @@ describe('My perps feature', () => {
 });
 ```
 
-Three lines of setup. The harness mocks the I/O boundary; the rest runs real. See [`../../AGENTS.md`](../../AGENTS.md) for harness inventory and the central [`integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test) for authoring rules.
+Three lines of setup. The harness mocks the I/O boundary; the rest runs real. See [Harness inventory](#harness-inventory) above and the central [`integration-test` skill](https://github.com/MetaMask/skills/tree/main/domains/testing/skills/integration-test) for authoring rules.
 
 ## Files in this folder
 
