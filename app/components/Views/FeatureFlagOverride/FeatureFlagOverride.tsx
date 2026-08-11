@@ -32,7 +32,10 @@ import {
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { selectRawRemoteFeatureFlags } from '../../../selectors/featureFlagController';
+import {
+  selectRawRemoteFeatureFlags,
+  selectFeatureFlagThresholdGroups,
+} from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 interface FeatureFlagRowProps {
@@ -51,6 +54,7 @@ interface AbTestType {
 
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
+  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
   const tw = useTailwind();
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
@@ -199,14 +203,16 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           onToggle(flag.key, selectedOption);
         };
 
-        // Safely extract name from localValue if it has AbTestType shape
+        // Prefer the name from an override value (`{ name, value }`); otherwise
+        // fall back to the selected threshold group, since the resolved value
+        // no longer carries the group name.
         const selectedName =
           localValue &&
           typeof localValue === 'object' &&
           'name' in localValue &&
           typeof (localValue as AbTestType).name === 'string'
             ? (localValue as AbTestType).name
-            : undefined;
+            : thresholdGroups?.[flag.key];
 
         return (
           <Box
