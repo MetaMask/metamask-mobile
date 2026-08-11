@@ -124,12 +124,6 @@ const ManagePriceAlertsView: React.FC = () => {
     cacheTime: 0,
   });
 
-  // The fetch settled with at least one alert to manage. Coincides with "this
-  // screen is staying": the effect below navigates away for every other
-  // outcome (empty → replace to Create, error → goBack), so it is safe to
-  // show per-alert actions and mount the notifications gate.
-  const hasAlertsToManage = !isLoading && alerts.length > 0;
-
   useEffect(() => {
     if (isLoading || hasResolvedInitialFetch.current) {
       return;
@@ -455,7 +449,7 @@ const ManagePriceAlertsView: React.FC = () => {
           </Box>
         )}
 
-        {hasAlertsToManage && (
+        {!isLoading && alerts.length > 0 && (
           <>
             <View style={tw.style('px-4 pb-4 pt-2')}>
               <Button
