@@ -53,7 +53,9 @@ const selectPredictWonPositions = createSelector(
   [selectPredictClaimablePositionsByAddress],
   (claimablePositions) =>
     claimablePositions.filter(
-      (position) => position.status === PredictPositionStatus.WON,
+      (position) =>
+        position.status === PredictPositionStatus.WON ||
+        position.status === PredictPositionStatus.REDEEMABLE,
     ),
   weakMapMemoizeOptions,
 );
