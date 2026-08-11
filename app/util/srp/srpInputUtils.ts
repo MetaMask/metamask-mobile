@@ -1,6 +1,7 @@
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 export const SRP_LENGTHS = [12, 15, 18, 21, 24];
+export const MAX_SRP_LENGTH = Math.max(...SRP_LENGTHS);
 export const SPACE_CHAR = ' ';
 
 /**
