@@ -13,14 +13,12 @@ export interface OnboardingState {
 }
 
 export interface CardSliceState {
-  hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
   pendingMoneyAccountCardLink: CardEntryPoint | null;
 }
 
 export const initialState: CardSliceState = {
-  hasViewedCardButton: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -38,9 +36,6 @@ const slice = createSlice({
   initialState,
   reducers: {
     resetCardState: () => initialState,
-    setHasViewedCardButton: (state, action: PayloadAction<boolean>) => {
-      state.hasViewedCardButton = action.payload;
-    },
     setIsDaimoDemo: (state, action: PayloadAction<boolean>) => {
       state.isDaimoDemo = action.payload;
     },
@@ -83,11 +78,6 @@ export default reducer;
 // Base selectors
 const selectCardState = (state: RootState) => state[name];
 
-export const selectHasViewedCardButton = createSelector(
-  selectCardState,
-  (card) => card.hasViewedCardButton,
-);
-
 export const selectIsDaimoDemo = createSelector(
   selectCardState,
   (card) => card.isDaimoDemo,
@@ -121,7 +111,6 @@ export const selectPendingMoneyAccountCardLink = createSelector(
 // Actions
 export const {
   resetCardState,
-  setHasViewedCardButton,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
