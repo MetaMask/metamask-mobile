@@ -21,19 +21,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     jest.requireActual<typeof import('react-native')>('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
 
+  interface MockTagProps {
+    children?: React.ReactNode;
+    severity?: string;
+    testID?: string;
+  }
+
+  // Test double host: widen View's props only for this mock so severity remains
+  // queryable without using `any` or inventing unsupported View attributes.
+  const MockTagHost = View as React.ComponentType<MockTagProps>;
+
   return {
     ...actual,
-    Tag: ({
-      children,
-      severity,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      severity?: string;
-      testID?: string;
-    }) =>
+    Tag: ({ children, severity, testID }: MockTagProps) =>
       ReactLocal.createElement(
-        View,
+        MockTagHost,
         { testID, severity },
         typeof children === 'string' || typeof children === 'number'
           ? ReactLocal.createElement(Text, null, children)
