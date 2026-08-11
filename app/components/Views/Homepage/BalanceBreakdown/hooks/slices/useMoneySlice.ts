@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../../../../UI/Money/hooks/useMoneyAccountInfo';
 import type { BalanceSlice, FiatConverter, SliceStatus } from '../../types';
 
@@ -27,13 +28,11 @@ export function getMoneySliceStatus({
 export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
   const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
     useMoneyAccountInfo();
-  const {
-    tokenTotal,
-    isBalanceLoading,
-    isBalanceFetchError,
-    apyPercent,
-    vaultApyQuery,
-  } = useMoneyAccountBalance({ enabled: isMoneyAccountFeatureEnabled });
+  const { tokenTotal, isBalanceLoading, isBalanceFetchError } =
+    useMoneyAccountBalance({ enabled: isMoneyAccountFeatureEnabled });
+  const { apyPercent, vaultApyQuery } = useMoneyVaultApy({
+    enabled: isMoneyAccountFeatureEnabled,
+  });
   const moneyStatus = getMoneySliceStatus({
     isFeatureEnabled: isMoneyAccountFeatureEnabled,
     hasMoneyAccount,

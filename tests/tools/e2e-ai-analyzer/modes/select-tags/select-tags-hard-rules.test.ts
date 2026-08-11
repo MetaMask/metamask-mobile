@@ -17,12 +17,12 @@ describe('test-infrastructure-paths', () => {
       ]);
     });
 
-    it('includes smoke spec files under tests/smoke/', () => {
+    it('excludes legacy tests/smoke/ paths (Detox removed)', () => {
       const changedFiles = ['tests/smoke/swap/swap-action-smoke.spec.ts'];
 
       const result = getChangedSpecFiles(changedFiles);
 
-      expect(result).toEqual(changedFiles);
+      expect(result).toEqual([]);
     });
 
     it('excludes non-smoke paths from smoke tag selection scope', () => {
