@@ -2,6 +2,7 @@ import {
   extractCdpEvaluationValue,
   extractInteractionText,
   findScenarioFindings,
+  formatArtifactMarkdown,
   hasPositiveNumericValue,
   parseRuntimeCapture,
   parseSwapsPerformanceArtifact,
@@ -222,5 +223,45 @@ describe('Swaps performance diagnostics', () => {
         message: expect.stringContaining('one development-build run'),
       }),
     );
+  });
+
+  it('reports network call counts grouped by sanitized request identity', () => {
+    const artifact = createArtifact();
+    if (!artifact.capture) {
+      throw new Error('Expected runtime capture');
+    }
+    artifact.capture.network = [
+      {
+        timestamp: 100,
+        method: 'GET',
+        host: 'example.test',
+        path: '/tokens',
+        status: 200,
+        durationMs: 20,
+      },
+      {
+        timestamp: 120,
+        method: 'GET',
+        host: 'example.test',
+        path: '/tokens',
+        status: 200,
+        durationMs: 30,
+      },
+      {
+        timestamp: 140,
+        method: 'POST',
+        host: 'rpc.example.test',
+        path: '/',
+        rpcMethod: 'eth_call',
+        status: 200,
+        durationMs: 40,
+      },
+    ];
+
+    const report = formatArtifactMarkdown(artifact);
+
+    expect(report).toContain('## Network request counts');
+    expect(report).toContain('| GET example.test/tokens | — | 2 |');
+    expect(report).toContain('| POST rpc.example.test/ | eth_call | 1 |');
   });
 });

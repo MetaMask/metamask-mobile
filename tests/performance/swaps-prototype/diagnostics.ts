@@ -81,6 +81,14 @@ export interface ScenarioFinding {
   message: string;
 }
 
+interface NetworkRequestCount {
+  method: string;
+  host: string;
+  path: string;
+  rpcMethod?: string;
+  count: number;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -606,6 +614,49 @@ export function findScenarioFindings(
 }
 
 /**
+ * Groups captured requests by their sanitized request identity.
+ *
+ * @param entries - Individual JavaScript fetch records from the runtime.
+ * @returns Request groups ordered by descending call count, then request name.
+ */
+function summarizeNetworkRequestCounts(
+  entries: RuntimeNetworkEntry[],
+): NetworkRequestCount[] {
+  const counts = new Map<string, NetworkRequestCount>();
+
+  for (const entry of entries) {
+    const key = JSON.stringify([
+      entry.method,
+      entry.host,
+      entry.path,
+      entry.rpcMethod ?? null,
+    ]);
+    const existing = counts.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      counts.set(key, {
+        method: entry.method,
+        host: entry.host,
+        path: entry.path,
+        rpcMethod: entry.rpcMethod,
+        count: 1,
+      });
+    }
+  }
+
+  return [...counts.values()].sort(
+    (first, second) =>
+      second.count - first.count ||
+      `${first.method} ${first.host}${first.path} ${first.rpcMethod ?? ''}`.localeCompare(
+        `${second.method} ${second.host}${second.path} ${
+          second.rpcMethod ?? ''
+        }`,
+      ),
+  );
+}
+
+/**
  * Formats the single-run prototype result as a reviewable Markdown report.
  *
  * @param artifact - Completed or failed scenario artifact.
@@ -653,6 +704,23 @@ export function formatArtifactMarkdown(
       artifact.summary?.failedNetworkRequests ?? 0
     } · Console errors: ${artifact.summary?.consoleErrors ?? 0}`,
   );
+
+  lines.push('', '## Network request counts', '');
+  const networkRequestCounts = summarizeNetworkRequestCounts(
+    artifact.capture?.network ?? [],
+  );
+  if (networkRequestCounts.length === 0) {
+    lines.push('No network requests captured.');
+  } else {
+    lines.push('| Request | RPC method | Calls |', '| --- | --- | ---: |');
+    for (const entry of networkRequestCounts) {
+      lines.push(
+        `| ${entry.method} ${entry.host}${entry.path} | ${
+          entry.rpcMethod ?? '—'
+        } | ${entry.count} |`,
+      );
+    }
+  }
 
   lines.push('', '## Findings', '');
   for (const finding of findings) {
