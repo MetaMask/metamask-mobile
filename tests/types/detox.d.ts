@@ -1,10 +1,33 @@
 /**
- * Global Detox types for e2e tests
- * These types are automatically available in all e2e files without imports
+ * Ambient Detox-shaped types kept for dual-framework page objects until Phase 3
+ * Element API codemod (MMQA-2230). Runtime Detox package is removed.
+ *
+ * Must live under `declare global` because this file is a module (`export {}`).
  */
 
 declare global {
-  // Common element types
+  namespace Detox {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type IndexableNativeElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type NativeElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type IndexableSystemElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type SystemElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type IndexableWebElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type WebViewElement = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type NativeMatcher = any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type DeviceLaunchAppConfig = any;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type SecuredWebElementFacade = any;
+
   type DetoxElement = Promise<
     | Detox.IndexableNativeElement
     | Detox.NativeElement
@@ -14,22 +37,27 @@ declare global {
     Detox.IndexableNativeElement | Detox.SystemElement
   >;
   type TypableElement = Promise<Detox.IndexableNativeElement>;
-
-  // Web element types
-  type WebElement = Promise<IndexableWebElement | SecuredWebElementFacade>;
-
-  // Individual element types - useful for specific casting
+  type WebElement = Promise<
+    Detox.IndexableWebElement | SecuredWebElementFacade
+  >;
   type IndexableNativeElement = Detox.IndexableNativeElement;
   type IndexableWebElement = Detox.IndexableWebElement;
   type NativeElement = Detox.NativeElement;
   type SystemElement = Detox.SystemElement;
-
-  // Configuration types
   type DeviceLaunchAppConfig = Detox.DeviceLaunchAppConfig;
-
-  // Matcher types for element finding
   type DetoxMatcher = Detox.NativeMatcher;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const device: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const element: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const by: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const waitFor: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const web: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const system: any;
 }
 
-// This export is required to make this file a module
 export {};

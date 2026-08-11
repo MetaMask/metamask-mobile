@@ -40,7 +40,7 @@ Do not add a forwarding layer that only repeats another module's interface. Do n
 
 Product-facing modules use the language in [`../CONTEXT.md`](../CONTEXT.md): Event, Market, Outcome, Order, Position, Predict User, Funding Wallet, and Venue Account. Kalshi DTO names and protocol mechanics remain inside the adapter/backend boundary.
 
-Every domain entity and query is Venue-qualified. Raw Venue identifiers are not globally unique.
+Every root Event, query, route, and operation is Venue-qualified. Nested Markets and Outcomes carry their own opaque identifiers and inherit Venue and parent scope through containment; raw Venue identifiers are not globally unique.
 
 ### Identity is not a wallet
 
@@ -77,7 +77,7 @@ See [`venue-adapters.md`](./venue-adapters.md).
 
 ### 2. Product services
 
-A service exists when a vertical slice needs a deep module for shared behavior. Depending on the concern, it may own:
+A service exists when a vertical slice needs a deep module for shared behavior. The first Kalshi-only read slice receives its `marketData` capability directly from the composition root; add a Venue registry only when runtime resolution among multiple Venues is required. Depending on the concern, a service may own:
 
 - server-read caching and request deduplication,
 - bounded read retry,
@@ -110,7 +110,7 @@ Reusable primitives, widgets, and views are extracted when real callers prove re
 View
   -> one query hook(venueId, params)
     -> market-data service
-      -> adapter registry.get(venueId).marketData
+      -> injected Kalshi marketData capability
         -> MetaMask Predict backend
           -> Kalshi market API
 ```
@@ -118,10 +118,11 @@ View
 Properties:
 
 - `venueId` is explicit and part of every cache key,
-- no selected wallet or account session is required,
+- no selected wallet, bearer token, or account session is required,
+- Event list and detail responses include the initial Outcome Bid Price and Ask Price snapshot,
 - transport and DTO normalization stay below the service,
-- responses are runtime-validated,
-- bounded retry applies only to safe reads.
+- responses are runtime-validated and unknown fields are discarded,
+- the service alone owns response caching, deduplication, and bounded retry for safe reads.
 
 ### Account-scoped read
 
@@ -184,7 +185,7 @@ Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transf
 
 Each vertical slice leaves the smallest meaningful coverage at its deep interfaces:
 
-- shared mobile/backend contract fixtures and runtime parser tests,
+- runtime parser tests against synthetic canonical values,
 - adapter transformation tests against sanitized Venue payloads,
 - service tests for retry, state transitions, and reconciliation,
 - component-view tests for user-visible behavior,
