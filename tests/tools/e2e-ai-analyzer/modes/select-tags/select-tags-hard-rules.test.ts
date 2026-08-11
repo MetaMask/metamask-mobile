@@ -17,12 +17,12 @@ describe('test-infrastructure-paths', () => {
       ]);
     });
 
-    it('includes smoke spec files under tests/smoke/', () => {
+    it('excludes legacy tests/smoke/ paths (Detox removed)', () => {
       const changedFiles = ['tests/smoke/swap/swap-action-smoke.spec.ts'];
 
       const result = getChangedSpecFiles(changedFiles);
 
-      expect(result).toEqual(changedFiles);
+      expect(result).toEqual([]);
     });
 
     it('excludes non-smoke paths from smoke tag selection scope', () => {
@@ -114,5 +114,30 @@ describe('checkHardRules', () => {
     expect(result).not.toBeNull();
     expect(result?.reasoning).toContain('en-locale-change');
     expect(result?.selectedTags.length).toBeGreaterThan(1);
+  });
+
+  it('applies shared infra rule when page-object changes alongside .github/ files', () => {
+    const changedFiles = [
+      '.github/workflows/performance-test-runner.yml',
+      'tests/page-objects/wallet/AccountListBottomSheet.ts',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    // Should NOT bail to AI — .github/ is ignorable, shared infra rule should apply
+    expect(result).not.toBeNull();
+    expect(result?.selectedTags).toContain('SmokeAccounts');
+  });
+
+  it('bails to AI when page-object changes alongside actual app code', () => {
+    const changedFiles = [
+      'app/components/Views/Wallet/index.tsx',
+      'tests/page-objects/wallet/AccountListBottomSheet.ts',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    // Should bail to AI — app code changes require AI analysis
+    expect(result).toBeNull();
   });
 });

@@ -69,8 +69,8 @@ describe('footer', () => {
               children: 'Button',
               props: {
                 color: 'inherit',
+                fontWeight: undefined,
                 style: {
-                  fontWeight: undefined,
                   textAlign: undefined,
                 },
               },

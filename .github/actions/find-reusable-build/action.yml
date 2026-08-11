@@ -1,11 +1,10 @@
 name: 'Find reusable build from prior run'
 description: >-
-  Searches recent workflow runs across three tiers (same branch, base branch,
-  then any open PR branch) for a run whose `build-source-hash` commit status
-  matches the current fingerprint for that specific workflow run AND whose
-  required build artifacts are still available. If a match is found, outputs the
-  run id so a subsequent `actions/download-artifact` step can pull the artifacts
-  directly instead of triggering a fresh native build.
+  Searches recent workflow runs for a run whose fingerprint matches and whose
+  required build artifacts are available. In latest-main mode, it instead
+  selects the newest main-branch run with those artifacts. If a match is found,
+  outputs the run id so a subsequent actions/download-artifact step can pull
+  the artifacts directly instead of triggering a fresh native build.
 
   The third (cross-PR) tier is required because GitHub's `listWorkflowRuns`
   `branch` parameter filters against `head_branch` — the PR source branch for
@@ -14,10 +13,23 @@ description: >-
   `event: pull_request` to let the fingerprint itself act as the cross-PR
   deduplication key.
 
+  Each tier is swept once per run status (`success`, `in_progress`, `failure`,
+  then `completed`) so that one crowded page of recent runs cannot consume the
+  candidate window. A donor only needs to have uploaded its artifacts, not to
+  have finished: the native build publishes the app roughly 25-35 minutes before
+  the run completes, since E2E tests keep the run alive well past that point.
+
 inputs:
   fingerprint:
     description: 'The @expo/fingerprint hash the candidate must match'
-    required: true
+    required: false
+    default: ''
+  latest-main-only:
+    description: >-
+      When true, select the newest run on main with all required artifacts,
+      without requiring a fingerprint or commit status.
+    required: false
+    default: 'false'
   artifact-names:
     description: 'JSON array of artifact names that must all be present on the candidate run'
     required: true
@@ -44,17 +56,23 @@ inputs:
     required: false
     default: 'build-source-hash'
   max-candidates-per-branch:
-    description: 'How many recent runs to inspect per branch-scoped tier (same-branch, base-branch)'
+    description: >-
+      How many recent runs to inspect per branch-scoped tier (same-branch,
+      base-branch), per conclusion sweep. Because sweeps filter server-side on
+      run conclusion, this budget is spent on terminal runs rather than on
+      in-flight ones — which matters most for the base-branch tier, where `main`
+      CI runs longer than the merge cadence, so a large share of the newest runs
+      are always still building.
     required: false
     default: '10'
   max-candidates-cross-pr:
     description: >-
       How many recent `pull_request`-event runs (across all branches) to inspect
-      in the cross-PR tier. The fingerprint filter is highly discriminating, so
-      the practical cost is one `listCommitStatusesForRef` call per candidate
-      until a run-specific status match is found.
+      in the cross-PR tier, per conclusion sweep. The fingerprint filter is highly
+      discriminating, so the practical cost is one `listCommitStatusesForRef` call
+      per candidate until a run-specific status match is found.
     required: false
-    default: '30'
+    default: '50'
   main-branch-only:
     description: >-
       When true, only search the base branch (typically `main`) for reusable
@@ -94,6 +112,7 @@ runs:
         MAX_CANDIDATES: ${{ inputs.max-candidates-per-branch }}
         MAX_CANDIDATES_CROSS_PR: ${{ inputs.max-candidates-cross-pr }}
         MAIN_BRANCH_ONLY: ${{ inputs.main-branch-only }}
+        LATEST_MAIN_ONLY: ${{ inputs.latest-main-only }}
         HEAD_BRANCH: ${{ github.head_ref || github.ref_name }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         CURRENT_RUN_ID: ${{ github.run_id }}
@@ -110,6 +129,7 @@ runs:
             MAX_CANDIDATES,
             MAX_CANDIDATES_CROSS_PR,
             MAIN_BRANCH_ONLY,
+            LATEST_MAIN_ONLY,
             HEAD_BRANCH,
             HEAD_SHA,
             CURRENT_RUN_ID,
@@ -123,9 +143,12 @@ runs:
           };
 
           if (!TARGET_FINGERPRINT) {
-            core.warning('No fingerprint provided; skipping lookup');
-            setNotFound();
-            return;
+            if (LATEST_MAIN_ONLY !== 'true') {
+              core.warning('No fingerprint provided; skipping lookup');
+              setNotFound();
+              return;
+            }
+            core.info('No fingerprint provided; using latest-main artifact lookup');
           }
 
           let requiredArtifacts;
@@ -147,7 +170,7 @@ runs:
             : requiredArtifacts;
 
           const maxCandidates = Number(MAX_CANDIDATES) || 10;
-          const maxCandidatesCrossPr = Number(MAX_CANDIDATES_CROSS_PR) || 30;
+          const maxCandidatesCrossPr = Number(MAX_CANDIDATES_CROSS_PR) || 50;
           const currentRunId = String(CURRENT_RUN_ID);
 
           // Three-tier discovery:
@@ -166,22 +189,23 @@ runs:
           //                     which is the PR source branch).
           const tiers = [];
           const mainBranchOnly = MAIN_BRANCH_ONLY === 'true';
+          const latestMainOnly = LATEST_MAIN_ONLY === 'true';
 
-          if (!mainBranchOnly) {
+          if (!mainBranchOnly && !latestMainOnly) {
             tiers.push({
               label: `same-branch (branch=${HEAD_BRANCH})`,
               params: { branch: HEAD_BRANCH, per_page: maxCandidates },
             });
           }
 
-          if (BASE_BRANCH && (mainBranchOnly || BASE_BRANCH !== HEAD_BRANCH)) {
+          if (BASE_BRANCH && (mainBranchOnly || latestMainOnly || BASE_BRANCH !== HEAD_BRANCH)) {
             tiers.push({
               label: `base-branch (branch=${BASE_BRANCH})`,
               params: { branch: BASE_BRANCH, per_page: maxCandidates },
             });
           }
 
-          if (!mainBranchOnly) {
+          if (!mainBranchOnly && !latestMainOnly) {
             tiers.push({
               label: `cross-pr (event=pull_request, any branch, last ${maxCandidatesCrossPr} runs)`,
               params: { event: 'pull_request', per_page: maxCandidatesCrossPr },
@@ -248,22 +272,84 @@ runs:
           const seenRunIds = new Set();
           seenRunIds.add(currentRunId);
 
-          for (const tier of tiers) {
-            core.info(`Searching tier: ${tier.label}`);
-            let runs;
+          // Rate-limit accounting. The `/rate_limit` endpoint is itself free, so
+          // reading it before and after the search costs nothing and tells us how
+          // much of the hourly core budget one lookup actually consumes.
+          async function readRateLimit() {
+            try {
+              const { data } = await github.rest.rateLimit.get();
+              return data.resources.core;
+            } catch (err) {
+              core.info(`rateLimit.get failed: ${err.message}`);
+              return null;
+            }
+          }
+
+          const rateLimitBefore = await readRateLimit();
+
+          async function logRateLimit() {
+            const after = await readRateLimit();
+            if (!after) return;
+            const used = rateLimitBefore ? rateLimitBefore.remaining - after.remaining : null;
+            const resetAt = new Date(after.reset * 1000).toISOString();
+            core.info(
+              `Rate limit (core): ${after.remaining}/${after.limit} remaining, ` +
+              `${used === null ? 'unknown' : used} request(s) used by this lookup, resets at ${resetAt}`,
+            );
+            if (after.remaining < after.limit * 0.1) {
+              core.warning(
+                `GitHub API core rate limit is low: ${after.remaining}/${after.limit} remaining until ${resetAt}`,
+              );
+            }
+          }
+
+          // Each tier is swept once per run status below, applied server-side via
+          // the `status` filter so that a single crowded page of recent runs can't
+          // consume a tier's candidate window. On a busy repo the newest runs are
+          // dominated by in-flight runs and by runs that concurrency cancelled
+          // mid-build; sweeping per status keeps each category's budget separate.
+          //
+          // Order matters, and it is deliberately not "terminal states first":
+          //
+          //   success     - a fully green run is the most conservative donor.
+          //   in_progress - a run only needs to have *uploaded* its artifacts to be
+          //                 a valid donor; it does not need to have finished. The
+          //                 native build completes roughly 25-35 minutes before the
+          //                 run itself does, because E2E tests keep the run alive
+          //                 long after the `.app` is published. Skipping these runs
+          //                 discarded a complete, verified build for that entire
+          //                 window - measured at 8 of 18 cold-fingerprint rebuilds,
+          //                 one of them with a donor that had been ready 32 minutes.
+          //                 `hasAllArtifacts` below is what makes this safe: a run
+          //                 mid-upload simply fails that check and is skipped.
+          //   failure     - a run can fail on a job unrelated to the native build
+          //                 while still holding complete artifacts.
+          //   completed   - last resort; picks up cancelled, timed-out and neutral
+          //                 runs, preserving reach.
+          //
+          // `queued` is intentionally not swept: such runs cannot have artifacts yet,
+          // so they would only cost API calls.
+          const statusSweeps = ['success', 'in_progress', 'failure', 'completed'];
+
+          async function listCandidates(tier, status) {
             try {
               const { data } = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: WORKFLOW_FILE,
+                status,
                 ...tier.params,
               });
-              runs = data.workflow_runs || [];
+              return data.workflow_runs || [];
             } catch (err) {
-              core.warning(`listWorkflowRuns failed for tier "${tier.label}": ${err.message}`);
-              continue;
+              core.warning(
+                `listWorkflowRuns failed for tier "${tier.label}" (status=${status}): ${err.message}`,
+              );
+              return [];
             }
+          }
 
+          async function findMatch(tier, runs) {
             for (const run of runs) {
               const runIdStr = String(run.id);
               if (seenRunIds.has(runIdStr)) continue;
@@ -271,25 +357,46 @@ runs:
 
               if (tier.skipHeadBranch && run.head_branch === tier.skipHeadBranch) continue;
 
-              if (run.status !== 'completed') continue;
-
-              if (!(await hasRunFingerprintStatus(run.head_sha, run.id))) {
+              // Deliberately no `run.status === 'completed'` gate: artifact
+              // availability, not run completion, is what makes a donor usable, and
+              // `hasAllArtifacts` verifies that below.
+              if (
+                !latestMainOnly &&
+                !(await hasRunFingerprintStatus(run.head_sha, run.id))
+              ) {
                 core.info(`Run ${run.id} has no run-specific ${STATUS_CONTEXT} status matching fingerprint ${TARGET_FINGERPRINT}`);
                 continue;
               }
 
               if (!(await hasAllArtifacts(run.id))) continue;
 
+              return run;
+            }
+            return null;
+          }
+
+          for (const tier of tiers) {
+            core.info(`Searching tier: ${tier.label}`);
+
+            for (const status of statusSweeps) {
+              const runs = await listCandidates(tier, status);
+              core.info(`  sweep status=${status}: ${runs.length} run(s) returned`);
+
+              const match = await findMatch(tier, runs);
+              if (!match) continue;
+
               core.info(
-                `Match: tier="${tier.label}" run=${run.id} sha=${run.head_sha} branch=${run.head_branch} url=${run.html_url}`,
+                `Match: tier="${tier.label}" status=${status} run=${match.id} sha=${match.head_sha} branch=${match.head_branch} url=${match.html_url}`,
               );
               core.setOutput('found', 'true');
-              core.setOutput('run-id', runIdStr);
-              core.setOutput('source-sha', run.head_sha);
-              core.setOutput('source-branch', run.head_branch || '');
+              core.setOutput('run-id', String(match.id));
+              core.setOutput('source-sha', match.head_sha);
+              core.setOutput('source-branch', match.head_branch || '');
+              await logRateLimit();
               return;
             }
           }
 
           core.info('No reusable build found across any tier');
+          await logRateLimit();
           setNotFound();

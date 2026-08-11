@@ -27,9 +27,8 @@ import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
-import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities';
+import Utilities, { sleep } from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import {
@@ -45,7 +44,7 @@ import { getWindowSize } from '../../framework/DeviceInfoCache';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
-import SolanaTestDApp from './SolanaTestDApp';
+import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 
 export { TEST_SNAPS_URL } from '../../selectors/Browser/TestSnaps.selectors';
 
@@ -468,10 +467,15 @@ class TestSnaps {
 
   async dismissAlert() {
     try {
-      await Gestures.tap(Matchers.getElementByText(/^OK$/i));
+      await this.tapOkButton();
     } catch (error) {
+      // Teardown-only helper: specs assert on the alert before dismissing it,
+      // and the alert can close on its own first, so a missing OK button means
+      // there is nothing left to dismiss.
       const message = error instanceof Error ? error.message : String(error);
-      if (!/stale|wasn't found|no such element/i.test(message)) {
+      if (
+        !/stale|wasn't found|no such element|still not displayed/i.test(message)
+      ) {
         throw error;
       }
     }
@@ -818,9 +822,14 @@ class TestSnaps {
       timeout: 15_000,
     });
     await this.blurActiveWebViewInput();
-    // Multichain Solana signing can use SnapDialog/BottomSheetFooter ("Approve") instead of
-    // redesigned `confirm-button` — same as Solana Wallet Standard E2E.
-    await SolanaTestDApp.confirmSignMessage();
+    // Multichain Solana signing can use SnapDialog/BottomSheetFooter instead of
+    // redesigned `confirm-button`.
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
+        SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
+      ),
+      { elemDescription: 'confirm Solana snap signature' },
+    );
   }
 
   async waitForWebSocketUpdate(state: {
@@ -832,9 +841,7 @@ class TestSnaps {
       async () => {
         try {
           await this.tapButton('getWebSocketState');
-
-          // eslint-disable-next-line no-restricted-syntax
-          await TestHelpers.delay(250);
+          await sleep(250);
 
           const text = await WebView.readTextById(
             TestSnapResultSelectorWebIDS.networkAccessResultSpan,

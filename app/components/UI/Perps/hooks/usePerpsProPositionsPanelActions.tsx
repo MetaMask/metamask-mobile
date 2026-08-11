@@ -8,7 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import PerpsProPositionsModalPortal from '../Views/PerpsProMarketView/components/PerpsProPositionsModalPortal';
+import PerpsProModalPortal from '../Views/PerpsProMarketView/components/PerpsProModalPortal';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -29,6 +29,7 @@ import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/Perp
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsNavigation } from './usePerpsNavigation';
+import { usePerpsProOrderEdit } from './usePerpsProOrderEdit';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -55,10 +56,15 @@ export interface UsePerpsProPositionsPanelActionsReturn {
   handleEditPositionMargin: (position: Position) => void;
   isPositionMarginEditable: (position: Position) => boolean;
   handleCancelOrder: (order: Order) => Promise<void>;
+  handleEditOrderPrice: (order: Order) => void;
+  handleEditOrderSize: (order: Order) => void;
   handleCloseAllPress: () => void;
   cancelingOrderId: string | null;
+  editingOrderId: string | null;
   isOrderCancelable: (order: Order) => boolean;
-  renderActionSheets: () => React.ReactNode;
+  isOrderEditable: (order: Order) => boolean;
+  isOrderSizeEditable: (order: Order) => boolean;
+  renderActionSheets: (filteredPositions?: Position[]) => React.ReactNode;
 }
 
 /**
@@ -120,6 +126,18 @@ export const usePerpsProPositionsPanelActions =
       },
       [gate, isEligible, showGeoBlockForSource],
     );
+
+    const {
+      editingOrderId,
+      isOrderEditable,
+      isOrderSizeEditable,
+      handleEditOrderPrice,
+      handleEditOrderSize,
+      renderOrderEditSheets,
+    } = usePerpsProOrderEdit({
+      isMutationBlocked: Boolean(cancelingOrderId),
+      runGatedEligibleAction,
+    });
 
     const handleCloseAllSheetClose = useCallback(() => {
       setShowCloseAllSheet(false);
@@ -250,7 +268,8 @@ export const usePerpsProPositionsPanelActions =
 
     const handleCancelOrder = useCallback(
       async (order: Order) => {
-        if (!isOrderCancelable(order) || cancelingOrderId) {
+        // Mirror openEditSheet: block cancel while another cancel or edit is in flight.
+        if (!isOrderCancelable(order) || cancelingOrderId || editingOrderId) {
           return;
         }
 
@@ -310,6 +329,7 @@ export const usePerpsProPositionsPanelActions =
         PerpsToastOptions,
         cancelOrder,
         cancelingOrderId,
+        editingOrderId,
         isOrderCancelable,
         showToast,
       ],
@@ -323,53 +343,50 @@ export const usePerpsProPositionsPanelActions =
     }, [runGatedEligibleAction]);
 
     const renderActionSheets = useCallback(
-      () => (
+      (filteredPositions?: Position[]) => (
         <>
           {showCloseAllSheet && (
-            <PerpsProPositionsModalPortal
-              onRequestClose={handleCloseAllSheetClose}
-            >
+            <PerpsProModalPortal onRequestClose={handleCloseAllSheetClose}>
               <PerpsCloseAllPositionsView
                 sheetRef={closeAllSheetRef}
                 onClose={handleCloseAllSheetClose}
+                positions={filteredPositions}
               />
-            </PerpsProPositionsModalPortal>
+            </PerpsProModalPortal>
           )}
 
           {reversePosition && (
-            <PerpsProPositionsModalPortal
-              onRequestClose={handleReverseSheetClose}
-            >
+            <PerpsProModalPortal onRequestClose={handleReverseSheetClose}>
               <PerpsFlipPositionConfirmSheet
                 position={reversePosition}
                 sheetRef={reversePositionSheetRef}
                 onClose={handleReverseSheetClose}
                 onConfirm={handleReverseSheetClose}
               />
-            </PerpsProPositionsModalPortal>
+            </PerpsProModalPortal>
           )}
 
           {adjustMarginPosition && (
-            <PerpsProPositionsModalPortal
-              onRequestClose={handleAdjustMarginSheetClose}
-            >
+            <PerpsProModalPortal onRequestClose={handleAdjustMarginSheetClose}>
               <PerpsSelectAdjustMarginActionView
                 sheetRef={adjustMarginSheetRef}
                 position={adjustMarginPosition}
                 onClose={handleAdjustMarginSheetClose}
               />
-            </PerpsProPositionsModalPortal>
+            </PerpsProModalPortal>
           )}
 
+          {renderOrderEditSheets()}
+
           {isGeoBlockVisible && (
-            <PerpsProPositionsModalPortal onRequestClose={closeGeoBlockModal}>
+            <PerpsProModalPortal onRequestClose={closeGeoBlockModal}>
               <PerpsBottomSheetTooltip
                 isVisible
                 onClose={closeGeoBlockModal}
                 contentKey="geo_block"
                 testID="perps-pro-positions-panel-geo-block-tooltip"
               />
-            </PerpsProPositionsModalPortal>
+            </PerpsProModalPortal>
           )}
         </>
       ),
@@ -380,6 +397,7 @@ export const usePerpsProPositionsPanelActions =
         handleCloseAllSheetClose,
         handleReverseSheetClose,
         isGeoBlockVisible,
+        renderOrderEditSheets,
         reversePosition,
         showCloseAllSheet,
       ],
@@ -392,9 +410,14 @@ export const usePerpsProPositionsPanelActions =
       handleEditPositionTpSl,
       handleEditPositionMargin,
       handleCancelOrder,
+      handleEditOrderPrice,
+      handleEditOrderSize,
       handleCloseAllPress,
       cancelingOrderId,
+      editingOrderId,
       isOrderCancelable,
+      isOrderEditable,
+      isOrderSizeEditable,
       isPositionMarginEditable,
       renderActionSheets,
     };

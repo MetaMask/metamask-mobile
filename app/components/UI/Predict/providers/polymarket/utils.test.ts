@@ -4,6 +4,7 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import {
+  PredictPositionStatus,
   Side,
   type OrderPreview,
   type PredictMarket,
@@ -37,6 +38,7 @@ import {
   getContractConfig,
   getIsApprovedForAll,
   getOrderBook,
+  getPredictPositionStatus,
   getRawBalance,
   getTickSizeRoundConfig,
   parsePolymarketEvents,
@@ -127,6 +129,38 @@ const buyPreview: OrderPreview = {
 };
 
 describe('polymarket utils', () => {
+  describe('getPredictPositionStatus', () => {
+    it.each([
+      {
+        claimable: false,
+        cashPnl: 10,
+        expectedStatus: PredictPositionStatus.OPEN,
+      },
+      {
+        claimable: true,
+        cashPnl: 10,
+        expectedStatus: PredictPositionStatus.WON,
+      },
+      {
+        claimable: true,
+        cashPnl: 0,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
+      },
+      {
+        claimable: true,
+        cashPnl: -10,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+    ])(
+      'returns $expectedStatus when claimable is $claimable and cashPnl is $cashPnl',
+      ({ claimable, cashPnl, expectedStatus }) => {
+        expect(getPredictPositionStatus({ claimable, cashPnl })).toBe(
+          expectedStatus,
+        );
+      },
+    );
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     clearClobMarketInfoSessionState();

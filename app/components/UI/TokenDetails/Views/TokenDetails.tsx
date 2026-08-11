@@ -436,6 +436,7 @@ const TokenDetails: React.FC<{
     conversionRate,
     currentCurrency: txCurrentCurrency,
     isNonEvmAsset: txIsNonEvmAsset,
+    bridgeArrivalTxs,
   } = useTokenTransactions(token);
 
   const hasTransactions =
@@ -550,6 +551,7 @@ const TokenDetails: React.FC<{
           navigation={navigation}
           selectedAddress={selectedAddress}
           chainId={token.chainId as SupportedCaipChainId}
+          bridgeArrivalTransactions={bridgeArrivalTxs}
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
@@ -618,7 +620,7 @@ const TokenDetails: React.FC<{
           onClose={() => setIsShareSheetVisible(false)}
         />
       )}
-      {!isMoneyFooterCtaActive && quickBuySheet}
+      {quickBuySheet}
     </View>
   );
 };
