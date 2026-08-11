@@ -242,13 +242,10 @@ android {
 
     // Performance/E2E BrowserStack builds use the Release build type, so the
     // debug-only network_security_config (user CA trust) is not packaged.
-    // Overlay main react_native_config for non-production envs and mark
+    // Overlay main react_native_config for BrowserStack builds and mark
     // BrowserStack APKs debuggable — required for mitmproxy network capture.
-    def metamaskEnvironment = System.getenv("METAMASK_ENVIRONMENT")
     def isBrowserStackBuild = System.getenv("IS_BROWSERSTACK_BUILD") == "true"
-    def trustUserCasForNetworkLogs =
-        isBrowserStackBuild ||
-        metamaskEnvironment in ["e2e", "exp", "rc", "test"]
+    def trustUserCasForNetworkLogs = isBrowserStackBuild
 
     sourceSets {
       if (trustUserCasForNetworkLogs) {

@@ -23,6 +23,8 @@ describe('BrowserStack Android network log capture config', () => {
 
     expect(gradle).toContain('browserstackNetworkLogs');
     expect(gradle).toContain('IS_BROWSERSTACK_BUILD');
-    expect(gradle).toMatch(/debuggable\s+true/);
+    expect(gradle).toMatch(
+      /if\s*\(\s*isBrowserStackBuild\s*\)\s*\{\s*debuggable\s+true\s*\}/s,
+    );
   });
 });
