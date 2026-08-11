@@ -65,6 +65,7 @@ import { useNotificationStoragePreferences } from '../../Settings/NotificationsS
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
 import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TraderRow,
   TraderRowSkeleton,
@@ -821,12 +822,16 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   }
 
   return (
+    // Top and bottom edges are deliberately off — see
+    // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
+    // `includesTopInset` (JS `marginTop` off the already resolved provider).
     <SafeAreaView
-      edges={['top']}
+      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
       style={tw.style('flex-1 bg-default')}
       testID={TopTradersViewSelectorsIDs.CONTAINER}
     >
       <HeaderStandardAnimated
+        includesTopInset
         scrollY={scrollYShared}
         titleSectionHeight={titleSectionHeightSv}
         title={title}

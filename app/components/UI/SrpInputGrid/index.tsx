@@ -27,6 +27,7 @@ import {
   getTrimmedSeedPhraseLength,
   isFirstInput as isFirstInputUtil,
   getInputValue,
+  MAX_SRP_LENGTH,
   SRP_LENGTHS,
   SPACE_CHAR,
   checkValidSeedWord,
@@ -105,6 +106,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       Record<number, boolean>
     >({});
 
+    const [preferGridMode, setPreferGridMode] = useState(
+      () => seedPhrase.length > 1,
+    );
+
     const focusedInputIndexRef = useRef<number | null>(null);
 
     const seedPhraseInputRefs = useRef<Map<
@@ -118,10 +123,20 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       [seedPhrase],
     );
 
+    useEffect(() => {
+      if (seedPhrase.length > 1) {
+        setPreferGridMode(true);
+        return;
+      }
+      if (trimmedSeedPhraseLength === 0) {
+        setPreferGridMode(false);
+      }
+    }, [seedPhrase.length, trimmedSeedPhraseLength]);
+
     // Determine if we're in single input (textarea) mode
     const isFirstInput = useMemo(
-      () => isFirstInputUtil(seedPhrase),
-      [seedPhrase],
+      () => !preferGridMode && isFirstInputUtil(seedPhrase),
+      [preferGridMode, seedPhrase],
     );
 
     // Initialize seed phrase input refs
@@ -163,8 +178,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         const updatedTrimmedText = trimmedText
           .split(SPACE_CHAR)
           .filter((word) => word !== '');
+        const endsWithSpace = text.length > 0 && text.at(-1) === SPACE_CHAR;
 
-        if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
+        if (SRP_LENGTHS.includes(updatedTrimmedText.length) && !endsWithSpace) {
           onSeedPhraseChange(updatedTrimmedText);
           setErrorWordIndexes(validateWords(updatedTrimmedText));
           setNextSeedPhraseInputFocusedIndex(null);
@@ -209,19 +225,29 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
     const handleKeyPress = useCallback(
       (e: { nativeEvent: { key: string } }, index: number) => {
-        if (e.nativeEvent.key === 'Backspace') {
-          if (seedPhrase[index] === '') {
-            const newData = seedPhrase.filter((_, idx) => idx !== index);
-            if (index > 0) {
-              const prevInputRef = seedPhraseInputRefs.current?.get(index - 1);
-              if (prevInputRef) {
-                prevInputRef.focus();
-              }
-              setNextSeedPhraseInputFocusedIndex(index - 1);
-            }
-            onSeedPhraseChange([...newData]);
-          }
+        if (e.nativeEvent.key !== 'Backspace') {
+          return;
         }
+
+        if (seedPhrase[index] !== '') {
+          return;
+        }
+
+        if (seedPhrase.length <= 1) {
+          return;
+        }
+
+        const newData = seedPhrase.filter((_, idx) => idx !== index);
+
+        if (index > 0) {
+          const prevInputRef = seedPhraseInputRefs.current?.get(index - 1);
+          if (prevInputRef) {
+            prevInputRef.focus();
+          }
+          setNextSeedPhraseInputFocusedIndex(index - 1);
+        }
+
+        onSeedPhraseChange([...newData]);
       },
       [seedPhrase, onSeedPhraseChange],
     );
@@ -247,6 +273,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     }, [handleSeedPhraseChange]);
 
     const handleClear = useCallback(() => {
+      setPreferGridMode(false);
       onSeedPhraseChange(['']);
       setErrorWordIndexes({});
       setNextSeedPhraseInputFocusedIndex(null);
@@ -267,16 +294,14 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         }));
 
         const currentWordPosition = targetIndex + 1;
-        const isLastWordOfValidSrp = SRP_LENGTHS.includes(currentWordPosition);
+        const isLastWordOfMaxSrp = currentWordPosition >= MAX_SRP_LENGTH;
 
-        const updatedText = isLastWordOfValidSrp
-          ? word
-          : `${word}${SPACE_CHAR}`;
+        const updatedText = isLastWordOfMaxSrp ? word : `${word}${SPACE_CHAR}`;
 
         handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
         onCurrentWordChange?.('');
 
-        if (isLastWordOfValidSrp) {
+        if (isLastWordOfMaxSrp) {
           const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
           inputRef?.focus();
         }

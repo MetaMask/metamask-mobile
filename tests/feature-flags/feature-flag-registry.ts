@@ -5160,6 +5160,62 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  swapsSWAPS4784AbtestCTAButtonColor: {
+    name: 'swapsSWAPS4784AbtestCTAButtonColor',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0.5,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsSWAPS4825AbtestChainValueOrder: {
+    name: 'swapsSWAPS4825AbtestChainValueOrder',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 0.5,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsChainValueOrderOverride: {
+    name: 'swapsChainValueOrderOverride',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      positionOverrides: [],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tempoConfig: {
     name: 'tempoConfig',
     type: FeatureFlagType.Remote,
@@ -5857,8 +5913,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  'stable-tokens': {
-    name: 'stable-tokens',
+  stableTokens: {
+    name: 'stableTokens',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {},

@@ -200,6 +200,28 @@ describe('usePredictBuyActions', () => {
       expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
     });
 
+    it('handles initPayWithAnyToken failure on mount without throwing', async () => {
+      mockInitPayWithAnyToken.mockResolvedValue({
+        success: false,
+        error: 'Deposit preparation returned undefined',
+      });
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reset payment token during init', () => {
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
     it('does not call initPayWithAnyToken when pay with any token is disabled', () => {
       mockPayWithAnyTokenEnabled = false;
 
@@ -218,6 +240,18 @@ describe('usePredictBuyActions', () => {
       expect(mockTransitionEndUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockBeforeRemoveUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledTimes(1);
+    });
+
+    it('resets payment token on beforeRemove cleanup', () => {
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      act(() => {
+        mockBeforeRemoveCallbacks[0]();
+      });
+
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });
 
     it('only calls initPayWithAnyToken once even if transitionEnd fires again', () => {
@@ -480,6 +514,35 @@ describe('usePredictBuyActions', () => {
 
       expect(mockPlaceOrder).not.toHaveBeenCalled();
       expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
+    });
+
+    it('surfaces init failure when confirm re-init fails', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+      mockApprovalRequest = undefined;
+      mockInitPayWithAnyToken.mockResolvedValue({
+        success: false,
+        error: 'Deposit preparation returned undefined',
+      });
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      mockInitPayWithAnyToken.mockClear();
+      mockInitPayWithAnyToken.mockResolvedValue({
+        success: false,
+        error: 'Deposit preparation returned undefined',
+      });
+
+      let outcome;
+      await act(async () => {
+        outcome = await result.current.handleConfirm();
+      });
+
+      expect(outcome).toEqual({
+        status: 'error',
+        error: 'Deposit preparation returned undefined',
+      });
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
   });
@@ -753,9 +816,11 @@ describe('usePredictBuyActions', () => {
         'beforeRemove',
         expect.any(Function),
       );
+      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
 
       unmount();
 
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
       expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });
@@ -783,9 +848,11 @@ describe('usePredictBuyActions', () => {
 
       mockOnConfirmActionsReject.mockClear();
       mockClearActiveOrderTransactionId.mockClear();
+      mockResetSelectedPaymentToken.mockClear();
 
       unmount();
 
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
       expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });

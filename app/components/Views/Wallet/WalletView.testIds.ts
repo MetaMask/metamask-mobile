@@ -97,6 +97,7 @@ export const WalletViewSelectorsIDs = {
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
   WALLET_ACTIVITY_BUTTON: 'wallet-activity-button',
+  WALLET_SEARCH_BUTTON: 'wallet-search-button',
   WALLET_HEADER_ROOT: 'wallet-header-root',
   WALLET_SAFE_AREA: 'wallet-safe-area',
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
@@ -127,7 +128,7 @@ export const WalletViewSelectorsText = {
   DEFI_TAB: enContent.wallet.defi,
   PREDICTIONS_TAB: enContent.wallet.predict,
   AVAILABLE_BALANCE: enContent.predict.available_balance,
-  PERPETUALS_SECTION: enContent.homepage.sections.perpetuals,
+  PERPETUALS_SECTION: enContent.homepage.sections.perps,
   TOKENS_SECTION: enContent.homepage.sections.tokens,
   DEFI_SECTION: enContent.homepage.sections.defi,
   NFTS_SECTION: enContent.homepage.sections.nfts,

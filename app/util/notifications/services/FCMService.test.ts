@@ -5,7 +5,7 @@ import messaging, {
 import FCMService from './FCMService';
 import { EVENT_NAME } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
-import { NativeModules, Platform } from 'react-native';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { getSessionProfileId } from '../utils/get-session-profile-id';
 
 // Firebase Mock
@@ -398,6 +398,27 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         });
       });
 
+      it('returns a classified tap from serialized Notifee data', async () => {
+        const deeplink = 'https://link.metamask.io/rewards';
+        const { result, mocks } = await arrangeAct({
+          dataStr: JSON.stringify(createMockPushAnalyticsFcmData({ deeplink })),
+        });
+
+        expect(result).toEqual({
+          opened: true,
+          deeplink,
+          notificationType: 'platform',
+          notificationSubtype: 'take_profit_executed',
+        });
+        assertMockInitialNotificationCalled(mocks);
+        assertTrackEventCalledWith(mocks.mockTrackEvent, {
+          notification_id: 'test-notification-id',
+          notification_type: 'platform',
+          notification_subtype: 'take_profit_executed',
+          deeplink,
+        });
+      });
+
       // On-chain activity notifications commonly carry no CTA link, so the tap
       // must still be reported as an open even with no deeplink to return.
       it('reports an open with no deeplink when no deeplink present', async () => {
@@ -437,6 +458,10 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
 });
 
 describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
+  beforeEach(() => {
+    Platform.OS = 'ios';
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
@@ -513,6 +538,46 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       notification_type: 'platform',
       notification_subtype: 'take_profit_executed',
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    });
+  });
+
+  it('reports serialized Notifee data from the Android native event', async () => {
+    const deeplink = 'https://link.metamask.io/rewards';
+    const mocks = arrangeMocks();
+    let nativeNotificationHandler:
+      | ((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => Promise<void>)
+      | undefined;
+
+    Platform.OS = 'android';
+    jest
+      .spyOn(DeviceEventEmitter, 'addListener')
+      .mockImplementation((eventType, listener) => {
+        expect(eventType).toBe('metamask.notification_opened');
+        nativeNotificationHandler = listener as (
+          remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+        ) => Promise<void>;
+        return { remove: jest.fn() } as never;
+      });
+
+    FCMService.onClickPushNotificationWhenAppSuspended(mocks.deeplinkCallback);
+    await nativeNotificationHandler?.(
+      createMockRemoteMessage({
+        dataStr: JSON.stringify(createMockPushAnalyticsFcmData({ deeplink })),
+      }),
+    );
+
+    expect(mocks.mockOnNotificationOpenedApp).not.toHaveBeenCalled();
+    expect(mocks.deeplinkCallback).toHaveBeenCalledWith({
+      opened: true,
+      deeplink,
+      notificationType: 'platform',
+      notificationSubtype: 'take_profit_executed',
+    });
+    assertTrackEventCalledWith(mocks.mockTrackEvent, {
+      notification_id: 'test-notification-id',
+      notification_type: 'platform',
+      notification_subtype: 'take_profit_executed',
+      deeplink,
     });
   });
 

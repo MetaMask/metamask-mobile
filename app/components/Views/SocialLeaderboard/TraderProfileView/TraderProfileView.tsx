@@ -54,6 +54,7 @@ import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
 import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
 import { useTraderMute } from '../hooks/useTraderMute';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
@@ -67,7 +68,7 @@ import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import { useTraderPositions, useTraderProfile } from './hooks';
-import { resolveQuickBuyOriginalEntryPointFromProfile } from '../TraderPositionView/components/QuickBuy/analytics';
+import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -355,12 +356,16 @@ const TraderProfileView = () => {
   const headerTitle = profile?.profile.name;
 
   return (
+    // Top and bottom edges are deliberately off — see
+    // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
+    // `includesTopInset` (JS `marginTop` off the already resolved provider).
     <SafeAreaView
-      edges={['top']}
+      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
       style={tw.style('flex-1 bg-default')}
       testID={TraderProfileViewSelectorsIDs.CONTAINER}
     >
       <HeaderStandardAnimated
+        includesTopInset
         scrollY={scrollYShared}
         titleSectionHeight={titleSectionHeightSv}
         title={
