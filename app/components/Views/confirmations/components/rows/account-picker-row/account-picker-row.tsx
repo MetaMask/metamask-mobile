@@ -9,8 +9,8 @@ import {
 
 import {
   BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -26,7 +26,6 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import { strings } from '../../../../../../../locales/i18n';
 import stylesheet from './account-picker-row.styles';
 
@@ -63,7 +62,6 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
 }: AccountPickerRowContentProps<T>) {
   const { styles } = useStyles(stylesheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -177,9 +175,10 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
               isFullscreen
               keyboardAvoidingViewEnabled={false}
               onClose={handleSheetClosed}
-              twClassName={surfaceClass}
             >
-              <HeaderStandard title={title} onClose={handleModalRequestClose} />
+              <BottomSheetHeader onClose={handleModalRequestClose}>
+                {title}
+              </BottomSheetHeader>
               <View style={styles.searchContainer}>
                 <Icon
                   name={IconName.Search}

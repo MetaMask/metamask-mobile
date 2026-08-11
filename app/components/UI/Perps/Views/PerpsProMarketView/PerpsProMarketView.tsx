@@ -26,20 +26,26 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import type { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, type ScrollView } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
+import { usePerpsMarketData } from '../../hooks';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
+import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import {
+  PerpsOrderProvider,
+  usePerpsOrderContext,
+} from '../../contexts/PerpsOrderContext';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
@@ -48,13 +54,61 @@ import {
   getPerpsChartLibrary,
 } from '../../utils/chartAnalytics';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
-import PerpsProMarketHeader from './components/PerpsProMarketHeader';
+import PerpsMarketHeader, {
+  createProMarketHeaderTestIDs,
+} from '../../components/PerpsMarketHeader';
+import { PRICE_SECTION_HEIGHT } from '../../components/PerpsMarketSummary';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
-import { PRICE_SECTION_HEIGHT } from './components/PerpsProMarketSummary';
 import { createStyles } from './PerpsProMarketView.styles';
+
+interface PerpsProOrderBookColumnProps {
+  symbol: string;
+  marketPrice?: number;
+  onCollapse: () => void;
+}
+
+/**
+ * Order-book column bridged to the shared order-form state (TAT-3643).
+ *
+ * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
+ * bid/ask row tap can flip the form to a Limit order and prefill the tapped
+ * price — the two setters live in `PerpsOrderContext`, which the sibling order
+ * book cannot otherwise reach. Wiring both at once has no existing analog
+ * (`onUseMidPricePress` only sets price and assumes the form is already Limit).
+ */
+const PerpsProOrderBookColumn = ({
+  symbol,
+  marketPrice,
+  onCollapse,
+}: PerpsProOrderBookColumnProps) => {
+  const { setLimitPrice, setOrderType } = usePerpsOrderContext();
+  // Drives the ladder's price precision and base-size decimals — without it
+  // every price falls back to magnitude-based formatting.
+  const { marketData } = usePerpsMarketData({ asset: symbol });
+
+  const handleSelectPrice = useCallback(
+    (price: string) => {
+      // Force Limit first (no-op when already Limit) so the prefilled price is
+      // always shown in the limit-price input, regardless of the prior type.
+      setOrderType('limit');
+      setLimitPrice(price);
+    },
+    [setOrderType, setLimitPrice],
+  );
+
+  return (
+    <PerpsProOrderBookPanel
+      symbol={symbol}
+      marketPrice={marketPrice}
+      szDecimals={marketData?.szDecimals}
+      onCollapse={onCollapse}
+      onSelectPrice={handleSelectPrice}
+    />
+  );
+};
 
 /**
  * Pro-mode replacement for `PerpsMarketDetailsView`.
@@ -74,6 +128,9 @@ const PerpsProMarketView = () => {
   const routeMarket = route.params?.market;
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  // Set by entry points that already carry a trade intent (e.g. spot token
+  // details Long/Short), so the inline form opens on the right side.
+  const initialDirection = route.params?.direction;
 
   // Some navigation sources (e.g. Recent Activity, deep links) pass minimal
   // market data without `maxLeverage` — fetch the full markets list to
@@ -98,7 +155,7 @@ const PerpsProMarketView = () => {
   const handleSelectMarket = useCallback(
     (
       nextMarket: PerpsMarketData | Partial<PerpsMarketData>,
-      sourceSection:
+      panelSourceSection:
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     ) => {
@@ -108,10 +165,14 @@ const PerpsProMarketView = () => {
 
       // POSITION_TAB is the panel-level source; source_section distinguishes
       // which tab the row came from (same pattern as Perps home).
+      // `direction` is cleared because `setParams` merges: the side belongs to
+      // the entry point that opened this screen, and keeping it would reseed
+      // the remounted order form with the previous market's trade intent.
       navigation.setParams({
         market: nextMarket,
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
-        source_section: sourceSection,
+        source_section: panelSourceSection,
+        direction: undefined,
       });
     },
     [navigation, routeMarket?.symbol],
@@ -160,6 +221,14 @@ const PerpsProMarketView = () => {
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
   }, []);
+
+  const appNavigation = useNavigation<AppNavigationProp>();
+
+  const handleHistoryPress = useCallback(() => {
+    appNavigation.navigate(Routes.PERPS.ACTIVITY, {
+      redirectToPerpsTransactions: true,
+    });
+  }, [appNavigation]);
 
   const handleBalanceSheetClose = useCallback(() => {
     setIsBalanceSheetVisible(false);
@@ -216,14 +285,11 @@ const PerpsProMarketView = () => {
     handleMarketListPress,
     handleFavoritePress,
     handlePerpsModeChange,
-  } = usePerpsProMarketHeaderActions({ symbol: market?.symbol });
+  } = usePerpsMarketHeaderActions({ symbol: market?.symbol });
 
   if (!market?.symbol) {
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['top', 'bottom', 'left', 'right']}
-      >
+      <View style={styles.container}>
         <Box
           twClassName="flex-1 items-center justify-center px-4"
           testID={PerpsProMarketViewSelectorsIDs.ERROR}
@@ -232,7 +298,7 @@ const PerpsProMarketView = () => {
             {strings('perps.market.details.error_message')}
           </Text>
         </Box>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -246,13 +312,13 @@ const PerpsProMarketView = () => {
   })();
 
   return (
-    <SafeAreaView
+    <View
       style={styles.container}
-      edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
-      <PerpsProMarketHeader
+      <PerpsMarketHeader
         market={{ ...market, symbol: market.symbol }}
+        testIDs={createProMarketHeaderTestIDs()}
         mode={perpsMode}
         onBackPress={handleBackPress}
         onIdentityPress={handleMarketListPress}
@@ -294,32 +360,45 @@ const PerpsProMarketView = () => {
             nextFundingTime={market.nextFundingTime}
             fundingIntervalHours={market.fundingIntervalHours}
           />
-          <PerpsProMarketLayout
-            isOrderBookCollapsed={isOrderBookCollapsed}
-            orderForm={
-              // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
-              // to support deep-link trade-detail entries that may only carry
-              // partial data. PerpsProMarketView is only reachable via full-market
-              // navigation; the !market?.symbol guard above validates the minimum
-              // required field at runtime.
-              <PerpsProOrderFormPanel
-                market={market as PerpsMarketData}
-                isOrderBookCollapsed={isOrderBookCollapsed}
-                onExpandOrderBook={handleExpandOrderBook}
-              />
-            }
-            orderBook={
-              <PerpsProOrderBookPanel
-                symbol={market.symbol}
-                marketPrice={marketPrice}
-                onCollapse={handleCollapseOrderBook}
-              />
-            }
-          />
+          {/* Provider wraps BOTH columns (not just the form) so an order-book
+              row tap can drive the form's Limit price / order type via shared
+              context (TAT-3643). Keyed by symbol so form state resets when the
+              market changes. */}
+          <PerpsOrderProvider
+            key={market.symbol}
+            initialAsset={market.symbol}
+            initialDirection={initialDirection}
+            initialType="market"
+            fallbackAmount=""
+          >
+            <PerpsProMarketLayout
+              isOrderBookCollapsed={isOrderBookCollapsed}
+              orderForm={
+                // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
+                // to support deep-link trade-detail entries that may only carry
+                // partial data. PerpsProMarketView is only reachable via full-market
+                // navigation; the !market?.symbol guard above validates the minimum
+                // required field at runtime.
+                <PerpsProOrderFormPanel
+                  market={market as PerpsMarketData}
+                  isOrderBookCollapsed={isOrderBookCollapsed}
+                  onExpandOrderBook={handleExpandOrderBook}
+                />
+              }
+              orderBook={
+                <PerpsProOrderBookColumn
+                  symbol={market.symbol}
+                  marketPrice={marketPrice}
+                  onCollapse={handleCollapseOrderBook}
+                />
+              }
+            />
+          </PerpsOrderProvider>
           <SectionDivider marginVertical={0} />
           <PerpsProPositionsPanel
             symbol={market.symbol}
             onSelectMarket={handleSelectMarket}
+            onHistoryPress={handleHistoryPress}
           />
         </Animated.View>
       </Animated.ScrollView>
@@ -337,7 +416,7 @@ const PerpsProMarketView = () => {
         isVisible={isBalanceSheetVisible}
         onClose={handleBalanceSheetClose}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

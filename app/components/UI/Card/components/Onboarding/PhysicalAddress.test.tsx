@@ -12,6 +12,15 @@ import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import useRegions from '../../hooks/useRegions';
 import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardScreens } from '../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
@@ -31,13 +40,10 @@ jest.mock('../../sdk', () => ({
 
 // Mock useAnalytics
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(() => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(),
-    })),
-  })),
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -351,7 +357,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.physical_address.crb_consent_1':
         'I agree with Cross River Bank ',
       'card.card_onboarding.physical_address.crb_consent_2':
-        'Terms & Conditions',
+        'Terms and Conditions',
       'card.card_onboarding.physical_address.crb_consent_3': ', ',
       'card.card_onboarding.physical_address.crb_consent_4':
         'Account Opening Disclosures',
@@ -569,6 +575,24 @@ describe('PhysicalAddress Component', () => {
       }),
     );
     useDispatch.mockReturnValue(jest.fn());
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with RESIDENTIAL_ADDRESS screen on mount', () => {
+      render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.RESIDENTIAL_ADDRESS,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('Initial Render', () => {
@@ -1719,14 +1743,14 @@ describe('PhysicalAddress Component', () => {
       expect(Linking.openURL).toHaveBeenCalledWith('https://coinme.com/legal/');
     });
 
-    it('opens CRB Terms & Conditions URL when link is pressed', () => {
+    it('opens CRB Terms and Conditions URL when link is pressed', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PhysicalAddress />
         </Provider>,
       );
 
-      fireEvent.press(getByText('Terms & Conditions'));
+      fireEvent.press(getByText('Terms and Conditions'));
 
       expect(Linking.openURL).toHaveBeenCalledWith(
         'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf',
@@ -1795,7 +1819,7 @@ describe('PhysicalAddress Component', () => {
         </Provider>,
       );
 
-      fireEvent.press(getByText('Terms & Conditions'));
+      fireEvent.press(getByText('Terms and Conditions'));
       expect(Linking.openURL).toHaveBeenCalledWith(
         'https://docs.baanx.us/metamask/terms.pdf',
       );
@@ -1843,7 +1867,7 @@ describe('PhysicalAddress Component', () => {
 
       expect(queryByText('E-Sign Consent Disclosure')).toBeFalsy();
       expect(queryByText('Coinme Terms of Service')).toBeFalsy();
-      expect(queryByText('Terms & Conditions')).toBeFalsy();
+      expect(queryByText('Terms and Conditions')).toBeFalsy();
       expect(queryByText('Account Opening Disclosures')).toBeFalsy();
       expect(queryByText('Notice of Privacy Practices')).toBeFalsy();
       expect(queryByText('CL Privacy Policy')).toBeFalsy();

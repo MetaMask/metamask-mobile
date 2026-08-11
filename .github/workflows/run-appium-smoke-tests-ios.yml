@@ -166,15 +166,15 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-network-abstractions-ios-smoke
+      test-suite-name: appium-network-abstractions-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: SmokeNetworkAbstractions
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -319,6 +319,54 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
       test-timeout-minutes: 35
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
+
+  appium-multichain-api-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeMultiChainAPI'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-multichain-api-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: SmokeMultiChainAPI
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
+
+  appium-network-expansion-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeNetworkExpansion'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-network-expansion-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: SmokeNetworkExpansion
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}

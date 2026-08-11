@@ -22,6 +22,15 @@ import {
   PerpsProMarketViewSelectorsIDs,
 } from '../../Perps.testIds';
 import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
+import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
+
+interface MockLiveOrderBookResult {
+  orderBook: OrderBookData | null;
+  isLoading: boolean;
+  error: null;
+  connectionStatus: string;
+  reconnect: () => void;
+}
 
 interface MockRouteParams {
   market?: {
@@ -32,6 +41,7 @@ interface MockRouteParams {
   };
   source?: string;
   source_section?: string;
+  direction?: 'long' | 'short';
 }
 
 interface MockChartPanelProps {
@@ -71,6 +81,18 @@ const mockSetParams = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
   track: mockTrack,
 }));
+
+// The order-form provider and its business hooks are exercised by
+// PerpsProOrderFormPanel.test.tsx / usePerpsProOrderForm.test.ts. Here the
+// provider is a passthrough and the shared order-form setters are captured so
+// the order-book → order-form wiring (TAT-3643) can be asserted directly.
+const mockSetLimitPrice = jest.fn();
+const mockSetOrderType = jest.fn();
+const mockPerpsOrderProvider = jest.fn(
+  ({ children }: { children: React.ReactNode; fallbackAmount?: string }) =>
+    children,
+);
+const mockOrderProviderProps = jest.fn();
 
 const mockHandleBackPress = jest.fn();
 const mockHandleMarketListPress = jest.fn();
@@ -190,8 +212,8 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
     mockUsePerpsEventTracking(options),
 }));
 
-jest.mock('../../hooks/usePerpsProMarketHeaderActions', () => ({
-  usePerpsProMarketHeaderActions: jest.fn(() => ({
+jest.mock('../../hooks/usePerpsMarketHeaderActions', () => ({
+  usePerpsMarketHeaderActions: jest.fn(() => ({
     perpsMode: mockHeaderPerpsMode,
     isWatchlist: false,
     handleBackPress: mockHandleBackPress,
@@ -236,22 +258,30 @@ jest.mock('../../hooks/usePerpsProPositionsPanelActions', () => ({
     handleEditPositionTpSl: jest.fn(),
     handleEditPositionMargin: jest.fn(),
     handleCancelOrder: jest.fn(),
+    handleEditOrderPrice: jest.fn(),
+    handleEditOrderSize: jest.fn(),
     handleCloseAllPress: jest.fn(),
     cancelingOrderId: null,
+    editingOrderId: null,
     isOrderCancelable: () => true,
+    isOrderEditable: () => true,
+    isOrderSizeEditable: () => true,
     isPositionMarginEditable: () => true,
     renderActionSheets: () => null,
   })),
 }));
 
-jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
-  usePerpsLiveOrderBook: jest.fn(() => ({
+const mockUsePerpsLiveOrderBook = jest.fn(
+  (_params?: unknown): MockLiveOrderBookResult => ({
     orderBook: null,
     isLoading: true,
     error: null,
     connectionStatus: 'connecting',
     reconnect: jest.fn(),
-  })),
+  }),
+);
+jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
+  usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
 }));
 
 jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
@@ -259,6 +289,22 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
     savedGrouping: undefined,
     saveGrouping: jest.fn(),
   })),
+}));
+
+jest.mock('../../contexts/PerpsOrderContext', () => ({
+  PerpsOrderProvider: (props: {
+    children: React.ReactNode;
+    fallbackAmount?: string;
+  }) => {
+    const { children, ...providerProps } = props;
+    mockPerpsOrderProvider(props);
+    mockOrderProviderProps(providerProps);
+    return children;
+  },
+  usePerpsOrderContext: () => ({
+    setLimitPrice: mockSetLimitPrice,
+    setOrderType: mockSetOrderType,
+  }),
 }));
 
 // The default mock route already has a formatted `maxLeverage` ("40x"), so
@@ -354,6 +400,16 @@ describe('PerpsProMarketView', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
+    // Restore the default "connecting" order book so tests that set a live
+    // book via mockImplementation don't leak into later tests (clearAllMocks
+    // resets call history but not implementations).
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: null,
+      isLoading: true,
+      error: null,
+      connectionStatus: 'connecting',
+      reconnect: jest.fn(),
+    }));
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
@@ -362,6 +418,16 @@ describe('PerpsProMarketView', () => {
       orders: [],
       isInitialLoading: false,
     });
+  });
+
+  it('configures an empty fallback amount for the Pro order form', () => {
+    renderView();
+
+    expect(mockPerpsOrderProvider.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        fallbackAmount: '',
+      }),
+    );
   });
 
   afterEach(() => {
@@ -382,6 +448,7 @@ describe('PerpsProMarketView', () => {
       market: { symbol: 'ETH' },
       source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
       source_section: PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+      direction: undefined,
     });
   });
 
@@ -402,7 +469,57 @@ describe('PerpsProMarketView', () => {
       market: { symbol: 'ETH' },
       source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
       source_section: PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+      direction: undefined,
     });
+  });
+
+  it('seeds the order form with the direction carried by the route', () => {
+    mockRouteParams = {
+      market: {
+        symbol: 'BTC',
+        price: '$90,000.00',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      },
+      direction: 'short',
+    };
+
+    renderView();
+
+    expect(mockOrderProviderProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialAsset: 'BTC',
+        initialDirection: 'short',
+      }),
+    );
+  });
+
+  it('drops the entry-point direction when switching markets so the form does not reopen on the previous side', () => {
+    // `setParams` merges, so a `direction` left over from a token-details
+    // Long/Short would reseed the remounted order form for the new market.
+    mockRouteParams = {
+      market: {
+        symbol: 'BTC',
+        price: '$90,000.00',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      },
+      direction: 'long',
+    };
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [ethPosition],
+      isInitialLoading: false,
+    });
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(getPerpsProPositionRowSelector('ETH')));
+
+    // `direction` must be present and undefined: omitting the key would leave
+    // the previous side in place, since setParams merges rather than replaces.
+    const nextParams = mockSetParams.mock.calls[0][0];
+    expect(nextParams).toHaveProperty('market', { symbol: 'ETH' });
+    expect(nextParams).toHaveProperty('direction', undefined);
   });
 
   it('ignores a row tap for the market already being displayed', () => {
@@ -462,15 +579,6 @@ describe('PerpsProMarketView', () => {
       ).not.toBeOnTheScreen();
     },
   );
-
-  it('renders the screen inside every safe-area edge', () => {
-    const { getByTestId } = renderView();
-
-    expect(getByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER)).toHaveProp(
-      'edges',
-      ['top', 'bottom', 'left', 'right'],
-    );
-  });
 
   it('tracks an attributed Pro market screen view', () => {
     renderView();
@@ -745,5 +853,53 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
     ).toBeOnTheScreen();
+  });
+
+  it('fills the order form with a limit order when an order-book row is tapped', () => {
+    // Both panels sit inside a single PerpsOrderProvider so a bid/ask row tap
+    // can reach the order form's shared setters (TAT-3643).
+    const liveBook: OrderBookData = {
+      bids: [
+        {
+          price: '89950',
+          size: '1.5',
+          total: '1.5',
+          notional: '134925',
+          totalNotional: '134925',
+        },
+      ],
+      asks: [
+        {
+          price: '90050',
+          size: '1.2',
+          total: '1.2',
+          notional: '108060',
+          totalNotional: '108060',
+        },
+      ],
+      spread: '100',
+      spreadPercentage: '0.11',
+      midPrice: '90000',
+      lastUpdated: 1700000000000,
+      maxTotal: '1.5',
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: liveBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockSetOrderType).toHaveBeenCalledWith('limit');
+    expect(mockSetLimitPrice).toHaveBeenCalledWith('89950');
   });
 });
