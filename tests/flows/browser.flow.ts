@@ -19,7 +19,6 @@ import { PlatformDetector } from '../framework/PlatformLocator';
 import PlaywrightContextHelpers from '../framework/PlaywrightContextHelpers';
 import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
-import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 
 /**
  * Waits for the test dapp to load.
@@ -30,9 +29,24 @@ import { getDappUrl } from '../framework/fixtures/FixtureUtils';
  */
 export const waitForTestDappToLoad = async (): Promise<void> => {
   if (FrameworkDetector.isAppium()) {
+    // URL bar head-truncates long dapp URLs, so match testIDs not URL text.
     await Assertions.expectElementToBeVisible(
-      PlaywrightMatchers.getElementByText(getDappUrl(0)),
-      { description: 'Browser URL bar should show test dapp URL' },
+      PlaywrightMatchers.getElementById(
+        BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT,
+      ),
+      {
+        description: 'Browser URL display text should be visible',
+        timeout: 30_000,
+      },
+    );
+    await Assertions.expectElementToBeVisible(
+      PlaywrightMatchers.getElementById(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      ),
+      {
+        description: 'Browser WebView container should be mounted',
+        timeout: 30_000,
+      },
     );
     return;
   }
