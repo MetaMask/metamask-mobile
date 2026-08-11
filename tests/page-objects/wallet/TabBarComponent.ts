@@ -55,10 +55,6 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
-  get tabBarActivityButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
-  }
-
   get tabBarRewardsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
@@ -207,7 +203,7 @@ class TabBarComponent {
   async tapActivity(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarActivityButton, { timeout: 2000 });
+        await Gestures.waitAndTap(WalletView.activityButton, { timeout: 2000 });
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
           description: 'Activity View Title',
           timeout: 500,
