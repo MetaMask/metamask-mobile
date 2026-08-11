@@ -311,10 +311,6 @@ function FeesTooltip({
     return null;
   }
 
-  const feeRowTextProps = {
-    color: TextColor.TextAlternative,
-  };
-
   return (
     <Box twClassName="pb-4" gap={1}>
       <Text variant={TextVariant.BodyMd} twClassName="px-4 pb-3">
@@ -324,22 +320,16 @@ function FeesTooltip({
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('confirm.label.network_fee')}
         value={networkFeeUsd}
-        keyTextProps={feeRowTextProps}
-        valueTextProps={feeRowTextProps}
       />
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('confirm.label.provider_fee')}
         value={providerFeeUsd}
-        keyTextProps={feeRowTextProps}
-        valueTextProps={feeRowTextProps}
       />
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('confirm.label.metamask_fee')}
         value={metaMaskFeeUsd}
-        keyTextProps={feeRowTextProps}
-        valueTextProps={feeRowTextProps}
       />
     </Box>
   );
