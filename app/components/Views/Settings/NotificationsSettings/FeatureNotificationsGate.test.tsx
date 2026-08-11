@@ -8,7 +8,6 @@ import {
   type FeatureNotificationsGateSheetParams,
 } from './FeatureNotificationsGateSheet';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
-import { MAIN_NOTIFICATION_TOGGLE_TEST_ID } from './MainNotificationToggle';
 import Routes from '../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
@@ -19,10 +18,12 @@ import NotificationService, {
 } from '../../../../util/notifications/services/NotificationService';
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
+import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
 
 jest.mock('./hooks/useNotificationStoragePreferences');
 jest.mock('./MainNotificationToggle.hooks');
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../../../util/notifications/hooks/useSwitchNotifications');
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -99,11 +100,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   return { ...actual, BottomSheet: MockBottomSheet };
 });
 
-const PUSH_TOGGLE =
-  NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE;
-const IN_APP_TOGGLE =
-  NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE;
-const MASTER_TOGGLE = NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE;
+const TURN_ON_BUTTON =
+  NotificationSettingsViewSelectorsIDs.FEATURE_GATE_TURN_ON_BUTTON;
+
+const mockSwitchNotifications = jest.fn().mockResolvedValue(undefined);
 
 const SHEET_ROUTE_ARGS = [
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -400,67 +400,90 @@ describe('FeatureNotificationsGateSheet', () => {
     mockIsMasterEnabled = false;
     mockSheetParams = { feature: 'priceAlerts' };
     arrangePreferences();
+    mockSwitchNotifications.mockResolvedValue(undefined);
 
-    jest.mocked(useMainNotificationToggle).mockReturnValue({
-      onToggle: jest.fn(),
-      value: mockIsMasterEnabled,
-      isUpdating: false,
+    jest.mocked(useNotificationsToggle).mockReturnValue({
+      switchNotifications: mockSwitchNotifications,
+      data: false,
+      loading: false,
+      error: null,
     });
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
   describe('contents', () => {
-    it('renders master and channel toggles when master and both channels are off', () => {
+    it('renders a single turn-on CTA instead of preference toggles', () => {
       renderSheet();
 
+      expect(screen.getByTestId(TURN_ON_BUTTON)).toBeOnTheScreen();
       expect(
-        screen.getByTestId(MAIN_NOTIFICATION_TOGGLE_TEST_ID),
-      ).toBeOnTheScreen();
-      expect(screen.getByTestId(PUSH_TOGGLE)).toBeOnTheScreen();
-      expect(screen.getByTestId(IN_APP_TOGGLE)).toBeOnTheScreen();
-    });
-
-    it('renders only the master toggle when a channel is already on', () => {
-      arrangePreferences({ isPushEnabled: true });
-
-      renderSheet();
-
-      expect(
-        screen.getByTestId(MAIN_NOTIFICATION_TOGGLE_TEST_ID),
-      ).toBeOnTheScreen();
-      expect(screen.queryByTestId(PUSH_TOGGLE)).not.toBeOnTheScreen();
-    });
-
-    it('renders only the channel toggles when master is already on', () => {
-      mockIsMasterEnabled = true;
-
-      renderSheet();
-
-      expect(
-        screen.queryByTestId(MAIN_NOTIFICATION_TOGGLE_TEST_ID),
+        screen.queryByTestId(
+          NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE,
+        ),
       ).not.toBeOnTheScreen();
-      expect(screen.getByTestId(PUSH_TOGGLE)).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+        ),
+      ).not.toBeOnTheScreen();
     });
+  });
 
-    it('disables the channel toggles while master is off', () => {
+  describe('turn on CTA', () => {
+    it('enables master notifications and both feature channels', async () => {
+      const updatePreferencesSection = jest.fn().mockResolvedValue(undefined);
+      arrangePreferences();
+      jest.mocked(useNotificationStoragePreferences).mockReturnValue({
+        ...jest.mocked(useNotificationStoragePreferences)(),
+        updatePreferencesSection,
+      });
+
       renderSheet();
+      fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
 
-      expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('disabled', true);
-      expect(screen.getByTestId(IN_APP_TOGGLE)).toHaveProp('disabled', true);
+      await waitFor(() => {
+        expect(mockSwitchNotifications).toHaveBeenCalledWith(true);
+      });
+      expect(updatePreferencesSection).toHaveBeenCalledWith(
+        'priceAlerts',
+        expect.any(Function),
+      );
+
+      const sectionUpdater = updatePreferencesSection.mock.calls[0][1] as (
+        section: Record<string, boolean>,
+      ) => Record<string, boolean>;
+      expect(
+        sectionUpdater({
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        }),
+      ).toEqual({
+        pushNotificationsEnabled: true,
+        inAppNotificationsEnabled: true,
+      });
     });
 
-    it('disables the master toggle once master is turned on', () => {
-      const { rerender } = renderSheet();
-
+    it('skips enabling master when it is already on', async () => {
       mockIsMasterEnabled = true;
-      rerender(<FeatureNotificationsGateSheet />);
+      const updatePreferencesSection = jest.fn().mockResolvedValue(undefined);
+      arrangePreferences();
+      jest.mocked(useNotificationStoragePreferences).mockReturnValue({
+        ...jest.mocked(useNotificationStoragePreferences)(),
+        updatePreferencesSection,
+      });
 
-      expect(screen.getByTestId(MASTER_TOGGLE)).toHaveProp('disabled', true);
+      renderSheet();
+      fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+
+      await waitFor(() => {
+        expect(updatePreferencesSection).toHaveBeenCalled();
+      });
+      expect(mockSwitchNotifications).not.toHaveBeenCalled();
     });
   });
 
   describe('auto-close', () => {
-    it('closes when master and both channels become enabled', () => {
+    it('closes when the gate becomes satisfied', () => {
       const { rerender } = renderSheet();
 
       mockIsMasterEnabled = true;
@@ -470,7 +493,7 @@ describe('FeatureNotificationsGateSheet', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('closes the master-only sheet when master is turned on', () => {
+    it('closes when master is on and at least one channel is on', () => {
       arrangePreferences({ isPushEnabled: true });
       const { rerender } = renderSheet();
 
