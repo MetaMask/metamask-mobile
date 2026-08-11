@@ -7,6 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { getRenderProbeSource } from './render-probe-template';
 
 const INSTRUMENTATION_MARKER = 'SWAPS_PERF_ANALYSIS';
 const DIAGNOSTICS_RELATIVE_PATH =
@@ -23,72 +24,14 @@ interface InstrumentationTarget {
   replacements: SourceReplacement[];
 }
 
-export type InstrumentationStatus = 'clean' | 'prepared' | 'partial';
+export type InstrumentationStatus = 'not-installed' | 'prepared' | 'partial';
 
 export interface InstrumentationResult {
   status: InstrumentationStatus;
   changedFiles: string[];
 }
 
-const DIAGNOSTICS_SOURCE = `export const SWAPS_PERFORMANCE_DIAGNOSTICS_KEY =
-  '__SWAPS_PERF_ANALYSIS__' as const;
-
-export type SwapsPerformanceRenderTarget =
-  | 'BridgeView'
-  | 'BridgeViewContent'
-  | 'QuoteDetailsCard'
-  | 'SwapsConfirmButton'
-  | 'TokenInputArea';
-
-interface SwapsPerformanceRenderEntry {
-  count: number;
-  timestamps: number[];
-}
-
-interface SwapsPerformanceDiagnosticsRuntime {
-  enabled: boolean;
-  renders: Partial<
-    Record<SwapsPerformanceRenderTarget, SwapsPerformanceRenderEntry>
-  >;
-}
-
-declare global {
-  // eslint-disable-next-line no-var
-  var __SWAPS_PERF_ANALYSIS__: SwapsPerformanceDiagnosticsRuntime | undefined;
-}
-
-const MAX_RENDER_TIMESTAMPS = 200;
-
-/**
- * Records an opt-in render event for the temporary Swaps analysis runtime.
- *
- * @param target - Stable component label used in the generated artifact.
- */
-export function recordSwapsPerformanceRender(
-  target: SwapsPerformanceRenderTarget,
-): void {
-  if (!__DEV__) {
-    return;
-  }
-
-  const diagnostics = globalThis[SWAPS_PERFORMANCE_DIAGNOSTICS_KEY];
-  if (!diagnostics?.enabled) {
-    return;
-  }
-
-  const entry = diagnostics.renders[target] ?? {
-    count: 0,
-    timestamps: [],
-  };
-
-  entry.count += 1;
-  if (entry.timestamps.length < MAX_RENDER_TIMESTAMPS) {
-    entry.timestamps.push(Date.now());
-  }
-
-  diagnostics.renders[target] = entry;
-}
-`;
+const DIAGNOSTICS_SOURCE = getRenderProbeSource();
 
 const TARGETS: InstrumentationTarget[] = [
   {
@@ -234,8 +177,8 @@ function readTargetSources(
 }
 
 /**
- * Returns whether the repository instrumentation is clean, prepared, or
- * partially modified.
+ * Returns whether the repository instrumentation is not installed, prepared,
+ * or partially modified.
  *
  * @param repoRoot - Absolute or relative MetaMask Mobile repository root.
  */
@@ -250,7 +193,7 @@ export function getInstrumentationStatus(
   const diagnosticsExists = existsSync(diagnosticsPath);
 
   if (markerCount === 0 && !diagnosticsExists) {
-    return 'clean';
+    return 'not-installed';
   }
 
   const targetsPrepared = [...sources.entries()].every(([target, source]) =>
@@ -279,7 +222,7 @@ export function prepareInstrumentation(
   }
   if (status === 'partial') {
     throw new Error(
-      `Found partial ${INSTRUMENTATION_MARKER} instrumentation; clean it manually before preparing`,
+      `Found partial ${INSTRUMENTATION_MARKER} instrumentation; remove it manually before preparing`,
     );
   }
 
@@ -339,7 +282,7 @@ export function cleanupInstrumentation(
   repoRoot: string,
 ): InstrumentationResult {
   const status = getInstrumentationStatus(repoRoot);
-  if (status === 'clean') {
+  if (status === 'not-installed') {
     return { status, changedFiles: [] };
   }
   if (status === 'partial') {
@@ -373,7 +316,7 @@ export function cleanupInstrumentation(
   }
 
   return {
-    status: 'clean',
+    status: 'not-installed',
     changedFiles: [
       ...TARGETS.map((target) => target.relativePath),
       DIAGNOSTICS_RELATIVE_PATH,

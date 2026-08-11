@@ -2,9 +2,9 @@ import {
   applyExactReplacements,
   getDiagnosticsSource,
   getPrepareWriteOrder,
-} from './instrumentation';
+} from './source-instrumentation';
 
-describe('Swaps performance instrumentation', () => {
+describe('Swaps performance source instrumentation', () => {
   const replacements = [
     {
       label: 'example probe',
@@ -39,16 +39,11 @@ describe('Swaps performance instrumentation', () => {
     ).toThrow('expected exactly one source anchor; found 2');
   });
 
-  it('generates a dev-only render buffer', () => {
+  it('generates a bounded dev-only render buffer', () => {
     const source = getDiagnosticsSource();
 
     expect(source).toContain("'__SWAPS_PERF_ANALYSIS__'");
     expect(source).toContain('if (!__DEV__)');
-  });
-
-  it('bounds generated render timestamps', () => {
-    const source = getDiagnosticsSource();
-
     expect(source).toContain('MAX_RENDER_TIMESTAMPS = 200');
   });
 
