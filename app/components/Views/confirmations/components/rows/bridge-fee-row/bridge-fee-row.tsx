@@ -17,6 +17,8 @@ import {
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
+  ButtonIcon,
+  ButtonIconSize,
   Icon,
   IconColor,
   IconName,
@@ -104,8 +106,6 @@ function TransactionFeeRow({
   isDisabled?: boolean;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const hasQuotes = Boolean(quotes?.length);
 
@@ -146,14 +146,6 @@ function TransactionFeeRow({
     return <FeesTooltip transactionMeta={transactionMeta} totals={totals} />;
   }, [paidByMetaMask, hasQuotes, totals, transactionMeta]);
 
-  const handleSheetClosed = useCallback(() => {
-    setIsTooltipOpen(false);
-  }, []);
-
-  const handleRequestClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
-
   if (isLoading) {
     return <KeyValueRowSkeleton testID="bridge-fee-row-skeleton" />;
   }
@@ -167,53 +159,76 @@ function TransactionFeeRow({
   const keyColor = isDisabled ? TextColor.TextMuted : TextColor.TextAlternative;
 
   return (
-    <Box testID="bridge-fee-row">
-      <KeyValueRow
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('confirm.label.transaction_fees')}
-        keyTextProps={{
-          color: keyColor,
+    <KeyValueRow
+      testID="bridge-fee-row"
+      variant={KeyValueRowVariant.Summary}
+      keyLabel={strings('confirm.label.transaction_fees')}
+      keyTextProps={{
+        color: keyColor,
+      }}
+      keyEndAccessory={
+        tooltipContent ? (
+          <FeeTooltipButton disabled={tooltipDisabled}>
+            {tooltipContent}
+          </FeeTooltipButton>
+        ) : undefined
+      }
+      value={
+        paidByMetaMask ? strings('transactions.paid_by_metamask') : feeTotalUsd
+      }
+      valueStartAccessory={
+        paidByMetaMask ? (
+          <Icon
+            name={IconName.CheckBold}
+            color={IconColor.SuccessDefault}
+            size={IconSize.Sm}
+          />
+        ) : undefined
+      }
+      valueTextProps={{
+        color: paidByMetaMask ? TextColor.SuccessDefault : valueColor,
+        testID: paidByMetaMask
+          ? ConfirmationRowComponentIDs.PAID_BY_METAMASK
+          : ConfirmationRowComponentIDs.TRANSACTION_FEE,
+      }}
+    />
+  );
+}
+
+function FeeTooltipButton({
+  children,
+  disabled,
+}: {
+  children: ReactNode;
+  disabled?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  const handleSheetClosed = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  return (
+    <>
+      <ButtonIcon
+        iconName={IconName.Info}
+        size={ButtonIconSize.Sm}
+        onPress={() => {
+          if (!disabled) {
+            setIsOpen(true);
+          }
         }}
-        keyEndButtonIconProps={
-          tooltipContent
-            ? {
-                iconName: IconName.Info,
-                onPress: () => {
-                  if (!tooltipDisabled) {
-                    setIsTooltipOpen(true);
-                  }
-                },
-                testID: `${FEE_TOOLTIP_TEST_ID}-open-btn`,
-                iconProps: {
-                  color: tooltipDisabled
-                    ? IconColor.IconMuted
-                    : IconColor.IconAlternative,
-                },
-              }
-            : undefined
-        }
-        value={
-          paidByMetaMask
-            ? strings('transactions.paid_by_metamask')
-            : feeTotalUsd
-        }
-        valueStartAccessory={
-          paidByMetaMask ? (
-            <Icon
-              name={IconName.CheckBold}
-              color={IconColor.SuccessDefault}
-              size={IconSize.Sm}
-            />
-          ) : undefined
-        }
-        valueTextProps={{
-          color: paidByMetaMask ? TextColor.SuccessDefault : valueColor,
-          testID: paidByMetaMask
-            ? ConfirmationRowComponentIDs.PAID_BY_METAMASK
-            : ConfirmationRowComponentIDs.TRANSACTION_FEE,
+        testID={`${FEE_TOOLTIP_TEST_ID}-open-btn`}
+        iconProps={{
+          color: disabled ? IconColor.IconMuted : IconColor.IconAlternative,
         }}
       />
-      {isTooltipOpen && tooltipContent && (
+      {isOpen && (
         <Modal
           visible
           animationType="none"
@@ -235,11 +250,11 @@ function TransactionFeeRow({
             >
               {strings('confirm.tooltip.title.transaction_fee')}
             </BottomSheetHeader>
-            {tooltipContent}
+            {children}
           </BottomSheet>
         </Modal>
       )}
-    </Box>
+    </>
   );
 }
 

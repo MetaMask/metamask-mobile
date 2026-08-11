@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import {
-  Box,
   KeyValueRow,
   KeyValueRowVariant,
   TextColor,
@@ -52,21 +51,20 @@ export function TotalRow() {
     : TextColor.TextDefault;
 
   return (
-    <Box testID="total-row">
-      <KeyValueRow
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('confirm.label.total')}
-        keyTextProps={{
-          color: isHeadlessBuyInProgress
-            ? TextColor.TextMuted
-            : TextColor.TextAlternative,
-        }}
-        value={totalUsd}
-        valueTextProps={{
-          color: textColor,
-          testID: ConfirmationRowComponentIDs.TOTAL,
-        }}
-      />
-    </Box>
+    <KeyValueRow
+      testID="total-row"
+      variant={KeyValueRowVariant.Summary}
+      keyLabel={strings('confirm.label.total')}
+      keyTextProps={{
+        color: isHeadlessBuyInProgress
+          ? TextColor.TextMuted
+          : TextColor.TextAlternative,
+      }}
+      value={totalUsd}
+      valueTextProps={{
+        color: textColor,
+        testID: ConfirmationRowComponentIDs.TOTAL,
+      }}
+    />
   );
 }

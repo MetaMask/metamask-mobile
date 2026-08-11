@@ -42,22 +42,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../../../../component-library/hooks/useStyles', () => {
-  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
-  return {
-    useStyles: (
-      styleFn: (params: {
-        theme: typeof mockTheme;
-        vars?: Record<string, unknown>;
-      }) => Record<string, Record<string, unknown>>,
-      vars?: Record<string, unknown>,
-    ) => ({
-      styles: styleFn({ theme: mockTheme, vars }),
-      theme: mockTheme,
-    }),
-  };
-});
-
 jest.mock(
   '../../../../../../component-library/components/Avatars/Avatar',
   () => {

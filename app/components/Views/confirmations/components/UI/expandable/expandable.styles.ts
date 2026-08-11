@@ -37,9 +37,9 @@ const styleSheet = (params: {
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
-    modalExpandedContent: {
-      paddingHorizontal: 16,
-    },
+    // Horizontal inset is owned by expanded children (InfoSection /
+    // InfoSectionAccordion marginHorizontal, signature message container, etc.).
+    modalExpandedContent: {},
     copyButtonContainer: {
       position: 'absolute',
       top: 6,

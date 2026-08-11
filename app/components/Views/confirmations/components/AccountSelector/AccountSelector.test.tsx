@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { mockTheme } from '../../../../../util/theme';
 import AccountSelector, {
   ACCOUNT_SELECTOR_TEST_IDS,
   AccountSelectorSkeleton,
@@ -8,17 +7,6 @@ import AccountSelector, {
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
-}));
-
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: (
-    styleFn: (params: {
-      theme: typeof mockTheme;
-    }) => Record<string, Record<string, unknown>>,
-  ) => ({
-    styles: styleFn({ theme: mockTheme }),
-    theme: mockTheme,
-  }),
 }));
 
 jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {

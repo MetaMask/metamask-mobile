@@ -74,101 +74,99 @@ const AdvancedDetailsRow = () => {
   const shouldShowData = !is7702transaction && data && data !== '0x';
 
   return (
-    <>
-      <Expandable
-        testID={ConfirmationRowComponentIDs.ADVANCED_DETAILS}
-        collapsedContent={
+    <Expandable
+      testID={ConfirmationRowComponentIDs.ADVANCED_DETAILS}
+      collapsedContent={
+        <InfoSection>
+          <AlertRow
+            alertField={RowAlertKey.InteractingWith}
+            label={strings('stake.advanced_details')}
+            style={styles.infoRowOverride}
+            withIcon={{
+              color: IconColor.Muted,
+              size: IconSize.Sm,
+              name: IconName.ArrowDown,
+            }}
+          />
+        </InfoSection>
+      }
+      expandedContent={
+        <>
+          {!isDowngrade && to && (
+            <InfoSection>
+              <AlertRow
+                alertField={RowAlertKey.InteractingWith}
+                label={strings('stake.interacting_with')}
+                disableAlertInteraction
+              >
+                {isBatched || isUpgrade ? (
+                  <SmartContractWithLogo />
+                ) : (
+                  <Name
+                    value={to}
+                    type={NameType.EthereumAddress}
+                    variation={transactionMetadata?.chainId as Hex}
+                  />
+                )}
+              </AlertRow>
+            </InfoSection>
+          )}
           <InfoSection>
-            <AlertRow
-              alertField={RowAlertKey.InteractingWith}
-              label={strings('stake.advanced_details')}
-              style={styles.infoRowOverride}
-              withIcon={{
-                color: IconColor.Muted,
-                size: IconSize.Sm,
-                name: IconName.ArrowDown,
-              }}
-            />
+            <InfoRow
+              label={strings('transaction.custom_nonce')}
+              tooltip={strings('transaction.custom_nonce_tooltip')}
+            >
+              <Text
+                variant={TextVariant.BodyMD}
+                style={styles.nonceText}
+                onPress={
+                  isNonceChangeDisabled ? undefined : handleShowNonceModal
+                }
+              >
+                {userSelectedNonce}
+              </Text>
+            </InfoRow>
           </InfoSection>
-        }
-        expandedContent={
-          <>
-            {!isDowngrade && to && (
-              <InfoSection>
-                <AlertRow
-                  alertField={RowAlertKey.InteractingWith}
-                  label={strings('stake.interacting_with')}
-                  disableAlertInteraction
-                >
-                  {isBatched || isUpgrade ? (
-                    <SmartContractWithLogo />
-                  ) : (
-                    <Name
-                      value={to}
-                      type={NameType.EthereumAddress}
-                      variation={transactionMetadata?.chainId as Hex}
-                    />
-                  )}
-                </AlertRow>
-              </InfoSection>
-            )}
+          {shouldShowData && (
             <InfoSection>
               <InfoRow
-                label={strings('transaction.custom_nonce')}
-                tooltip={strings('transaction.custom_nonce_tooltip')}
+                label={strings('transaction.data')}
+                copyText={data}
+                valueOnNewLine
               >
-                <Text
-                  variant={TextVariant.BodyMD}
-                  style={styles.nonceText}
-                  onPress={
-                    isNonceChangeDisabled ? undefined : handleShowNonceModal
-                  }
-                >
-                  {userSelectedNonce}
-                </Text>
+                {hasDataNeedsScroll ? (
+                  <ScrollView
+                    style={styles.dataScrollContainer}
+                    testID="scroll-view-data"
+                  >
+                    <Text
+                      // Keep this onPress to prevent the scroll view from being dismissed
+                      // eslint-disable-next-line no-empty-function
+                      onPress={() => {}}
+                    >
+                      {data}
+                    </Text>
+                  </ScrollView>
+                ) : (
+                  data
+                )}
               </InfoRow>
             </InfoSection>
-            {shouldShowData && (
-              <InfoSection>
-                <InfoRow
-                  label={strings('transaction.data')}
-                  copyText={data}
-                  valueOnNewLine
-                >
-                  {hasDataNeedsScroll ? (
-                    <ScrollView
-                      style={styles.dataScrollContainer}
-                      testID="scroll-view-data"
-                    >
-                      <Text
-                        // Keep this onPress to prevent the scroll view from being dismissed
-                        // eslint-disable-next-line no-empty-function
-                        onPress={() => {}}
-                      >
-                        {data}
-                      </Text>
-                    </ScrollView>
-                  ) : (
-                    data
-                  )}
-                </InfoRow>
-              </InfoSection>
-            )}
-            {isBatched && <NestedTransactionData />}
-            {showNonceModal && (
-              <CustomNonceModal
-                proposedNonce={proposedNonce}
-                nonceValue={userSelectedNonce}
-                close={() => setShowNonceModal(false)}
-                save={updateNonce}
-              />
-            )}
-          </>
-        }
-        expandedContentTitle={strings('stake.advanced_details')}
-        isCompact
-      />
-    </>
+          )}
+          {isBatched && <NestedTransactionData />}
+          {showNonceModal && (
+            <CustomNonceModal
+              proposedNonce={proposedNonce}
+              nonceValue={userSelectedNonce}
+              close={() => setShowNonceModal(false)}
+              save={updateNonce}
+            />
+          )}
+        </>
+      }
+      expandedContentTitle={strings('stake.advanced_details')}
+      isCompact
+    />
   );
 };
 

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { StyleSheet, Linking } from 'react-native';
+import { Linking } from 'react-native';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 import {
-  IconName,
   KeyValueRow,
   KeyValueRowVariant,
   Text,
@@ -10,7 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { strings } from '../../../../../../../locales/i18n';
-import { TooltipModal } from '../../UI/Tooltip/Tooltip';
+import Tooltip from '../../UI/Tooltip/Tooltip';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -24,15 +23,8 @@ import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-const styles = StyleSheet.create({
-  termsText: {
-    textDecorationLine: 'underline',
-  },
-});
-
 export function PercentageRow() {
   const isLoading = useIsTransactionPayLoading();
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const transactionMetadata = useTransactionMetadataRequest();
 
@@ -62,34 +54,27 @@ export function PercentageRow() {
   }
 
   return (
-    <>
-      <KeyValueRow
-        testID="percentage-row"
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('earn.claimable_bonus')}
-        keyEndButtonIconProps={{
-          iconName: IconName.Info,
-          onPress: () => setIsTooltipOpen(true),
-          testID: 'info-row-tooltip-open-btn',
-        }}
-        value={`${MUSD_CONVERSION_APY}%`}
-        valueTextProps={{
-          color: TextColor.SuccessDefault,
-        }}
-      />
-      <TooltipModal
-        open={isTooltipOpen}
-        setOpen={setIsTooltipOpen}
-        content={
-          <Text>
-            {strings('earn.claimable_bonus_tooltip')}{' '}
-            <Text style={styles.termsText} onPress={redirectToBonusFaq}>
-              {strings('earn.musd_conversion.education.terms_apply')}
+    <KeyValueRow
+      testID="percentage-row"
+      variant={KeyValueRowVariant.Summary}
+      keyLabel={strings('earn.claimable_bonus')}
+      keyEndAccessory={
+        <Tooltip
+          content={
+            <Text>
+              {strings('earn.claimable_bonus_tooltip')}{' '}
+              <Text twClassName="underline" onPress={redirectToBonusFaq}>
+                {strings('earn.musd_conversion.education.terms_apply')}
+              </Text>
             </Text>
-          </Text>
-        }
-        title={strings('earn.claimable_bonus')}
-      />
-    </>
+          }
+          title={strings('earn.claimable_bonus')}
+        />
+      }
+      value={`${MUSD_CONVERSION_APY}%`}
+      valueTextProps={{
+        color: TextColor.SuccessDefault,
+      }}
+    />
   );
 }

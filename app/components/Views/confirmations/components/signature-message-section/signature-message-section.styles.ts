@@ -26,6 +26,7 @@ const styleSheet = (params: { theme: Theme }) => {
     messageContainer: {
       backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
+      marginHorizontal: 16,
       minHeight: 200,
       maxHeight: 300,
     },

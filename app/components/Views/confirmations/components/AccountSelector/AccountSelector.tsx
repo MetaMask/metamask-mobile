@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Modal, StyleProp, View, ViewStyle } from 'react-native';
+import { Modal, StyleProp, ViewStyle } from 'react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
@@ -12,13 +12,13 @@ import {
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
+  Box,
   KeyValueSelect,
   KeyValueSelectVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
-import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import {
@@ -26,7 +26,6 @@ import {
   selectAccountToGroupMap,
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
-import stylesheet from './AccountSelector.styles';
 import { KeyValueRowSkeleton } from '../rows/key-value-row-skeleton';
 
 export const ACCOUNT_SELECTOR_TEST_IDS = {
@@ -54,7 +53,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { styles } = useStyles(stylesheet, {});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
@@ -190,7 +188,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         onRequestClose={handleModalRequestClose}
         testID={ACCOUNT_SELECTOR_TEST_IDS.MODAL}
       >
-        <View style={styles.modalRoot}>
+        <Box twClassName="flex-1">
           <BottomSheet
             testID={ACCOUNT_SELECTOR_TEST_IDS.BOTTOM_SHEET}
             ref={bottomSheetRef}
@@ -201,7 +199,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             <BottomSheetHeader onClose={() => closeAccountSheet()}>
               {selectorTitle}
             </BottomSheetHeader>
-            <View style={styles.modalSheetBody}>
+            <Box twClassName="flex-1 min-h-0">
               <MultichainAccountSelectorList
                 selectedAccountGroups={
                   selectedAccountGroup ? [selectedAccountGroup] : []
@@ -211,9 +209,9 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                 accountSections={filteredAccountSections}
                 hideAccountCellMenu
               />
-            </View>
+            </Box>
           </BottomSheet>
-        </View>
+        </Box>
       </Modal>
     </>
   );

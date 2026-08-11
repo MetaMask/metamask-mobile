@@ -7,11 +7,17 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
@@ -20,9 +26,6 @@ import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
 } from '../../deposit-keyboard';
-import { Box } from '../../../../../UI/Box/Box';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import {
@@ -50,10 +53,6 @@ import {
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../confirm/confirm-component';
@@ -151,7 +150,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
-    const { styles } = useStyles(styleSheet, {});
 
     const {
       amountFiat,
@@ -379,8 +377,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { headlessBuyError } = useConfirmationContext();
 
     return (
-      <Box style={styles.container}>
-        <Box style={styles.inputContainer}>
+      <Box twClassName="flex-1 flex-col justify-between">
+        <Box twClassName="flex-1 justify-center items-center gap-3.5">
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
@@ -413,24 +411,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hidePayTokenAmount && children}
         </Box>
         <Box
-          gap={16}
+          gap={4}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
-          style={styles.bottomBlock}
+          twClassName={Platform.OS === 'android' ? 'pb-4' : 'pb-0'}
         >
           {stage !== CustomAmountStage.Loading && (
-            <View style={styles.contentInset}>
+            <Box twClassName="px-4">
               <AlertMessage
                 content={alertContent}
                 alertMessage={alertMessage ?? headlessBuyError}
               />
-            </View>
+            </Box>
           )}
           {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && (
-                  <PayAccountSelector style={styles.separator} />
+                  <Box twClassName="border-b border-muted mb-[-4px]">
+                    <PayAccountSelector />
+                  </Box>
                 )}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
@@ -463,16 +463,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {footerText && (
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              style={styles.footerText}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="self-center px-4"
             >
               {footerText}
             </Text>
           )}
           {stage === CustomAmountStage.AmountInput &&
             (hasPaymentOption || hasAccountNoFunds) && (
-              <View style={styles.contentInset}>
+              <Box twClassName="px-4">
                 <DepositKeyboard
                   hidePercentageButtons={
                     Boolean(selectedFiatPaymentMethodId) ||
@@ -489,17 +489,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                     (isWithdraw || !isNativePayToken)
                   }
                 />
-              </View>
+              </Box>
             )}
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
             !isDepositPrefillEnabled && (
-              <View style={styles.contentInset}>
+              <Box twClassName="px-4">
                 <CustomAmountBuy />
-              </View>
+              </Box>
             )}
           {stage !== CustomAmountStage.AmountInput && (
-            <View style={styles.contentInset}>
+            <Box twClassName="px-4">
               <CustomAmountConfirmButton
                 alertTitle={alertTitle}
                 isDisabled={
@@ -508,7 +508,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 onContinue={trackContinue}
                 stage={stage}
               />
-            </View>
+            </Box>
           )}
         </Box>
       </Box>
@@ -517,93 +517,91 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 );
 
 export function CustomAmountInfoSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
-
   return (
-    <Box style={styles.container}>
-      <Box style={styles.inputContainer}>
+    <Box twClassName="flex-1 flex-col justify-between">
+      <Box twClassName="flex-1 justify-center items-center gap-3.5">
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
       </Box>
       <Box>
         <PayWithRowSkeleton />
-        <View style={styles.contentInset}>
+        <Box twClassName="px-4">
           <DepositKeyboardSkeleton />
-        </View>
+        </Box>
       </Box>
     </Box>
   );
 }
 
 export function PrefillCustomAmountInfoSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
-
   return (
-    <View style={styles.container} testID="prefill-custom-amount-info-skeleton">
-      <View style={styles.inputContainer}>
+    <Box
+      twClassName="flex-1 flex-col justify-between"
+      testID="prefill-custom-amount-info-skeleton"
+    >
+      <Box twClassName="flex-1 justify-center items-center gap-3.5">
         <CustomAmountSkeleton />
         <Skeleton height={20} width={200} />
-      </View>
-      <View>
-        <View style={styles.skeletonRow}>
+      </Box>
+      <Box>
+        <Box twClassName="flex-row items-center justify-between py-3 px-4">
           <Skeleton height={18} width={100} />
-          <View style={styles.skeletonRowRight}>
+          <Box twClassName="flex-row items-center gap-2">
             <Skeleton height={28} width={28} twClassName="rounded-full" />
             <Skeleton height={18} width={100} />
-          </View>
-        </View>
-        <View style={styles.skeletonInfoRow}>
+          </Box>
+        </Box>
+        <Box twClassName="flex-row items-center justify-between pb-2.5 px-4">
           <Skeleton height={18} width={100} />
-          <View style={styles.skeletonRowRight}>
+          <Box twClassName="flex-row items-center gap-2">
             <Skeleton height={24} width={24} twClassName="rounded-full" />
             <Skeleton height={18} width={100} />
-          </View>
-        </View>
-        <View style={styles.skeletonInfoRow}>
+          </Box>
+        </Box>
+        <Box twClassName="flex-row items-center justify-between pb-2.5 px-4">
           <Skeleton height={16} width={100} />
           <Skeleton height={16} width={100} />
-        </View>
-        <View style={styles.skeletonInfoRow}>
+        </Box>
+        <Box twClassName="flex-row items-center justify-between pb-2.5 px-4">
           <Skeleton height={16} width={100} />
           <Skeleton height={16} width={100} />
-        </View>
-        <View style={styles.skeletonInfoRow}>
+        </Box>
+        <Box twClassName="flex-row items-center justify-between pb-2.5 px-4">
           <Skeleton height={16} width={100} />
           <Skeleton height={16} width={100} />
-        </View>
-        <Skeleton height={48} style={styles.buttonSkeleton} />
-      </View>
-    </View>
+        </Box>
+        <Skeleton height={48} twClassName="rounded-full mt-4" />
+      </Box>
+    </Box>
   );
 }
 
 export function AdvancedCustomAmountInfoSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
   const params = useParams<ConfirmationParams>();
   // Fiat flows never render the account selector or pay-with rows while the
   // keyboard is up, so their skeletons would cause a layout shift on load.
   const hideAccountRows = Boolean(params?.autoSelectFiatPayment);
 
   return (
-    <View
-      style={styles.container}
+    <Box
+      twClassName="flex-1 flex-col justify-between"
       testID="advanced-custom-amount-info-skeleton"
     >
-      <View style={styles.inputContainer}>
+      <Box twClassName="flex-1 justify-center items-center gap-3.5">
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
-      </View>
-      <View>
+      </Box>
+      <Box>
         {!hideAccountRows && (
           <>
             <AccountSelectorSkeleton />
             <PayWithRowSkeleton />
           </>
         )}
-        <View style={styles.contentInset}>
+        <Box twClassName="px-4">
           <DepositKeyboardSkeleton />
-        </View>
-      </View>
-    </View>
+        </Box>
+      </Box>
+    </Box>
   );
 }

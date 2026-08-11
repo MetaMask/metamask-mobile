@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import {
-  Box,
   KeyValueRow,
   KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
@@ -71,15 +70,14 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   }
 
   return (
-    <Box testID="receive-row">
-      <KeyValueRow
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('confirm.label.you_receive')}
-        value={receiveUsd}
-        valueTextProps={{
-          testID: ConfirmationRowComponentIDs.RECEIVE,
-        }}
-      />
-    </Box>
+    <KeyValueRow
+      testID="receive-row"
+      variant={KeyValueRowVariant.Summary}
+      keyLabel={strings('confirm.label.you_receive')}
+      value={receiveUsd}
+      valueTextProps={{
+        testID: ConfirmationRowComponentIDs.RECEIVE,
+      }}
+    />
   );
 }

@@ -13,7 +13,7 @@ import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransacti
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { Image, StyleSheet } from 'react-native';
+import { Image } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
 import {
   Box,
@@ -26,6 +26,7 @@ import {
   Skeleton,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BigNumber } from 'bignumber.js';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
@@ -49,14 +50,6 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
-
-const moneyIconStyles = StyleSheet.create({
-  moneyIcon: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-  },
-});
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -356,6 +349,7 @@ function PayWithRowMoneyAccount() {
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
   const { colors } = useTheme();
+  const tw = useTailwind();
 
   const handleClick = useCallback(() => {
     setConfirmationMetric({
@@ -379,7 +373,7 @@ function PayWithRowMoneyAccount() {
         <Image
           source={MoneyIcon}
           style={[
-            moneyIconStyles.moneyIcon,
+            tw`size-5 rounded`,
             { backgroundColor: colors.accent04.light },
           ]}
         />

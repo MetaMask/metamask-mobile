@@ -8,8 +8,6 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from '../../info/custom-amount-info/custom-amount-info.styles';
 import { strings } from '../../../../../../../locales/i18n';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
@@ -34,7 +32,6 @@ export function CustomAmountConfirmButton({
   onContinue?: () => void;
   stage: CustomAmountStage;
 }>) {
-  const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
@@ -67,7 +64,6 @@ export function CustomAmountConfirmButton({
 
   return (
     <Button
-      style={[disabled && styles.disabledButton]}
       size={ButtonSize.Lg}
       variant={ButtonVariant.Primary}
       isFullWidth

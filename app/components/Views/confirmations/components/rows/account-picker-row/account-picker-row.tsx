@@ -1,22 +1,20 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  FlatList,
-  Modal,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FlatList, Modal, TextInput, TouchableOpacity } from 'react-native';
 
 import {
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   KeyValueSelect,
   KeyValueSelectVariant,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import Avatar, {
   AvatarSize,
@@ -27,9 +25,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
-import stylesheet from './account-picker-row.styles';
 
 export interface SubAccountBase {
   id: string;
@@ -62,7 +58,7 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
   searchPlaceholder,
   testIDs,
 }: AccountPickerRowContentProps<T>) {
-  const { styles } = useStyles(stylesheet, {});
+  const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,22 +92,30 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
       return (
         <TouchableOpacity
           onPress={() => handleSelect(item.id)}
-          style={[styles.accountItem, isSelected && styles.accountItemSelected]}
+          style={tw.style(
+            'flex-row items-center justify-between py-3.5 px-4',
+            isSelected && 'bg-pressed',
+          )}
           testID={`${testIDs.ACCOUNT_ITEM}-${item.id}`}
         >
-          <View style={styles.accountItemLeft}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={3}
+            twClassName="shrink"
+          >
             <Avatar
               variant={AvatarVariant.Account}
               accountAddress={item.id || '0x0'}
               size={AvatarSize.Md}
             />
             <Text variant={TextVariant.BodyMd}>{item.name}</Text>
-          </View>
+          </Box>
           <Text variant={TextVariant.BodyMd}>{formatBalance(item)}</Text>
         </TouchableOpacity>
       );
     },
-    [handleSelect, selectedSubAccount?.id, styles, testIDs, formatBalance],
+    [formatBalance, handleSelect, selectedSubAccount?.id, testIDs, tw],
   );
 
   if (subAccounts.length === 0) {
@@ -150,7 +154,7 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
           presentationStyle="overFullScreen"
           onRequestClose={handleModalRequestClose}
         >
-          <View style={styles.modalRoot}>
+          <Box twClassName="flex-1">
             <BottomSheet
               testID={testIDs.SHEET}
               ref={bottomSheetRef}
@@ -161,7 +165,12 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
               <BottomSheetHeader onClose={handleModalRequestClose}>
                 {title}
               </BottomSheetHeader>
-              <View style={styles.searchContainer}>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+                twClassName="mx-4 mb-2 px-3 py-2.5 rounded-lg border border-muted"
+              >
                 <Icon
                   name={IconName.Search}
                   size={IconSize.Md}
@@ -169,22 +178,22 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
                 />
                 <TextInput
                   testID={testIDs.SEARCH_INPUT}
-                  style={styles.searchInput}
+                  style={tw`flex-1 p-0 text-body-md text-default`}
                   placeholder={searchPlaceholder}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
-              </View>
+              </Box>
               <FlatList
                 data={filteredAccounts}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
-                style={styles.list}
+                style={tw`flex-1`}
               />
             </BottomSheet>
-          </View>
+          </Box>
         </Modal>
       )}
     </>
