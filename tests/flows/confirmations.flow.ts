@@ -2,7 +2,7 @@ import Assertions from '../framework/Assertions';
 import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import Utilities from '../framework/Utilities';
+import Utilities, { sleep } from '../framework/Utilities';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
 import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
@@ -31,6 +31,67 @@ const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
 const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
 const ANDROID_CONFIRM_POLL_MS = 3_000;
+const DAPP_BUTTON_READY_TIMEOUT_MS = 15_000;
+const DAPP_BUTTON_READY_POLL_MS = 500;
+
+interface TestDappButtonState {
+  href: string;
+  documentReady: boolean;
+  hasEthereum: boolean;
+  hasButton: boolean;
+  buttonDisabled: boolean;
+}
+
+const readTestDappButtonState = (
+  pageUrl: string,
+  buttonId: string,
+): Promise<TestDappButtonState | null> =>
+  ChromeCdpHelpers.evaluateInWebView<TestDappButtonState>(
+    pageUrl,
+    `(() => {
+      const el = document.getElementById(${JSON.stringify(buttonId)});
+      return {
+        href: location.href,
+        documentReady: document.readyState === 'complete',
+        hasEthereum: typeof window.ethereum !== 'undefined',
+        hasButton: Boolean(el),
+        buttonDisabled: Boolean(
+          el &&
+            (('disabled' in el && el.disabled) ||
+              el.getAttribute('aria-disabled') === 'true'),
+        ),
+      };
+    })()`,
+  );
+
+/**
+ * The URL bar shows the dapp URL before the page finishes loading and the
+ * provider is injected. A tap issued in that window clicks a real DOM node and
+ * reports success, but no confirmation is ever requested.
+ */
+const waitForTestDappButtonReady = async (
+  pageUrl: string,
+  buttonId: string,
+  timeoutMs = DAPP_BUTTON_READY_TIMEOUT_MS,
+): Promise<TestDappButtonState | null> => {
+  const deadline = Date.now() + timeoutMs;
+  let state: TestDappButtonState | null = null;
+
+  while (Date.now() < deadline) {
+    state = await readTestDappButtonState(pageUrl, buttonId);
+    if (
+      state?.documentReady &&
+      state.hasEthereum &&
+      state.hasButton &&
+      !state.buttonDisabled
+    ) {
+      return state;
+    }
+    await sleep(DAPP_BUTTON_READY_POLL_MS);
+  }
+
+  return state;
+};
 
 export {
   LOCAL_CHAIN_CAIP,
@@ -50,24 +111,35 @@ const tapTestDappButtonAndWaitForConfirm = async (
 
   if (PlatformDetector.isAndroidAppium()) {
     let dismissedPushSheet = false;
-    await Utilities.executeWithRetry(
-      async () => {
-        await WebView.tapById(buttonId, {
-          pageUrl,
-          description,
-        });
-        try {
-          await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
-        } catch (error) {
-          if (!dismissedPushSheet) {
-            dismissedPushSheet = true;
-            await dismissPushNotificationExistingUserSheet();
+    let lastState: TestDappButtonState | null = null;
+    try {
+      await Utilities.executeWithRetry(
+        async () => {
+          lastState = await waitForTestDappButtonReady(pageUrl, buttonId);
+          await WebView.tapById(buttonId, {
+            pageUrl,
+            description,
+          });
+          try {
+            await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
+          } catch (error) {
+            if (!dismissedPushSheet) {
+              dismissedPushSheet = true;
+              await dismissPushNotificationExistingUserSheet();
+            }
+            throw error;
           }
-          throw error;
-        }
-      },
-      { timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS },
-    );
+        },
+        { timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS },
+      );
+    } catch (error) {
+      throw new Error(
+        `Confirmation sheet never opened after tapping #${buttonId} (${description}); ` +
+          `last dapp state=${JSON.stringify(lastState)}; cause=${
+            error instanceof Error ? error.message : String(error)
+          }`,
+      );
+    }
     return;
   }
 
