@@ -57,8 +57,8 @@ export function useRampsQuotes(
     options?.assetId && options.walletAddress && options.amount > 0,
   );
 
-  const quotesQuery = useQuery({
-    ...rampsQueries.quotes.options({
+  const quoteFetchParams = useMemo(
+    () => ({
       assetId: options?.assetId,
       amount: options?.amount ?? 0,
       walletAddress: options?.walletAddress ?? '',
@@ -68,36 +68,87 @@ export function useRampsQuotes(
       forceRefresh: options?.forceRefresh,
       ttl: options?.ttl,
     }),
+    [
+      options?.assetId,
+      options?.amount,
+      options?.walletAddress,
+      options?.redirectUrl,
+      options?.paymentMethods,
+      options?.providers,
+      options?.forceRefresh,
+      options?.ttl,
+    ],
+  );
+
+  /**
+   * Identity for the active quote request. Must change whenever amount,
+   * payment, or provider changes so CUF spans supersede mid-flight instead of
+   * stretching across many quote fetches.
+   */
+  const quoteFetchKey = useMemo(() => {
+    if (!queryEnabled) {
+      return null;
+    }
+    return [
+      quoteFetchParams.assetId ?? '',
+      quoteFetchParams.amount,
+      quoteFetchParams.walletAddress,
+      (quoteFetchParams.paymentMethods ?? []).join(','),
+      (quoteFetchParams.providers ?? []).join(','),
+    ].join('|');
+  }, [queryEnabled, quoteFetchParams]);
+
+  const quotesQuery = useQuery({
+    ...rampsQueries.quotes.options(quoteFetchParams),
     enabled: queryEnabled,
   });
 
   const quoteCufOpIdRef = useRef<string | null>(null);
+  const quoteCufKeyRef = useRef<string | null>(null);
+
+  const endOpenQuoteCuf = useCallback(
+    (
+      reason: (typeof RAMPS_BUY_CUF_END_REASON)[keyof typeof RAMPS_BUY_CUF_END_REASON],
+    ) => {
+      if (!quoteCufOpIdRef.current) {
+        return;
+      }
+      endRampsBuyQuoteFetchTrace({
+        id: quoteCufOpIdRef.current,
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: reason,
+        },
+      });
+      quoteCufOpIdRef.current = null;
+      quoteCufKeyRef.current = null;
+    },
+    [],
+  );
 
   // Buy Quote Fetch CUF (TRAM-3780): fetch start → quotes rendered or error.
   // Fires for every Unified Buy quote fetch; nests under E2E parent when active.
+  // Keyed by quoteFetchKey so amount/payment/provider changes supersede the open span
+  // even when isFetching stays true across the refetch.
   useEffect(() => {
-    if (!queryEnabled) {
-      if (quoteCufOpIdRef.current) {
-        endRampsBuyQuoteFetchTrace({
-          id: quoteCufOpIdRef.current,
-          data: {
-            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.CANCELLED,
-          },
-        });
-        quoteCufOpIdRef.current = null;
+    if (!queryEnabled || !quoteFetchKey) {
+      endOpenQuoteCuf(RAMPS_BUY_CUF_END_REASON.CANCELLED);
+      return;
+    }
+
+    if (quotesQuery.isFetching) {
+      if (quoteCufKeyRef.current !== quoteFetchKey) {
+        // startRampsBuyQuoteFetchTrace ends any still-open quote span as superseded.
+        quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace();
+        quoteCufKeyRef.current = quoteFetchKey;
       }
       return;
     }
 
-    if (quotesQuery.isFetching && !quoteCufOpIdRef.current) {
-      quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace();
-      return;
-    }
-
-    if (!quotesQuery.isFetching && quoteCufOpIdRef.current) {
+    if (quoteCufOpIdRef.current) {
       const opId = quoteCufOpIdRef.current;
       quoteCufOpIdRef.current = null;
+      // Keep quoteCufKeyRef so a later identical key does not restart without a fetch.
       endRampsBuyQuoteFetchTrace({
         id: opId,
         data: quotesQuery.isError
@@ -108,7 +159,20 @@ export function useRampsQuotes(
           : { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
       });
     }
-  }, [queryEnabled, quotesQuery.isFetching, quotesQuery.isError]);
+  }, [
+    queryEnabled,
+    quoteFetchKey,
+    quotesQuery.isFetching,
+    quotesQuery.isError,
+    endOpenQuoteCuf,
+  ]);
+
+  useEffect(
+    () => () => {
+      endOpenQuoteCuf(RAMPS_BUY_CUF_END_REASON.CANCELLED);
+    },
+    [endOpenQuoteCuf],
+  );
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {

@@ -297,5 +297,102 @@ describe('useRampsQuotes', () => {
       expect(result.current.status).toBe('idle');
       expect(result.current.error).toBeNull();
     });
+
+    it('starts a new quote CUF when amount changes while a fetch is in flight', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      let resolveFirst: (value: typeof mockQuotesResponse) => void = () =>
+        undefined;
+      let resolveSecond: (value: typeof mockQuotesResponse) => void = () =>
+        undefined;
+      const firstFetch = new Promise<typeof mockQuotesResponse>((resolve) => {
+        resolveFirst = resolve;
+      });
+      const secondFetch = new Promise<typeof mockQuotesResponse>((resolve) => {
+        resolveSecond = resolve;
+      });
+
+      (Engine.context.RampsController.getQuotes as jest.Mock)
+        .mockImplementationOnce(() => firstFetch)
+        .mockImplementationOnce(() => secondFetch);
+
+      mockStartRampsBuyQuoteFetchTrace
+        .mockReturnValueOnce('quote-cuf-op-1')
+        .mockReturnValueOnce('quote-cuf-op-2');
+
+      const { result, rerender } = renderHook<
+        ReturnType<typeof useRampsQuotes>,
+        { params: GetQuotesOptions }
+      >(({ params }) => useRampsQuotes(params), {
+        wrapper: Wrapper,
+        initialProps: { params: options },
+      });
+
+      await waitFor(() => {
+        expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(1);
+      });
+
+      rerender({
+        params: {
+          ...options,
+          amount: 250,
+        },
+      });
+
+      await waitFor(() => {
+        expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(2);
+      });
+
+      await act(async () => {
+        resolveFirst(mockQuotesResponse);
+        resolveSecond(mockQuotesResponse);
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-cuf-op-2',
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      });
+    });
+
+    it('ends an in-flight quote CUF as cancelled on unmount', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      let resolveFetch: (value: typeof mockQuotesResponse) => void = () =>
+        undefined;
+      const pendingFetch = new Promise<typeof mockQuotesResponse>((resolve) => {
+        resolveFetch = resolve;
+      });
+      (
+        Engine.context.RampsController.getQuotes as jest.Mock
+      ).mockImplementation(() => pendingFetch);
+
+      const { unmount } = renderHook(() => useRampsQuotes(options), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(1);
+      });
+
+      unmount();
+
+      expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-cuf-op-1',
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.CANCELLED,
+        },
+      });
+
+      await act(async () => {
+        resolveFetch(mockQuotesResponse);
+      });
+    });
   });
 });
