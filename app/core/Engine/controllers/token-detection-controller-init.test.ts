@@ -62,6 +62,7 @@ describe('TokenDetectionControllerInit', () => {
       useTokenDetection: expect.any(Function),
       useExternalServices: expect.any(Function),
       trackMetaMetricsEvent: expect.any(Function),
+      isDeprecated: expect.any(Function),
     });
   });
 
