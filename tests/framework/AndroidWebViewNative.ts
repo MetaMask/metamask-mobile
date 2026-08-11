@@ -31,6 +31,12 @@ export interface AndroidWebViewScrollOptions {
 export type AndroidWebViewTapOptions = AndroidWebViewScrollOptions & {
   description?: string;
   timeout?: number;
+  /**
+   * Skip CDP tap short-circuit; use native UiAutomator wait-until-enabled + tap.
+   * Prefer for confirmation flows where CDP can report click success without
+   * MetaMask opening the confirmation sheet.
+   */
+  preferNative?: boolean;
 };
 
 /** Fill/read share scroll options; Android Appium never uses WebView DOM context. */
@@ -243,7 +249,11 @@ export async function tapAndroidWebId(
 ): Promise<void> {
   logger.debug(options.description ?? `Android native WebView tap: ${webId}`);
 
-  if (options.pageUrl && isAndroidWebViewCdpEnabled()) {
+  if (
+    !options.preferNative &&
+    options.pageUrl &&
+    isAndroidWebViewCdpEnabled()
+  ) {
     const cdpTapped = await AndroidWebViewCdpHelpers.tapElementById(webId, {
       pageUrl: options.pageUrl,
     });

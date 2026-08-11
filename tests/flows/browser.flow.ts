@@ -29,15 +29,57 @@ import { getDappUrl } from '../framework/fixtures/FixtureUtils';
  * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
  */
 export const waitForTestDappToLoad = async (): Promise<void> => {
+  const MAX_RETRIES = 3;
+  const WEBVIEW_LOAD_TIMEOUT_MS = 30_000;
+
   if (FrameworkDetector.isAppium()) {
     await Assertions.expectElementToBeVisible(
       PlaywrightMatchers.getElementByText(getDappUrl(0)),
       { description: 'Browser URL bar should show test dapp URL' },
     );
-    return;
-  }
 
-  const MAX_RETRIES = 3;
+    // URL-bar-only is not enough: Test Dapp buttons stay disabled until the
+    // page JS runs and the provider connects. Mirror Detox by waiting for
+    // page chrome (title / logo) before WebView taps.
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        if (PlatformDetector.isAndroidAppium()) {
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+            {
+              description: 'Browser WebView native container',
+              timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+            },
+          );
+          await Assertions.expectTextDisplayed('E2E Test Dapp', {
+            timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+            description: 'Test Dapp page title should be visible',
+          });
+          return;
+        }
+
+        await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo, {
+          description: 'Test Dapp Fox Logo should be visible',
+          timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+        });
+        await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
+          description: 'Test Dapp Page Title should be visible',
+          timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+        });
+        return;
+      } catch (error) {
+        if (attempt === MAX_RETRIES) {
+          throw new Error(
+            `Test dapp failed to load after ${MAX_RETRIES} attempts: ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }`,
+          );
+        }
+      }
+    }
+
+    throw new Error('Test dapp failed to become fully interactive');
+  }
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {

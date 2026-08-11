@@ -250,6 +250,21 @@ describe('tapAndroidWebId CDP path', () => {
     await tapAndroidWebId('connectbip32', { pageUrl });
     expect(AndroidWebViewCdpHelpers.tapElementById).not.toHaveBeenCalled();
   });
+
+  it('skips CDP tap when preferNative is set', async () => {
+    mockDriverWithFindSequence(['hit']);
+    (AndroidWebViewCdpHelpers.tapElementById as jest.Mock).mockResolvedValue(
+      true,
+    );
+
+    await tapAndroidWebId('connectbip32', {
+      pageUrl,
+      preferNative: true,
+    });
+
+    expect(AndroidWebViewCdpHelpers.tapElementById).not.toHaveBeenCalled();
+    expect(PlaywrightGestures.waitAndTap).toHaveBeenCalled();
+  });
 });
 
 describe('fillAndroidWebId CDP path', () => {

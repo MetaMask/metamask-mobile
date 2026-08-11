@@ -24,6 +24,9 @@ export type WebViewByIdOptions = AndroidWebViewScrollOptions & {
   /** Native WebView container testID. Defaults to the in-app browser WebView. */
   webviewId?: string;
   description?: string;
+  timeout?: number;
+  /** Android Appium: skip CDP tap; use native UiAutomator path. */
+  preferNative?: boolean;
 };
 
 export type { AndroidWebViewScrollOptions, AndroidWebViewTapOptions };

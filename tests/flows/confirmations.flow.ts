@@ -1,11 +1,11 @@
 import Assertions from '../framework/Assertions';
 import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
+import { FrameworkDetector } from '../framework/FrameworkDetector';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import Utilities from '../framework/Utilities';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
-import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import FooterActions from '../page-objects/Browser/Confirmations/FooterActions';
 import RowComponents from '../page-objects/Browser/Confirmations/RowComponents';
 import TestDApp from '../page-objects/Browser/TestDApp';
@@ -19,6 +19,7 @@ import SwitchAccountModal from '../page-objects/wallet/SwitchAccountModal';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
+import { TestDappSelectorsWebIDs } from '../selectors/Browser/TestDapp.selectors';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import {
   dismissPushNotificationExistingUserSheet,
@@ -31,6 +32,8 @@ const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
 const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
 const ANDROID_CONFIRM_POLL_MS = 3_000;
+const TEST_DAPP_PROVIDER_READY_TIMEOUT_MS = 30_000;
+const TEST_DAPP_BUTTON_ENABLED_TIMEOUT_MS = 30_000;
 
 export {
   LOCAL_CHAIN_CAIP,
@@ -39,7 +42,52 @@ export {
 };
 
 /**
+ * Wait until the Test Dapp has an injected provider with a selected account.
+ * Connected fixtures still need provider injection before action buttons enable.
+ */
+const waitForTestDappProviderReady = async (pageUrl: string): Promise<void> => {
+  try {
+    await Utilities.waitUntil(
+      async () => {
+        const ready = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+          pageUrl,
+          `(() => {
+            const eth = window.ethereum;
+            if (!eth) return false;
+            if (
+              typeof eth.selectedAddress === 'string' &&
+              eth.selectedAddress.length > 0
+            ) {
+              return true;
+            }
+            const accountsEl = document.getElementById(${JSON.stringify(
+              TestDappSelectorsWebIDs.ACCOUNTS_TEXT,
+            )});
+            const accountsText = (accountsEl?.textContent || '')
+              .replace(/^Accounts:\\s*/i, '')
+              .trim();
+            return accountsText.length > 0;
+          })()`,
+        );
+        return Boolean(ready);
+      },
+      { timeout: TEST_DAPP_PROVIDER_READY_TIMEOUT_MS, interval: 500 },
+    );
+  } catch (error) {
+    throw new Error(
+      `Test dapp provider not ready within ${TEST_DAPP_PROVIDER_READY_TIMEOUT_MS}ms` +
+        ` (window.ethereum / selectedAddress / #${TestDappSelectorsWebIDs.ACCOUNTS_TEXT}): ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+    );
+  }
+};
+
+/**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
+ *
+ * Android CDP can report a successful DOM click without MetaMask opening the
+ * confirmation sheet — wait for provider + enabled control, then prefer native tap.
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -48,6 +96,15 @@ const tapTestDappButtonAndWaitForConfirm = async (
   const pageUrl = getDappUrl(0);
   const confirmTimeoutMs = 30_000;
 
+  if (FrameworkDetector.isAppium()) {
+    await waitForTestDappProviderReady(pageUrl);
+    await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
+      pageUrl,
+      buttonId,
+      TEST_DAPP_BUTTON_ENABLED_TIMEOUT_MS,
+    );
+  }
+
   if (PlatformDetector.isAndroidAppium()) {
     let dismissedPushSheet = false;
     await Utilities.executeWithRetry(
@@ -55,6 +112,7 @@ const tapTestDappButtonAndWaitForConfirm = async (
         await WebView.tapById(buttonId, {
           pageUrl,
           description,
+          preferNative: true,
         });
         try {
           await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
