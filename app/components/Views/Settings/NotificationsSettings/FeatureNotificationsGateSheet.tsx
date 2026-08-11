@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -83,11 +84,18 @@ export const FeatureNotificationsGateSheet = () => {
     sheetRef.current?.onOpenBottomSheet();
   }, []);
 
-  useEffect(() => {
-    if (autoDismiss && isGateSatisfied) {
-      sheetRef.current?.onCloseBottomSheet();
-    }
-  }, [autoDismiss, isGateSatisfied]);
+  // Focus-gated on purpose: the gate can become satisfied while another sheet
+  // (e.g. Basic Functionality) is presented above this one, and closing then
+  // would goBack against the wrong top-of-stack route. useFocusEffect defers
+  // the auto-close until this sheet is the focused route again, so the
+  // goBack in handleSheetClosed always pops this sheet.
+  useFocusEffect(
+    useCallback(() => {
+      if (autoDismiss && isGateSatisfied) {
+        sheetRef.current?.onCloseBottomSheet();
+      }
+    }, [autoDismiss, isGateSatisfied]),
+  );
 
   const handleHeaderClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -95,7 +103,9 @@ export const FeatureNotificationsGateSheet = () => {
 
   // Runs after every close path (header button, overlay tap, auto-close):
   // pop this sheet route. The gate component on the screen below reacts to
-  // regaining focus and decides whether to dismiss that screen too.
+  // regaining focus and decides whether to dismiss that screen too. Every
+  // close path only fires while this sheet is focused (user interaction
+  // requires it, auto-close is focus-gated above), so goBack pops this sheet.
   const handleSheetClosed = () => {
     navigation.goBack();
   };
