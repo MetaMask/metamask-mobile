@@ -204,7 +204,7 @@
     "trade_order_farming_description": "If you approve this request, you might lose your assets.",
     "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
     "before_you_proceed": "Before you proceed",
-    "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
+    "enable_blockaid_alerts": "To turn on this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
     "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
     "setting_up_alerts": "Setting up security alerts",
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
@@ -542,7 +542,7 @@
     "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
     "biometric_authentication_cancelled_button": "Confirm",
     "biometric_changed": "Biometric Changed",
-    "biometric_changed_alert_desc": "Your biometric has been changed. Please re-enable biometric from settings.",
+    "biometric_changed_alert_desc": "Your biometric has been changed. Please turn biometric back on from settings.",
     "biometric_changed_alert_confirm": "Confirm"
   },
   "connect_hardware": {
@@ -943,7 +943,7 @@
     "additional_verification": {
       "title": "Additional verification",
       "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
-      "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
+      "paragraph_2": "In order to complete your verification, you’ll need to turn on access to your camera.",
       "button": "Continue"
     },
     "basic_info": {
@@ -3418,7 +3418,7 @@
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
-    "nfts_autodetect_cta": "Enable NFT autodetection",
+    "nfts_autodetect_cta": "Turn on NFT autodetection",
     "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
     "display_nft_media_cta_new_2": "Settings > Security and Privacy.",
@@ -3548,7 +3548,7 @@
     },
     "banners": {
       "search_desc": "Improved token detection is currently available on {{network}} network. ",
-      "search_link": "Enable it from Settings.",
+      "search_link": "Turn it on from Settings.",
       "custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
       "custom_warning_link": "scams and security risks.",
       "custom_info_desc": "Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about ",
@@ -3899,7 +3899,7 @@
     "state_logs": "State logs",
     "add_network_title": "Add a network",
     "auto_lock": "Auto-lock",
-    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication": "Turn on Device Authentication",
     "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Choose the amount of time before the application automatically locks.",
     "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
@@ -3948,7 +3948,7 @@
     "view_hint": "View hint",
     "privacy_mode": "Privacy mode",
     "privacy_mode_desc": "Websites must request access to view your account information.",
-    "nft_opensea_mode": "Enable OpenSea API",
+    "nft_opensea_mode": "Turn on OpenSea API",
     "nft_opensea_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
     "nft_autodetect_mode": "Autodetect NFTs",
     "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
@@ -3971,7 +3971,7 @@
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
-    "enable_push_notifications": "Enable push notifications",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Choose what you're notified about and how.",
     "notifications_opts": {
       "preferences_title": "Preferences",
@@ -4174,7 +4174,7 @@
       "change_region": "Change region",
       "no_region_selected": "No region selected",
       "sdk_activation_keys": "SDK activation keys",
-      "activation_keys_description": "Activation keys will enable specific features or providers.",
+      "activation_keys_description": "Activation keys will turn on specific features or providers.",
       "add_activation_key": "Add activation key",
       "edit_activation_key": "Edit activation key",
       "paste_or_type_activation_key": "Paste or type an activation key",
@@ -4911,7 +4911,7 @@
     "share_public_key": "Sharing my public key: "
   },
   "enable_nft-auto-detection": {
-    "title": "Enable NFT autodetection",
+    "title": "Turn on NFT autodetection",
     "description": "Allow MetaMask to detect and display your NFTs with autodetection. You’ll be able to:",
     "immediateAccess": "Immediately access your NFTs",
     "navigate": "Effortlessly navigate your digital assets",
@@ -6058,7 +6058,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
     "prompt_title": "Receive push notifications",
     "notifications_enabled_error_title": "Something went wrong",
-    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
     "prompt_ok": "Turn on",
     "prompt_cancel": "Maybe later",
@@ -6106,7 +6106,7 @@
       "new_user": {
         "title": "Never miss a move",
         "body": "Get real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
-        "button_yes": "Enable notifications",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Not now",
         "preview_card_1": {
           "time": "now",
@@ -6148,7 +6148,7 @@
         }
       },
       "toast_enabled": "Notifications enabled",
-      "toast_settings_hint": "You can enable notifications any time in Settings > Notifications"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -6774,7 +6774,7 @@
     },
     "enable": {
       "this_will": "This will",
-      "enable_asset": "enable {{asset}}",
+      "enable_asset": "turn on {{asset}}",
       "for_swapping": "for swapping",
       "edit_limit": "Edit limit"
     },
@@ -7077,7 +7077,7 @@
     "error_message": "There was an error loading the network information. Please try again later.",
     "private_network_third_description": "Please enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "enable_token_detection": "Enable auto token detection",
+    "enable_token_detection": "Turn on auto token detection",
     "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
     "or": "or",
@@ -7129,7 +7129,7 @@
   "enable_automatic_security_check_modal": {
     "title": "Automatically check for security updates?",
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed.",
-    "primary_action": "Enable automatic security checks",
+    "primary_action": "Turn on automatic security checks",
     "secondary_action": "No thanks"
   },
   "contract_allowance": {
@@ -7219,11 +7219,11 @@
     "bluetooth_off": "Bluetooth is off",
     "bluetooth_off_message": "Please turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Ledger needs Bluetooth access to pair with your mobile device.",
-    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
+    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, turn it on in Settings and try again.",
     "location_access_blocked": "MetaMask needs location access permission to pair with your ledger.",
-    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings and try again.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to turn on location access in Settings and try again.",
     "nearbyDevices_access_blocked": "MetaMask needs nearby devices permission to pair with your Ledger.",
-    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to turn on nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "Error while scanning the device",
     "bluetooth_scanning_error_message": "Please make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Bluetooth connection failed",
@@ -7249,16 +7249,16 @@
     "wait_while_we_search_for_it": "Hold on while we search for it...",
     "select_device": "Select device",
     "save_device_selection": "Save",
-    "enable_bluetooth": "Enable Bluetooth",
+    "enable_bluetooth": "Turn on Bluetooth",
     "install_and_open_eth_app": "Install and open the Ethereum app",
     "ledger_reminder_message": "Please make sure your Ledger device is:",
     "ledger_reminder_message_step_one": "1. Unlock your Ledger device",
     "ledger_reminder_message_step_two": "2. Install and open the Ethereum app",
-    "ledger_reminder_message_step_three": "3. Enable Bluetooth",
+    "ledger_reminder_message_step_three": "3. Turn on Bluetooth",
     "ledger_reminder_message_step_four": "4. Location is enabled with use precise location on",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices is enabled",
     "ledger_reminder_message_step_five": "5. Do not disturb must be turned off",
-    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
+    "blind_signing_message": "6. Turn on \"blind signing\" on your Ledger device.",
     "available_devices": "Available devices",
     "retry": "Retry",
     "continue": "Continue",
@@ -7299,7 +7299,7 @@
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please turn it on in the settings.",
     "user_reject_transaction": "User rejected the transaction",
     "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device.",
     "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one.",
@@ -7312,13 +7312,13 @@
     "ethereum_app_closed_message": "Please open it on your Ledger device to continue",
     "ledger_locked_message_continue": "Please unlock your Ledger device to continue",
     "bluetooth_access_denied": "Bluetooth access denied",
-    "bluetooth_access_denied_message": "Enable Bluetooth in your device settings to connect your Ledger device",
+    "bluetooth_access_denied_message": "Turn on Bluetooth in your device settings to connect your Ledger device",
     "location_access_denied": "Location access denied",
-    "location_access_denied_message": "Enable location permissions in your device settings to connect your Ledger device",
+    "location_access_denied_message": "Turn on location permissions in your device settings to connect your Ledger device",
     "nearby_devices_denied": "Permissions to nearby devices denied",
-    "nearby_devices_denied_message": "Enable access to nearby devices in Settings to connect your Ledger device",
+    "nearby_devices_denied_message": "Turn on access to nearby devices in Settings to connect your Ledger device",
     "bluetooth_turned_off": "Bluetooth is turned off",
-    "bluetooth_turned_off_message": "Enable Bluetooth in your device settings to connect your Ledger device",
+    "bluetooth_turned_off_message": "Turn on Bluetooth in your device settings to connect your Ledger device",
     "bluetooth_connection_failed_reconnect": "Make sure your device is nearby, then try reconnecting",
     "not_now": "Not now"
   },
@@ -9293,8 +9293,8 @@
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
       "add_funds": "Add funds",
       "change_asset": "Change asset",
-      "enable_card_button_label": "Enable card",
-      "enable_assets_button_label": "Enable assets",
+      "enable_card_button_label": "Turn on card",
+      "enable_assets_button_label": "Turn on assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "spending_limit_available": "available",
       "logout": "Log out",
@@ -9303,7 +9303,7 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
-      "enable_card_error": "Failed to enable card. Please try again later.",
+      "enable_card_error": "Failed to turn on card. Please try again later.",
       "view_card_details_error": "Unable to load card details. Please try again.",
       "biometric_verification_required": "Authentication required to view card details.",
       "unfreeze_auth_required": "Authentication required to resume spending on your card.",
@@ -9322,13 +9322,13 @@
           "dismiss_button_label": "Dismiss"
         },
         "need_delegation": {
-          "title": "You need to enable your card",
+          "title": "You need to turn on your card",
           "description": "Choose an asset to start spending",
-          "confirm_button_label": "Enable card"
+          "confirm_button_label": "Turn on card"
         },
         "no_card": {
-          "title": "You need to enable your card",
-          "description": "Please enable your card to start spending"
+          "title": "You need to turn on your card",
+          "description": "Please turn on your card to start spending"
         },
         "frozen": {
           "title": "Your card is frozen",
@@ -9357,7 +9357,7 @@
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
-          "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card."
+          "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to turn on your card."
         },
         "rejected": {
           "title": "Verification not approved",
@@ -9409,8 +9409,8 @@
     },
     "card_spending_limit": {
       "title_change_token": "Change token and network",
-      "title_enable_token": "Enable token",
-      "title_onboarding": "Enable spending",
+      "title_enable_token": "Turn on token",
+      "title_onboarding": "Turn on spending",
       "setup_title": "Set up your card",
       "setup_description": "Select the token you'd like to use and set a limit for how much you can spend.",
       "asset_label": "Asset",
@@ -9515,7 +9515,7 @@
       "full_spending_access": "Full spending access",
       "full_spending_description": "Your card can use your funds automatically, without asking for approval each time.",
       "edit_limit": "Edit limit",
-      "enable_token": "Enable token",
+      "enable_token": "Turn on token",
       "cancel": "Cancel",
       "done": "Done",
       "confirm": "Confirm",
@@ -9641,11 +9641,11 @@
     },
     "notifications_nudge": {
       "title": "Don't miss out",
-      "description": "Enable notifications to stay informed on campaigns.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Turn on",
       "loading": "Enabling notifications...",
       "loading_description": "This may take a moment.",
-      "enable_error": "Failed to enable notifications",
+      "enable_error": "Failed to turn on notifications",
       "success": "Notifications enabled"
     },
     "version_guard": {
@@ -10444,7 +10444,7 @@
     "push_nudge": {
       "title": "Never miss a transaction",
       "description": "Get real-time alerts to review and approve transactions from your CLI session.",
-      "turn_on_button": "Enable notifications",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Transaction request",
       "preview_message": "Your agent needs approval on a new limit.",
       "preview_timestamp": "now"
@@ -10542,7 +10542,7 @@
     "view_all": "View all",
     "view_more": "View more",
     "view_x_more": "View {{count}} more",
-    "enable_basic_functionality": "Enable basic functionality",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
     "empty_error_trending_state": {
@@ -10623,7 +10623,7 @@
       "device_disconnected": "Your {{device}} was disconnected. Please reconnect and try again",
       "device_not_found": "Could not find your {{device}}. Please make sure it's connected",
       "device_not_ready": "Your device is not ready. Please check it and try again",
-      "blind_signing": "Blind signing is disabled. Please enable it in your device settings",
+      "blind_signing": "Blind signing is disabled. Please turn it on in your device settings",
       "connection_closed": "The connection was lost. Please try again",
       "connection_timeout": "Connection timed out. Please try again",
       "user_cancelled": "The action was cancelled on your device",
@@ -10634,7 +10634,7 @@
       "bluetooth_off": "Please turn on Bluetooth to connect to your device",
       "bluetooth_scan_failed": "Failed to scan for devices. Please try again",
       "bluetooth_connection_failed": "The connection to your device failed. Please try again",
-      "camera_permission_denied": "Camera permission is required to scan QR codes. Please enable it in your device settings",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Please turn it on in your device settings",
       "not_supported": "This operation is not supported",
       "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
@@ -10694,7 +10694,7 @@
       "scanning": "Scanning for devices...",
       "no_devices_found": "No devices found",
       "no_devices_hint": "Make sure your {{device}} is unlocked and Bluetooth is enabled",
-      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "tips": "Unlock your {{device}}, turn on Bluetooth, and ensure Do Not Disturb is turned off",
       "connect": "Connect",
       "rescan": "Scan Again",
       "unknown_device": "Unknown Device",
