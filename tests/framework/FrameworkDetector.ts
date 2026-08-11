@@ -71,33 +71,29 @@ export class FrameworkDetector {
    * Priority order:
    * 1. Cached framework (if already detected)
    * 2. Appium/WebdriverIO globals (driver/browser)
-   * 3. Detox globals (device)
-   * 4. Default to Detox for backwards compatibility
+   * 3. Detox globals (device) — legacy; Detox runner removed (MMQA-2230)
+   * 4. Default to Appium
    */
   static detect(): TestFramework {
     if (this.framework) {
       return this.framework;
     }
 
-    // Check for WebdriverIO/Appium globals first
-    // (checking Appium first since Detox is the fallback default)
     if (this.hasAppiumGlobals()) {
       this.framework = TestFramework.APPIUM;
       this.logger.debug('Appium framework detected via driver/browser global.');
       return TestFramework.APPIUM;
     }
 
-    // Check for Detox globals
     if (this.hasDetoxGlobals()) {
       this.framework = TestFramework.DETOX;
       this.logger.debug('Detox framework detected via device global.');
       return TestFramework.DETOX;
     }
 
-    // Default to Detox for backwards compatibility
-    this.framework = TestFramework.DETOX;
-    this.logger.debug('No framework globals detected, defaulting to Detox.');
-    return TestFramework.DETOX;
+    this.framework = TestFramework.APPIUM;
+    this.logger.debug('No framework globals detected, defaulting to Appium.');
+    return TestFramework.APPIUM;
   }
 
   /**

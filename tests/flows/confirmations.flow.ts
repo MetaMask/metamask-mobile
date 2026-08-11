@@ -1,6 +1,5 @@
 import Assertions from '../framework/Assertions';
 import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
-import { FrameworkDetector } from '../framework/FrameworkDetector';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import Utilities, { sleep } from '../framework/Utilities';
@@ -37,6 +36,20 @@ const ANDROID_CONFIRM_AFTER_TAP_MS = 15_000;
 const TEST_DAPP_PROVIDER_READY_TIMEOUT_MS = 30_000;
 const TEST_DAPP_ACCOUNTS_HYDRATE_TIMEOUT_MS = 30_000;
 const TEST_DAPP_BUTTON_ENABLED_TIMEOUT_MS = 30_000;
+const DAPP_BUTTON_READY_TIMEOUT_MS = 20_000;
+const DAPP_BUTTON_READY_POLL_MS = 500;
+/** Re-run the dapp's contract binding if it is still missing after this long. */
+const DAPP_CONTRACT_RELOAD_AFTER_MS = 8_000;
+/**
+ * `contractIsDeployed` fills these from the `?contract=` query param. When
+ * `initializeContracts()` throws, the listener still enables every button but
+ * leaves the address blank, so the handlers call into an undefined contract.
+ */
+const CONTRACT_ADDRESS_ELEMENT_IDS = [
+  'erc20TokenAddresses',
+  'erc721TokenAddresses',
+  'erc1155TokenAddresses',
+];
 
 export {
   LOCAL_CHAIN_CAIP,
@@ -248,13 +261,110 @@ const ensureTestDappAccountsHydrated = async (
   );
 };
 
+interface TestDappButtonState {
+  href: string;
+  documentReady: boolean;
+  hasEthereum: boolean;
+  hasButton: boolean;
+  buttonDisabled: boolean;
+  contractParam: string | null;
+  contractBound: boolean;
+}
+
+const readTestDappButtonState = (
+  pageUrl: string,
+  buttonId: string,
+): Promise<TestDappButtonState | null> =>
+  ChromeCdpHelpers.evaluateInWebView<TestDappButtonState>(
+    pageUrl,
+    `(() => {
+      const el = document.getElementById(${JSON.stringify(buttonId)});
+      const contractIds = ${JSON.stringify(CONTRACT_ADDRESS_ELEMENT_IDS)};
+      return {
+        href: location.href,
+        documentReady: document.readyState === 'complete',
+        hasEthereum: typeof window.ethereum !== 'undefined',
+        hasButton: Boolean(el),
+        buttonDisabled: Boolean(
+          el &&
+            (('disabled' in el && el.disabled) ||
+              el.getAttribute('aria-disabled') === 'true'),
+        ),
+        contractParam: new URLSearchParams(location.search).get('contract'),
+        contractBound: contractIds.some((id) => {
+          const node = document.getElementById(id);
+          return Boolean(node && (node.textContent || '').trim());
+        }),
+      };
+    })()`,
+  );
+
+const isTestDappButtonReady = (state: TestDappButtonState | null): boolean =>
+  Boolean(
+    state?.documentReady &&
+      state.hasEthereum &&
+      state.hasButton &&
+      !state.buttonDisabled &&
+      (!state.contractParam || state.contractBound),
+  );
+
+/**
+ * The URL bar shows the dapp URL before the page finishes loading, before the
+ * provider is injected, and before the dapp binds the contract from
+ * `?contract=`. A tap issued in that window clicks a real DOM node and reports
+ * success, but no confirmation is ever requested.
+ *
+ * Contract binding only happens while initializing the provider, so a reload is
+ * the only way to recover a page that came up without it.
+ */
+const waitForTestDappButtonReady = async (
+  pageUrl: string,
+  buttonId: string,
+  timeoutMs = DAPP_BUTTON_READY_TIMEOUT_MS,
+): Promise<TestDappButtonState | null> => {
+  const startedAt = Date.now();
+  let state: TestDappButtonState | null = null;
+  let reloaded = false;
+
+  try {
+    await Utilities.waitUntil(
+      async () => {
+        state = await readTestDappButtonState(pageUrl, buttonId);
+        if (isTestDappButtonReady(state)) {
+          return true;
+        }
+
+        if (
+          !reloaded &&
+          state?.contractParam &&
+          !state.contractBound &&
+          Date.now() - startedAt >= DAPP_CONTRACT_RELOAD_AFTER_MS
+        ) {
+          reloaded = true;
+          await ChromeCdpHelpers.evaluateInWebView(
+            pageUrl,
+            'location.reload()',
+          );
+        }
+
+        return false;
+      },
+      { timeout: timeoutMs, interval: DAPP_BUTTON_READY_POLL_MS },
+    );
+  } catch {
+    // Return the last observed state so the caller can include diagnostics.
+  }
+
+  return state;
+};
+
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
  *
- * Android: wait for provider + real Test Dapp account hydration + enabled
- * control, then tap like signature smokes (`WebView.tapById`). Wait long enough
- * after each tap for gas estimation — re-tapping every few seconds rejects
- * in-flight `eth_sendTransaction` ("Creation Failed" on the Test Dapp).
+ * Android: hydrate Active Provider + accounts, wait for button/contract
+ * readiness, then tap. Wait long enough after each tap for gas estimation —
+ * re-tapping every few seconds rejects in-flight `eth_sendTransaction`
+ * ("Creation Failed" on the Test Dapp).
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -263,14 +373,10 @@ const tapTestDappButtonAndWaitForConfirm = async (
   const pageUrl = getDappUrl(0);
   const confirmTimeoutMs = 30_000;
 
-  if (FrameworkDetector.isAppium()) {
+  // iOS Appium: provider + enabled control only (async eth_accounts hydrate
+  // is unreliable via evaluateInWebView on iOS).
+  if (PlatformDetector.isIOSAppium()) {
     await waitForTestDappProviderReady(pageUrl);
-    // Android-only: EIP-6963 Active Provider race + account hydration. iOS
-    // evaluateInWebView cannot await async eth_accounts Promises, and iOS
-    // confirmations already pass without this path.
-    if (PlatformDetector.isAndroidAppium()) {
-      await ensureTestDappAccountsHydrated(pageUrl);
-    }
     await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
       pageUrl,
       buttonId,
@@ -279,43 +385,60 @@ const tapTestDappButtonAndWaitForConfirm = async (
   }
 
   if (PlatformDetector.isAndroidAppium()) {
+    // Provider + real `#accounts` hydration (EIP-6963 Use MetaMask → Connect).
+    // Do not fake `globalConnectionChange` alone — that enables buttons without
+    // `src.provider`, so taps no-op ("Creation Failed" / never opens confirm).
     let dismissedPushSheet = false;
     let attempt = 0;
-    await Utilities.executeWithRetry(
-      async () => {
-        attempt += 1;
-        await WebView.tapById(buttonId, {
-          pageUrl,
-          description,
-          // First attempt matches signature smokes (CDP then native). Later
-          // attempts force native in case CDP reported a false-success click.
-          preferNative: attempt > 1,
-        });
-        try {
-          await FooterActions.waitForConfirmButton(
-            ANDROID_CONFIRM_AFTER_TAP_MS,
-          );
-        } catch (error) {
-          if (!dismissedPushSheet) {
-            dismissedPushSheet = true;
-            await dismissPushNotificationExistingUserSheet();
-            // Push sheet may have covered confirm — check again before re-tap.
-            try {
-              await FooterActions.waitForConfirmButton(5_000);
-              return;
-            } catch {
-              // Fall through to retry with another tap.
+    let lastState: TestDappButtonState | null = null;
+    try {
+      await Utilities.executeWithRetry(
+        async () => {
+          attempt += 1;
+          await ensureTestDappAccountsHydrated(pageUrl);
+          // Document ready + ethereum + enabled button; for `?contract=` pages,
+          // also wait until contract addresses are bound (reload once if not).
+          lastState = await waitForTestDappButtonReady(pageUrl, buttonId);
+          await WebView.tapById(buttonId, {
+            pageUrl,
+            description,
+            // First attempt matches signature smokes (CDP then native). Later
+            // attempts force native in case CDP reported a false-success click.
+            preferNative: attempt > 1,
+          });
+          try {
+            await FooterActions.waitForConfirmButton(
+              ANDROID_CONFIRM_AFTER_TAP_MS,
+            );
+          } catch (error) {
+            if (!dismissedPushSheet) {
+              dismissedPushSheet = true;
+              await dismissPushNotificationExistingUserSheet();
+              // Push sheet may have covered confirm — check again before re-tap.
+              try {
+                await FooterActions.waitForConfirmButton(5_000);
+                return;
+              } catch {
+                // Fall through to retry with another tap.
+              }
             }
+            throw error;
           }
-          throw error;
-        }
-      },
-      {
-        timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS,
-        // Keep retries sparse so we do not stampede eth_sendTransaction.
-        interval: 2_000,
-      },
-    );
+        },
+        {
+          timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS,
+          // Keep retries sparse so we do not stampede eth_sendTransaction.
+          interval: 2_000,
+        },
+      );
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Confirmation sheet never opened after tapping ${buttonId} ` +
+          `(${description}) within ${ANDROID_CONFIRM_SHEET_TIMEOUT_MS}ms` +
+          ` (last dapp state=${JSON.stringify(lastState)}; ${detail})`,
+      );
+    }
     return;
   }
 
