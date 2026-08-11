@@ -40,6 +40,7 @@ import {
   PredictBuyPreviewParams,
   PredictSellPreviewParams,
 } from '../types/navigation';
+import { ActiveOrderState } from '../types';
 import { formatCents, getCashoutInfoText } from '../utils/format';
 import PredictPreviewSheet, {
   type PredictPreviewSheetRef,
@@ -343,6 +344,18 @@ export const PredictPreviewSheetProvider: React.FC<
   }, []);
 
   useEffect(() => {
+    const orderFinishedWithoutError =
+      activeOrder?.state === ActiveOrderState.SUCCESS ||
+      (activeOrder?.state === ActiveOrderState.PREVIEW &&
+        !activeOrder.error &&
+        !buyParams);
+
+    if (orderFinishedWithoutError) {
+      lastBuyParamsRef.current = null;
+    }
+  }, [activeOrder?.error, activeOrder?.state, buyParams]);
+
+  useEffect(() => {
     if (buyParams) {
       buySheetRef.current?.onOpenBottomSheet();
     }
@@ -496,6 +509,11 @@ export const PredictPreviewSheetProvider: React.FC<
   );
 
   const onBuyDismiss = useCallback(() => {
+    const orderWasInitiated = predictBuyPreviewOrderInitiatedRef.current;
+    const orderIsInFlight =
+      activeOrder?.state === ActiveOrderState.DEPOSITING ||
+      activeOrder?.state === ActiveOrderState.PLACING_ORDER;
+
     // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
     // Skip if: the back-button handler already fired it, or the sheet is
     // closing because the user confirmed an order (not a dismissal).
@@ -521,8 +539,11 @@ export const PredictPreviewSheetProvider: React.FC<
     predictBuyPreviewOrderInitiatedRef.current = false;
 
     setBuyParams(null);
-    clearOrderError();
-  }, [clearOrderError, buyParams]);
+    if (!orderWasInitiated && !orderIsInFlight) {
+      lastBuyParamsRef.current = null;
+      clearOrderError();
+    }
+  }, [activeOrder?.state, clearOrderError, buyParams]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(

@@ -1604,6 +1604,123 @@ describe('PredictController', () => {
       });
     });
 
+    it('retries a post-deposit order once after the first attempt fails', async () => {
+      await withController(
+        async ({ controller }) => {
+          const preview = createMockOrderPreview({ side: Side.BUY });
+          const mockResult = {
+            success: true as const,
+            response: {
+              id: 'order-123',
+              spentAmount: '100',
+              receivedAmount: '200',
+            },
+          };
+          mockPolymarketProvider.placeOrder
+            .mockRejectedValueOnce(new Error('Relay unavailable'))
+            .mockResolvedValueOnce(mockResult);
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PLACING_ORDER,
+            transactionId: 'tx-1',
+          });
+          (
+            controller as unknown as {
+              pendingOrderPreviews: Record<
+                string,
+                {
+                  preview: OrderPreview;
+                  signerAddress: string;
+                }
+              >;
+            }
+          ).pendingOrderPreviews['tx-1'] = {
+            preview,
+            signerAddress: MOCK_ADDRESS,
+          };
+
+          const result = await controller.placeOrder({
+            preview,
+            transactionId: 'tx-1',
+          });
+
+          expect(result).toEqual(mockResult);
+          expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledTimes(2);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('stops retrying a post-deposit order after the second failure', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          const preview = createMockOrderPreview({
+            side: Side.BUY,
+            maxAmountSpent: 25,
+          });
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+          mockPolymarketProvider.placeOrder.mockRejectedValue(
+            new Error('Relay unavailable'),
+          );
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PLACING_ORDER,
+            transactionId: 'tx-1',
+          });
+          const pendingOrderPreviews = (
+            controller as unknown as {
+              pendingOrderPreviews: Record<
+                string,
+                {
+                  preview: OrderPreview;
+                  signerAddress: string;
+                  depositedAmount?: number;
+                }
+              >;
+            }
+          ).pendingOrderPreviews;
+          pendingOrderPreviews['tx-1'] = {
+            preview,
+            signerAddress: MOCK_ADDRESS,
+            depositedAmount: 25,
+          };
+
+          await expect(
+            controller.placeOrder({
+              preview,
+              transactionId: 'tx-1',
+            }),
+          ).rejects.toThrow('Relay unavailable');
+
+          expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledTimes(2);
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'failed',
+              amount: 25,
+              isPostDepositOrderFailure: true,
+            }),
+          );
+          expect(pendingOrderPreviews['tx-1']).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
     it.each([
       ['proposed_resolution', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
       ['in_dispute', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
