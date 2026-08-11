@@ -39,32 +39,21 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
     );
 
     // URL-bar-only is not enough: Test Dapp buttons stay disabled until the
-    // page JS runs and the provider connects. Mirror Detox by waiting for
-    // page chrome (title / logo) before WebView taps.
+    // page JS runs and the provider connects. Wait for page chrome in native
+    // context (avoid WebView context lookups that leave the session in WEBVIEW
+    // and break subsequent native taps like close-browser).
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        if (PlatformDetector.isAndroidAppium()) {
-          await Assertions.expectElementToBeVisible(
-            Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
-            {
-              description: 'Browser WebView native container',
-              timeout: WEBVIEW_LOAD_TIMEOUT_MS,
-            },
-          );
-          await Assertions.expectTextDisplayed('E2E Test Dapp', {
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+          {
+            description: 'Browser WebView native container',
             timeout: WEBVIEW_LOAD_TIMEOUT_MS,
-            description: 'Test Dapp page title should be visible',
-          });
-          return;
-        }
-
-        await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo, {
-          description: 'Test Dapp Fox Logo should be visible',
+          },
+        );
+        await Assertions.expectTextDisplayed('E2E Test Dapp', {
           timeout: WEBVIEW_LOAD_TIMEOUT_MS,
-        });
-        await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
-          description: 'Test Dapp Page Title should be visible',
-          timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+          description: 'Test Dapp page title should be visible',
         });
         return;
       } catch (error) {
