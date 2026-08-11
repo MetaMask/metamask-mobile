@@ -136,13 +136,6 @@ class PerpsOrderView {
   }
 
   async tapTakeProfitButton() {
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByID(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),
-      {
-        description: 'Perps order view scroll container',
-        timeout: 45000,
-      },
-    );
     await Gestures.scrollToElement(
       this.takeProfitButton,
       Matchers.scrollContainer(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),

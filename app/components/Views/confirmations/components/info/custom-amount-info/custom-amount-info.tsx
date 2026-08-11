@@ -224,11 +224,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
     const quotesLastUpdatedRef = useRef<number | undefined>(undefined);
-    const stage = isKeyboardVisible
-      ? CustomAmountStage.AmountInput
-      : CustomAmountStage.ShowTotals;
     const reopenAmountInput = useCallback(() => {
       setHasCommittedAmount(false);
+      setIsAmountUpdating(false);
       setIsKeyboardVisible(true);
     }, []);
     const setStage = useCallback(
@@ -248,11 +246,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           reopenAmountInput();
           return;
         }
+        // Match main's useCustomAmountStage Loading: keyboard dismissed and
+        // loading review shown until the amount/quote handoff settles.
+        if (next === CustomAmountStage.Loading) {
+          setIsAmountUpdating(true);
+        }
         setIsKeyboardVisible(false);
       },
       [reopenAmountInput],
     );
-    useMMPayNavigation(stage, setStage);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
     const hasPaymentOption =
@@ -285,6 +287,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const showLoadingReview =
       !isKeyboardVisible &&
       (isAmountUpdating || (isQuotesLoading && hasCommittedAmount));
+    // Mirror main's useCustomAmountStage: Loading while the amount/quote review
+    // is preparing (including add-mUSD intent while quotes load with keyboard
+    // dismissed); otherwise AmountInput vs ShowTotals from the keyboard.
+    const stage = isKeyboardVisible
+      ? CustomAmountStage.AmountInput
+      : showLoadingReview || (isAddMusdIntent && isQuotesLoading)
+        ? CustomAmountStage.Loading
+        : CustomAmountStage.ShowTotals;
+    useMMPayNavigation(stage, setStage);
     const isResultReady =
       showLoadingReview ||
       isTransactionResultReady ||
@@ -316,7 +327,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
     const hideBuyForNoFunds =
       Boolean(accountOverride) &&
-      (hasAccountNoFunds || isQuotesLoading || isAmountUpdating);
+      (hasAccountNoFunds || stage === CustomAmountStage.Loading);
 
     const hidePercentageButtons =
       Boolean(selectedFiatPaymentMethodId) || shouldHideAccountSelector;
@@ -344,9 +355,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isAccountSelectionNeeded ||
       isPrefillPending ||
       isAwaitingPrefillResult ||
-      hasBlockingErrorEffective ||
-      !isResultReady ||
-      showLoadingReview;
+      hasBlockingErrorEffective;
 
     const showLiveAccountSelector =
       Boolean(supportAccountSelection) &&
@@ -465,33 +474,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           : quoteHandoff.quotesLastUpdated === undefined ||
             quotesLastUpdated > quoteHandoff.quotesLastUpdated);
 
-      // Loading can finish before Redux ever sees isLoading:true. In that case
-      // neither hasObservedLoading nor a strictly-newer timestamp fires, so
-      // confirm the controller has settled and Redux has at least the baseline.
-      const controllerTransactionData =
-        transactionId === undefined
-          ? undefined
-          : Engine.context.TransactionPayController.state.transactionData[
-              transactionId
-            ];
-      const hasSettledWithoutObservedLoading =
-        quoteHandoff.kind === 'loading' &&
-        !isQuotesLoading &&
-        controllerTransactionData !== undefined &&
-        !controllerTransactionData.isLoading &&
-        (quoteHandoff.quotesLastUpdated === undefined ||
-          (quotesLastUpdated !== undefined &&
-            quotesLastUpdated >= quoteHandoff.quotesLastUpdated));
-
-      if (
-        hasObservedLoading ||
-        hasObservedCompletedQuote ||
-        hasSettledWithoutObservedLoading
-      ) {
+      if (hasObservedLoading || hasObservedCompletedQuote) {
         setQuoteHandoff(undefined);
         setIsAmountUpdating(false);
       }
-    }, [isQuotesLoading, quoteHandoff, quotesLastUpdated, transactionId]);
+    }, [isQuotesLoading, quoteHandoff, quotesLastUpdated]);
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {
@@ -523,9 +510,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [isDepositPrefilled, amountFiat, handleDone, isKeyboardVisible]);
 
-    // State (not a ref) so pressing Max re-runs the effect even when amountFiat
-    // is unchanged (already at max) — a ref alone would never clear loading.
-    const [isMaxAutoSubmitPending, setIsMaxAutoSubmitPending] = useState(false);
+    const isMaxAutoSubmitPending = useRef(false);
 
     const handlePercentagePress = useCallback(
       (percentage: number) => {
@@ -534,22 +519,29 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // withdraw — the amount stays $0, so leave the keyboard open instead of
         // stranding the user on a loading screen.
         if (percentage === 100 && didApplyAmount) {
-          setIsMaxAutoSubmitPending(true);
-          // Max defers the commit until amountFiat lands; show the loading
-          // review through that gap so Confirm cannot be tapped early.
-          setIsAmountUpdating(true);
-          setIsKeyboardVisible(false);
+          isMaxAutoSubmitPending.current = true;
+          // Max defers the commit to the effect below once the amount lands;
+          // show the loading skeleton through that gap rather than the derived
+          // stage, matching the direct-commit path.
+          setStage(CustomAmountStage.Loading);
         }
       },
-      [updatePendingAmountPercentage],
+      [updatePendingAmountPercentage, setStage],
     );
 
     useEffect(() => {
-      if (isMaxAutoSubmitPending && amountFiat !== '0') {
-        setIsMaxAutoSubmitPending(false);
+      // Include `stage` so Max still commits when amountFiat is unchanged
+      // (e.g. user already typed the max). Waiting only on amountFiat leaves
+      // isMaxAutoSubmitPending armed and the Loading stage stranded.
+      if (
+        isMaxAutoSubmitPending.current &&
+        stage === CustomAmountStage.Loading &&
+        amountFiat !== '0'
+      ) {
+        isMaxAutoSubmitPending.current = false;
         handleDone();
       }
-    }, [amountFiat, handleDone, isMaxAutoSubmitPending]);
+    }, [amountFiat, handleDone, stage]);
 
     const handleAmountPress = reopenAmountInput;
 

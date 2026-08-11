@@ -18,7 +18,6 @@ export function useHeadlessBuyErrorAlert(): Alert[] {
         title: strings('alert_system.headless_buy_error.title'),
         message: headlessBuyError,
         severity: Severity.Danger,
-        isBlocking: true,
       },
     ];
   }, [headlessBuyError]);

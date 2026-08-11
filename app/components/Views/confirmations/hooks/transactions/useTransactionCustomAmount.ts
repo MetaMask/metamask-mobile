@@ -449,9 +449,7 @@ export function useTransactionCustomAmount({
       }
 
       setAmountFiat(newAmount);
-      // Dust balances can ROUND_DOWN to $0 — treat as nothing applied so Max
-      // does not enter the auto-submit / loading-review path.
-      return newAmount !== '0';
+      return true;
     },
     [
       balanceUsd,

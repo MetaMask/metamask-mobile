@@ -34,7 +34,6 @@ describe('useHeadlessBuyErrorAlert', () => {
         title: expect.any(String),
         message: 'Payment provider unavailable',
         severity: Severity.Danger,
-        isBlocking: true,
       },
     ]);
   });
