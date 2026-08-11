@@ -75,7 +75,7 @@ describe('resolveCardArrivalDecision', () => {
     expect(result).toBe('pending');
   });
 
-  it('returns pending for a non-virtual card while the reduce motion lookup is unresolved', () => {
+  it('returns skip for a non-virtual card without awaiting the reduce motion lookup', () => {
     const conditions = buildConditions({
       cardType: CardType.PHYSICAL,
       reduceMotion: null,
@@ -83,7 +83,7 @@ describe('resolveCardArrivalDecision', () => {
 
     const result = resolveCardArrivalDecision(conditions);
 
-    expect(result).toBe('pending');
+    expect(result).toBe('skip');
   });
 
   it.each([CardType.PHYSICAL, CardType.METAL])(

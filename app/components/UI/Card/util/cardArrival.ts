@@ -1,23 +1,15 @@
 import { CardType } from '../types';
 
 /**
- * How long the card is withheld while waiting for card data and the
- * reduce-motion setting. Past this the reveal is abandoned and the card renders
- * normally: a missed animation is recoverable, a card that never appears is not.
+ * Bounds how long the card is withheld waiting on its inputs. A missed
+ * animation is recoverable, a card that never appears is not.
  */
 export const CARD_ARRIVAL_PENDING_TIMEOUT_MS = 1500;
 
-/**
- * Beat between the dashboard settling and the reveal starting, so the motion
- * reads as deliberate rather than as part of the screen appearing.
- */
+/** Beat before the reveal, so the motion reads as deliberate. */
 export const CARD_ARRIVAL_START_DELAY_MS = 60;
 
-/**
- * How long the card takes to fade in. Runs alongside the asset's own reveal,
- * which is roughly 1.7s end to end, so a long fade keeps the two reading as one
- * motion rather than the fade finishing while the card is still moving.
- */
+/** Fade duration; long enough to read as one motion with the ~1.7s reveal. */
 export const CARD_ARRIVAL_FADE_DURATION_MS = 800;
 
 export interface CardArrivalConditions {
@@ -34,13 +26,11 @@ export interface CardArrivalConditions {
 }
 
 /**
- * `animate` plays the two-phase arrival sequence, `skip` renders the dashboard
- * normally, and `pending` means this user is eligible but an input has not
- * resolved yet, so the dashboard withholds its first paint.
- *
- * `pending` is only ever returned for a user who could still go on to
- * `animate`. Anyone ineligible must reach `skip` immediately, or every
- * card-dashboard visit would blank while the asynchronous inputs settle.
+ * `animate` plays the arrival sequence, `skip` renders the dashboard normally,
+ * and `pending` withholds the first paint while an input resolves. `pending` is
+ * only ever returned for a user who could still go on to `animate` — anyone
+ * ineligible must reach `skip` immediately, or every dashboard visit would
+ * blank while the asynchronous inputs settle.
  */
 export type CardArrivalDecision = 'pending' | 'animate' | 'skip';
 
@@ -51,15 +41,15 @@ export function resolveCardArrivalDecision({
   cardType,
   reduceMotion,
 }: CardArrivalConditions): CardArrivalDecision {
-  // Synchronously known inputs first. Anyone failing these is never eligible,
-  // so they must never reach `pending` — otherwise every visit to the card
-  // dashboard would withhold its first paint while the asynchronous inputs
-  // below settle.
   if (!flagEnabled || alreadySeen || !fromCardOnboarding) return 'skip';
 
-  if (cardType === undefined || reduceMotion === null) return 'pending';
+  if (cardType === undefined) return 'pending';
 
+  // Settled before reduce-motion is awaited: an ineligible card type is
+  // already definitive, and that lookup cannot change the outcome.
   if (cardType !== CardType.VIRTUAL) return 'skip';
+
+  if (reduceMotion === null) return 'pending';
 
   return reduceMotion ? 'skip' : 'animate';
 }

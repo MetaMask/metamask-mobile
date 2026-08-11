@@ -47,15 +47,8 @@ const RIVE_PROPERTY_Y = 'yValue';
 
 /** ViewModel trigger playing the authored entry reveal. */
 const RIVE_TRIGGER_START = 'startAnimation';
-
-/**
- * State machine present on both tilt artboards. The tilt itself does not need
- * it — data binding writes `xValue` / `yValue` straight into the artboard — but
- * `startAnimation` is a trigger, and a trigger needs a running state machine to
- * consume it.
- */
+/** Tilt does not need it, but a trigger needs a running state machine. */
 const RIVE_STATE_MACHINE = 'State Machine 1';
-
 /** Native size of both tilt artboards. */
 const RIVE_ARTBOARD_ASPECT_RATIO = 620 / 400;
 
@@ -63,11 +56,7 @@ const RIVE_ARTBOARD_ASPECT_RATIO = 620 / 400;
 const DEFAULT_WIDTH = 104;
 const DEFAULT_HEIGHT = 66;
 
-/**
- * How long to wait for Rive's `onPlay` before firing the reveal anyway. Long
- * enough for the native view to parse the file, short enough that the reveal
- * still reads as an entrance.
- */
+/** How long to wait for Rive's `onPlay` before firing the reveal anyway. */
 const REVEAL_FALLBACK_DELAY_MS = 400;
 
 interface MoneyCardTiltAnimationProps {
@@ -77,20 +66,11 @@ interface MoneyCardTiltAnimationProps {
   width?: number;
   /** Rendered height in points. Defaults to the Money home thumbnail size. */
   height?: number;
-  /**
-   * Fill the parent's width, deriving height from the artboard's aspect ratio.
-   * Takes precedence over `width` / `height`.
-   */
+  /** Fill the parent's width, deriving height from the aspect ratio. */
   fillWidth?: boolean;
-  /**
-   * Fire the asset's authored entry reveal (scale, tilt and fade into the
-   * final pose) once the native view is ready.
-   */
+  /** Fire the asset's authored entry reveal once the native view is ready. */
   playRevealOnMount?: boolean;
-  /**
-   * Beat between the native view being ready and the reveal being triggered.
-   * Lets a caller line the reveal up with its own entrance animation.
-   */
+  /** Beat before triggering, so a caller can line the reveal up with its own. */
   revealDelayMs?: number;
   testID?: string;
 }
@@ -150,48 +130,39 @@ const MoneyCardTiltAnimation = ({
   const revealTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
-  const fireReveal = useCallback(
-    (source: string) => {
-      if (hasFiredReveal.current) return;
-      hasFiredReveal.current = true;
+  const fireReveal = useCallback(() => {
+    if (hasFiredReveal.current) return;
+    hasFiredReveal.current = true;
 
-      const dispatchTrigger = () => {
-        const rive = riveRef.current;
-        // viewTag() is null while the native view is detached; dispatching
-        // then throws "found null reactTag".
-        if (!rive || rive.viewTag() === null) {
-          log(`reveal skipped from ${source}: native view detached`);
-          return;
-        }
-        log(`firing ${RIVE_TRIGGER_START} from ${source}`);
-        rive.trigger(RIVE_TRIGGER_START);
-      };
-
-      if (revealDelayMs > 0) {
-        revealTimeout.current = setTimeout(dispatchTrigger, revealDelayMs);
+    const dispatchTrigger = () => {
+      const rive = riveRef.current;
+      // viewTag() is null while the native view is detached; dispatching then
+      // throws "found null reactTag".
+      if (!rive || rive.viewTag() === null) {
+        log('reveal skipped: native view detached');
         return;
       }
-      dispatchTrigger();
-    },
-    [revealDelayMs],
-  );
+      rive.trigger(RIVE_TRIGGER_START);
+    };
+
+    if (revealDelayMs > 0) {
+      revealTimeout.current = setTimeout(dispatchTrigger, revealDelayMs);
+      return;
+    }
+    dispatchTrigger();
+  }, [revealDelayMs]);
 
   useEffect(() => () => clearTimeout(revealTimeout.current), []);
 
   const handlePlay = useCallback(() => {
-    if (!playRevealOnMount) return;
-    fireReveal('onPlay');
+    if (playRevealOnMount) fireReveal();
   }, [playRevealOnMount, fireReveal]);
 
-  // Fallback: `onPlay` only fires when the runtime actually starts playback.
-  // If the state machine settles without emitting it, the reveal would never
-  // run at all, so retry once the native view has had time to load.
+  // `onPlay` only fires when the runtime actually starts playback. If the state
+  // machine settles without emitting it, the reveal would never run at all.
   useEffect(() => {
     if (!playRevealOnMount || !animate) return undefined;
-    const timeout = setTimeout(
-      () => fireReveal('fallback'),
-      REVEAL_FALLBACK_DELAY_MS,
-    );
+    const timeout = setTimeout(fireReveal, REVEAL_FALLBACK_DELAY_MS);
     return () => clearTimeout(timeout);
   }, [playRevealOnMount, animate, fireReveal]);
 

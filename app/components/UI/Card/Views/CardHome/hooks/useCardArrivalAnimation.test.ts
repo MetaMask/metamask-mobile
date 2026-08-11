@@ -45,10 +45,12 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
-const mockFlagEnabled = jest.fn<boolean, []>();
+const mockArrivalFlag = jest.fn<boolean, []>();
+const mockTiltFlag = jest.fn<boolean, []>();
 jest.mock('../../../../Money/selectors/featureFlags', () => ({
   ...jest.requireActual('../../../../Money/selectors/featureFlags'),
-  selectMoneyCardArrivalAnimationEnabledFlag: () => mockFlagEnabled(),
+  selectMoneyCardArrivalAnimationEnabledFlag: () => mockArrivalFlag(),
+  selectMoneyCardTiltAnimationEnabledFlag: () => mockTiltFlag(),
 }));
 
 const mockReduceMotion = jest.fn<boolean | null, []>();
@@ -57,34 +59,33 @@ jest.mock('../../../../Money/hooks/useReduceMotion', () => ({
   useReduceMotionState: () => mockReduceMotion(),
 }));
 
-const buildState = ({
-  alreadySeen = false,
-  previewRequested = false,
-}: {
+type ArrivalOptions = Partial<Parameters<typeof useCardArrivalAnimation>[0]> & {
+  cardType: CardType | undefined;
   alreadySeen?: boolean;
   previewRequested?: boolean;
-} = {}): ProviderValues['state'] => ({
-  card: {
-    ...initialCardState,
-    cardArrivalAnimationSeen: alreadySeen,
-    cardArrivalPreviewRequested: previewRequested,
-  },
-});
+};
 
 const renderArrivalHook = ({
-  cardType,
-  fromCardOnboarding = true,
   alreadySeen = false,
   previewRequested = false,
-}: {
-  cardType: CardType | undefined;
-  fromCardOnboarding?: boolean;
-  alreadySeen?: boolean;
-  previewRequested?: boolean;
-}) =>
+  ...params
+}: ArrivalOptions) =>
   renderHookWithProvider(
-    () => useCardArrivalAnimation({ fromCardOnboarding, cardType }),
-    { state: buildState({ alreadySeen, previewRequested }) },
+    () =>
+      useCardArrivalAnimation({
+        fromCardOnboarding: true,
+        isRevealingCardDetails: false,
+        ...params,
+      }),
+    {
+      state: {
+        card: {
+          ...initialCardState,
+          cardArrivalAnimationSeen: alreadySeen,
+          cardArrivalPreviewRequested: previewRequested,
+        },
+      } as ProviderValues['state'],
+    },
   );
 
 describe('useCardArrivalAnimation', () => {
@@ -92,7 +93,8 @@ describe('useCardArrivalAnimation', () => {
     jest.clearAllMocks();
     jest.useRealTimers();
     mockFadeCallbacks.length = 0;
-    mockFlagEnabled.mockReturnValue(true);
+    mockArrivalFlag.mockReturnValue(true);
+    mockTiltFlag.mockReturnValue(true);
     mockReduceMotion.mockReturnValue(false);
   });
 
@@ -145,28 +147,40 @@ describe('useCardArrivalAnimation', () => {
 
   describe('when the reveal should not play', () => {
     it.each([CardType.PHYSICAL, CardType.METAL])(
-      'renders the static card for a %s card',
+      'renders the static card for a %s card without marking it seen',
       (cardType) => {
         const { result } = renderArrivalHook({ cardType });
 
         expect(result.current.usesRiveCard).toBe(false);
         expect(result.current.cardStyle.opacity).toBe(1);
+        expect(mockDispatch).not.toHaveBeenCalled();
       },
     );
 
     it('renders the static card when reduce motion is on', () => {
       mockReduceMotion.mockReturnValue(true);
-
       const { result } = renderArrivalHook({ cardType: CardType.VIRTUAL });
-
       expect(result.current.usesRiveCard).toBe(false);
     });
 
-    it('renders the static card when the kill switch is off', () => {
-      mockFlagEnabled.mockReturnValue(false);
-
+    it('renders the static card when the arrival kill switch is off', () => {
+      mockArrivalFlag.mockReturnValue(false);
       const { result } = renderArrivalHook({ cardType: CardType.VIRTUAL });
+      expect(result.current.usesRiveCard).toBe(false);
+    });
 
+    // Skipped rather than fading in the static card and burning the one-shot.
+    it('renders the static card when the tilt kill switch is off', () => {
+      mockTiltFlag.mockReturnValue(false);
+      const { result } = renderArrivalHook({ cardType: CardType.VIRTUAL });
+      expect(result.current.usesRiveCard).toBe(false);
+    });
+
+    it('yields the static card while the user views their card details', () => {
+      const { result } = renderArrivalHook({
+        cardType: CardType.VIRTUAL,
+        isRevealingCardDetails: true,
+      });
       expect(result.current.usesRiveCard).toBe(false);
     });
 
@@ -175,7 +189,6 @@ describe('useCardArrivalAnimation', () => {
         cardType: CardType.VIRTUAL,
         fromCardOnboarding: false,
       });
-
       expect(result.current.usesRiveCard).toBe(false);
     });
 
@@ -184,14 +197,7 @@ describe('useCardArrivalAnimation', () => {
         cardType: CardType.VIRTUAL,
         alreadySeen: true,
       });
-
       expect(result.current.usesRiveCard).toBe(false);
-    });
-
-    it('does not mark anything as seen', () => {
-      renderArrivalHook({ cardType: CardType.PHYSICAL });
-
-      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 

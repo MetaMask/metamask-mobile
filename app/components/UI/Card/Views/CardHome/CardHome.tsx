@@ -478,6 +478,11 @@ const CardHome = () => {
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
     cardType: data?.card?.type,
+    isRevealingCardDetails:
+      actions.isCardDetailsLoading ||
+      actions.isSensitiveDetailsLoading ||
+      Boolean(actions.cardSensitiveDetails) ||
+      Boolean(actions.cardDetailsImageUrl),
   });
 
   // --- Error state ---
