@@ -1436,15 +1436,26 @@ describe('CandleStreamChannel', () => {
       );
     });
 
-    it('returns from duplicate in-flight prewarm request', async () => {
-      let resolveFetch: (value: CandleData) => void = () => undefined;
-      mockFetchHistoricalCandles.mockReturnValue(
-        new Promise((resolve) => {
-          resolveFetch = resolve;
-        }),
-      );
+    it('starts a new prewarm after context clear and ignores stale data', async () => {
+      let resolveStaleFetch: (value: CandleData) => void = () => undefined;
+      let resolveCurrentFetch: (value: CandleData) => void = () => undefined;
+      const currentContextData = {
+        ...mockCandleData,
+        candles: [{ ...mockCandleData.candles[0], close: '60000' }],
+      };
+      mockFetchHistoricalCandles
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveStaleFetch = resolve;
+          }),
+        )
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveCurrentFetch = resolve;
+          }),
+        );
 
-      const firstPrewarm = channel.prewarmCandles(
+      const stalePrewarm = channel.prewarmCandles(
         'BTC',
         CandlePeriod.FiveMinutes,
         TimeDuration.OneWeek,
@@ -1457,12 +1468,33 @@ describe('CandleStreamChannel', () => {
 
       expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
 
-      resolveFetch({
+      channel.clearCache();
+      const currentPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.FiveMinutes,
+        TimeDuration.OneWeek,
+      );
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
+
+      resolveStaleFetch({
         symbol: 'BTC',
         interval: CandlePeriod.FiveMinutes,
         candles: [mockCandleData.candles[0]],
       });
-      await firstPrewarm;
+      await stalePrewarm;
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.FiveMinutes,
+        TimeDuration.OneWeek,
+      );
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
+
+      resolveCurrentFetch(currentContextData);
+      await currentPrewarm;
+
+      expect(channel.getCachedData('BTC', CandlePeriod.FiveMinutes)).toEqual(
+        currentContextData,
+      );
     });
 
     it('logs stale cache refresh failures triggered by subscribe', async () => {
