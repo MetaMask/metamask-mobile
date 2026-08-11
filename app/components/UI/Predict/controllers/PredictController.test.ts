@@ -336,6 +336,7 @@ describe('PredictController', () => {
       chainId: 137,
       getUnrealizedPnL: jest.fn(),
       previewOrder: jest.fn(),
+      previewMaxBuyOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       prepareWithdrawConfirmation: jest.fn(),
       createOptimisticPositionFromPreview: jest.fn(),
@@ -8037,6 +8038,34 @@ describe('PredictController', () => {
             size: 100,
           }),
         ).rejects.toThrow('Preview failed synchronously');
+      });
+    });
+  });
+
+  describe('previewMaxBuyOrder', () => {
+    it('previews the maximum buy with the current signer', async () => {
+      const mockOrderPreview = createMockOrderPreview({ side: Side.BUY });
+      mockPolymarketProvider.previewMaxBuyOrder.mockResolvedValue(
+        mockOrderPreview,
+      );
+
+      await withController(async ({ controller }) => {
+        const result = await controller.previewMaxBuyOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          availableBalance: 100,
+        });
+
+        expect(result).toEqual(mockOrderPreview);
+        expect(mockPolymarketProvider.previewMaxBuyOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            availableBalance: 100,
+            signer: expect.objectContaining({
+              address: '0x1234567890123456789012345678901234567890',
+            }),
+          }),
+        );
       });
     });
   });

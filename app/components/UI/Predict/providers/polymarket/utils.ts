@@ -46,6 +46,7 @@ import type {
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarketListParams,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   SearchMarketsParams,
 } from '../types';
@@ -86,7 +87,10 @@ import {
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
-import { roundToFiveDecimals } from '../../utils/orders';
+import {
+  getPredictBuyAllInCost,
+  roundToFiveDecimals,
+} from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 import {
   buildOutcomeGroups,
@@ -2309,9 +2313,12 @@ const matchBuyOrder = ({
     const e = asks[i];
     const entrySize = parseFloat(e.size);
     const entryPrice = parseFloat(e.price);
+    if (!Number.isFinite(entrySize) || !Number.isFinite(entryPrice)) {
+      continue;
+    }
     const entryValue = entrySize * entryPrice;
 
-    if (sum + entryValue <= dollarAmount) {
+    if (sum + entryValue <= dollarAmount + Number.EPSILON) {
       quantity += entrySize;
       sum += entryValue;
     } else {
@@ -2322,7 +2329,7 @@ const matchBuyOrder = ({
     }
   }
 
-  if (sum === dollarAmount) {
+  if (Math.abs(sum - dollarAmount) < 1e-8) {
     return {
       price: sharePrice,
       size: quantity,
@@ -2331,6 +2338,16 @@ const matchBuyOrder = ({
 
   throw new Error('not enough shares to match user bet amount');
 };
+
+const getBuyLiquidity = (asks: OrderSummary[]): number =>
+  asks.reduce((total, ask) => {
+    const size = parseFloat(ask.size);
+    const price = parseFloat(ask.price);
+
+    return Number.isFinite(size) && Number.isFinite(price)
+      ? total + size * price
+      : total;
+  }, 0);
 
 const matchSellOrder = ({
   bids,
@@ -2511,6 +2528,29 @@ export const previewOrder = async (
     isV2,
     clobBaseUrl,
   } = params;
+
+  if (side === Side.BUY) {
+    const context = await getBuyPreviewContext({
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      feeCollection,
+      isV2,
+      clobBaseUrl,
+    });
+    if (!context) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+    }
+
+    return buildBuyPreviewFromContext({
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      size,
+      context,
+    });
+  }
+
   const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
@@ -2531,54 +2571,6 @@ export const previewOrder = async (
     tickSize: book.tick_size,
   });
 
-  if (side === Side.BUY) {
-    const { asks } = book;
-    if (!asks || asks.length === 0) {
-      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
-    }
-    const { price: bestPrice, size: shareAmount } = matchBuyOrder({
-      asks,
-      dollarAmount: size,
-    });
-    const makerAmount = roundDown(size, roundConfig.size);
-    const takerAmount = roundOrderAmount({
-      amount: shareAmount,
-      decimals: roundConfig.amount,
-    });
-    const preview: OrderPreview = {
-      marketId,
-      outcomeId,
-      outcomeTokenId,
-      timestamp: new Date(book.timestamp).getTime(),
-      side: Side.BUY,
-      sharePrice: bestPrice,
-      maxAmountSpent: makerAmount,
-      minAmountReceived: takerAmount,
-      slippage: SLIPPAGE_BUY,
-      tickSize: parseFloat(tickSize),
-      minOrderSize: parseFloat(book.min_order_size),
-      negRisk: book.neg_risk,
-      feeRateBps,
-    };
-
-    const serviceFees = await calculateFees({
-      feeCollection,
-      marketId,
-      userBetAmount: makerAmount,
-    });
-    const marketFee = calculateConservativeBuyMarketFee({
-      preview,
-      marketInfo,
-    });
-
-    return {
-      ...preview,
-      fees: {
-        ...serviceFees,
-        marketFee,
-      },
-    };
-  }
   const { bids } = book;
   if (!bids || bids.length === 0) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
@@ -2625,4 +2617,157 @@ export const previewOrder = async (
       marketFee,
     },
   };
+};
+
+interface BuyPreviewContext {
+  book: OrderBook;
+  marketInfo?: ClobMarketInfo;
+  serviceFeesPerDollar: PredictFees;
+}
+
+async function getBuyPreviewContext({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  feeCollection,
+  isV2,
+  clobBaseUrl,
+}: Omit<PreviewMaxBuyOrderParams, 'availableBalance'> & {
+  feeCollection?: PredictFeeCollection;
+  isV2?: boolean;
+  clobBaseUrl?: string;
+}): Promise<BuyPreviewContext | null> {
+  const [book, marketInfo] = await Promise.all([
+    getOrderBook({
+      tokenId: outcomeTokenId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+    getClobMarketInfoSafe({
+      conditionId: outcomeId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+  ]);
+
+  if (!book) {
+    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+  }
+  if (!book.asks?.length) {
+    return null;
+  }
+
+  const serviceFeesPerDollar = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: 1,
+  });
+
+  return { book, marketInfo, serviceFeesPerDollar };
+}
+
+function buildBuyPreviewFromContext({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  size,
+  context,
+}: Omit<PreviewOrderParams, 'side' | 'positionId'> & {
+  context: BuyPreviewContext;
+}): OrderPreview {
+  const { book, marketInfo, serviceFeesPerDollar } = context;
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
+  const { price: bestPrice, size: shareAmount } = matchBuyOrder({
+    asks: book.asks,
+    dollarAmount: size,
+  });
+  const makerAmount = roundDown(size, roundConfig.size);
+  const metamaskFee = makerAmount * serviceFeesPerDollar.metamaskFee;
+  const providerFee = makerAmount * serviceFeesPerDollar.providerFee;
+  const preview: OrderPreview = {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    timestamp: new Date(book.timestamp).getTime(),
+    side: Side.BUY,
+    sharePrice: bestPrice,
+    maxAmountSpent: makerAmount,
+    minAmountReceived: roundOrderAmount({
+      amount: shareAmount,
+      decimals: roundConfig.amount,
+    }),
+    slippage: SLIPPAGE_BUY,
+    tickSize: parseFloat(tickSize),
+    minOrderSize: parseFloat(book.min_order_size),
+    negRisk: book.neg_risk,
+    feeRateBps: '0',
+  };
+
+  return {
+    ...preview,
+    fees: {
+      ...serviceFeesPerDollar,
+      metamaskFee,
+      providerFee,
+      totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+      marketFee: calculateConservativeBuyMarketFee({ preview, marketInfo }),
+    },
+  };
+}
+
+const getBuyAllInCostInCents = (preview: OrderPreview): number =>
+  Math.round(getPredictBuyAllInCost(preview) * 100);
+
+/**
+ * Finds the largest cent-denominated BUY that is fully fillable from one order
+ * book snapshot and whose stake plus fees fits within the available balance.
+ */
+export const previewMaxBuyOrder = async (
+  params: PreviewMaxBuyOrderParams & {
+    feeCollection?: PredictFeeCollection;
+    isV2?: boolean;
+    clobBaseUrl?: string;
+  },
+): Promise<OrderPreview | null> => {
+  const { availableBalance, ...previewParams } = params;
+  if (!Number.isFinite(availableBalance) || availableBalance <= 0) {
+    return null;
+  }
+
+  const context = await getBuyPreviewContext(previewParams);
+  if (!context) {
+    return null;
+  }
+  const balanceInCents = Math.floor(availableBalance * 100 + 1e-8);
+  const liquidityInCents = Math.floor(
+    getBuyLiquidity(context.book.asks) * 100 + 1e-8,
+  );
+  let low = 0;
+  let high = Math.min(balanceInCents, liquidityInCents);
+  let maxPreview: OrderPreview | null = null;
+
+  while (low <= high) {
+    const candidateInCents = Math.floor((low + high) / 2);
+    if (candidateInCents === 0) {
+      low = 1;
+      continue;
+    }
+
+    const preview = buildBuyPreviewFromContext({
+      ...previewParams,
+      size: candidateInCents / 100,
+      context,
+    });
+
+    if (getBuyAllInCostInCents(preview) <= balanceInCents) {
+      maxPreview = preview;
+      low = candidateInCents + 1;
+    } else {
+      high = candidateInCents - 1;
+    }
+  }
+
+  return maxPreview;
 };

@@ -41,6 +41,7 @@ import {
   getTickSizeRoundConfig,
   parsePolymarketEvents,
   parsePolymarketActivity,
+  previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
@@ -2747,6 +2748,145 @@ describe('polymarket utils', () => {
       `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
       { method: 'GET' },
     );
+  });
+
+  describe('previewMaxBuyOrder', () => {
+    it('finds the largest fully fillable stake whose all-in cost fits the balance', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [
+              { price: '0.75', size: '100' },
+              { price: '0.50', size: '100' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            fd: { r: 0.02, e: 1, to: true },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const preview = await previewMaxBuyOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        availableBalance: 100,
+        feeCollection: {
+          enabled: true,
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          waiveList: [],
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: [],
+          permit2Enabled: false,
+        },
+      });
+
+      expect(preview?.maxAmountSpent).toBe(95.4);
+      expect(preview?.minAmountReceived).toBeCloseTo(160.53333);
+      expect(
+        (preview?.maxAmountSpent ?? 0) +
+          (preview?.fees?.metamaskFee ?? 0) +
+          (preview?.fees?.providerFee ?? 0) +
+          (preview?.fees?.marketFee ?? 0),
+      ).toBeLessThanOrEqual(100);
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('caps the maximum stake at the fully fillable order-book liquidity', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [{ price: '0.50', size: '20' }],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      const preview = await previewMaxBuyOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        availableBalance: 100,
+      });
+
+      expect(preview?.maxAmountSpent).toBe(10);
+      expect(preview?.minAmountReceived).toBe(20);
+    });
+
+    it('returns null when fillable liquidity is below one cent', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [{ price: '0.50', size: '0.01' }],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      await expect(
+        previewMaxBuyOrder({
+          marketId: 'market-1',
+          outcomeId:
+            '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          outcomeTokenId: 'token-1',
+          availableBalance: 100,
+        }),
+      ).resolves.toBeNull();
+    });
+
+    it('returns null when the order book has no asks', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ ...orderBook, asks: [] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      await expect(
+        previewMaxBuyOrder({
+          marketId: 'market-1',
+          outcomeId:
+            '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          outcomeTokenId: 'token-1',
+          availableBalance: 100,
+        }),
+      ).resolves.toBeNull();
+    });
+
+    it('returns null without fetching when the balance is not positive', async () => {
+      await expect(
+        previewMaxBuyOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          availableBalance: 0,
+        }),
+      ).resolves.toBeNull();
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
   });
 
   it('previews buy orders with 0.0025 tick size from ROUNDING_CONFIG', async () => {

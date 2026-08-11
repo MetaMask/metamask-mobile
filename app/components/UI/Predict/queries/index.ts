@@ -19,6 +19,10 @@ import {
   predictOrderPreviewKeys,
   predictOrderPreviewOptions,
 } from './orderPreview';
+import {
+  predictMaxBuyOrderPreviewKeys,
+  predictMaxBuyOrderPreviewOptions,
+} from './maxBuyOrderPreview';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
 import {
   predictCryptoPriceHistoryKeys,
@@ -73,6 +77,10 @@ export const predictQueries = {
   marketList: {
     keys: predictMarketListKeys,
     options: predictMarketListOptions,
+  },
+  maxBuyOrderPreview: {
+    keys: predictMaxBuyOrderPreviewKeys,
+    options: predictMaxBuyOrderPreviewOptions,
   },
   orderPreview: {
     keys: predictOrderPreviewKeys,

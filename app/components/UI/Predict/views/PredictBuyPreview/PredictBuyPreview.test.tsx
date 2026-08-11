@@ -111,6 +111,21 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictMaxBetAmount', () => ({
+  usePredictMaxBetAmount: ({
+    availableBalance,
+    preview,
+  }: {
+    availableBalance: number;
+    preview?: unknown;
+  }) => ({
+    maxBetAmount: jest
+      .requireActual('../../utils/orders')
+      .calculateMaxBetAmount(availableBalance, preview),
+    isLoading: false,
+  }),
+}));
+
 // Mock usePredictBalance hook
 let mockBalance = 1000;
 let mockBalanceLoading = false;

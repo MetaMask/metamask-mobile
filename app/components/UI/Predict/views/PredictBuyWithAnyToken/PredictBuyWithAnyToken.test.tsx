@@ -120,6 +120,13 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictMaxBetAmount', () => ({
+  usePredictMaxBetAmount: () => ({
+    maxBetAmount: 9.52,
+    isLoading: false,
+  }),
+}));
+
 jest.mock('../../hooks/usePredictOrderRetry', () => ({
   usePredictOrderRetry: () => ({
     retrySheetRef: { current: null },

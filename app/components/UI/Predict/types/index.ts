@@ -792,6 +792,13 @@ export interface PreviewOrderParams {
   positionId?: string;
 }
 
+export interface PreviewMaxBuyOrderParams {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  availableBalance: number;
+}
+
 export type PredictWalletType = 'safe' | 'deposit-wallet';
 
 export interface AccountState {

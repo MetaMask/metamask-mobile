@@ -1,7 +1,7 @@
-import { MINIMUM_BET } from '../constants/transactions';
-import { Side, type OrderPreview } from '../types';
+import { useQuery } from '@tanstack/react-query';
+import { predictQueries } from '../queries';
+import type { OrderPreview } from '../types';
 import { calculateMaxBetAmount } from '../utils/orders';
-import { usePredictOrderPreview } from './usePredictOrderPreview';
 
 interface UsePredictMaxBetAmountParams {
   availableBalance: number;
@@ -20,24 +20,25 @@ export function usePredictMaxBetAmount({
   preview,
   enabled = true,
 }: UsePredictMaxBetAmountParams) {
-  const needsFeeReference = enabled && availableBalance > 0 && !preview;
-  const { preview: feeReferencePreview, isCalculating } =
-    usePredictOrderPreview({
+  const shouldCalculate = enabled && availableBalance > 0;
+  const query = useQuery({
+    ...predictQueries.maxBuyOrderPreview.options({
       marketId,
       outcomeId,
       outcomeTokenId,
-      side: Side.BUY,
-      size: needsFeeReference ? MINIMUM_BET : 0,
-      autoRefreshTimeout: 1000,
-    });
-  const referencePreview = preview ?? feeReferencePreview;
-
-  const maxBetAmount = enabled
-    ? calculateMaxBetAmount(availableBalance, referencePreview)
-    : availableBalance;
+      availableBalance,
+    }),
+    enabled: shouldCalculate,
+    refetchInterval: shouldCalculate ? 1000 : false,
+  });
+  const fallbackMaxBetAmount = calculateMaxBetAmount(availableBalance, preview);
+  const maxBetAmount =
+    query.data === null
+      ? 0
+      : (query.data?.maxAmountSpent ?? fallbackMaxBetAmount);
 
   return {
-    maxBetAmount,
-    isLoading: needsFeeReference && !referencePreview && isCalculating,
+    maxBetAmount: enabled ? maxBetAmount : availableBalance,
+    isLoading: shouldCalculate && query.data === undefined && query.isFetching,
   };
 }

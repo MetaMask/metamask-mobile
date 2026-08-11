@@ -112,6 +112,7 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PreviewMaxBuyOrderParams,
   PriceUpdateCallback,
   OrderbookCallback,
   Result,
@@ -1579,6 +1580,29 @@ export class PredictController extends BaseController<
         this.getErrorContext('previewOrder', {
           providerId: POLYMARKET_PROVIDER_ID,
           side: params.side,
+          marketId: params.marketId,
+          outcomeId: params.outcomeId,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
+  async previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams,
+  ): Promise<OrderPreview | null> {
+    try {
+      const provider = this.provider;
+      const signer = this.getSigner();
+
+      return provider.previewMaxBuyOrder({ ...params, signer });
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('previewMaxBuyOrder', {
+          providerId: POLYMARKET_PROVIDER_ID,
+          side: Side.BUY,
           marketId: params.marketId,
           outcomeId: params.outcomeId,
         }),
