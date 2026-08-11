@@ -95,7 +95,7 @@ const EXPLORE_SCREENS: Record<
       const timeframe = readParam(
         urlParams,
         'timeframe',
-        enums(['5m', '1h', '6h', '24h']),
+        enums(['5m', '1h', '6h', '24h'] satisfies `${TimeOption}`[]),
       );
 
       return {

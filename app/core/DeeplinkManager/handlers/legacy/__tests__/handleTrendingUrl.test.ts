@@ -9,6 +9,70 @@ jest.mock('../../../../NavigationService', () => ({
   },
 }));
 
+/**
+ * Every link the handler supports, written out in full so the whole surface can
+ * be read off one list, and so any of them can be pasted into a device to check
+ * it by hand:
+ *
+ * iOS: `xcrun simctl openurl booted '<deeplink>'`
+ *
+ * Android: `adb shell am start -a android.intent.action.VIEW -d '<deeplink>'`
+ *
+ * This test suite only validates that the handler reaches a valid destination, meant for human readability.
+ * See other test suites for the handler's behavior.
+ */
+describe('handleTrendingUrl - valid links', () => {
+  const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  /** Explore itself, which is also where a link it makes nothing of lands. */
+  const OPENS_EXPLORE = [[Routes.TRENDING_VIEW]];
+
+  const EXPLORE_HOME_LINK = 'https://link.metamask.io/trending';
+
+  it(`Open valid explore destination: ${EXPLORE_HOME_LINK}`, async () => {
+    await handleTrendingUrl({ actionPath: new URL(EXPLORE_HOME_LINK).search });
+    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate.mock.calls).toStrictEqual(OPENS_EXPLORE);
+  });
+
+  it.each([
+    // Explore Tabs
+    'https://link.metamask.io/trending?tab=now',
+    'https://link.metamask.io/trending?tab=macro',
+    'https://link.metamask.io/trending?tab=rwas',
+    'https://link.metamask.io/trending?tab=crypto',
+    'https://link.metamask.io/trending?tab=sports',
+    'https://link.metamask.io/trending?tab=sites',
+
+    // Explore Full-screen Stocks
+    'https://link.metamask.io/trending?screen=stocks',
+
+    // Explore Full-screen Trending Tokens
+    'https://link.metamask.io/trending?screen=trending-tokens',
+    'https://link.metamask.io/trending?screen=trending-tokens&chainId=eip155:4663',
+    'https://link.metamask.io/trending?screen=trending-tokens&chainId=solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    'https://link.metamask.io/trending?screen=trending-tokens&timeframe=24h',
+    'https://link.metamask.io/trending?screen=trending-tokens&chainId=eip155:4663&timeframe=6h',
+
+    // Explore Full-screen Sites
+    'https://link.metamask.io/trending?screen=sites',
+    'https://link.metamask.io/trending?screen=favorite-sites',
+
+    // Explore Full-screen Search
+    'https://link.metamask.io/trending?screen=search',
+    'https://link.metamask.io/trending?screen=search&q=ethereum',
+    'https://link.metamask.io/trending?screen=search&query=bitcoin',
+  ])('Open valid explore destination: %s', async (deeplink) => {
+    await handleTrendingUrl({ actionPath: new URL(deeplink).search });
+    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate.mock.calls).not.toStrictEqual(OPENS_EXPLORE);
+  });
+});
+
 describe('handleTrendingUrl', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 
