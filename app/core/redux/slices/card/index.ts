@@ -17,6 +17,13 @@ export interface CardSliceState {
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
   pendingMoneyAccountCardLink: CardEntryPoint | null;
+  cardArrivalAnimationSeen: boolean;
+  /**
+   * Armed by the developer-options reset to replay the arrival animation.
+   * Transient: the dashboard consumes it on arrival and it is stripped from
+   * persistence.
+   */
+  cardArrivalPreviewRequested: boolean;
 }
 
 export const initialState: CardSliceState = {
@@ -29,6 +36,8 @@ export const initialState: CardSliceState = {
   },
   isDaimoDemo: false,
   pendingMoneyAccountCardLink: null,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
 };
 
 const name = 'card';
@@ -72,6 +81,12 @@ const slice = createSlice({
       action: PayloadAction<CardEntryPoint | null>,
     ) => {
       state.pendingMoneyAccountCardLink = action.payload;
+    },
+    setCardArrivalAnimationSeen: (state, action: PayloadAction<boolean>) => {
+      state.cardArrivalAnimationSeen = action.payload;
+    },
+    setCardArrivalPreviewRequested: (state, action: PayloadAction<boolean>) => {
+      state.cardArrivalPreviewRequested = action.payload;
     },
   },
 });
@@ -118,6 +133,16 @@ export const selectPendingMoneyAccountCardLink = createSelector(
   (card) => card.pendingMoneyAccountCardLink,
 );
 
+export const selectCardArrivalAnimationSeen = createSelector(
+  selectCardState,
+  (card) => card.cardArrivalAnimationSeen,
+);
+
+export const selectCardArrivalPreviewRequested = createSelector(
+  selectCardState,
+  (card) => card.cardArrivalPreviewRequested,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -129,4 +154,6 @@ export const {
   resetOnboardingState,
   setIsDaimoDemo,
   setPendingMoneyAccountCardLink,
+  setCardArrivalAnimationSeen,
+  setCardArrivalPreviewRequested,
 } = actions;

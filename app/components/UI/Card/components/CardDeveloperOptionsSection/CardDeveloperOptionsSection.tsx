@@ -7,7 +7,11 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { resetOnboardingState } from '../../../../../core/redux/slices/card';
+import {
+  resetOnboardingState,
+  setCardArrivalAnimationSeen,
+  setCardArrivalPreviewRequested,
+} from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
   TextColor,
@@ -46,6 +50,11 @@ const CardDeveloperOptionsSection = () => {
       );
     }
   }, [primaryMoneyAccount?.address]);
+
+  const handleResetCardArrivalAnimation = useCallback(() => {
+    dispatch(setCardArrivalAnimationSeen(false));
+    dispatch(setCardArrivalPreviewRequested(true));
+  }, [dispatch]);
 
   return (
     <Box twClassName="mt-2 gap-2">
@@ -108,6 +117,27 @@ const CardDeveloperOptionsSection = () => {
           )}
         </Text>
       )}
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={tw.style('mt-6')}
+      >
+        {strings(
+          'app_settings.developer_options.card.reset_card_arrival_description',
+        )}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleResetCardArrivalAnimation}
+        isFullWidth
+        style={tw.style('mt-4')}
+        testID="card-dev-reset-card-arrival-button"
+      >
+        {strings(
+          'app_settings.developer_options.card.reset_card_arrival_button',
+        )}
+      </Button>
     </Box>
   );
 };

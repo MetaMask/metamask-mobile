@@ -28,6 +28,8 @@ const CARD_STATE_MOCK: CardSliceState = {
     immersveFundingSourceId: null,
   },
   pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,6 +43,8 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     immersveFundingSourceId: null,
   },
   pendingMoneyAccountCardLink: null,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
 };
 
 describe('Card Selectors', () => {
@@ -164,6 +168,8 @@ describe('Card Reducer', () => {
           immersveFundingSourceId: null,
         },
         pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        cardArrivalAnimationSeen: true,
+        cardArrivalPreviewRequested: false,
       };
 
       const state = cardReducer(currentState, resetCardState());

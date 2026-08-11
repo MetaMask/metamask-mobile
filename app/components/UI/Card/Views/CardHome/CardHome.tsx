@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
+import Animated from 'react-native-reanimated';
 import {
   Box,
   Text,
@@ -66,6 +67,7 @@ import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinka
 import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
+import MoneyCardTiltAnimation from '../../../Money/components/MoneyCardTiltAnimation';
 import {
   ToastContext,
   ToastVariants,
@@ -92,6 +94,7 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import CardImageSection from './components/CardImageSection';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeFooter from './components/CardHomeFooter';
+import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
@@ -101,6 +104,7 @@ import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
+  fromCardOnboarding?: boolean;
 }
 
 const SETUP_ALERT_TYPES = new Set(['kyc_pending', 'card_provisioning']);
@@ -471,6 +475,11 @@ const CardHome = () => {
 
   const headerHandlers = useCardHeaderHandlers('back');
 
+  const arrival = useCardArrivalAnimation({
+    fromCardOnboarding: !!route.params?.fromCardOnboarding,
+    cardType: data?.card?.type,
+  });
+
   // --- Error state ---
   if (isError) {
     return (
@@ -566,30 +575,43 @@ const CardHome = () => {
         )}
 
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
-          <Box twClassName="w-full relative">
-            <CardImageSection
-              isLoading={isLoading}
-              isCardDetailsLoading={
-                actions.isCardDetailsLoading ||
-                actions.isSensitiveDetailsLoading
-              }
-              cardDetailsImageUrl={actions.cardDetailsImageUrl}
-              isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
-              onImageLoad={actions.onCardDetailsImageLoad}
-              onImageError={actions.onCardDetailsImageError}
-              cardSensitiveDetails={actions.cardSensitiveDetails}
-              onCopyDetail={actions.copyCardDetail}
-              cardType={data?.card?.type}
-              cardStatus={data?.card?.status}
-              walletAddress={
-                isAuthenticated
-                  ? primaryToken?.isMoneyAccountEntry
-                    ? strings('card.card_spending_limit.money_account_label')
-                    : data?.primaryFundingAsset?.walletAddress
-                  : undefined
-              }
-            />
-          </Box>
+          <Animated.View
+            style={[tw.style('w-full relative'), arrival.cardStyle]}
+          >
+            {arrival.usesRiveCard ? (
+              <MoneyCardTiltAnimation
+                key={arrival.revealKey}
+                isMetalCard={hasMetalCard}
+                fillWidth
+                playRevealOnMount
+                revealDelayMs={arrival.revealDelayMs}
+                testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
+              />
+            ) : (
+              <CardImageSection
+                isLoading={isLoading}
+                isCardDetailsLoading={
+                  actions.isCardDetailsLoading ||
+                  actions.isSensitiveDetailsLoading
+                }
+                cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
+                onImageLoad={actions.onCardDetailsImageLoad}
+                onImageError={actions.onCardDetailsImageError}
+                cardSensitiveDetails={actions.cardSensitiveDetails}
+                onCopyDetail={actions.copyCardDetail}
+                cardType={data?.card?.type}
+                cardStatus={data?.card?.status}
+                walletAddress={
+                  isAuthenticated
+                    ? primaryToken?.isMoneyAccountEntry
+                      ? strings('card.card_spending_limit.money_account_label')
+                      : data?.primaryFundingAsset?.walletAddress
+                    : undefined
+                }
+              />
+            )}
+          </Animated.View>
 
           {!hasSetupActions && !hasAlertOnlyState && (
             <CardBalanceDisplay

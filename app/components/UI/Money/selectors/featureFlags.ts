@@ -260,6 +260,22 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
   },
 );
 
+/**
+ * Kill-switch for the card arrival reveal animation shown on the card
+ * dashboard after card onboarding completes.
+ * Defaults to ON (true).
+ */
+export const selectMoneyCardArrivalAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardArrivalAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local =
+      process.env.MM_MONEY_CARD_ARRIVAL_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
 const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
 
 /**
