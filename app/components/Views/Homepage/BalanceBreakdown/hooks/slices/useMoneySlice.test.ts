@@ -1,12 +1,15 @@
 import { renderHook } from '@testing-library/react-native';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../../../../UI/Money/hooks/useMoneyAccountInfo';
 import { getMoneySliceStatus, useMoneySlice } from './useMoneySlice';
 
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
+jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountInfo');
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 
 const READY_INPUT = {
@@ -49,9 +52,11 @@ describe('useMoneySlice', () => {
       tokenTotal: { toNumber: () => 100 },
       isBalanceLoading: false,
       isBalanceFetchError: false,
+    } as ReturnType<typeof useMoneyAccountBalance>);
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4.1,
       vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
   });
 
   it('converts a ready balance and exposes its APY', () => {
@@ -81,13 +86,10 @@ describe('useMoneySlice', () => {
   });
 
   it('exposes APY loading independently of balance readiness', () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
-      tokenTotal: { toNumber: () => 100 },
-      isBalanceLoading: false,
-      isBalanceFetchError: false,
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: undefined,
       vaultApyQuery: { isLoading: true },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
@@ -96,13 +98,10 @@ describe('useMoneySlice', () => {
   });
 
   it('does not fabricate APY after a settled query without a rate', () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
-      tokenTotal: { toNumber: () => 100 },
-      isBalanceLoading: false,
-      isBalanceFetchError: false,
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: undefined,
       vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
@@ -111,13 +110,10 @@ describe('useMoneySlice', () => {
   });
 
   it('preserves a genuine zero APY', () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
-      tokenTotal: { toNumber: () => 100 },
-      isBalanceLoading: false,
-      isBalanceFetchError: false,
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 0,
       vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
@@ -142,17 +138,20 @@ describe('useMoneySlice', () => {
       isMoneyAccountFeatureEnabled: false,
       hasMoneyAccount: false,
     } as ReturnType<typeof useMoneyAccountInfo>);
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyPercent: 4.1,
+      vaultApyQuery: { isLoading: false },
+    } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyAccountBalance.mockReturnValue({
       tokenTotal: undefined,
       isBalanceLoading: false,
       isBalanceFetchError: false,
-      apyPercent: 4.1,
-      vaultApyQuery: { isLoading: false },
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
     expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
     expect(result.current).toEqual({
       key: 'money',
       isVisible: false,
