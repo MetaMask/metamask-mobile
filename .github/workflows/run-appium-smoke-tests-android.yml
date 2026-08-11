@@ -128,7 +128,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  # Thin seedless keep list — 2 shards (aligned with main).
   appium-seedless-onboarding-android-smoke:
     if: >-
       ${{
