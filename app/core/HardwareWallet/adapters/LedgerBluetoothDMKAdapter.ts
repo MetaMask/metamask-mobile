@@ -156,6 +156,10 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     targetDeviceId: string,
     timeoutMs: number,
   ): Promise<boolean> {
+    if (this.isConnected() && this.#deviceId === targetDeviceId) {
+      return true;
+    }
+
     // Strategy 1: Direct connect using cached device info (no scan).
     // The bridge's connect() only uses device.id + transport.
     if (
@@ -232,7 +236,7 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
       this.#lastConnectedDevice = discovered;
 
       await this.connect(targetDeviceId);
-      return true;
+      return this.isConnected() && this.#deviceId === targetDeviceId;
     } catch {
       return false;
     }

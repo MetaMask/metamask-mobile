@@ -309,18 +309,37 @@ describe('LedgerBluetoothDMKAdapter', () => {
       await expect(adapter.backgroundReconnect(DEVICE_ID)).resolves.toBe(false);
     });
 
-    it('directly reconnects using the cached device without scanning', async () => {
+    it('returns true without opening another session when already connected to the target device', async () => {
       await connectFirst();
-      mockDisconnectLedgerDmkSession.mockClear();
+      mockConnectLedgerDmkDevice.mockClear();
+      onDeviceEvent.mockClear();
 
       const ok = await adapter.backgroundReconnect(DEVICE_ID, 5000);
 
       expect(ok).toBe(true);
+      expect(mockConnectLedgerDmkDevice).not.toHaveBeenCalled();
+      expect(onDeviceEvent).not.toHaveBeenCalled();
+    });
+
+    it('directly reconnects using the cached device without scanning', async () => {
+      await connectFirst();
+      await adapter.disconnect();
+      mockDisconnectLedgerDmkSession.mockClear();
+      mockConnectLedgerDmkDevice.mockClear();
+      onDeviceEvent.mockClear();
+
+      const ok = await adapter.backgroundReconnect(DEVICE_ID, 5000);
+
+      expect(ok).toBe(true);
+      expect(mockConnectLedgerDmkDevice).toHaveBeenCalledWith(
+        expect.objectContaining({ id: DEVICE_ID }),
+      );
       expectEmitted(DeviceEvent.Connected);
     });
 
     it('cleans up and returns false if destroyed after a direct reconnect resolves', async () => {
       await connectFirst();
+      await adapter.disconnect();
       const { promise, resolve } = deferredSession();
       mockConnectLedgerDmkDevice.mockReset().mockReturnValue(promise);
 
@@ -336,6 +355,7 @@ describe('LedgerBluetoothDMKAdapter', () => {
 
     it('falls back to scanning when the direct connect fails', async () => {
       await connectFirst();
+      await adapter.disconnect();
       mockConnectLedgerDmkDevice.mockRejectedValueOnce(
         new Error('direct fail'),
       );
@@ -348,6 +368,24 @@ describe('LedgerBluetoothDMKAdapter', () => {
       ]);
 
       await expect(pending).resolves.toBe(true);
+      expect(mockListenToLedgerDmkAvailableDevices).toHaveBeenCalled();
+    });
+
+    it('returns false when destroyed during the scan fallback connection', async () => {
+      const { promise, resolve } = deferredSession();
+      mockConnectLedgerDmkDevice.mockReset().mockReturnValue(promise);
+
+      const pending = adapter.backgroundReconnect(DEVICE_ID, 5000);
+      await flushPromises();
+      scanSubject.next([
+        { id: DEVICE_ID, name: 'Nano X' } as DmkDiscoveredDevice,
+      ]);
+      await flushPromises();
+
+      adapter.destroy();
+      resolve('session-from-scan');
+
+      await expect(pending).resolves.toBe(false);
     });
 
     it('returns false when the device is not found within the scan timeout', async () => {
@@ -374,6 +412,7 @@ describe('LedgerBluetoothDMKAdapter', () => {
 
     it('reuses an in-flight background reconnect rather than starting a second', async () => {
       await connectFirst();
+      await adapter.disconnect();
       const { promise, resolve } = deferredSession();
       mockConnectLedgerDmkDevice.mockReset().mockReturnValue(promise);
       mockConnectLedgerDmkDevice.mockClear();
