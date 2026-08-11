@@ -86,6 +86,7 @@ import ConditionalScrollView from '../../../component-library/components-temp/Co
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -865,7 +866,10 @@ const Wallet = ({
         MetaMetricsEvents.ACTIVITY_CLICKED,
       ).build(),
     );
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { entryPoint: ActivityScreenEntryPoint.WalletHomeHeader },
+    });
   }, [navigation, trackEvent]);
 
   const handleSearchPress = useCallback(() => {
