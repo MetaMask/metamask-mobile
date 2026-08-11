@@ -44,7 +44,7 @@ import FeedSpotBuyAction, {
 import TopTradersView from '../TopTradersView';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
+import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import {
   TabsBar,
   type TabItem,

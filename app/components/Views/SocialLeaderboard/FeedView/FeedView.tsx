@@ -56,7 +56,7 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
+import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';

@@ -1750,6 +1750,7 @@ describe('PredictController', () => {
           expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+            errorStage: 'order',
           });
           expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
         },
@@ -1797,6 +1798,7 @@ describe('PredictController', () => {
           expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
+            errorStage: 'order',
           });
         },
         {
@@ -5680,12 +5682,16 @@ describe('PredictController', () => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.PREVIEW,
           error: 'some error',
+          errorStage: 'payment',
         });
 
         controller.clearOrderError();
 
         expect(
           controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage,
         ).toBeUndefined();
       });
     });
@@ -5931,6 +5937,46 @@ describe('PredictController', () => {
         expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
+      });
+    });
+
+    it('preserves payment-stage error after successful re-init', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Deposit reverted',
+          errorStage: 'payment',
+        });
+
+        const result = await controller.initPayWithAnyToken();
+
+        expect(result.success).toBe(true);
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit reverted',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+      });
+    });
+
+    it('clears non-payment error after successful re-init', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Order placement failed',
+          errorStage: 'order',
+        });
+
+        const result = await controller.initPayWithAnyToken();
+
+        expect(result.success).toBe(true);
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage,
+        ).toBeUndefined();
       });
     });
 
@@ -12507,6 +12553,12 @@ describe('PredictController', () => {
         ).toMatchObject({
           payment_token_address: '0xpaytoken',
         });
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit reverted',
+        );
       });
     });
 
@@ -12811,6 +12863,12 @@ describe('PredictController', () => {
           success: false,
           error: 'Deposit preparation returned undefined',
         });
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit preparation returned undefined',
+        );
       });
     });
 
