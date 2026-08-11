@@ -1,27 +1,18 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { providerErrors } from '@metamask/rpc-errors';
 import Engine from '../../../../core/Engine';
-import { selectPendingApprovals } from '../../../../selectors/approvalController';
+import { selectFirstPendingApproval } from '../../../../selectors/approvalController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ApprovalRequestType = ApprovalRequest<any>;
 
 const useApprovalRequest = () => {
-  const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
-  const pendingApprovalList = Object.values(pendingApprovals ?? {});
-
-  const firstPendingApproval = pendingApprovalList[0] as
+  const approvalRequest = useSelector(selectFirstPendingApproval) as
     | ApprovalRequestType
     | undefined;
-
-  const approvalRequest = useMemo(
-    () => cloneDeep(firstPendingApproval),
-    [firstPendingApproval],
-  );
 
   const onConfirm = useCallback(
     async (
@@ -58,12 +49,15 @@ const useApprovalRequest = () => {
     [approvalRequest],
   );
 
-  return {
-    approvalRequest,
-    pageMeta,
-    onConfirm,
-    onReject,
-  };
+  return useMemo(
+    () => ({
+      approvalRequest,
+      pageMeta,
+      onConfirm,
+      onReject,
+    }),
+    [approvalRequest, pageMeta, onConfirm, onReject],
+  );
 };
 
 export default useApprovalRequest;
