@@ -14,7 +14,7 @@ describe('computeE2EPlatformFlags', () => {
     iosCount: 0,
     androidOrIgnorableCount: 0,
     iosOrIgnorableCount: 0,
-    changedSpecFiles: 'tests/smoke/wallet/foo.spec.ts',
+    changedSpecFiles: 'tests/smoke-appium/wallet/foo.spec.ts',
   };
 
   it('skips native builds for test-only PR changes', () => {
@@ -37,13 +37,15 @@ describe('computeE2EPlatformFlags', () => {
       e2eTestOrIgnorableCount: 1,
       androidCount: 1,
       androidOrIgnorableCount: 1,
-      changedSpecFiles: 'tests/smoke/wallet/foo.spec.ts',
+      changedSpecFiles: 'tests/smoke-appium/wallet/foo.spec.ts',
     });
 
     expect(result.nativeBuildNeeded).toBe(true);
     expect(result.android).toBe(true);
     expect(result.ios).toBe(true);
-    expect(result.changedSpecFiles).toBe('tests/smoke/wallet/foo.spec.ts');
+    expect(result.changedSpecFiles).toBe(
+      'tests/smoke-appium/wallet/foo.spec.ts',
+    );
   });
 
   it('skips E2E for ignorable-only changes', () => {
