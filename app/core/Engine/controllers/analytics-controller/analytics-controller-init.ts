@@ -14,6 +14,7 @@ import type { AccountsControllerState } from '@metamask/accounts-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { analytics } from '../../../../util/analytics/analytics';
+import AppVersionSegmentPlugin from '../../../../util/analytics/appVersionSegmentPlugin';
 import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import Logger from '../../../../util/Logger';
 
@@ -68,7 +69,10 @@ export const analyticsControllerInit: MessengerClientInitFunction<
 
   const platformAdapter = hasTestOverrides
     ? createE2EPlatformAdapter()
-    : createPlatformAdapter([getBrazePlugin()]);
+    : createPlatformAdapter([
+        getBrazePlugin(),
+        new AppVersionSegmentPlugin(),
+      ]);
 
   const controller = new AnalyticsController({
     messenger: controllerMessenger,
