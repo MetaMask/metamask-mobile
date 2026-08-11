@@ -1,0 +1,70 @@
+diff --git a/dist/utils/formatStateForTransactionPay.cjs b/dist/utils/formatStateForTransactionPay.cjs
+index eface88798a630e6dc60080ac8c4a8621aff3328..5ab280348256bc7ae01cdf2ff2aed2dc48c9ed47 100644
+--- a/dist/utils/formatStateForTransactionPay.cjs
++++ b/dist/utils/formatStateForTransactionPay.cjs
+@@ -101,8 +101,8 @@ function computeStateForTransactionPay(params) {
+                 const amount = getAmountFromBalance(balance);
+                 const balanceHex = amountToHex(amount);
+                 if (assetsInfo[assetId]?.type === 'native') {
+-                    const nativeAddress = (0, util_1.toChecksumAddress)((0, assets_controllers_1.getNativeTokenAddress)(chainIdHex));
+-                    const checksumAddress = (0, util_1.toChecksumAddress)(account.address);
++                    const nativeAddress = (0, assets_controllers_1.getNativeTokenAddress)(chainIdHex).toLowerCase();
++                    const checksumAddress = account.address.toLowerCase();
+                     tokenBalances[accountAddressLower] ?? (tokenBalances[accountAddressLower] = {});
+                     (_a = tokenBalances[accountAddressLower])[chainIdHex] ?? (_a[chainIdHex] = {});
+                     tokenBalances[accountAddressLower][chainIdHex][nativeAddress] =
+@@ -113,7 +113,7 @@ function computeStateForTransactionPay(params) {
+                     };
+                 }
+                 else if (parsed.assetNamespace === 'erc20') {
+-                    const tokenAddress = (0, util_1.toChecksumAddress)(String(parsed.assetReference));
++                    const tokenAddress = String(parsed.assetReference).toLowerCase();
+                     tokenBalances[accountAddressLower] ?? (tokenBalances[accountAddressLower] = {});
+                     (_b = tokenBalances[accountAddressLower])[chainIdHex] ?? (_b[chainIdHex] = {});
+                     tokenBalances[accountAddressLower][chainIdHex][tokenAddress] =
+@@ -134,8 +134,8 @@ function computeStateForTransactionPay(params) {
+             }
+             const chainIdHex = (0, utils_1.numberToHex)(parseInt(chainIdParsed.reference, 10));
+             const address = metadata.type === 'native'
+-                ? (0, assets_controllers_1.getNativeTokenAddress)(chainIdHex)
+-                : (0, util_1.toChecksumAddress)(String(parsed.assetReference));
++                ? (0, assets_controllers_1.getNativeTokenAddress)(chainIdHex).toLowerCase()
++                : String(parsed.assetReference).toLowerCase();
+             const token = {
+                 address,
+                 decimals: metadata.decimals,
+diff --git a/dist/utils/formatStateForTransactionPay.mjs b/dist/utils/formatStateForTransactionPay.mjs
+index 414afbfc1dccb4d6e8dbb93c26e1e5f8eb6e9b12..21837a21101cea1a86c30706ea97134575eb93ae 100644
+--- a/dist/utils/formatStateForTransactionPay.mjs
++++ b/dist/utils/formatStateForTransactionPay.mjs
+@@ -97,8 +97,8 @@ function computeStateForTransactionPay(params) {
+                 const amount = getAmountFromBalance(balance);
+                 const balanceHex = amountToHex(amount);
+                 if (assetsInfo[assetId]?.type === 'native') {
+-                    const nativeAddress = toChecksumAddress(getNativeTokenAddress(chainIdHex));
+-                    const checksumAddress = toChecksumAddress(account.address);
++                    const nativeAddress = getNativeTokenAddress(chainIdHex).toLowerCase();
++                    const checksumAddress = account.address.toLowerCase();
+                     tokenBalances[accountAddressLower] ?? (tokenBalances[accountAddressLower] = {});
+                     (_a = tokenBalances[accountAddressLower])[chainIdHex] ?? (_a[chainIdHex] = {});
+                     tokenBalances[accountAddressLower][chainIdHex][nativeAddress] =
+@@ -109,7 +109,7 @@ function computeStateForTransactionPay(params) {
+                     };
+                 }
+                 else if (parsed.assetNamespace === 'erc20') {
+-                    const tokenAddress = toChecksumAddress(String(parsed.assetReference));
++                    const tokenAddress = String(parsed.assetReference).toLowerCase();
+                     tokenBalances[accountAddressLower] ?? (tokenBalances[accountAddressLower] = {});
+                     (_b = tokenBalances[accountAddressLower])[chainIdHex] ?? (_b[chainIdHex] = {});
+                     tokenBalances[accountAddressLower][chainIdHex][tokenAddress] =
+@@ -130,8 +130,8 @@ function computeStateForTransactionPay(params) {
+             }
+             const chainIdHex = numberToHex(parseInt(chainIdParsed.reference, 10));
+             const address = metadata.type === 'native'
+-                ? getNativeTokenAddress(chainIdHex)
+-                : toChecksumAddress(String(parsed.assetReference));
++                ? getNativeTokenAddress(chainIdHex).toLowerCase()
++                : String(parsed.assetReference).toLowerCase();
+             const token = {
+                 address,
+                 decimals: metadata.decimals,
