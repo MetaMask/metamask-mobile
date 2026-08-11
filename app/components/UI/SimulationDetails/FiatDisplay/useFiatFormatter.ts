@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import formatFiat from '../../../../util/formatFiat';
+import { useCallback } from 'react';
 
 type FiatFormatter = (fiatAmount: BigNumber) => string;
 
@@ -24,7 +25,10 @@ const useFiatFormatter = ({
   const currencyCurrency = useSelector(selectCurrentCurrency);
   const fiatCurrency = currency ?? currencyCurrency;
 
-  return (fiatAmount: BigNumber) => formatFiat(fiatAmount, fiatCurrency);
+  return useCallback(
+    (fiatAmount: BigNumber) => formatFiat(fiatAmount, fiatCurrency),
+    [fiatCurrency],
+  );
 };
 
 export default useFiatFormatter;
