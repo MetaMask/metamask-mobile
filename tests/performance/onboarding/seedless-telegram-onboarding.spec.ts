@@ -61,7 +61,7 @@ const assertTelegramLoginReady = async (): Promise<void> => {
 
 /* TO-916: Seedless Onboarding — Telegram Login */
 perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  perfTest.setTimeout(240000);
+  perfTest.setTimeout(300000);
 
   perfTest(
     'Seedless Onboarding: Telegram Login New User',

@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import {
-  selectLocalOverrides,
   selectRawFeatureFlags,
   selectRemoteFeatureFlags,
 } from '../../../../../selectors/featureFlagController';
@@ -118,9 +117,7 @@ export const selectPredictHotTabFlag = createSelector(
 
 export const selectPredictFeatureFlags = createSelector(
   selectRawFeatureFlags,
-  selectLocalOverrides,
-  (remoteFeatureFlags, localOverrides) =>
-    resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
+  (remoteFeatureFlags) => resolvePredictFeatureFlags({ remoteFeatureFlags }),
 );
 
 export const selectExtendedSportsMarketsLeagues = createSelector(
