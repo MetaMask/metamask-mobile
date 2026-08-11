@@ -309,9 +309,9 @@ describe('PlaywrightUtilities.buildDeviceAccountMapping', () => {
     expect(mapping['Pixel 7 Pro']).toBe('Account 1');
     expect(mapping['Pixel.*']).toBe('Account 1');
 
-    // High-tier Android: matrix name + TestMu catalog alias
-    expect(mapping['Samsung Galaxy S25 Ultra']).toBe('Account 3');
-    expect(mapping['Galaxy S25 Ultra']).toBe('Account 3');
+    // The current performance matrix has no high-tier Android device.
+    expect(mapping['Samsung Galaxy S25 Ultra']).toBeUndefined();
+    expect(mapping['Galaxy S25 Ultra']).toBeUndefined();
     expect(mapping['Galaxy S25 Ultra.*']).toBeUndefined();
 
     // iOS names are shared across providers
