@@ -5,7 +5,8 @@ import {
 } from '@metamask/messenger';
 import { QrKeyring as LegacyQrKeyring } from '@metamask/eth-qr-keyring';
 import { QrKeyring } from '@metamask/eth-qr-keyring/v2';
-import { LedgerKeyring as LegacyLedgerKeyring ,
+import {
+  LedgerKeyring as LegacyLedgerKeyring,
   LedgerDmkBridge,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
