@@ -27,6 +27,10 @@ import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagCo
 import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
+import {
+  UnlockNetworkMeterProbe,
+  useUnlockNetworkMeterEnd,
+} from './hooks/useUnlockNetworkMeterEnd';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -118,6 +122,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const totalSectionsLoaded = enabledSections.length;
 
     useHomeSessionSummary({ totalSectionsLoaded });
+    useUnlockNetworkMeterEnd();
 
     const getSectionIndex = useCallback(
       (name: HomeSectionName) =>
@@ -194,6 +199,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               totalSectionsLoaded={totalSectionsLoaded}
             />
             <MoreSection />
+            <UnlockNetworkMeterProbe />
           </Box>
         </PerpsStreamProvider>
       </PerpsConnectionProvider>

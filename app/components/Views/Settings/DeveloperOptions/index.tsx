@@ -16,6 +16,7 @@ import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
+import UnlockNetworkMeterDeveloperOptionsSection from './UnlockNetworkMeterDeveloperOptionsSection';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
 ///: END:ONLY_INCLUDE_IF
@@ -82,6 +83,7 @@ const DeveloperOptions = () => {
       />
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <SentryTest />
+        <UnlockNetworkMeterDeveloperOptionsSection />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         }

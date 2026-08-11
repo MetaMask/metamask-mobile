@@ -4378,6 +4378,14 @@
         "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
       },
+      "unlock_network_meter": {
+        "title": "Unlock HTTP meter",
+        "description": "Counts real fetch/XHR during unlock → homepage (no mocks). Unlock the wallet, wait for the window to settle, then copy the JSON. Expect DevTools-like totals under METAMASK_ENVIRONMENT=dev (LaunchDarkly Development).",
+        "status_empty": "No unlock measured yet. Unlock the wallet to capture a window.",
+        "status_active": "Measuring unlock window… {{count}} requests so far",
+        "status_last": "Last unlock: {{total}} HTTP requests (ended: {{reason}})",
+        "copy_json_button": "Copy unlock HTTP summary JSON"
+      },
       "notifications": {
         "title": "Notifications",
         "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
