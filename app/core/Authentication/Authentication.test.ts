@@ -319,6 +319,11 @@ jest.mock('../../util/analytics/analyticsDataDeletion', () => ({
 const mockCaptureException = jest.fn();
 jest.mock('@sentry/react-native', () => ({
   captureException: (...args: unknown[]) => mockCaptureException(...args),
+  setMeasurement: jest.fn(),
+}));
+
+jest.mock('../UnlockNetworkMeter', () => ({
+  startUnlockWindow: jest.fn(),
 }));
 
 jest.mock('../../components/UI/Ramp/utils/ProviderTokenVault', () => ({

@@ -206,11 +206,14 @@ export function endUnlockWindow(
   active = false;
   homepageReady = false;
   lastSummary = buildSummary(endReason);
-  setMeasurement(
-    UNLOCK_HTTP_REQUEST_COUNT_MEASUREMENT,
-    lastSummary.total,
-    'none',
-  );
+  // Sentry may be partially mocked in unit tests (no setMeasurement).
+  if (typeof setMeasurement === 'function') {
+    setMeasurement(
+      UNLOCK_HTTP_REQUEST_COUNT_MEASUREMENT,
+      lastSummary.total,
+      'none',
+    );
+  }
   notifyListeners();
   return lastSummary;
 }
