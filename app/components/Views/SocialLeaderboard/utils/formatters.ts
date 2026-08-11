@@ -9,8 +9,10 @@ import {
 import { DAY, HOUR, MINUTE, SECOND } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
+import { tradeTimestampToMs } from './tradeTimestamp';
 
-const EM_DASH = '\u2014';
+/** Placeholder rendered wherever a numeric value is unavailable. */
+export const EM_DASH = '\u2014';
 
 /**
  * USD for social leaderboard rows/cards: match perps-style fiat (always two
@@ -146,11 +148,6 @@ export function formatPercent(
 
   const formatted = formatPercentage(value, decimals);
   return showSign ? formatted : formatted.replace(/^[+-]/, '');
-}
-
-/** Trade timestamps from the social API may be in seconds or milliseconds. */
-function tradeTimestampToMs(timestamp: number): number {
-  return timestamp < 1e12 ? timestamp * 1000 : timestamp;
 }
 
 /**
