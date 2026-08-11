@@ -624,8 +624,9 @@ const BuildQuote = () => {
 
   const handleAssetSelectorPress = useCallback(() => {
     handleKeypadClose();
-    navigation.navigate(
-      ...createTokenSelectModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createTokenSelectModalNavigationDetails({
         tokens: cryptoCurrencies ?? [],
       }),
     );
@@ -637,8 +638,9 @@ const BuildQuote = () => {
 
   const handleFiatSelectorPress = useCallback(() => {
     handleKeypadClose();
-    navigation.navigate(
-      ...createFiatSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createFiatSelectorModalNavigationDetails({
         currencies: fiatCurrencies ?? [],
       }),
     );
@@ -650,8 +652,9 @@ const BuildQuote = () => {
 
   const handleShowPaymentMethodsModal = useCallback(() => {
     handleKeypadClose();
-    navigation.navigate(
-      ...createPaymentMethodSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,
         location: screenLocation,
       }),
