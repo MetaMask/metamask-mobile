@@ -60,18 +60,34 @@ if [ -f "$SUMMARY_FILE" ]; then
         ' "$SUMMARY_FILE" >/dev/null 2>&1
     }
 
-    apply_category_failures() {
+    category_has_executions() {
+        local platform="$1"
+        local category="$2"
+        local platformKey
+        platformKey=$(echo "$platform" | tr '[:upper:]' '[:lower:]')
+
+        local count
+        count=$(jq -r --arg cat "$category" --arg plat "$platformKey" \
+            '.metadata.executedTestsByCategory[$cat][$plat] // empty' "$SUMMARY_FILE")
+        if [ -n "$count" ]; then
+            [ "$count" -gt 0 ]
+            return $?
+        fi
+
+        return 1
+    }
+
+    apply_category_status() {
         local status="$1"
         local platform="$2"
         local category="$3"
 
-        # Aggregated test failures, including quality-gate failures, take
-        # precedence over the GitHub job conclusion. Jobs can be reported as
-        # skipped when their reusable-workflow name is not matched.
+        # Aggregated results take precedence over GitHub job conclusions.
+        # This handles cancelled jobs and reusable-workflow name mismatches.
         if category_has_failures "$platform" "$category"; then
             echo "❌ FAILED"
-        elif [[ "$status" == *"SKIPPED"* || "$status" == *"FAILED"* ]]; then
-            echo "$status"
+        elif category_has_executions "$platform" "$category"; then
+            echo "✅ PASSED"
         else
             echo "$status"
         fi
@@ -155,10 +171,10 @@ if [ -f "$SUMMARY_FILE" ]; then
         fi
     fi
 
-    androidOnboardingStatus=$(apply_category_failures "$androidOnboardingStatus" "Android" "onboarding")
-    iosOnboardingStatus=$(apply_category_failures "$iosOnboardingStatus" "iOS" "onboarding")
-    androidImportedWalletStatus=$(apply_category_failures "$androidImportedWalletStatus" "Android" "imported-wallet")
-    iosImportedWalletStatus=$(apply_category_failures "$iosImportedWalletStatus" "iOS" "imported-wallet")
+    androidOnboardingStatus=$(apply_category_status "$androidOnboardingStatus" "Android" "onboarding")
+    iosOnboardingStatus=$(apply_category_status "$iosOnboardingStatus" "iOS" "onboarding")
+    androidImportedWalletStatus=$(apply_category_status "$androidImportedWalletStatus" "Android" "imported-wallet")
+    iosImportedWalletStatus=$(apply_category_status "$iosImportedWalletStatus" "iOS" "imported-wallet")
 
     onboardingStatus=$(category_status "$iosOnboardingStatus" "$androidOnboardingStatus")
     importedWalletStatus=$(category_status "$iosImportedWalletStatus" "$androidImportedWalletStatus")
