@@ -71,6 +71,9 @@ const optionTestId = (filter: ActivityTypeFilter) =>
 const perpsOptionTestId = (filter: PerpsActivityFilter) =>
   `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${filter}`;
 
+const networkOptionTestId = (caipChainId: string) =>
+  `${ActivityScreenSelectorsIDs.NETWORK_FILTER_OPTION_PREFIX}${caipChainId}`;
+
 // Chips now show plain value labels (no "Types:"/"Network:" prefix).
 const selectedTypeFilterLabel = (filter: ActivityTypeFilter) =>
   strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[filter]);
@@ -249,7 +252,7 @@ describeForPlatforms('ActivityScreen', () => {
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
-      fireEvent.press(await findByTestId('network-select-eip155:1'));
+      fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
       await waitFor(() => {
         expect(
@@ -257,13 +260,13 @@ describeForPlatforms('ActivityScreen', () => {
         ).toBeOnTheScreen();
         expect(
           queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
       });
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
-      fireEvent.press(await findByTestId('network-select-eip155:59144'));
+      fireEvent.press(await findByTestId(networkOptionTestId('eip155:59144')));
 
       await waitFor(() => {
         expect(
@@ -271,13 +274,13 @@ describeForPlatforms('ActivityScreen', () => {
         ).toBeOnTheScreen();
         expect(
           queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
       });
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
-      fireEvent.press(await findByTestId('network-select-eip155:1'));
+      fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
       await waitFor(() => {
         expect(
@@ -285,7 +288,7 @@ describeForPlatforms('ActivityScreen', () => {
         ).toBeOnTheScreen();
         expect(
           queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
       });
     } finally {
       clearAccountsTransactionsApiMocks();
