@@ -1,9 +1,5 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import {
-  RATE_WEI_NATIVE,
-  useGasFeeToken,
-  useSelectedGasFeeToken,
-} from './useGasFeeToken';
+import { useGasFeeToken, useSelectedGasFeeToken } from './useGasFeeToken';
 import { transferTransactionStateMock } from '../../__mocks__/transfer-transaction-mock';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useFeeCalculations } from './useFeeCalculations';
@@ -156,17 +152,17 @@ describe('useGasFeeToken', () => {
     });
   });
 
-  it('returns native gas fee token if no token address', () => {
+  it('returns no gas fee token if no token address', () => {
     const result = runHook({ tokenAddress: undefined });
-    expect(result.tokenAddress).toStrictEqual(NATIVE_TOKEN_ADDRESS);
+    expect(result.tokenAddress).toBeUndefined();
   });
 
-  it('returns native gas fee token if `tokenAddress` doesnt match any `gasFeeTokens`', () => {
+  it('returns no gas fee token if `tokenAddress` doesnt match any `gasFeeTokens`', () => {
     const result = runHook({
       gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
       tokenAddress: '0x00000000000d6ffc74a8feb35af5827bf57f6786', // non-existing
     });
-    expect(result.tokenAddress).toStrictEqual(NATIVE_TOKEN_ADDRESS);
+    expect(result.tokenAddress).toBeUndefined();
   });
 
   it('returns first of gasFeeTokens if `tokenAddress` doesnt match any `gasFeeTokens` but `excludeNativeTokenForFee` is set', () => {
@@ -220,7 +216,7 @@ describe('useGasFeeToken', () => {
       expect(result.metamaskFeeFiat).not.toBe('');
     });
 
-    it('calculates correct metamaskFeeFiat when fee property is not provided', () => {
+    it('returns empty metamaskFeeFiat when fee property is not provided', () => {
       const tokenWithoutFee: GasFeeToken = {
         ...GAS_FEE_TOKEN_MOCK,
         fee: undefined,
@@ -231,8 +227,8 @@ describe('useGasFeeToken', () => {
         tokenAddress: tokenWithoutFee.tokenAddress,
       });
 
-      expect(result.metamaskFeeFiat).toBeDefined();
-      expect(result.metamaskFeeFiat).not.toBe('');
+      expect(result.metaMaskFee).toBeUndefined();
+      expect(result.metamaskFeeFiat).toBeUndefined();
     });
 
     it('handles zero fee value', () => {
@@ -301,48 +297,15 @@ describe('useGasFeeToken', () => {
   });
 });
 
-describe('returns native gas fee token', () => {
-  it('with amount matching standard min fee calculation', () => {
+describe('does not synthesise a native gas fee token', () => {
+  it('returns no token data when the native token address has no matching gasFeeToken', () => {
     const result = runHook({ tokenAddress: NATIVE_TOKEN_ADDRESS });
-    expect(result).toStrictEqual(
-      expect.objectContaining({
-        amount: '0x1',
-        amountFiat: '< $0.01',
-        amountFormatted: '< 0.000001',
-      }),
-    );
-  });
-
-  it('with gas properties matching transaction params', () => {
-    const result = runHook({ tokenAddress: NATIVE_TOKEN_ADDRESS });
-    expect(result).toStrictEqual(
-      expect.objectContaining({
-        gas: '0x664e',
-        maxFeePerGas: '0xcdfe60',
-        maxPriorityFeePerGas: '0x012345',
-      }),
-    );
-  });
-
-  it('with symbol as native ticker', () => {
-    const result = runHook({ tokenAddress: NATIVE_TOKEN_ADDRESS });
-    expect(result).toStrictEqual(
-      expect.objectContaining({
-        symbol: 'ETH',
-      }),
-    );
-  });
-
-  it('with static data', () => {
-    const result = runHook({ tokenAddress: NATIVE_TOKEN_ADDRESS });
-    expect(result).toStrictEqual(
-      expect.objectContaining({
-        decimals: 18,
-        rateWei: RATE_WEI_NATIVE,
-        recipient: NATIVE_TOKEN_ADDRESS,
-        tokenAddress: NATIVE_TOKEN_ADDRESS,
-      }),
-    );
+    expect(result.tokenAddress).toBeUndefined();
+    expect(result.amount).toBeUndefined();
+    expect(result.recipient).toBeUndefined();
+    expect(result.symbol).toBeUndefined();
+    expect(result.amountFormatted).toBeUndefined();
+    expect(result.transferTransaction).toBeUndefined();
   });
 });
 
