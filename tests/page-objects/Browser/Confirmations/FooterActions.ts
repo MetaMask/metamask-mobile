@@ -5,9 +5,11 @@ import Assertions from '../../../framework/Assertions';
 import { encapsulatedAction } from '../../../framework/encapsulatedAction';
 import { EncapsulatedElementType } from '../../../framework/EncapsulatedElement';
 import { FrameworkDetector } from '../../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
 import Utilities, { sleep } from '../../../framework/Utilities';
+import ToastModal from '../../wallet/ToastModal';
 
 class FooterActions {
   get confirmButton(): EncapsulatedElementType {
@@ -63,10 +65,9 @@ class FooterActions {
         });
       },
       appium: async () => {
-        // iOS BottomSheet confirmation containers often exist in the
-        // accessibility tree with isDisplayed=false. Click once by existence;
-        // if confirm is already gone after a prior click, treat as success
-        // (do not click again — avoids double-submit on retry).
+        await ToastModal.waitForToastToDismiss({ appearTimeout: 2_000 });
+
+        const isAndroid = PlatformDetector.isAndroid();
         const maxRetries = Math.max(5, Math.ceil((timeout ?? 30000) / 1000));
         let didClick = false;
         await PlaywrightAssertions.expectConditionWithRetry(
@@ -81,12 +82,22 @@ class FooterActions {
               }
               throw new Error('confirm-button not in hierarchy yet');
             }
+
             if (didClick) {
               throw new Error('confirm-button still present after click');
             }
+
+            if (isAndroid) {
+              const enabled = await el.unwrap().isEnabled();
+              if (!enabled) {
+                throw new Error('confirm-button not enabled yet');
+              }
+            }
+
             await sleep(300);
             await el.unwrap().click();
             didClick = true;
+            throw new Error('waiting for confirm-button to leave hierarchy');
           },
           { maxRetries, interval: 1000 },
         );
