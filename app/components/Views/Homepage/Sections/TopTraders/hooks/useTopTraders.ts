@@ -148,14 +148,17 @@ export const useTopTraders = (
     }
   }, [refetch, leaderboardQueryParams]);
 
-  return {
-    traders,
-    isLoading,
-    isFetching,
-    error: formatSocialQueryErrorMessage(error),
-    refresh,
-    toggleFollow,
-  };
+  return useMemo(
+    () => ({
+      traders,
+      isLoading,
+      isFetching,
+      error: formatSocialQueryErrorMessage(error),
+      refresh,
+      toggleFollow,
+    }),
+    [traders, isLoading, isFetching, error, refresh, toggleFollow],
+  );
 };
 
 export default useTopTraders;
