@@ -4,25 +4,25 @@
 
 ## 1. Overview
 
-A drop-in gate any feature screen can embed. When a user lands on a feature that sends notifications but hasn't enabled them yet, a bottom sheet appears to let them do so inline — without leaving the screen. Once enabled, the sheet closes automatically. The user can also dismiss the sheet without enabling; in that case they are navigated back. Nothing is shown if notifications are already set up.
+A drop-in gate supported feature screens can embed. When a user lands on a feature that sends notifications but hasn't enabled them yet, a bottom sheet explains the benefit and offers one action to turn notifications on. The action enables the global master toggle and both channels for that feature. Once enabled, the sheet closes automatically. The user can also dismiss the sheet without enabling; in that case they are navigated back. Nothing is shown if notifications are already set up.
 
 **The sheet is a navigation route.** The gate does not render the sheet inline. It navigates to a dedicated sheet screen registered on the app's root modal stack (`Routes.MODAL.ROOT_MODAL_FLOW` → `Routes.SHEET.FEATURE_NOTIFICATIONS_GATE`, presented as a `transparentModal`). This is the same mechanism every other bottom sheet in the app uses, and it is what guarantees the sheet always renders above all screen content — keypads, footers, forms — with no `zIndex`, native `Modal`, or render-order tricks. Opening the sheet is a `navigate`; closing it (X button, overlay tap, or auto-close) is a `goBack` that pops the route.
 
 **Components**
 
-| Component                                                                                                                                | Role                                                                                                                                                                                      |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`FeatureNotificationsGate`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.tsx)                     | Rendered by the feature screen; renders nothing itself. Opens the sheet route when the gate is blocked, dismisses the screen if the user gives up, and runs the OS push permission check. |
-| [`FeatureNotificationsGateSheet`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet.tsx)           | The sheet screen registered on the root modal stack. Owns the sheet UI, the toggle snapshot, and auto-close.                                                                              |
-| [`MainNotificationToggle`](../../app/components/Views/Settings/NotificationsSettings/MainNotificationToggle.tsx)                         | Toggle to turn on MetaMask notifications globally.                                                                                                                                        |
-| [`NotificationSettingsSectionContent`](../../app/components/Views/Settings/NotificationsSettings/NotificationSettingsSectionContent.tsx) | Push + In-App toggles for a specific feature.                                                                                                                                             |
-| [`NotificationSettingsSection`](../../app/components/Views/Settings/NotificationsSettings/NotificationSettingsSection.tsx)               | Separate full-screen settings page for a feature (not part of the gate).                                                                                                                  |
+| Component                                                                                                                       | Role                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`FeatureNotificationsGate`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.tsx)            | Rendered by the feature screen; renders nothing itself. Opens the sheet route when the gate is blocked, dismisses the screen if the user gives up, and runs the OS push permission check. |
+| [`FeatureNotificationsGateSheet`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet.tsx)  | The sheet screen registered on the root modal stack. Owns the preview, single CTA, enable operation, and auto-close.                                                                      |
+| [`featureNotificationsGateConfig`](../../app/components/Views/Settings/NotificationsSettings/featureNotificationsGateConfig.ts) | Maps supported notification preference sections to localized title, description, and preview copy keys.                                                                                   |
 
 Both the gate and the sheet read the feature's notification state (master toggle + per-feature channels + whether preferences have loaded) through the shared [`useFeatureNotificationsStatus`](../../app/components/Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus.ts) hook.
 
 **How to add it to a screen**
 
-Render `<FeatureNotificationsGate feature="yourFeature" />` in the screen's component tree. Supported features: `walletActivity`, `perps`, `agenticCli`, `socialAI`, `marketing`, `priceAlerts`. By default, dismissing without enabling navigates back. Pass an `onDismiss` prop to override that behaviour.
+First add the feature's copy keys to `FEATURE_NOTIFICATIONS_GATE_COPY`, then render `<FeatureNotificationsGate feature="yourFeature" />` in the screen's component tree. The registry only accepts keys from `NotificationPreferenceSection`, and the component only accepts keys present in the registry. This makes an invalid or unmapped feature a type error. Currently supported: `priceAlerts`.
+
+The CTA copy is shared by every feature and remains in `notifications.feature_gate.cta`. By default, dismissing without enabling navigates back. Pass an `onDismiss` prop to override that behaviour.
 
 **Contract: only mount the gate on a screen that intends to stay.** The gate binds its dismiss logic to the screen that presented the sheet. A screen that may still redirect on its own (e.g. replace itself after a fetch resolves) must not mount the gate until that decision is made — otherwise the sheet outlives its presenter and, if the user closes it without enabling, it re-opens once instead of dismissing. [`ManagePriceAlertsView`](../../app/components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx) shows the pattern: it mounts the gate behind a `hasAlertsToManage` flag, because every other fetch outcome navigates away.
 
@@ -67,7 +67,7 @@ One consequence of the route split: `onDismiss` stays a prop on the gate compone
 
 ---
 
-## 3. Conditional rendering
+## 3. Sheet content and enable action
 
 **When the sheet appears**
 
@@ -78,19 +78,15 @@ The sheet is presented if either:
 
 If notifications are fully set up, nothing is presented.
 
-**What shows inside the sheet**
-
-The sheet takes a snapshot of the notification state at the moment it opens and keeps it frozen. This prevents sections appearing or disappearing mid-session as the user toggles things.
-
 The sheet is not presented until the stored preferences have loaded. An unresolved read looks identical to "every channel is off", so deciding earlier would open the sheet for users who already have the feature set up.
 
-| State at open                               | Sheet contents                        |
-| ------------------------------------------- | ------------------------------------- |
-| Master off + both channels off              | Master toggle + Push & In-App toggles |
-| Master off, at least one channel already on | Master toggle only                    |
-| Master on, both channels off                | Push & In-App toggles only            |
+The sheet always renders:
 
-While the master toggle is still off, the Push and In-App toggles are visible but disabled — turning them on would have no effect until master is enabled first. Similarly, once the master toggle is turned on it becomes disabled since we don't want the user to be able to set up an undesirable state like master off + channels on.
+- The feature's configured notification preview
+- The feature's configured title and description
+- The shared “Turn on notifications” CTA
+
+Pressing the CTA enables the global master toggle when needed, then enables both push and in-app channels for the selected feature. The copy is selected from `FEATURE_NOTIFICATIONS_GATE_COPY` using the `feature` route parameter.
 
 ---
 
@@ -114,11 +110,7 @@ If the user later turns push off and back on, the OS check runs again — it res
 
 **Auto-close (no user action needed)**
 
-The sheet closes itself when the gate condition is satisfied:
-
-- **Master was in the sheet, user enables everything** — master, push, and in-app all turned on → auto-close.
-- **Master was already on, not visible in sheet, user enables both channels** — push and in-app toggled on → auto-close.
-- **Master-only sheet satisfied** — the sheet only showed the master toggle (at least one channel was already on at mount, so channel toggles were hidden). User turns master on → gate closes even if the other channel is still off. The rationale: channels weren't surfaced as a problem, so the gate doesn't hold for them.
+The sheet closes itself once the master toggle and at least one feature channel are enabled. The CTA enables both channels, but accepting either channel as satisfied also handles an existing or concurrent preference change.
 
 After auto-close, the user stays on the feature screen. No navigation happens.
 

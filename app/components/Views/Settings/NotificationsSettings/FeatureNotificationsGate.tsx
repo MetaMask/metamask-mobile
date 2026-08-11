@@ -9,7 +9,7 @@ import NotificationService, {
   requestPushPermissions,
 } from '../../../../util/notifications/services/NotificationService';
 import { useFeatureNotificationsStatus } from './hooks/useFeatureNotificationsStatus';
-import type { NotificationPreferenceSection } from './hooks/useNotificationStoragePreferences';
+import type { FeatureNotificationsGateFeature } from './featureNotificationsGateConfig';
 
 /**
  * When the feature push channel is on but the OS has not granted push, prompt
@@ -57,7 +57,7 @@ function useGateSheetPresentation({
   onDismiss,
   status,
 }: {
-  feature: NotificationPreferenceSection;
+  feature: FeatureNotificationsGateFeature;
   autoDismiss?: boolean;
   onDismiss?: () => void;
   status: FeatureNotificationsGateStatus;
@@ -136,7 +136,7 @@ function useOsPushPermissionPrompt({
 }
 
 export interface FeatureNotificationsGateProps {
-  feature: NotificationPreferenceSection;
+  feature: FeatureNotificationsGateFeature;
   /**
    * Called when user dismisses the sheet without satisfying the gate condition.
    * Defaults to `navigation.goBack()`.

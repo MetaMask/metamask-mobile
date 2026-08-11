@@ -6026,8 +6026,15 @@
     "default_message_title": "MetaMask",
     "default_message_description": "Tap to view",
     "feature_gate": {
-      "title": "Don't miss a price alert",
-      "description": "Turn on notifications so we can alert you when a price target is hit.",
+      "price_alerts": {
+        "title": "Don't miss a price alert",
+        "description": "Turn on notifications so we can alert you when a price target is hit.",
+        "preview": {
+          "title": "ETH is up 4.2% today",
+          "message": "Now at $2,668.51 — above your price alert",
+          "timestamp": "now"
+        }
+      },
       "cta": "Turn on notifications"
     },
     "received_payment_title": "Instant payment received",

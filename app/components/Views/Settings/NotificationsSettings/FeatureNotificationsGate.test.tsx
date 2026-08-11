@@ -19,6 +19,7 @@ import NotificationService, {
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { strings } from '../../../../../locales/i18n';
 
 jest.mock('./hooks/useNotificationStoragePreferences');
 jest.mock('./MainNotificationToggle.hooks');
@@ -426,6 +427,31 @@ describe('FeatureNotificationsGateSheet', () => {
           NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
         ),
       ).not.toBeOnTheScreen();
+    });
+
+    it('renders the copy mapped to the selected feature', () => {
+      renderSheet();
+
+      expect(
+        screen.getByText(
+          strings('notifications.feature_gate.price_alerts.title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('notifications.feature_gate.price_alerts.description'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('notifications.feature_gate.price_alerts.preview.title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('notifications.feature_gate.price_alerts.preview.message'),
+        ),
+      ).toBeOnTheScreen();
     });
   });
 

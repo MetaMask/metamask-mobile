@@ -23,17 +23,18 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { useFeatureNotificationsStatus } from './hooks/useFeatureNotificationsStatus';
+import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import {
-  useNotificationStoragePreferences,
-  type NotificationPreferenceSection,
-} from './hooks/useNotificationStoragePreferences';
+  FEATURE_NOTIFICATIONS_GATE_COPY,
+  type FeatureNotificationsGateFeature,
+} from './featureNotificationsGateConfig';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { strings } from '../../../../../locales/i18n';
 import NotifCard from '../../../UI/Notification/NotifCard';
 import Logger from '../../../../util/Logger';
 
 export interface FeatureNotificationsGateSheetParams {
-  feature: NotificationPreferenceSection;
+  feature: FeatureNotificationsGateFeature;
   /**
    * When true, closes the sheet once the gate condition is satisfied.
    * Defaults to `true`.
@@ -63,6 +64,7 @@ export const FeatureNotificationsGateSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<FeatureNotificationsGateSheetRouteProp>();
   const { feature, autoDismiss = true } = params;
+  const copy = FEATURE_NOTIFICATIONS_GATE_COPY[feature];
 
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
@@ -162,27 +164,21 @@ export const FeatureNotificationsGateSheet = () => {
 
         <Box twClassName="mb-2 px-6">
           <NotifCard
-            title={strings(
-              'notifications.push_onboarding.new_user.preview_card_1.title',
-            )}
-            message={strings(
-              'notifications.push_onboarding.new_user.preview_card_1.message',
-            )}
-            timestamp={strings(
-              'notifications.push_onboarding.new_user.preview_card_1.time',
-            )}
+            title={strings(copy.previewTitleKey)}
+            message={strings(copy.previewMessageKey)}
+            timestamp={strings(copy.previewTimestampKey)}
           />
         </Box>
 
         <Box twClassName="px-4">
           <Text variant={TextVariant.HeadingLg} twClassName="mb-2 text-center">
-            {strings('notifications.feature_gate.title')}
+            {strings(copy.titleKey)}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             twClassName="mb-7 text-center text-alternative"
           >
-            {strings('notifications.feature_gate.description')}
+            {strings(copy.descriptionKey)}
           </Text>
 
           <Button
