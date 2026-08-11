@@ -1,6 +1,6 @@
 export const BridgeViewSelectorsIDs = {
-  SOURCE_TOKEN_AREA: 'source-token-area',
-  DESTINATION_TOKEN_AREA: 'dest-token-area',
+  SOURCE_TOKEN_AREA: 'source-token-selector-button',
+  DESTINATION_TOKEN_AREA: 'dest-token-selector-button',
   SOURCE_TOKEN_INPUT: 'source-token-area-input',
   SOURCE_AMOUNT_TYPE_TOGGLE: 'source-token-area-amount-type-toggle',
   DESTINATION_TOKEN_INPUT: 'dest-token-area-input',

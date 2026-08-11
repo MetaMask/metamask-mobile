@@ -162,6 +162,20 @@ const TARGETS: InstrumentationTarget[] = [
   },
 ];
 
+/**
+ * Returns the write order used while preparing instrumentation.
+ *
+ * The generated helper must exist before Metro observes any source file that
+ * imports it. Otherwise Metro can attempt a bundle during the brief interval
+ * between those writes and cache a missing-module error.
+ */
+export function getPrepareWriteOrder(): string[] {
+  return [
+    DIAGNOSTICS_RELATIVE_PATH,
+    ...TARGETS.map((target) => target.relativePath),
+  ];
+}
+
 function countOccurrences(source: string, search: string): number {
   let count = 0;
   let offset = 0;
@@ -277,13 +291,23 @@ export function prepareInstrumentation(
     ]),
   );
   const diagnosticsPath = resolve(repoRoot, DIAGNOSTICS_RELATIVE_PATH);
+  const preparedSources = new Map<string, string>([
+    [DIAGNOSTICS_RELATIVE_PATH, DIAGNOSTICS_SOURCE],
+    ...[...updatedSources.entries()].map(
+      ([target, source]): [string, string] => [target.relativePath, source],
+    ),
+  ]);
 
   try {
-    for (const [target, source] of updatedSources) {
-      writeFileSync(resolve(repoRoot, target.relativePath), source);
+    for (const relativePath of getPrepareWriteOrder()) {
+      const source = preparedSources.get(relativePath);
+      if (source === undefined) {
+        throw new Error(`Missing prepared source for ${relativePath}`);
+      }
+      const absolutePath = resolve(repoRoot, relativePath);
+      mkdirSync(dirname(absolutePath), { recursive: true });
+      writeFileSync(absolutePath, source);
     }
-    mkdirSync(dirname(diagnosticsPath), { recursive: true });
-    writeFileSync(diagnosticsPath, DIAGNOSTICS_SOURCE);
   } catch (error) {
     for (const [target, source] of sources) {
       writeFileSync(resolve(repoRoot, target.relativePath), source);

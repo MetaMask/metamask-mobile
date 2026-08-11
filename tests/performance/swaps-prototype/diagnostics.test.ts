@@ -74,6 +74,24 @@ describe('Swaps performance diagnostics', () => {
     expect(result).toBe('1.25 USDC');
   });
 
+  it('extracts text for the requested test ID from a screen observation', () => {
+    const output = {
+      observation: {
+        testIds: [
+          { testId: 'source-token-area-input', text: '0' },
+          { testId: 'source-token-selector-button', text: 'ETH' },
+        ],
+      },
+    };
+
+    const result = extractInteractionText(
+      output,
+      'source-token-selector-button',
+    );
+
+    expect(result).toBe('ETH');
+  });
+
   it('rejects a runtime capture without required buffers', () => {
     const value = { enabled: true, startedAt: 100 };
 

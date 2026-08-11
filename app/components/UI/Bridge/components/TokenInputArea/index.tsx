@@ -165,6 +165,7 @@ interface TokenInputAreaProps {
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
   testID?: string;
+  inputTestID?: string;
   tokenType?: TokenInputAreaType;
   onTokenPress?: () => void;
   isLoading?: boolean;
@@ -200,6 +201,7 @@ export const TokenInputArea = forwardRef<
       networkImageSource,
       networkName,
       testID,
+      inputTestID,
       tokenType,
       onTokenPress,
       isLoading = false,
@@ -398,7 +400,7 @@ export const TokenInputArea = forwardRef<
                     caretHidden={false}
                     autoFocus={false}
                     placeholder="0"
-                    testID={`${testID}-input`}
+                    testID={inputTestID ?? `${testID}-input`}
                     onPressIn={() => {
                       onInputPress?.();
                     }}

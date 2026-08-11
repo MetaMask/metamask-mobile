@@ -61,13 +61,15 @@ jest.mock('../TokenButton', () => {
     TokenButton: ({
       symbol,
       securityBadgeAssetId,
+      testID,
     }: {
       symbol?: string;
       securityBadgeAssetId?: string;
+      testID?: string;
     }) =>
       createElement(
         Text,
-        { testID: 'token-button', securityBadgeAssetId },
+        { testID: 'token-button', securityBadgeAssetId, forwardedTestID: testID },
         symbol,
       ),
   };
@@ -989,6 +991,29 @@ describe('TokenInputArea', () => {
 
       // Assert
       expect(getByText('TEST')).toBeTruthy();
+    });
+
+    it('uses independent test IDs for the token button and amount input', () => {
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="dest-token-selector-button"
+            inputTestID="dest-token-area-input"
+            tokenType={TokenInputAreaType.Destination}
+            token={mockToken}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      const tokenButton = getByTestId('token-button');
+      const amountInput = getByTestId('dest-token-area-input');
+
+      expect(tokenButton.props.forwardedTestID).toBe(
+        'dest-token-selector-button',
+      );
+      expect(amountInput).toBeOnTheScreen();
     });
 
     it('passes CAIP asset ID for an EVM ERC-20 token to TokenButton', () => {

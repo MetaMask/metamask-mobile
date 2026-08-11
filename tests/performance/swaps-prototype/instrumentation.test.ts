@@ -1,6 +1,7 @@
 import {
   applyExactReplacements,
   getDiagnosticsSource,
+  getPrepareWriteOrder,
 } from './instrumentation';
 
 describe('Swaps performance instrumentation', () => {
@@ -49,5 +50,16 @@ describe('Swaps performance instrumentation', () => {
     const source = getDiagnosticsSource();
 
     expect(source).toContain('MAX_RENDER_TIMESTAMPS = 200');
+  });
+
+  it('creates the diagnostics helper before files that import it', () => {
+    const writeOrder = getPrepareWriteOrder();
+
+    expect(writeOrder[0]).toBe(
+      'app/components/UI/Bridge/utils/swapsPerformanceDiagnostics.ts',
+    );
+    expect(writeOrder.slice(1)).toContain(
+      'app/components/UI/Bridge/Views/BridgeView/index.tsx',
+    );
   });
 });

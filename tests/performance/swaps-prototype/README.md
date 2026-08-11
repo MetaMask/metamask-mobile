@@ -17,21 +17,34 @@ network. It preserves wallet data and always cleans up the `mm` session.
 - Metro is already running on port `8081` with the app attached.
 - `idb` and `idb_companion` pass `yarn mm:doctor`.
 
-Start Metro separately:
+Prepare the temporary dev-only render probes before Metro starts watching the
+source tree:
+
+```bash
+yarn performance:swaps:prepare
+yarn performance:swaps:status
+```
+
+Require status `prepared`, then start Metro separately:
 
 ```bash
 yarn watch:clean
 ```
 
+In another terminal, establish the simulator, accessibility, and Hermes session:
+
+```bash
+yarn mm launch --metro-port 8081
+```
+
+This setup launch may refresh the app if it is not already healthily attached to
+Metro. After it completes, manually unlock MetaMask and leave it on Wallet with
+Ethereum Mainnet selected. The prototype command requires and reuses this active
+session; it does not launch or refresh the app.
+
 The repo-local `mms-swaps-performance-analysis` skill owns the full preflight,
 prepare, run, analyze, and cleanup workflow. The underlying commands are shown
 here for direct use.
-
-Prepare the temporary dev-only render probes before Metro bundles the scenario:
-
-```bash
-yarn performance:swaps:prepare
-```
 
 Run the deterministic scenario in another terminal:
 

@@ -16,12 +16,19 @@ import {
   summarizeCapture,
   SwapsPerformanceArtifact,
 } from './diagnostics';
+import {
+  buildMmSessionProbeArgs,
+  formatMmSessionSetupCommand,
+} from './runner-config';
 
 const LOG_PREFIX = '[SWAPS_PERF_ANALYSIS]';
 const DEFAULT_METRO_PORT = 8081;
 const QUOTE_TIMEOUT_MS = 30_000;
 const QUOTE_POLL_INTERVAL_MS = 350;
 const COMMAND_TIMEOUT_MS = 60_000;
+// Maximum timeout accepted by the mm CLI.
+const MM_COMMAND_TIMEOUT_MS = 30_000;
+const WALLET_SWAP_BUTTON_TEST_ID = 'homepage-action-buttons-grid-swap';
 const OUTPUT_DIRECTORY = resolve(
   process.cwd(),
   'test-reports/swaps-performance',
@@ -89,7 +96,7 @@ function evaluateRuntime(expression: string): unknown {
     'Runtime.evaluate',
     JSON.stringify({ expression, returnByValue: true }),
     '--timeout',
-    '35000',
+    String(MM_COMMAND_TIMEOUT_MS),
   ]);
   return extractCdpEvaluationValue(output);
 }
@@ -117,7 +124,12 @@ function getVisibleText(testId: string, allowFailure = false): string | null {
     ['get-text', '--testid', testId, '--timeout', '5000'],
     allowFailure,
   );
-  return extractInteractionText(output);
+  return extractInteractionText(output, testId);
+}
+
+function getExactScreenText(testId: string): string | null {
+  const output = runMm(['describe-screen']);
+  return extractInteractionText(output, testId);
 }
 
 function waitForTestId(testId: string, timeoutMs: number): void {
@@ -126,10 +138,6 @@ function waitForTestId(testId: string, timeoutMs: number): void {
 
 function clickTestId(testId: string): void {
   runMm(['click', '--testid', testId, '--timeout', '10000']);
-}
-
-function typeTestId(testId: string, text: string): void {
-  runMm(['type', '--testid', testId, text, '--timeout', '10000']);
 }
 
 function delay(durationMs: number): Promise<void> {
@@ -220,6 +228,7 @@ async function runScenario(): Promise<void> {
   let walletUnlocked = false;
   let failure: string | null = null;
   let diagnosticsInstalled = false;
+  let sessionAvailable = false;
 
   log(`starting ${runId}`);
   log(`using Metro port ${metroPort}`);
@@ -228,10 +237,21 @@ async function runScenario(): Promise<void> {
     log('checking iOS simulator prerequisites');
     runYarn(['mm:doctor']);
 
-    log('launching the installed app with Hermes attached');
-    runMm(['launch', '--force', '--metro-port', String(metroPort)]);
+    log('verifying the pre-established mm and Hermes session');
+    const sessionProbe = runYarn(['mm', ...buildMmSessionProbeArgs()], true);
+    if (!sessionProbe.ok) {
+      throw new Error(
+        `No active mm session is available. First run ${formatMmSessionSetupCommand(
+          metroPort,
+        )}, then unlock MetaMask and leave it on Wallet before rerunning the prototype.`,
+      );
+    }
+    sessionAvailable = true;
+    log(
+      'reusing the active mm session without launching or refreshing the app',
+    );
 
-    waitForTestId('wallet-swap-button', 10_000);
+    waitForTestId(WALLET_SWAP_BUTTON_TEST_ID, 10_000);
     walletUnlocked = true;
 
     const installResult = evaluateRuntime(buildInstallDiagnosticsExpression());
@@ -243,12 +263,12 @@ async function runScenario(): Promise<void> {
     log('opening Swaps');
     phases.push(
       await measurePhase('open-swaps', () => {
-        clickTestId('wallet-swap-button');
+        clickTestId(WALLET_SWAP_BUTTON_TEST_ID);
         waitForTestId('source-token-area-input', 15_000);
       }),
     );
 
-    sourceTokenText = getVisibleText('source-token-area');
+    sourceTokenText = getExactScreenText('source-token-selector-button');
     if (!sourceTokenText?.toUpperCase().includes('ETH')) {
       throw new Error(
         'Expected ETH as the source token. Switch the Wallet to Ethereum and retry.',
@@ -258,9 +278,9 @@ async function runScenario(): Promise<void> {
     log('selecting Ethereum USDC as the destination');
     phases.push(
       await measurePhase('select-destination', () => {
-        clickTestId('dest-token-area');
-        waitForTestId('bridge-token-search-input', 10_000);
-        typeTestId('bridge-token-search-input', 'USDC');
+        clickTestId('dest-token-selector-button');
+        // USDC is a prioritized Ethereum asset and has a unique chain-scoped ID.
+        // Selecting it directly avoids the generic iOS TextField wrapper ID.
         waitForTestId('asset-0x1-USDC', 20_000);
         clickTestId('asset-0x1-USDC');
         waitForTestId('dest-token-area-input', 10_000);
@@ -288,7 +308,9 @@ async function runScenario(): Promise<void> {
       error instanceof Error ? error.message : String(error),
     );
     log(`scenario failed: ${failure}`);
-    runMm(['screenshot', '--name', `${runId}-failure`], true);
+    if (sessionAvailable) {
+      runMm(['screenshot', '--name', `${runId}-failure`], true);
+    }
   } finally {
     if (diagnosticsInstalled) {
       capture = readRuntimeCapture();
@@ -326,7 +348,9 @@ async function runScenario(): Promise<void> {
 
     log(`JSON artifact: ${paths.jsonPath}`);
     log(`Markdown report: ${paths.markdownPath}`);
-    runMm(['cleanup'], true);
+    if (sessionAvailable) {
+      runMm(['cleanup'], true);
+    }
   }
 
   if (failure) {

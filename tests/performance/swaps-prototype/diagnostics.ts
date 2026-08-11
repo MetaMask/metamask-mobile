@@ -419,13 +419,53 @@ export function parseSwapsPerformanceArtifact(
   };
 }
 
+function extractTextForTestId(output: unknown, testId: string): string | null {
+  if (Array.isArray(output)) {
+    for (const value of output) {
+      const text = extractTextForTestId(value, testId);
+      if (text !== null) {
+        return text;
+      }
+    }
+    return null;
+  }
+
+  if (!isRecord(output)) {
+    return null;
+  }
+
+  if (output.testId === testId && typeof output.text === 'string') {
+    return output.text;
+  }
+
+  for (const value of Object.values(output)) {
+    const text = extractTextForTestId(value, testId);
+    if (text !== null) {
+      return text;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Extracts visible element text from the structured mm interaction response.
  *
  * @param output - Parsed JSON or plain command output.
+ * @param testId - Exact test ID whose text takes precedence in screen output.
  * @returns The visible text when present.
  */
-export function extractInteractionText(output: unknown): string | null {
+export function extractInteractionText(
+  output: unknown,
+  testId?: string,
+): string | null {
+  if (testId) {
+    const targetText = extractTextForTestId(output, testId);
+    if (targetText !== null) {
+      return targetText;
+    }
+  }
+
   if (typeof output === 'string') {
     return output;
   }

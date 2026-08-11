@@ -628,6 +628,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                         : undefined
                     }
                     testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
+                    inputTestID={BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT}
                     tokenType={TokenInputAreaType.Source}
                     onInputPress={() => keypadRef.current?.open()}
                     onFocus={sourceAmountInput.handleFocus}
@@ -669,6 +670,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                         : undefined
                     }
                     testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
+                    inputTestID={
+                      BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT
+                    }
                     tokenType={TokenInputAreaType.Destination}
                     onInputPress={() => keypadRef.current?.close()}
                     onTokenPress={handleDestTokenPress}
