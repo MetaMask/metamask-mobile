@@ -223,6 +223,8 @@ export const PredictTradeStatus = {
   SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
+  PAYMENT_FAILURE_PROMPTED: 'payment_failure_prompted',
+  ADD_FUNDS_SUBMITTED: 'add_funds_submitted',
 } as const;
 
 export type PredictTradeStatusValue =
