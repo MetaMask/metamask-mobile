@@ -232,6 +232,17 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
         .accessibilityLabel,
     ).toBe('Tokens, USD 20.00, 20%');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')),
+    ).toHaveStyle({
+      minHeight: 40,
+      paddingBottom: 0,
+      paddingTop: 0,
+    });
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('perps')).props
+        .accessibilityLabel,
+    ).toBe('Perps, USD 10.00, 20%');
   });
 
   it('localizes allocation percentages and APY numbers', () => {
@@ -417,6 +428,30 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('tokens')),
     ).toHaveTextContent('<1%');
+  });
+
+  it('renders less than zero for a positive fiat value that rounds to zero', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        tokens: makeSlice('tokens', {
+          valueFiat: 0.001,
+        }),
+      },
+    });
+
+    const { getByTestId } = render(
+      <HomepageBalanceBreakdown layout="allocation" />,
+    );
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('tokens')),
+    ).toHaveTextContent('<USD 0.00');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
+        .accessibilityLabel,
+    ).toContain('<USD 0.00');
   });
 
   it('renders the Money APY loading slot', () => {
