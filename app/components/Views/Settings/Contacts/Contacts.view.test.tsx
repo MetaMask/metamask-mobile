@@ -67,6 +67,30 @@ describeForPlatforms('Contacts component views', () => {
     });
   });
 
+  it('deletes an existing contact from the contacts list', async () => {
+    const deleteContactSpy = jest.spyOn(
+      Engine.context.AddressBookController,
+      'delete',
+    );
+    const { findByText } = renderContactsWithRoutes({
+      stateOptions: {
+        addressBook: syncedContactAddressBook,
+      },
+    });
+
+    fireEvent(await findByText(SYNCED_CONTACT.name), 'onLongPress');
+    fireEvent.press(await findByText(strings('address_book.delete')));
+
+    await waitFor(() => {
+      expect(deleteContactSpy).toHaveBeenCalledWith(
+        SYNCED_CONTACT.chainId,
+        SYNCED_CONTACT.address,
+      );
+    });
+
+    deleteContactSpy.mockRestore();
+  });
+
   it('shows the duplicate contact error for an already saved address', async () => {
     const { findByTestId, findByText } = renderContactForm({
       stateOptions: {
