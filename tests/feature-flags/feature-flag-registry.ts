@@ -6241,6 +6241,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     },
     status: FeatureFlagStatus.Active,
   },
+
+  subSUB990AbtestProSubscriptionFlow: {
+    name: 'subSUB990AbtestProSubscriptionFlow',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: { type: 'percentage_rollout', value: 1.0 },
+      },
+      {
+        name: 'treatment',
+        scope: { type: 'percentage_rollout', value: 1.0 },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
 };
 
 // ============================================================================

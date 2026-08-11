@@ -18,6 +18,7 @@ import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../compone
 import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 import { BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Perps/abTestConfig';
+import { PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/ProSubscription/abTestConfig';
 
 export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Card
@@ -54,4 +55,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Perps
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
+
+  // Pro Subscription
+  PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING,
 ];
