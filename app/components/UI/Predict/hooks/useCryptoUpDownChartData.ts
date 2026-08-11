@@ -196,7 +196,7 @@ export const useCryptoUpDownChartData = (
   const previousTwapWindowRef = useRef(twapWindowSeconds);
   const isCurrentMarket = prevMarketIdRef.current === market.id;
   const pendingFrozenMarketIdRef = useRef<string | undefined>(undefined);
-  const latestLiveObservationRef = useRef<number>();
+  const latestLiveObservationRef = useRef<number | undefined>(undefined);
   const pendingFrozenSyncRef = useRef(false);
   if (enabled && !isCurrentMarket) {
     const isNextMarketAlreadyExpired =
@@ -357,12 +357,13 @@ export const useCryptoUpDownChartData = (
   // tick and never flips back on a silent RTDS drop, whereas `liveStreamStale`
   // flips back to true when ticks stop arriving — correctly resuming HTTP
   // polling as a fallback.
-  const liveSubscriptionArgs:
-    | [string, typeof handleLiveUpdate]
-    | [string, typeof handleLiveUpdate, typeof twapWindowSeconds] =
-    twapWindowSeconds
-      ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
-      : [wsSymbol, handleLiveUpdate];
+  const liveSubscriptionArgs: [
+    string,
+    typeof handleLiveUpdate,
+    twapWindowSeconds?: typeof twapWindowSeconds,
+  ] = twapWindowSeconds
+    ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
+    : [wsSymbol, handleLiveUpdate];
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
   const historyStartDate =
