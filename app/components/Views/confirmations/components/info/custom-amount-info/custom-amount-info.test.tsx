@@ -437,8 +437,6 @@ describe('CustomAmountInfo', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
-      isMaxDeposit: false,
-      setIsMaxDeposit: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useAlertsMock.mockReturnValue({
@@ -1861,6 +1859,36 @@ describe('CustomAmountInfo', () => {
       // Keyboard stays open and the page never enters the loading/commit path.
       expect(queryByTestId('deposit-keyboard')).toBeOnTheScreen();
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('auto-submits when Max leaves amountFiat unchanged (already at max)', async () => {
+      // amountFiat is already the max (e.g. defaultAmount / prefill) while
+      // percentage buttons are still shown. Max must commit via the Loading
+      // stage transition, not wait for amountFiat to change.
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0.05',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        hasPrefetchedQuote: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      const { getByText } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
     });
   });
 

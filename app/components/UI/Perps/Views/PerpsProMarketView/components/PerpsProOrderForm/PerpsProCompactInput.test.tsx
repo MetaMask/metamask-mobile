@@ -50,6 +50,20 @@ describe('PerpsProCompactInput', () => {
     expect(mockInputFocus).not.toHaveBeenCalled();
   });
 
+  it('uses the custom keyboard accessory without requesting a native Done key', () => {
+    render(<PerpsProCompactInput {...defaultProps} />);
+
+    expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+      'inputAccessoryViewID',
+    );
+    expect(screen.getByTestId(defaultProps.testID)).not.toHaveProp(
+      'returnKeyType',
+    );
+    expect(screen.getByTestId(defaultProps.testID)).not.toHaveProp(
+      'onSubmitEditing',
+    );
+  });
+
   it('adds top spacing above the footer to match the Figma slider row', () => {
     render(<PerpsProCompactInput {...defaultProps} footer={<></>} />);
 

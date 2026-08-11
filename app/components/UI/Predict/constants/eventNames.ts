@@ -28,6 +28,9 @@ export const PredictEventProperties = {
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
   ORDER_TYPE: 'order_type',
+  TRADE_TYPE: 'trade_type',
+  IMPLEMENTATION_TYPE: 'implementation_type',
+  USD_TRADE_VALUE: 'usd_trade_value',
 
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',
@@ -139,6 +142,12 @@ export const PredictEventValues = {
     MM_PREDICT_TRANSACTION_SUBMISSION: 'mm_predict_transaction_submission',
     MM_PREDICT_WALLET_CREATION: 'mm_predict_wallet_creation',
   },
+  TRADE_TYPE: {
+    PREDICT: 'predict',
+  },
+  IMPLEMENTATION_TYPE: {
+    NATIVE: 'native',
+  },
   CLAIM_FAILURE_REASON: {
     PENDING_RESOLUTION: 'pending_resolution',
     INSUFFICIENT_GAS: 'insufficient_gas',
@@ -214,6 +223,8 @@ export const PredictTradeStatus = {
   SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
+  PAYMENT_FAILURE_PROMPTED: 'payment_failure_prompted',
+  ADD_FUNDS_SUBMITTED: 'add_funds_submitted',
 } as const;
 
 export type PredictTradeStatusValue =

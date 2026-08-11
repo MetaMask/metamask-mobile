@@ -10,8 +10,8 @@ import Avatar, {
 } from '../../../../../component-library/components/Avatars/Avatar';
 import {
   BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
-  HeaderStandard,
   KeyValueSelect,
   KeyValueSelectVariant,
   TextColor,
@@ -29,12 +29,9 @@ import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
 import { KeyValueRowSkeleton } from '../rows/key-value-row-skeleton';
 
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
-
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
   MODAL: 'account-selector-modal',
-  /** Used when `BottomSheet` is mocked in unit tests (production sheet has no wrapper testID). */
   BOTTOM_SHEET: 'account-selector-bottom-sheet',
 };
 
@@ -57,7 +54,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
   const { styles } = useStyles(stylesheet, {});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
@@ -201,12 +197,10 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             isFullscreen
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
-            twClassName={surfaceClass}
           >
-            <HeaderStandard
-              title={selectorTitle}
-              onClose={() => closeAccountSheet()}
-            />
+            <BottomSheetHeader onClose={() => closeAccountSheet()}>
+              {selectorTitle}
+            </BottomSheetHeader>
             <View style={styles.modalSheetBody}>
               <MultichainAccountSelectorList
                 selectedAccountGroups={

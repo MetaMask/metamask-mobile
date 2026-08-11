@@ -218,6 +218,7 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
 app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
+app/components/UI/QuickBuy/                                          @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
@@ -233,10 +234,12 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/SocialLeaderboard/**                                              @MetaMask/social-ai
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
+**/QuickBuy/**                                                       @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
 
 # Predict Team
 app/components/UI/Predict/                                    @MetaMask/predict
+app/components/UI/PredictNext/                                @MetaMask/predict
 app/core/Engine/controllers/predict-controller                @MetaMask/predict
 app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
 app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts  @MetaMask/predict
@@ -371,20 +374,14 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-android.yml            @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
-.github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-android.yml               @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-android-flask.yml         @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-ios.yml                   @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-ios-flask.yml             @MetaMask/qa
 .github/workflows/rerun-ci-on-skipped-e2e-labels.yml            @MetaMask/qa
 .github/workflows/update-e2e-fixtures.yml                       @MetaMask/qa
 .github/workflows/qa-stats.yml                                  @MetaMask/qa
 .github/workflows/flaky-test-report.yml                         @MetaMask/qa
 .github/workflows/performance-test-runner.yml                   @MetaMask/qa
 .github/workflows/run-performance-e2e.yml                       @MetaMask/qa
-.github/workflows/run-performance-e2e-experimental.yml          @MetaMask/qa
-.github/workflows/run-performance-e2e-release.yml               @MetaMask/qa
+.github/workflows/run-performance-e2e-manual.yml                @MetaMask/qa
 .github/workflows/run-system-tests.yml                          @MetaMask/qa
 .github/scripts/e2e-*.mjs                                       @MetaMask/qa
 .github/scripts/collect-qa-stats.mjs                            @MetaMask/qa

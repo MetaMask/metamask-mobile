@@ -298,6 +298,18 @@ jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
 }));
 
+jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    region: null,
+    onboardingDocuments: [],
+    permanentDocuments: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
 const mockResumePendingAction = jest.fn();
 let mockImmersvePendingAction: { type: string } | null = null;
 jest.mock('./hooks/useImmersveCardProvisioning', () => ({
@@ -628,10 +640,12 @@ const BAANX_CAPABILITIES = {
   supportsPushProvisioning: true,
   onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
   supportsPinView: true,
+  supportsPinSet: false,
   supportsCashback: true,
   supportsCredit: true,
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
+  supportsTransactionHistory: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
@@ -851,9 +865,6 @@ function setupMockSelectors(
       return config.selectedAccount;
     if (selectorString.includes('selectCardholderAccounts'))
       return config.cardholderAccounts;
-    if (selectorString.includes('selectEvmTokens')) return [mockPriorityToken];
-    if (selectorString.includes('selectEvmTokenFiatBalances'))
-      return ['1000.00'];
 
     return [];
   });

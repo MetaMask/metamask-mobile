@@ -10,6 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 
@@ -38,7 +39,7 @@ export function CustomAmountBuy() {
   const { goToBuy } = useRampNavigation();
 
   const handleBuyPress = useCallback(() => {
-    goToBuy({ assetId });
+    goToBuy({ assetId }, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
   }, [assetId, goToBuy]);
 
   return (

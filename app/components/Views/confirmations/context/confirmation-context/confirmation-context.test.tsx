@@ -25,7 +25,6 @@ describe('ConfirmationContext', () => {
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
-      isMaxDeposit: false,
       setNavHeaderConfig: expect.any(Function),
       setHeadlessBuyError: expect.any(Function),
       setIsFooterVisible: expect.any(Function),
@@ -33,7 +32,6 @@ describe('ConfirmationContext', () => {
       setIsHeadlessBuyInProgress: expect.any(Function),
       setIsTransactionDataUpdating: expect.any(Function),
       setIsTransactionValueUpdating: expect.any(Function),
-      setIsMaxDeposit: expect.any(Function),
     });
   });
 
@@ -115,22 +113,6 @@ describe('ConfirmationContext', () => {
     });
 
     expect(result.current.isTransactionDataUpdating).toBe(false);
-  });
-
-  it('updates isMaxDeposit state when calling setIsMaxDeposit', () => {
-    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
-
-    act(() => {
-      result.current.setIsMaxDeposit(true);
-    });
-
-    expect(result.current.isMaxDeposit).toBe(true);
-
-    act(() => {
-      result.current.setIsMaxDeposit(false);
-    });
-
-    expect(result.current.isMaxDeposit).toBe(false);
   });
 
   it('updates isConfirmationSubmitting state when calling setIsConfirmationSubmitting', () => {

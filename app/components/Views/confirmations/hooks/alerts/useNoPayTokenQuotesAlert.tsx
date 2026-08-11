@@ -41,8 +41,31 @@ export function useNoPayTokenQuotesAlert() {
     fiatPayment?.selectedPaymentMethodId,
   );
 
+  // Controller-backed (not UI-local keypad state), so every hook instance sees
+  // the same value. True once a positive amount has reached the controller via
+  // keypad input, prefill, or Max. isMaxAmount counts because post-quote flows
+  // substitute the token balance for a zero amountRaw when max is set.
+  const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
+    (t) =>
+      !t.skipIfBalance &&
+      (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
+  );
+
+  // Deposits set isMaxAmount synchronously (Max / uncapped 100% prefill) before
+  // the debounced amount update pushes amountRaw, and a pre-quote max with a
+  // zero amount never starts quote loading. Gating the non-fiat branch on
+  // amountRaw alone — not isMaxAmount — keeps the alert quiet through that
+  // in-flight window; once the amount lands amountRaw is positive and a genuine
+  // no-quote case still fires.
+  const hasPositiveRequiredTokenAmount = (requiredTokens ?? []).some(
+    (t) => !t.skipIfBalance && Boolean(t.amountRaw) && t.amountRaw !== '0',
+  );
+
   const shouldShowNonFiatNoQuotesAlert =
-    payToken && !isQuotesLoading && !quotes?.length;
+    payToken &&
+    !isQuotesLoading &&
+    !quotes?.length &&
+    hasPositiveRequiredTokenAmount;
 
   const shouldShowFiatNoQuotesAlert =
     hasSelectedFiatPaymentMethod &&
@@ -50,16 +73,6 @@ export function useNoPayTokenQuotesAlert() {
     !isQuotesLoading &&
     !fiatPayment?.rampsQuote &&
     quotes?.length === 0;
-
-  // Post-quote flows (e.g. money account withdraw) where `sourceAmounts` is
-  // non-empty but no quote was returned. The non-fiat branch above may not
-  // fire, so we also emit the alert when the user has entered a positive
-  // input amount but no quote is available.
-  const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
-    (t) =>
-      !t.skipIfBalance &&
-      (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
-  );
 
   const shouldShowPostQuoteNoQuotesAlert =
     isPostQuote &&

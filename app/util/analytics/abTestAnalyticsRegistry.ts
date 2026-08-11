@@ -4,6 +4,7 @@ import { NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING } from '../../components
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
 import { TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import { SWAPS_HAPTICS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/haptics/abTestConfig';
+import { CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import {
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING,
@@ -11,7 +12,7 @@ import {
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING,
 } from '../../components/Views/Homepage/abTestConfig';
 import { AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/TokenDetails/components/abTestConfig';
-import { SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
+import { SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
 import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/abTestConfig';
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
 import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
@@ -27,6 +28,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING,
   SWAPS_HAPTICS_AB_TEST_ANALYTICS_MAPPING,
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING,
+  CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING,
 
   // Homepage
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,

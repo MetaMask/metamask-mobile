@@ -27,6 +27,13 @@ interface UsePerpsOrderValidationParams {
   existingPositionLeverage?: number;
   skipValidation?: boolean;
   originalUsdAmount?: string; // Original USD input for validation (prevents precision loss from recalculation)
+  /** When true, passes reduceOnly through to protocol validation. */
+  reduceOnly?: boolean;
+  /**
+   * When true with reduceOnly, skips the UI minimum-amount check and tells the
+   * controller to apply its full-close minimum exemption.
+   */
+  isFullClose?: boolean;
 }
 
 interface ValidationResult {
@@ -59,6 +66,8 @@ export function usePerpsOrderValidation(
     existingPositionLeverage,
     skipValidation,
     originalUsdAmount,
+    reduceOnly,
+    isFullClose,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -111,7 +120,10 @@ export function usePerpsOrderValidation(
         ? TRADING_DEFAULTS.amount.mainnet
         : TRADING_DEFAULTS.amount.testnet;
 
-    if (usdAmount > 0 && usdAmount < minimumOrderSize) {
+    // Full reduce-only closes may be below the normal minimum notional (dust);
+    // the controller skips ORDER_SIZE_MIN when reduceOnly && isFullClose.
+    const skipMinimumAmount = Boolean(reduceOnly && isFullClose);
+    if (!skipMinimumAmount && usdAmount > 0 && usdAmount < minimumOrderSize) {
       immediateErrors.push(
         strings('perps.order.validation.minimum_amount', {
           amount: minimumOrderSize.toString(),
@@ -131,6 +143,8 @@ export function usePerpsOrderValidation(
         currentPrice: assetPrice,
         existingPositionLeverage,
         usdAmount: originalUsdAmount, // Pass USD as source of truth for validation
+        ...(reduceOnly !== undefined ? { reduceOnly } : {}),
+        ...(isFullClose !== undefined ? { isFullClose } : {}),
       };
 
       // Get protocol-specific validation
@@ -233,6 +247,8 @@ export function usePerpsOrderValidation(
     marginRequired,
     existingPositionLeverage,
     originalUsdAmount,
+    reduceOnly,
+    isFullClose,
     validateOrder,
     network,
   ]);
@@ -244,7 +260,18 @@ export function usePerpsOrderValidation(
     }
 
     // Skip validation if critical data is missing
-    if (!positionSize || assetPrice === 0) {
+    const numericPositionSize = Number.parseFloat(positionSize);
+    if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
+      setValidation((prev) => ({
+        ...prev,
+        errors: EMPTY_ERRORS,
+        isValidating: false,
+        isValid: false,
+      }));
+      return;
+    }
+
+    if (assetPrice === 0) {
       setValidation((prev) => ({
         ...prev,
         isValidating: false,
