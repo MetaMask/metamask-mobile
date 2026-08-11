@@ -219,8 +219,8 @@ export interface PerpsToastOptionsConfig {
     };
   };
   watchlist: {
-    added: PerpsToastOptions;
-    removed: PerpsToastOptions;
+    added: (symbol: string) => PerpsToastOptions;
+    removed: (symbol: string) => PerpsToastOptions;
     addError: PerpsToastOptions;
     limitReached: PerpsToastOptions;
   };
@@ -1108,14 +1108,18 @@ const usePerpsToasts = (): {
         },
       },
       watchlist: {
-        added: {
+        added: (symbol: string) => ({
           ...perpsBaseToastOptions.success,
-          labelOptions: getPerpsToastLabels(strings('perps.watchlist.added')),
-        },
-        removed: {
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.added', { symbol }),
+          ),
+        }),
+        removed: (symbol: string) => ({
           ...perpsBaseToastOptions.info,
-          labelOptions: getPerpsToastLabels(strings('perps.watchlist.removed')),
-        },
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.removed', { symbol }),
+          ),
+        }),
         addError: {
           ...perpsBaseToastOptions.error,
           labelOptions: getPerpsToastLabels(

@@ -65,7 +65,7 @@ export const usePerpsWatchlistActions = (
             [PERPS_EVENT_PROPERTY.SOURCE]: source,
             [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistAfter.length,
           });
-          showToast(PerpsToastOptions.watchlist.added);
+          showToast(PerpsToastOptions.watchlist.added(symbol));
         }
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.add'), {
@@ -103,7 +103,7 @@ export const usePerpsWatchlistActions = (
             [PERPS_EVENT_PROPERTY.SOURCE]: source,
             [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistAfter.length,
           });
-          showToast(PerpsToastOptions.watchlist.removed);
+          showToast(PerpsToastOptions.watchlist.removed(symbol));
         }
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.remove'), {
