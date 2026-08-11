@@ -5,21 +5,6 @@ const stylesheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    rowContainer: {
-      paddingVertical: 12,
-      paddingHorizontal: 8,
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    valueContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      flexShrink: 1,
-    },
     modalRoot: {
       flex: 1,
     },
