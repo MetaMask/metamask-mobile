@@ -399,8 +399,7 @@ const HARD_RULES: HardRule[] = [
       // impact is considered. Documentation, assets, locale files, and
       // performance-only workflow changes do not affect smoke-tag reachability.
       const hasNonIgnorableNonTestChanges = changedFiles.some(
-        (f) =>
-          !f.startsWith('tests/') && !isIgnorableSharedInfraCompanion(f),
+        (f) => !f.startsWith('tests/') && !isIgnorableSharedInfraCompanion(f),
       );
       if (hasNonIgnorableNonTestChanges) return null;
 
