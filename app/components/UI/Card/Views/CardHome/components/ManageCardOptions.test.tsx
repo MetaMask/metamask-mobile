@@ -32,6 +32,7 @@ const buildCapabilities = (
   ({
     supportsFundingLimits: true,
     supportsPinView: false,
+    supportsPinSet: false,
     supportsCashback: false,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
@@ -61,6 +62,7 @@ const renderComponent = (
       cardDetailsVisible={cardDetailsVisible}
       onViewCardDetails={jest.fn()}
       onViewPin={jest.fn()}
+      onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
       onManageSpendingLimit={jest.fn()}
       showUnlinkMoneyAccount={showUnlinkMoneyAccount}
@@ -155,5 +157,60 @@ describe('ManageCardOptions view/hide card details label', () => {
     expect(
       getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
     ).toHaveTextContent('Hide card details');
+  });
+});
+
+describe('ManageCardOptions set PIN gating', () => {
+  it('shows set PIN when supportsPinSet is true and card is ACTIVE', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: true }),
+    );
+
+    expect(getByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('hides set PIN when supportsPinSet is false', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: false }),
+    );
+
+    expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
+  });
+
+  it('hides set PIN when the card is not ACTIVE', () => {
+    const frozenCard = { ...CARD, status: CardStatus.FROZEN };
+    const { queryByTestId } = render(
+      <ManageCardOptions
+        card={frozenCard}
+        account={{ verificationStatus: 'VERIFIED' } as never}
+        capabilities={buildCapabilities({ supportsPinSet: true })}
+        isMetalCardCheckoutEnabled={false}
+        isAuthenticated
+        isLoading={false}
+        hasSetupActions={false}
+        hasAlertOnlyState={false}
+        hasSetupAlerts={false}
+        userLocation="gb"
+        isFrozen
+        isFreezeLoading={false}
+        isPinLoading={false}
+        cardDetailsVisible={false}
+        onViewCardDetails={jest.fn()}
+        onViewPin={jest.fn()}
+        onSetPin={jest.fn()}
+        onToggleFreeze={jest.fn()}
+        onManageSpendingLimit={jest.fn()}
+        showUnlinkMoneyAccount={false}
+        onUnlinkMoneyAccount={jest.fn()}
+        onOrderMetalCard={jest.fn()}
+        isSpendingLimitActive
+        onChangeAsset={jest.fn()}
+        hasPriorityTokenBalance
+        onCashback={jest.fn()}
+        onTravel={jest.fn()}
+      />,
+    );
+
+    expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
   });
 });
