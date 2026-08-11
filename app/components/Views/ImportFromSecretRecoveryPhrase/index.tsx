@@ -288,9 +288,8 @@ const ImportFromSecretRecoveryPhrase = () => {
   });
 
   const isSRPContinueButtonDisabled = useMemo(() => {
-    const updatedSeedPhrase = [...seedPhrase];
-    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
-      (word) => word !== '',
+    const updatedSeedPhraseLength = seedPhrase.filter(
+      (word) => word.trim() !== '',
     ).length;
     return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
   }, [seedPhrase]);
@@ -487,13 +486,11 @@ const ImportFromSecretRecoveryPhrase = () => {
   };
 
   const validateSeedPhrase = () => {
-    // Trim each word before joining to ensure proper validation
-    const phrase = seedPhrase
+    const trimmedWords = seedPhrase
       .map((item) => item.trim())
-      .filter((item) => item !== '')
-      .join(SPACE_CHAR);
-    const seedPhraseLength = seedPhrase.length;
-    if (!SRP_LENGTHS.includes(seedPhraseLength)) {
+      .filter((item) => item !== '');
+    const phrase = trimmedWords.join(SPACE_CHAR);
+    if (!SRP_LENGTHS.includes(trimmedWords.length)) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -558,9 +555,10 @@ const ImportFromSecretRecoveryPhrase = () => {
   };
 
   const onPressImport = async () => {
-    // Trim each word before joining for processing
+    // Drop blank grid slots before parsing (e.g. trailing empty after Space)
     const trimmedSeedPhrase = seedPhrase
       .map((item) => item.trim())
+      .filter((item) => item !== '')
       .join(SPACE_CHAR);
     const vaultSeed = await parseVaultValue(password, trimmedSeedPhrase);
     const parsedSeed = parseSeedPhrase(vaultSeed || trimmedSeedPhrase);

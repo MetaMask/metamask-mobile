@@ -35,6 +35,11 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import {
+  type MoneyHomeSegment,
+  useMoneyHomePerformance,
+} from '../../hooks/useMoneyHomePerformance';
+import { TraceName } from '../../../../../util/trace';
+import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
   selectIsCardholder,
@@ -173,6 +178,10 @@ jest.mock('../../hooks/useRefreshMusdFiatRate', () => ({
 jest.mock('../../hooks/useMoneyAccountInfo', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useMoneyHomePerformance', () => ({
+  useMoneyHomePerformance: jest.fn(),
 }));
 
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
@@ -380,6 +389,16 @@ const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInterest = jest.mocked(useMoneyAccountInterest);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
+const mockUseMoneyHomePerformance = jest.mocked(useMoneyHomePerformance);
+
+const getLastMoneyHomeSegment = (name: TraceName): MoneyHomeSegment => {
+  const calls = mockUseMoneyHomePerformance.mock.calls;
+  const segment = calls[calls.length - 1]?.[0].segments.find(
+    (candidate) => candidate.name === name,
+  );
+  expect(segment).toBeDefined();
+  return segment as MoneyHomeSegment;
+};
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -644,6 +663,169 @@ describe('MoneyHomeView', () => {
     const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(queryByTestId(MoneyEarningsTestIds.CONTAINER)).not.toBeOnTheScreen();
+  });
+
+  describe('time to content telemetry', () => {
+    it('marks APY and earnings ready when cached content is visible during refetch', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        vaultApyQuery: {
+          ...defaultMoneyAccountBalance.vaultApyQuery,
+          isLoading: true,
+        },
+      } as ReturnType<typeof useMoneyAccountBalance>);
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: { interest_earned_usd: '11.37' },
+          isLoading: true,
+          isInitialLoading: false,
+          isError: false,
+        },
+        sinceInceptionQuery: {
+          data: { interest_earned_usd: '139.02' },
+          isLoading: true,
+          isInitialLoading: false,
+          isError: false,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeApyTimeToContent),
+      ).toEqual(expect.objectContaining({ enabled: true, ready: true }));
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeEarningsTimeToContent),
+      ).toEqual(
+        expect.objectContaining({
+          enabled: true,
+          ready: true,
+          contentState: 'filled',
+        }),
+      );
+    });
+
+    it('keeps cold-cache APY pending and earnings inapplicable while balance loads', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        isBalanceLoading: true,
+        apyDecimal: undefined,
+        apyPercent: undefined,
+        apyPercentFormatted: undefined,
+        vaultApyQuery: {
+          data: undefined,
+          isLoading: true,
+          isError: false,
+        },
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: undefined,
+          isLoading: true,
+          isInitialLoading: true,
+          isError: false,
+        },
+        sinceInceptionQuery: {
+          data: undefined,
+          isLoading: true,
+          isInitialLoading: true,
+          isError: false,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeApyTimeToContent),
+      ).toEqual(expect.objectContaining({ enabled: true, ready: false }));
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeEarningsTimeToContent),
+      ).toEqual(expect.objectContaining({ enabled: false, ready: false }));
+    });
+
+    it('treats displayed APY and earnings fallbacks as successful content', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        vaultApyQuery: {
+          data: undefined,
+          isLoading: false,
+          isError: true,
+        },
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: undefined,
+          isLoading: false,
+          isInitialLoading: false,
+          isError: true,
+        },
+        sinceInceptionQuery: {
+          data: undefined,
+          isLoading: false,
+          isInitialLoading: false,
+          isError: true,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeApyTimeToContent),
+      ).toEqual(expect.objectContaining({ ready: true, failed: false }));
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeEarningsTimeToContent),
+      ).toEqual(expect.objectContaining({ ready: true, failed: false }));
+    });
+
+    it('does not enable earnings telemetry when the section flag is disabled', () => {
+      mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeEarningsTimeToContent),
+      ).toEqual(expect.objectContaining({ enabled: false }));
+    });
+
+    it('does not enable earnings telemetry when the section is hidden for an unfunded account', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeEarningsTimeToContent),
+      ).toEqual(expect.objectContaining({ enabled: false }));
+    });
+
+    it('does not enable APY telemetry without a Money account', () => {
+      mockUseMoneyAccountInfo.mockReturnValue({
+        hasMoneyAccount: false,
+        primaryMoneyAccount: undefined,
+      } as ReturnType<typeof useMoneyAccountInfo>);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(TraceName.MoneyHomeApyTimeToContent),
+      ).toEqual(expect.objectContaining({ enabled: false }));
+    });
   });
 
   describe('pull to refresh', () => {

@@ -1,6 +1,9 @@
 export enum PredictErrorCode {
   VENUE_UNAVAILABLE = 'VENUE_UNAVAILABLE',
   RATE_LIMITED = 'RATE_LIMITED',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  INVALID_RESPONSE = 'INVALID_RESPONSE',
+  UNSUPPORTED_VENUE = 'UNSUPPORTED_VENUE',
   GEO_BLOCKED = 'GEO_BLOCKED',
   FEATURE_DISABLED = 'FEATURE_DISABLED',
   SERVICE_DEGRADED = 'SERVICE_DEGRADED',
@@ -32,6 +35,21 @@ export const predictErrorRegistry: Record<
     category: 'degraded',
     message: 'Too many requests. Try again later.',
     recoverable: true,
+  },
+  [PredictErrorCode.NETWORK_ERROR]: {
+    category: 'action_failed',
+    message: 'Unable to reach the prediction service.',
+    recoverable: true,
+  },
+  [PredictErrorCode.INVALID_RESPONSE]: {
+    category: 'action_failed',
+    message: 'The prediction service returned an invalid response.',
+    recoverable: false,
+  },
+  [PredictErrorCode.UNSUPPORTED_VENUE]: {
+    category: 'empty_state',
+    message: 'This prediction venue is not supported.',
+    recoverable: false,
   },
   [PredictErrorCode.GEO_BLOCKED]: {
     category: 'empty_state',
