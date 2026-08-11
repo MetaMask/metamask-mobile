@@ -145,18 +145,10 @@ export function useRampsQuotes(
       return;
     }
 
-    if (!quoteCufOpIdRef.current) {
-      return;
-    }
-
-    // Open span belongs to a different key (e.g. switched to a cached amount while
-    // a prior fetch was in flight). Do not attribute this query's success/error.
-    // Keep quoteCufKeyRef on the active key so a later background refetch of that
-    // settled key does not open a spurious CUF (same guard as the success path).
-    if (quoteCufKeyRef.current !== quoteFetchKey) {
+    if (quoteCufOpIdRef.current && quoteCufKeyRef.current !== quoteFetchKey) {
+      // Open span belongs to a different key (cached switch or offline param change).
       const opId = quoteCufOpIdRef.current;
       quoteCufOpIdRef.current = null;
-      quoteCufKeyRef.current = quoteFetchKey;
       endRampsBuyQuoteFetchTrace({
         id: opId,
         data: {
@@ -164,6 +156,17 @@ export function useRampsQuotes(
           [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
         },
       });
+      if (quotesQuery.isSuccess || quotesQuery.isError) {
+        // Settled cache hit: keep settled-key guard against background refetch CUFs.
+        quoteCufKeyRef.current = quoteFetchKey;
+      } else {
+        // Pending/paused for the new key: clear so resume starts a fresh CUF.
+        quoteCufKeyRef.current = null;
+      }
+      return;
+    }
+
+    if (!quoteCufOpIdRef.current) {
       return;
     }
 
