@@ -2,7 +2,7 @@
 
 Measures the work performed while opening Swaps, selecting Ethereum USDC, entering `1` ETH, and waiting for the first positive quote.
 
-The scenario requires an unlocked wallet on Ethereum Mainnet, an active `mm` and Hermes session, and the `swaps-render-v1` instrumentation profile prepared before Metro starts.
+The scenario requires an unlocked wallet on Ethereum Mainnet, an active `mm` and Hermes session, and the temporary Swaps performance instrumentation prepared before Metro starts.
 
 Run it from the repository root:
 

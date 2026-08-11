@@ -6,7 +6,6 @@ export interface ScenarioMetadata {
   description: string;
   platform: 'ios-simulator';
   preconditions: string[];
-  instrumentationProfile: string;
 }
 
 export interface ScenarioPhase {

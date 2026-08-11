@@ -196,7 +196,7 @@ export async function runSwapsPerformanceScenario(
     const instrumentationStatus = getInstrumentationStatus(process.cwd());
     if (instrumentationStatus !== 'prepared') {
       throw new Error(
-        `Instrumentation profile ${scenario.metadata.instrumentationProfile} is ${instrumentationStatus}; run yarn performance:swaps prepare before Metro starts`,
+        `Swaps performance instrumentation is not prepared (status: ${instrumentationStatus}); run yarn performance:swaps prepare before Metro starts`,
       );
     }
 

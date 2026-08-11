@@ -12,7 +12,6 @@ export const SCENARIO_001_METADATA: ScenarioMetadata = {
     'A booted iOS Simulator with a development build installed.',
     'An unlocked wallet on Ethereum Mainnet showing the Wallet view.',
     'An active mm and Hermes session connected to Metro.',
-    'The swaps-render-v1 instrumentation profile is prepared before Metro starts.',
+    'The temporary Swaps performance instrumentation is prepared before Metro starts.',
   ],
-  instrumentationProfile: 'swaps-render-v1',
 };
