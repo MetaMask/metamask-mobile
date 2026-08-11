@@ -9,6 +9,7 @@ import {
 } from './EncapsulatedElement.ts';
 import { Json } from '@metamask/utils';
 import { FrameworkDetector } from './FrameworkDetector.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import PlaywrightAssertions from './PlaywrightAssertions.ts';
 
 /**
@@ -378,16 +379,20 @@ export default class Assertions {
     elem: EncapsulatedElementType,
   ): Promise<boolean> {
     const el = await asPlaywrightElement(elem);
-    const attributes: Record<string, unknown> = {
-      checked: await el.getAttribute('checked'),
-      value: await el.getAttribute('value'),
-    };
-    const state = this.parseAppiumToggleOnState(attributes);
+    // Each Appium driver only supports the attribute native to its Switch:
+    // iOS XCUITest exposes `value` (`"1"` / `"0"`); Android UiAutomator2 exposes
+    // `checked` (`"true"` / `"false"`). Querying the other one throws
+    // `attribute is unknown`, so read only the platform-appropriate attribute.
+    const attributeName = PlatformDetector.isIOS() ? 'value' : 'checked';
+    const attributeValue = await el.getAttribute(attributeName);
+    const state = this.parseAppiumToggleOnState({
+      [attributeName]: attributeValue,
+    });
     if (state === undefined) {
       throw new Error(
-        `Unable to determine toggle state from attributes: checked=${String(
-          attributes.checked,
-        )} value=${String(attributes.value)}`,
+        `Unable to determine toggle state from attribute ${attributeName}=${String(
+          attributeValue,
+        )}`,
       );
     }
     return state;
