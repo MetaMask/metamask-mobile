@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RegionsService, ServicesSignatures } from '@consensys/on-ramp-sdk';
 import { useRampSDK, SDK } from '../sdk';
 import Logger from '../../../../../util/Logger';
@@ -98,17 +98,20 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   > | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(onMount);
-  const stringifiedParams = useMemo(
-    () => JSON.stringify(params),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [...params],
-  );
+  // Rest-param arrays are a new reference every render; stringify for a
+  // content-stable dependency so `query` stays referentially equal when
+  // argument values are unchanged. Parse inside the callback (instead of
+  // closing over `params`) so the dependency is actually used and we avoid
+  // an exhaustive-deps suppression that would bail out React Compiler.
+  const stringifiedParams = JSON.stringify(params);
   const abortControllerRef = useRef<AbortController | undefined>(undefined);
 
   const query = useCallback(
     async (...customParams: PartialParameters<RegionsService[T]> | []) => {
       const hasCustomParams = customParams.length > 0;
-      const queryParams = hasCustomParams ? customParams : params;
+      const queryParams = (
+        hasCustomParams ? customParams : JSON.parse(stringifiedParams)
+      ) as PartialParameters<RegionsService[T]>;
 
       if (!validMethodParams(method, queryParams)) {
         return;
@@ -152,7 +155,6 @@ export default function useSDKMethod<T extends keyof RegionsService>(
         setIsFetching(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [method, stringifiedParams, sdk],
   );
 
