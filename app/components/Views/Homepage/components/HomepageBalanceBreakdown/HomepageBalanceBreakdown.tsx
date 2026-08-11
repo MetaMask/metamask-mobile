@@ -43,7 +43,7 @@ const HomepageBalanceBreakdown = ({
       {!hideRows ? (
         <Box
           testID={HomepageBalanceBreakdownTestIds.ROWS}
-          twClassName="mt-3 px-4 pt-2"
+          twClassName="mt-3 pt-2"
         >
           {layout === 'allocation' ? (
             <HomepageBalanceBreakdownAllocationBar slices={slices} />
