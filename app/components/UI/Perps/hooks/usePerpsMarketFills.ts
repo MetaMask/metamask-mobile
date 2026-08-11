@@ -6,6 +6,7 @@ import { mergeOrderFills } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import { usePerpsConnection } from './usePerpsConnection';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 interface UsePerpsMarketFillsParams {
@@ -74,6 +75,8 @@ export const usePerpsMarketFills = ({
   const addressRef = useRef(selectedAddress);
   addressRef.current = selectedAddress;
 
+  const { isConnected, isInitialized, isConnecting } = usePerpsConnection();
+
   // WebSocket fills for real-time updates
   const { fills: liveFills, isInitialLoading } = usePerpsLiveFills({
     throttleMs,
@@ -123,7 +126,6 @@ export const usePerpsMarketFills = ({
         if (!isCurrentRequest()) {
           return;
         }
-        setHistoryError('No active Perps provider');
         return;
       }
 
@@ -180,14 +182,26 @@ export const usePerpsMarketFills = ({
     };
   }, []);
 
-  // Fetch historical fills on mount and when account changes (background, non-blocking)
-  // This ensures we have complete fill history, not just WebSocket snapshot
-  // Clear stale fills and refetch when account changes to prevent data leakage
+  // Fetch historical fills on mount, when account changes, and when the Perps
+  // connection becomes ready (background, non-blocking).
+  // Clear stale fills and refetch when account changes to prevent data leakage.
   useEffect(() => {
-    // Clear stale REST fills from previous account before fetching new ones
+    if (!isConnected || !isInitialized || isConnecting) {
+      setRestFills([]);
+      setHistoryError(null);
+      setIsHistoryLoading(true);
+      return;
+    }
+
     setRestFills([]);
     fetchRestFills();
-  }, [fetchRestFills, selectedAddress]);
+  }, [
+    fetchRestFills,
+    selectedAddress,
+    isConnected,
+    isInitialized,
+    isConnecting,
+  ]);
 
   // Refresh function for manual refetch
   const refresh = useCallback(async () => {

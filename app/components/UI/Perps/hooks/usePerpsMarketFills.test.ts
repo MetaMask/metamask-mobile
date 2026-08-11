@@ -2,6 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { usePerpsMarketFills } from './usePerpsMarketFills';
 import { usePerpsLiveFills } from './stream';
+import { usePerpsConnection } from './usePerpsConnection';
 import Engine from '../../../../core/Engine';
 import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
 
@@ -16,6 +17,18 @@ jest.mock('react-redux', () => ({
 
 jest.mock('./stream', () => ({
   usePerpsLiveFills: jest.fn(),
+}));
+
+jest.mock('./usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isInitialized: true,
+    isConnecting: false,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+  })),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -38,6 +51,10 @@ const mockUsePerpsLiveFills = usePerpsLiveFills as jest.MockedFunction<
 >;
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+const mockUsePerpsConnection = usePerpsConnection as jest.MockedFunction<
+  typeof usePerpsConnection
+>;
 
 const mockGetActiveProviderOrNull = Engine.context.PerpsController
   .getActiveProviderOrNull as jest.MockedFunction<
@@ -103,6 +120,15 @@ describe('usePerpsMarketFills', () => {
     jest.clearAllMocks();
     mockSelectedAccountByScope.mockReturnValue({ address: '0xAccount1' });
     mockUseSelector.mockImplementation(() => mockSelectedAccountByScope);
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+      isConnecting: false,
+      error: null,
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+    } as never);
 
     // Set up mock provider
     mockProvider = {
@@ -515,12 +541,92 @@ describe('usePerpsMarketFills', () => {
         usePerpsMarketFills({ symbol: 'BTC' }),
       );
 
-      // Assert - should work with just WebSocket fills and report unavailable history
+      // Assert - WebSocket fills still work and missing provider is not terminal
       expect(result.current.fills).toHaveLength(1);
       await waitFor(() => {
         expect(result.current.isHistoryLoading).toBe(false);
       });
-      expect(result.current.historyError).toBe('No active Perps provider');
+      expect(result.current.historyError).toBeNull();
+    });
+  });
+
+  describe('connection readiness', () => {
+    it('waits for connection without history error while reconnecting', () => {
+      // Arrange
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: true,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [mockBtcFill1],
+        isInitialLoading: false,
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsMarketFills({ symbol: 'BTC' }),
+      );
+
+      // Assert
+      expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+      expect(result.current.isHistoryLoading).toBe(true);
+      expect(result.current.historyError).toBeNull();
+      expect(result.current.fills).toHaveLength(1);
+    });
+
+    it('refetches REST fills when connection becomes ready', async () => {
+      // Arrange
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+      mockProvider.getOrderFills.mockResolvedValue([mockBtcFill1]);
+
+      const { result, rerender } = renderHook(
+        ({ symbol }: { symbol: string }) => usePerpsMarketFills({ symbol }),
+        { initialProps: { symbol: 'BTC' } },
+      );
+
+      expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+      expect(result.current.historyError).toBeNull();
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+
+      // Act
+      await act(async () => {
+        rerender({ symbol: 'BTC' });
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockProvider.getOrderFills).toHaveBeenCalledTimes(1);
+      });
+      await waitFor(() => {
+        expect(result.current.fills).toHaveLength(1);
+      });
+      expect(result.current.historyError).toBeNull();
     });
   });
 
