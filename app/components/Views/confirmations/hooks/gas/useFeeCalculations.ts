@@ -209,7 +209,10 @@ export const useFeeCalculations = (
     nativeCurrencyFee: maxFeeNative,
     preciseNativeCurrencyFee: maxFeeNativePrecise,
     preciseNativeFeeInHex: maxFeeNativeHex,
-  } = getFeesFromHexCallback(maxFee);
+  } = useMemo(
+    () => getFeesFromHexCallback(maxFee),
+    [getFeesFromHexCallback, maxFee],
+  );
 
   return {
     estimatedFeeFiat: estimatedFees.currentCurrencyFee,
