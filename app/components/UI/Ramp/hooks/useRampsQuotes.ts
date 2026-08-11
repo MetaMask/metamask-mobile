@@ -167,6 +167,12 @@ export function useRampsQuotes(
       return;
     }
 
+    // Offline pause sets isFetching false while status is still loading/pending.
+    // Only complete once the query has a real terminal result.
+    if (!quotesQuery.isSuccess && !quotesQuery.isError) {
+      return;
+    }
+
     const opId = quoteCufOpIdRef.current;
     quoteCufOpIdRef.current = null;
     // Keep quoteCufKeyRef so a later identical key does not restart without a fetch.
@@ -183,6 +189,7 @@ export function useRampsQuotes(
     queryEnabled,
     quoteFetchKey,
     quotesQuery.isFetching,
+    quotesQuery.isSuccess,
     quotesQuery.isError,
     endOpenQuoteCuf,
   ]);

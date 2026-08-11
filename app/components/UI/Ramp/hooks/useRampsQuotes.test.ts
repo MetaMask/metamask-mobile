@@ -1,5 +1,9 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+  onlineManager,
+} from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
@@ -75,6 +79,11 @@ const mockQuotesResponse = {
 describe('useRampsQuotes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    onlineManager.setOnline(true);
+  });
+
+  afterEach(() => {
+    onlineManager.setOnline(true);
   });
 
   describe('return value structure', () => {
@@ -437,6 +446,49 @@ describe('useRampsQuotes', () => {
 
       await act(async () => {
         resolveSlow(mockQuotesResponse);
+      });
+    });
+
+    it('does not end an in-flight quote CUF as success while the query is paused offline', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      let resolveFetch: (value: typeof mockQuotesResponse) => void = () =>
+        undefined;
+      const pendingFetch = new Promise<typeof mockQuotesResponse>((resolve) => {
+        resolveFetch = resolve;
+      });
+      (
+        Engine.context.RampsController.getQuotes as jest.Mock
+      ).mockImplementation(() => pendingFetch);
+
+      onlineManager.setOnline(true);
+
+      renderHook(() => useRampsQuotes(options), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(1);
+      });
+      mockEndRampsBuyQuoteFetchTrace.mockClear();
+
+      await act(async () => {
+        onlineManager.setOnline(false);
+      });
+
+      expect(mockEndRampsBuyQuoteFetchTrace).not.toHaveBeenCalled();
+
+      await act(async () => {
+        onlineManager.setOnline(true);
+        resolveFetch(mockQuotesResponse);
+      });
+
+      await waitFor(() => {
+        expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+          id: 'quote-cuf-op-1',
+          data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        });
       });
     });
 
