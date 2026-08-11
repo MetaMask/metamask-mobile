@@ -2676,7 +2676,7 @@
       "hard_to_understand": "Hard to understand",
       "harmful_or_offensive": "Harmful or offensive",
       "something_else": "Something else",
-      "additional_feedback_label": "Additional feedback (optional)",
+      "additional_feedback_label": "Additional feedback",
       "additional_feedback_placeholder": "How can we improve?",
       "characters_remaining": "{{count}} characters remaining",
       "submit": "Submit"
@@ -8968,6 +8968,7 @@
       "description": "Enter your wallet password to view card details.",
       "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "description_view_pin": "Enter your wallet password to view your card PIN.",
+      "description_set_pin": "Enter your wallet password to set your card PIN.",
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",
@@ -8976,6 +8977,24 @@
     },
     "view_pin_bottomsheet": {
       "title": "Your Card PIN"
+    },
+    "set_pin": {
+      "set_title": "Set your card PIN",
+      "set_description": "You won't be able to view this PIN later. If you forget it, you can set a new one.",
+      "set_label": "PIN",
+      "continue": "Continue",
+      "confirm_title": "Confirm your card PIN",
+      "confirm_description": "Re-enter your PIN to confirm",
+      "confirm_label": "Confirm PIN",
+      "submit": "Set PIN",
+      "mismatch_error": "PINs must match.",
+      "invalid_pin_error": "That PIN can't be used. Choose a different one.",
+      "repeating_pin_error": "That PIN can't be used. Choose a different one.",
+      "forbidden_error": "You can't set a PIN on this card right now.",
+      "network_error": "Something went wrong. Please try again.",
+      "success_title": "PIN set",
+      "success_description": "Your card PIN is ready to use. Make sure you keep it safe—you won't be able to view it in the app.",
+      "success_done": "Done"
     },
     "choose_your_card": {
       "title": "Choose your card",
@@ -9358,6 +9377,8 @@
         "view_pin": "View PIN",
         "view_pin_description": "View your card PIN securely",
         "view_pin_error": "Failed to load PIN. Please try again.",
+        "set_pin": "Set card PIN",
+        "set_pin_description": "Set a 4-digit PIN for ATM and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",

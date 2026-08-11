@@ -3,7 +3,6 @@ export { QuickBuy } from './quickBuy';
 
 export type { QuickBuyRootProps } from './types';
 export type { QuickBuyContextValue } from './QuickBuyContext';
-export type { QuickBuySheetProps } from './types';
 export type { TraderPositionQuickBuyProps } from './TraderPositionQuickBuy';
 export type {
   QuickBuyTarget,
