@@ -7,6 +7,7 @@ import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
+import { useRiveTiltWriter } from '../../hooks/useRiveTiltWriter';
 import {
   shapeCardTilt,
   pitchToParallaxValue,
@@ -68,14 +69,27 @@ const MoneyCardTiltAnimation = ({
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
-  const applyTilt = useCallback((x: number, y: number) => {
-    const rive = riveRef.current;
-    // viewTag() is null while the native Rive view is detached; dispatching
-    // then throws "found null reactTag".
-    if (!rive || rive.viewTag() === null) return;
-    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(shapeCardTilt(x)));
-    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(shapeCardTilt(y)));
-  }, []);
+  const artboardName = isMetalCard
+    ? RIVE_ARTBOARD_METAL
+    : RIVE_ARTBOARD_DIGITAL;
+
+  const writeTilt = useRiveTiltWriter({
+    riveRef,
+    xProperty: RIVE_PROPERTY_X,
+    yProperty: RIVE_PROPERTY_Y,
+    artboardName,
+    enabled: animate,
+  });
+
+  const applyTilt = useCallback(
+    (x: number, y: number) => {
+      writeTilt(
+        tiltToParallaxValue(shapeCardTilt(x)),
+        pitchToParallaxValue(shapeCardTilt(y)),
+      );
+    },
+    [writeTilt],
+  );
 
   useDeviceOrientation(applyTilt, { enabled: animate });
 
@@ -83,10 +97,6 @@ const MoneyCardTiltAnimation = ({
     log(`Rive error: ${riveError.message}`);
     setHasRiveError(true);
   }, []);
-
-  const artboardName = isMetalCard
-    ? RIVE_ARTBOARD_METAL
-    : RIVE_ARTBOARD_DIGITAL;
 
   const size = useMemo(() => ({ width, height }), [width, height]);
 
