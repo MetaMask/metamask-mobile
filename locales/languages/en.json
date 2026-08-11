@@ -7637,6 +7637,25 @@
     },
     "your_stablecoins": "Your stablecoins"
   },
+  "earn_module": {
+    "new_tag": "New",
+    "money_account": "Money account",
+    "get_started": "Get started",
+    "money_apy": "6.2% APY",
+    "usdc": "USDC",
+    "usdc_balance": "$24,583.34",
+    "usdt": "USDT",
+    "usdt_balance": "$4,583.34",
+    "musd": "mUSD",
+    "musd_balance": "$1,238.43",
+    "ausdc": "aUSDC",
+    "ausdc_balance": "$883.34",
+    "eth": "ETH",
+    "eth_balance": "$683.34",
+    "stablecoin_apy": "Get 6.2% APY",
+    "eth_apr": "2.1% APR",
+    "view_more": "View more"
+  },
   "money": {
     "title": "Money",
     "your_balance": "Your balance",
@@ -10838,6 +10857,7 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
+      "earn": "Earn",
       "more": {
         "title": "More",
         "import_token": "Import a token",
