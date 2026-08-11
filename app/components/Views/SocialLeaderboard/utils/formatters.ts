@@ -15,6 +15,12 @@ import { tradeTimestampToMs } from './tradeTimestamp';
 /** Placeholder rendered wherever a numeric value is unavailable. */
 export const EM_DASH = '\u2014';
 
+/** Values below this collapse to `$0.00` under the default two-decimal fiat formatter. */
+const SUB_CENT_USD_THRESHOLD = 0.01;
+
+const needsSubCentUsdPrecision = (value: number): boolean =>
+  value !== 0 && Math.abs(value) < SUB_CENT_USD_THRESHOLD;
+
 /**
  * USD for social leaderboard rows/cards: match perps-style fiat (always two
  * fractional digits for whole dollars). Rewards `formatUsd`/`formatFiat` omits
@@ -45,6 +51,34 @@ export function formatSignedUsd(value: number | null | undefined): string {
   if (value === 0) return formatPerpsFiat(0, { stripTrailingZeros: false });
   const sign = value > 0 ? '+' : '-';
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+/**
+ * Open-position value for feed rows. Uses tiered precision for sub-cent totals
+ * so tiny mark-to-market values don't collapse to `$0.00`.
+ */
+export function formatFeedValueUsd(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  if (needsSubCentUsdPrecision(value)) {
+    return formatTradeUnitPrice(Math.abs(value));
+  }
+  return formatUsd(value);
+}
+
+/**
+ * Signed PnL for feed rows. Mirrors {@link formatSignedUsd} but preserves
+ * sub-cent magnitudes the same way as {@link formatFeedValueUsd}.
+ */
+export function formatSignedFeedValueUsd(
+  value: number | null | undefined,
+): string {
+  if (value == null) return EM_DASH;
+  if (value === 0) return formatPerpsFiat(0, { stripTrailingZeros: false });
+  if (needsSubCentUsdPrecision(value)) {
+    const sign = value > 0 ? '+' : '-';
+    return sign + formatTradeUnitPrice(Math.abs(value));
+  }
+  return formatSignedUsd(value);
 }
 
 /**

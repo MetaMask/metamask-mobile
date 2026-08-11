@@ -13,10 +13,10 @@ import {
 import { chainNameToId } from '../../utils/chainMapping';
 import {
   formatAbbreviatedUsd,
+  formatFeedValueUsd,
   formatPercent,
-  formatSignedUsd,
+  formatSignedFeedValueUsd,
   formatTradeUnitPrice,
-  formatUsd,
 } from '../../utils/formatters';
 import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
@@ -106,7 +106,7 @@ function buildSubHeader(
   trade: Trade | undefined,
   isSpot: boolean,
 ): FeedSubHeader {
-  if (!trade) {
+  if (!trade || !isPresentNumber(trade.usdCost) || trade.usdCost === 0) {
     return { sizeLabel: '' };
   }
 
@@ -176,10 +176,10 @@ function resolveValueLabel(
     return '';
   }
   if (isClosed && isPresentNumber(pnlValue)) {
-    return formatSignedUsd(pnlValue);
+    return formatSignedFeedValueUsd(pnlValue);
   }
   if (isPresentNumber(currentValueUSD)) {
-    return formatUsd(currentValueUSD);
+    return formatFeedValueUsd(currentValueUSD);
   }
   return '';
 }

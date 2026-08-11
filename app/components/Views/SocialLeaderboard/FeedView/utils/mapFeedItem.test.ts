@@ -435,19 +435,103 @@ describe('mapFeedItem', () => {
     expect(result?.hasPnlData).toBe(false);
   });
 
-  it('leaves value and PnL labels empty when open-position fields are missing', () => {
+  it('omits sub-header size when usdCost is missing', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
-        currentValueUSD: null,
-        pnlPercent: null,
-        pnlValueUsd: null,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1_000_000,
+            usdCost: undefined as unknown as number,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
       }),
     );
 
-    expect(result?.valueLabel).toBe('');
-    expect(result?.pnlLabel).toBe('');
-    expect(result?.hasValueData).toBe(false);
-    expect(result?.hasPnlData).toBe(false);
+    expect(result?.subHeader).toEqual({ sizeLabel: '' });
+  });
+
+  it('omits sub-header size when usdCost is zero', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1_000_000,
+            usdCost: 0,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({ sizeLabel: '' });
+  });
+
+  it('formats sub-cent open position value without collapsing to $0.00', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        currentValueUSD: 0.002759,
+        pnlValueUsd: 0.001,
+        pnlPercent: 56.7,
+        realizedPnl: 0,
+        marginUsd: 0.002,
+        positionAmount: 1_000,
+        perpPositionType: 'long',
+        perpLeverage: 10,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1_000,
+            usdCost: 4_000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 10,
+          },
+        ],
+        timestamp: 1_700_000_000,
+      }),
+    );
+
+    expect(result?.action).toBe('opened');
+    expect(result?.valueLabel).toBe('$0.002759');
+  });
+
+  it('formats sub-cent realized PnL on closed rows', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        currentValueUSD: 0,
+        pnlValueUsd: 0.002759,
+        pnlPercent: 12,
+        realizedPnl: 0.002759,
+        positionAmount: 0,
+        soldUsd: 100,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: 1000,
+            usdCost: 100,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('sold');
+    expect(result?.valueLabel).toBe('+$0.002759');
   });
 
   it('hides value and PnL for an open perp feed row without mark-to-market fields', () => {
