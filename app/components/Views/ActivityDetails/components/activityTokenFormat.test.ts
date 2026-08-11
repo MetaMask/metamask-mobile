@@ -93,4 +93,14 @@ describe('useFormatActivityTokenAmount', () => {
       } as TokenAmount),
     ).toBe('+1');
   });
+
+  it('renders a non-numeric amount verbatim instead of a bare sign', () => {
+    expect(
+      formatToken({
+        amount: '1,714.55',
+        symbol: 'USDC',
+        direction: 'out',
+      } as TokenAmount),
+    ).toBe('-1,714.55 USDC');
+  });
 });

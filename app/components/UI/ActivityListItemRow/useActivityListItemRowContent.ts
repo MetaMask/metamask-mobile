@@ -28,6 +28,7 @@ import {
   type ActivityKind,
   type ActivityListItem,
   enrichTokenFromApi,
+  formatTokenDisplayAmount,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
@@ -250,8 +251,9 @@ function perpsPositionSubtitle(
   if (sourceToken.amount === undefined) {
     return displaySymbol;
   }
-  return formatters.formatTokenAmount(
-    sourceToken.amount as `${number}`,
+  return formatTokenDisplayAmount(
+    formatters,
+    sourceToken.amount,
     displaySymbol,
   );
 }
@@ -878,9 +880,8 @@ function resolveCoreContent(
 }
 
 /**
- * Resolves only the title of an activity row. Callable outside React, so it
- * reaches for {@link getFormatters} rather than the hook — `resolveCoreContent`
- * needs formatters for the subtitle, which this discards.
+ * Resolves the title of an activity row. Callable outside React — uses
+ * {@link getFormatters} rather than the hook.
  */
 export function resolveActivityListItemTitle(
   item: ActivityListItem,
@@ -903,17 +904,9 @@ function resolveAmount(
     return undefined;
   }
 
-  // `formatTokenAmount` appends the symbol itself, leaving a trailing space when
-  // there isn't one. The unlimited label is text, not a number, so it can't go
-  // through the formatter.
-  let amount: string;
-  if (token.isUnlimitedApproval) {
-    amount = token.symbol ? `${displayAmount} ${token.symbol}` : displayAmount;
-  } else {
-    amount = formatters
-      .formatTokenAmount(displayAmount as `${number}`, token.symbol ?? '')
-      .trimEnd();
-  }
+  const amount = token.isUnlimitedApproval
+    ? withOptionalSymbol(displayAmount, token.symbol)
+    : formatTokenDisplayAmount(formatters, displayAmount, token.symbol);
 
   const isSpendingCapActivity =
     activityType === 'approveSpendingCap' ||
@@ -1149,8 +1142,9 @@ function fundsTokenSecondaryAmount(
   const humanAmount = token ? getHumanReadableTokenAmount(token) : undefined;
   if (!token || humanAmount === undefined || !token.symbol) return undefined;
 
-  const display = formatters.formatTokenAmount(
-    humanAmount as `${number}`,
+  const display = formatTokenDisplayAmount(
+    formatters,
+    humanAmount,
     token.symbol,
   );
   return applyDisplaySign(

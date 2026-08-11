@@ -41,6 +41,7 @@ export {
   applyDisplaySign,
   toMarketRateLookupToken,
 } from './fiat';
+export { formatTokenDisplayAmount } from './token-display';
 export {
   activityMatchesAssetId,
   enrichTokenFromApi,

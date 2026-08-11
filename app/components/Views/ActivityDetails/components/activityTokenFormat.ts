@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import {
   applyDisplaySign,
+  formatTokenDisplayAmount,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   type TokenAmount,
@@ -15,7 +16,7 @@ import { strings } from '../../../../../locales/i18n';
  * controls whether incoming amounts get a leading `+`.
  */
 export function useFormatActivityTokenAmount() {
-  const { formatTokenAmount } = useFormatters();
+  const formatters = useFormatters();
 
   return useCallback(
     (
@@ -35,16 +36,11 @@ export function useFormatActivityTokenAmount() {
         return token.symbol;
       }
 
-      const withSymbol = formatTokenAmount(
-        human as `${number}`,
-        token.symbol ?? '',
-      ).trimEnd();
-
       return applyDisplaySign(
-        withSymbol,
+        formatTokenDisplayAmount(formatters, human, token.symbol),
         getDisplaySignPrefix(token.direction, { showPlus }),
       );
     },
-    [formatTokenAmount],
+    [formatters],
   );
 }
