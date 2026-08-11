@@ -394,11 +394,25 @@ const HARD_RULES: HardRule[] = [
       const infraFiles = getChangedSharedInfraFiles(changedFiles);
       if (infraFiles.length === 0) return null;
 
-      // Only apply when all changes are within tests/ — app changes go to AI
-      const hasNonTestChanges = changedFiles.some(
-        (f) => !f.startsWith('tests/'),
+      // Paths that don't affect E2E test selection — CI, docs, scripts, config, etc.
+      // Changes to these alongside shared test infra should not prevent the hard rule.
+      const ignorablePathPrefixes = [
+        '.github/',
+        'scripts/',
+        'docs/',
+        '.changeset/',
+        '.yarn/',
+        '.vscode/',
+        '.cursor/',
+      ];
+
+      // Only bail to AI if there are actual app code changes (not just CI/docs/scripts)
+      const hasAppCodeChanges = changedFiles.some(
+        (f) =>
+          !f.startsWith('tests/') &&
+          !ignorablePathPrefixes.some((prefix) => f.startsWith(prefix)),
       );
-      if (hasNonTestChanges) return null;
+      if (hasAppCodeChanges) return null;
 
       const validTags = new Set(SELECT_TAGS_CONFIG.map((c) => c.tag));
 
@@ -453,7 +467,7 @@ const HARD_RULES: HardRule[] = [
   {
     name: 'test-spec-tag-extraction',
     description:
-      'Spec files in tests/smoke-appium/ changed — extract their tags and run directly',
+      'Spec files in tests/smoke/ or tests/smoke-appium/ changed — extract their tags and run directly',
     check: (changedFiles, context) => {
       const specFiles = getChangedSpecFiles(changedFiles);
       if (specFiles.length === 0) return null;

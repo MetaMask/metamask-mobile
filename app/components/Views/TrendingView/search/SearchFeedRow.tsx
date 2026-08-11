@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { Box } from '@metamask/design-system-react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
@@ -23,6 +24,8 @@ interface SearchFeedRowProps {
   resultCount?: number;
   onQuickTrade?: (token: TrendingAsset) => void;
 }
+
+export const PERPS_ROW_WRAPPER_TEST_ID = 'search-feed-row-perps-wrapper';
 
 export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
   switch (feedId) {
@@ -78,7 +81,13 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
           />
         );
       case 'perps':
-        return <PerpsRowItem market={item as PerpsMarketData} />;
+        // ListItem owns its own px-4 for the pressed state, so cancel the list
+        // container's px-4 to avoid indenting perps rows an extra 16px.
+        return (
+          <Box twClassName="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
+            <PerpsRowItem market={item as PerpsMarketData} />
+          </Box>
+        );
       case 'predictions':
         return <PredictionSearchRowItem market={item as PredictMarketType} />;
       case 'sites':

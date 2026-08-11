@@ -117,7 +117,8 @@ export function usePredictPortfolio({
     () =>
       claimablePositions.filter(
         (position) =>
-          position.status === PredictPositionStatus.WON &&
+          (position.status === PredictPositionStatus.WON ||
+            position.status === PredictPositionStatus.REDEEMABLE) &&
           position.currentValue > 0,
       ),
     [claimablePositions],
