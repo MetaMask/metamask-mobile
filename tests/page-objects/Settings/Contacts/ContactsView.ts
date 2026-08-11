@@ -2,7 +2,7 @@ import { ContactsViewSelectorIDs } from '../../../../app/components/Views/Settin
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Assertions from '../../../framework/Assertions';
-import { EncapsulatedElementType, PlatformDetector } from '../../../framework';
+import { EncapsulatedElementType } from '../../../framework';
 
 class ContactsView {
   get container(): EncapsulatedElementType {
@@ -10,9 +10,7 @@ class ContactsView {
   }
 
   get addButton(): EncapsulatedElementType {
-    return PlatformDetector.isIOS()
-      ? Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(ContactsViewSelectorIDs.ADD_BUTTON);
+    return Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON);
   }
 
   async tapOnAlias(alias: string): Promise<void> {
