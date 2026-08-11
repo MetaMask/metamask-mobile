@@ -19,15 +19,50 @@ import {
 } from '../../../Card/util/metrics';
 
 const MOCK_CARD_FLIP_ANIMATION_TEST_ID = 'mock-money-card-flip-animation';
-const mockCardFlipProps: { current?: { isMetalCard?: boolean } } = {};
+const mockCardFlipProps: {
+  current?: { isMetalCard?: boolean; shouldPlay?: boolean };
+} = {};
+
+// The entrance wrapper holds its children inert until the step has arrived,
+// which is covered by its own suite. Passed through here so these tests assert
+// the sheet's content and wiring rather than the wave's timing.
+const mockEntranceProps: {
+  current?: { isActive?: boolean; delayMs?: number }[];
+} = {};
+
+jest.mock('../MoneySheetEntrance', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      isActive,
+      delayMs,
+    }: {
+      children: React.ReactNode;
+      isActive?: boolean;
+      delayMs?: number;
+    }) => {
+      mockEntranceProps.current = [
+        ...(mockEntranceProps.current ?? []),
+        { isActive, delayMs },
+      ];
+      return ReactActual.createElement(View, null, children);
+    },
+  };
+});
 
 jest.mock('../MoneyCardFlipAnimation', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: (props: { isMetalCard?: boolean }) => {
-      mockCardFlipProps.current = { isMetalCard: props.isMetalCard };
+    default: (props: { isMetalCard?: boolean; shouldPlay?: boolean }) => {
+      mockCardFlipProps.current = {
+        isMetalCard: props.isMetalCard,
+        shouldPlay: props.shouldPlay,
+      };
       return ReactActual.createElement(View, {
         testID: 'mock-money-card-flip-animation',
       });
@@ -37,6 +72,9 @@ jest.mock('../MoneyCardFlipAnimation', () => {
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockSheetGoBackRef: { current?: () => void } = {};
+// The real dialog calls `onOpen` when its open transition finishes; the mock
+// exposes it so tests can drive both sides of the sequencing.
+const mockSheetOnOpenRef: { current?: () => void } = {};
 const mockGoBack = jest.fn();
 let mockRouteParams: { entrypoint?: CardEntryPoint | string } | undefined;
 const mockTrackEvent = jest.fn();
@@ -92,14 +130,17 @@ jest.mock('@metamask/design-system-react-native', () => {
         children,
         testID,
         goBack,
+        onOpen,
       }: {
         children: React.ReactNode;
         testID?: string;
         goBack?: () => void;
+        onOpen?: () => void;
       },
       ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
     ) => {
       mockSheetGoBackRef.current = goBack;
+      mockSheetOnOpenRef.current = onOpen;
       ReactActual.useImperativeHandle(ref, () => ({
         onCloseBottomSheet: mockOnCloseBottomSheet,
         onOpenBottomSheet: jest.fn(),
@@ -131,6 +172,8 @@ describe('MoneyLinkCardSheet', () => {
     jest.clearAllMocks();
     mockRouteParams = undefined;
     mockCardFlipProps.current = undefined;
+    mockEntranceProps.current = undefined;
+    mockSheetOnOpenRef.current = undefined;
     mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
     mockUseMoneyAccountCardLinkage.mockReturnValue({
       confirmLinkInBackground: mockConfirmLinkInBackground,
@@ -325,6 +368,88 @@ describe('MoneyLinkCardSheet', () => {
       renderWithProvider(<MoneyLinkCardSheet />);
 
       expect(mockCardFlipProps.current?.isMetalCard).toBeUndefined();
+    });
+  });
+
+  describe('card animation sequencing', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('holds the card animation while the sheet is still opening', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(mockCardFlipProps.current?.shouldPlay).toBe(false);
+    });
+
+    it('keeps holding the card animation for a beat after the sheet has opened', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      act(() => mockSheetOnOpenRef.current?.());
+
+      expect(mockCardFlipProps.current?.shouldPlay).toBe(false);
+    });
+
+    it('starts the card animation once the beat after the open has elapsed', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      act(() => mockSheetOnOpenRef.current?.());
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(mockCardFlipProps.current?.shouldPlay).toBe(true);
+    });
+
+    it('staggers the entrance steps top to bottom', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      const delays = (mockEntranceProps.current ?? []).map((p) => p.delayMs);
+
+      expect(delays.length).toBeGreaterThan(0);
+      expect(delays).toEqual([...delays].sort((a, b) => (a ?? 0) - (b ?? 0)));
+    });
+
+    it('holds the entrance steps while the sheet is still opening', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(mockEntranceProps.current ?? []).not.toHaveLength(0);
+      expect(
+        (mockEntranceProps.current ?? []).every((p) => p.isActive === false),
+      ).toBe(true);
+    });
+
+    it('releases the entrance steps once the beat after the open has elapsed', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      act(() => mockSheetOnOpenRef.current?.());
+      mockEntranceProps.current = [];
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(mockEntranceProps.current ?? []).not.toHaveLength(0);
+      expect(
+        (mockEntranceProps.current ?? []).every((p) => p.isActive === true),
+      ).toBe(true);
+    });
+
+    it('keeps the card animation running when the card variant resolves after the open', () => {
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
+      const { rerender } = renderWithProvider(<MoneyLinkCardSheet />);
+
+      act(() => mockSheetOnOpenRef.current?.());
+      act(() => {
+        jest.runAllTimers();
+      });
+      mockSelectCardHomeDataStatus.mockReturnValue('success');
+      rerender(<MoneyLinkCardSheet />);
+
+      expect(mockCardFlipProps.current?.shouldPlay).toBe(true);
     });
   });
 

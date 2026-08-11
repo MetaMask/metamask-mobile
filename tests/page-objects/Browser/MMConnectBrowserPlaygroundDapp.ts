@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
-import { waitFor } from 'detox';
+import { waitFor, element, by } from '../../framework/legacy-detox-shim';
 import { isCaipChainId } from '@metamask/utils';
 
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
