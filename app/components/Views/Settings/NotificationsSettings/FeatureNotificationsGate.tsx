@@ -155,7 +155,7 @@ export interface FeatureNotificationsGateProps {
  * and calls `onDismiss` (default: `navigation.goBack()`) if the user closes
  * the sheet without satisfying the gate.
  *
- * Contract: mount this only on a screen that intends to stay. A screen that
+ * Mount this only on a screen that intends to stay. A screen that
  * may still redirect on its own (e.g. replace itself after a fetch) must not
  * mount the gate until that decision is made — a sheet presented by a screen
  * that then disappears is orphaned, and the replacing screen's gate will

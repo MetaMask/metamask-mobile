@@ -8,13 +8,7 @@ export interface FeatureNotificationsGateCopy {
   previewTimestampKey: string;
 }
 
-/**
- * Copy shown by the notifications gate for each supported feature.
- *
- * `satisfies` ensures every configured key is a notification preference
- * section, while `FeatureNotificationsGateFeature` prevents callers from
- * selecting a section that has no gate copy.
- */
+// Copy shown by the notifications gate for each supported feature.
 export const FEATURE_NOTIFICATIONS_GATE_COPY = {
   priceAlerts: {
     titleKey: 'notifications.feature_gate.price_alerts.title',
