@@ -1,6 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { parse, resolve } from 'node:path';
 import { parseSwapsPerformanceArtifact } from '../analysis/artifact';
 import { formatArtifactMarkdown } from '../analysis/markdown-report';
 
@@ -25,31 +25,23 @@ function findLatestArtifact(): string {
   return latest;
 }
 
-function readOption(argv: string[], option: string): string | null {
-  const index = argv.indexOf(option);
-  if (index === -1) {
-    return null;
+function resolveArtifactPath(argv: string[]): string {
+  if (argv.length === 0 || (argv.length === 1 && argv[0] === '--latest')) {
+    return findLatestArtifact();
   }
-  const value = argv[index + 1];
-  if (!value || value.startsWith('--')) {
-    throw new Error(`${option} requires a value`);
+  if (argv.length === 1 && !argv[0].startsWith('--')) {
+    return resolve(process.cwd(), argv[0]);
   }
-  return value;
+  throw new Error('Analyze accepts one artifact path or --latest');
 }
 
-function resolveArtifactPath(argv: string[]): string {
-  const optionsWithValues = new Set(['--output']);
-  const positional = argv.find(
-    (argument, index) =>
-      !argument.startsWith('--') &&
-      (index === 0 || !optionsWithValues.has(argv[index - 1])),
-  );
-  return positional ? resolve(process.cwd(), positional) : findLatestArtifact();
+export function resolveMarkdownReportPath(artifactPath: string): string {
+  const artifact = parse(artifactPath);
+  return resolve(artifact.dir, `${artifact.name}.md`);
 }
 
 export function analyzeSwapsPerformance(argv: string[]): void {
   const artifactPath = resolveArtifactPath(argv);
-  const outputPath = readOption(argv, '--output');
   const parsedJson: unknown = JSON.parse(readFileSync(artifactPath, 'utf8'));
   const artifact = parseSwapsPerformanceArtifact(parsedJson);
   if (!artifact) {
@@ -57,14 +49,8 @@ export function analyzeSwapsPerformance(argv: string[]): void {
   }
 
   const report = formatArtifactMarkdown(artifact);
+  const outputPath = resolveMarkdownReportPath(artifactPath);
   process.stdout.write(`${LOG_PREFIX} analyzing ${artifactPath}\n`);
-  if (outputPath) {
-    const resolvedOutputPath = resolve(process.cwd(), outputPath);
-    writeFileSync(resolvedOutputPath, report);
-    process.stdout.write(
-      `${LOG_PREFIX} Markdown report: ${resolvedOutputPath}\n`,
-    );
-    return;
-  }
-  process.stdout.write(`\n${report}`);
+  writeFileSync(outputPath, report);
+  process.stdout.write(`${LOG_PREFIX} Markdown report: ${outputPath}\n`);
 }

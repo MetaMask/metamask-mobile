@@ -1,6 +1,6 @@
 export const SWAPS_PERFORMANCE_USAGE = `Usage:
   yarn performance:swaps run --scenario <number-or-id> [scenario options]
-  yarn performance:swaps analyze [artifact path | --latest] [--output path]
+  yarn performance:swaps analyze [artifact path | --latest]
   yarn performance:swaps prepare
   yarn performance:swaps status
   yarn performance:swaps cleanup`;

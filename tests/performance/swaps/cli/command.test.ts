@@ -27,16 +27,11 @@ describe('Swaps performance command', () => {
   );
 
   it('passes analyzer arguments through unchanged', () => {
-    const command = parseSwapsPerformanceCommand([
-      'analyze',
-      '--latest',
-      '--output',
-      'report.md',
-    ]);
+    const command = parseSwapsPerformanceCommand(['analyze', '--latest']);
 
     expect(command).toEqual({
       action: 'analyze',
-      args: ['--latest', '--output', 'report.md'],
+      args: ['--latest'],
     });
   });
 

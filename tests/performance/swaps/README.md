@@ -61,11 +61,7 @@ Analyze the latest artifact:
 yarn performance:swaps analyze --latest
 ```
 
-Write a regenerated Markdown report to a file:
-
-```bash
-yarn performance:swaps analyze --latest --output swaps-report.md
-```
+The analyzer always writes the Markdown report beside the JSON artifact using the same basename, replacing any existing sibling report. For example, `swaps-perf-001-example.json` produces `swaps-perf-001-example.md` in the same directory.
 
 Always remove the temporary render probes, including after a failed run:
 
