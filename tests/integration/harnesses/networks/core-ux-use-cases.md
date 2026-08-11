@@ -4,7 +4,7 @@ What Core UX network-management flows look like, and which test layer is respons
 
 Layer notation: **U** = Unit, **I** = Integration (Shape A = controller harness, Shape B = hook-flow harness). Primary layer is **bold**.
 
-IDs match the delivery plan (`UX-NET-*`, `UX-POLY-*`). Shared four-layer model: [`../../STRATEGY.md`](../../STRATEGY.md). This matrix is the Networks domain strategy artifact (no separate domain `STRATEGY.md` yet).
+IDs match the delivery plan (`UX-NET-*`, `UX-POLY-*`). Shared four-layer model: [`../../STRATEGY.md`](../../STRATEGY.md). Domain rollout and shape detail: [`STRATEGY.md`](STRATEGY.md).
 
 ---
 

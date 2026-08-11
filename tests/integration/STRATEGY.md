@@ -126,10 +126,10 @@ When adding `harnesses/<domain>/`:
 
 Do **not** put domain rollout plans or coverage estimates at the `tests/integration/` root. Do **not** create a separate checklist file.
 
-| Domain             | Use-case matrix                                                                      | Domain strategy                                              |
-| ------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| Perps              | `[harnesses/perps/perps-use-cases.md](harnesses/perps/perps-use-cases.md)`           | `[harnesses/perps/STRATEGY.md](harnesses/perps/STRATEGY.md)` |
-| Networks / Core UX | `[harnesses/networks/core-ux-use-cases.md](harnesses/networks/core-ux-use-cases.md)` | (matrix is the strategy artifact today)                      |
+| Domain             | Use-case matrix                                                                      | Domain strategy                                                    |
+| ------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Perps              | `[harnesses/perps/perps-use-cases.md](harnesses/perps/perps-use-cases.md)`           | `[harnesses/perps/STRATEGY.md](harnesses/perps/STRATEGY.md)`       |
+| Networks / Core UX | `[harnesses/networks/core-ux-use-cases.md](harnesses/networks/core-ux-use-cases.md)` | `[harnesses/networks/STRATEGY.md](harnesses/networks/STRATEGY.md)` |
 
 ## Where things live
 
@@ -143,8 +143,8 @@ tests/integration/                           ← shared framework (mirrors tests
     │   ├── <domain>.ts                        Shape A (and/or flow/component harnesses)
     │   ├── *-use-cases.md                     required: flows → primary layer
     │   └── STRATEGY.md                        optional: domain rollout / shape detail
-    ├── perps/                                 …
-    └── networks/                              …
+    ├── perps/                                 (use-cases + STRATEGY + harnesses)
+    └── networks/                              (use-cases + STRATEGY + harnesses)
 
 app/**/*.integration.test.ts?(x)             ← tests live beside production code
 jest.config.integration.js                   ← yarn jest -c jest.config.integration.js

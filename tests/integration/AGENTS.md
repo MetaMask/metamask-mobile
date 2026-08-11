@@ -87,7 +87,7 @@ When adding `harnesses/<domain>/` (or a new public harness for a domain):
 2. **Use-case matrix** — `*-use-cases.md` (or equivalent) mapping flows → primary test layer.
 3. **This inventory** — add or update the domain section under [Per-domain harnesses](#per-domain-harnesses).
 4. **Root [`STRATEGY.md`](STRATEGY.md)** — add a row to the domain table under “Domain strategy convention.”
-5. **Optional domain `STRATEGY.md`** — only when rollout phases, shape tables, or estimates do not fit in the matrix. Networks today needs no domain STRATEGY; Perps does.
+5. **Optional domain `STRATEGY.md`** — when rollout phases, shape tables, or estimates do not fit in the matrix (Perps and Networks both have one).
 
 Do **not** create a separate checklist file at the integration root. Do **not** require a domain STRATEGY when the matrix is enough.
 
@@ -101,4 +101,4 @@ Do **not** create a separate checklist file at the integration root. Do **not** 
 ### Per domain (each folder owns its strategy)
 
 - **Perps** — [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md) (matrix) · [`harnesses/perps/STRATEGY.md`](harnesses/perps/STRATEGY.md) (rollout + shape table)
-- **Networks / Core UX** — [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md) (matrix = strategy artifact)
+- **Networks / Core UX** — [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md) (matrix) · [`harnesses/networks/STRATEGY.md`](harnesses/networks/STRATEGY.md) (rollout + shape table)
