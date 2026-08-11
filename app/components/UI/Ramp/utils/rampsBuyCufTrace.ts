@@ -41,20 +41,13 @@ function clearStaleParentState(): void {
   parentSpan = undefined;
 }
 
-/**
- * Whether the module still considers the Buy E2E parent open.
- *
- * Consent-buffered `trace()` calls return `undefined` and never register in
- * `tracesByKey`, so a missing `getTraceContext` entry is only treated as
- * out-of-band cleanup when we previously held a real span.
- */
+/** True if Buy E2E parent is still open (incl. consent-buffered starts). */
 function hasLiveParent(): boolean {
   if (!parentOpId) {
     return false;
   }
 
   if (parentSpan === undefined) {
-    // Buffered start (metrics consent not yet granted) — keep single-flight.
     return true;
   }
 
@@ -246,12 +239,7 @@ export interface StartRampsBuyQuoteFetchTraceOptions {
   data?: Record<string, TraceValue>;
 }
 
-/**
- * Start the Buy Quote Fetch CUF (TRAM-3780).
- *
- * Always fires (standalone CUF). When a Buy E2E parent is open, nests under it
- * via `parentContext`. A newer quote fetch supersedes any still-open one.
- */
+/** Start Buy Quote Fetch CUF. Nests under E2E parent when active. */
 export function startRampsBuyQuoteFetchTrace({
   tags,
   startTime,
@@ -285,7 +273,7 @@ export interface EndRampsBuyQuoteFetchTraceOptions {
   timestamp?: number;
 }
 
-/** End a Buy Quote Fetch CUF by op id. Idempotent. */
+/** End Buy Quote Fetch CUF by op id. */
 export function endRampsBuyQuoteFetchTrace({
   id,
   data,

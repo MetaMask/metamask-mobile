@@ -80,11 +80,7 @@ export function useRampsQuotes(
     ],
   );
 
-  /**
-   * Identity for the active quote request. Must change whenever amount,
-   * payment, or provider changes so CUF spans supersede mid-flight instead of
-   * stretching across many quote fetches.
-   */
+  // Quote identity for CUF supersede (amount / payment / provider).
   const quoteFetchKey = useMemo(() => {
     if (!queryEnabled) {
       return null;
@@ -126,10 +122,7 @@ export function useRampsQuotes(
     [],
   );
 
-  // Buy Quote Fetch CUF (TRAM-3780): fetch start → quotes rendered or error.
-  // Fires for every Unified Buy quote fetch; nests under E2E parent when active.
-  // Keyed by quoteFetchKey so amount/payment/provider changes supersede the open span
-  // even when isFetching stays true across the refetch.
+  // Buy Quote Fetch CUF: start on fetch, end on settle; key change supersedes.
   useEffect(() => {
     if (!queryEnabled || !quoteFetchKey) {
       endOpenQuoteCuf(RAMPS_BUY_CUF_END_REASON.CANCELLED);
@@ -138,7 +131,6 @@ export function useRampsQuotes(
 
     if (quotesQuery.isFetching) {
       if (quoteCufKeyRef.current !== quoteFetchKey) {
-        // startRampsBuyQuoteFetchTrace ends any still-open quote span as superseded.
         quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace();
         quoteCufKeyRef.current = quoteFetchKey;
       }
@@ -146,7 +138,6 @@ export function useRampsQuotes(
     }
 
     if (quoteCufOpIdRef.current && quoteCufKeyRef.current !== quoteFetchKey) {
-      // Open span belongs to a different key (cached switch or offline param change).
       const opId = quoteCufOpIdRef.current;
       quoteCufOpIdRef.current = null;
       endRampsBuyQuoteFetchTrace({
@@ -156,19 +147,13 @@ export function useRampsQuotes(
           [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
         },
       });
-      if (quotesQuery.isSuccess || quotesQuery.isError) {
-        // Settled cache hit: keep settled-key guard against background refetch CUFs.
-        quoteCufKeyRef.current = quoteFetchKey;
-      } else {
-        // Pending/paused for the new key: clear so resume starts a fresh CUF.
-        quoteCufKeyRef.current = null;
-      }
+      // Settled cache: keep key. Pending/paused: clear so resume can start.
+      quoteCufKeyRef.current =
+        quotesQuery.isSuccess || quotesQuery.isError ? quoteFetchKey : null;
       return;
     }
 
     if (!quoteCufOpIdRef.current) {
-      // No open span: if we landed on a settled cached key, adopt it so a later
-      // background refetch of that key does not look like a new identity change.
       if (
         quoteCufKeyRef.current !== quoteFetchKey &&
         (quotesQuery.isSuccess || quotesQuery.isError)
@@ -178,15 +163,13 @@ export function useRampsQuotes(
       return;
     }
 
-    // Offline pause sets isFetching false while status is still loading/pending.
-    // Only complete once the query has a real terminal result.
+    // Ignore offline pause (!isFetching while still pending).
     if (!quotesQuery.isSuccess && !quotesQuery.isError) {
       return;
     }
 
     const opId = quoteCufOpIdRef.current;
     quoteCufOpIdRef.current = null;
-    // Keep quoteCufKeyRef so a later identical key does not restart without a fetch.
     endRampsBuyQuoteFetchTrace({
       id: opId,
       data: quotesQuery.isError

@@ -406,7 +406,7 @@ describe('useRampsQuotes', () => {
         expect(result.current.status).toBe('success');
       });
 
-      // Back to settled cached amount 100 with no open span.
+      // Adopt settled cached key; background refetch must not start CUF.
       rerender({ params: options });
       await waitFor(() => {
         expect(result.current.status).toBe('success');
@@ -457,7 +457,6 @@ describe('useRampsQuotes', () => {
       });
       mockEndRampsBuyQuoteFetchTrace.mockClear();
 
-      // Seed cache for amount 100, then start a slow fetch for 250.
       rerender({
         params: {
           ...options,
@@ -469,7 +468,6 @@ describe('useRampsQuotes', () => {
         expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(2);
       });
 
-      // Revert to cached amount 100 while 250 is still in flight.
       rerender({ params: options });
 
       await waitFor(() => {
@@ -482,11 +480,9 @@ describe('useRampsQuotes', () => {
         });
       });
 
-      // Cached key should not be recorded as a successful quote-fetch CUF.
       expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(2);
       expect(result.current.status).toBe('success');
 
-      // Background refetch of the settled cached key must not open another CUF.
       (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
         mockQuotesResponse,
       );
