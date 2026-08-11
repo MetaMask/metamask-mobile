@@ -24,6 +24,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { LocalNode, LocalNodeType } from '../../../../framework/types.js';
+import { PlatformDetector } from '../../../../framework/PlatformLocator.js';
 import { AnvilManager } from '../../../../seeder/anvil-manager.js';
 
 const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
@@ -72,10 +73,15 @@ appiumTest.describe(
   () => {
     appiumTest.describe.configure({ timeout: 2500000 });
 
-    // Skipped: failing on main Appium confirmations Android smoke.
-    appiumTest.skip(
+    appiumTest(
       'creates an approve transaction confirmation for given ERC 20, changes the spending cap and submits it',
       async ({ driver: _driver, currentDeviceDetails }) => {
+        // Temporarily disabled on Android Appium confirmations smoke (failing).
+        appiumTest.skip(
+          PlatformDetector.isAndroid(),
+          'Android Appium: increaseAllowance is failing on confirmations smoke',
+        );
+
         await withFixtures(
           {
             dapps: [

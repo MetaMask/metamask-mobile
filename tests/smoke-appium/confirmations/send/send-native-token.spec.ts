@@ -15,6 +15,7 @@ import { SmokeConfirmations } from '../../../tags.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import { LocalNode, LocalNodeType } from '../../../framework/types.js';
+import { PlatformDetector } from '../../../framework/PlatformLocator.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers.js';
@@ -91,10 +92,15 @@ function buildNativeSendFixture() {
 appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
   appiumTest.describe.configure({ timeout: 2500000 });
 
-  // Skipped: failing on main Appium confirmations Android smoke.
-  appiumTest.skip(
+  appiumTest(
     'sends MAX balance ETH to an address',
     async ({ driver: _driver, currentDeviceDetails }) => {
+      // Temporarily disabled on Android Appium confirmations smoke (failing).
+      appiumTest.skip(
+        PlatformDetector.isAndroid(),
+        'Android Appium: send MAX native ETH is failing on confirmations smoke',
+      );
+
       await withFixtures(
         {
           dapps: [

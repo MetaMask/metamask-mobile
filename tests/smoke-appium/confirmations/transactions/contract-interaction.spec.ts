@@ -23,6 +23,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { LocalNode, LocalNodeType } from '../../../framework/types.js';
+import { PlatformDetector } from '../../../framework/PlatformLocator.js';
 import { AnvilManager } from '../../../seeder/anvil-manager.js';
 
 const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -68,10 +69,15 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 appiumTest.describe(SmokeConfirmations('Contract Interaction'), () => {
   appiumTest.describe.configure({ timeout: 2500000 });
 
-  // Skipped: failing on main Appium confirmations Android smoke.
-  appiumTest.skip(
+  appiumTest(
     'submits transaction',
     async ({ driver: _driver, currentDeviceDetails }) => {
+      // Temporarily disabled on Android Appium confirmations smoke (failing).
+      appiumTest.skip(
+        PlatformDetector.isAndroid(),
+        'Android Appium: contract interaction submit is failing on confirmations smoke',
+      );
+
       await withFixtures(
         {
           dapps: [

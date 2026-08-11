@@ -24,6 +24,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { LocalNode, LocalNodeType } from '../../../../framework/types.js';
+import { PlatformDetector } from '../../../../framework/PlatformLocator.js';
 import { AnvilManager } from '../../../../seeder/anvil-manager.js';
 
 const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -69,10 +70,15 @@ appiumTest.describe(
   () => {
     appiumTest.describe.configure({ timeout: 2500000 });
 
-    // Skipped: failing on main Appium confirmations Android smoke.
-    appiumTest.skip(
+    appiumTest(
       'creates an approve transaction confirmation for given ERC721 and submits it',
       async ({ driver: _driver, currentDeviceDetails }) => {
+        // Temporarily disabled on Android Appium confirmations smoke (failing).
+        appiumTest.skip(
+          PlatformDetector.isAndroid(),
+          'Android Appium: setApprovalForAll ERC721 is failing on confirmations smoke',
+        );
+
         await withFixtures(
           {
             dapps: [
