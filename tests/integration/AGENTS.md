@@ -22,7 +22,9 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 
 - Tests live beside production code as `*.integration.test.ts?(x)`.
 - `jest.config.integration.js` owns suite discovery and runtime settings.
-- Reusable setup lives in `tests/integration/harnesses/<domain>/`; the inventory below records the Mobile-specific real/mocked boundary and public factory for each harness.
+- Reusable setup lives in `tests/integration/harnesses/<domain>/`.
+- **Every domain folder** should include a use-case matrix (`*-use-cases.md` or equivalent) mapping flows → primary test layer. Optional domain rollout / shape detail may live in that folder’s `STRATEGY.md`. Shared four-layer rules stay in the root [`STRATEGY.md`](STRATEGY.md).
+- The inventory below records the Mobile-specific real/mocked boundary and public factory for each harness.
 
 ---
 
@@ -77,12 +79,26 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 
 When a harness is added or its public boundary changes, update this inventory. Follow the central [`harness-extension.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md) workflow rather than documenting authoring rules here.
 
+### New domain — definition of done
+
+When adding `harnesses/<domain>/` (or a new public harness for a domain):
+
+1. **Harness file(s)** — Shape A (and B/C if needed) with a REAL/MOCKED header + factory. Authoring details: [`harness-extension.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md).
+2. **Use-case matrix** — `*-use-cases.md` (or equivalent) mapping flows → primary test layer.
+3. **This inventory** — add or update the domain section under [Per-domain harnesses](#per-domain-harnesses).
+4. **Root [`STRATEGY.md`](STRATEGY.md)** — add a row to the domain table under “Domain strategy convention.”
+5. **Optional domain `STRATEGY.md`** — only when rollout phases, shape tables, or estimates do not fit in the matrix. Networks today needs no domain STRATEGY; Perps does.
+
+Do **not** create a separate checklist file at the integration root. Do **not** require a domain STRATEGY when the matrix is enough.
+
 ---
 
 ## Strategy documents
 
-- [`STRATEGY.md`](STRATEGY.md) — Four-layer testing strategy. Layer responsibilities, comparison tables (cost / efficiency / refactor sensitivity), perps coverage plan, six-phase rollout.
-- [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md) — Every perps user-facing flow mapped to its primary test layer. The authoritative driver for what gets tested where during the perps rollout.
-- [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md) — Core UX network-management flows mapped to Integration Shape A/B / Unit.
-- [`coverage-and-tracking.md`](coverage-and-tracking.md) — Per-layer coverage targets and bug-tracking mechanisms (CI tagging, pre/post comparison, mutation testing). What to measure, how to measure it.
+- [`STRATEGY.md`](STRATEGY.md) — Shared four-layer testing strategy, harness shapes (A–D), coverage targets, folder convention. Domain rollouts do **not** live here.
 - [`coverage.svg`](coverage.svg) — Diagram showing which test type runs real code at each layer of the stack.
+
+### Per domain (each folder owns its strategy)
+
+- **Perps** — [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md) (matrix) · [`harnesses/perps/STRATEGY.md`](harnesses/perps/STRATEGY.md) (rollout + shape table)
+- **Networks / Core UX** — [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md) (matrix = strategy artifact)
