@@ -53,8 +53,8 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
-  selectCardFeatureFlag,
-  selectImmersveOnboardingEnabled,
+  selectCardImmersveCountries,
+  selectCardImmersveEnabled,
 } from '../../../../../selectors/featureFlagController/card';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
@@ -81,10 +81,8 @@ const SignUp = () => {
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
   const geoLocation = useSelector(selectGeolocationLocation);
-  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
-  const immersveOnboardingEnabled = useSelector(
-    selectImmersveOnboardingEnabled,
-  );
+  const immersveCountries = useSelector(selectCardImmersveCountries);
+  const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
   const {
     allRegions,
     getRegionByCode,
@@ -192,7 +190,7 @@ const SignUp = () => {
   const isImmersveCountry = Boolean(
     immersveOnboardingEnabled &&
       selectedCountry &&
-      (cardFeatureFlag.immersveCountries ?? []).includes(selectedCountry.key),
+      immersveCountries.includes(selectedCountry.key),
   );
 
   const {
