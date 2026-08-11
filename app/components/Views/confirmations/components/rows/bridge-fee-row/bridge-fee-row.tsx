@@ -1,26 +1,20 @@
-import React, { ReactNode, useMemo, useState } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Box } from '../../../../../UI/Box/Box';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  KeyValueRow,
-  KeyValueRowVariant,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../UI/Box/box.types';
 import {
   TransactionPayQuote,
   TransactionPayTotals,
@@ -34,15 +28,20 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { BigNumber } from 'bignumber.js';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
+import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Json } from '@metamask/utils';
 import { useConfirmationContext } from '../../../context/confirmation-context';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
 import { resolveTransactionType } from '../../../utils/transaction';
-import { TooltipModal } from '../../UI/Tooltip/Tooltip';
-import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -97,7 +96,6 @@ function TransactionFeeRow({
   isDisabled?: boolean;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const hasQuotes = Boolean(quotes?.length);
 
@@ -131,87 +129,60 @@ function TransactionFeeRow({
     isFiatPayment,
   ]);
 
-  const tooltipContent = useMemo(() => {
-    if (paidByMetaMask || !hasQuotes || !totals) {
-      return null;
-    }
-    return <Tooltip transactionMeta={transactionMeta} totals={totals} />;
-  }, [paidByMetaMask, hasQuotes, totals, transactionMeta]);
+  if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
-  if (isLoading) {
-    return <KeyValueRowSkeleton testID="bridge-fee-row-skeleton" />;
-  }
-
+  const labelColor = isDisabled ? TextColor.Muted : undefined;
   const valueColor = isDisabled
-    ? TextColor.TextMuted
+    ? TextColor.Muted
     : hasAlert
-      ? TextColor.ErrorDefault
-      : TextColor.TextDefault;
+      ? TextColor.Error
+      : TextColor.Alternative;
 
   return (
-    <Box testID="bridge-fee-row">
-      <KeyValueRow
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('confirm.label.transaction_fees')}
-        keyEndButtonIconProps={
-          tooltipContent
-            ? {
-                iconName: IconName.Info,
-                onPress: () => {
-                  if (!tooltipDisabled) {
-                    setIsTooltipOpen(true);
-                  }
-                },
-                testID: 'info-row-tooltip-open-btn',
-              }
-            : undefined
-        }
-        value={
-          paidByMetaMask ? (
-            <PaidByLabel />
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={valueColor}
-              testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
-            >
-              {feeTotalUsd}
-            </Text>
-          )
-        }
-      />
-      {tooltipContent && (
-        <TooltipModal
-          open={isTooltipOpen}
-          setOpen={setIsTooltipOpen}
-          content={tooltipContent}
-          title={strings('confirm.tooltip.title.transaction_fee')}
-          tooltipTestId="info-row-tooltip"
-        />
+    <AlertRow
+      testID="bridge-fee-row"
+      alertField={RowAlertKey.PayWithFee}
+      label={strings('confirm.label.transaction_fees')}
+      tooltip={
+        !paidByMetaMask && hasQuotes && totals ? (
+          <Tooltip transactionMeta={transactionMeta} totals={totals} />
+        ) : undefined
+      }
+      tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
+      tooltipDisabled={tooltipDisabled}
+      tooltipColor={isDisabled ? IconColor.Muted : undefined}
+      rowVariant={InfoRowVariant.Small}
+      variant={labelColor}
+    >
+      {paidByMetaMask ? (
+        <PaidByLabel />
+      ) : (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={valueColor}
+          testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
+        >
+          {feeTotalUsd}
+        </Text>
       )}
-    </Box>
+    </AlertRow>
   );
 }
 
 function PaidByLabel() {
   return (
     <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={1}
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+      gap={4}
       testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
     >
       <Icon
         name={IconName.CheckBold}
-        color={IconColor.SuccessDefault}
+        color={IconColor.Success}
         size={IconSize.Sm}
       />
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.SuccessDefault}
-      >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
         {strings('transactions.paid_by_metamask')}
       </Text>
     </Box>
@@ -295,40 +266,34 @@ function FeesTooltip({
   );
 
   return (
-    <Box gap={4}>
-      <Text variant={TextVariant.BodyMd}>{message}</Text>
+    <Box gap={14}>
+      <Text>{message}</Text>
       <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
+        flexDirection={FlexDirection.Row}
+        justifyContent={JustifyContent.spaceBetween}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text color={TextColor.Alternative}>
           {strings('confirm.label.network_fee')}
         </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {networkFeeUsd}
-        </Text>
+        <Text color={TextColor.Alternative}>{networkFeeUsd}</Text>
       </Box>
       <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
+        flexDirection={FlexDirection.Row}
+        justifyContent={JustifyContent.spaceBetween}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text color={TextColor.Alternative}>
           {strings('confirm.label.provider_fee')}
         </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {providerFeeUsd}
-        </Text>
+        <Text color={TextColor.Alternative}>{providerFeeUsd}</Text>
       </Box>
       <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
+        flexDirection={FlexDirection.Row}
+        justifyContent={JustifyContent.spaceBetween}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text color={TextColor.Alternative}>
           {strings('confirm.label.metamask_fee')}
         </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {metaMaskFeeUsd}
-        </Text>
+        <Text color={TextColor.Alternative}>{metaMaskFeeUsd}</Text>
       </Box>
     </Box>
   );

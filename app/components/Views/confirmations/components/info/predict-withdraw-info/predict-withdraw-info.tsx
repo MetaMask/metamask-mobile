@@ -10,7 +10,7 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 
 export function PredictWithdrawInfo() {
-  useNavbar(strings('confirm.title.predict_withdraw'), true);
+  useNavbar(strings('confirm.title.predict_withdraw'));
   useDefaultPaySelectedSection();
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();

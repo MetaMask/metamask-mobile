@@ -11,6 +11,9 @@ const styleSheet = (params: { theme: Theme }) => {
       height: '100%',
       backgroundColor: colors.background.default,
     },
+    contentContainer: {
+      paddingHorizontal: 16,
+    },
     scrollView: {
       height: '85%',
     },

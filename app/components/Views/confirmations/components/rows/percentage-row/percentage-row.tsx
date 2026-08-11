@@ -1,18 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, Linking } from 'react-native';
+import InfoRow from '../../UI/info-row';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
-import {
-  FontWeight,
-  IconName,
-  KeyValueRow,
-  KeyValueRowVariant,
-  Text,
-  TextColor,
+import Text, {
   TextVariant,
-} from '@metamask/design-system-react-native';
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
-import { TooltipModal } from '../../UI/Tooltip/Tooltip';
+import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -22,7 +19,6 @@ import {
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
-import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -34,7 +30,6 @@ const styles = StyleSheet.create({
 
 export function PercentageRow() {
   const isLoading = useIsTransactionPayLoading();
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const transactionMetadata = useTransactionMetadataRequest();
 
@@ -60,43 +55,26 @@ export function PercentageRow() {
   };
 
   if (isLoading) {
-    return <KeyValueRowSkeleton testID="percentage-row-skeleton" />;
+    return <InfoRowSkeleton testId="percentage-row-skeleton" />;
   }
 
   return (
-    <>
-      <KeyValueRow
-        testID="percentage-row"
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('earn.claimable_bonus')}
-        keyEndButtonIconProps={{
-          iconName: IconName.Info,
-          onPress: () => setIsTooltipOpen(true),
-          testID: 'info-row-tooltip-open-btn',
-        }}
-        value={
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-          >
-            {MUSD_CONVERSION_APY}%
+    <InfoRow
+      label={strings('earn.claimable_bonus')}
+      rowVariant={InfoRowVariant.Small}
+      tooltipColor={IconColor.Alternative}
+      tooltip={
+        <Text>
+          {strings('earn.claimable_bonus_tooltip')}{' '}
+          <Text style={styles.termsText} onPress={redirectToBonusFaq}>
+            {strings('earn.musd_conversion.education.terms_apply')}
           </Text>
-        }
-      />
-      <TooltipModal
-        open={isTooltipOpen}
-        setOpen={setIsTooltipOpen}
-        content={
-          <Text>
-            {strings('earn.claimable_bonus_tooltip')}{' '}
-            <Text style={styles.termsText} onPress={redirectToBonusFaq}>
-              {strings('earn.musd_conversion.education.terms_apply')}
-            </Text>
-          </Text>
-        }
-        title={strings('earn.claimable_bonus')}
-      />
-    </>
+        </Text>
+      }
+    >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+        {MUSD_CONVERSION_APY}%
+      </Text>
+    </InfoRow>
   );
 }

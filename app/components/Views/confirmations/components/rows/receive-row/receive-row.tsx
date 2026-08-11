@@ -1,14 +1,11 @@
 import React, { useMemo } from 'react';
-import {
-  Box,
-  FontWeight,
-  KeyValueRow,
-  KeyValueRowVariant,
-  Text,
+import Text, {
   TextColor,
   TextVariant,
-} from '@metamask/design-system-react-native';
+} from '../../../../../../component-library/components/Texts/Text';
+import InfoRow from '../../UI/info-row';
 import { strings } from '../../../../../../../locales/i18n';
+import { View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
@@ -16,9 +13,9 @@ import {
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
 
 export interface ReceiveRowProps {
   /** The user's input amount in USD */
@@ -71,25 +68,23 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   ]);
 
   if (isLoading) {
-    return <KeyValueRowSkeleton testID="receive-row-skeleton" />;
+    return <InfoRowSkeleton testId="receive-row-skeleton" />;
   }
 
   return (
-    <Box testID="receive-row">
-      <KeyValueRow
-        variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('confirm.label.you_receive')}
-        value={
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            testID={ConfirmationRowComponentIDs.RECEIVE}
-          >
-            {receiveUsd}
-          </Text>
-        }
-      />
-    </Box>
+    <View testID="receive-row">
+      <InfoRow
+        label={strings('confirm.label.you_receive')}
+        rowVariant={InfoRowVariant.Small}
+      >
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          testID={ConfirmationRowComponentIDs.RECEIVE}
+        >
+          {receiveUsd}
+        </Text>
+      </InfoRow>
+    </View>
   );
 }

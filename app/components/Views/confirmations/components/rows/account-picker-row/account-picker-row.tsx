@@ -11,8 +11,6 @@ import {
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
-  KeyValueSelect,
-  KeyValueSelectVariant,
   Text,
   TextColor,
   TextVariant,
@@ -120,28 +118,48 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
 
   return (
     <>
-      <KeyValueSelect
-        testID={testIDs.ROW}
-        variant={KeyValueSelectVariant.Summary}
-        keyLabel={strings('confirm.label.to')}
-        keyTextProps={{
-          color: TextColor.TextAlternative,
-        }}
-        value={selectedSubAccount?.name}
-        valueStartAccessory={
-          selectedSubAccount ? (
-            <Avatar
-              variant={AvatarVariant.Account}
-              accountAddress={selectedSubAccount.id || '0x0'}
-              size={AvatarSize.Sm}
+      <View style={styles.rowContainer}>
+        <TouchableOpacity
+          onPress={() => setIsPickerVisible(true)}
+          style={styles.row}
+          testID={testIDs.ROW}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('confirm.label.to')}
+          </Text>
+          <View style={styles.valueContainer}>
+            {selectedSubAccount ? (
+              <>
+                <Avatar
+                  variant={AvatarVariant.Account}
+                  accountAddress={selectedSubAccount.id || '0x0'}
+                  size={AvatarSize.Sm}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  numberOfLines={1}
+                  ellipsizeMode="middle"
+                  twClassName="shrink"
+                >
+                  {selectedSubAccount.name}
+                </Text>
+              </>
+            ) : (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('confirm.label.to')}
+              </Text>
+            )}
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
             />
-          ) : undefined
-        }
-        onPress={() => setIsPickerVisible(true)}
-        selectButtonProps={{
-          placeholder: strings('confirm.label.to'),
-        }}
-      />
+          </View>
+        </TouchableOpacity>
+      </View>
       {isPickerVisible && (
         <Modal
           visible

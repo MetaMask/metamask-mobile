@@ -1,13 +1,10 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  KeyValueRow,
-  KeyValueRowVariant,
-  FontWeight,
-  Text,
+import InfoRow from '../../UI/info-row';
+import Text, {
   TextColor,
   TextVariant,
-} from '@metamask/design-system-react-native';
+} from '../../../../../../component-library/components/Texts/Text';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -15,13 +12,13 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
@@ -49,25 +46,23 @@ export function BridgeTimeRow() {
   }
 
   if (isLoading) {
-    return <KeyValueRowSkeleton testID="bridge-time-row-skeleton" />;
+    return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
   const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
 
   return (
-    <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
-      keyLabel={strings('confirm.label.bridge_estimated_time')}
-      value={
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          testID={ConfirmationRowComponentIDs.BRIDGE_TIME}
-        >
-          {formattedSeconds}
-        </Text>
-      }
-    />
+    <InfoRow
+      label={strings('confirm.label.bridge_estimated_time')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        testID={ConfirmationRowComponentIDs.BRIDGE_TIME}
+      >
+        {formattedSeconds}
+      </Text>
+    </InfoRow>
   );
 }
 

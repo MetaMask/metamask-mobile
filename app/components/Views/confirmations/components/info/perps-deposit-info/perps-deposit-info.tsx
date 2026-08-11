@@ -14,13 +14,12 @@ import {
 
 export function PerpsDepositInfo() {
   const { payWithOption } = useParams<ConfirmationParams>({});
-
-  const liveTitle =
+  const title =
     payWithOption === PayWithOption.MoneyAccount
       ? strings('perps.send_to_perps')
       : strings('confirm.title.perps_deposit');
 
-  useNavbar(liveTitle, true);
+  useNavbar(title);
   useDefaultPaySelectedSection();
 
   useAddToken({

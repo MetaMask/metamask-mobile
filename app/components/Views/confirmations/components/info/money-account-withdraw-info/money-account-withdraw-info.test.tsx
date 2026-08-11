@@ -62,7 +62,7 @@ describe('MoneyAccountWithdrawInfo', () => {
 
     render(<MoneyAccountWithdrawInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith('Send', true);
+    expect(useNavbar).toHaveBeenCalledWith('Send');
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {

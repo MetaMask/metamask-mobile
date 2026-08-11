@@ -10,7 +10,7 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 
 export function PerpsWithdrawInfo() {
-  useNavbar(strings('confirm.title.perps_withdraw'), true);
+  useNavbar(strings('confirm.title.perps_withdraw'));
   useDefaultPaySelectedSection();
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();

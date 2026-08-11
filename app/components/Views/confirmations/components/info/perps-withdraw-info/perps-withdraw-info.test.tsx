@@ -64,7 +64,6 @@ describe('PerpsWithdrawInfo', () => {
 
     expect(mockUseNavbar).toHaveBeenCalledWith(
       strings('confirm.title.perps_withdraw'),
-      true,
     );
     expect(mockUseAddToken).toHaveBeenCalledWith({
       chainId: CHAIN_IDS.ARBITRUM,

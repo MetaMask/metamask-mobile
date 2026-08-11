@@ -6,14 +6,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { ConfirmationNavHeaderConfig } from '../../components/UI/navbar/navbar';
 
 export interface ConfirmationContextParams {
   mmPayRequestInProgressNavHandler: React.MutableRefObject<
     (() => void) | false
   >;
-  /** Inline full-screen nav header config set by useNavbar; rendered by Confirm. */
-  navHeaderConfig: ConfirmationNavHeaderConfig | null;
   headlessBuyError: string | undefined;
   isFooterVisible?: boolean;
   isConfirmationSubmitting: boolean;
@@ -21,7 +18,6 @@ export interface ConfirmationContextParams {
   isHeadlessBuyInProgress: boolean;
   isTransactionValueUpdating: boolean;
   isTransactionDataUpdating: boolean;
-  setNavHeaderConfig: (config: ConfirmationNavHeaderConfig | null) => void;
   setHeadlessBuyError: (error: string | undefined) => void;
   setIsConfirmationSubmitting: (isConfirmationSubmitting: boolean) => void;
   setIsFooterVisible: (isFooterVisible: boolean) => void;
@@ -34,7 +30,6 @@ export interface ConfirmationContextParams {
 // that are used to render the confirmation
 const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   mmPayRequestInProgressNavHandler: { current: false },
-  navHeaderConfig: null,
   headlessBuyError: undefined,
   isFooterVisible: true,
   isConfirmationSubmitting: false,
@@ -42,7 +37,6 @@ const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   isHeadlessBuyInProgress: false,
   isTransactionDataUpdating: false,
   isTransactionValueUpdating: false,
-  setNavHeaderConfig: noop,
   setHeadlessBuyError: noop,
   setIsConfirmationSubmitting: noop,
   setIsFooterVisible: noop,
@@ -59,9 +53,6 @@ export const ConfirmationContextProvider: React.FC<
   ConfirmationContextProviderProps
 > = ({ children }) => {
   const mmPayRequestInProgressNavHandler = useRef<(() => void) | false>(false);
-
-  const [navHeaderConfig, setNavHeaderConfig] =
-    useState<ConfirmationNavHeaderConfig | null>(null);
 
   const [isTransactionValueUpdating, setIsTransactionValueUpdating] =
     useState(false);
@@ -91,7 +82,6 @@ export const ConfirmationContextProvider: React.FC<
   const contextValue = useMemo(
     () => ({
       mmPayRequestInProgressNavHandler,
-      navHeaderConfig,
       headlessBuyError,
       isFooterVisible,
       isHeadlessBuyInProgress,
@@ -99,7 +89,6 @@ export const ConfirmationContextProvider: React.FC<
       isTransactionValueUpdating,
       isConfirmationSubmitting,
       isConfirmationSubmittingRef,
-      setNavHeaderConfig,
       setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
@@ -109,7 +98,6 @@ export const ConfirmationContextProvider: React.FC<
     }),
     [
       mmPayRequestInProgressNavHandler,
-      navHeaderConfig,
       headlessBuyError,
       isFooterVisible,
       isHeadlessBuyInProgress,

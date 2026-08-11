@@ -38,7 +38,6 @@ describe('PerpsDepositInfo', () => {
 
     expect(mockUseNavbar).toHaveBeenCalledWith(
       strings('confirm.title.perps_deposit'),
-      true,
     );
   });
 
@@ -49,10 +48,7 @@ describe('PerpsDepositInfo', () => {
 
     render(<PerpsDepositInfo />);
 
-    expect(mockUseNavbar).toHaveBeenCalledWith(
-      strings('perps.send_to_perps'),
-      true,
-    );
+    expect(mockUseNavbar).toHaveBeenCalledWith(strings('perps.send_to_perps'));
   });
 
   it('registers Arbitrum USDC token', () => {

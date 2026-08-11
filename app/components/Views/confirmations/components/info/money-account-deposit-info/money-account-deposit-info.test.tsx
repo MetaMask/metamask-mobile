@@ -13,7 +13,8 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 const mockUseNavbar = jest.fn();
 jest.mock('../../../hooks/ui/useNavbar', () => ({
   __esModule: true,
-  default: (...args: unknown[]) => mockUseNavbar(...args),
+  default: (title: string, addBackButton: boolean) =>
+    mockUseNavbar(title, addBackButton),
 }));
 
 const mockCustomAmountInfo = jest.fn();
