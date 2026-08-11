@@ -39,24 +39,51 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
     );
 
     // URL-bar-only is not enough: Test Dapp buttons stay disabled until the
-    // page JS runs and the provider connects. Wait for page chrome in native
-    // context (avoid WebView context lookups that leave the session in WEBVIEW
-    // and break subsequent native taps like close-browser).
+    // page JS runs and the provider connects. Mirror Detox by waiting for
+    // page chrome before WebView taps.
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
-          {
-            description: 'Browser WebView native container',
+        if (PlatformDetector.isAndroidAppium()) {
+          // Native accessibility exposes WebView text on Android CI.
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+            {
+              description: 'Browser WebView native container',
+              timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+            },
+          );
+          await Assertions.expectTextDisplayed('E2E Test Dapp', {
             timeout: WEBVIEW_LOAD_TIMEOUT_MS,
-          },
-        );
-        await Assertions.expectTextDisplayed('E2E Test Dapp', {
-          timeout: WEBVIEW_LOAD_TIMEOUT_MS,
-          description: 'Test Dapp page title should be visible',
-        });
+            description: 'Test Dapp page title should be visible',
+          });
+          return;
+        }
+
+        // iOS: HTML title/logo are not reliably in the native tree. Use WebView
+        // element waits, then always return to NATIVE_APP so later native taps
+        // (e.g. close browser) do not fail with accessibility-id errors.
+        try {
+          await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo, {
+            description: 'Test Dapp Fox Logo should be visible',
+            timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+          });
+          await Assertions.expectElementToBeVisible(
+            TestDApp.testDappPageTitle,
+            {
+              description: 'Test Dapp Page Title should be visible',
+              timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+            },
+          );
+        } finally {
+          await PlaywrightContextHelpers.switchToNativeContext().catch(
+            () => undefined,
+          );
+        }
         return;
       } catch (error) {
+        await PlaywrightContextHelpers.switchToNativeContext().catch(
+          () => undefined,
+        );
         if (attempt === MAX_RETRIES) {
           throw new Error(
             `Test dapp failed to load after ${MAX_RETRIES} attempts: ${
