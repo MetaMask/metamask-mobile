@@ -92,6 +92,7 @@ import {
   GetPriceResponse,
   GetSeriesParams,
   OrderPreview,
+  PendingOrderPreview,
   PlaceOrderParams,
   PredictAccountMeta,
   PredictActivity,
@@ -504,13 +505,7 @@ export class PredictController extends BaseController<
   private provider: PolymarketProvider;
 
   private pendingOrderPreviews: {
-    [transactionId: string]: {
-      preview: OrderPreview;
-      signerAddress: string;
-      analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-      activeAbTests?: PlaceOrderParams['activeAbTests'];
-      depositedAmount?: number;
-    };
+    [transactionId: string]: PendingOrderPreview;
   } = {};
 
   /**
@@ -1596,6 +1591,62 @@ export class PredictController extends BaseController<
     }
   }
 
+  private handlePostDepositOrderFailure({
+    activeOrderAddress,
+    errorMessage,
+    pendingOrder,
+    preview,
+    marketId,
+  }: {
+    activeOrderAddress: string;
+    errorMessage: string;
+    pendingOrder: PendingOrderPreview;
+    preview: OrderPreview;
+    marketId?: string;
+  }): void {
+    this.update((state) => {
+      state.lastError = errorMessage;
+      state.lastUpdateTimestamp = Date.now();
+      const activeOrder = state.activeBuyOrders[activeOrderAddress];
+      if (activeOrder) {
+        activeOrder.state = ActiveOrderState.PREVIEW;
+        delete activeOrder.error;
+        delete activeOrder.errorStage;
+      }
+      state.selectedPaymentToken = null;
+    });
+
+    this.provider.clearOptimisticPosition(
+      activeOrderAddress,
+      preview.outcomeTokenId,
+    );
+
+    this.messenger.publish('PredictController:transactionStatusChanged', {
+      type: 'order',
+      status: 'failed',
+      senderAddress: activeOrderAddress,
+      marketId,
+      amount: pendingOrder.depositedAmount ?? preview.maxAmountSpent,
+      isPostDepositOrderFailure: true,
+    });
+
+    if (this.state.activeBuyOrders[activeOrderAddress]?.transactionId) {
+      this.update((state) => {
+        if (state.activeBuyOrders[activeOrderAddress]) {
+          state.activeBuyOrders[activeOrderAddress].transactionId = undefined;
+        }
+      });
+      this.initPayWithAnyToken().catch((error) => {
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('placeOrder', {
+            operation: 'initPayWithAnyToken',
+          }),
+        );
+      });
+    }
+  }
+
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
     const activeOrderAddress =
       params.address ?? this.requireEvmAccountAddress();
@@ -1616,23 +1667,38 @@ export class PredictController extends BaseController<
         error instanceof Error
           ? error.message
           : PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED;
+      const pendingOrder = params.transactionId
+        ? this.pendingOrderPreviews[params.transactionId]
+        : undefined;
+      const isPostDepositOrderFailure =
+        isBuyWithAnyToken && pendingOrder !== undefined;
 
-      this.update((state) => {
-        state.lastError = errorMessage;
-        state.lastUpdateTimestamp = Date.now();
-        if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
-          state.activeBuyOrders[activeOrderAddress].state =
-            ActiveOrderState.PREVIEW;
-          state.activeBuyOrders[activeOrderAddress].error = errorMessage;
-          state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
-        }
-      });
-
-      if (isBuyWithAnyToken && isExistingPendingOrder) {
-        this.provider.clearOptimisticPosition(
+      if (isPostDepositOrderFailure) {
+        this.handlePostDepositOrderFailure({
           activeOrderAddress,
-          params.preview.outcomeTokenId,
-        );
+          errorMessage,
+          pendingOrder,
+          preview: params.preview,
+          marketId: params.analyticsProperties?.marketId,
+        });
+      } else {
+        this.update((state) => {
+          state.lastError = errorMessage;
+          state.lastUpdateTimestamp = Date.now();
+          if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
+            state.activeBuyOrders[activeOrderAddress].state =
+              ActiveOrderState.PREVIEW;
+            state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+            state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
+          }
+        });
+
+        if (isBuyWithAnyToken && isExistingPendingOrder) {
+          this.provider.clearOptimisticPosition(
+            activeOrderAddress,
+            params.preview.outcomeTokenId,
+          );
+        }
       }
 
       const isBackgroundOrder =
@@ -1640,7 +1706,12 @@ export class PredictController extends BaseController<
         params.transactionId !==
           this.state.activeBuyOrders[activeOrderAddress]?.transactionId;
 
-      if (isBuyWithAnyToken && isExistingPendingOrder && isBackgroundOrder) {
+      if (
+        !isPostDepositOrderFailure &&
+        isBuyWithAnyToken &&
+        isExistingPendingOrder &&
+        isBackgroundOrder
+      ) {
         this.messenger.publish('PredictController:transactionStatusChanged', {
           type: 'order',
           status: 'failed',
@@ -1955,31 +2026,36 @@ export class PredictController extends BaseController<
         activeAbTests: params.activeAbTests,
       });
 
-      // Update error state for Sentry integration
-      this.update((state) => {
-        state.lastError = errorMessage;
-        state.lastUpdateTimestamp = Date.now();
-        if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
-          state.activeBuyOrders[activeOrderAddress].state =
-            ActiveOrderState.PREVIEW;
-          if (isPostDepositOrderFailure) {
-            delete state.activeBuyOrders[activeOrderAddress].error;
-            delete state.activeBuyOrders[activeOrderAddress].errorStage;
-          } else {
+      if (isPostDepositOrderFailure) {
+        this.handlePostDepositOrderFailure({
+          activeOrderAddress,
+          errorMessage,
+          pendingOrder,
+          preview,
+          marketId: analyticsProperties?.marketId,
+        });
+      } else {
+        // Update error state for Sentry integration
+        this.update((state) => {
+          state.lastError = errorMessage;
+          state.lastUpdateTimestamp = Date.now();
+          if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
+            state.activeBuyOrders[activeOrderAddress].state =
+              ActiveOrderState.PREVIEW;
             state.activeBuyOrders[activeOrderAddress].error = errorMessage;
             state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
           }
-        }
-        if (isBuyWithAnyToken) {
-          state.selectedPaymentToken = null;
-        }
-      });
+          if (isBuyWithAnyToken) {
+            state.selectedPaymentToken = null;
+          }
+        });
 
-      if (isBuyWithAnyToken) {
-        this.provider.clearOptimisticPosition(
-          activeOrderAddress,
-          preview.outcomeTokenId,
-        );
+        if (isBuyWithAnyToken) {
+          this.provider.clearOptimisticPosition(
+            activeOrderAddress,
+            preview.outcomeTokenId,
+          );
+        }
       }
 
       traceData = { success: false, error: errorMessage };
@@ -1989,16 +2065,11 @@ export class PredictController extends BaseController<
         params.transactionId !==
           this.state.activeBuyOrders[activeOrderAddress]?.transactionId;
 
-      if (isPostDepositOrderFailure) {
-        this.messenger.publish('PredictController:transactionStatusChanged', {
-          type: 'order',
-          status: 'failed',
-          senderAddress: activeOrderAddress,
-          marketId: analyticsProperties?.marketId,
-          amount: pendingOrder.depositedAmount ?? preview.maxAmountSpent,
-          isPostDepositOrderFailure: true,
-        });
-      } else if (isBuyWithAnyToken && isBackgroundOrder) {
+      if (
+        !isPostDepositOrderFailure &&
+        isBuyWithAnyToken &&
+        isBackgroundOrder
+      ) {
         this.messenger.publish('PredictController:transactionStatusChanged', {
           type: 'order',
           status: 'failed',

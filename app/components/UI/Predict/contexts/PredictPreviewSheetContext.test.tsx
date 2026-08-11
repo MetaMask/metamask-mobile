@@ -13,6 +13,7 @@ import type {
   PredictSellPreviewParams,
 } from '../types/navigation';
 import Routes from '../../../../constants/navigation/Routes';
+import { predictBuyPreviewOrderInitiatedRef } from '../views/PredictBuyPreview/PredictBuyPreview';
 
 const mockNavigate = jest.fn();
 const mockTrackBetslipDismissed = jest.fn();
@@ -278,6 +279,7 @@ describe('PredictPreviewSheetContext', () => {
     mockBottomSheetEnabled = true;
     mockPayWithAnyTokenEnabled = false;
     mockActiveOrder = null;
+    predictBuyPreviewOrderInitiatedRef.current = false;
     mockNonRegTimeSportsMarketTypes = [];
     mockSelectPredictBottomSheetEnabledFlag.mockImplementation(
       () => mockBottomSheetEnabled,
@@ -780,6 +782,12 @@ describe('PredictPreviewSheetContext', () => {
       );
 
       fireEvent.press(screen.getByTestId('open-buy'));
+      mockActiveOrder = { state: 'depositing' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
       fireEvent.press(screen.getByTestId('dismiss-sheet'));
       mockClearOrderError.mockClear();
 
@@ -1210,6 +1218,31 @@ describe('PredictPreviewSheetContext', () => {
 
       expect(mockClearOrderError).not.toHaveBeenCalled();
       expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+    });
+
+    it('clears a failed order after an initiated order is dismissed', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(screen.getByTestId('open-buy'));
+      predictBuyPreviewOrderInitiatedRef.current = true;
+      mockActiveOrder = {
+        state: 'preview',
+        error: 'order/failed',
+        errorStage: 'order',
+      };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      expect(mockClearOrderError).toHaveBeenCalledTimes(1);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
     });
 
     it('does not call clearOrderError when sell sheet is dismissed', () => {

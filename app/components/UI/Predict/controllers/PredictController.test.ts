@@ -1721,6 +1721,85 @@ describe('PredictController', () => {
       );
     });
 
+    it('publishes a post-deposit balance failure when market validation fails after deposit', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          const preview = createMockOrderPreview({
+            side: Side.BUY,
+            maxAmountSpent: 25,
+          });
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+          mockPolymarketProvider.getMarketDetails.mockRejectedValue(
+            new Error('Network error'),
+          );
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PLACING_ORDER,
+            transactionId: 'tx-1',
+          });
+          controller.setSelectedPaymentToken({
+            address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+            chainId: '0x89',
+            symbol: 'USDC',
+          });
+          const pendingOrderPreviews = (
+            controller as unknown as {
+              pendingOrderPreviews: Record<
+                string,
+                {
+                  preview: OrderPreview;
+                  signerAddress: string;
+                  depositedAmount?: number;
+                }
+              >;
+            }
+          ).pendingOrderPreviews;
+          pendingOrderPreviews['tx-1'] = {
+            preview,
+            signerAddress: MOCK_ADDRESS,
+            depositedAmount: 25,
+          };
+          jest
+            .spyOn(controller, 'initPayWithAnyToken')
+            .mockResolvedValue(undefined as never);
+
+          await expect(
+            controller.placeOrder({
+              preview,
+              transactionId: 'tx-1',
+              analyticsProperties: { marketId: 'market-1' },
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED);
+
+          expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
+            state: ActiveOrderState.PREVIEW,
+          });
+          expect(controller.state.selectedPaymentToken).toBeNull();
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'failed',
+              amount: 25,
+              isPostDepositOrderFailure: true,
+              marketId: 'market-1',
+            }),
+          );
+          expect(pendingOrderPreviews['tx-1']).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
     it.each([
       ['proposed_resolution', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
       ['in_dispute', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],

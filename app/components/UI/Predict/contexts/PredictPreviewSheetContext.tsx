@@ -539,11 +539,12 @@ export const PredictPreviewSheetProvider: React.FC<
     predictBuyPreviewOrderInitiatedRef.current = false;
 
     setBuyParams(null);
-    if (!orderWasInitiated && !orderIsInFlight) {
+    const orderMayStartAfterDismiss = orderWasInitiated && !activeOrder?.error;
+    if (!orderIsInFlight && !orderMayStartAfterDismiss) {
       lastBuyParamsRef.current = null;
       clearOrderError();
     }
-  }, [activeOrder?.state, clearOrderError, buyParams]);
+  }, [activeOrder?.error, activeOrder?.state, clearOrderError, buyParams]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(
