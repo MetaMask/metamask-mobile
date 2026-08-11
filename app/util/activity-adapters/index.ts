@@ -37,7 +37,6 @@ export { getLabelKeys } from './label-keys';
 export {
   calculateFiatFromMarketRates,
   getHumanReadableTokenAmount,
-  formatTokenQuantity,
   getDisplaySignPrefix,
   applyDisplaySign,
   toMarketRateLookupToken,
