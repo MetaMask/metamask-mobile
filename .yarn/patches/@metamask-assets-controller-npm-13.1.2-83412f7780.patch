@@ -1,8 +1,159 @@
+diff --git a/dist/utils/formatExchangeRatesForBridge.cjs b/dist/utils/formatExchangeRatesForBridge.cjs
+index 17de6667b84e9cb7dee6eae6c101de32f8071816..d13226e7587415506250a4ed5301776ce54dd3cd 100644
+--- a/dist/utils/formatExchangeRatesForBridge.cjs
++++ b/dist/utils/formatExchangeRatesForBridge.cjs
+@@ -25,6 +25,7 @@ function formatExchangeRatesForBridge(params) {
+     if (lastCall?.params.assetsInfo === params.assetsInfo &&
+         lastCall.params.assetsPrice === params.assetsPrice &&
+         lastCall.params.selectedCurrency === params.selectedCurrency &&
++        lastCall.params.lowercaseAddresses === params.lowercaseAddresses &&
+         lastCall.params.networkConfigurationsByChainId ===
+             params.networkConfigurationsByChainId &&
+         (0, lodash_1.isEqual)(lastCall.params.nativeAssetIdentifiers, params.nativeAssetIdentifiers)) {
+@@ -50,7 +51,7 @@ exports.clearFormatExchangeRatesForBridgeCacheForTesting = clearFormatExchangeRa
+  * @returns Bridge-compatible rates.
+  */
+ function computeExchangeRatesForBridge(params) {
+-    const { assetsInfo, assetsPrice, selectedCurrency, nativeAssetIdentifiers, networkConfigurationsByChainId = {}, } = params;
++    const { assetsInfo, assetsPrice, selectedCurrency, nativeAssetIdentifiers, networkConfigurationsByChainId = {}, lowercaseAddresses = false, } = params;
+     const conversionRates = {};
+     const currencyRates = {};
+     const marketData = {};
+@@ -94,10 +95,14 @@ function computeExchangeRatesForBridge(params) {
+                 }
+                 let tokenAddress;
+                 if (parsed.assetNamespace === 'erc20') {
+-                    tokenAddress = (0, util_1.toChecksumAddress)(parsed.assetReference);
++                    tokenAddress = lowercaseAddresses
++                        ? String(parsed.assetReference).toLowerCase()
++                        : (0, util_1.toChecksumAddress)(parsed.assetReference);
+                 }
+                 else if (isNative) {
+-                    tokenAddress = (0, util_1.toChecksumAddress)((0, assets_controllers_1.getNativeTokenAddress)(chainIdHex));
++                    tokenAddress = lowercaseAddresses
++                        ? (0, assets_controllers_1.getNativeTokenAddress)(chainIdHex).toLowerCase()
++                        : (0, util_1.toChecksumAddress)((0, assets_controllers_1.getNativeTokenAddress)(chainIdHex));
+                 }
+                 if (tokenAddress) {
+                     const priceInNative = nativeAssetUsdPrice > 0 ? usdPrice / nativeAssetUsdPrice : usdPrice;
+diff --git a/dist/utils/formatExchangeRatesForBridge.mjs b/dist/utils/formatExchangeRatesForBridge.mjs
+index 6bc849d37635d77df2f8adb9c354a3ca878a23c5..486157ff76ec912d8a73783eaf62db5770bef0c2 100644
+--- a/dist/utils/formatExchangeRatesForBridge.mjs
++++ b/dist/utils/formatExchangeRatesForBridge.mjs
+@@ -23,6 +23,7 @@ export function formatExchangeRatesForBridge(params) {
+     if (lastCall?.params.assetsInfo === params.assetsInfo &&
+         lastCall.params.assetsPrice === params.assetsPrice &&
+         lastCall.params.selectedCurrency === params.selectedCurrency &&
++        lastCall.params.lowercaseAddresses === params.lowercaseAddresses &&
+         lastCall.params.networkConfigurationsByChainId ===
+             params.networkConfigurationsByChainId &&
+         isEqual(lastCall.params.nativeAssetIdentifiers, params.nativeAssetIdentifiers)) {
+@@ -46,7 +47,7 @@ export function clearFormatExchangeRatesForBridgeCacheForTesting() {
+  * @returns Bridge-compatible rates.
+  */
+ function computeExchangeRatesForBridge(params) {
+-    const { assetsInfo, assetsPrice, selectedCurrency, nativeAssetIdentifiers, networkConfigurationsByChainId = {}, } = params;
++    const { assetsInfo, assetsPrice, selectedCurrency, nativeAssetIdentifiers, networkConfigurationsByChainId = {}, lowercaseAddresses = false, } = params;
+     const conversionRates = {};
+     const currencyRates = {};
+     const marketData = {};
+@@ -90,10 +91,14 @@ function computeExchangeRatesForBridge(params) {
+                 }
+                 let tokenAddress;
+                 if (parsed.assetNamespace === 'erc20') {
+-                    tokenAddress = toChecksumAddress(parsed.assetReference);
++                    tokenAddress = lowercaseAddresses
++                        ? String(parsed.assetReference).toLowerCase()
++                        : toChecksumAddress(parsed.assetReference);
+                 }
+                 else if (isNative) {
+-                    tokenAddress = toChecksumAddress(getNativeTokenAddress(chainIdHex));
++                    tokenAddress = lowercaseAddresses
++                        ? getNativeTokenAddress(chainIdHex).toLowerCase()
++                        : toChecksumAddress(getNativeTokenAddress(chainIdHex));
+                 }
+                 if (tokenAddress) {
+                     const priceInNative = nativeAssetUsdPrice > 0 ? usdPrice / nativeAssetUsdPrice : usdPrice;
 diff --git a/dist/utils/formatStateForTransactionPay.cjs b/dist/utils/formatStateForTransactionPay.cjs
-index eface88798a630e6dc60080ac8c4a8621aff3328..5ab280348256bc7ae01cdf2ff2aed2dc48c9ed47 100644
+index eface88798a630e6dc60080ac8c4a8621aff3328..a0b53d17d5872049d23da143d0a3f200aa290ba0 100644
 --- a/dist/utils/formatStateForTransactionPay.cjs
 +++ b/dist/utils/formatStateForTransactionPay.cjs
-@@ -101,8 +101,8 @@ function computeStateForTransactionPay(params) {
+@@ -5,70 +5,34 @@ const util_1 = require("@ethereumjs/util");
+ const assets_controllers_1 = require("@metamask/assets-controllers");
+ const utils_1 = require("@metamask/utils");
+ const utils_2 = require("@metamask/utils");
+-const lodash_1 = require("lodash");
+ const formatExchangeRatesForBridge_js_1 = require("./formatExchangeRatesForBridge.cjs");
+ function amountToHex(amount) {
+     const hexString = BigInt(amount).toString(16);
+     return `0x${hexString}`;
+ }
+-/**
+- * Determines whether two sets of {@link formatStateForTransactionPay}
+- * parameters are identical for memoization purposes.
+- *
+- * State slices (`assetsBalance`, `assetsInfo`, `assetsPrice`,
+- * `networkConfigurationsByChainId`) are compared by reference since
+- * BaseController state updates are immutable. The `accounts` and
+- * `nativeAssetIdentifiers` inputs are rebuilt on every call, so they are
+- * compared by value instead.
+- *
+- * @param a - Previous parameters.
+- * @param b - Next parameters.
+- * @returns True if the parameters are identical.
+- */
+-function isTransactionPayParamsIdentical(a, b) {
+-    return (a.assetsBalance === b.assetsBalance &&
+-        a.assetsInfo === b.assetsInfo &&
+-        a.assetsPrice === b.assetsPrice &&
+-        a.selectedCurrency === b.selectedCurrency &&
+-        a.networkConfigurationsByChainId === b.networkConfigurationsByChainId &&
+-        (0, lodash_1.isEqual)(a.accounts, b.accounts) &&
+-        (0, lodash_1.isEqual)(a.nativeAssetIdentifiers, b.nativeAssetIdentifiers));
+-}
+ function getAmountFromBalance(balance) {
+     return typeof balance === 'object' && balance !== null && 'amount' in balance
+         ? String(balance.amount)
+         : '0';
+ }
+-let lastCall = null;
+ /**
+  * Converts AssetsController state into the legacy format consumed by
+  * transaction-pay-controller (TokenBalancesController, AccountTrackerController,
+  * TokensController, TokenRatesController, CurrencyRateController shapes).
+  *
+- * The last result is memoized on input identity: this function is invoked (via
+- * `AssetsController:getStateForTransactionPay`) on every
+- * `TransactionController:stateChange`, but its inputs only change when the
+- * assets pipeline updates. Recomputing runs keccak256 (`toChecksumAddress`)
+- * per asset per call, which dominates CPU profiles during transaction
+- * approval.
+- *
+  * @param params - Conversion parameters.
+  * @returns Legacy-compatible state for transaction-pay-controller.
+  */
+ function formatStateForTransactionPay(params) {
+-    if (lastCall && isTransactionPayParamsIdentical(lastCall.params, params)) {
+-        return lastCall.result;
+-    }
+-    const result = computeStateForTransactionPay(params);
+-    lastCall = { params, result: Object.freeze(result) };
+-    return result;
++    return computeStateForTransactionPay(params);
+ }
+ exports.formatStateForTransactionPay = formatStateForTransactionPay;
+ /**
+- * Clears the {@link formatStateForTransactionPay} memoize cache. Exported for tests.
++ * No-op retained for API compatibility. The memoize cache was removed once
++ * keccak256 (`toChecksumAddress`) was dropped from the compute path.
+  */
+ function clearFormatStateForTransactionPayCacheForTesting() {
+-    lastCall = null;
++    // No cache to clear.
+ }
+ exports.clearFormatStateForTransactionPayCacheForTesting = clearFormatStateForTransactionPayCacheForTesting;
+ /**
+@@ -101,8 +65,8 @@ function computeStateForTransactionPay(params) {
                  const amount = getAmountFromBalance(balance);
                  const balanceHex = amountToHex(amount);
                  if (assetsInfo[assetId]?.type === 'native') {
@@ -13,7 +164,7 @@ index eface88798a630e6dc60080ac8c4a8621aff3328..5ab280348256bc7ae01cdf2ff2aed2dc
                      tokenBalances[accountAddressLower] ?? (tokenBalances[accountAddressLower] = {});
                      (_a = tokenBalances[accountAddressLower])[chainIdHex] ?? (_a[chainIdHex] = {});
                      tokenBalances[accountAddressLower][chainIdHex][nativeAddress] =
-@@ -113,7 +113,7 @@ function computeStateForTransactionPay(params) {
+@@ -113,7 +77,7 @@ function computeStateForTransactionPay(params) {
                      };
                  }
                  else if (parsed.assetNamespace === 'erc20') {
@@ -22,7 +173,7 @@ index eface88798a630e6dc60080ac8c4a8621aff3328..5ab280348256bc7ae01cdf2ff2aed2dc
                      tokenBalances[accountAddressLower] ?? (tokenBalances[accountAddressLower] = {});
                      (_b = tokenBalances[accountAddressLower])[chainIdHex] ?? (_b[chainIdHex] = {});
                      tokenBalances[accountAddressLower][chainIdHex][tokenAddress] =
-@@ -134,8 +134,8 @@ function computeStateForTransactionPay(params) {
+@@ -134,8 +98,8 @@ function computeStateForTransactionPay(params) {
              }
              const chainIdHex = (0, utils_1.numberToHex)(parseInt(chainIdParsed.reference, 10));
              const address = metadata.type === 'native'
@@ -33,11 +184,94 @@ index eface88798a630e6dc60080ac8c4a8621aff3328..5ab280348256bc7ae01cdf2ff2aed2dc
              const token = {
                  address,
                  decimals: metadata.decimals,
+@@ -161,6 +125,7 @@ function computeStateForTransactionPay(params) {
+         selectedCurrency,
+         nativeAssetIdentifiers,
+         networkConfigurationsByChainId,
++        lowercaseAddresses: true,
+     });
+     return {
+         tokenBalances,
 diff --git a/dist/utils/formatStateForTransactionPay.mjs b/dist/utils/formatStateForTransactionPay.mjs
-index 414afbfc1dccb4d6e8dbb93c26e1e5f8eb6e9b12..21837a21101cea1a86c30706ea97134575eb93ae 100644
+index 414afbfc1dccb4d6e8dbb93c26e1e5f8eb6e9b12..dac3f9afa80bb1e3574b90dad5bb074fbed98edf 100644
 --- a/dist/utils/formatStateForTransactionPay.mjs
 +++ b/dist/utils/formatStateForTransactionPay.mjs
-@@ -97,8 +97,8 @@ function computeStateForTransactionPay(params) {
+@@ -2,70 +2,33 @@ import { toChecksumAddress } from "@ethereumjs/util";
+ import { getNativeTokenAddress } from "@metamask/assets-controllers";
+ import { numberToHex } from "@metamask/utils";
+ import { parseCaipAssetType, parseCaipChainId } from "@metamask/utils";
+-import $lodash from "lodash";
+-const { isEqual } = $lodash;
+ import { formatExchangeRatesForBridge } from "./formatExchangeRatesForBridge.mjs";
+ function amountToHex(amount) {
+     const hexString = BigInt(amount).toString(16);
+     return `0x${hexString}`;
+ }
+-/**
+- * Determines whether two sets of {@link formatStateForTransactionPay}
+- * parameters are identical for memoization purposes.
+- *
+- * State slices (`assetsBalance`, `assetsInfo`, `assetsPrice`,
+- * `networkConfigurationsByChainId`) are compared by reference since
+- * BaseController state updates are immutable. The `accounts` and
+- * `nativeAssetIdentifiers` inputs are rebuilt on every call, so they are
+- * compared by value instead.
+- *
+- * @param a - Previous parameters.
+- * @param b - Next parameters.
+- * @returns True if the parameters are identical.
+- */
+-function isTransactionPayParamsIdentical(a, b) {
+-    return (a.assetsBalance === b.assetsBalance &&
+-        a.assetsInfo === b.assetsInfo &&
+-        a.assetsPrice === b.assetsPrice &&
+-        a.selectedCurrency === b.selectedCurrency &&
+-        a.networkConfigurationsByChainId === b.networkConfigurationsByChainId &&
+-        isEqual(a.accounts, b.accounts) &&
+-        isEqual(a.nativeAssetIdentifiers, b.nativeAssetIdentifiers));
+-}
+ function getAmountFromBalance(balance) {
+     return typeof balance === 'object' && balance !== null && 'amount' in balance
+         ? String(balance.amount)
+         : '0';
+ }
+-let lastCall = null;
+ /**
+  * Converts AssetsController state into the legacy format consumed by
+  * transaction-pay-controller (TokenBalancesController, AccountTrackerController,
+  * TokensController, TokenRatesController, CurrencyRateController shapes).
+  *
+- * The last result is memoized on input identity: this function is invoked (via
+- * `AssetsController:getStateForTransactionPay`) on every
+- * `TransactionController:stateChange`, but its inputs only change when the
+- * assets pipeline updates. Recomputing runs keccak256 (`toChecksumAddress`)
+- * per asset per call, which dominates CPU profiles during transaction
+- * approval.
+- *
+  * @param params - Conversion parameters.
+  * @returns Legacy-compatible state for transaction-pay-controller.
+  */
+ export function formatStateForTransactionPay(params) {
+-    if (lastCall && isTransactionPayParamsIdentical(lastCall.params, params)) {
+-        return lastCall.result;
+-    }
+-    const result = computeStateForTransactionPay(params);
+-    lastCall = { params, result: Object.freeze(result) };
+-    return result;
++    return computeStateForTransactionPay(params);
+ }
+ /**
+- * Clears the {@link formatStateForTransactionPay} memoize cache. Exported for tests.
++ * No-op retained for API compatibility. The memoize cache was removed once
++ * keccak256 (`toChecksumAddress`) was dropped from the compute path.
+  */
+ export function clearFormatStateForTransactionPayCacheForTesting() {
+-    lastCall = null;
++    // No cache to clear.
+ }
+ /**
+  * Performs the actual state conversion for
+@@ -97,8 +60,8 @@ function computeStateForTransactionPay(params) {
                  const amount = getAmountFromBalance(balance);
                  const balanceHex = amountToHex(amount);
                  if (assetsInfo[assetId]?.type === 'native') {
@@ -48,7 +282,7 @@ index 414afbfc1dccb4d6e8dbb93c26e1e5f8eb6e9b12..21837a21101cea1a86c30706ea971345
                      tokenBalances[accountAddressLower] ?? (tokenBalances[accountAddressLower] = {});
                      (_a = tokenBalances[accountAddressLower])[chainIdHex] ?? (_a[chainIdHex] = {});
                      tokenBalances[accountAddressLower][chainIdHex][nativeAddress] =
-@@ -109,7 +109,7 @@ function computeStateForTransactionPay(params) {
+@@ -109,7 +72,7 @@ function computeStateForTransactionPay(params) {
                      };
                  }
                  else if (parsed.assetNamespace === 'erc20') {
@@ -57,7 +291,7 @@ index 414afbfc1dccb4d6e8dbb93c26e1e5f8eb6e9b12..21837a21101cea1a86c30706ea971345
                      tokenBalances[accountAddressLower] ?? (tokenBalances[accountAddressLower] = {});
                      (_b = tokenBalances[accountAddressLower])[chainIdHex] ?? (_b[chainIdHex] = {});
                      tokenBalances[accountAddressLower][chainIdHex][tokenAddress] =
-@@ -130,8 +130,8 @@ function computeStateForTransactionPay(params) {
+@@ -130,8 +93,8 @@ function computeStateForTransactionPay(params) {
              }
              const chainIdHex = numberToHex(parseInt(chainIdParsed.reference, 10));
              const address = metadata.type === 'native'
@@ -68,3 +302,11 @@ index 414afbfc1dccb4d6e8dbb93c26e1e5f8eb6e9b12..21837a21101cea1a86c30706ea971345
              const token = {
                  address,
                  decimals: metadata.decimals,
+@@ -157,6 +120,7 @@ function computeStateForTransactionPay(params) {
+         selectedCurrency,
+         nativeAssetIdentifiers,
+         networkConfigurationsByChainId,
++        lowercaseAddresses: true,
+     });
+     return {
+         tokenBalances,

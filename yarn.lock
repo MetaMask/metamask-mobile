@@ -8034,7 +8034,7 @@ __metadata:
 
 "@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A11.3.0#~/.yarn/patches/@metamask-assets-controller-npm-11.3.0-8fedee80f7.patch":
   version: 11.3.0
-  resolution: "@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A11.3.0#~/.yarn/patches/@metamask-assets-controller-npm-11.3.0-8fedee80f7.patch::version=11.3.0&hash=9d158a"
+  resolution: "@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A11.3.0#~/.yarn/patches/@metamask-assets-controller-npm-11.3.0-8fedee80f7.patch::version=11.3.0&hash=ab88f8"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -8066,13 +8066,13 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/a023143dead2e6a1c56ae196e7f6061d8c72f0a3a1830081e0881a31683dc2146890d60040732f703f69850c8dc05c06bc72389599cde7baf42a8b7fb0c5b610
+  checksum: 10/292b01607421d922319c4a4438cdb93894268c5309e30951c1d53c4dc3dd4982948310c8f155b2b1fb68e500755829f1e694d9f326d1f68dac17dd9b30bc56d4
   languageName: node
   linkType: hard
 
 "@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch":
   version: 13.1.2
-  resolution: "@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch::version=13.1.2&hash=9d158a"
+  resolution: "@metamask/assets-controller@patch:@metamask/assets-controller@npm%3A13.1.2#~/.yarn/patches/@metamask-assets-controller-npm-13.1.2-83412f7780.patch::version=13.1.2&hash=ab88f8"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -8105,7 +8105,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/50849e77025bfdefe0c7e44ef325901d437e8d182651064660c491778f97fdee196397eee583177db04893f93d5cd05e84b294474c387dcd32bb783e04b2478a
+  checksum: 10/79272af546c8ab6bfa46a4591404fc4e148158a284f08129b0671d3e1d45c75fff42626864e8834419c09ab7fed015d79d42a8ddf4d16980aa5e9a13586f9711
   languageName: node
   linkType: hard
 
@@ -11062,7 +11062,7 @@ __metadata:
 
 "@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller::locator=metamask%40workspace%3A.":
   version: 26.2.3
-  resolution: "@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller#.yalc/@metamask/transaction-pay-controller::hash=46c65f&locator=metamask%40workspace%3A."
+  resolution: "@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller#.yalc/@metamask/transaction-pay-controller::hash=5f384b&locator=metamask%40workspace%3A."
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -11085,7 +11085,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/9c49724e9ea54b2f0ee341edc855361b64e4b6cac0740c35448a99729230230ca72338e26c59a3c0521f0afbc31fffb983e6f12c152d10ec1bac8f949caa575d
+  checksum: 10/3607ee699c6e24b0d35ce250c63266e633d2b999cbf0a0277d0589e5e424208698433fe286f51943cbc40fb00e012e5d2f5e72e92cdcbcc99c1bbb01463175fb
   languageName: node
   linkType: hard
 
