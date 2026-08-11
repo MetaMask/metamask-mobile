@@ -145,20 +145,29 @@ export function useRampsQuotes(
       return;
     }
 
-    if (quoteCufOpIdRef.current) {
-      const opId = quoteCufOpIdRef.current;
-      quoteCufOpIdRef.current = null;
-      // Keep quoteCufKeyRef so a later identical key does not restart without a fetch.
-      endRampsBuyQuoteFetchTrace({
-        id: opId,
-        data: quotesQuery.isError
-          ? {
-              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-            }
-          : { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-      });
+    if (!quoteCufOpIdRef.current) {
+      return;
     }
+
+    // Open span belongs to a different key (e.g. switched to a cached amount while
+    // a prior fetch was in flight). Do not attribute this query's success/error.
+    if (quoteCufKeyRef.current !== quoteFetchKey) {
+      endOpenQuoteCuf(RAMPS_BUY_CUF_END_REASON.SUPERSEDED);
+      return;
+    }
+
+    const opId = quoteCufOpIdRef.current;
+    quoteCufOpIdRef.current = null;
+    // Keep quoteCufKeyRef so a later identical key does not restart without a fetch.
+    endRampsBuyQuoteFetchTrace({
+      id: opId,
+      data: quotesQuery.isError
+        ? {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+          }
+        : { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+    });
   }, [
     queryEnabled,
     quoteFetchKey,

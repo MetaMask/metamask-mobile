@@ -273,7 +273,7 @@ describe('rampsBuyCufTrace', () => {
       expect(second).not.toEqual(first);
     });
 
-    it('ends success and error completions by op id', () => {
+    it('ends a successful quote fetch by op id', () => {
       const successId = startRampsBuyQuoteFetchTrace();
       endRampsBuyQuoteFetchTrace({
         id: successId,
@@ -287,8 +287,9 @@ describe('rampsBuyCufTrace', () => {
           data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
         }),
       );
+    });
 
-      mockEndTrace.mockClear();
+    it('ends a failed quote fetch by op id', () => {
       const errorId = startRampsBuyQuoteFetchTrace();
       endRampsBuyQuoteFetchTrace({
         id: errorId,

@@ -359,6 +359,76 @@ describe('useRampsQuotes', () => {
       });
     });
 
+    it('supersedes an in-flight quote CUF when switching to a cached amount', async () => {
+      const store = createMockStore();
+      const { Wrapper, queryClient } = createWrapper(store);
+
+      let resolveSlow: (value: typeof mockQuotesResponse) => void = () =>
+        undefined;
+      const slowFetch = new Promise<typeof mockQuotesResponse>((resolve) => {
+        resolveSlow = resolve;
+      });
+
+      (Engine.context.RampsController.getQuotes as jest.Mock)
+        .mockResolvedValueOnce(mockQuotesResponse)
+        .mockImplementationOnce(() => slowFetch);
+
+      mockStartRampsBuyQuoteFetchTrace
+        .mockReturnValueOnce('quote-cuf-op-1')
+        .mockReturnValueOnce('quote-cuf-op-2');
+
+      const { result, rerender } = renderHook<
+        ReturnType<typeof useRampsQuotes>,
+        { params: GetQuotesOptions }
+      >(({ params }) => useRampsQuotes(params), {
+        wrapper: Wrapper,
+        initialProps: { params: options },
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+      expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+        id: 'quote-cuf-op-1',
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      });
+      mockEndRampsBuyQuoteFetchTrace.mockClear();
+
+      // Seed cache for amount 100, then start a slow fetch for 250.
+      rerender({
+        params: {
+          ...options,
+          amount: 250,
+        },
+      });
+
+      await waitFor(() => {
+        expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(2);
+      });
+
+      // Revert to cached amount 100 while 250 is still in flight.
+      rerender({ params: options });
+
+      await waitFor(() => {
+        expect(mockEndRampsBuyQuoteFetchTrace).toHaveBeenCalledWith({
+          id: 'quote-cuf-op-2',
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+          },
+        });
+      });
+
+      // Cached key should not be recorded as a successful quote-fetch CUF.
+      expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(2);
+      expect(result.current.status).toBe('success');
+      expect(queryClient).toBeDefined();
+
+      await act(async () => {
+        resolveSlow(mockQuotesResponse);
+      });
+    });
+
     it('ends an in-flight quote CUF as cancelled on unmount', async () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
