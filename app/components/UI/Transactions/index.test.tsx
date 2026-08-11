@@ -324,15 +324,8 @@ const createDefaultTestProps = () => ({
   transactions: [],
 });
 
-const renderTransactions = (props = {}) => {
-  const result = render(
-    <UnconnectedTransactions {...createDefaultTestProps()} {...props} />,
-  );
-  act(() => {
-    jest.advanceTimersByTime(100);
-  });
-  return result;
-};
+const renderTransactions = (props = {}) =>
+  render(<UnconnectedTransactions {...createDefaultTestProps()} {...props} />);
 
 const asComponentType = (name: string) =>
   name as unknown as React.ComponentType;

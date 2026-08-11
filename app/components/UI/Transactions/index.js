@@ -176,7 +176,6 @@ const Transactions = (props) => {
   const theme = useContext(ThemeContext) || mockTheme;
   const { colors } = theme;
   const [selectedTransactions, setSelectedTransactions] = useState(new Map());
-  const [ready] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [cancelIsOpen, setCancelIsOpen] = useState(false);
   const [speedUpIsOpen, setSpeedUpIsOpen] = useState(false);
@@ -300,7 +299,6 @@ const Transactions = (props) => {
 
   useEffect(() => {
     mountedRef.current = true;
-    // Mount header/list immediately — do not defer behind a 100ms ready gate.
     const txToView = NotificationManager.getTransactionToView();
     if (txToView) {
       notificationTimeoutRef.current = setTimeout(() => {
@@ -729,7 +727,7 @@ const Transactions = (props) => {
   return (
     <PriceChartProvider>
       <View style={styles.wrapper}>
-        {!ready || loading ? (
+        {loading ? (
           renderLoader()
         ) : (
           <View style={styles.wrapper}>
