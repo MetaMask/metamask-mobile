@@ -1,0 +1,243 @@
+##############################################################################################
+#
+# Resolve RC Native Baseline (reusable)
+#
+# Decides whether a push to a release branch needs a native RC build or can ship as an OTA
+# update, by comparing the Expo fingerprint of the pushed commit against the last commit that
+# was built natively for that branch (the "native baseline").
+#
+# The baseline is read from the CI state branch (ci-state/rc-auto-ota, see
+# .github/scripts/rc-ota-state-read.sh). No baseline recorded yet -> native build is required;
+# that is the bootstrap case immediately after a release cut, and it is also what happens the
+# first time a branch opts into the auto-OTA flow.
+#
+# Fingerprints are recomputed live for both commits rather than trusting the fingerprint stored
+# alongside the baseline, so the decision never depends on a stale or differently-produced hash.
+#
+##############################################################################################
+name: Resolve RC Native Baseline
+
+on:
+  workflow_call:
+    inputs:
+      release_branch:
+        description: 'Release branch being evaluated (e.g. release/8.0.1)'
+        required: true
+        type: string
+      commit_sha:
+        description: 'Commit pushed to the release branch that is being evaluated'
+        required: true
+        type: string
+      state_branch:
+        description: 'CI state branch holding the per-release baseline files'
+        required: false
+        type: string
+        default: ci-state/rc-auto-ota
+    outputs:
+      needs_native:
+        description: >-
+          'true' when a native build is required (no baseline yet, or the fingerprint changed).
+          'false' when the push is OTA-eligible.
+        value: ${{ jobs.decide.outputs.needs_native }}
+      baseline_sha:
+        description: 'Commit of the current native baseline (empty when there is none yet)'
+        value: ${{ jobs.read-state.outputs.baseline_sha }}
+      baseline_short_sha:
+        description: 'Short form of baseline_sha (empty when there is no baseline yet)'
+        value: ${{ jobs.read-state.outputs.baseline_short_sha }}
+      native_build_number:
+        description: 'Build number the baseline native build was stamped with'
+        value: ${{ jobs.read-state.outputs.native_build_number }}
+      ota_revision_count:
+        description: 'Auto-OTA updates already published on top of the current baseline'
+        value: ${{ jobs.read-state.outputs.ota_revision_count }}
+      target_fingerprint:
+        description: 'Expo fingerprint of the evaluated commit (empty on the bootstrap path)'
+        value: ${{ jobs.compare.outputs.target_fingerprint }}
+
+permissions:
+  contents: read
+  # setup-node-modules.yml requires id-token: write for its cache/runner provisioning.
+  id-token: write
+
+jobs:
+  read-state:
+    name: Read native baseline state
+    runs-on: ubuntu-latest
+    outputs:
+      has_state: ${{ steps.state.outputs.has_state }}
+      baseline_sha: ${{ steps.state.outputs.baseline_sha }}
+      baseline_short_sha: ${{ steps.state.outputs.baseline_short_sha }}
+      baseline_fingerprint: ${{ steps.state.outputs.baseline_fingerprint }}
+      native_build_number: ${{ steps.state.outputs.native_build_number }}
+      ota_revision_count: ${{ steps.state.outputs.ota_revision_count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Read Auto RC OTA state
+        id: state
+        env:
+          RELEASE_BRANCH: ${{ inputs.release_branch }}
+          STATE_BRANCH: ${{ inputs.state_branch }}
+        run: .github/scripts/rc-ota-state-read.sh
+
+  # Both checkouts need an installed node_modules for `yarn fingerprint:generate`, so reuse the
+  # same artifact-based setup push-eas-update.yml uses for its own fingerprint comparison.
+  setup-target:
+    name: Setup Dependencies (pushed commit)
+    needs: read-state
+    if: needs.read-state.outputs.has_state == 'true'
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: ${{ inputs.commit_sha }}
+      fetch-depth: 1
+      upload-artifact: true
+      artifact-name: node-modules-rc-baseline-target
+      artifact-retention-days: 1
+
+  setup-baseline:
+    name: Setup Dependencies (native baseline)
+    needs: read-state
+    if: needs.read-state.outputs.has_state == 'true'
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: ${{ needs.read-state.outputs.baseline_sha }}
+      fetch-depth: 1
+      upload-artifact: true
+      artifact-name: node-modules-rc-baseline-base
+      artifact-retention-days: 1
+
+  compare:
+    name: Compare fingerprint against native baseline
+    needs: [read-state, setup-target, setup-baseline]
+    if: needs.read-state.outputs.has_state == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      fingerprints_equal: ${{ steps.compare.outputs.equal }}
+      target_fingerprint: ${{ steps.compare.outputs.target-fingerprint }}
+    env:
+      TARGET_ARTIFACT_NAME: ${{ needs.setup-target.outputs.artifact-name }}
+      BASELINE_ARTIFACT_NAME: ${{ needs.setup-baseline.outputs.artifact-name }}
+    steps:
+      - name: Checkout pushed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 1
+
+      - name: Checkout native baseline commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.read-state.outputs.baseline_sha }}
+          path: baseline
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Validate artifact compatibility (pushed commit)
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ env.TARGET_ARTIFACT_NAME }}
+          artifact-prefix: node-modules-rc-baseline-target
+          validation-context: pushed commit
+
+      - name: Download node_modules artifact (pushed commit)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.TARGET_ARTIFACT_NAME }}
+
+      - name: Restore executable permissions (pushed commit)
+        uses: ./.github/actions/restore-node-modules-permissions
+
+      - name: Validate artifact compatibility (native baseline)
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ env.BASELINE_ARTIFACT_NAME }}
+          artifact-prefix: node-modules-rc-baseline-base
+          validation-context: native baseline
+
+      - name: Download node_modules artifact (native baseline)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BASELINE_ARTIFACT_NAME }}
+          path: baseline
+
+      - name: Restore executable permissions (native baseline)
+        uses: ./.github/actions/restore-node-modules-permissions
+        with:
+          working-directory: baseline
+
+      - name: Compare fingerprints
+        id: compare
+        uses: ./.github/actions/compare-fingerprints
+        with:
+          target-directory: .
+          base-directory: baseline
+          target-label: Pushed commit (${{ inputs.commit_sha }})
+          base-label: Native baseline (${{ needs.read-state.outputs.baseline_sha }})
+
+  decide:
+    name: Decide native vs OTA
+    needs: [read-state, compare]
+    # `compare` is skipped on the bootstrap path (no baseline yet), which must still resolve to
+    # a native build rather than failing the caller.
+    if: always() && !cancelled() && needs.read-state.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      needs_native: ${{ steps.decide.outputs.needs_native }}
+    steps:
+      - name: Decide
+        id: decide
+        env:
+          HAS_STATE: ${{ needs.read-state.outputs.has_state }}
+          COMPARE_RESULT: ${{ needs.compare.result }}
+          FINGERPRINTS_EQUAL: ${{ needs.compare.outputs.fingerprints_equal }}
+          RELEASE_BRANCH: ${{ inputs.release_branch }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          BASELINE_SHA: ${{ needs.read-state.outputs.baseline_sha }}
+          OTA_REVISION_COUNT: ${{ needs.read-state.outputs.ota_revision_count }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$HAS_STATE" != "true" ]]; then
+            NEEDS_NATIVE=true
+            REASON="No native baseline recorded for ${RELEASE_BRANCH} yet - building natively to establish one."
+          elif [[ "$COMPARE_RESULT" != "success" ]]; then
+            NEEDS_NATIVE=true
+            REASON="Fingerprint comparison did not succeed (result: ${COMPARE_RESULT}) - falling back to a native build."
+          elif [[ "$FINGERPRINTS_EQUAL" == "true" ]]; then
+            NEEDS_NATIVE=false
+            REASON="Fingerprint matches the native baseline (${BASELINE_SHA}) - this push is OTA-eligible."
+          else
+            NEEDS_NATIVE=true
+            REASON="Fingerprint differs from the native baseline (${BASELINE_SHA}) - native changes detected."
+          fi
+
+          if [[ "$NEEDS_NATIVE" == "true" ]]; then
+            DECISION="native build"
+          else
+            DECISION="OTA update"
+          fi
+
+          echo "needs_native=${NEEDS_NATIVE}" >> "$GITHUB_OUTPUT"
+          echo "${REASON}"
+
+          {
+            echo "### Auto RC build decision"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Branch | \`${RELEASE_BRANCH}\` |"
+            echo "| Pushed commit | \`${COMMIT_SHA}\` |"
+            echo "| Native baseline | \`${BASELINE_SHA:-none}\` |"
+            echo "| OTA revisions on baseline | \`${OTA_REVISION_COUNT}\` |"
+            echo "| Decision | **${DECISION}** |"
+            echo ""
+            echo "${REASON}"
+          } >> "$GITHUB_STEP_SUMMARY"

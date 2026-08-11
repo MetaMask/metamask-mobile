@@ -9,6 +9,10 @@
  *               IOS_PUBLIC_URL, BUILD_PIPELINE_URL, PR_NUMBER, GITHUB_REPOSITORY,
  *               SLACK_RC_NOTIFICATION_DRY_RUN,
  *               ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE (PLAY_STORE_CHECK_STATUS=pass|fail)
+ *
+ * OTA-only RCs (Auto RC OTA path, see .github/workflows/build-rc-auto.yml) set OTA_LABEL and
+ * OTA_NATIVE_BUILD_NUMBER instead of new build numbers: no binaries were produced, so the message
+ * drops the download links and reports the OTA revision plus the native build it runs on.
  */
 
 import fs from 'fs';
@@ -76,61 +80,95 @@ function buildSlackMessage(options) {
     pipelineUrl,
     prNumber,
     playStoreCheckMrkdwn,
+    otaLabel,
+    otaNativeBuildNumber,
+    anchorDiscriminator,
   } = options;
 
-  const blocks = [
-    {
-      type: 'header',
-      text: {
-        type: 'plain_text',
-        text: `🚀 Mobile RC Build v${version} (${buildNumber})`,
-        emoji: true,
-      },
-    },
-    {
-      type: 'section',
-      fields: [
+  const blocks = otaLabel
+    ? [
         {
-          type: 'mrkdwn',
-          text: `*Version:*\n${version}`,
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: `🚀 Mobile RC OTA Update ${otaLabel}`,
+            emoji: true,
+          },
         },
         {
-          type: 'mrkdwn',
-          text: `*Build Number:*\n${buildNumber}`,
-        },
-      ],
-    },
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*📦 Download Links:*',
-      },
-    },
-    {
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: isValidUrl(androidUrl)
-            ? `*Android APK:*\n<${androidUrl}|Download>`
-            : '*Android APK:*\n_Not available_',
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*OTA Revision:*\n${otaLabel}`,
+            },
+            {
+              type: 'mrkdwn',
+              text: `*Runs on native build:*\n${otaNativeBuildNumber}`,
+            },
+          ],
         },
         {
-          type: 'mrkdwn',
-          text: isValidUrl(iosUrl)
-            ? `*iOS Build:*\n<${iosUrl}|TestFlight>`
-            : '*iOS Build:*\n<https://testflight.apple.com/join/hBrjtFuA|Check TestFlight>',
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*📲 No new build to install* — relaunch the app twice on the `rc` channel to pick this up.',
+          },
         },
-      ],
-    },
-  ];
+      ]
+    : [
+        {
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: `🚀 Mobile RC Build v${version} (${buildNumber})`,
+            emoji: true,
+          },
+        },
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*Version:*\n${version}`,
+            },
+            {
+              type: 'mrkdwn',
+              text: `*Build Number:*\n${buildNumber}`,
+            },
+          ],
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*📦 Download Links:*',
+          },
+        },
+        {
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: isValidUrl(androidUrl)
+                ? `*Android APK:*\n<${androidUrl}|Download>`
+                : '*Android APK:*\n_Not available_',
+            },
+            {
+              type: 'mrkdwn',
+              text: isValidUrl(iosUrl)
+                ? `*iOS Build:*\n<${iosUrl}|TestFlight>`
+                : '*iOS Build:*\n<https://testflight.apple.com/join/hBrjtFuA|Check TestFlight>',
+            },
+          ],
+        },
+      ];
 
   // Add link to cherry-picks section in PR comment
   // Note: GitHub prefixes user-provided anchor IDs with 'user-content-'
   // We use build number in anchor to link to the correct comment (not older builds)
   if (prNumber) {
-    const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+    const anchorSuffix = anchorDiscriminator ? `-${anchorDiscriminator}` : '';
     const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks${anchorSuffix}|View cherry-picks>`;
     blocks.push(
       {
@@ -180,7 +218,7 @@ function buildSlackMessage(options) {
       links.push(`<${pipelineUrl}|View Build Pipeline>`);
     }
     if (prNumber) {
-      const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+      const anchorSuffix = anchorDiscriminator ? `-${anchorDiscriminator}` : '';
       links.push(`<${REPO_URL}/pull/${prNumber}#user-content-whats-in-this-rc${anchorSuffix}|View full RC notes>`);
     }
     if (links.length > 0) {
@@ -203,7 +241,10 @@ function buildSlackMessage(options) {
 
   return {
     blocks,
-    text: `🚀 Mobile RC Build v${version} (${buildNumber}) is ready!`, // Fallback text
+    // Fallback text
+    text: otaLabel
+      ? `🚀 Mobile RC OTA Update ${otaLabel} (on native build ${otaNativeBuildNumber}) is ready!`
+      : `🚀 Mobile RC Build v${version} (${buildNumber}) is ready!`,
   };
 }
 
@@ -291,7 +332,23 @@ async function main() {
   const playStoreCheckMrkdwn = loadPlayStoreCheckMrkdwn();
   const expectedChannelName = getSlackChannel(version);
 
-  console.log(`\n📣 Preparing Slack notification for RC v${version} (${buildNumber})`);
+  // OTA-only RC: no new binaries, so the OTA revision label identifies the delivery (and
+  // discriminates the PR-comment anchors, matching scripts/build-announce/index.ts).
+  const otaLabel = process.env.OTA_LABEL?.trim() || '';
+  const otaNativeBuildNumber = process.env.OTA_NATIVE_BUILD_NUMBER?.trim() || 'Unknown';
+  const anchorDiscriminator = otaLabel
+    ? otaLabel
+    : androidBuildNumber && androidBuildNumber !== 'N/A' && androidBuildNumber !== 'Unknown'
+      ? androidBuildNumber
+      : '';
+
+  if (otaLabel) {
+    console.log(
+      `\n📣 Preparing Slack notification for RC OTA ${otaLabel} (native build ${otaNativeBuildNumber})`,
+    );
+  } else {
+    console.log(`\n📣 Preparing Slack notification for RC v${version} (${buildNumber})`);
+  }
   if (prNumber) {
     console.log(`📍 Release PR: #${prNumber}`);
   }
@@ -313,6 +370,9 @@ async function main() {
     pipelineUrl,
     prNumber,
     playStoreCheckMrkdwn,
+    otaLabel,
+    otaNativeBuildNumber,
+    anchorDiscriminator,
   });
 
   if (isDryRun) {

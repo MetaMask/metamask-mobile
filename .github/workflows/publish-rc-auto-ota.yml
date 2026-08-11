@@ -1,0 +1,137 @@
+##############################################################################################
+#
+# Publish RC Auto OTA (reusable)
+#
+# Publishes an OTA update to the `rc` channel for a release-branch push that
+# resolve-rc-native-baseline.yml determined to be OTA-eligible (fingerprint unchanged since the
+# last native RC build), then records the new OTA revision on the CI state branch.
+#
+# push-eas-update.yml resolves the commit to publish from the PR's HEAD rather than taking a SHA,
+# so in principle it could pick up a commit newer than the one that was fingerprinted. That is safe
+# on two counts: build-rc-auto.yml's cancel-in-progress concurrency cancels this run as soon as a
+# newer push arrives, and push-eas-update.yml independently re-compares the commit it is about to
+# publish against `base_branch` (the native baseline) and refuses to publish on a mismatch.
+#
+# Revision labelling: the display label is `<semver>.<ota_revision_count + 1>` (e.g. 8.0.0.2 for
+# the second OTA on top of native baseline 8.0.0). It is display-only — package.json, native
+# build numbers and OTA_VERSION are never written by this path. The label is baked into the
+# bundle (as OTA_RC_AUTO_LABEL) at publish time, so it must be computed before publishing rather
+# than from the post-write count; `build-rc-auto.yml`'s cancel-in-progress concurrency guarantees
+# only one run per release branch is ever publishing, so the two cannot drift.
+#
+##############################################################################################
+name: Publish RC Auto OTA
+
+on:
+  workflow_call:
+    inputs:
+      release_branch:
+        description: 'Release branch being published (e.g. release/8.0.1)'
+        required: true
+        type: string
+      semver:
+        description: 'Release semver the OTA layers on top of (e.g. 8.0.1)'
+        required: true
+        type: string
+      pr_number:
+        description: 'Release PR number (push-eas-update.yml resolves the HEAD commit from it)'
+        required: true
+        type: string
+      base_branch:
+        description: 'Base ref push-eas-update.yml compares fingerprints against (e.g. v8.0.1)'
+        required: true
+        type: string
+      ota_revision_count:
+        description: 'OTA updates already published on top of the current native baseline'
+        required: true
+        type: string
+      native_build_number:
+        description: 'Build number of the native baseline this OTA layers on top of'
+        required: false
+        type: string
+        default: ''
+      state_branch:
+        description: 'CI state branch holding the per-release baseline files'
+        required: false
+        type: string
+        default: ci-state/rc-auto-ota
+    outputs:
+      ota_label:
+        description: 'Display label published for this OTA revision (e.g. 8.0.1.2)'
+        value: ${{ jobs.compute-label.outputs.ota_label }}
+      ota_revision:
+        description: 'Revision number published for this OTA update'
+        value: ${{ jobs.compute-label.outputs.ota_revision }}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  compute-label:
+    name: Compute OTA revision label
+    runs-on: ubuntu-latest
+    outputs:
+      ota_label: ${{ steps.label.outputs.ota_label }}
+      ota_revision: ${{ steps.label.outputs.ota_revision }}
+    steps:
+      - name: Compute label
+        id: label
+        env:
+          SEMVER: ${{ inputs.semver }}
+          OTA_REVISION_COUNT: ${{ inputs.ota_revision_count }}
+          NATIVE_BUILD_NUMBER: ${{ inputs.native_build_number }}
+        run: |
+          set -euo pipefail
+          REVISION=$(( ${OTA_REVISION_COUNT:-0} + 1 ))
+          LABEL="${SEMVER}.${REVISION}"
+          echo "ota_revision=${REVISION}" >> "$GITHUB_OUTPUT"
+          echo "ota_label=${LABEL}" >> "$GITHUB_OUTPUT"
+          echo "Publishing OTA revision ${REVISION} as ${LABEL} (native build ${NATIVE_BUILD_NUMBER:-unknown})"
+
+  push-ota:
+    name: Push OTA update (rc)
+    needs: compute-label
+    uses: ./.github/workflows/push-eas-update.yml
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      base_branch: ${{ inputs.base_branch }}
+      message: >-
+        ${{ needs.compute-label.outputs.ota_label }} (auto RC OTA on native build
+        ${{ inputs.native_build_number || 'unknown' }})
+      channel: rc
+      platform: all
+      rc_auto_label: ${{ needs.compute-label.outputs.ota_label }}
+    secrets: inherit
+
+  record-revision:
+    name: Record OTA revision in CI state
+    needs: [compute-label, push-ota]
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      # The state branch decides native-vs-OTA for every later push, so it is protected and only
+      # this App identity may push to it — the default GITHUB_TOKEN is deliberately not used.
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Increment OTA revision count
+        env:
+          RELEASE_BRANCH: ${{ inputs.release_branch }}
+          STATE_BRANCH: ${{ inputs.state_branch }}
+          MODE: ota-revision
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
+        run: .github/scripts/rc-ota-state-write.sh

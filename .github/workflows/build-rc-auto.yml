@@ -19,6 +19,19 @@
 #   thumbs-up, the last cherry-pick has landed, and the branch is being prepared to
 #   merge into stable. Removing the label resumes normal auto RC builds.
 #
+# Fingerprint-based OTA (opt-in via the 'auto-ota-enabled' label on the release PR):
+#   With the label, each push is routed by comparing its Expo fingerprint against the last
+#   commit built natively for this branch (the "native baseline", tracked on the
+#   ci-state/rc-auto-ota branch):
+#     - No baseline yet (first push after a cut, or right after opting in) -> native build.
+#     - Fingerprint changed (a cherry-pick touched native code/config)     -> native build.
+#     - Fingerprint unchanged                                             -> OTA update only.
+#   Native builds record the new baseline; OTA pushes bump a revision counter that produces the
+#   display-only 4th-decimal label (e.g. 8.0.1.2) shown in the PR comment, Slack, and in-app.
+#   Without the label, behaviour is exactly as before: always native, OTA published manually via
+#   runway-ota-rc.yml. Removing the label is the rollback path and takes effect on the next push.
+#   See docs/auto-rc-ota.md.
+#
 ##############################################################################################
 name: Auto RC builds
 
@@ -45,8 +58,10 @@ jobs:
       semver: ${{ steps.extract-version.outputs.semver }}
       has-pr: ${{ steps.find-pr.outputs.has-pr }}
       branch-name: ${{ steps.extract-version.outputs.branch-name }}
+      is-ota-branch: ${{ steps.extract-version.outputs.is-ota-branch }}
       pr-number: ${{ steps.find-pr.outputs.pr-number }}
       rc-frozen: ${{ steps.find-pr.outputs.rc-frozen }}
+      auto-ota-enabled: ${{ steps.find-pr.outputs.auto-ota-enabled }}
     permissions:
       pull-requests: read
     steps:
@@ -65,6 +80,14 @@ jobs:
           # Validate branch matches release/x.y.z or release/x.y.z-ota (OTA hotfix) format
           if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
             VERSION="${BRANCH_NAME#release/}"
+            # `-ota` branches are the post-ship hotfix flow, which keeps using the manual
+            # runway-ota-*.yml workflows and OTA_VERSION — the fingerprint-based auto-OTA path
+            # below is scoped to plain release/X.Y.Z branches in the RC cycle.
+            if [[ "$VERSION" == *-ota ]]; then
+              echo "is-ota-branch=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "is-ota-branch=false" >> "$GITHUB_OUTPUT"
+            fi
             # Strip `-ota` suffix: it is a branch-name convention only. Downstream consumers
             # (build-announce display "RC X.Y.Z", test-plan artifact name) expect strict X.Y.Z.
             VERSION="${VERSION%-ota}"
@@ -73,6 +96,7 @@ jobs:
           else
             echo "Branch '$BRANCH_NAME' does not match release/x.y.z or release/x.y.z-ota pattern. Skipping."
             echo "semver=" >> "$GITHUB_OUTPUT"
+            echo "is-ota-branch=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
 
@@ -90,6 +114,7 @@ jobs:
             echo "No PR found for branch $BRANCH_NAME. Skipping."
             echo "has-pr=false" >> "$GITHUB_OUTPUT"
             echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
+            echo "auto-ota-enabled=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -106,24 +131,69 @@ jobs:
             echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
           fi
 
+          # Check for the auto-ota-enabled label — when present, pushes whose Expo fingerprint
+          # still matches the last native RC build ship as an OTA update instead of a native
+          # rebuild. Remove the label to fall back to always-native builds on the next push.
+          AUTO_OTA=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "auto-ota-enabled")) | length > 0')
+
+          if [[ "$AUTO_OTA" == "true" ]]; then
+            echo "::notice::PR #$PR_NUMBER has the 'auto-ota-enabled' label — fingerprint decides native vs OTA."
+            echo "auto-ota-enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PR #$PR_NUMBER is not opted into auto OTA — always building natively."
+            echo "auto-ota-enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
           echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "has-pr=true" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  # Only runs for branches opted in via the 'auto-ota-enabled' label. When it is skipped, every
+  # gate below reads needs_native as empty, which the `!= 'false'` checks treat as "build
+  # natively" — so the un-labelled path stays byte-for-byte today's behaviour.
+  resolve-native-baseline:
+    name: Resolve native baseline
+    uses: ./.github/workflows/resolve-rc-native-baseline.yml
+    needs: validate-and-find-pr
+    if: >
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.validate-and-find-pr.outputs.auto-ota-enabled == 'true' &&
+      needs.validate-and-find-pr.outputs.is-ota-branch != 'true'
+    with:
+      release_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
+      commit_sha: ${{ github.sha }}
+    secrets: inherit
+
   generate_rc_build_version:
     name: Generate RC build version
     uses: ./.github/workflows/generate-build-version.yml
-    needs: validate-and-find-pr
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
+    needs:
+      - validate-and-find-pr
+      - resolve-native-baseline
+    # resolve-native-baseline is skipped whenever the label is off, and a skipped `needs` would
+    # otherwise skip this job too, hence the explicit always() + result checks.
+    if: >
+      always() && !cancelled() &&
+      needs.validate-and-find-pr.result == 'success' &&
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.resolve-native-baseline.outputs.needs_native != 'false'
 
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
+      - resolve-native-baseline
       - generate_rc_build_version
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
+    if: >
+      always() && !cancelled() &&
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.resolve-native-baseline.outputs.needs_native != 'false' &&
+      needs.generate_rc_build_version.result == 'success'
     with:
       platform: ios
       # Pin to the triggering commit so iOS and Android build the same SHA even if
@@ -138,12 +208,65 @@ jobs:
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
+      - resolve-native-baseline
       - generate_rc_build_version
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
+    if: >
+      always() && !cancelled() &&
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.resolve-native-baseline.outputs.needs_native != 'false' &&
+      needs.generate_rc_build_version.result == 'success'
     with:
       platform: android
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
+    secrets: inherit
+
+  # Records the commit just built as the new native baseline, so the next push can be compared
+  # against it. Scoped to opted-in branches: without the label no state is written, which keeps
+  # the rollback path clean and makes opting in start from a fresh native build.
+  update-native-baseline-state:
+    name: Record native baseline
+    uses: ./.github/workflows/update-rc-native-baseline.yml
+    needs:
+      - validate-and-find-pr
+      - generate_rc_build_version
+      - trigger-ios-rc-build
+      - trigger-android-rc-build
+    if: >
+      always() && !cancelled() &&
+      needs.validate-and-find-pr.outputs.auto-ota-enabled == 'true' &&
+      needs.validate-and-find-pr.outputs.is-ota-branch != 'true' &&
+      needs.trigger-ios-rc-build.result == 'success' &&
+      needs.trigger-android-rc-build.result == 'success'
+    with:
+      release_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
+      commit_sha: ${{ github.sha }}
+      native_build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
+    secrets: inherit
+
+  # The OTA path. This lives as a job in this workflow (rather than a separately dispatched
+  # workflow) so the top-of-file cancel-in-progress concurrency also cancels an in-flight OTA
+  # push when a newer commit lands — the newest commit always wins.
+  trigger-auto-ota:
+    name: Publish RC OTA update
+    uses: ./.github/workflows/publish-rc-auto-ota.yml
+    needs:
+      - validate-and-find-pr
+      - resolve-native-baseline
+    if: >
+      always() && !cancelled() &&
+      needs.resolve-native-baseline.result == 'success' &&
+      needs.resolve-native-baseline.outputs.needs_native == 'false'
+    with:
+      release_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
+      semver: ${{ needs.validate-and-find-pr.outputs.semver }}
+      pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
+      # Compare against the native baseline itself: the invariant an RC OTA must hold is that the
+      # JS bundle still matches the native binary testers already have installed.
+      base_branch: ${{ needs.resolve-native-baseline.outputs.baseline_sha }}
+      ota_revision_count: ${{ needs.resolve-native-baseline.outputs.ota_revision_count }}
+      native_build_number: ${{ needs.resolve-native-baseline.outputs.native_build_number }}
     secrets: inherit
 
   post-rc-build-comment:
@@ -151,9 +274,18 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - validate-and-find-pr
+      - resolve-native-baseline
       - trigger-ios-rc-build
       - trigger-android-rc-build
-    if: always() && needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success' && needs.validate-and-find-pr.outputs.pr-number != ''
+      - trigger-auto-ota
+    # Runs for whichever path delivered the RC: both native builds, or the OTA push.
+    if: >
+      always() && !cancelled() &&
+      needs.validate-and-find-pr.outputs.pr-number != '' &&
+      (
+        (needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success') ||
+        needs.trigger-auto-ota.result == 'success'
+      )
     environment: release-ci
     permissions:
       pull-requests: write
@@ -189,6 +321,11 @@ jobs:
           IOS_BUILD_NUMBER: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
           ANDROID_BUILD_NUMBER: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # Set only on the OTA path; presence switches the comment to OTA-only rendering
+          # (no TestFlight/APK links, since no new binaries were produced).
+          OTA_UPDATE_LABEL: ${{ needs.trigger-auto-ota.outputs.ota_label }}
+          OTA_NATIVE_BUILD_NUMBER: ${{ needs.resolve-native-baseline.outputs.native_build_number }}
+          OTA_BASELINE_SHORT_SHA: ${{ needs.resolve-native-baseline.outputs.baseline_short_sha }}
           # AI Provider keys for test plan generation
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
           E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
@@ -208,14 +345,25 @@ jobs:
     name: Slack RC Notification
     needs:
       - validate-and-find-pr
+      - resolve-native-baseline
       - trigger-ios-rc-build
       - trigger-android-rc-build
-    if: always() && needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success'
+      - trigger-auto-ota
+    if: >
+      always() && !cancelled() &&
+      (
+        (needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success') ||
+        needs.trigger-auto-ota.result == 'success'
+      )
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
-      semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version }}
+      # On the OTA path the build jobs are skipped, so their outputs are empty; fall back to the
+      # branch semver (slack-rc-notification.yml reads build numbers from the branch when empty).
+      semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version || needs.validate-and-find-pr.outputs.semver }}
       ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
       android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
       pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
+      ota_label: ${{ needs.trigger-auto-ota.outputs.ota_label }}
+      ota_native_build_number: ${{ needs.resolve-native-baseline.outputs.native_build_number }}
     secrets: inherit

@@ -8,7 +8,7 @@ import { Octokit } from '@octokit/rest';
 import { execFileSync } from 'child_process';
 import { existsSync, unlinkSync, readFileSync } from 'fs';
 import { resolve, join } from 'path';
-import type { TestPlanResult } from './types';
+import type { BuildInfo, TestPlanResult } from './types';
 
 export const RC_BUILD_COMMENT_MARKER = '<!-- metamask-bot-rc-build-announce -->';
 export const TESTFLIGHT_URL = 'https://testflight.apple.com/join/hBrjtFuA';
@@ -178,20 +178,21 @@ export async function generateTestPlan(
 /**
  * Parses environment variables for build info
  */
-export function parseBuildInfo(): {
-  semver: string;
-  iosBuildNumber: string;
-  androidBuildNumber: string;
-  pipelineUrl?: string;
-  androidPublicUrl?: string;
-} {
+export function parseBuildInfo(): BuildInfo {
   const {
     SEMVER,
     IOS_BUILD_NUMBER,
     ANDROID_BUILD_NUMBER,
     BUILD_PIPELINE_URL,
     ANDROID_PUBLIC_URL,
+    OTA_UPDATE_LABEL,
+    OTA_NATIVE_BUILD_NUMBER,
+    OTA_BASELINE_SHORT_SHA,
   } = process.env;
+
+  // Only the Auto RC OTA path sets OTA_UPDATE_LABEL, so its presence is what distinguishes an
+  // OTA-only RC from a native one.
+  const otaLabel = OTA_UPDATE_LABEL?.trim();
 
   return {
     semver: SEMVER || 'Unknown',
@@ -199,6 +200,13 @@ export function parseBuildInfo(): {
     androidBuildNumber: ANDROID_BUILD_NUMBER || 'Unknown',
     pipelineUrl: BUILD_PIPELINE_URL,
     androidPublicUrl: ANDROID_PUBLIC_URL,
+    otaUpdate: otaLabel
+      ? {
+          label: otaLabel,
+          nativeBuildNumber: OTA_NATIVE_BUILD_NUMBER?.trim() || 'Unknown',
+          baselineShortSha: OTA_BASELINE_SHORT_SHA?.trim() || 'Unknown',
+        }
+      : undefined,
   };
 }
 

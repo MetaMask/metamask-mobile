@@ -1,0 +1,126 @@
+##############################################################################################
+#
+# Update RC Native Baseline (reusable)
+#
+# Records a commit as the new native baseline for a release branch after its native iOS and
+# Android RC builds have both succeeded. Every later push to that branch is fingerprinted against
+# this baseline by resolve-rc-native-baseline.yml to decide native build vs OTA update.
+#
+# Writing the baseline resets ota_revision_count to 0, so the next OTA on top of it is revision 1
+# (e.g. 8.0.1.1). Re-running this for the commit that is already the baseline is a no-op and
+# preserves the existing count, so a workflow re-run cannot re-issue an already-shipped label
+# (see .github/scripts/rc-ota-state-write.sh).
+#
+# Pushes land on the CI state branch (ci-state/rc-auto-ota), which is not a trigger for
+# build-rc-auto.yml, so recording a baseline never re-triggers a build.
+#
+##############################################################################################
+name: Update RC Native Baseline
+
+on:
+  workflow_call:
+    inputs:
+      release_branch:
+        description: 'Release branch the baseline belongs to (e.g. release/8.0.1)'
+        required: true
+        type: string
+      commit_sha:
+        description: 'Commit that was built natively and becomes the new baseline'
+        required: true
+        type: string
+      native_build_number:
+        description: 'Build number the native builds were stamped with'
+        required: false
+        type: string
+        default: ''
+      state_branch:
+        description: 'CI state branch holding the per-release baseline files'
+        required: false
+        type: string
+        default: ci-state/rc-auto-ota
+    outputs:
+      baseline_fingerprint:
+        description: 'Expo fingerprint recorded for the new baseline'
+        value: ${{ jobs.record-baseline.outputs.baseline_fingerprint }}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # The recorded fingerprint is informational (the decision path recomputes both sides live), but
+  # it makes the state file self-describing when debugging why a push was routed native vs OTA.
+  setup-dependencies:
+    name: Setup Dependencies (baseline commit)
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: ${{ inputs.commit_sha }}
+      fetch-depth: 1
+      upload-artifact: true
+      artifact-name: node-modules-rc-baseline-record
+      artifact-retention-days: 1
+
+  record-baseline:
+    name: Record native baseline
+    needs: setup-dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      baseline_fingerprint: ${{ steps.fingerprint.outputs.fingerprint }}
+    steps:
+      # The state branch decides native-vs-OTA for every later push, so it is protected and only
+      # this App identity may push to it — the default GITHUB_TOKEN is deliberately not used.
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+
+      - name: Checkout baseline commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Validate artifact compatibility
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ needs.setup-dependencies.outputs.artifact-name }}
+          artifact-prefix: node-modules-rc-baseline-record
+          validation-context: baseline commit
+
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.setup-dependencies.outputs.artifact-name }}
+
+      - name: Restore executable permissions
+        uses: ./.github/actions/restore-node-modules-permissions
+
+      - name: Generate fingerprint for baseline commit
+        id: fingerprint
+        run: |
+          set -euo pipefail
+          FINGERPRINT=$(yarn fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Baseline fingerprint: $FINGERPRINT"
+
+      - name: Write native baseline to CI state
+        env:
+          RELEASE_BRANCH: ${{ inputs.release_branch }}
+          STATE_BRANCH: ${{ inputs.state_branch }}
+          MODE: baseline
+          BASELINE_SHA: ${{ inputs.commit_sha }}
+          BASELINE_FINGERPRINT: ${{ steps.fingerprint.outputs.fingerprint }}
+          NATIVE_BUILD_NUMBER: ${{ inputs.native_build_number }}
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
+        run: .github/scripts/rc-ota-state-write.sh

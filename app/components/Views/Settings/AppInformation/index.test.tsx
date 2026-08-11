@@ -44,8 +44,26 @@ jest.mock(
   }),
 );
 
+// Getters (rather than plain values) so individual tests can flip these without re-mocking:
+// the component reads both at render time.
+let mockOtaRcAutoLabel = '';
 jest.mock('../../../../constants/ota', () => ({
   OTA_VERSION: 'v0',
+  get OTA_RC_AUTO_LABEL() {
+    return mockOtaRcAutoLabel;
+  },
+}));
+
+let mockIsEmbeddedLaunch = true;
+jest.mock('expo-updates', () => ({
+  channel: 'test-channel',
+  runtimeVersion: '1.0.0',
+  isEnabled: true,
+  checkAutomatically: 'NEVER',
+  updateId: 'mock-update-id',
+  get isEmbeddedLaunch() {
+    return mockIsEmbeddedLaunch;
+  },
 }));
 
 const MOCK_STATE = {
@@ -87,6 +105,8 @@ describe('AppInformation', () => {
     mockIsProduction.mockReturnValue(true);
     mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
     mockGetFeatureFlagAppDistribution.mockReturnValue('main');
+    mockOtaRcAutoLabel = '';
+    mockIsEmbeddedLaunch = true;
   });
 
   afterEach(() => {
@@ -599,6 +619,96 @@ describe('AppInformation', () => {
         expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
       });
+    });
+  });
+
+  describe('Auto RC OTA revision label', () => {
+    const originalDev = global.__DEV__;
+
+    beforeEach(() => {
+      // The OTA version string is only shown outside dev mode while running a downloaded update.
+      global.__DEV__ = false;
+      mockIsEmbeddedLaunch = false;
+    });
+
+    afterEach(() => {
+      global.__DEV__ = originalDev;
+    });
+
+    const longPressFox = (
+      touchables: ReturnType<
+        ReturnType<typeof renderScreen>['UNSAFE_getAllByType']
+      >,
+    ) => {
+      const foxTouchable = touchables.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+    };
+
+    it('displays the Auto RC OTA revision instead of OTA_VERSION when one is set', async () => {
+      // Given an OTA update published by the Auto RC OTA flow
+      mockOtaRcAutoLabel = '8.0.1.2';
+
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      // When the version string renders
+      // Then it shows the 4-decimal revision testers were told to verify
+      await waitFor(() => {
+        expect(getByText('MetaMask ota 8.0.1.2 (1000)')).toBeOnTheScreen();
+      });
+    });
+
+    it('falls back to OTA_VERSION when no Auto RC OTA revision is set', async () => {
+      // Given an OTA update from the manual Runway flow (no Auto RC label inlined)
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      await waitFor(() => {
+        expect(getByText('MetaMask ota v0 (1000)')).toBeOnTheScreen();
+      });
+    });
+
+    it('displays the Auto RC OTA revision in the environment info panel', async () => {
+      mockOtaRcAutoLabel = '8.0.1.2';
+
+      const { getByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      longPressFox(UNSAFE_getAllByType(TouchableOpacity));
+
+      await waitFor(() => {
+        expect(getByText('Auto RC OTA revision: 8.0.1.2')).toBeOnTheScreen();
+        // The manual-flow OTA version line stays alongside it
+        expect(getByText('OTA Version: v0')).toBeOnTheScreen();
+      });
+    });
+
+    it('omits the Auto RC OTA revision line when no revision is set', async () => {
+      const { getByText, queryByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      longPressFox(UNSAFE_getAllByType(TouchableOpacity));
+
+      await waitFor(() => {
+        expect(getByText('OTA Version: v0')).toBeOnTheScreen();
+      });
+      expect(queryByText(/Auto RC OTA revision:/)).not.toBeOnTheScreen();
     });
   });
 });

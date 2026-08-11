@@ -29,7 +29,29 @@ import {
   type WhatsInRcResult,
 } from './cherry-picks-section';
 import { validateEnv } from './validate-env';
-import type { BuildInfo, TestPlanResult, EnvValidationResult } from './types';
+import type {
+  BuildInfo,
+  OtaUpdateInfo,
+  TestPlanResult,
+  EnvValidationResult,
+} from './types';
+
+/**
+ * Builds the delivery section for an OTA-only RC: no new binaries were produced, so testers keep
+ * the native build they already have and receive the update on next launch.
+ */
+function buildOtaUpdateSection(otaUpdate: OtaUpdateInfo): string {
+  const { label, nativeBuildNumber, baselineShortSha } = otaUpdate;
+
+  return `An OTA update was pushed to the \`rc\` channel — **no new builds to install**.
+
+| Field | Value |
+| :--- | :--- |
+| **OTA revision** | \`${label}\` |
+| **Runs on native build** | \`${nativeBuildNumber}\` (\`${baselineShortSha}\`) |
+
+Relaunch the app twice on the \`rc\` channel to pick it up. Verify you are on \`${label}\` under **Settings → About MetaMask**.`;
+}
 
 /**
  * Builds the build links section of the comment
@@ -68,17 +90,22 @@ ${rows.join('\n')}`;
  * Builds the "More Info" collapsible section
  */
 function buildMoreInfoSection(buildInfo: BuildInfo): string {
-  const { semver, iosBuildNumber, androidBuildNumber, pipelineUrl } = buildInfo;
+  const { semver, iosBuildNumber, androidBuildNumber, pipelineUrl, otaUpdate } = buildInfo;
   const pipelineLink = isValidUrl(pipelineUrl)
     ? `[View Pipeline](${pipelineUrl})`
     : 'Not available';
+
+  const buildNumberLines = otaUpdate
+    ? `*   **OTA Revision**: \`${otaUpdate.label}\`
+*   **Native Build Number**: \`${otaUpdate.nativeBuildNumber}\``
+    : `*   **iOS Build Number**: \`${iosBuildNumber}\`
+*   **Android Build Number**: \`${androidBuildNumber}\``;
 
   return `<details>
 <summary>More Info</summary>
 
 *   **Version**: \`${semver}\`
-*   **iOS Build Number**: \`${iosBuildNumber}\`
-*   **Android Build Number**: \`${androidBuildNumber}\`
+${buildNumberLines}
 *   **Build Pipeline**: ${pipelineLink}
 </details>`;
 }
@@ -163,10 +190,12 @@ function buildCommentBody(
   },
   testPlanError?: string,
 ): string {
-  let body = `${RC_BUILD_COMMENT_MARKER}
-### :rocket: RC Builds Ready for Testing
+  const { otaUpdate } = buildInfo;
 
-${buildBuildLinksSection(buildInfo)}
+  let body = `${RC_BUILD_COMMENT_MARKER}
+### :rocket: ${otaUpdate ? 'RC OTA Update Ready for Testing' : 'RC Builds Ready for Testing'}
+
+${otaUpdate ? buildOtaUpdateSection(otaUpdate) : buildBuildLinksSection(buildInfo)}
 
 ${buildMoreInfoSection(buildInfo)}
 
@@ -182,9 +211,12 @@ ${buildMoreInfoSection(buildInfo)}
   }
 
   // Add "What's in this RC" section (cherry-picks + changelog)
-  // Pass build number for unique anchor IDs (so Slack can link to correct comment)
+  // Pass build number for unique anchor IDs (so Slack can link to correct comment).
+  // OTA-only RCs have no new build number, so the OTA revision label discriminates instead —
+  // scripts/slack-rc-notification.mjs derives its anchors the same way.
   if (whatsInRc.result) {
-    const section = buildWhatsInRcSection(whatsInRc.result, buildInfo.androidBuildNumber);
+    const anchorDiscriminator = otaUpdate?.label ?? buildInfo.androidBuildNumber;
+    const section = buildWhatsInRcSection(whatsInRc.result, anchorDiscriminator);
     if (section) {
       body += `---\n\n`;
       body += section;
@@ -220,8 +252,13 @@ async function main(): Promise<void> {
   console.log(`Repository: ${owner}/${repo}`);
   console.log(`PR Number: ${prNumber}`);
   console.log(`Version: ${buildInfo.semver}`);
-  console.log(`iOS Build: ${buildInfo.iosBuildNumber}`);
-  console.log(`Android Build: ${buildInfo.androidBuildNumber}`);
+  if (buildInfo.otaUpdate) {
+    console.log(`OTA Revision: ${buildInfo.otaUpdate.label}`);
+    console.log(`Native Build: ${buildInfo.otaUpdate.nativeBuildNumber}`);
+  } else {
+    console.log(`iOS Build: ${buildInfo.iosBuildNumber}`);
+    console.log(`Android Build: ${buildInfo.androidBuildNumber}`);
+  }
 
   const octokit = new Octokit({ auth: token });
 
