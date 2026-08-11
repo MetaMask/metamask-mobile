@@ -9,7 +9,7 @@ The governing Kalshi ADR set is currently proposed in [MetaMask/decisions PR #24
 ```text
 Mobile product intent
   -> KalshiRemoteAdapter
-    -> authenticated MetaMask platform API client
+    -> narrow Predict API transport
       -> MetaMask Predict backend
         -> Kalshi credentials + protocol adapter
           -> Kalshi
@@ -52,24 +52,24 @@ A privileged backend route never authorizes from a client-supplied wallet addres
 
 ## Mobile transport
 
-Use the repository's authenticated MetaMask platform API infrastructure rather than a feature-specific fetch wrapper. A concrete `KalshiRemoteAdapter` is preferable to a configurable remote-adapter factory while Kalshi is the only consumer.
+The installed MetaMask platform client has no supported generic request API. The first public-read slice therefore uses one narrow, injected Predict API GET transport. It is deliberately unauthenticated, forwards cancellation, retains no response bodies in errors, and performs no response caching or retry. The MarketDataService alone owns response caching, deduplication, and bounded retry.
 
-Extract shared remote transport only after a second Venue proves the same behavior.
+Base URL and client version come from composition/configuration; environment differences do not create different Venue adapters. A concrete `KalshiRemoteAdapter` is preferable to a configurable remote-adapter factory while Kalshi is the only consumer.
+
+Before account-scoped routes or writes, adopt an explicit required-auth, method-capable transport. Prefer a shared uncached platform request primitive when available; do not silently reuse the public-read client's unauthenticated behavior.
 
 ## Canonical backend contract
 
 The mobile/backend API exposes product capabilities, not raw Kalshi endpoints. Route names and schemas are defined by the implementing slice, but follow these rules:
 
 - routes are Venue-qualified,
-- mobile and backend validate the same versioned schema or fixture corpus,
-- mobile performs runtime response validation,
-- unknown or malformed write responses fail closed,
-- raw Venue errors map to canonical Predict errors,
+- mobile performs runtime response validation using canonical Superstruct parsers,
+- unknown response fields are discarded while malformed known fields fail closed,
+- raw Venue errors map to canonical Predict errors without retaining raw response bodies,
 - every response contains canonical Venue context where relevant,
-- credentials, PII, and raw KYC payloads never appear in canonical responses,
-- unsupported client/contract versions produce an explicit upgrade error.
+- credentials, PII, and raw KYC payloads never appear in canonical responses.
 
-The first read-only slice needs only Venue status, Event list/detail, and required price reads. Do not define account or write routes until their slices begin.
+Contract-version header enforcement and cross-repository fixture tooling are deferred until their semantics and value are proven. The first read-only slice needs only Venue Status and Event list/detail; Event responses embed the initial optional Outcome Bid Price and Ask Price snapshot. Do not define a separate price, account, or write route until a slice requires it.
 
 ## Sensitive-data rule
 
@@ -86,13 +86,15 @@ Sanitized fixtures must be demonstrably synthetic or redacted. Query/cache keys 
 
 ## Reads
 
-Safe reads may use:
+The MarketDataService may apply to safe reads:
 
 - bounded retry with backoff,
 - request deduplication,
 - cache stale times,
 - circuit breaking,
 - explicit degraded/unavailable states.
+
+The adapter and transport perform one network attempt per invocation so these policies are not nested.
 
 Rate limits and upstream outages are normalized below the UI. Browsing eligibility and Venue availability remain separate: an ineligible user may browse when policy permits, while an unavailable Venue cannot serve the surface.
 
@@ -125,8 +127,8 @@ Kalshi has Venue-specific feature flags and a kill switch. Rollback can disable 
 
 Each capability includes:
 
-- contract fixtures consumed by mobile and backend,
-- runtime parser tests,
+- runtime parser tests with synthetic canonical values,
+- adapter and transport tests that verify one uncached, non-retried request per invocation,
 - cross-user authorization tests for account routes,
 - secret/PII redaction tests,
 - lost-response and duplicate-request tests for writes,
