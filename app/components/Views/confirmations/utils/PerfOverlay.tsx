@@ -7,7 +7,7 @@
 // Throwaway QA-only component: the design-token / color-literal lint rules are
 // disabled deliberately rather than wiring it into the theme system.
 /* eslint-disable react-native/no-color-literals, @metamask/design-tokens/color-no-hex */
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { subscribePerf } from './perf-marker';
@@ -33,6 +33,13 @@ const styles = StyleSheet.create({
   jtText: {
     fontSize: 12,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    marginTop: 2,
+  },
+  meanText: {
+    color: '#7FFF7F',
+    fontSize: 11,
+    fontWeight: '600',
     fontVariant: ['tabular-nums'],
     marginTop: 2,
   },
@@ -75,6 +82,13 @@ function jtLine(s: JstraceStatus): { label: string; color: string } {
 export function PerfOverlay(): React.ReactElement | null {
   const [ms, setMs] = useState<number | null>(null);
   const [jt, setJt] = useState<JstraceStatus | null>(null);
+  // Every CTA→VISIBLE sample seen since this overlay mounted (i.e. the current
+  // app session). Kept in a ref so appending doesn't itself trigger a render;
+  // the derived mean/count below live in state so the line updates.
+  const samplesRef = useRef<number[]>([]);
+  const [stats, setStats] = useState<{ count: number; mean: number } | null>(
+    null,
+  );
 
   // The jstrace runtime only installs `__jtStart` when the app was built with
   // JSTRACE=1 (see index.js). When tracing isn't enabled we don't subscribe and
@@ -82,7 +96,15 @@ export function PerfOverlay(): React.ReactElement | null {
   const jstraceEnabled =
     typeof (globalThis as Record<string, unknown>).__jtStart === 'function';
 
-  useEffect(() => subscribePerf(setMs), []);
+  const onSample = useCallback((sample: number) => {
+    setMs(sample);
+    const samples = samplesRef.current;
+    samples.push(sample);
+    const sum = samples.reduce((acc, value) => acc + value, 0);
+    setStats({ count: samples.length, mean: Math.round(sum / samples.length) });
+  }, []);
+
+  useEffect(() => subscribePerf(onSample), [onSample]);
   useEffect(() => {
     if (!jstraceEnabled) {
       return undefined;
@@ -101,6 +123,11 @@ export function PerfOverlay(): React.ReactElement | null {
   return (
     <View pointerEvents="none" style={styles.container}>
       {ms !== null && <Text style={styles.text}>{`CTA→VISIBLE: ${ms}ms`}</Text>}
+      {stats && stats.count > 1 && (
+        <Text
+          style={styles.meanText}
+        >{`mean ${stats.mean}ms · n=${stats.count}`}</Text>
+      )}
       {jtInfo && (
         <Text style={[styles.jtText, { color: jtInfo.color }]}>
           {jtInfo.label}
