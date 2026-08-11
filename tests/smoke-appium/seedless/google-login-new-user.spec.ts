@@ -7,6 +7,10 @@ import {
   setupGoogleNewUserOAuthMock,
 } from './helpers/seedless-helpers.js';
 
+/**
+ * Device smoke: Google OAuth mock → password → wallet home.
+ * Screen-level UI belongs in component-view tests.
+ */
 appiumTest.describe(SmokeSeedlessOnboarding('Google Login - New User'), () => {
   appiumTest(
     'creates a new wallet with Google login',

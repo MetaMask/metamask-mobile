@@ -51,7 +51,6 @@ import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
-import { CliLoginPushNudgeListener } from '../../UI/CliLoginPushNudge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations';
@@ -1502,7 +1501,6 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
-        <CliLoginPushNudgeListener />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />

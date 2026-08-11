@@ -1,6 +1,10 @@
+/* eslint-disable import-x/no-nodejs-modules -- AsyncResource simulates ALS context loss across Playwright's use() boundary */
+import { AsyncResource } from 'node:async_hooks';
 import {
+  bindPhaseTimer,
   createPhaseTimer,
   getPhaseTimer,
+  getPhaseTimerAlsStore,
   recordPhase,
   runWithPhaseTimer,
   startPhase,
@@ -93,6 +97,103 @@ describe('PhaseTimer', () => {
       stopPhase();
     }).not.toThrow();
 
+    expect(getPhaseTimer()).toBeUndefined();
+  });
+
+  it('records via active binding even when AsyncLocalStorage store is unset', () => {
+    let now = 1_000;
+    const timer = createPhaseTimer({ now: () => now });
+    const unbind = bindPhaseTimer(timer);
+
+    try {
+      expect(getPhaseTimerAlsStore()).toBeUndefined();
+      expect(getPhaseTimer()).toBe(timer);
+      startPhase('login');
+      now += 7;
+      stopPhase();
+      recordPhase('fixture_bootstrap', 3);
+    } finally {
+      unbind();
+    }
+
+    expect(getPhaseTimer()).toBeUndefined();
+
+    const { phases } = timer.snapshot();
+
+    expect(phases.login).toBe(7);
+    expect(phases.fixture_bootstrap).toBe(3);
+  });
+
+  it('runWithPhaseTimer keeps active binding when AsyncLocalStorage context is lost', async () => {
+    let now = 1_000;
+    const timer = createPhaseTimer({ now: () => now });
+    // Construct outside runWithPhaseTimer so runInAsyncScope restores an empty
+    // ALS store (construction-time context), forcing the activeTimer fallback.
+    const resource = new AsyncResource('als-loss-probe');
+
+    await runWithPhaseTimer(timer, async () => {
+      expect(getPhaseTimerAlsStore()).toBe(timer);
+
+      await new Promise<void>((resolve) => {
+        resource.runInAsyncScope(() => {
+          expect(getPhaseTimerAlsStore()).toBeUndefined();
+          expect(getPhaseTimer()).toBe(timer);
+          startPhase('test_body');
+          now += 11;
+          resolve();
+        });
+      });
+      stopPhase();
+    });
+
+    expect(getPhaseTimer()).toBeUndefined();
+    expect(timer.snapshot().phases.test_body).toBe(11);
+  });
+
+  it('runWithPhaseTimer clears active binding after async completion', async () => {
+    const timer = createPhaseTimer();
+
+    await runWithPhaseTimer(timer, async () => {
+      expect(getPhaseTimer()).toBe(timer);
+    });
+
+    expect(getPhaseTimer()).toBeUndefined();
+  });
+
+  it('clears the active binding when the callback throws synchronously', () => {
+    const timer = createPhaseTimer();
+
+    expect(() =>
+      runWithPhaseTimer(timer, () => {
+        throw new Error('boom');
+      }),
+    ).toThrow('boom');
+
+    expect(getPhaseTimer()).toBeUndefined();
+  });
+
+  it('clears the active binding when the async callback rejects', async () => {
+    const timer = createPhaseTimer();
+
+    await expect(
+      runWithPhaseTimer(timer, async () => {
+        throw new Error('async boom');
+      }),
+    ).rejects.toThrow('async boom');
+
+    expect(getPhaseTimer()).toBeUndefined();
+  });
+
+  it('nested bindPhaseTimer restores the previous active timer', () => {
+    const outer = createPhaseTimer();
+    const inner = createPhaseTimer();
+    const unbindOuter = bindPhaseTimer(outer);
+    const unbindInner = bindPhaseTimer(inner);
+
+    expect(getPhaseTimer()).toBe(inner);
+    unbindInner();
+    expect(getPhaseTimer()).toBe(outer);
+    unbindOuter();
     expect(getPhaseTimer()).toBeUndefined();
   });
 });
