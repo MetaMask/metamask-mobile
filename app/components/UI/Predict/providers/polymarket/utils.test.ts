@@ -47,10 +47,32 @@ import {
 import type {
   PolymarketApiActivity,
   PolymarketApiEvent,
+  PolymarketApiMarket,
   PolymarketApiTeam,
 } from './types';
 
 const mockSignTypedMessage = jest.fn();
+
+const createPolymarketApiMarket = (): PolymarketApiMarket => ({
+  conditionId: 'condition',
+  question: 'Bitcoin Up or Down',
+  description: 'Description',
+  icon: '',
+  image: '',
+  groupItemTitle: '',
+  status: 'open',
+  volumeNum: 0,
+  liquidity: 0,
+  negRisk: false,
+  clobTokenIds: '[]',
+  outcomes: '[]',
+  outcomePrices: '[]',
+  closed: false,
+  active: true,
+  resolvedBy: '',
+  orderPriceMinTickSize: 0.01,
+  umaResolutionStatus: '',
+});
 
 jest.mock('@metamask/controller-utils', () => ({
   query: jest.fn(),
@@ -3115,5 +3137,77 @@ describe('polymarket utils', () => {
         priceToBeat: 75749.02,
       }),
     ]);
+  });
+
+  it('parses the TWAP window from Polymarket crypto market config', () => {
+    const event: PolymarketApiEvent = {
+      id: 'crypto-twap-event',
+      slug: 'btc-updown-5m',
+      title: 'Bitcoin Up or Down',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: 'series',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down 5m',
+          recurrence: '5m',
+        },
+      ],
+      markets: [
+        {
+          ...createPolymarketApiMarket(),
+          cryptoMarketConfig: {
+            twapEnabled: true,
+            twapLookbackSeconds: 30,
+          },
+        },
+      ],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+      eventMetadata: { priceToBeat: 65000 },
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+      expect.objectContaining({
+        priceToBeat: 65000,
+        twapWindowSeconds: 30,
+      }),
+    ]);
+  });
+
+  it('leaves non-TWAP markets unchanged', () => {
+    const event: PolymarketApiEvent = {
+      id: 'crypto-hourly-event',
+      slug: 'btc-updown-hourly',
+      title: 'Bitcoin Up or Down',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [],
+      markets: [
+        {
+          ...createPolymarketApiMarket(),
+          cryptoMarketConfig: {
+            twapEnabled: false,
+            twapLookbackSeconds: null,
+          },
+        },
+      ],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')[0]).not.toHaveProperty(
+      'twapWindowSeconds',
+    );
   });
 });

@@ -2,6 +2,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import {
   ConnectionStatus,
   ConnectionStatusCallback,
+  CryptoPriceSubscriptionOptions,
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
   GameUpdate,
@@ -31,6 +32,10 @@ const PING_INTERVAL_MS = 50000;
 
 const RTDS_WS_URL = 'wss://ws-live-data.polymarket.com';
 const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
+const RTDS_CRYPTO_PRICES_TWAP_TOPICS = {
+  30: 'crypto_prices_twap_thirty',
+  60: 'crypto_prices_twap_sixty',
+} as const;
 const RTDS_PING_INTERVAL_MS = 5000;
 // Crypto price ticks (RTDS chainlink) can arrive many times per second per
 // symbol, while the UI only needs a few updates per second. Each flush fans
@@ -127,11 +132,41 @@ interface RtdsWebSocketEvent {
     timestamp?: number;
     value?: number;
     full_accuracy_value?: string;
+    window_s?: number;
     data?: {
       timestamp?: number;
       value?: number;
     }[];
   };
+}
+
+const getRtdsTopic = (options?: CryptoPriceSubscriptionOptions): string =>
+  options?.twapWindowSeconds
+    ? RTDS_CRYPTO_PRICES_TWAP_TOPICS[options.twapWindowSeconds]
+    : RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC;
+
+const getCryptoSubscriptionKey = (
+  symbols: string[],
+  options?: CryptoPriceSubscriptionOptions,
+): string =>
+  `${getRtdsTopic(options)}|${[...symbols]
+    .sort((a, b) => a.localeCompare(b))
+    .join(',')}`;
+
+const parseCryptoSubscriptionKey = (key: string) => {
+  const separatorIndex = key.indexOf('|');
+  return {
+    topic: key.slice(0, separatorIndex),
+    symbols: key
+      .slice(separatorIndex + 1)
+      .split(',')
+      .filter(Boolean),
+  };
+};
+
+interface RtdsSubscription {
+  topic: string;
+  type: string;
 }
 
 export class WebSocketManager {
@@ -189,6 +224,8 @@ export class WebSocketManager {
   private rtdsLastMessageAt = 0;
   private rtdsHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private cryptoPriceBuffer: Map<string, CryptoPriceUpdate> = new Map();
+  private latestCryptoObservationByTopicAndSymbol: Map<string, number> =
+    new Map();
   private throttleTimer: ReturnType<typeof setInterval> | null = null;
 
   private appStateSubscription: { remove: () => void } | null = null;
@@ -794,10 +831,13 @@ export class WebSocketManager {
   subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
-    const subscriptionKey = [...symbols]
-      .sort((a, b) => a.localeCompare(b))
-      .join(',');
+    const subscriptionKey = getCryptoSubscriptionKey(symbols, options);
+    const topic = getRtdsTopic(options);
+    const topicAlreadySubscribed = Array.from(
+      this.cryptoPriceSubscriptions.keys(),
+    ).some((key) => parseCryptoSubscriptionKey(key).topic === topic);
 
     let callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
     if (!callbacks) {
@@ -806,7 +846,9 @@ export class WebSocketManager {
     }
     callbacks.add(callback);
 
-    this.ensureRtdsConnection(symbols);
+    this.ensureRtdsConnection(
+      topicAlreadySubscribed ? [] : [{ topic, type: 'update' }],
+    );
 
     return () => {
       const _callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
@@ -814,12 +856,11 @@ export class WebSocketManager {
         _callbacks.delete(callback);
         if (_callbacks.size === 0) {
           this.cryptoPriceSubscriptions.delete(subscriptionKey);
-          const remainingSymbols = this.getSubscribedCryptoSymbols();
-          const symbolsToUnsubscribe = symbols.filter(
-            (symbol) => !remainingSymbols.has(symbol),
-          );
-          if (symbolsToUnsubscribe.length > 0) {
-            this.sendRtdsUnsubscribe(new Set(symbolsToUnsubscribe));
+          const topicStillSubscribed = Array.from(
+            this.cryptoPriceSubscriptions.keys(),
+          ).some((key) => parseCryptoSubscriptionKey(key).topic === topic);
+          if (!topicStillSubscribed) {
+            this.sendRtdsUnsubscribe([{ topic, type: 'update' }]);
           }
         }
       }
@@ -1202,11 +1243,9 @@ export class WebSocketManager {
     this.orderbookPendingEmit.clear();
   }
 
-  private ensureRtdsConnection(symbols?: string[]): void {
+  private ensureRtdsConnection(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState === WebSocket.OPEN) {
-      this.sendRtdsSubscribe(
-        new Set(symbols?.length ? symbols : this.getSubscribedCryptoSymbols()),
-      );
+      this.sendRtdsSubscribe(subscriptions);
       return;
     }
     if (this.rtdsWs?.readyState === WebSocket.CONNECTING) {
@@ -1271,7 +1310,10 @@ export class WebSocketManager {
       const data: RtdsWebSocketEvent = JSON.parse(event.data);
 
       if (
-        data.topic !== RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC ||
+        (data.topic !== RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC &&
+          !Object.values(RTDS_CRYPTO_PRICES_TWAP_TOPICS).includes(
+            data.topic as (typeof RTDS_CRYPTO_PRICES_TWAP_TOPICS)[30 | 60],
+          )) ||
         data.type !== 'update' ||
         !data.payload
       ) {
@@ -1279,10 +1321,18 @@ export class WebSocketManager {
       }
 
       const { symbol, timestamp, value } = data.payload;
+      const twapWindowSeconds =
+        data.topic === RTDS_CRYPTO_PRICES_TWAP_TOPICS[30]
+          ? 30
+          : data.topic === RTDS_CRYPTO_PRICES_TWAP_TOPICS[60]
+            ? 60
+            : undefined;
       if (
         typeof symbol !== 'string' ||
         typeof timestamp !== 'number' ||
-        typeof value !== 'number'
+        typeof value !== 'number' ||
+        (twapWindowSeconds !== undefined &&
+          data.payload.window_s !== twapWindowSeconds)
       ) {
         return;
       }
@@ -1290,13 +1340,28 @@ export class WebSocketManager {
       trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
       traceStarted = true;
 
+      const bufferKey = `${data.topic}|${symbol}`;
+      const latestObservation = twapWindowSeconds
+        ? this.latestCryptoObservationByTopicAndSymbol.get(bufferKey)
+        : undefined;
+      if (
+        typeof latestObservation === 'number' &&
+        timestamp <= latestObservation
+      ) {
+        return;
+      }
+      if (twapWindowSeconds) {
+        this.latestCryptoObservationByTopicAndSymbol.set(bufferKey, timestamp);
+      }
+
       const update: CryptoPriceUpdate = {
         symbol,
         price: value,
         timestamp,
+        ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
       };
 
-      this.cryptoPriceBuffer.set(update.symbol, update);
+      this.cryptoPriceBuffer.set(bufferKey, update);
       this.ensureThrottleTimer();
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse RTDS message', {
@@ -1339,10 +1404,14 @@ export class WebSocketManager {
       traceStarted = true;
 
       this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
-        const subscribedSymbols = new Set(key.split(','));
+        const { topic, symbols } = parseCryptoSubscriptionKey(key);
+        const subscribedSymbols = new Set(symbols);
 
-        this.cryptoPriceBuffer.forEach((update, symbol) => {
-          if (subscribedSymbols.has(symbol)) {
+        this.cryptoPriceBuffer.forEach((update, bufferKey) => {
+          const separatorIndex = bufferKey.indexOf('|');
+          const updateTopic = bufferKey.slice(0, separatorIndex);
+          const symbol = bufferKey.slice(separatorIndex + 1);
+          if (topic === updateTopic && subscribedSymbols.has(symbol)) {
             callbacks.forEach((callback) => {
               try {
                 callback(update);
@@ -1373,39 +1442,22 @@ export class WebSocketManager {
     }
   }
 
-  private getSubscribedCryptoSymbols(): Set<string> {
-    const allSymbols = new Set<string>();
+  private getRtdsCryptoSubscriptions(): RtdsSubscription[] {
+    const subscriptions = new Map<string, RtdsSubscription>();
     this.cryptoPriceSubscriptions.forEach((_, key) => {
-      key.split(',').forEach((symbol) => {
-        if (symbol) {
-          allSymbols.add(symbol);
-        }
-      });
+      const { topic } = parseCryptoSubscriptionKey(key);
+      subscriptions.set(topic, { topic, type: 'update' });
     });
-    return allSymbols;
+    return Array.from(subscriptions.values()).sort((a, b) =>
+      a.topic.localeCompare(b.topic),
+    );
   }
 
-  private getRtdsCryptoSubscriptions(symbols: Set<string>): {
-    topic: string;
-    type: string;
-    filters: string;
-  }[] {
-    return Array.from(symbols)
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b))
-      .map((symbol) => ({
-        topic: RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC,
-        type: 'update',
-        filters: JSON.stringify({ symbol }),
-      }));
-  }
-
-  private sendRtdsSubscribe(symbols: Set<string>): void {
+  private sendRtdsSubscribe(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
     if (subscriptions.length === 0) {
       return;
     }
@@ -1417,12 +1469,11 @@ export class WebSocketManager {
     this.rtdsWs.send(msg);
   }
 
-  private sendRtdsUnsubscribe(symbols: Set<string>): void {
+  private sendRtdsUnsubscribe(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
     if (subscriptions.length === 0) {
       return;
     }
@@ -1436,10 +1487,10 @@ export class WebSocketManager {
   }
 
   private resubscribeAllRtds(): void {
-    const allSymbols = this.getSubscribedCryptoSymbols();
+    const subscriptions = this.getRtdsCryptoSubscriptions();
 
-    if (allSymbols.size > 0) {
-      this.sendRtdsSubscribe(allSymbols);
+    if (subscriptions.length > 0) {
+      this.sendRtdsSubscribe(subscriptions);
     }
   }
 
@@ -1538,6 +1589,7 @@ export class WebSocketManager {
       this.throttleTimer = null;
     }
     this.cryptoPriceBuffer.clear();
+    this.latestCryptoObservationByTopicAndSymbol.clear();
 
     if (this.rtdsReconnectTimeout) {
       clearTimeout(this.rtdsReconnectTimeout);

@@ -149,6 +149,7 @@ export const useCryptoUpDownChartData = (
   const preserveHistoricalDataAcrossMarket =
     !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
+  const twapWindowSeconds = market.twapWindowSeconds;
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
   const eventStartTime = getEventStartTime(market.endDate, recurrence);
@@ -192,8 +193,10 @@ export const useCryptoUpDownChartData = (
   enabledRef.current = enabled;
 
   const prevMarketIdRef = useRef(market.id);
+  const previousTwapWindowRef = useRef(twapWindowSeconds);
   const isCurrentMarket = prevMarketIdRef.current === market.id;
   const pendingFrozenMarketIdRef = useRef<string | undefined>(undefined);
+  const latestLiveObservationRef = useRef<number>();
   const pendingFrozenSyncRef = useRef(false);
   if (enabled && !isCurrentMarket) {
     const isNextMarketAlreadyExpired =
@@ -207,8 +210,13 @@ export const useCryptoUpDownChartData = (
     frozenMarketIdRef.current = nextFrozenMarketId;
     pendingFrozenMarketIdRef.current = nextFrozenMarketId;
     pendingFrozenSyncRef.current = true;
-    // Intentionally do NOT reset livePoints / historical refs here — preserving
-    // them across rollover is what keeps the chart drawing continuously.
+    const sourceChanged = previousTwapWindowRef.current !== twapWindowSeconds;
+    if (sourceChanged) {
+      liveLoadingRef.current = true;
+      stableHistoricalDataRef.current = EMPTY_DATA;
+      fallbackStartPointRef.current = EMPTY_DATA;
+      frozenRef.current = false;
+    }
   }
 
   useEffect(() => {
@@ -219,6 +227,19 @@ export const useCryptoUpDownChartData = (
     pendingFrozenSyncRef.current = false;
     setFrozenMarketId(pendingFrozenMarketIdRef.current);
   }, [enabled, market.id]);
+
+  useEffect(() => {
+    latestLiveObservationRef.current = undefined;
+    setLiveStreamStale(true);
+    if (previousTwapWindowRef.current === twapWindowSeconds) {
+      return;
+    }
+    previousTwapWindowRef.current = twapWindowSeconds;
+    liveLoadingRef.current = true;
+    setLiveLoading(true);
+    setLiveValue(0);
+    setLivePoints(EMPTY_DATA);
+  }, [market.id, twapWindowSeconds]);
 
   const hasExpiredLiveData =
     isCurrentMarket && !isLiveByEndDate && livePoints.length > 0;
@@ -265,6 +286,25 @@ export const useCryptoUpDownChartData = (
         return;
       }
 
+      const observationTime = toTimestampSeconds(update.timestamp);
+      if (
+        !Number.isFinite(observationTime) ||
+        (twapWindowSeconds !== undefined &&
+          typeof latestLiveObservationRef.current === 'number' &&
+          observationTime <= latestLiveObservationRef.current)
+      ) {
+        return;
+      }
+      if (
+        typeof currentLiveEndDateMs === 'number' &&
+        observationTime * 1000 > currentLiveEndDateMs
+      ) {
+        return;
+      }
+      if (twapWindowSeconds !== undefined) {
+        latestLiveObservationRef.current = observationTime;
+      }
+
       markLiveStreamFresh();
       setLiveValue(update.price);
       setLivePoints((points) => {
@@ -292,7 +332,7 @@ export const useCryptoUpDownChartData = (
         setFrozenMarketId(currentMarketId);
       }
     },
-    [markLiveStreamFresh],
+    [markLiveStreamFresh, twapWindowSeconds],
   );
 
   useEffect(
@@ -317,7 +357,13 @@ export const useCryptoUpDownChartData = (
   // tick and never flips back on a silent RTDS drop, whereas `liveStreamStale`
   // flips back to true when ticks stop arriving — correctly resuming HTTP
   // polling as a fallback.
-  useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
+  const liveSubscriptionArgs:
+    | [string, typeof handleLiveUpdate]
+    | [string, typeof handleLiveUpdate, typeof twapWindowSeconds] =
+    twapWindowSeconds
+      ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
+      : [wsSymbol, handleLiveUpdate];
+  useLiveCryptoPrices(...liveSubscriptionArgs);
 
   const historyStartDate =
     options.historicalWindow?.startDate ?? eventStartTime;
@@ -350,7 +396,7 @@ export const useCryptoUpDownChartData = (
       variant,
       endDate: historyEndDate,
     }),
-    enabled: enabled && !!symbol && !!historyStartDate,
+    enabled: enabled && !twapWindowSeconds && !!symbol && !!historyStartDate,
     keepPreviousData: true,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
@@ -542,7 +588,8 @@ export const useCryptoUpDownChartData = (
   if (isLive || hasFrozenLiveData || hasExpiredLiveData) {
     return {
       data: chartData,
-      value: displayedLiveValue,
+      value:
+        isLive && twapWindowSeconds && liveStreamStale ? 0 : displayedLiveValue,
       // While live, treat a stalled stream (no recent tick) as loading so the
       // chart shows the spinner instead of a blank canvas once the last point
       // scrolls out of the live window. Frozen/expired data only "loads" when

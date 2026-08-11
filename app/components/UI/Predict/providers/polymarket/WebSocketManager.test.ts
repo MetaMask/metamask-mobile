@@ -1299,11 +1299,86 @@ describe('WebSocketManager', () => {
             {
               topic: 'crypto_prices_chainlink',
               type: 'update',
-              filters: JSON.stringify({ symbol: 'btc/usd' }),
             },
           ],
         }),
       );
+    });
+
+    it('subscribes to and routes the configured TWAP window', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btc/usd'], callback, {
+        twapWindowSeconds: 30,
+      });
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      expect(rtdsInstance.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          action: 'subscribe',
+          subscriptions: [
+            {
+              topic: 'crypto_prices_twap_thirty',
+              type: 'update',
+            },
+          ],
+        }),
+      );
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices_twap_thirty',
+        type: 'update',
+        timestamp: 1700000002000,
+        payload: {
+          symbol: 'btc/usd',
+          timestamp: 1700000001000,
+          value: 67234.5,
+          window_s: 30,
+        },
+      });
+      jest.advanceTimersByTime(250);
+
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'btc/usd',
+        price: 67234.5,
+        timestamp: 1700000001000,
+        twapWindowSeconds: 30,
+      });
+    });
+
+    it('ignores duplicate and older TWAP observations', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+      manager.subscribeToCryptoPrices(['btc/usd'], callback, {
+        twapWindowSeconds: 60,
+      });
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      const message = {
+        topic: 'crypto_prices_twap_sixty',
+        type: 'update',
+        timestamp: 1700000002000,
+        payload: {
+          symbol: 'btc/usd',
+          timestamp: 1700000001000,
+          value: 67234.5,
+          window_s: 60,
+        },
+      };
+      rtdsInstance.simulateMessage(message);
+      rtdsInstance.simulateMessage(message);
+      rtdsInstance.simulateMessage({
+        ...message,
+        payload: { ...message.payload, timestamp: 1700000000000 },
+      });
+      jest.advanceTimersByTime(250);
+
+      expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it('calls callback with crypto price update for subscribed symbol', () => {
@@ -1405,14 +1480,13 @@ describe('WebSocketManager', () => {
             {
               topic: 'crypto_prices_chainlink',
               type: 'update',
-              filters: JSON.stringify({ symbol: 'btc/usd' }),
             },
           ],
         }),
       );
     });
 
-    it('unsubscribes only the removed RTDS symbol while another crypto subscription remains', () => {
+    it('keeps the shared RTDS topic subscribed while another symbol remains', () => {
       const manager = WebSocketManager.getInstance();
       const btcCallback = jest.fn();
       const ethCallback = jest.fn();
@@ -1429,18 +1503,7 @@ describe('WebSocketManager', () => {
 
       unsubscribeBtc();
 
-      expect(rtdsInstance.send).toHaveBeenCalledWith(
-        JSON.stringify({
-          action: 'unsubscribe',
-          subscriptions: [
-            {
-              topic: 'crypto_prices_chainlink',
-              type: 'update',
-              filters: JSON.stringify({ symbol: 'btc/usd' }),
-            },
-          ],
-        }),
-      );
+      expect(rtdsInstance.send).not.toHaveBeenCalled();
       expect(manager.getConnectionStatus().cryptoPriceSubscriptionCount).toBe(
         1,
       );
@@ -1901,7 +1964,7 @@ describe('WebSocketManager', () => {
       expect(rtdsInstances).toHaveLength(1);
     });
 
-    it('sends subscribe for new symbols on already-open connection', () => {
+    it('reuses the broad topic subscription for new symbols', () => {
       const manager = WebSocketManager.getInstance();
 
       manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
@@ -1912,18 +1975,7 @@ describe('WebSocketManager', () => {
 
       manager.subscribeToCryptoPrices(['eth/usd'], jest.fn());
 
-      expect(rtdsInstance.send).toHaveBeenCalledWith(
-        JSON.stringify({
-          action: 'subscribe',
-          subscriptions: [
-            {
-              topic: 'crypto_prices_chainlink',
-              type: 'update',
-              filters: JSON.stringify({ symbol: 'eth/usd' }),
-            },
-          ],
-        }),
-      );
+      expect(rtdsInstance.send).not.toHaveBeenCalled();
     });
 
     it('does not create new connection when WS is in CONNECTING state', () => {

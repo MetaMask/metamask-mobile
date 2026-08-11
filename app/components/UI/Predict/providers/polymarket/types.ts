@@ -80,6 +80,10 @@ export interface PolymarketApiMarket {
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
   line?: number;
+  cryptoMarketConfig?: {
+    twapEnabled?: boolean;
+    twapLookbackSeconds?: number | null;
+  } | null;
 }
 
 export interface PolymarketApiSeries {

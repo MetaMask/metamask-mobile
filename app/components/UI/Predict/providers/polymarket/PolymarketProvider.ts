@@ -33,6 +33,7 @@ import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   CryptoPriceHistoryPoint,
+  CryptoPriceSubscriptionOptions,
   GetCryptoPriceHistoryParams,
   GetPriceHistoryParams,
   GetCryptoTargetPriceParams,
@@ -3396,11 +3397,18 @@ export class PolymarketProvider implements PredictProvider {
   public subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
-    return WebSocketManager.getInstance().subscribeToCryptoPrices(
-      symbols,
-      callback,
-    );
+    return options
+      ? WebSocketManager.getInstance().subscribeToCryptoPrices(
+          symbols,
+          callback,
+          options,
+        )
+      : WebSocketManager.getInstance().subscribeToCryptoPrices(
+          symbols,
+          callback,
+        );
   }
 
   public subscribeToConnectionStatus(

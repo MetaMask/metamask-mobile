@@ -2757,6 +2757,13 @@
       "entry": "Entry",
       "claim": "Claim"
     },
+    "crypto_up_down": {
+      "twap_info": {
+        "title": "How this market settles",
+        "accessibility_label": "Learn how this market settles",
+        "description": "This market settles on {{symbol}}'s average price over {{windowSeconds}} seconds, not the price at the exact moment it closes."
+      }
+    },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
       "explore": "Browse markets",
