@@ -121,7 +121,7 @@ import {
   Side,
   UnrealizedPnL,
 } from '../types';
-import { PredictFeatureFlags } from '../types/flags';
+import { PredictFeatureFlags, PredictHiddenMarketsFlag } from '../types/flags';
 
 import { mapClaimFailureReason } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
@@ -780,8 +780,44 @@ export class PredictController extends BaseController<
           }
         }
 
+        markets = this.filterHiddenMarkets(
+          markets,
+          featureFlags.hiddenMarketsFlag,
+          params.category,
+        );
+
         return { markets, nextCursor };
       },
+    );
+  }
+
+  /**
+   * Removes remotely hidden markets (by id or slug) from category feed
+   * results. Used to pull broken markets (e.g. stale end dates polluting the
+   * Ending Soon tab) without an app release.
+   */
+  private filterHiddenMarkets(
+    markets: PredictMarket[],
+    hiddenMarketsFlag: PredictHiddenMarketsFlag,
+    category?: string,
+  ): PredictMarket[] {
+    if (!category) {
+      return markets;
+    }
+
+    const entry = hiddenMarketsFlag.hidden.find(
+      (hidden) => hidden.category === category,
+    );
+    if (!entry || (entry.marketIds.length === 0 && entry.slugs.length === 0)) {
+      return markets;
+    }
+
+    const hiddenMarketIds = new Set(entry.marketIds);
+    const hiddenSlugs = new Set(entry.slugs);
+
+    return markets.filter(
+      (market) =>
+        !hiddenMarketIds.has(market.id) && !hiddenSlugs.has(market.slug),
     );
   }
 
@@ -3511,7 +3547,8 @@ export class PredictController extends BaseController<
 
     return this.state.claimablePositions[matchedAddress].reduce(
       (sum, position) =>
-        position.status === PredictPositionStatus.WON
+        position.status === PredictPositionStatus.WON ||
+        position.status === PredictPositionStatus.REDEEMABLE
           ? sum + position.currentValue
           : sum,
       0,
