@@ -1,6 +1,7 @@
 import {
   formatPerpsFiat,
   formatPercentage,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import {
   formatAmountWithThreshold,
@@ -9,8 +10,10 @@ import {
 import { DAY, HOUR, MINUTE, SECOND } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
+import { tradeTimestampToMs } from './tradeTimestamp';
 
-const EM_DASH = '\u2014';
+/** Placeholder rendered wherever a numeric value is unavailable. */
+export const EM_DASH = '\u2014';
 
 /**
  * USD for social leaderboard rows/cards: match perps-style fiat (always two
@@ -21,6 +24,16 @@ export function formatUsd(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
   const sign = value < 0 ? '-' : '';
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+/**
+ * Per-unit trade price for feed sub-headers and similar copy. Uses the same
+ * tiered precision as Perps ({@link PRICE_RANGES_UNIVERSAL}) and the social
+ * API formatter so sub-cent assets (e.g. PUMP) don't collapse to `$0.00`.
+ */
+export function formatTradeUnitPrice(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  return formatPerpsFiat(Math.abs(value), { ranges: PRICE_RANGES_UNIVERSAL });
 }
 
 /**
@@ -146,11 +159,6 @@ export function formatPercent(
 
   const formatted = formatPercentage(value, decimals);
   return showSign ? formatted : formatted.replace(/^[+-]/, '');
-}
-
-/** Trade timestamps from the social API may be in seconds or milliseconds. */
-function tradeTimestampToMs(timestamp: number): number {
-  return timestamp < 1e12 ? timestamp * 1000 : timestamp;
 }
 
 /**
