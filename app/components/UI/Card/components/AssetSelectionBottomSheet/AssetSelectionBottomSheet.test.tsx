@@ -101,13 +101,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => mockTw,
 }));
 
-jest.mock('react-native-gesture-handler', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...jest.requireActual('react-native-gesture-handler'),
-    FlatList: RN.FlatList,
-  };
-});
+jest.mock('@shopify/flash-list', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('../../../../../util/test/mockFlashList').flashListMock(),
+);
 
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
@@ -1006,6 +1003,7 @@ describe('AssetSelectionBottomSheet', () => {
         address: '0xmusd',
         walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         isMoneyAccountEntry: true,
+        fundingStatus: FundingStatus.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
@@ -1033,6 +1031,7 @@ describe('AssetSelectionBottomSheet', () => {
         address: '0xmusd',
         walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         isMoneyAccountEntry: true,
+        fundingStatus: FundingStatus.Enabled,
       });
       const walletToken = createMockToken({
         symbol: 'USDC',

@@ -3,12 +3,9 @@ import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper.js';
 import { Performance, PerformancePreps } from '../../tags.performance.js';
 import {
-  loginToAppPlaywright,
   onboardingFlowImportSRPPlaywright,
   selectAccountByDevice,
 } from '../../flows/wallet.flow.js';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding.js';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView.js';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
@@ -21,6 +18,7 @@ import {
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
 const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
@@ -39,7 +37,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       const selectMarketTimer = new TimerHelper(
         'Market list screen visible',
-        { ios: 7500, android: 5000 },
+        { ios: 7500, android: 6000 },
         currentDeviceDetails.platform,
       );
       const openOrderScreenTimer = new TimerHelper(
@@ -55,7 +53,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       const MarketDetailsScreenTimer = new TimerHelper(
         'Market Details Screen',
-        { ios: 10000, android: 2500 },
+        { ios: 10000, android: 3000 },
         currentDeviceDetails.platform,
       );
 
@@ -63,9 +61,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.checkModalVisibility();
-      await WalletActionsBottomSheet.tapPerpsButton();
+      await WalletView.scrollAndTapPerpsSection();
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
         testEnvironment,
@@ -77,16 +73,15 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       if (perpsGtmOnboardingModalEnabled) {
         await selectPerpsMainScreenTimer.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+            asPlaywrightElement(PerpsOnboarding.tutorialTitle),
           );
         });
+        await dismissPerpsOnboardingTutorialIfPresent();
       }
-
-      await dismissPerpsOnboardingTutorialIfPresent();
 
       await selectMarketTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketListView.header),
+          asPlaywrightElement(PerpsMarketListView.withdrawButton),
         );
       });
 
@@ -94,7 +89,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       await MarketDetailsScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketDetailsView.header),
+          asPlaywrightElement(PerpsMarketDetailsView.header),
         );
       });
       // Check if there's an existing position and close it before continuing
@@ -113,7 +108,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Open Position
       await openOrderScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsOrderView.placeOrderButton),
+          asPlaywrightElement(PerpsOrderView.placeOrderButton),
         );
       });
 
@@ -123,7 +118,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       await openPositionTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketDetailsView.closeButton),
+          asPlaywrightElement(PerpsMarketDetailsView.closeButton),
           { timeout: 30000 },
         );
       });

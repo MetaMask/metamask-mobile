@@ -1,37 +1,25 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, type ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { FundingStatus, CardFundingToken } from '../../types';
 
 import { strings } from '../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   Text,
+  TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { FlatList } from 'react-native-gesture-handler';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import {
   ToastContext,
@@ -40,17 +28,19 @@ import {
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
-import { truncateAddress } from '../../util/truncateAddress';
 import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
-import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
+import AssetSelectionRow, {
+  type AssetSelectionRowItem,
+} from './AssetSelectionRow';
 
-interface AssetSelectionModalNavigationDetails {
+export interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
   selectionOnly?: boolean;
   onTokenSelect?: (token: CardFundingToken) => void;
@@ -67,7 +57,7 @@ export const createAssetSelectionModalNavigationDetails =
 
 const AssetSelectionBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     navigateToCardHomeOnPriorityToken = false,
     selectionOnly = false,
@@ -91,8 +81,14 @@ const AssetSelectionBottomSheet: React.FC = () => {
   } = useCardHomeData();
 
   const supportedTokens = useMemo<CardFundingToken[]>(() => {
+    const baseList = homeAvailableTokens.filter(
+      (token) =>
+        !token.isMoneyAccountEntry ||
+        token.fundingStatus !== FundingStatus.NotEnabled,
+    );
+
     const filtered = excludedTokens?.length
-      ? homeAvailableTokens.filter(
+      ? baseList.filter(
           (token) =>
             !excludedTokens.some(
               (ex) =>
@@ -100,7 +96,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                 ex.caipChainId === token.caipChainId,
             ),
         )
-      : homeAvailableTokens;
+      : baseList;
 
     return [...filtered].sort((a, b) => {
       if (
@@ -168,7 +164,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       labelOptions: [{ label: strings('card.asset_selection.update_success') }],
       iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.success.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -179,7 +174,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       labelOptions: [{ label: strings('card.asset_selection.update_error') }],
       iconName: IconName.Danger,
       iconColor: theme.colors.error.default,
-      backgroundColor: theme.colors.error.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -241,11 +235,15 @@ const AssetSelectionBottomSheet: React.FC = () => {
         // Navigation-based mode: go back with the selected token
         closeBottomSheetAndNavigate(() => {
           if (callerRoute) {
-            // Navigate back to the caller route with the selected token
-            navigation.navigate(callerRoute, {
-              ...callerParams,
-              returnedSelectedToken: token,
-            });
+            // Navigate back to the caller route with the selected token.
+            // `callerRoute` is a dynamic string from modal params.
+            navigateWithDetails(navigation, [
+              callerRoute,
+              {
+                ...callerParams,
+                returnedSelectedToken: token,
+              },
+            ]);
           } else {
             // Fallback: just go back
             navigation.goBack();
@@ -296,189 +294,82 @@ const AssetSelectionBottomSheet: React.FC = () => {
     ],
   );
 
-  // Helper: Get funding status text
-  const getFundingStatusText = useCallback((state: FundingStatus): string => {
-    if (state === FundingStatus.Enabled) {
-      return strings('card.asset_selection.enabled');
-    }
-    if (state === FundingStatus.Limited) {
-      return strings('card.asset_selection.limited');
-    }
-    return strings('card.asset_selection.not_enabled');
-  }, []);
+  const renderItem: ListRenderItem<AssetSelectionRowItem> = useCallback(
+    ({ item }) => (
+      <AssetSelectionRow
+        item={item}
+        isPriority={Boolean(isPriorityToken(item))}
+        onPress={handleTokenPress}
+      />
+    ),
+    [isPriorityToken, handleTokenPress],
+  );
 
-  // Helper: Render bottom sheet content based on state
+  const keyExtractor = useCallback(
+    (item: AssetSelectionRowItem) =>
+      `${item.address}-${item.symbol}-${
+        item.walletAddress
+      }-${safeFormatChainIdToHex(item.caipChainId)}`,
+    [],
+  );
+
   const renderBottomSheetContent = useCallback(() => {
-    // Loading state
     if (!cardHomeData?.delegationSettings) {
       return (
-        <View style={tw.style('items-center justify-center py-8')}>
+        <Box twClassName="items-center justify-center py-8">
           <ActivityIndicator
             size="large"
             color={theme.colors.primary.default}
           />
-        </View>
+        </Box>
       );
     }
 
-    // Empty state
     if (supportedTokensWithBalances.length === 0) {
       return (
-        <View style={tw.style('items-center justify-center py-8')}>
+        <Box twClassName="items-center justify-center py-8">
           <Text
             variant={TextVariant.BodySm}
-            style={tw.style('text-center text-text-alternative')}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
           >
             {strings('card.no_tokens_available')}
           </Text>
-        </View>
+        </Box>
       );
     }
 
-    // Token list
     return (
-      <FlatList
-        scrollEnabled
-        showsVerticalScrollIndicator={false}
+      <FlashList
         data={supportedTokensWithBalances}
-        renderItem={({ item }) => {
-          const isCurrentPriority = isPriorityToken(item);
-          return (
-            <Box
-              twClassName={
-                isCurrentPriority
-                  ? 'border-l-4 border-primary-default bg-background-muted'
-                  : ''
-              }
-            >
-              <ListItemSelect
-                onPress={() => handleTokenPress(item)}
-                testID={`asset-select-item-${item.symbol}-${item.caipChainId}`}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName="flex-1"
-                >
-                  {/* Token Info */}
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="flex-1"
-                  >
-                    <BadgeWrapper
-                      style={tw.style('mr-3')}
-                      badgePosition={BadgePosition.BottomRight}
-                      badgeElement={
-                        item.caipChainId ? (
-                          <Badge
-                            variant={BadgeVariant.Network}
-                            imageSource={NetworkBadgeSource(
-                              safeFormatChainIdToHex(
-                                item.caipChainId,
-                              ) as `0x${string}`,
-                            )}
-                          />
-                        ) : null
-                      }
-                    >
-                      <AvatarToken
-                        size={AvatarSize.Md}
-                        imageSource={{
-                          uri: buildTokenIconUrl(
-                            item.caipChainId,
-                            item.address ?? '',
-                          ),
-                        }}
-                      />
-                    </BadgeWrapper>
-                    <Box
-                      twClassName="flex-1"
-                      justifyContent={BoxJustifyContent.Center}
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        style={tw.style('font-semibold')}
-                      >
-                        {item.symbol} on{' '}
-                        {mapCaipChainIdToChainName(item.caipChainId)}
-                      </Text>
-                      <Text
-                        variant={TextVariant.BodySm}
-                        style={tw.style('font-medium text-text-alternative')}
-                      >
-                        {getFundingStatusText(item.fundingStatus)}
-                      </Text>
-                      {item.walletAddress && (
-                        <Text
-                          variant={TextVariant.BodyXs}
-                          style={tw.style(
-                            'font-normal text-text-alternative mt-1',
-                          )}
-                          numberOfLines={1}
-                        >
-                          {item.isMoneyAccountEntry
-                            ? strings(
-                                'card.card_spending_limit.money_account_label',
-                              )
-                            : truncateAddress(item.walletAddress, 6)}
-                        </Text>
-                      )}
-                    </Box>
-                  </Box>
-
-                  {/* Balance */}
-                  <Box twClassName="items-end">
-                    <Text
-                      variant={TextVariant.BodySm}
-                      style={tw.style('text-text-default font-medium')}
-                    >
-                      {item.balanceFiat}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyXs}
-                      style={tw.style('text-text-alternative mt-1')}
-                    >
-                      {item.balance} {item.symbol}
-                    </Text>
-                  </Box>
-                </Box>
-              </ListItemSelect>
-            </Box>
-          );
-        }}
-        keyExtractor={(item) =>
-          `${item.address}-${item.symbol}-${
-            item.walletAddress
-          }-${safeFormatChainIdToHex(item.caipChainId)}`
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        showsVerticalScrollIndicator={false}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
         }
       />
     );
   }, [
     cardHomeData?.delegationSettings,
     supportedTokensWithBalances,
-    tw,
     theme,
-    isPriorityToken,
-    handleTokenPress,
-    getFundingStatusText,
+    renderItem,
+    keyExtractor,
   ]);
 
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('card.select_asset')}
-        </Text>
+        {strings('card.select_asset')}
       </BottomSheetHeader>
-      <View style={tw.style('max-h-[400px]')}>
+      <Box style={tw.style('grow shrink flex-row min-h-[200px] max-h-[400px]')}>
         {renderBottomSheetContent()}
-      </View>
+      </Box>
     </BottomSheet>
   );
 };

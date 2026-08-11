@@ -9,7 +9,6 @@ import {
   CardLoginResponse,
   CardAuthorizeResponse,
   DelegationSettingsResponse,
-  DelegationSettingsNetwork,
   UserResponse,
   RegistrationSettingsResponse,
   CardLocation,
@@ -23,8 +22,8 @@ import type {
 import {
   ARBITRARY_ALLOWANCE,
   BALANCE_SCANNER_ABI,
-  BAANX_MAX_LIMIT,
   SUPPORTED_ASSET_NETWORKS,
+  LINEA_PUBLIC_RPC_URL,
   cardNetworkInfos,
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
@@ -35,6 +34,7 @@ import {
   generateState,
 } from '../../../../../components/UI/Card/util/pkceHelpers';
 import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
+import { networkToCaipChainId } from '../../../../../components/UI/Card/util/redeemDestination';
 import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
   CardAccountStatus,
@@ -46,7 +46,6 @@ import {
   CardCredentials,
   CardDetails,
   CardFundingAsset,
-  CardFundingConfig,
   CardHomeData,
   CardProviderCapabilities,
   CardSecureView,
@@ -65,9 +64,23 @@ import {
   CashbackWithdrawEstimationResponse,
   CashbackWithdrawParams,
   CashbackWithdrawResponse,
+  CreditWalletResponse,
+  CreditWithdrawEstimationResponse,
+  CreditWithdrawParams,
+  CreditWithdrawResponse,
   type DelegationChallengeResponse,
   emptyCardHomeData,
+  isCardAuthTokenError,
+  CardProviderIds,
+  CardTransactionStatus,
+  CardTransactionType,
+  CardMerchantCategory,
+  type CardTransaction,
+  type CardTransactionFundingSource,
+  type CardTransactionListParams,
+  type CardTransactionPage,
 } from '../provider-types';
+import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
 import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -92,9 +105,135 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
   };
 }
 
-const ERC20_BALANCE_OF_ABI = [
-  'function balanceOf(address account) view returns (uint256)',
-];
+// -- Transactions (GET /v1/card/transactions) --
+
+/**
+ * Cursor payload for Baanx page-based pagination. `pg` is the next 0-indexed
+ * page to fetch; `i` contains page 0's row ids, used to detect the API's
+ * out-of-range behavior (it silently returns page 0 again instead of an empty
+ * page).
+ */
+interface BaanxCursorPayload {
+  pg: number;
+  /** IDs from page 0, used to detect the API wrapping back to page 0. */
+  i?: string[];
+}
+
+// The Baanx API has no page-size parameter; the server returns fixed-size
+// pages. A short page is therefore the last one. This is the smallest page
+// size observed, so `length < BAANX_MIN_FULL_PAGE` safely means "no more
+// pages" (worst case: one extra request that returns empty).
+const BAANX_MIN_FULL_PAGE = 20;
+
+interface BaanxFundingSourceRaw {
+  id?: string;
+  address?: string;
+  network?: string;
+  txHash?: string;
+  currency?: string;
+  amount?: string;
+  fees?: string;
+  swapFee?: string;
+}
+
+interface BaanxTransactionRaw {
+  id: string;
+  cardId?: string;
+  panLast4?: string;
+  transactionId?: string;
+  dateTime: string;
+  sign: 'DEBIT' | 'CREDIT';
+  merchantNameLocation?: string;
+  merchantType?: string;
+  merchantId?: string;
+  mcc?: number;
+  mccCategory?: string;
+  transactionCurrency: string;
+  amountInTransactionCurrency: string;
+  feesInTransactionCurrency?: string;
+  originalCurrency?: string;
+  amountInOriginalCurrency?: string;
+  feesInOriginalCurrency?: string;
+  billingConversionRate?: string;
+  status: 'CONFIRMED' | 'PENDING' | 'DECLINED' | 'REVERTED';
+  declineReason?: string;
+  fundingSources?: BaanxFundingSourceRaw[];
+}
+
+const BAANX_STATUS_MAP: Record<
+  BaanxTransactionRaw['status'],
+  CardTransactionStatus
+> = {
+  PENDING: CardTransactionStatus.Pending,
+  CONFIRMED: CardTransactionStatus.Completed,
+  DECLINED: CardTransactionStatus.Failed,
+  REVERTED: CardTransactionStatus.Reversed,
+};
+
+const BAANX_MCC_CATEGORY_MAP: Record<string, CardMerchantCategory> = {
+  SUBSCRIPTIONS: CardMerchantCategory.Subscriptions,
+  FOOD: CardMerchantCategory.Food,
+  TRAVEL: CardMerchantCategory.Travel,
+  ENTERTAINMENT: CardMerchantCategory.Entertainment,
+  HEALTH: CardMerchantCategory.Health,
+  ATM: CardMerchantCategory.Atm,
+  UTILITIES: CardMerchantCategory.Utilities,
+  MISC: CardMerchantCategory.Misc,
+};
+
+/** Baanx date filters take ISO date-only strings (YYYY-MM-DD). */
+function toDateOnly(epochMs: number): string {
+  return new Date(epochMs).toISOString().slice(0, 10);
+}
+
+function isBaanxCursorPayload(value: unknown): value is BaanxCursorPayload {
+  if (value == null || typeof value !== 'object') {
+    return false;
+  }
+  const payload = value as Partial<BaanxCursorPayload>;
+  if (!Number.isSafeInteger(payload.pg) || (payload.pg ?? 0) <= 0) {
+    return false;
+  }
+  return (
+    Array.isArray(payload.i) &&
+    payload.i.length > 0 &&
+    payload.i.every((id) => typeof id === 'string' && id.length > 0)
+  );
+}
+
+/**
+ * Detects Baanx returning page 0 for an out-of-range page request.
+ *
+ * If new transactions arrive between requests, a wrapped page contains those
+ * unseen rows followed by a prefix of the original page 0. A real next page
+ * instead contains a suffix of the original page 0 followed by older unseen
+ * rows. Comparing this ordering avoids treating a shifted real page as the end.
+ */
+function isWrappedTransactionPage(
+  items: BaanxTransactionRaw[],
+  pageZeroIds: string[],
+): boolean {
+  const pageZeroIdSet = new Set(pageZeroIds);
+  const firstKnownIndex = items.findIndex((item) => pageZeroIdSet.has(item.id));
+  if (firstKnownIndex === -1) {
+    return false;
+  }
+
+  const knownSuffix = items.slice(firstKnownIndex);
+  if (knownSuffix.some((item) => !pageZeroIdSet.has(item.id))) {
+    return false;
+  }
+
+  return knownSuffix.every((item, index) => item.id === pageZeroIds[index]);
+}
+
+// Earliest block where the FoxConnect spender contracts were deployed on Linea.
+// Used as fromBlock for Approval event log queries to avoid scanning from genesis.
+const SPENDERS_DEPLOYED_BLOCK = 2715910;
+
+const APPROVAL_IFACE = new ethers.utils.Interface([
+  'event Approval(address indexed owner, address indexed spender, uint256 value)',
+]);
 
 function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
   if (error instanceof CardApiError) {
@@ -153,11 +292,20 @@ function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
 function mapApiError(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
   if (error instanceof CardApiError) {
-    if ([401, 403].includes(error.statusCode)) {
+    if (error.statusCode === 401) {
       return new CardProviderError(
         CardProviderErrorCode.InvalidCredentials,
         `Authentication failed on ${operation}`,
         error.statusCode,
+      );
+    }
+
+    if (error.statusCode === 403) {
+      return new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        `Forbidden on ${operation}`,
+        403,
+        error.errorCode,
       );
     }
     if (error.statusCode === 404) {
@@ -188,6 +336,13 @@ function mapApiError(error: unknown, operation: string): CardProviderError {
         408,
       );
     }
+    if (error.statusCode === 429) {
+      return new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `Rate limited on ${operation}`,
+        429,
+      );
+    }
     if (error.statusCode === 0) {
       return new CardProviderError(
         CardProviderErrorCode.Network,
@@ -211,7 +366,7 @@ function mapAllowanceToFundingStatus(
 }
 
 export class BaanxProvider implements ICardProvider {
-  readonly id = 'baanx' as const;
+  readonly id = CardProviderIds.Baanx;
 
   readonly capabilities: CardProviderCapabilities = {
     authMethod: 'email_password',
@@ -234,7 +389,12 @@ export class BaanxProvider implements ICardProvider {
       kycProvider: 'veriff',
     },
     supportsPinView: true,
+    supportsPinSet: false,
     supportsCashback: true,
+    supportsCredit: true,
+    supportsSensitiveDetailsView: false,
+    supportsTravel: true,
+    supportsTransactionHistory: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -316,20 +476,39 @@ export class BaanxProvider implements ICardProvider {
 
   async refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens> {
     if (!tokens.refreshToken) {
-      throw new Error('No refresh token available');
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'No refresh token available',
+        401,
+      );
     }
 
-    const response = await this.service.request<CardExchangeTokenRawResponse>(
-      '/v1/auth/oauth/token',
-      {
-        method: 'POST',
-        body: {
-          grant_type: 'refresh_token',
-          refresh_token: tokens.refreshToken,
+    let response: CardExchangeTokenRawResponse;
+    try {
+      response = await this.service.request<CardExchangeTokenRawResponse>(
+        '/v1/auth/oauth/token',
+        {
+          method: 'POST',
+          body: {
+            grant_type: 'refresh_token',
+            refresh_token: tokens.refreshToken,
+          },
+          headers: { 'x-secret-key': this.service.apiKey },
         },
-        headers: { 'x-secret-key': this.service.apiKey },
-      },
-    );
+      );
+    } catch (error) {
+      if (
+        error instanceof CardApiError &&
+        [400, 401, 403].includes(error.statusCode)
+      ) {
+        throw new CardProviderError(
+          CardProviderErrorCode.InvalidCredentials,
+          'Refresh token rejected',
+          error.statusCode,
+        );
+      }
+      throw mapApiError(error, 'refreshTokens');
+    }
 
     return {
       accessToken: response.access_token,
@@ -338,6 +517,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt:
         Date.now() + response.refresh_token_expires_in * 1000,
       location: tokens.location,
+      providerUserId: tokens.providerUserId,
     };
   }
 
@@ -371,6 +551,19 @@ export class BaanxProvider implements ICardProvider {
     _address: string,
     tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
+    const swallowUnlessAuthError =
+      (logContext: string) =>
+      (err: unknown): null => {
+        if (isCardAuthTokenError(err)) {
+          throw mapApiError(err, logContext);
+        }
+        if (err instanceof CardApiError && err.statusCode === 429) {
+          throw mapApiError(err, logContext);
+        }
+        Logger.error(err as Error, getErrorContext(logContext));
+        return null;
+      };
+
     try {
       const [delegationSettings, cardDetailsResponse, user] = await Promise.all(
         [
@@ -379,32 +572,22 @@ export class BaanxProvider implements ICardProvider {
               '/v1/delegation/chain/config',
               tokens,
             )
-            .catch((err) => {
-              Logger.error(
-                err as Error,
-                getErrorContext('getCardHomeData.delegationSettings'),
-              );
-              return null;
-            }),
+            .catch(
+              swallowUnlessAuthError('getCardHomeData.delegationSettings'),
+            ),
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
-            .catch((err) => {
-              Logger.error(
-                err as Error,
-                getErrorContext('getCardHomeData.cardDetails'),
-              );
-              return null;
-            }),
-          this.service.get<UserResponse>('/v1/user', tokens).catch((err) => {
-            Logger.error(err as Error, getErrorContext('getCardHomeData.user'));
-            return null;
-          }),
+            .catch(swallowUnlessAuthError('getCardHomeData.cardDetails')),
+          this.service
+            .get<UserResponse>('/v1/user', tokens)
+            .catch(swallowUnlessAuthError('getCardHomeData.user')),
         ],
       );
 
-      const walletDetails = delegationSettings
-        ? await this.fetchWalletDetails(tokens)
-        : [];
+      const { details: walletDetails, priorities: externalWalletPriority } =
+        delegationSettings
+          ? await this.fetchWalletDetails(tokens)
+          : { details: [], priorities: [] };
 
       let fundingAssets = this.mapWalletDetailsToAssets(walletDetails);
 
@@ -467,8 +650,20 @@ export class BaanxProvider implements ICardProvider {
         alerts,
         actions,
         delegationSettings,
+        externalWalletPriority,
       };
     } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw error;
+      }
+      if (
+        (error instanceof CardApiError || error instanceof CardProviderError) &&
+        error.statusCode === 429
+      ) {
+        throw error instanceof CardApiError
+          ? mapApiError(error, 'getCardHomeData')
+          : error;
+      }
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
     }
@@ -492,6 +687,85 @@ export class BaanxProvider implements ICardProvider {
         );
       }
       throw mapApiError(error, 'getCardDetails');
+    }
+  }
+
+  /**
+   * Lists card transactions (newest first) from `GET /v1/card/transactions`.
+   *
+   * Baanx paginates with a 0-indexed `page` query param and a server-fixed
+   * page size, wrapped here into an opaque cursor. Requesting a page past the
+   * end returns page 0 again rather than an empty list, so the cursor also
+   * carries page 0's ordered row ids. Their position on later pages
+   * distinguishes a wrapped page 0 from a real page shifted by newly-arrived
+   * transactions.
+   *
+   * `params.limit` is accepted for interface compatibility but ignored: the
+   * page size is fixed server-side.
+   */
+  async listTransactions(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage> {
+    try {
+      const decodedCursor = params.cursor
+        ? decodeCardCursor<unknown>(params.cursor, this.id)
+        : null;
+      if (params.cursor && !isBaanxCursorPayload(decodedCursor)) {
+        throw new CardProviderError(
+          CardProviderErrorCode.Unknown,
+          'Invalid transaction pagination cursor',
+        );
+      }
+      const cursorPayload = isBaanxCursorPayload(decodedCursor)
+        ? decodedCursor
+        : null;
+      const page = cursorPayload?.pg ?? 0;
+      const pageZeroIds = cursorPayload?.i ?? [];
+
+      const query = new URLSearchParams();
+      query.set('page', String(page));
+      if (params.searchQuery) {
+        query.set('searchKey', params.searchQuery);
+      }
+      // The API rejects a lone dateFrom/dateTo; only send them as a pair.
+      if (params.fromDate != null && params.toDate != null) {
+        query.set('dateFrom', toDateOnly(params.fromDate));
+        query.set('dateTo', toDateOnly(params.toDate));
+      }
+
+      const raw = await this.service.get<BaanxTransactionRaw[]>(
+        `/v1/card/transactions?${query.toString()}`,
+        tokens,
+      );
+      const items = Array.isArray(raw) ? raw : [];
+
+      if (items.length === 0) {
+        return { items: [] };
+      }
+
+      // Out-of-range page wrapped back to page 0: treat as end of list.
+      if (
+        page > 0 &&
+        pageZeroIds.length > 0 &&
+        isWrappedTransactionPage(items, pageZeroIds)
+      ) {
+        return { items: [] };
+      }
+
+      const mapped = items.map((tx) => this.mapBaanxTransaction(tx));
+      if (items.length < BAANX_MIN_FULL_PAGE) {
+        return { items: mapped };
+      }
+
+      const nextCursor = encodeCardCursor(this.id, {
+        pg: page + 1,
+        i: page === 0 ? items.map((item) => item.id) : pageZeroIds,
+      } satisfies BaanxCursorPayload);
+
+      return { items: mapped, nextCursor };
+    } catch (error) {
+      throw mapApiError(error, 'listTransactions');
     }
   }
 
@@ -554,31 +828,6 @@ export class BaanxProvider implements ICardProvider {
     }));
 
     await this.service.put('/v1/wallet/external/priority', { wallets }, tokens);
-  }
-
-  async getFundingConfig(tokens: CardAuthTokens): Promise<CardFundingConfig> {
-    const settings = await this.service.get<DelegationSettingsResponse>(
-      '/v1/delegation/chain/config',
-      tokens,
-    );
-
-    const supportedChains = settings.networks
-      .filter((n: DelegationSettingsNetwork) =>
-        SUPPORTED_ASSET_NETWORKS.includes(
-          n.network?.toLowerCase() as CardNetwork,
-        ),
-      )
-      .map((n: DelegationSettingsNetwork) => {
-        const info =
-          cardNetworkInfos[n.network as keyof typeof cardNetworkInfos];
-        return info?.caipChainId ?? `eip155:${n.chainId}`;
-      });
-
-    return {
-      maxLimit: BAANX_MAX_LIMIT,
-      fundingOptions: this.buildFundingOptions(settings),
-      supportedChains,
-    };
   }
 
   async fetchDelegationChallenge(
@@ -809,6 +1058,32 @@ export class BaanxProvider implements ICardProvider {
     );
   }
 
+  // -- Credit --
+
+  async getCreditWallet(tokens: CardAuthTokens): Promise<CreditWalletResponse> {
+    return this.service.get<CreditWalletResponse>('/v1/wallet/credit', tokens);
+  }
+
+  async getCreditWithdrawEstimation(
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawEstimationResponse> {
+    return this.service.get<CreditWithdrawEstimationResponse>(
+      '/v1/wallet/credit/withdraw-estimation',
+      tokens,
+    );
+  }
+
+  async withdrawCredit(
+    params: CreditWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawResponse> {
+    return this.service.post<CreditWithdrawResponse>(
+      '/v1/wallet/credit/withdraw',
+      params,
+      tokens,
+    );
+  }
+
   // -- On-Chain (unauthenticated) --
 
   async getOnChainAssets(address: string): Promise<CardHomeData> {
@@ -834,11 +1109,41 @@ export class BaanxProvider implements ICardProvider {
         return fallback;
       }
 
+      const primaryRpcUrl = cardNetworkInfos.linea?.rpcUrl;
+      if (!primaryRpcUrl) return fallback;
+
+      const rpcCandidates = Array.from(
+        new Set(
+          [primaryRpcUrl, LINEA_PUBLIC_RPC_URL].filter(
+            (url): url is string => typeof url === 'string' && url.length > 0,
+          ),
+        ),
+      );
+
+      let lineaProvider: ethers.providers.StaticJsonRpcProvider | undefined;
+      let lastRpcError: unknown;
+      for (const rpcUrl of rpcCandidates) {
+        try {
+          const candidate = this.#createLineaProvider(rpcUrl);
+          await candidate.getBlockNumber();
+          lineaProvider = candidate;
+          break;
+        } catch (error) {
+          lastRpcError = error;
+        }
+      }
+      if (!lineaProvider) {
+        throw lastRpcError instanceof Error
+          ? lastRpcError
+          : new Error('Linea RPC unreachable');
+      }
+
       const rawAllowances = await this.#fetchOnChainAllowances(
         address,
         supportedTokens,
         foxConnect as { global: string; us: string },
         scannerAddress,
+        lineaProvider,
       );
 
       const fundingAssets = this.#mapOnChainAllowancesToAssets(
@@ -852,6 +1157,7 @@ export class BaanxProvider implements ICardProvider {
         address,
         fundingAssets,
         foxConnect as { global: string; us: string },
+        lineaProvider,
       );
 
       return {
@@ -866,8 +1172,71 @@ export class BaanxProvider implements ICardProvider {
       };
     } catch (error) {
       Logger.error(error as Error, getErrorContext('getOnChainAssets'));
-      return fallback;
+      // When Linea RPC is unreachable, still surface feature-flag Linea tokens so
+      // CardHome can render the asset; useAssetBalances fills wallet balances.
+      return this.#buildLineaAssetsFromFeatureFlag(address) ?? fallback;
     }
+  }
+
+  /**
+   * Builds Inactive Linea funding rows from the card feature flag when on-chain
+   * allowance scanning is unavailable. Empty spendableBalance lets
+   * useAssetBalances fall back to MultichainBalances wallet balances.
+   */
+  #buildLineaAssetsFromFeatureFlag(address: string): CardHomeData | null {
+    const lineaChainId = 'eip155:59144';
+    const lineaChain = this.cardFeatureFlag?.chains?.[lineaChainId];
+    if (!lineaChain?.tokens?.length) return null;
+
+    const fundingAssets = lineaChain.tokens
+      .filter(
+        (t): t is SupportedToken & { address: string } =>
+          !!t && typeof t.address === 'string' && t.enabled !== false,
+      )
+      .map(
+        (t): CardFundingAsset => ({
+          symbol: t.symbol ?? '',
+          name: t.name ?? t.symbol ?? '',
+          address: t.address,
+          walletAddress: address,
+          decimals: t.decimals ?? 6,
+          chainId: lineaChainId,
+          spendableBalance: '',
+          spendingCap: '0',
+          priority: 0,
+          status: FundingAssetStatus.Inactive,
+        }),
+      )
+      .filter((asset) => asset.symbol !== '');
+
+    if (fundingAssets.length === 0) return null;
+
+    return {
+      primaryFundingAsset: fundingAssets[0],
+      fundingAssets,
+      availableFundingAssets: fundingAssets,
+      card: null,
+      account: null,
+      alerts: [],
+      actions: [{ type: 'add_funds', enabled: true }],
+      delegationSettings: null,
+    };
+  }
+
+  #createLineaProvider(rpcUrl: string): ethers.providers.StaticJsonRpcProvider {
+    // StaticJsonRpcProvider skips ethers' auto network detection.
+    // skipFetchSetup is required in React Native — without it ethers mutates
+    // fetch headers/body and Linea RPCs respond with "Invalid JSON" / noNetwork.
+    return new ethers.providers.StaticJsonRpcProvider(
+      {
+        url: rpcUrl,
+        skipFetchSetup: true,
+      },
+      {
+        name: 'linea',
+        chainId: 59144,
+      },
+    );
   }
 
   // -- On-Chain private helpers --
@@ -877,6 +1246,7 @@ export class BaanxProvider implements ICardProvider {
     tokens: (SupportedToken & { address: string })[],
     foxConnect: { global: string; us: string },
     scannerAddress: string,
+    provider: ethers.providers.StaticJsonRpcProvider,
   ): Promise<
     {
       address: string;
@@ -885,10 +1255,6 @@ export class BaanxProvider implements ICardProvider {
       walletBalance: ethers.BigNumber;
     }[]
   > {
-    const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
-    if (!rpcUrl) throw new Error('Linea RPC URL not configured');
-
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const scanner = new ethers.Contract(
       scannerAddress,
       BALANCE_SCANNER_ABI,
@@ -906,42 +1272,43 @@ export class BaanxProvider implements ICardProvider {
       foxConnect.us,
     ]);
 
-    const results: [boolean, string][][] =
-      await scanner.spendersAllowancesForTokens(
-        owner,
-        tokenAddresses,
-        spenders,
-      );
+    // Two batched calls instead of 1 + N individual ones:
+    //   1. spendersAllowancesForTokens — all allowances in one eth_call
+    //   2. tokensBalance             — all balanceOf results in one eth_call
+    const [allowanceResults, balanceResults]: [
+      [boolean, string][][],
+      { success: boolean; data: string }[],
+    ] = await Promise.all([
+      scanner.spendersAllowancesForTokens(owner, tokenAddresses, spenders),
+      scanner.tokensBalance(owner, tokenAddresses),
+    ]);
 
-    const walletBalances = await Promise.all(
-      tokenAddresses.map(async (tokenAddr) => {
+    return tokenAddresses.map((addr, i) => {
+      const [globalTuple, usTuple] = allowanceResults[i];
+
+      let walletBalance = ethers.BigNumber.from(0);
+      const balResult = balanceResults[i];
+      if (balResult?.success && balResult.data && balResult.data !== '0x') {
         try {
-          const erc20 = new ethers.Contract(
-            tokenAddr,
-            ERC20_BALANCE_OF_ABI,
-            provider,
+          walletBalance = ethers.BigNumber.from(
+            ethers.utils.defaultAbiCoder.decode(['uint256'], balResult.data)[0],
           );
-          return (await erc20.balanceOf(owner)) as ethers.BigNumber;
         } catch (error) {
           Logger.error(
             error as Error,
-            getErrorContext('fetchOnChainAllowances/balanceOf', {
-              tokenAddr,
+            getErrorContext('fetchOnChainAllowances/tokensBalance', {
+              tokenAddr: addr,
               owner,
             }),
           );
-          return ethers.BigNumber.from(0);
         }
-      }),
-    );
+      }
 
-    return tokenAddresses.map((addr, i) => {
-      const [globalTuple, usTuple] = results[i];
       return {
         address: addr,
         globalAllowance: ethers.BigNumber.from(globalTuple[1]),
         usAllowance: ethers.BigNumber.from(usTuple[1]),
-        walletBalance: walletBalances[i] ?? ethers.BigNumber.from(0),
+        walletBalance,
       };
     });
   }
@@ -1002,6 +1369,7 @@ export class BaanxProvider implements ICardProvider {
     owner: string,
     assets: CardFundingAsset[],
     foxConnect: { global: string; us: string },
+    provider: ethers.providers.StaticJsonRpcProvider,
   ): Promise<CardFundingAsset | null> {
     if (assets.length === 0) return null;
 
@@ -1017,6 +1385,7 @@ export class BaanxProvider implements ICardProvider {
         owner,
         nonZero.map((a) => a.address),
         foxConnect,
+        provider,
       );
       if (priorityAddress) {
         const match = nonZero.find(
@@ -1032,29 +1401,22 @@ export class BaanxProvider implements ICardProvider {
   }
 
   /**
-   * Reads Approval event logs from Linea to find which token was most recently
-   * approved for the FoxConnect spender contracts.
+   * Fetches ERC-20 Approval event logs for `owner` across multiple token
+   * contracts, filtered to `spenderTopics`, and returns them sorted
+   * oldest-first (ascending block/logIndex). Both callers need this sorted
+   * list; they differ only in how they consume it.
+   *
+   * @param spenderTopics - a single hex-padded spender topic string, or an
+   * array of them (OR-filter across spenders).
    */
-  async #findLastApprovedToken(
+  async #getApprovalLogs(
+    provider: ethers.providers.StaticJsonRpcProvider,
     owner: string,
     tokenAddresses: string[],
-    foxConnect: { global: string; us: string },
-  ): Promise<string | null> {
-    const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
-    if (!rpcUrl) return null;
-
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-    const iface = new ethers.utils.Interface([
-      'event Approval(address indexed owner, address indexed spender, uint256 value)',
-    ]);
-
-    const approvalTopic = iface.getEventTopic('Approval');
+    spenderTopics: string | string[],
+  ): Promise<(ethers.providers.Log & { tokenAddress: string })[]> {
+    const approvalTopic = APPROVAL_IFACE.getEventTopic('Approval');
     const ownerTopic = ethers.utils.hexZeroPad(owner.toLowerCase(), 32);
-    const spenderTopics = [foxConnect.global, foxConnect.us].map((s) =>
-      ethers.utils.hexZeroPad(s.toLowerCase(), 32),
-    );
-
-    const SPENDERS_DEPLOYED_BLOCK = 2715910;
 
     const logsPerToken = await Promise.all(
       tokenAddresses.map((tokenAddress) =>
@@ -1075,12 +1437,35 @@ export class BaanxProvider implements ICardProvider {
         ? a.logIndex - b.logIndex
         : a.blockNumber - b.blockNumber,
     );
+    return allLogs;
+  }
 
-    for (let i = allLogs.length - 1; i >= 0; i--) {
-      const { args } = iface.parseLog(allLogs[i]);
+  /**
+   * Reads Approval event logs from Linea to find which token was most recently
+   * approved for the FoxConnect spender contracts.
+   */
+  async #findLastApprovedToken(
+    owner: string,
+    tokenAddresses: string[],
+    foxConnect: { global: string; us: string },
+    provider: ethers.providers.StaticJsonRpcProvider,
+  ): Promise<string | null> {
+    const spenderTopics = [foxConnect.global, foxConnect.us].map((s) =>
+      ethers.utils.hexZeroPad(s.toLowerCase(), 32),
+    );
+
+    const logs = await this.#getApprovalLogs(
+      provider,
+      owner,
+      tokenAddresses,
+      spenderTopics,
+    );
+
+    for (let i = logs.length - 1; i >= 0; i--) {
+      const { args } = APPROVAL_IFACE.parseLog(logs[i]);
       const value = args.value as ethers.BigNumber;
       if (!value.isZero()) {
-        return allLogs[i].tokenAddress;
+        return logs[i].tokenAddress;
       }
     }
 
@@ -1128,40 +1513,32 @@ export class BaanxProvider implements ICardProvider {
     if (!tokenAddress) return null;
 
     try {
-      const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-      const iface = new ethers.utils.Interface([
-        'event Approval(address indexed owner, address indexed spender, uint256 value)',
-      ]);
+      // Extract numeric chainId from CAIP format (e.g. "eip155:59144" → 59144).
+      // Using StaticJsonRpcProvider with pre-specified network avoids the automatic
+      // eth_chainId + net_version detection calls that JsonRpcProvider fires on construction.
+      const numericChainId = parseInt(asset.chainId.split(':')[1], 10);
+      if (isNaN(numericChainId)) return null;
+      const provider = new ethers.providers.StaticJsonRpcProvider(rpcUrl, {
+        chainId: numericChainId,
+        name: cardNetwork,
+      });
 
-      const approvalTopic = iface.getEventTopic('Approval');
-      const ownerTopic = ethers.utils.hexZeroPad(
-        asset.walletAddress.toLowerCase(),
-        32,
-      );
       const spenderTopic = ethers.utils.hexZeroPad(
         network.delegationContract.toLowerCase(),
         32,
       );
 
-      const SPENDERS_DEPLOYED_BLOCK = 2715910;
-
-      const logs = await provider.getLogs({
-        address: tokenAddress,
-        fromBlock: SPENDERS_DEPLOYED_BLOCK,
-        toBlock: 'latest',
-        topics: [approvalTopic, ownerTopic, spenderTopic],
-      });
+      const logs = await this.#getApprovalLogs(
+        provider,
+        asset.walletAddress,
+        [tokenAddress],
+        spenderTopic,
+      );
 
       if (logs.length === 0) return null;
 
-      logs.sort((a, b) =>
-        b.blockNumber === a.blockNumber
-          ? b.logIndex - a.logIndex
-          : b.blockNumber - a.blockNumber,
-      );
-
-      const latestLog = logs[0];
-      const { args } = iface.parseLog(latestLog);
+      const latestLog = logs[logs.length - 1];
+      const { args } = APPROVAL_IFACE.parseLog(latestLog);
       const value = args.value as ethers.BigNumber;
 
       return ethers.utils.formatUnits(value, asset.decimals);
@@ -1282,6 +1659,7 @@ export class BaanxProvider implements ICardProvider {
       refreshTokenExpiresAt:
         Date.now() + tokenResponse.refresh_token_expires_in * 1000,
       location: metadata.location,
+      providerUserId: loginResponse.userId,
     };
 
     return { done: true, tokenSet };
@@ -1295,9 +1673,10 @@ export class BaanxProvider implements ICardProvider {
    * details or CAIP chain IDs. This method resolves the token info by matching
    * `currency` against the feature-flag supported tokens for each network.
    */
-  private async fetchWalletDetails(
-    tokens: CardAuthTokens,
-  ): Promise<CardExternalWalletDetail[]> {
+  private async fetchWalletDetails(tokens: CardAuthTokens): Promise<{
+    details: CardExternalWalletDetail[];
+    priorities: CardWalletExternalPriorityResponse[];
+  }> {
     try {
       const [rawWallets, priorities] = await Promise.all([
         this.service.get<
@@ -1313,10 +1692,13 @@ export class BaanxProvider implements ICardProvider {
           .get<
             CardWalletExternalPriorityResponse[]
           >('/v1/wallet/external/priority', tokens)
-          .catch(() => [] as CardWalletExternalPriorityResponse[]),
+          .catch((err) => {
+            if (isCardAuthTokenError(err)) throw err;
+            return [] as CardWalletExternalPriorityResponse[];
+          }),
       ]);
 
-      if (!rawWallets?.length) return [];
+      if (!rawWallets?.length) return { details: [], priorities };
 
       const maxPriority = priorities.reduce(
         (max, p) => Math.max(max, p.priority),
@@ -1363,10 +1745,16 @@ export class BaanxProvider implements ICardProvider {
         });
       }
 
-      return enriched.sort((a, b) => a.priority - b.priority);
+      return {
+        details: enriched.sort((a, b) => a.priority - b.priority),
+        priorities,
+      };
     } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw mapApiError(error, 'fetchWalletDetails');
+      }
       Logger.error(error as Error, getErrorContext('fetchWalletDetails'));
-      return [];
+      return { details: [], priorities: [] };
     }
   }
 
@@ -1429,6 +1817,112 @@ export class BaanxProvider implements ICardProvider {
     };
   }
 
+  private mapBaanxTransaction(raw: BaanxTransactionRaw): CardTransaction {
+    const isDebit = raw.sign === 'DEBIT';
+    const category = raw.mccCategory
+      ? BAANX_MCC_CATEGORY_MAP[raw.mccCategory.toUpperCase()]
+      : undefined;
+    const merchantType = raw.merchantType ?? '';
+    const isAtm =
+      category === CardMerchantCategory.Atm ||
+      merchantType.toUpperCase().includes('ATM');
+
+    let type: CardTransactionType;
+    if (!isDebit) {
+      type = CardTransactionType.Refund;
+    } else if (isAtm) {
+      type = CardTransactionType.Withdrawal;
+    } else {
+      type = CardTransactionType.Purchase;
+    }
+
+    const { name, city } = this.parseMerchantNameLocation(
+      raw.merchantNameLocation,
+    );
+
+    const fundingSources: CardTransactionFundingSource[] = (
+      raw.fundingSources ?? []
+    ).map((fs) => ({
+      txHash: fs.txHash,
+      address: fs.address,
+      network: fs.network,
+      chainId: networkToCaipChainId(fs.network),
+      amount: fs.amount,
+      currency: fs.currency,
+      fees: fs.fees,
+      swapFee: fs.swapFee,
+    }));
+
+    const declineMessage = raw.declineReason?.trim();
+
+    return {
+      id: raw.id,
+      providerId: this.id,
+      timestamp: new Date(raw.dateTime).getTime(),
+      // Unknown future statuses must never be represented as successful.
+      status: BAANX_STATUS_MAP[raw.status] ?? CardTransactionStatus.Pending,
+      type,
+      isDebit,
+      billingAmount: {
+        value: raw.amountInTransactionCurrency,
+        currency: raw.transactionCurrency,
+      },
+      originalAmount:
+        raw.originalCurrency &&
+        raw.amountInOriginalCurrency &&
+        raw.originalCurrency !== raw.transactionCurrency
+          ? {
+              value: raw.amountInOriginalCurrency,
+              currency: raw.originalCurrency,
+            }
+          : undefined,
+      feeAmount:
+        raw.feesInTransactionCurrency && raw.feesInTransactionCurrency !== '0'
+          ? {
+              value: raw.feesInTransactionCurrency,
+              currency: raw.transactionCurrency,
+            }
+          : undefined,
+      conversionRate: raw.billingConversionRate,
+      merchant: name
+        ? {
+            name,
+            city,
+            id: raw.merchantId,
+            mcc: raw.mcc != null ? String(raw.mcc) : undefined,
+            category,
+          }
+        : undefined,
+      description: raw.merchantNameLocation,
+      reference: raw.transactionId,
+      cardLastFour: raw.panLast4,
+      declineReason: declineMessage ? { message: declineMessage } : undefined,
+      fundingSources,
+    };
+  }
+
+  /**
+   * Baanx concatenates merchant name and location into one field, e.g.
+   * "WWW.ALIEXPRESS.COM, LONDON". The city is the segment after the last
+   * comma; merchant names may themselves contain commas.
+   */
+  private parseMerchantNameLocation(combined?: string): {
+    name?: string;
+    city?: string;
+  } {
+    if (!combined?.trim()) {
+      return {};
+    }
+    const lastComma = combined.lastIndexOf(',');
+    if (lastComma === -1) {
+      return { name: combined.trim() };
+    }
+    return {
+      name: combined.slice(0, lastComma).trim(),
+      city: combined.slice(lastComma + 1).trim() || undefined,
+    };
+  }
+
   private mapAccountStatus(
     user: UserResponse,
     card: CardDetailsResponse | null,
@@ -1452,6 +1946,10 @@ export class BaanxProvider implements ICardProvider {
             country: user.countryOfResidence ?? '',
           }
         : null,
+      countryOfResidence: user.countryOfResidence
+        ? user.countryOfResidence.toUpperCase()
+        : null,
+      usState: user.usState ? user.usState.toUpperCase() : null,
     };
   }
 

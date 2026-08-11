@@ -13,18 +13,33 @@ import extractURLParams from '../../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
 import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../handleBrowserUrl';
+import { createDappDeeplinkIntent } from '../handleDappUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import Logger from '../../../../../util/Logger';
-import type { DeepLinkAnalyticsContext } from '../../../types/deepLinkAnalytics.types';
 import handleRampReturnUrl from '../handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../handleSwapUrl';
+import { handleBatchSellUrl } from '../handleBatchSellUrl';
+import { handleAssetUrl } from '../handleAssetUrl';
+import {
+  createRewardsDeeplinkIntent,
+  handleRewardsUrl,
+} from '../handleRewardsUrl';
+import type { DeeplinkIntent } from '../../../types/DeeplinkIntent';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
+import {
+  SignatureStatus,
+  InterstitialState,
+  DeepLinkRoute,
+  type DeepLinkAnalyticsContext,
+} from '../../../types/deepLinkAnalytics.types';
+// eslint-disable-next-line import-x/no-namespace
+import * as deepLinkTypes from '../../../types/deepLink.types';
 
 jest.mock('../handleMetaMaskDeeplink');
 jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
@@ -41,7 +56,17 @@ jest.mock('../handleRampUrl');
 jest.mock('../handleRampReturnUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
+jest.mock('../handleBatchSellUrl');
+jest.mock('../handleAssetUrl');
 jest.mock('../handleBrowserUrl');
+jest.mock('../handleDappUrl', () => {
+  const actual = jest.requireActual('../handleDappUrl');
+  return {
+    __esModule: true,
+    ...actual,
+    createDappDeeplinkIntent: jest.fn(),
+  };
+});
 jest.mock('../handleCreateAccountUrl');
 jest.mock('../handlePerpsUrl');
 jest.mock('../handleRewardsUrl');
@@ -120,6 +145,10 @@ describe('handleUniversalLink', () => {
   const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
     typeof handleBrowserUrl
   >;
+  const mockCreateDappDeeplinkIntent =
+    createDappDeeplinkIntent as jest.MockedFunction<
+      typeof createDappDeeplinkIntent
+    >;
   let url = '';
 
   const mockHandleDeepLinkModalDisplay =
@@ -161,6 +190,172 @@ describe('handleUniversalLink', () => {
     url = 'https://metamask.app.link';
   });
 
+  describe('SDK action analytics', () => {
+    it('fires DEEP_LINK_USED for connect deeplink before handleMetaMaskDeeplink', async () => {
+      const {
+        createDeepLinkUsedEventBuilder: mockCreateBuilder,
+        mapSupportedActionToRoute: mockMapRoute,
+      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+        createDeepLinkUsedEventBuilder: jest.Mock;
+        mapSupportedActionToRoute: jest.Mock;
+      };
+
+      const mockBuild = jest.fn().mockReturnValue({});
+      const mockAddProperties = jest.fn().mockReturnThis();
+      mockCreateBuilder.mockResolvedValueOnce({
+        addProperties: mockAddProperties,
+        addSensitiveProperties: jest.fn().mockReturnThis(),
+        build: mockBuild,
+      });
+      mockMapRoute.mockReturnValueOnce(DeepLinkRoute.SDK_CONNECT);
+
+      const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.CONNECT}?channelId=test123&comm=deeplinking&pubkey=abc&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(url).urlObj,
+        url,
+        source: 'test',
+      });
+
+      expect(mockMapRoute).toHaveBeenCalledWith(ACTIONS.CONNECT);
+      expect(mockCreateBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: DeepLinkRoute.SDK_CONNECT,
+          signatureStatus: SignatureStatus.MISSING,
+          interstitialShown: false,
+          interstitialAction: InterstitialState.NOT_SHOWN,
+        }),
+      );
+      expect(mockHandleMetaMaskDeeplink).toHaveBeenCalled();
+    });
+
+    it('fires DEEP_LINK_USED for MMSDK deeplink', async () => {
+      const {
+        createDeepLinkUsedEventBuilder: mockCreateBuilder,
+        mapSupportedActionToRoute: mockMapRoute,
+      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+        createDeepLinkUsedEventBuilder: jest.Mock;
+        mapSupportedActionToRoute: jest.Mock;
+      };
+
+      const mockBuild = jest.fn().mockReturnValue({});
+      const mockAddProperties = jest.fn().mockReturnThis();
+      mockCreateBuilder.mockResolvedValueOnce({
+        addProperties: mockAddProperties,
+        addSensitiveProperties: jest.fn().mockReturnThis(),
+        build: mockBuild,
+      });
+      mockMapRoute.mockReturnValueOnce(DeepLinkRoute.SDK_MMSDK);
+
+      const mmsdkUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MMSDK}?message=test&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(mmsdkUrl).urlObj,
+        url: mmsdkUrl,
+        source: 'test',
+      });
+
+      expect(mockMapRoute).toHaveBeenCalledWith(ACTIONS.MMSDK);
+      expect(mockCreateBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: DeepLinkRoute.SDK_MMSDK,
+          signatureStatus: SignatureStatus.MISSING,
+          interstitialShown: false,
+          interstitialAction: InterstitialState.NOT_SHOWN,
+        }),
+      );
+    });
+
+    it('fires DEEP_LINK_USED for ANDROID_SDK deeplink', async () => {
+      const {
+        createDeepLinkUsedEventBuilder: mockCreateBuilder,
+        mapSupportedActionToRoute: mockMapRoute,
+      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+        createDeepLinkUsedEventBuilder: jest.Mock;
+        mapSupportedActionToRoute: jest.Mock;
+      };
+
+      const mockBuild = jest.fn().mockReturnValue({});
+      const mockAddProperties = jest.fn().mockReturnThis();
+      mockCreateBuilder.mockResolvedValueOnce({
+        addProperties: mockAddProperties,
+        addSensitiveProperties: jest.fn().mockReturnThis(),
+        build: mockBuild,
+      });
+      mockMapRoute.mockReturnValueOnce(DeepLinkRoute.SDK_CONNECT);
+
+      const androidSdkUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.ANDROID_SDK}?channelId=test&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(androidSdkUrl).urlObj,
+        url: androidSdkUrl,
+        source: 'test',
+      });
+
+      expect(mockMapRoute).toHaveBeenCalledWith(ACTIONS.ANDROID_SDK);
+      expect(mockCreateBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: DeepLinkRoute.SDK_CONNECT,
+          signatureStatus: SignatureStatus.MISSING,
+          interstitialShown: false,
+          interstitialAction: InterstitialState.NOT_SHOWN,
+        }),
+      );
+    });
+
+    it('falls back to INVALID route when an SDK action is not a SupportedAction', async () => {
+      const {
+        createDeepLinkUsedEventBuilder: mockCreateBuilder,
+        mapSupportedActionToRoute: mockMapRoute,
+      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+        createDeepLinkUsedEventBuilder: jest.Mock;
+        mapSupportedActionToRoute: jest.Mock;
+      };
+
+      mockCreateBuilder.mockResolvedValueOnce({
+        addProperties: jest.fn().mockReturnThis(),
+        addSensitiveProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      });
+
+      // Defensive guard: `isMetaMaskSDKDeeplinkAction` lets the action into the
+      // SDK branch, but if it is somehow not a SupportedAction the route must
+      // fall back to INVALID without calling `mapSupportedActionToRoute`.
+      const isSupportedActionSpy = jest
+        .spyOn(deepLinkTypes, 'isSupportedAction')
+        .mockReturnValue(false);
+
+      const connectUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.CONNECT}?channelId=test&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(connectUrl).urlObj,
+        url: connectUrl,
+        source: 'test',
+      });
+
+      expect(mockMapRoute).not.toHaveBeenCalled();
+      expect(mockCreateBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: DeepLinkRoute.INVALID,
+          signatureStatus: SignatureStatus.MISSING,
+          interstitialShown: false,
+          interstitialAction: InterstitialState.NOT_SHOWN,
+        }),
+      );
+      expect(mockHandleMetaMaskDeeplink).toHaveBeenCalled();
+
+      isSupportedActionSpy.mockRestore();
+    });
+  });
+
   describe('SDK Actions', () => {
     const testCases = [
       { action: ACTIONS.CONNECT },
@@ -192,6 +387,28 @@ describe('handleUniversalLink', () => {
           params: testParams,
           url: expectedMappedUrl,
         });
+      },
+    );
+
+    it.each(testCases)(
+      'returns null in resolve mode without executing SDK action $action',
+      async ({ action }) => {
+        const testUrl = `https://link.metamask.io/${action}`;
+        const { urlObj: testUrlObj } = extractURLParams(testUrl);
+
+        const result = await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: testUrl,
+          source: 'origin',
+          mode: 'resolve',
+        });
+
+        expect(result).toBeNull();
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleMetaMaskDeeplink).not.toHaveBeenCalled();
       },
     );
 
@@ -280,6 +497,61 @@ describe('handleUniversalLink', () => {
 
       expect(handleRampReturnUrl).toHaveBeenCalledWith({
         rampReturnPath: onRampPath,
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.ASSET', () => {
+    it('calls handleAssetUrl with the path after the action', async () => {
+      const assetPath = '?assetId=eip155:1/erc20:0xabc';
+      const assetUrl = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.ASSET}${assetPath}`;
+      const assetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: assetUrl,
+        pathname: `/${ACTIONS.ASSET}`,
+        search: assetPath,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: assetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: assetUrl,
+        source: 'test-source',
+      });
+
+      expect(handleAssetUrl).toHaveBeenCalledWith({
+        assetPath,
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('does not show interstitial modal for ASSET action (whitelisted)', async () => {
+      const assetPath = '?assetId=eip155:1/erc20:0xabc';
+      const assetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.ASSET}${assetPath}`;
+      const assetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: assetUrl,
+        pathname: `/${ACTIONS.ASSET}`,
+        search: assetPath,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: assetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: assetUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleAssetUrl).toHaveBeenCalledWith({
+        assetPath,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -630,6 +902,41 @@ describe('handleUniversalLink', () => {
 
       expect(mockHandleBrowserUrl).not.toHaveBeenCalled();
     });
+
+    it('returns a startup intent in resolve mode without executing browser navigation', async () => {
+      const fullUrl = `${PROTOCOLS.HTTPS}://${representativeDomain}/${ACTIONS.DAPP}/example.com/path?param=value`;
+      const dappUrlObj = {
+        ...urlObj,
+        hostname: representativeDomain,
+        href: fullUrl,
+        pathname: `/${ACTIONS.DAPP}/example.com/path`,
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'home-tab',
+          routeName: 'BrowserTabHome',
+        },
+      };
+      mockCreateDappDeeplinkIntent.mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: dappUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: fullUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(mockCreateDappDeeplinkIntent).toHaveBeenCalledWith({
+        url: 'https://example.com/path?param=value',
+      });
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandleBrowserUrl).not.toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+    });
   });
 
   describe('ACTIONS.CREATE_ACCOUNT', () => {
@@ -740,6 +1047,71 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns a startup intent in resolve mode without executing rewards navigation', async () => {
+      const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}?referral=code123`;
+      const rewardsUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: rewardsUrl,
+        pathname: `/${ACTIONS.REWARDS}`,
+        search: '?referral=code123',
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'home-tab',
+          routeName: 'RewardsView',
+        },
+      };
+      (
+        createRewardsDeeplinkIntent as jest.MockedFunction<
+          typeof createRewardsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: rewardsUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: rewardsUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createRewardsDeeplinkIntent).toHaveBeenCalledWith({
+        rewardsPath: '?referral=code123',
+      });
+      expect(handleRewardsUrl).not.toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns null in resolve mode for actions without a startup intent', async () => {
+      const swapUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      const swapUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: swapUrl,
+        pathname: `/${ACTIONS.SWAP}`,
+      };
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: swapUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: swapUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBeNull();
+      expect(handleSwapUrl).not.toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -936,21 +1308,46 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({ id: undefined });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('forwards the id query param to _handleWhatsHappening', async () => {
+      const id = 'a3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}?id=${id}`;
+      const whatsHappeningUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: whatsHappeningUrl,
+        pathname: `/${ACTIONS.WHATS_HAPPENING}`,
+        search: `?id=${id}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: whatsHappeningUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: whatsHappeningUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({ id });
       expect(handled).toHaveBeenCalled();
     });
   });
 
   describe('ACTIONS.SOCIAL_TRADER_POSITION', () => {
     it('calls _handleSocialTraderPosition when action is SOCIAL_TRADER_POSITION', async () => {
-      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy`;
+      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=follow_newtrade_buy`;
       const positionUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: positionUrl,
         pathname: `/${ACTIONS.SOCIAL_TRADER_POSITION}`,
         search:
-          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=follow_newtrade_buy',
       };
 
       await handleUniversalLink({
@@ -965,7 +1362,7 @@ describe('handleUniversalLink', () => {
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
       expect(handleSocialTraderPositionUrl).toHaveBeenCalledWith({
         actionPath:
-          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=follow_newtrade_buy',
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -1525,6 +1922,29 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('does not show interstitial modal for BATCH_SELL action', async () => {
+      const batchSellUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.BATCH_SELL}`;
+      const batchSellUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: batchSellUrl,
+        pathname: `/${ACTIONS.BATCH_SELL}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: batchSellUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: batchSellUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleBatchSellUrl).toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });
 

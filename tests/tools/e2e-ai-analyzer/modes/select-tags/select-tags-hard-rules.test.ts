@@ -1,0 +1,118 @@
+import { getChangedSpecFiles, isSpecFile } from './test-infrastructure-paths';
+import { checkHardRules } from './handlers';
+
+const BASE_DIR = process.cwd();
+
+describe('test-infrastructure-paths', () => {
+  describe('getChangedSpecFiles', () => {
+    it('includes smoke spec files under tests/smoke-appium/', () => {
+      const changedFiles = [
+        'tests/smoke-appium/accounts/create-wallet-account.spec.ts',
+      ];
+
+      const result = getChangedSpecFiles(changedFiles);
+
+      expect(result).toEqual([
+        'tests/smoke-appium/accounts/create-wallet-account.spec.ts',
+      ]);
+    });
+
+    it('excludes legacy tests/smoke/ paths (Detox removed)', () => {
+      const changedFiles = ['tests/smoke/swap/swap-action-smoke.spec.ts'];
+
+      const result = getChangedSpecFiles(changedFiles);
+
+      expect(result).toEqual([]);
+    });
+
+    it('excludes non-smoke paths from smoke tag selection scope', () => {
+      const changedFiles = [
+        'tests/page-objects/wallet/AccountListBottomSheet.ts',
+      ];
+
+      const result = getChangedSpecFiles(changedFiles);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('isSpecFile', () => {
+    it('returns true for smoke spec paths under tests/smoke-appium/', () => {
+      expect(
+        isSpecFile('tests/smoke-appium/accounts/create-wallet-account.spec.ts'),
+      ).toBe(true);
+    });
+
+    it('returns false for non-spec test utilities', () => {
+      expect(
+        isSpecFile('tests/page-objects/wallet/AccountListBottomSheet.ts'),
+      ).toBe(false);
+    });
+  });
+});
+
+describe('checkHardRules', () => {
+  const context = {
+    baseDir: BASE_DIR,
+    baseBranch: 'origin/main',
+  };
+
+  it('selects SmokeAccounts when only an accounts smoke spec changes', () => {
+    const changedFiles = [
+      'tests/smoke-appium/accounts/create-wallet-account.spec.ts',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.selectedTags).toContain('SmokeAccounts');
+    expect(result?.confidence).toBeGreaterThanOrEqual(90);
+  });
+
+  it('selects SmokeAccounts when shared page object and accounts smoke spec change together', () => {
+    const changedFiles = [
+      'tests/page-objects/wallet/AccountListBottomSheet.ts',
+      'tests/smoke-appium/accounts/create-wallet-account.spec.ts',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.selectedTags).toContain('SmokeAccounts');
+  });
+
+  it('includes smoke spec tags when a shared page object affects smoke importers', () => {
+    const changedFiles = [
+      'tests/page-objects/wallet/AccountListBottomSheet.ts',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.selectedTags).toContain('SmokeAccounts');
+  });
+
+  it('runs all E2E tags when locales/languages/en.json changes', () => {
+    const changedFiles = ['locales/languages/en.json'];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.reasoning).toContain('en-locale-change');
+    expect(result?.selectedTags.length).toBeGreaterThan(1);
+    expect(result?.confidence).toBe(100);
+  });
+
+  it('runs all E2E tags when en.json is among other changed files', () => {
+    const changedFiles = [
+      'locales/languages/en.json',
+      'app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.reasoning).toContain('en-locale-change');
+    expect(result?.selectedTags.length).toBeGreaterThan(1);
+  });
+});

@@ -1,5 +1,6 @@
-import React from 'react';
-import { StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import React, { useMemo } from 'react';
+import { Animated, TextInput, TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -7,18 +8,27 @@ import {
   TextColor,
   FontWeight,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
+import { useBlinkingCursor } from '../../../../../../UI/Ramp/hooks/useBlinkingCursor';
+import useCurrency from '../../../../../../Base/Keypad/useCurrency';
+import {
+  formatCurrency,
+  getCurrencySymbol,
+} from '../../../../../../UI/Bridge/utils/currencyUtils';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
 
-const styles = StyleSheet.create({
-  amountText: { fontSize: 48, lineHeight: 52 },
-});
-
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
-  usdAmount: string;
+  /** Entered amount preformatted in the user's display currency (e.g. "$20", "20 €"). */
+  fiatAmountLabel: string;
+  /** Raw fiat amount string from the keypad (no currency symbol). */
+  fiatAmount?: string;
+  /** ISO currency code for symbol placement while editing. */
+  currency?: string;
   destSymbol: string;
   /** Estimated amount received in the dest token from the quote. */
   estimatedReceiveAmount: string | undefined;
@@ -34,6 +44,8 @@ interface QuickBuyAmountSectionProps {
   sourceCryptoAmount?: string;
   /** Source token symbol (unpriced path), e.g. "CAKE". */
   sourceSymbol?: string;
+  /** When true, shows a blinking caret after the editable digits (keypad open). */
+  showCursor?: boolean;
   // Custom-amount input is temporarily disabled (numpad removed). The slider is
   // the only input path for now, but these props remain on the interface so the
   // controller wiring is preserved for when the keyboard path is restored.
@@ -42,17 +54,58 @@ interface QuickBuyAmountSectionProps {
   onAmountChange?: (text: string) => void;
 }
 
+/** True when the currency symbol appears before the digits for this locale. */
+function isCurrencySymbolPrefix(currency: string): boolean {
+  const symbol = getCurrencySymbol(currency);
+  if (!symbol) {
+    return true;
+  }
+  const formatted = formatCurrency(1, currency);
+  const digitIndex = formatted.search(/\d/);
+  const symbolIndex = formatted.indexOf(symbol);
+  if (digitIndex < 0 || symbolIndex < 0) {
+    return true;
+  }
+  return symbolIndex < digitIndex;
+}
+
+/**
+ * Show keypad-internal amounts (dot decimal) with the currency's locale
+ * separator so editing matches the closed-keypad `formatCurrency` headline.
+ */
+export function formatAmountDigitsForDisplay(
+  amount: string,
+  decimalSeparator: string | null | undefined,
+): string {
+  const digits = amount || '0';
+  if (!decimalSeparator || decimalSeparator === '.' || !digits.includes('.')) {
+    return digits;
+  }
+  return digits.replace('.', decimalSeparator);
+}
+
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
-  usdAmount,
+  fiatAmountLabel,
+  fiatAmount = '',
+  currency,
   destSymbol,
   estimatedReceiveAmount,
   isQuoteLoading,
   isUnpricedSource = false,
   sourceCryptoAmount,
   sourceSymbol,
+  showCursor = false,
+  onAmountAreaPress,
 }) => {
-  const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
+  const tw = useTailwind();
+  const cursorOpacity = useBlinkingCursor(showCursor);
+  // Same currency → decimal mapping as QuickBuyKeypad so the headline separator
+  // matches what the keypad is typing.
+  const { decimalSeparator } = useCurrency(
+    isUnpricedSource ? 'native' : currency,
+  );
+
   const cryptoAmountLabel = estimatedReceiveAmount
     ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
@@ -74,7 +127,110 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
   }
 
-  return (
+  // While the keypad is open, render amount digits + caret + currency/token
+  // affix separately so the caret sits where typing happens (after digits),
+  // not after a suffix symbol like "US$" / "ETH".
+  const editingPrimary = useMemo(() => {
+    if (!showCursor) {
+      return null;
+    }
+
+    const cursor = (
+      <Animated.View
+        testID="quick-buy-amount-cursor"
+        style={[
+          tw.style('mx-0.5 w-0.5 h-8 bg-primary-default'),
+          { opacity: cursorOpacity },
+        ]}
+      />
+    );
+
+    if (isUnpricedSource) {
+      const amountDigits = formatAmountDigitsForDisplay(
+        sourceCryptoAmount || '0',
+        decimalSeparator,
+      );
+      return (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+        >
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+          >
+            {amountDigits}
+          </Text>
+          {cursor}
+          {sourceSymbol ? (
+            <Text
+              variant={TextVariant.DisplayMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {` ${sourceSymbol}`}
+            </Text>
+          ) : null}
+        </Box>
+      );
+    }
+
+    const amountDigits = formatAmountDigitsForDisplay(
+      fiatAmount || '0',
+      decimalSeparator,
+    );
+    const symbol = currency ? getCurrencySymbol(currency) : '';
+    const symbolIsPrefix = currency ? isCurrencySymbolPrefix(currency) : true;
+
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+      >
+        {symbol && symbolIsPrefix ? (
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+          >
+            {symbol}
+          </Text>
+        ) : null}
+        <Text
+          variant={TextVariant.DisplayMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+        >
+          {amountDigits}
+        </Text>
+        {cursor}
+        {symbol && !symbolIsPrefix ? (
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+          >
+            {` ${symbol}`}
+          </Text>
+        ) : null}
+      </Box>
+    );
+  }, [
+    showCursor,
+    isUnpricedSource,
+    sourceCryptoAmount,
+    sourceSymbol,
+    fiatAmount,
+    currency,
+    decimalSeparator,
+    cursorOpacity,
+    tw,
+  ]);
+
+  const content = (
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
@@ -82,27 +238,65 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       twClassName="px-4 pt-6 pb-4"
       testID="quick-buy-amount-area"
     >
-      <Text
-        style={styles.amountText}
-        fontWeight={FontWeight.Bold}
-        color={TextColor.TextDefault}
-      >
-        {primaryLabel}
-      </Text>
+      {editingPrimary ?? (
+        <Text
+          variant={TextVariant.DisplayMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+        >
+          {primaryLabel}
+        </Text>
+      )}
 
       {isQuoteLoading ? (
-        <ActivityIndicator size="small" />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          testID="quick-buy-amount-loading"
+        >
+          <Skeleton
+            width={88}
+            height={16}
+            style={tw.style('rounded-md')}
+            testID="quick-buy-amount-loading-skeleton"
+          />
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID="quick-buy-amount-loading-symbol"
+          >
+            {destSymbol}
+          </Text>
+        </Box>
       ) : (
         <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
+          variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
+          numberOfLines={1}
         >
           {secondaryLabel}
         </Text>
       )}
     </Box>
   );
+
+  // On the keyboard treatment the headline is tappable to (re)open the keypad.
+  // activeOpacity={1} keeps it visually static — no press feedback.
+  if (onAmountAreaPress) {
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onAmountAreaPress}
+        accessibilityRole="button"
+        testID="quick-buy-amount-area-pressable"
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 export default QuickBuyAmountSection;

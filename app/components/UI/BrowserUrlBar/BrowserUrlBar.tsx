@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import {
   NativeSyntheticEvent,
@@ -29,13 +30,13 @@ import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.test
 import { strings } from '../../../../locales/i18n';
 import { BrowserURLBarSelectorsIDs } from './BrowserURLBar.testIds';
 import AccountRightButton from '../AccountRightButton';
-import Text from '../../../component-library/components/Texts/Text';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import URLParse from 'url-parse';
 import ButtonIcon, {
@@ -43,6 +44,7 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { hasProperty } from '@metamask/utils';
 import TabCountIcon from '../Tabs/TabCountIcon';
+import { Text } from '@metamask/design-system-react-native';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -61,13 +63,13 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     },
     ref,
   ) => {
-    const inputValueRef = useRef<string>('');
+    const [inputValue, setInputValue] = useState('');
     const inputRef = useRef<TextInput>(null);
     const shouldTriggerBlurCallbackRef = useRef(true);
     const accountsLength = useSelector(selectAccountsLength);
     const networkConfigurations = useSelector(selectNetworkConfigurations);
     const { trackEvent, createEventBuilder } = useAnalytics();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const selectedAddress = connectedAccounts?.[0];
     const dappOrigin = useMemo(() => {
       if (!activeUrl) {
@@ -106,7 +108,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const unfocusInput = useCallback(() => {
       setIsUrlBarFocused(false);
       // Reset the input value
-      inputValueRef.current = '';
+      setInputValue('');
     }, [setIsUrlBarFocused]);
 
     const onCancelInput = useCallback(() => {
@@ -193,6 +195,13 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       dappOrigin,
     ]);
 
+    const dismissEditing = useCallback(() => {
+      shouldTriggerBlurCallbackRef.current = false;
+      inputRef?.current?.blur();
+      unfocusInput();
+      onBlur();
+    }, [unfocusInput, onBlur]);
+
     useImperativeHandle(ref, () => ({
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
@@ -201,10 +210,14 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         const inputText = hasProperty(props, 'text') ? props.text : null;
 
         if (typeof inputText === 'string') {
-          inputValueRef.current = inputText;
+          setInputValue(inputText);
         }
         inputRef?.current?.setNativeProps(props);
       },
+      suppressNextBlur: () => {
+        shouldTriggerBlurCallbackRef.current = false;
+      },
+      dismissEditing,
     }));
 
     /**
@@ -256,7 +269,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         nativeEvent: { text },
       }: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
         const trimmedText = text.trim();
-        inputValueRef.current = trimmedText;
+        setInputValue(trimmedText);
         onSubmitEditing(trimmedText);
       },
       [onSubmitEditing],
@@ -268,7 +281,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const onClearInput = useCallback(() => {
       const clearedText = '';
       inputRef?.current?.clear();
-      inputValueRef.current = clearedText;
+      setInputValue(clearedText);
       onChangeText(clearedText);
     }, [onChangeText]);
 
@@ -304,11 +317,12 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
             />
             <TouchableWithoutFeedback onPress={onPressUrlText}>
               <Text
+                testID={BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT}
                 style={styles.urlBarText}
                 numberOfLines={1}
                 ellipsizeMode="head"
               >
-                {inputValueRef.current || displayUrl}
+                {inputValue || displayUrl}
               </Text>
             </TouchableWithoutFeedback>
           </View>

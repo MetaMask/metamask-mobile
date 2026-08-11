@@ -1,9 +1,14 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  EncapsulatedElementType,
+} from '../../framework';
 
 import { GasFeeTokenModalSelectorsText } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
 class GasFeeTokenModal {
-  getTokenItem(symbol: string): DetoxElement {
+  getTokenItem(symbol: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_ITEM}-${symbol}`,
     );
@@ -16,27 +21,27 @@ class GasFeeTokenModal {
   }
 
   async checkAmountToken(symbol: string, amount: string): Promise<void> {
-    const amountElement = await Matchers.getElementByID(
+    const amountElement = (await Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT}-${symbol}`,
-    );
+    )) as Detox.IndexableNativeElement;
     const amountElementAttributes = await amountElement.getAttributes();
     const amountElementLabel = this.elementSafe(amountElementAttributes);
     await Assertions.checkIfTextMatches(amountElementLabel, amount);
   }
 
   async checkBalance(symbol: string, balance: string): Promise<void> {
-    const balanceElement = await Matchers.getElementByID(
+    const balanceElement = (await Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_BALANCE}-${symbol}`,
-    );
+    )) as Detox.IndexableNativeElement;
     const balanceElementAttributes = await balanceElement.getAttributes();
     const balanceElementLabel = this.elementSafe(balanceElementAttributes);
     await Assertions.checkIfTextMatches(balanceElementLabel, balance);
   }
 
   async checkAmountFiat(symbol: string, amountFiat: string): Promise<void> {
-    const amountFiatElement = await Matchers.getElementByID(
+    const amountFiatElement = (await Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT_FIAT}-${symbol}`,
-    );
+    )) as Detox.IndexableNativeElement;
 
     await Assertions.expectElementToBeVisible(amountFiatElement, {
       description: `Amount fiat for ${symbol} is visible`,

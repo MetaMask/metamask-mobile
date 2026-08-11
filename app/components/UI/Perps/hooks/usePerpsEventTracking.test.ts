@@ -6,11 +6,19 @@ import {
 } from '@metamask/perps-controller';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mock('../utils/perpsAnalyticsAttribution', () => ({
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
+const mockGetPerpsUtmAttributionProperties = jest.mocked(
+  getPerpsUtmAttributionProperties,
+);
 
 describe('usePerpsEventTracking', () => {
   beforeEach(() => {
@@ -32,7 +40,7 @@ describe('usePerpsEventTracking', () => {
   });
 
   describe('track', () => {
-    it('should track event with automatic timestamp', () => {
+    it('tracks event with automatic timestamp', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockEvent = 'TEST_EVENT' as any;
@@ -50,7 +58,7 @@ describe('usePerpsEventTracking', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ type: 'mock-event' });
     });
 
-    it('should track event with custom properties', () => {
+    it('tracks event with custom properties', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockEvent = 'TEST_EVENT' as any;
@@ -113,6 +121,52 @@ describe('usePerpsEventTracking', () => {
       );
     });
 
+    it('merges UTM attribution into PERPS_SCREEN_VIEWED props', () => {
+      mockGetPerpsUtmAttributionProperties.mockReturnValueOnce({
+        [PERPS_EVENT_PROPERTY.UTM_SOURCE]: 'newsletter',
+        [PERPS_EVENT_PROPERTY.UTM_MEDIUM]: 'email',
+      });
+      const { result } = renderHook(() => usePerpsEventTracking());
+      const customProps = {
+        screen_type: 'home',
+        // Explicit UTM should win over the stored attribution value.
+        [PERPS_EVENT_PROPERTY.UTM_MEDIUM]: 'push',
+      };
+
+      act(() => {
+        result.current.track(
+          MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          customProps,
+        );
+      });
+
+      const perpsBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.UTM_SOURCE]: 'newsletter',
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        ...customProps,
+      });
+    });
+
+    it('does not merge UTM attribution into non-screen-viewed events', () => {
+      const { result } = renderHook(() => usePerpsEventTracking());
+
+      act(() => {
+        result.current.track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        });
+      });
+
+      expect(mockGetPerpsUtmAttributionProperties).not.toHaveBeenCalled();
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      });
+    });
+
     it('does not track Asset Viewed for cancel_all_orders', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       const customProps = {
@@ -140,6 +194,38 @@ describe('usePerpsEventTracking', () => {
       expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
+      });
+    });
+  });
+
+  describe('declarative tracking', () => {
+    it('tracks again when reset key changes', () => {
+      const { rerender } = renderHook(
+        ({ resetKey }: { resetKey: string }) =>
+          usePerpsEventTracking({
+            eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+            resetKey,
+            conditions: [true],
+            properties: { asset: resetKey },
+          }),
+        {
+          initialProps: { resetKey: 'BTC' },
+        },
+      );
+
+      // Each PERPS_SCREEN_VIEWED emits a companion ASSET_VIEWED, so the initial
+      // declarative track fires twice (screen viewed + asset viewed).
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+
+      rerender({ resetKey: 'ETH' });
+
+      // Reset key change re-tracks: +1 screen viewed, +1 companion asset viewed.
+      expect(mockTrackEvent).toHaveBeenCalledTimes(4);
+      // Builder order: [0] BTC screen, [1] BTC asset, [2] ETH screen, [3] ETH asset.
+      const eventBuilder = mockCreateEventBuilder.mock.results[2].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        asset: 'ETH',
       });
     });
   });

@@ -6,6 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
@@ -29,6 +30,7 @@ const mockNavigation = {
 
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockClaim = jest.fn();
+const mockTrackPortfolioTransactionInitiated = jest.fn();
 
 const createPortfolio = (
   overrides: Partial<PredictPortfolioModel> = {},
@@ -71,14 +73,17 @@ const createPortfolio = (
 });
 
 const renderHeader = ({
+  entryPoint,
   isPrivacyMode = false,
   portfolio = createPortfolio(),
 }: {
+  entryPoint?: typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS;
   isPrivacyMode?: boolean;
   portfolio?: PredictPortfolioModel;
 } = {}) =>
   render(
     <PredictPositionsViewHeader
+      entryPoint={entryPoint}
       isPrivacyMode={isPrivacyMode}
       portfolio={portfolio}
     />,
@@ -93,6 +98,15 @@ describe('PredictPositionsViewHeader', () => {
         await action();
       },
     );
+    const predictController = {
+      trackPortfolioTransactionInitiated:
+        mockTrackPortfolioTransactionInitiated,
+    };
+    (
+      Engine.context as unknown as {
+        PredictController: typeof predictController;
+      }
+    ).PredictController = predictController;
   });
 
   it('always renders the available balance row for first-time zero state', () => {
@@ -140,11 +154,15 @@ describe('PredictPositionsViewHeader', () => {
     expect(screen.getByText('-$18.47 (-2.1%)')).toBeOnTheScreen();
   });
 
-  it('wraps claim CTA presses in the Predict action guard', async () => {
+  it('wraps claim CTA presses in the Predict action guard and passes analytics context to claim', async () => {
     renderHeader({
       portfolio: createPortfolio({
         claimableAmount: 46.35,
+        claimablePositionCount: 1,
         hasClaimableWinnings: true,
+        openPositionCount: 2,
+        portfolioValue: 4000,
+        totalUnrealizedPnlAmount: -18.47,
       }),
     });
 
@@ -159,7 +177,43 @@ describe('PredictPositionsViewHeader', () => {
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
       );
     });
+    expect(mockClaim).toHaveBeenCalledWith({
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      openPositionsCount: 2,
+      claimablePositionsCount: 1,
+      hasClaimableWinnings: true,
+      predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+    });
+    const payload = mockClaim.mock.calls[0][0];
+    expect(payload).not.toHaveProperty('claimableAmount');
+    expect(payload).not.toHaveProperty('portfolioValue');
+    expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
     expect(mockClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not claim when the action guard short-circuits', async () => {
+    mockExecuteGuardedAction.mockImplementationOnce(async () => undefined);
+
+    renderHeader({
+      portfolio: createPortfolio({
+        claimableAmount: 46.35,
+        claimablePositionCount: 1,
+        hasClaimableWinnings: true,
+        openPositionCount: 2,
+      }),
+    });
+
+    fireEvent.press(
+      screen.getByTestId(PredictPositionsViewSelectorsIDs.CLAIM_CTA),
+    );
+
+    await waitFor(() => {
+      expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+        expect.any(Function),
+        { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+      );
+    });
+    expect(mockClaim).not.toHaveBeenCalled();
   });
 
   it('supports privacy mode with SensitiveText masking', () => {

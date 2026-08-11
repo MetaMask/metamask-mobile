@@ -14,6 +14,13 @@
  * https://specs.walletconnect.com/2.0/specs/clients/sign/namespaces#16-all-chains-in-the-namespace-must-contain-the-namespace-prefix
  */
 import {
+  Caip25CaveatType,
+  type Caip25CaveatValue,
+  Caip25EndowmentPermissionName,
+  getCaipAccountIdsFromCaip25CaveatValue,
+} from '@metamask/chain-agnostic-permission';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import {
   type CaipAccountId,
   type CaipChainId,
   type KnownCaipNamespace,
@@ -22,6 +29,8 @@ import {
 } from '@metamask/utils';
 import type { SessionTypes } from '@walletconnect/types';
 import Engine from '../../Engine';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { getPermittedCaipChainIds } from '../../Permissions';
 import { NamespaceConfig, ProposalParamsLight } from './types';
 
 type NamespaceReferenceSource = Partial<ProposalParamsLight> & {
@@ -122,6 +131,124 @@ export function doesProposalOrSessionIncludeNamespace({
   namespace: KnownCaipNamespace;
 }): boolean {
   return getReferencedNamespaces(proposalOrSession).has(namespace);
+}
+
+/**
+ * Build a non-EVM namespace slice from the wallet's permitted CAIP chains and
+ * accounts. Chain-specific adapters pass only their namespace, supported WC
+ * methods/events, and optional outbound normalizers.
+ */
+export async function buildAdapterScopedPermissions({
+  channelId,
+  namespace,
+  methods,
+  events,
+  normalizeChainIdOutbound = (chainId) => chainId,
+  normalizeAccountIdOutbound = (accountId) => accountId,
+}: {
+  channelId: string;
+  namespace: KnownCaipNamespace;
+  methods: readonly string[];
+  events: readonly string[];
+  normalizeChainIdOutbound?: (chainId: CaipChainId) => CaipChainId;
+  normalizeAccountIdOutbound?: (accountId: CaipAccountId) => CaipAccountId;
+}): Promise<NamespaceConfig | undefined> {
+  const permittedChains = await getPermittedCaipChainIds(channelId);
+  const namespaceChains = permittedChains.filter((chain) =>
+    chain.startsWith(`${namespace}:`),
+  );
+
+  if (namespaceChains.length === 0) {
+    return undefined;
+  }
+
+  let permittedNamespaceAccounts: CaipAccountId[] = [];
+  try {
+    const permissionCaveat = Engine.context.PermissionController?.getCaveat(
+      channelId,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+    if (permissionCaveat) {
+      permittedNamespaceAccounts = getCaipAccountIdsFromCaip25CaveatValue(
+        permissionCaveat.value as Parameters<
+          typeof getCaipAccountIdsFromCaip25CaveatValue
+        >[0],
+      ).filter((account) => account.startsWith(`${namespace}:`));
+    }
+  } catch (error) {
+    if (!(error instanceof PermissionDoesNotExistError)) {
+      DevLogger.log(
+        `[wc][multichain/${namespace}] failed to read permission caveat`,
+        error,
+      );
+    }
+  }
+
+  if (permittedNamespaceAccounts.length === 0) {
+    return undefined;
+  }
+
+  const sortedPermittedNamespaceAccounts = prioritizeSelectedCaipAccountIds(
+    permittedNamespaceAccounts,
+  );
+
+  return {
+    chains: namespaceChains.map((chain) => normalizeChainIdOutbound(chain)),
+    methods: [...methods],
+    events: [...events],
+    accounts: sortedPermittedNamespaceAccounts.map((account) =>
+      normalizeAccountIdOutbound(account),
+    ),
+  };
+}
+
+/**
+ * Seed adapter-supported CAIP-2 scopes into the CAIP-25 caveat. Unsupported
+ * requested scopes fall back to the adapter's main supported scope.
+ */
+export function enrichCaveatValueForNamespace({
+  proposal,
+  caveatValue,
+  namespace,
+  supportedScopes,
+  fallbackScope,
+  normalizeChainIdInbound = (chainId) => chainId,
+}: {
+  proposal: ProposalParamsLight;
+  caveatValue: Caip25CaveatValue;
+  namespace: KnownCaipNamespace;
+  supportedScopes: ReadonlySet<CaipChainId>;
+  fallbackScope: CaipChainId;
+  normalizeChainIdInbound?: (chainId: CaipChainId) => CaipChainId;
+}): Caip25CaveatValue {
+  const requestedChains = collectRequestedChainsForNamespace({
+    proposal,
+    namespace,
+  });
+
+  if (requestedChains.length === 0) {
+    return caveatValue;
+  }
+
+  const scopesToAdd = requestedChains
+    .map((chain) => normalizeChainIdInbound(chain))
+    .filter((chain) => supportedScopes.has(chain));
+
+  const extraOptionalScopes = Object.fromEntries(
+    (scopesToAdd.length > 0 ? scopesToAdd : [fallbackScope]).map((scope) => [
+      scope,
+      { accounts: [] },
+    ]),
+  );
+
+  return {
+    ...caveatValue,
+    optionalScopes: {
+      ...caveatValue.optionalScopes,
+      ...extraOptionalScopes,
+    },
+  };
 }
 
 /**

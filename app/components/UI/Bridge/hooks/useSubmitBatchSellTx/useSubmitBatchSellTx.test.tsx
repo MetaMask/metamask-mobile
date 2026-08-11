@@ -51,6 +51,23 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn(() => true),
 }));
 
+const { selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction } =
+  jest.requireMock('../../../../../selectors/smartTransactionsController');
+
+const mockSourceTokens = [
+  {
+    address: '0x1111111111111111111111111111111111111111',
+    chainId: '0x1',
+    decimals: 18,
+    symbol: 'ETH',
+  },
+];
+
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectBatchSellSourceTokens: jest.fn(() => mockSourceTokens),
+}));
+
 jest.mock('../../../../../selectors/bridge', () => ({
   ...jest.requireActual('../../../../../selectors/bridge'),
   selectBatchSellSourceWalletAddress: jest.fn(
@@ -152,5 +169,16 @@ describe('useSubmitBatchSellTx', () => {
         quoteResponses: [],
       }),
     ).rejects.toThrow('Batch Sell wallet address is not set');
+  });
+
+  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
+    renderHook(() => useSubmitBatchSellTx(), {
+      wrapper: createWrapper(),
+    });
+
+    expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+    );
   });
 });

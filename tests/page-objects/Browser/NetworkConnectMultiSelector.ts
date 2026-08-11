@@ -1,23 +1,35 @@
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../app/components/Views/NetworkConnect/NetworkConnectMultiSelector.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { Assertions } from '../../framework';
+import {
+  Assertions,
+  EncapsulatedElementType,
+  encapsulated,
+  PlatformDetector,
+  PlaywrightMatchers,
+} from '../../framework';
 
 class NetworkConnectMultiSelector {
-  get updateButton(): DetoxElement {
+  get updateButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
   }
 
-  get backButton(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkConnectMultiSelectorSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  getMultiselectElement(label: string): DetoxElement {
-    return Matchers.getElementByLabel(label);
+  getNetworkRow(networkName: string): EncapsulatedElementType {
+    const escaped = networkName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return encapsulated({
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          new RegExp(`^${escaped}-(selected|not-selected)$`),
+        ),
+    });
   }
 
   async tapUpdateButton(): Promise<void> {
@@ -33,8 +45,14 @@ class NetworkConnectMultiSelector {
   }
 
   async isNetworkChainPermissionSelected(chainName: string): Promise<void> {
-    const chainPermissionTestId = `${chainName}-selected`;
-    const el = await Matchers.getElementByID(chainPermissionTestId);
+    const el = Matchers.getElementByID(`${chainName}-selected`);
+    if (PlatformDetector.isIOSAppium()) {
+      await Assertions.expectElementToExist(el, {
+        timeout: 10000,
+        description: `Network chain permission ${chainName} should be selected`,
+      });
+      return;
+    }
     await Assertions.expectElementToBeVisible(el, {
       timeout: 10000,
       description: `Network chain permission ${chainName} should be selected`,
@@ -42,18 +60,25 @@ class NetworkConnectMultiSelector {
   }
 
   async isNetworkChainPermissionNotSelected(chainName: string): Promise<void> {
-    const chainPermissionTestId = `${chainName}-not-selected`;
-    const el = await Matchers.getElementByID(chainPermissionTestId);
+    const el = Matchers.getElementByID(`${chainName}-not-selected`);
+    if (PlatformDetector.isIOSAppium()) {
+      await Assertions.expectElementToExist(el, {
+        timeout: 10000,
+        description: `Network chain permission ${chainName} should not be selected`,
+      });
+      return;
+    }
     await Assertions.expectElementToBeVisible(el, {
       timeout: 10000,
-      description: `Network chain permission ${chainName} should be selected`,
+      description: `Network chain permission ${chainName} should not be selected`,
     });
   }
 
   async selectNetworkChainPermission(chainName: string): Promise<void> {
-    const el = this.getMultiselectElement(chainName);
-    await Gestures.waitAndTap(el, {
+    const row = this.getNetworkRow(chainName);
+    await Gestures.waitAndTap(row, {
       elemDescription: `Tap on the network chain permission ${chainName}`,
+      checkForDisplayed: !PlatformDetector.isIOSAppium(),
     });
   }
 }

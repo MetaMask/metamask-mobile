@@ -1,9 +1,8 @@
 import {
-  formatAddressToAssetId,
   formatChainIdToCaip,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
-import { CaipAssetType, CaipChainId } from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { BridgeToken } from '../../types';
 
@@ -21,7 +20,7 @@ export const SUPPORTED_BATCH_SELL_CHAIN_IDS: CaipChainId[] = [
   'eip155:137',
 ];
 
-interface BatchSellEligibleChain {
+export interface BatchSellEligibleChain {
   chainId: CaipChainId;
   name: string;
   tokenFiatAmount: number;
@@ -41,44 +40,6 @@ export function getBatchSellDestinationToken(
   return stablecoins.find(
     (stablecoin) => formatChainIdToCaip(stablecoin.chainId) === caipChainId,
   );
-}
-
-export function removeStablecoinsFromSourceTokens({
-  tokens,
-  stablecoinsByChain,
-}: {
-  tokens: BridgeToken[];
-  stablecoinsByChain: Partial<Record<CaipChainId, BridgeToken[]>>;
-}): BridgeToken[] {
-  const stablecoinAssetIdsByChain = new Map(
-    Object.entries(stablecoinsByChain).map(([chainId, stablecoins]) => [
-      chainId as CaipChainId,
-      new Set(
-        (stablecoins ?? [])
-          .map((stablecoin) =>
-            formatAddressToAssetId(stablecoin.address, stablecoin.chainId),
-          )
-          .filter((assetId): assetId is CaipAssetType => Boolean(assetId)),
-      ),
-    ]),
-  );
-
-  return tokens.filter((token) => {
-    const caipChainId = formatChainIdToCaip(token.chainId);
-    const stablecoinAssetIds = stablecoinAssetIdsByChain.get(caipChainId);
-
-    if (!stablecoinAssetIds) {
-      return true;
-    }
-
-    const assetId = formatAddressToAssetId(token.address, token.chainId);
-
-    if (!assetId) {
-      return true;
-    }
-
-    return !stablecoinAssetIds.has(assetId);
-  });
 }
 
 export function sortBatchSellTokens(

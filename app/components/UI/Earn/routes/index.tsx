@@ -12,9 +12,13 @@ import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import type {
+  EarnModalsNavigationParamList,
+  EarnScreensStackParamList,
+} from '../types/navigation';
 
-const Stack = createNativeStackNavigator();
-const ModalStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<EarnScreensStackParamList>();
+const ModalStack = createNativeStackNavigator<EarnModalsNavigationParamList>();
 
 const EarnScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
@@ -65,7 +69,7 @@ const EarnModalStack = () => (
     <ModalStack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, presentation: 'card' }}
     />
   </ModalStack.Navigator>
 );

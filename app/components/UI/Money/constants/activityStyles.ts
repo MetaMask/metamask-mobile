@@ -10,6 +10,7 @@ import {
   MUSD_DECIMALS,
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
+import { isPerpsPredictMoneyWithdraw } from '../utils/moneyTransactionGuards';
 
 function formatNumber(num: number): string {
   return getIntlNumberFormatter(I18n.locale, {
@@ -185,6 +186,10 @@ export function getMusdDisplayAmountFromTransactionMeta(
 }
 
 export function isIncomingMoneyTransactionMeta(tx: TransactionMeta): boolean {
+  if (isPerpsPredictMoneyWithdraw(tx)) {
+    return true;
+  }
+
   const t = tx.type;
   if (
     t === EvmTransactionType.incoming ||
@@ -194,6 +199,7 @@ export function isIncomingMoneyTransactionMeta(tx: TransactionMeta): boolean {
   ) {
     return true;
   }
+
   // EIP-7702 batch deposits: moneyAccountDeposit sits in nestedTransactions
   return (
     tx.nestedTransactions?.some(

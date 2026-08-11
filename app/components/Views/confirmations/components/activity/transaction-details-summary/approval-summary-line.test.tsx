@@ -12,13 +12,17 @@ import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useB
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { ApprovalSummaryLine } from './approval-summary-line';
-
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -27,7 +31,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-function render() {
+function render(to = '0x999') {
   return renderWithProvider(
     <ApprovalSummaryLine
       transactionMeta={
@@ -37,7 +41,7 @@ function render() {
           hash: '0x456',
           submittedTime: 1755719285723,
           type: TransactionType.tokenMethodApprove,
-          txParams: { from: '0x123', to: '0x999' },
+          txParams: { from: '0x123', to },
         } as unknown as TransactionMeta
       }
     />,
@@ -61,6 +65,8 @@ describe('ApprovalSummaryLine', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    configureUseAnalyticsExternalLinkMock();
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
@@ -100,6 +106,31 @@ describe('ApprovalSummaryLine', () => {
     render();
 
     expect(useTokenWithBalanceMock).toHaveBeenCalledWith('0x999', '0x1');
+  });
+
+  it('renders branded mUSD symbol when registry token at the mUSD address has symbol MUSD', () => {
+    useTokenWithBalanceMock.mockReturnValue({ symbol: 'MUSD' } as ReturnType<
+      typeof useTokenWithBalance
+    >);
+
+    const { getByText, queryByText } = render(
+      '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA',
+    );
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_approval', {
+          approveSymbol: 'mUSD',
+        }),
+      ),
+    ).toBeDefined();
+    expect(
+      queryByText(
+        strings('transaction_details.summary_title.bridge_approval', {
+          approveSymbol: 'MUSD',
+        }),
+      ),
+    ).toBeNull();
   });
 
   it('renders loading title when token symbol is unavailable', () => {

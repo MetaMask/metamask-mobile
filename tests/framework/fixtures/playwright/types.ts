@@ -1,11 +1,13 @@
 import type { ServiceProvider } from '../../services';
 import type { PerformanceTracker } from '../../../reporters/PerformanceTracker';
+import type { PhaseTimer } from '../../telemetry/PhaseTimer.ts';
 
 export interface CurrentDeviceDetails {
   platform: 'android' | 'ios';
   deviceName: string;
   /**
-   * Android: adb serial (e.g. `emulator-5554`) after AVD name resolution. Omitted on iOS.
+   * Android: adb serial (e.g. `emulator-5554`) after AVD name resolution.
+   * iOS: simulator UDID resolved from the display name at fixture time (prefers the Booted one).
    */
   udid?: string;
   packageName?: string;
@@ -15,18 +17,32 @@ export interface CurrentDeviceDetails {
   isBrowserstack: boolean;
 }
 
+/**
+ * Mutable holder for the worker-scoped Appium/WDIO session.
+ * The test-scoped `driver` fixture reads/writes `drv`.
+ */
+export interface SharedAppiumSession {
+  drv?: WebdriverIO.Browser;
+}
+
+export interface WorkerLevelFixtures {
+  /**
+   * Worker-scoped device provider (one instance per Playwright worker/shard).
+   */
+  deviceProvider: ServiceProvider;
+
+  /**
+   * Worker-scoped session holder for reuse across tests.
+   */
+  sharedSession: SharedAppiumSession;
+}
+
 export interface TestLevelFixtures {
   /**
    * Platform detector to be used for the test.
    * This detects the platform of the device being tested.
    */
   currentDeviceDetails: CurrentDeviceDetails;
-
-  /**
-   * Device provider to be used for the test.
-   * This creates and manages the device lifecycle for the test
-   */
-  deviceProvider: ServiceProvider;
 
   /**
    * The device instance that will be used for running the test.
@@ -41,4 +57,9 @@ export interface TestLevelFixtures {
    * It also handles quality gate validation and Sentry publishing.
    */
   performanceTracker: PerformanceTracker;
+
+  /**
+   * Appium smoke phase timer. Auto-fixture; attaches JSON timings.
+   */
+  phaseTimer: PhaseTimer;
 }

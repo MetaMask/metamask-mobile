@@ -63,6 +63,10 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   mobileMinimumVersions: {
     appMinimumBuild: 1,
   },
+  // Pin onboarding interest questionnaire to control so wallet E2E flows do not
+  // encounter the screen (dismissOnboardingInterestQuestionnaire uses Playwright
+  // APIs that are not available under Detox).
+  tradeTO880AbtestOnboardingInterestQuestion: 'control',
 };
 
 /**

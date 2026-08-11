@@ -14,7 +14,6 @@ describe('AnalyticsEventBuilder', () => {
       expect(event.name).toBe('test_event');
       expect(event.properties).toEqual({});
       expect(event.sensitiveProperties).toEqual({});
-      expect(event.saveDataRecording).toBe(false);
       expect(event.isAnonymous).toBe(false);
       expect(event.hasProperties).toBe(false);
     });
@@ -31,7 +30,6 @@ describe('AnalyticsEventBuilder', () => {
       expect(event.name).toBe('legacy_category');
       expect(event.properties).toEqual({});
       expect(event.sensitiveProperties).toEqual({});
-      expect(event.saveDataRecording).toBe(false);
     });
 
     it('creates event from ITrackingEvent with name', () => {
@@ -39,7 +37,6 @@ describe('AnalyticsEventBuilder', () => {
         name: 'tracking_event',
         properties: { prop1: 'value1' },
         sensitiveProperties: { sensitiveProp: 'sensitiveValue' },
-        saveDataRecording: true,
         get isAnonymous(): boolean {
           return Object.keys(this.sensitiveProperties).length > 0;
         },
@@ -61,7 +58,6 @@ describe('AnalyticsEventBuilder', () => {
       expect(event.sensitiveProperties).toEqual({
         sensitiveProp: 'sensitiveValue',
       });
-      expect(event.saveDataRecording).toBe(true);
     });
 
     it('creates event from AnalyticsTrackingEvent', () => {
@@ -69,7 +65,6 @@ describe('AnalyticsEventBuilder', () => {
         name: 'existing_event',
         properties: { existingProp: 'value' },
         sensitiveProperties: {},
-        saveDataRecording: true,
         get isAnonymous(): boolean {
           return Object.keys(this.sensitiveProperties).length > 0;
         },
@@ -84,7 +79,6 @@ describe('AnalyticsEventBuilder', () => {
       expect(event.name).toBe('existing_event');
       expect(event.properties).toEqual({ existingProp: 'value' });
       expect(event.sensitiveProperties).toEqual({});
-      expect(event.saveDataRecording).toBe(true);
     });
   });
 
@@ -297,45 +291,6 @@ describe('AnalyticsEventBuilder', () => {
     });
   });
 
-  describe('setSaveDataRecording', () => {
-    it('sets saveDataRecording to true', () => {
-      const event = AnalyticsEventBuilder.createEventBuilder('test_event')
-        .setSaveDataRecording(true)
-        .build();
-
-      expect(event.saveDataRecording).toBe(true);
-    });
-
-    it('sets saveDataRecording to false', () => {
-      const event = AnalyticsEventBuilder.createEventBuilder('test_event')
-        .setSaveDataRecording(false)
-        .build();
-
-      expect(event.saveDataRecording).toBe(false);
-    });
-
-    it('overwrites previous saveDataRecording value', () => {
-      const event = AnalyticsEventBuilder.createEventBuilder('test_event')
-        .setSaveDataRecording(true)
-        .setSaveDataRecording(false)
-        .build();
-
-      expect(event.saveDataRecording).toBe(false);
-    });
-
-    it('returns builder for method chaining', () => {
-      const builder = AnalyticsEventBuilder.createEventBuilder('test_event');
-      const chainedBuilder = builder.setSaveDataRecording(true);
-
-      // Builder methods return a new builder instance, but chaining works
-      expect(chainedBuilder).toBeDefined();
-      expect(chainedBuilder.build().saveDataRecording).toBe(true);
-      // Verify chaining works by calling another method
-      const finalEvent = chainedBuilder.setSaveDataRecording(false).build();
-      expect(finalEvent.saveDataRecording).toBe(false);
-    });
-  });
-
   describe('isAnonymous getter', () => {
     it('returns false when no sensitive properties', () => {
       const event = AnalyticsEventBuilder.createEventBuilder('test_event')
@@ -411,14 +366,12 @@ describe('AnalyticsEventBuilder', () => {
       const event = AnalyticsEventBuilder.createEventBuilder('test_event')
         .addProperties({ prop1: 'value1' })
         .addSensitiveProperties({ address: '0x123' })
-        .setSaveDataRecording(true)
         .removeProperties(['prop1'])
         .build();
 
       expect(event.name).toBe('test_event');
       expect(event.properties).toEqual({});
       expect(event.sensitiveProperties).toEqual({ address: '0x123' });
-      expect(event.saveDataRecording).toBe(true);
       expect(event.isAnonymous).toBe(true);
     });
 
@@ -462,7 +415,6 @@ describe('AnalyticsEventBuilder', () => {
         name: 'tracking_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -482,7 +434,6 @@ describe('AnalyticsEventBuilder', () => {
         name: 'existing_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },

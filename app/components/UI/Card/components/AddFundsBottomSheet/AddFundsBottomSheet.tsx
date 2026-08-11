@@ -23,7 +23,7 @@ import { View } from 'react-native';
 import { CardFundingToken } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
 import { isBridgeAllowed } from '../../../Bridge/utils';
-import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
+import useDepositEnabled from '../../../Ramp/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
@@ -32,10 +32,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../Ramp/constants/rampsBuyCufTags';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
-import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import {
   createNavigationDetails,
   useParams,
@@ -43,7 +43,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
-interface AddFundsModalNavigationDetails {
+export interface AddFundsModalNavigationDetails {
   priorityToken?: CardFundingToken;
 }
 
@@ -65,9 +65,8 @@ const AddFundsBottomSheet: React.FC = () => {
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -84,8 +83,15 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [priorityToken, openSwaps, closeBottomSheetAndNavigate]);
 
   const openDeposit = useCallback(() => {
+    const assetId =
+      priorityToken?.address && priorityToken?.caipChainId
+        ? `${priorityToken.caipChainId}/erc20:${priorityToken.address}`
+        : undefined;
+
     closeBottomSheetAndNavigate(() => {
-      goToDeposit();
+      goToBuy(assetId ? { assetId } : undefined, {
+        surface: RAMPS_BUY_CUF_SURFACE.CARD,
+      });
     });
     trackEvent(
       createEventBuilder(
@@ -99,9 +105,8 @@ const AddFundsBottomSheet: React.FC = () => {
           button_text: 'Fund with cash',
           location: 'CardHome',
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'DEPOSIT',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
-          ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,
           order_count: buttonClickData.order_count,
@@ -115,12 +120,11 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    goToDeposit,
+    goToBuy,
     trackEvent,
     createEventBuilder,
     priorityToken,
     buttonClickData,
-    isV2UnifiedEnabled,
   ]);
 
   const options = [

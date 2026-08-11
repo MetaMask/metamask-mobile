@@ -11,6 +11,7 @@ There are also plenty of open issues we'd love help with. Search the [`good firs
 If you're picking up a bounty or an existing issue, feel free to ask clarifying questions on the issue as you go about your work.
 
 ### Submitting a pull request
+
 When you're done with your project / bugfix / feature and ready to submit a PR, there are a couple guidelines we ask you to follow:
 
 - [ ] **Make sure you followed our [`coding guidelines`](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md)**: These guidelines aim to maintain consistency and readability across the codebase. They help ensure that the code is easy to understand, maintain, and modify, which is particularly important when working with multiple contributors.
@@ -25,6 +26,6 @@ When you're done with your project / bugfix / feature and ready to submit a PR, 
 
 ### Shadow CI jobs
 
-CI jobs prefixed with `[shadow]` (e.g., from `ci-namespace-shadow.yml`) are **advisory only** and never gate merge. They run the same test suite on Namespace runners for performance benchmarking. If a shadow job fails, it does not indicate a problem with your PR -- it reflects the state of the Namespace runner migration trial.
+The Namespace shadow CI (`ci-namespace-shadow.yml`) no longer runs automatically: its automatic triggers (PRs, pushes to `main`, hourly schedule) are disabled now that the Phase 5d benchmark is complete. It is retained for on-demand runs via manual `workflow_dispatch`, or you can dispatch `ci.yml` directly with `runner_provider=namespace`. Any `[shadow]`-prefixed jobs were always **advisory only** and never gated merge.
 
 And that's it! Thanks for helping out.

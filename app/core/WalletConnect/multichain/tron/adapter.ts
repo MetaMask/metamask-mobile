@@ -4,45 +4,43 @@ import {
   type CaipChainId,
   KnownCaipNamespace,
 } from '@metamask/utils';
-import {
-  Caip25CaveatType,
-  type Caip25CaveatValue,
-  Caip25EndowmentPermissionName,
-  getCaipAccountIdsFromCaip25CaveatValue,
-} from '@metamask/chain-agnostic-permission';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { type Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 
-import Engine from '../../../Engine';
-import { getPermittedCaipChainIds } from '../../../Permissions';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
+  buildAdapterScopedPermissions,
   caipAccountIdDecimalToHex,
   caipAccountIdHexToDecimal,
   caipChainIdDecimalToHex,
   caipChainIdHexToDecimal,
-  collectRequestedChainsForNamespace,
   doesProposalOrSessionIncludeNamespace,
-  prioritizeSelectedCaipAccountIds,
+  enrichCaveatValueForNamespace,
 } from '../utils';
 import type {
   AdapterHandleRequestArgs,
   ChainAdapter,
   NamespaceConfig,
   ProposalParamsLight,
+  RpcMethod,
+  RpcResponse,
 } from '../types';
-import { callMultichainRoutingService } from '../router';
-import { mapRequestInbound, mapRequestOutbound } from './mapper';
-import type {
-  TronSnapSignatureResult,
-  TronWalletConnectMethod,
-  TronWalletConnectSignMessageParams,
-  TronWalletConnectSignTransactionParams,
-} from './types';
+import { createSnapCaller } from '../router';
+import {
+  mapSignMessageRequest,
+  mapSignMessageResponse,
+  mapSignTransactionRequest,
+  mapSignTransactionResponse,
+} from './mapper';
+import type { TronSnapSpec, TronWalletConnectSpec } from './types';
+
+/**
+ * Snap caller bound to the Tron Snap spec.
+ */
+const callTronSnap = createSnapCaller<TronSnapSpec>();
 
 /**
  * WalletConnect methods the wallet exposes for the Tron namespace.
  */
-const TRON_METHODS: readonly TronWalletConnectMethod[] = [
+const TRON_METHODS: readonly RpcMethod<TronWalletConnectSpec>[] = [
   'tron_signTransaction',
   'tron_signMessage',
 ];
@@ -114,54 +112,14 @@ export async function getScopedPermissions({
 }: {
   channelId: string;
 }): Promise<NamespaceConfig | undefined> {
-  const permittedChains = await getPermittedCaipChainIds(channelId);
-  const tronChains = permittedChains.filter((chain) =>
-    chain.startsWith(`${KnownCaipNamespace.Tron}:`),
-  );
-
-  if (tronChains.length === 0) {
-    return undefined;
-  }
-
-  let permittedTronAccounts: CaipAccountId[] = [];
-  try {
-    const permissionCaveat = Engine.context.PermissionController?.getCaveat(
-      channelId,
-      Caip25EndowmentPermissionName,
-      Caip25CaveatType,
-    );
-    if (permissionCaveat) {
-      permittedTronAccounts = getCaipAccountIdsFromCaip25CaveatValue(
-        permissionCaveat.value as Parameters<
-          typeof getCaipAccountIdsFromCaip25CaveatValue
-        >[0],
-      ).filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`));
-    }
-  } catch (error) {
-    if (!(error instanceof PermissionDoesNotExistError)) {
-      DevLogger.log(
-        '[wc][multichain/tron] failed to read permission caveat',
-        error,
-      );
-    }
-  }
-
-  if (permittedTronAccounts.length === 0) {
-    return undefined;
-  }
-
-  const sortedPermittedTronAccounts = prioritizeSelectedCaipAccountIds(
-    permittedTronAccounts,
-  );
-
-  return {
-    chains: tronChains.map((chain) => normalizeCaipChainIdOutbound(chain)),
-    methods: [...TRON_METHODS],
-    events: [...TRON_EVENTS],
-    accounts: sortedPermittedTronAccounts.map((account) =>
-      normalizeTronAccountIdOutbound(account),
-    ),
-  };
+  return buildAdapterScopedPermissions({
+    channelId,
+    namespace: KnownCaipNamespace.Tron,
+    methods: TRON_METHODS,
+    events: TRON_EVENTS,
+    normalizeChainIdOutbound: normalizeCaipChainIdOutbound,
+    normalizeAccountIdOutbound: normalizeTronAccountIdOutbound,
+  });
 }
 
 /**
@@ -202,33 +160,14 @@ export function enrichCaveatValue({
   proposal: ProposalParamsLight;
   caveatValue: Caip25CaveatValue;
 }): Caip25CaveatValue {
-  const requestedTronChains = collectRequestedChainsForNamespace({
+  return enrichCaveatValueForNamespace({
     proposal,
+    caveatValue,
     namespace: KnownCaipNamespace.Tron,
+    supportedScopes: SUPPORTED_TRON_SCOPES,
+    fallbackScope: TrxScope.Mainnet as CaipChainId,
+    normalizeChainIdInbound: normalizeCaipChainIdInbound,
   });
-
-  if (requestedTronChains.length === 0) {
-    return caveatValue;
-  }
-
-  const normalizedScopes = requestedTronChains
-    .map((chain) => normalizeCaipChainIdInbound(chain))
-    .filter((chain) => SUPPORTED_TRON_SCOPES.has(chain));
-
-  const scopesToAdd =
-    normalizedScopes.length > 0 ? normalizedScopes : [TrxScope.Mainnet];
-
-  const extraOptionalScopes = Object.fromEntries(
-    scopesToAdd.map((scope) => [scope, { accounts: [] }]),
-  );
-
-  return {
-    ...caveatValue,
-    optionalScopes: {
-      ...caveatValue.optionalScopes,
-      ...extraOptionalScopes,
-    },
-  };
 }
 
 /**
@@ -237,41 +176,54 @@ export function enrichCaveatValue({
  * WalletConnect format for the dapp.
  */
 export async function handleRequest({
-  channelId,
+  origin,
   connectedAddresses,
   scope,
   requestId,
   method,
   params,
-}: AdapterHandleRequestArgs): Promise<unknown> {
+}: AdapterHandleRequestArgs<TronWalletConnectSpec>): Promise<
+  RpcResponse<TronWalletConnectSpec>
+> {
   const normalizedConnectedAddresses = connectedAddresses.map((account) =>
     normalizeTronAccountIdInbound(account),
   );
-  // Throws for unsupported methods, guaranteeing `method` is a
-  // `TronWalletConnectMethod` from here on.
-  const mappedRequest = mapRequestInbound({ method, params });
-  const result = await callMultichainRoutingService({
-    channelId,
-    connectedAddresses: normalizedConnectedAddresses,
-    scope,
-    requestId,
-    mappedRequest,
-  });
 
-  return mapRequestOutbound({
-    method: method as TronWalletConnectMethod,
-    params: params as
-      | TronWalletConnectSignMessageParams
-      | TronWalletConnectSignTransactionParams,
-    result: result as TronSnapSignatureResult,
-  });
+  if (method === 'tron_signMessage') {
+    const result = await callTronSnap({
+      origin,
+      connectedAddresses: normalizedConnectedAddresses,
+      scope,
+      requestId,
+      request: mapSignMessageRequest({ params }),
+    });
+
+    return mapSignMessageResponse(result);
+  }
+
+  if (method === 'tron_signTransaction') {
+    const result = await callTronSnap({
+      origin,
+      connectedAddresses: normalizedConnectedAddresses,
+      scope,
+      requestId,
+      request: mapSignTransactionRequest({ params }),
+    });
+
+    return mapSignTransactionResponse({ params, result });
+  }
+
+  throw new Error(`WalletConnect Tron method ${method} is not supported`);
 }
 
 /**
  * `ChainAdapter` for Tron, registered in `multichain/registry.ts` behind
  * the `tron` feature flag.
  */
-export const tronAdapter: ChainAdapter = {
+export const tronAdapter: ChainAdapter<
+  KnownCaipNamespace.Tron,
+  TronWalletConnectSpec
+> = {
   namespace: KnownCaipNamespace.Tron,
   redirectMethods: TRON_METHODS,
   approvedMethods: TRON_METHODS,

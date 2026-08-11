@@ -13,10 +13,7 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -40,18 +37,16 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
   PredictFeedSelectorsIDs,
   getPredictMarketListSelector,
   getPredictFeedSelector,
-  getPredictSearchSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
-import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketData';
 import { deduplicateSeriesMarkets } from '../../utils/feed';
-import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
@@ -66,15 +61,17 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
+import PredictSearchOverlay from '../../components/PredictSearchOverlay';
 import { PredictBalance } from '../../components/PredictBalance';
 import PredictWithdrawUnavailableSheet, {
   type PredictWithdrawUnavailableSheetRef,
 } from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
-import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
+import PredictFeedBanner from '../../components/PredictFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
+  selectPredictPortfolioEnabledFlag,
   selectPredictUpDownEnabledFlag,
 } from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
@@ -83,14 +80,13 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import HeaderSearch, {
-  HeaderSearchVariant,
-} from '../../../../../component-library/components-temp/HeaderSearch';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -104,7 +100,7 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
 }> = ({ onDepositWalletWithdrawPress }) => (
-  <Box twClassName="py-4">
+  <Box twClassName="pb-4">
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
     />
@@ -206,12 +202,19 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
         />
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterBalance}
+          containerClassName="px-4 pb-3"
+        />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
             <FeaturedCarousel />
           </Box>
         )}
-        <PredictWorldCupMainFeedBanner variant="compact" />
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterFeaturedCarousel}
+          containerClassName="px-4 pb-3"
+        />
       </Animated.View>
       <View
         ref={tabBarRef}
@@ -236,20 +239,22 @@ interface PredictMarketListItemProps {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
-  market,
-  entryPoint,
-  testID,
-  predictFeedTab,
-  transactionActiveAbTests,
-}) => (
-  <PredictMarket
-    market={market}
-    entryPoint={entryPoint}
-    testID={testID}
-    predictFeedTab={predictFeedTab}
-    transactionActiveAbTests={transactionActiveAbTests}
-  />
+const PredictMarketListItem: React.FC<PredictMarketListItemProps> = React.memo(
+  ({
+    market,
+    entryPoint,
+    testID,
+    predictFeedTab,
+    transactionActiveAbTests,
+  }) => (
+    <PredictMarket
+      market={market}
+      entryPoint={entryPoint}
+      testID={testID}
+      predictFeedTab={predictFeedTab}
+      transactionActiveAbTests={transactionActiveAbTests}
+    />
+  ),
 );
 
 interface PredictTabContentProps {
@@ -280,13 +285,20 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
   const [hasEverBeenActive, setHasEverBeenActive] = useState(isActive);
   useEffect(() => {
-    if (isActive && !hasEverBeenActive) {
+    if (isActive) {
       setHasEverBeenActive(true);
     }
-  }, [isActive, hasEverBeenActive]);
+  }, [isActive]);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
+  // Skip getMarkets for tabs that have never been visible. PagerView mounts
+  // every PredictTabContent at once, so without this gate each tab fetches on
+  // mount. The `isActive` term covers the first render a tab activates, before
+  // the effect above flips `hasEverBeenActive`; `hasEverBeenActive` then keeps
+  // already-visited tabs warm when swiping back.
+  const fetchEnabled = isActive || hasEverBeenActive;
 
   const {
     marketData,
@@ -301,6 +313,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     pageSize: 20,
     customQueryParams,
     refine,
+    enabled: fetchEnabled,
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -521,162 +534,27 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   );
 };
 
-interface PredictSearchOverlayProps {
-  isVisible: boolean;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  onClose: () => void;
-  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-}
-
-const SEARCH_DEBOUNCE_MS = 200;
-
-const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
-  isVisible,
-  searchQuery,
-  onSearchChange,
-  onClose,
-  transactionActiveAbTests,
-}) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
-  const debouncedSearchQuery = useDebouncedValue(
-    searchQuery,
-    SEARCH_DEBOUNCE_MS,
-  );
-  const isDebouncing = searchQuery !== debouncedSearchQuery;
-
-  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
-  const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
-
-  const { marketData, isFetching, error, refetch } = usePredictSearchMarketData(
-    {
-      q: debouncedSearchQuery,
-      pageSize: 20,
-      refine,
-      enabled: isVisible,
-    },
-  );
-
-  const isSearchLoading = isDebouncing || isFetching;
-  const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
-
-  const renderItem = useCallback(
-    (info: { item: PredictMarketType; index: number }) => (
-      <PredictMarketListItem
-        market={info.item}
-        entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
-        testID={getPredictSearchSelector.resultCard(info.index)}
-        transactionActiveAbTests={transactionActiveAbTests}
-      />
-    ),
-    [transactionActiveAbTests],
-  );
-
-  const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
-
-  if (!isVisible) {
-    return null;
-  }
-
-  return (
-    <Box
-      style={tw.style('absolute inset-0 z-20', {
-        paddingTop: insets.top,
-        backgroundColor: colors.background.default,
-      })}
-    >
-      <Box twClassName="w-full py-2">
-        <HeaderSearch
-          variant={HeaderSearchVariant.Inline}
-          onPressCancelButton={onClose}
-          cancelButtonProps={{
-            // ButtonBase applies self-start when not full width, which top-aligns the
-            // Cancel control vs. the centered TextFieldSearch row.
-            style: { alignSelf: 'center' },
-          }}
-          textFieldSearchProps={{
-            value: searchQuery,
-            onChangeText: onSearchChange,
-            onPressClearButton: () => onSearchChange(''),
-            placeholder: strings('predict.search_placeholder'),
-            autoFocus: true,
-            clearButtonProps: {
-              testID: PredictSearchSelectorsIDs.CLEAR_BUTTON,
-            },
-          }}
-        />
-      </Box>
-
-      <Box twClassName="flex-1">
-        {isSearchLoading ? (
-          <Box twClassName="px-4">
-            <PredictMarketSkeleton
-              testID={getPredictFeedSelector.searchSkeleton(1)}
-            />
-            <PredictMarketSkeleton
-              testID={getPredictFeedSelector.searchSkeleton(2)}
-            />
-            <PredictMarketSkeleton
-              testID={getPredictFeedSelector.searchSkeleton(3)}
-            />
-          </Box>
-        ) : error && hasSearchQuery ? (
-          <PredictOffline onRetry={refetch} />
-        ) : !marketData || marketData.length === 0 ? (
-          hasSearchQuery ? (
-            <Box twClassName="flex-1 justify-center items-center p-8">
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryAlternative}
-              >
-                {strings('predict.search_no_markets_found', {
-                  q: searchQuery,
-                })}
-              </Text>
-            </Box>
-          ) : null
-        ) : (
-          <FlashList<PredictMarketType>
-            data={marketData}
-            renderItem={renderItem}
-            keyExtractor={keyExtractor}
-            contentContainerStyle={tw.style('px-4 pb-4')}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </Box>
-    </Box>
-  );
-};
-
 interface PredictFeedProps {
-  hideHeader?: boolean;
   entryPoint?: PredictEntryPoint;
-  onHeaderHiddenChange?: (hidden: boolean) => void;
-  walletHeaderTranslateY?: SharedValue<number>;
-  walletHeaderHeight?: number;
 }
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
-  hideHeader = false,
   entryPoint: propEntryPoint,
-  onHeaderHiddenChange,
-  walletHeaderTranslateY,
-  walletHeaderHeight,
 }) => {
   const { tabs, activeIndex, setActiveIndex, initialTabKey } = usePredictTabs();
 
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
   const feedEntryPoint = propEntryPoint ?? route.params?.entryPoint;
   const listEntryPoint =
     feedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+  const predictPortfolioEnabled = useSelector(
+    selectPredictPortfolioEnabledFlag,
+  );
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -711,6 +589,10 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   });
 
   useEffect(() => {
+    sessionManager.setPortfolioModuleEnabled(predictPortfolioEnabled);
+  }, [predictPortfolioEnabled, sessionManager]);
+
+  useEffect(() => {
     sessionManager.enableAppStateListener();
     sessionManager.startSession(feedEntryPoint, initialTabKey);
 
@@ -740,9 +622,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     headerRef,
     tabBarRef,
     setActiveIndex,
-    onHeaderHiddenChange,
-    walletHeaderTranslateY,
-    walletHeaderHeight,
   });
 
   const handleTabPress = useCallback(
@@ -769,9 +648,18 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
 
+  const handleShowSearch = useCallback(() => {
+    Engine.context.PredictController.trackSearchInteracted({
+      interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+      predictFeedTab: tabs[activeIndex]?.key,
+      entryPoint: listEntryPoint,
+    });
+    showSearch();
+  }, [tabs, activeIndex, listEntryPoint, showSearch]);
+
   return (
     <SafeAreaView
-      edges={hideHeader ? [] : { bottom: 'additive' }}
+      edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -779,29 +667,26 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        {!hideHeader && (
-          <Box
-            style={tw.style('z-20', {
-              backgroundColor: colors.background.default,
-            })}
-          >
-            <HeaderStandard
-              includesTopInset
-              title={strings('wallet.predict')}
-              onBack={handleBackPress}
-              backButtonProps={{
-                testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-              }}
-              endButtonIconProps={[
-                {
-                  iconName: IconName.Search,
-                  onPress: showSearch,
-                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-                },
-              ]}
-            />
-          </Box>
-        )}
+        <Box
+          style={tw.style('z-20', {
+            backgroundColor: colors.background.default,
+          })}
+        >
+          <HeaderStandard
+            includesTopInset
+            onBack={handleBackPress}
+            backButtonProps={{
+              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleShowSearch,
+                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+              },
+            ]}
+          />
+        </Box>
 
         <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader
@@ -839,6 +724,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
           transactionActiveAbTests={transactionActiveAbTests}
+          predictFeedTab={tabs[activeIndex]?.key}
+          entryPoint={listEntryPoint}
         />
       </Box>
       <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">

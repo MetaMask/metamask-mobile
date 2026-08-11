@@ -1,61 +1,67 @@
+import type { AccountGroupId } from '@metamask/account-api';
 import {
+  AccountGroupAssets,
   Asset,
+  AssetListState,
   selectAllAssets as _selectAllAssets,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
-  AssetListState,
-  AccountGroupAssets,
 } from '@metamask/assets-controllers';
-import type { AccountGroupId } from '@metamask/account-api';
+import { toHex } from '@metamask/controller-utils';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { toHex } from '@metamask/controller-utils';
-import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
+import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
 import { TokenI } from '../../components/UI/Tokens/types';
-import { RootState } from '../../reducers';
-import { formatWithThreshold } from '../../util/assets';
-import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
-import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
-import { selectTokenSortConfig } from '../preferencesController';
-import { selectHideZeroBalanceTokens } from '../settings';
-import { createDeepEqualSelector } from '../util';
-import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../currencyRateController';
-import { safeParseBigNumber } from '../../util/number/bignumber';
-import { selectAccountsByChainId } from '../accountTrackerController';
+import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 import {
   TRON_SPECIAL_ASSET_SYMBOLS,
   TRON_SPECIAL_ASSET_SYMBOLS_SET,
   TronSpecialAssetSymbol,
 } from '../../core/Multichain/constants';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
-import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
-import { selectAllTokens } from '../tokensController';
-import { selectSelectedInternalAccountAddress } from '../accountsController';
-import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
-import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
+import { RootState } from '../../reducers';
+import { formatWithThreshold } from '../../util/assets';
 import {
-  getMultichainAssetsRatesControllerConversionRates,
-  getTokenRatesControllerMarketData,
+  fromWei,
+  hexToBigInt,
+  weiToFiatNumber,
+} from '../../util/number/bigint';
+import { safeParseBigNumber } from '../../util/number/bignumber';
+import { selectSelectedInternalAccountAddress } from '../accountsController';
+import { selectAccountsByChainId } from '../accountTrackerController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../currencyRateController';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
+import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
+import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
+import { selectTokenSortConfig } from '../preferencesController';
+import { selectHideZeroBalanceTokens } from '../settings';
+import { selectAllTokens } from '../tokensController';
+import { createDeepEqualSelector } from '../util';
+import {
+  getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
   getCurrencyRateControllerCurrentCurrency,
-  getTokensControllerAllTokens,
-  getTokensControllerAllIgnoredTokens,
-  getAccountTrackerControllerAccountsByChainId,
-  getTokenBalancesControllerTokenBalances,
-  getMultiChainBalancesControllerBalances,
   getMultiChainAssetsControllerAccountsAssets,
   getMultiChainAssetsControllerAllIgnoredAssets,
   getMultiChainAssetsControllerAssetsMetadata,
+  getMultiChainBalancesControllerBalances,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenBalancesControllerTokenBalances,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllIgnoredTokens,
+  getTokensControllerAllTokens,
 } from './assets-migration';
+import { isAssetSupportActivation } from '../stellar/stellar-assets';
+import { filterExcludedAssets } from '../../enablement/assets/networks-customization';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -156,34 +162,24 @@ function callSelectAssetsBySelectedAccountGroup(
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
-  (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
+  (assetsState) =>
+    filterExcludedAssets(callSelectAssetsBySelectedAccountGroup(assetsState)),
 );
 
 /**
  * Cheap boolean check: does the selected account group hold any
- * non-excluded positive-fiat-balance asset
+ * positive-fiat-balance asset.
+ *
+ * A held asset is itself a valid swap source (it can be swapped away), so the
+ * currently-viewed token is intentionally counted. This drives the Token
+ * Details footer's Swap / QuickBuy visibility and the Buy on-ramp fallback.
  */
 export const selectHasEligibleSwapSource = createSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    (_state: RootState, excludedChainId: string | undefined) => excludedChainId,
-    (
-      _state: RootState,
-      _excludedChainId: string | undefined,
-      excludedAddress: string | undefined,
-    ) => excludedAddress,
-  ],
-  (assetsByChain, excludedChainId, excludedAddress): boolean => {
+  [selectAssetsBySelectedAccountGroup],
+  (assetsByChain): boolean => {
     for (const chainAssets of Object.values(assetsByChain)) {
       for (const asset of chainAssets) {
-        if ((asset.fiat?.balance ?? 0) <= 0) continue;
-
-        const isExcludedToken =
-          asset.chainId === excludedChainId &&
-          excludedAddress !== undefined &&
-          asset.assetId.toLowerCase() === excludedAddress.toLowerCase();
-
-        if (!isExcludedToken) {
+        if ((asset.fiat?.balance ?? 0) > 0) {
           return true;
         }
       }
@@ -262,7 +258,7 @@ const selectStakedAssets = createDeepEqualSelector(
               currencyRates[nativeCurrency]?.conversionRate;
 
             const fiatBalance = conversionRate
-              ? weiToFiatNumber(hexToBN(stakedBalance), conversionRate)
+              ? weiToFiatNumber(hexToBigInt(stakedBalance), conversionRate)
               : undefined;
 
             const account = Object.values(internalAccounts).find(
@@ -286,7 +282,7 @@ const selectStakedAssets = createDeepEqualSelector(
               accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
-              balance: fromWei(stakedBalance),
+              balance: fromWei(hexToBigInt(stakedBalance)),
               fiat: fiatBalance
                 ? {
                     balance: Number(fiatBalance),
@@ -348,6 +344,7 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -502,6 +499,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;
@@ -514,6 +512,13 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       );
     },
   );
+
+export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
+  (chainIds: string[]) => (state: RootState) =>
+    selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      chainIds,
+    );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(

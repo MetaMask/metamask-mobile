@@ -24,9 +24,6 @@ const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx',
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
   'app/components/UI/AccountInfoCard/index.js',
-  'app/components/UI/AssetOverview/Price/Price.advanced.tsx',
-  'app/components/UI/AssetOverview/Price/Price.legacy.tsx',
-  'app/components/UI/AssetOverview/utils/marketDetails.ts',
   'app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx',
   'app/components/UI/Bridge/components/QuoteSelectorView/index.tsx',
   'app/components/UI/Bridge/hooks/useBridgeQuoteData/index.ts',
@@ -44,7 +41,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Card/hooks/useCardDelegation.ts',
   'app/components/UI/Card/hooks/useNeedsGasFaucet.ts',
   'app/components/UI/Card/sdk/CardSDK.ts',
-  'app/components/UI/CollectibleOverview/index.js',
   'app/components/UI/Earn/Views/EarnInputView/EarnInputView.test.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/Erc20TokenHero/index.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/index.tsx',
@@ -82,35 +78,25 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts',
   'app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts',
   'app/components/UI/Ramp/Aggregator/utils/index.ts',
-  'app/components/UI/Ramp/Deposit/utils/index.ts',
+  'app/components/UI/Ramp/utils/depositUtils.ts',
   'app/components/UI/Ramp/utils/getOrderAmount.ts',
   'app/components/UI/Ramp/utils/v2OrderToast.ts',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.test.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.tsx',
   'app/components/UI/Stake/hooks/useBalance.ts',
-  'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.test.ts',
-  'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.ts',
-  'app/components/UI/TransactionElement/utils-gas.js',
-  'app/components/UI/TransactionElement/utils.js',
   'app/components/UI/UrlAutocomplete/Result.tsx',
-  'app/components/Views/AssetDetails/index.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyQuotes.ts',
   'app/components/Views/SocialLeaderboard/utils/formatters.ts',
-  'app/components/Views/UnifiedTransactionsView/useUnifiedTxActions.test.ts',
   'app/components/Views/confirmations/components/gas/max-base-fee-input/max-base-fee-input.tsx',
   'app/components/Views/confirmations/components/gas/priority-fee-input/priority-fee-input.tsx',
   'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/native-value-display/native-value-display.tsx',
   'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/value-display/value-display.tsx',
   'app/components/Views/confirmations/components/transactions/custom-amount/custom-amount.tsx',
-  'app/components/Views/confirmations/context/send-context/utils.ts',
   'app/components/Views/confirmations/external/staking/hooks/useStakingDetails.ts',
-  'app/components/Views/confirmations/hooks/earn/useCustomAmount.tsx',
   'app/components/Views/confirmations/hooks/gas/useCancelSpeedupGas/useCancelSpeedupGas.ts',
   'app/components/Views/confirmations/hooks/send/useBalance.ts',
   'app/components/Views/confirmations/hooks/send/useCurrencyConversions.ts',
@@ -123,10 +109,8 @@ const utilNumberImportBurndownFiles = [
   'app/components/hooks/useGetFormattedTokensPerChain.tsx',
   'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
   'app/core/Engine/Engine.ts',
-  'app/core/Engine/controllers/gas-fee-controller/gas-fee-controller-init.test.ts',
   'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
-  'app/selectors/assets/assets-list.ts',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
   // `app/util/**` importers of `./number` or `../number` (resolves to `index.js`);
@@ -134,10 +118,9 @@ const utilNumberImportBurndownFiles = [
   // `../number/bigint` (or `./number/bigint` from `app/util/`).
   'app/util/confirm-tx.js',
   'app/util/conversions.js',
-  'app/util/confirmation/gas.ts',
+
   'app/util/confirmation/transactions.ts',
   'app/util/custom-gas/index.js',
-  'app/util/networks/index.js',
   'app/util/transactions/index.js',
   'app/util/transactions/index.test.ts',
 ];
@@ -167,6 +150,22 @@ module.exports = {
     {
       files: ['tests/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
+    },
+    {
+      // These files intentionally omit dependencies from a useEffect/useCallback
+      // (documented inline at each call site). The React Compiler refuses to
+      // optimize any file containing an inline `eslint-disable` for a React
+      // rule, so the suppression is relocated here (invisible to the compiler)
+      // instead of being a per-line comment. Runtime behavior is unchanged.
+      files: [
+        'app/components/hooks/useAsyncResult.ts',
+        'app/components/hooks/useOTAUpdates.ts',
+        'app/components/Nav/Main/index.js',
+        'app/components/Nav/App/App.tsx',
+      ],
+      rules: {
+        'react-hooks/exhaustive-deps': 'off',
+      },
     },
     {
       files: ['*.{ts,tsx}'],
@@ -257,6 +256,57 @@ module.exports = {
           //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
           //   message: 'Use a hash name instead.',
           // },
+        ],
+      },
+    },
+    // MMQA-2174 / MMQA-2173: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
+    {
+      files: ['tests/page-objects/**/*.{js,ts}', 'tests/flows/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/page-objects/**/*.test.ts',
+        'tests/page-objects/**/*.test.js',
+        'tests/flows/**/*.test.ts',
+        'tests/flows/**/*.test.js',
+      ],
+      rules: {
+        // UnifiedGestures Identifier stays out of this error list so legacy PO
+        // usages remain warn-only via no-restricted-imports (MMQA-2174).
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+        ],
+      },
+    },
+    {
+      files: ['tests/smoke-appium/**/*.{js,ts}'],
+      excludedFiles: ['tests/smoke-appium/**/*.test.ts'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
+          },
+          {
+            selector: "Identifier[name='FrameworkDetector']",
+            message:
+              'Do not use FrameworkDetector in specs. Use Gestures/Assertions/Matchers.',
+          },
         ],
       },
     },
@@ -894,5 +944,5 @@ module.exports = {
     'no-loss-of-precision': 'off',
   },
 
-  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
+  ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
 };

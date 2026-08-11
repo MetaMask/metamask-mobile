@@ -21,6 +21,7 @@ import styleSheet from './styles';
 import { formatAddress } from '../../../../../../util/address';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   AlignItems,
   FlexDirection,
@@ -63,7 +64,7 @@ export const BaseAccountDetails = ({
   account,
   children,
 }: BaseAccountDetailsProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector(selectAvatarAccountType);
   const selectWallet = useSelector(selectWalletByAccount);
@@ -105,7 +106,7 @@ export const BaseAccountDetails = ({
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
         style={styles.header}
-        titleTestID={HEADER_BASE_TITLE_TEST_ID}
+        textProps={{ testID: HEADER_BASE_TITLE_TEST_ID }}
         startButtonIconProps={{
           testID: AccountDetailsIds.BACK_BUTTON,
           iconName: IconName.ArrowLeft,

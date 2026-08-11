@@ -25,33 +25,249 @@
 ## Test Organization - MANDATORY
 
 - Organize tests into folders based on features and scenarios
-- Use the a directory that suits the test type (regression|smoke) based on the tag used
+- Place smoke specs under `tests/smoke-appium/`, using the matching smoke tag
 - Each feature team should own one or more folders of tests
 - Follow the same organization pattern as the extension team for consistency
 - Place tests in logical feature directories:
   ```
-  tests/smoke/<feature-name>/<e2e-test-name.spec.ts>
-  tests/smoke/tokens/import/import-erc1155.spec.ts
-  tests/regression/wallet/settings/clear-activity.spec.ts
-  tests/regression/ppom/ppom-blockaid-alert-erc20-approval.spec.ts
+  tests/smoke-appium/<feature-name>/<e2e-test-name.spec.ts>
+  tests/smoke-appium/wallet/browser/browser-navigation.spec.ts
   ```
 
 ## Framework Architecture
 
-### Core Classes:
+### Core Classes
 
 - **`Assertions`** - Enhanced assertions with auto-retry and detailed error messages
 - **`Gestures`** - Robust user interactions with configurable element state checking
 - **`Matchers`** - Type-safe element selectors with flexible options
 - **`Utilities`** - Core utilities with specialized element state checking
 
-### Key Features:
+### Key Features
 
 - ✅ **Auto-retry** - Handles flaky network/UI conditions
+- ✅ **Appium / Playwright** - `Gestures`, `Assertions`, and `Matchers` are the canonical facades for Appium smoke
 - ✅ **Configurable element state checking** - Control visibility, enabled, and stability checks per interaction
 - ✅ **Performance optimization** - Stability checking disabled by default for better performance
 - ✅ **Better error messages** - Descriptive errors with retry context and timing
 - ✅ **Type safety** - Full TypeScript support with IntelliSense
+
+### Gestures facade (canonical)
+
+Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Do **not** import `UnifiedGestures`, `FrameworkDetector`, `encapsulated` / `encapsulatedAction`, or `Playwright*` dual-framework APIs in new page objects or specs — ESLint freezes those (MMQA-2230; see [tests/AGENTS.md](../tests/AGENTS.md)).
+
+```
+Page object calls Gestures.waitAndTap(elem)
+        │
+        └── Appium run → AppiumGestureStrategy → PlaywrightGestures
+```
+
+## Writing Page Objects
+
+### Default Pattern — Appium smoke
+
+Use `Matchers.getElementByID/Text/Label` for getters and `Gestures`/`Assertions` for actions. No Playwright-specific imports needed for the common case.
+
+```typescript
+import Matchers from '../framework/Matchers';
+import Gestures from '../framework/Gestures';
+import Assertions from '../framework/Assertions';
+import { LoginPageSelectors } from './LoginPage.testIds';
+
+class LoginPage {
+  get passwordInput() {
+    return Matchers.getElementByID(LoginPageSelectors.PASSWORD_INPUT);
+  }
+
+  get errorMessage() {
+    return Matchers.getElementByText('Invalid password');
+  }
+
+  async enterPassword(password: string): Promise<void> {
+    await Gestures.typeText(this.passwordInput, password, {
+      elemDescription: 'password input',
+    });
+  }
+
+  async verifyErrorVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.errorMessage);
+  }
+}
+
+export default new LoginPage();
+```
+
+### Edge Case: different selector per platform
+
+When the same element needs a different testID or selector strategy between iOS and Android Appium, use `resolve()` from the framework. Legacy dual-runner branches (`detoxTestID`, `appiumTestID`) remain for remaining Detox suites; new work should only need Appium / platform variants.
+
+```typescript
+import { resolve } from '../framework';
+import { encapsulated } from '../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+
+// Different testID on iOS vs Android Appium (Appium-only — no Detox branch)
+get actionButton() {
+  return encapsulated({
+    appium: {
+      android: () =>
+        PlaywrightMatchers.getElementById(TabBarSelectorIDs.TRADE, {
+          exact: true,
+        }),
+      ios: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          TabBarSelectorIDs.ACTIONS,
+        ),
+    },
+  });
+}
+
+// Same testID on Android; iOS Appium differs
+get container() {
+  return resolve({
+    testID: WalletViewSelectorsIDs.WALLET_CONTAINER,
+    iosAppiumTestID: WalletViewSelectorsIDs.EYE_SLASH_ICON,
+  });
+}
+
+// Legacy dual-runner: Detox + per-platform Appium testIDs
+get legacyActionButton() {
+  return resolve({
+    detoxTestID: TabBarSelectorIDs.TRADE,
+    androidAppiumTestID: TabBarSelectorIDs.TRADE,
+    iosAppiumTestID: TabBarSelectorIDs.ACTIONS,
+  });
+}
+```
+
+Available `resolve()` shapes:
+
+| Shape                                                   | When to use                                             |
+| ------------------------------------------------------- | ------------------------------------------------------- |
+| `{ testID }`                                            | Same testID works on iOS and Android Appium             |
+| `{ testID, iosAppiumTestID }`                           | Android Appium shares testID; iOS Appium differs        |
+| `{ detoxTestID, appiumTestID }`                         | Legacy: different testID between Detox and Appium       |
+| `{ detoxTestID, androidAppiumTestID, iosAppiumTestID }` | Legacy dual-runner: Detox + per-platform Appium testIDs |
+| `{ label }`                                             | Match by accessibility label                            |
+| `{ text }`                                              | Match by visible text                                   |
+
+For Appium-only iOS vs Android testID differences (no Detox), use `encapsulated({ appium: { android: () => ..., ios: () => ... } })` instead of `resolve()`.
+
+### Edge Case: different selector type per platform
+
+When the selector strategy itself differs between iOS and Android Appium (e.g. one platform matches by ID+label, the other by text), use `encapsulated()`:
+
+```typescript
+import { encapsulated } from '../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+
+getAccountElementByName(accountName: string) {
+  return encapsulated({
+    appium: () => PlaywrightMatchers.getElementByText(accountName),
+  });
+}
+```
+
+Legacy dual-runner branches remain for remaining Detox suites; new work should only need Appium / platform variants:
+
+```typescript
+getAccountElementByName(accountName: string) {
+  return encapsulated({
+    detox: () => Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName),
+    appium: () => PlaywrightMatchers.getElementByText(accountName),
+  });
+}
+```
+
+### Edge Case: different action flow per platform
+
+When the action itself must differ structurally between iOS and Android Appium (e.g. one platform must scroll before tapping, or must hide the keyboard after typing), use `encapsulatedAction()`:
+
+```typescript
+import { encapsulatedAction } from '../framework/encapsulatedAction';
+import PlaywrightGestures from '../framework/PlaywrightGestures';
+
+async enterPassword(password: string): Promise<void> {
+  await encapsulatedAction({
+    appium: async () => {
+      await Gestures.typeText(this.passwordInput, password);
+      await PlaywrightGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
+    },
+  });
+}
+```
+
+Legacy dual-runner branches remain for remaining Detox suites; new work should only need Appium / platform variants:
+
+```typescript
+async enterPassword(password: string): Promise<void> {
+  await encapsulatedAction({
+    detox: async () => {
+      await Gestures.typeText(this.passwordInput, password);
+    },
+    appium: async () => {
+      await Gestures.typeText(this.passwordInput, password);
+      await PlaywrightGestures.hideKeyboard(); // iOS Appium requires explicit dismiss
+    },
+  });
+}
+```
+
+**Only use `encapsulatedAction` when the flow genuinely differs.** If the same `Gestures.*` or `Assertions.*` call works on both platforms, there is no need to branch.
+
+### Selector decision tree
+
+```
+Does the same Matchers.getElementByID/Text/Label call work on Appium (iOS + Android)?
+  YES → use it directly, no branching needed
+
+  NO → Does only the testID value differ per platform?
+    YES → resolve({ testID, iosAppiumTestID }) when Android shares testID
+          OR encapsulated({ appium: { android: () => ..., ios: () => ... } }) for Appium-only
+          OR legacy resolve({ detoxTestID, androidAppiumTestID, iosAppiumTestID }) if Detox still runs
+
+    NO → Does only the selector type differ (ID vs text vs label)?
+      YES → encapsulated({ appium: ... }) — or legacy detox/appium branches if migrating
+
+      NO → Does the action flow itself differ?
+        YES → encapsulatedAction({ appium: ... }) — or legacy detox/appium branches if migrating
+```
+
+## Test Organization — Appium Specs
+
+Appium smoke tests live in `tests/smoke-appium/`. Page objects use the `Gestures`/`Assertions`/`Matchers` facades so specs stay runner-agnostic aside from the Playwright fixture wrapper and login helper.
+
+**Running Appium smoke locally:** see [Appium smoke testing](./appium-smoke-testing.md) for builds (`main-e2e-MetaMask.app`), commands (`yarn appium-smoke:ios`), and CI artifact download.
+
+```typescript
+// Appium: tests/smoke-appium/accounts/my-feature.spec.ts
+appiumTest.describe(SmokeAccounts('My feature'), () => {
+  appiumTest(
+    'does the thing',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          restartDevice: true,
+          currentDeviceDetails,
+        },
+        async () => {
+          await loginToAppPlaywright({ scenarioType: 'e2e' });
+          await SomePage.tapSomething();
+          await Assertions.expectElementToBeVisible(SomePage.result);
+        },
+      );
+    },
+  );
+});
+```
+
+Required Appium spec differences:
+
+- `import { test as appiumTest }` from the Playwright fixture index
+- `{ driver: _driver, currentDeviceDetails }` fixture args
+- `currentDeviceDetails` passed to `withFixtures`
+- `loginToAppPlaywright(...)` instead of legacy Detox `loginToApp()`
 
 ## Test Atomicity and Coupling
 
@@ -111,52 +327,6 @@ new FixtureBuilder().build();
 
 ## Framework Best Practices
 
-### Page Object Model (POM) Pattern
-
-- ALWAYS use the Page Object Model pattern for organizing test code
-- Move all element selectors to Page Objects or dedicated selector files
-- When adding one or more testID to a component or view, place it in a dedicated file next to where it is being used with the file extension `.testIds.ts`
-- Access UI elements through Page Object methods, not directly in test specs
-
-#### Page Object Structure Example:
-
-```typescript
-import { LoginPageSelectors } from './LoginPage.selectors';
-
-class LoginPage {
-  // Getter pattern for elements
-  get emailInput() {
-    return Matchers.getElementByID(LoginPageSelectors.EMAIL_INPUT);
-  }
-  get passwordInput() {
-    return Matchers.getElementByID(LoginPageSelectors.PASSWORD_INPUT);
-  }
-  get loginButton() {
-    return Matchers.getElementByID(LoginPageSelectors.LOGIN_BUTTON);
-  }
-
-  // Public methods for actions
-  async login(email: string, password: string): Promise<void> {
-    await Gestures.typeText(this.emailInput, email, {
-      description: 'enter email',
-    });
-    await Gestures.typeText(this.passwordInput, password, {
-      description: 'enter password',
-    });
-    await Gestures.tap(this.loginButton, { description: 'tap login button' });
-  }
-
-  // Public methods for verifications
-  async verifyLoginError(expectedError: string): Promise<void> {
-    await Assertions.expectTextDisplayed(expectedError, {
-      description: 'login error should be displayed',
-    });
-  }
-}
-
-export default new LoginPage();
-```
-
 ### TestIDs location example:
 
 ```typescript
@@ -175,12 +345,12 @@ const MyComponent = () => {
 
 ### Proper Waiting and Assertions
 
-- NEVER use `TestHelpers.delay()` - it creates flaky tests and slows down test execution
+- NEVER use fixed delays (`setTimeout`, bare `sleep`) when waiting for UI — they create flaky tests and slow execution
 - ALWAYS use proper waiting with Assertions from the framework:
 
   ```javascript
   // DON'T:
-  TestHelpers.delay(1000);
+  await sleep(1000);
 
   // DO:
   Assertions.expectElementToBeVisible(element, {
@@ -255,6 +425,23 @@ The following patterns are prohibited in test specs:
    await Assertions.expectElementToBeVisible(element);
    ```
 
+4. **Playwright-specific imports in page objects when not needed**
+
+   ```typescript
+   // DON'T — unnecessary when Gestures/Assertions handle the flow:
+   import PlaywrightAssertions from '../framework/PlaywrightAssertions';
+   import { asPlaywrightElement } from '../framework/EncapsulatedElement';
+
+   await PlaywrightAssertions.expectElementToBeVisible(
+     await asPlaywrightElement(this.heading),
+   );
+
+   // DO:
+   import Assertions from '../framework/Assertions';
+
+   await Assertions.expectElementToBeVisible(this.heading);
+   ```
+
 ## Handling Flaky Tests
 
 ### Common Issues and Solutions
@@ -313,7 +500,7 @@ async tapOpenAllTabsButton(): Promise<void> {
 
 Before submitting E2E tests, ensure:
 
-- [ ] No usage of `TestHelpers.delay()` or `setTimeout()`
+- [ ] No fixed delays (`setTimeout` / bare `sleep`) when waiting for UI — use Assertions instead
 - [ ] All assertions have descriptive `description` parameters
 - [ ] All gestures have descriptive `description` parameters
 - [ ] Appropriate timeouts for operations (not magic numbers)
@@ -321,7 +508,9 @@ Before submitting E2E tests, ensure:
 - [ ] Element selectors defined once and reused
 - [ ] Framework configuration used appropriately
 - [ ] Error handling for expected failure scenarios
-- [ ] Tests work on both iOS and Android platforms
+- [ ] `Gestures` used for interactions — do **not** import or call `UnifiedGestures`
+- [ ] `Gestures`/`Assertions`/`Matchers` used directly — `PlaywrightAssertions`, `PlaywrightGestures`, `asPlaywrightElement` only imported when the flow genuinely requires platform-specific branching
+- [ ] `encapsulatedAction` only used when iOS and Android Appium flows structurally differ — not just to call the same method twice
 
 ## Debugging Failed Tests
 

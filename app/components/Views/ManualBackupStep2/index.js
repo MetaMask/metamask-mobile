@@ -30,7 +30,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CommonActions } from '@react-navigation/native';
@@ -115,15 +115,13 @@ const ManualBackupStep2 = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.dispatch(resetAction);
-            },
+            successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
             accountType: AccountType.Metamask,
           });
         }
       }
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
         ).build(),
         saveOnboardingEvent,
@@ -383,7 +381,7 @@ const ManualBackupStep2 = ({
     const isSuccess = validateWords();
     if (isSuccess) {
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
         ).build(),
         saveOnboardingEvent,
@@ -444,32 +442,24 @@ const ManualBackupStep2 = ({
         >
           <Box
             justifyContent={BoxJustifyContent.SpaceBetween}
-            twClassName="flex-1 h-full gap-y-4"
+            twClassName="flex-1 gap-y-4"
+            style={{ height: windowHeight - 290 }}
             testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
           >
-            <Box
-              justifyContent={BoxJustifyContent.SpaceBetween}
-              twClassName="flex-1 gap-y-4"
-              style={{ height: windowHeight - 290 }}
+            <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+              {strings('manual_backup_step_2.action')}
+            </Text>
+
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
             >
-              <Text
-                variant={TextVariant.DisplayMd}
-                color={TextColor.TextDefault}
-              >
-                {strings('manual_backup_step_2.action')}
-              </Text>
+              {strings('manual_backup_step_2.info')}
+            </Text>
 
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('manual_backup_step_2.info')}
-              </Text>
-
-              <Box twClassName="flex-1 gap-1">
-                {renderGrid()}
-                {renderMissingWords()}
-              </Box>
+            <Box twClassName="flex-1 gap-1">
+              {renderGrid()}
+              {renderMissingWords()}
             </Box>
           </Box>
         </ActionView>

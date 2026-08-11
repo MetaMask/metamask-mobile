@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { ReactNode, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
@@ -25,12 +25,15 @@ import { formatAmount } from '../../../../../../components/UI/SimulationDetails/
 import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
 import AssetLogo from '../../../../../UI/Assets/components/AssetLogo/AssetLogo';
 
+export type TokenTagRenderer = (token: AssetType) => ReactNode;
+
 interface TokenProps {
   asset: AssetType;
   onPress: (asset: AssetType) => void;
+  tagRenderers?: TokenTagRenderer[];
 }
 
-export function Token({ asset, onPress }: TokenProps) {
+export function Token({ asset, tagRenderers, onPress }: TokenProps) {
   const tw = useTailwind();
 
   const handlePress = useCallback(() => {
@@ -83,14 +86,19 @@ export function Token({ asset, onPress }: TokenProps) {
         </Box>
 
         <Box twClassName="ml-4 h-12 justify-center flex-1 min-w-0">
-          <Box twClassName="flex-row items-center">
+          <Box twClassName="flex-row items-center gap-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
+              twClassName="shrink"
             >
               {asset.name || asset.symbol || 'Unknown Token'}
             </Text>
+            {tagRenderers?.reduce<ReactNode>(
+              (found, render) => found ?? render(asset),
+              null,
+            )}
             <AccountTypeLabel label={typeLabel} />
           </Box>
           <Text

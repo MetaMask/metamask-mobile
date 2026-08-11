@@ -1,27 +1,65 @@
+import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
-import TestHelpers from '../../helpers';
-import { waitFor } from 'detox';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import Utilities from '../../framework/Utilities';
+import {
+  DownloadFileSelectorsAccessibilityIDs,
+  DownloadFileSelectorsIDs,
+  DownloadFileSelectorsText,
+} from '../../selectors/Browser/DownloadFile.selectors';
 
 class DownloadFile {
   async verifyTapjackingAndClickDownloadButton(): Promise<void> {
-    await TestHelpers.delay(1000); // TODO replace with a check that button is disabled and after 500ms is enabled
-    const downloadButtonInDialog =
-      device.getPlatform() === 'android'
-        ? Matchers.getElementByText('Download')
-        : Matchers.getElementByLabel('Download');
-    await (await downloadButtonInDialog).tap();
+    if (!PlatformDetector.isAndroid()) {
+      // iOS blob/data downloads skip confirmation and open Save to Files directly.
+      return;
+    }
+
+    await PlaywrightContextHelpers.switchToNativeContext();
+    await PlaywrightGestures.waitAndTap(
+      await PlaywrightMatchers.getElementById(
+        DownloadFileSelectorsIDs.ANDROID_CONFIRM_DOWNLOAD_BUTTON,
+      ),
+    );
   }
 
   async verifySuccessStateVisible(): Promise<void> {
-    if (device.getPlatform() === 'ios') {
-      // Verify for iOS that system file saving dialog is visible
-      waitFor(await Matchers.getElementByLabel('Save')).toExist();
-    } else {
-      // Verify for Android that toast after successful downloading is visible
-      waitFor(
-        await Matchers.getElementByText('Downloaded successfully'),
-      ).toExist();
+    await PlaywrightContextHelpers.switchToNativeContext();
+
+    if (PlatformDetector.isIOS()) {
+      // saveToFiles presents UIDocumentPickerViewController (export), not a
+      // UIActivityViewController with a top-level "Save" action. Cancel appears
+      // in the hierarchy but is not hittable, so only assert presentation.
+      await Utilities.executeWithRetry(
+        async () => {
+          const cancel = await PlaywrightMatchers.getElementByAccessibilityId(
+            DownloadFileSelectorsAccessibilityIDs.IOS_SAVE_SHEET_CANCEL,
+          );
+          if (!(await cancel.unwrap().isExisting())) {
+            throw new Error(
+              'iOS download Save sheet Cancel control not present',
+            );
+          }
+        },
+        {
+          description: 'Assert iOS download Save sheet is presented',
+        },
+      );
+      return;
     }
+
+    // Android: handleWebDownload shows a success alert after MediaStore save.
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText(
+        DownloadFileSelectorsText.ANDROID_DOWNLOAD_COMPLETE,
+      ),
+      {
+        description: 'Android download complete alert',
+      },
+    );
   }
 }
 

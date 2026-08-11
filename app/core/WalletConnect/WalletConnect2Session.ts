@@ -1,4 +1,5 @@
 import { WalletDevice } from '@metamask/transaction-controller';
+import { validateTransactionParams } from '@metamask/eth-json-rpc-middleware';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -171,7 +172,6 @@ class WalletConnect2Session {
       getApprovedHosts: undefined,
       isRemoteConn: false,
       sendMessage: undefined,
-      remoteConnHost: undefined,
     });
 
     this.checkPendingRequests();
@@ -663,7 +663,10 @@ class WalletConnect2Session {
       }
 
       return this.handleAdapterRequest({
-        channelId: this.channelId,
+        // The channel id is the unspoofable per-session identifier and is
+        // what Snaps must receive as the request origin, never the dapp's
+        // self-reported metadata URL.
+        origin: this.channelId,
         requestEvent,
         scope: normalizedRequestChainId,
       });
@@ -792,11 +795,11 @@ class WalletConnect2Session {
    * the request namespace.
    */
   private handleAdapterRequest = async ({
-    channelId,
+    origin,
     requestEvent,
     scope,
   }: {
-    channelId: string;
+    origin: string;
     requestEvent: WalletKitTypes.SessionRequest;
     scope: CaipChainId;
   }) => {
@@ -807,7 +810,7 @@ class WalletConnect2Session {
 
     try {
       const result = await handleMultichainRequestByAdapter({
-        channelId,
+        origin,
         connectedAddresses,
         scope,
         requestId: requestEvent.id,
@@ -838,6 +841,7 @@ class WalletConnect2Session {
     unverifiedOrigin: string,
   ) {
     try {
+      validateTransactionParams(methodParams[0]);
       const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,

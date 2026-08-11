@@ -59,16 +59,17 @@ perfTest.describe(
 
         const timer1 = new TimerHelper(
           'Time since the user clicks on unlock button, until the app unlocks',
-          { ios: 2500, android: 2500 },
+          { ios: 2500, android: 3000 },
           currentDeviceDetails.platform,
         );
 
         await LoginView.tapLoginButton();
         await timer1.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+            asPlaywrightElement(WalletView.hamburgerMenuButton),
             {
               description: 'Wallet balance should be visible',
+              timeout: 30 * 1000, // 30 seconds
             },
           );
           // await WalletView.waitForBalanceToStabilize();

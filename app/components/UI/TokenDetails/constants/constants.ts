@@ -1,6 +1,7 @@
 import type { TokenI } from '../../Tokens/types';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { CaipAssetType } from '@metamask/utils';
 
 /**
  * Source of navigation to Token Details page
@@ -22,12 +23,30 @@ export enum TokenDetailsSource {
   ExploreCryptoTrending = 'explore_crypto_trending',
   /** Explore RWAs tab — stocks list */
   ExploreRwasStocks = 'explore_rwas_stocks',
+  /** Explore omni-search result tap */
+  ExploreSearch = 'explore_search',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
-  /** Dedicated homepage trending-tokens section (A/B treatment layout) */
-  HomepageTrending = 'homepage-trending',
+  /** Swap discovery feed — hot tokens / movers pills */
+  MoversSwaps = 'movers-swaps',
+  /** Swap discovery feed — stocks section */
+  RwasStocksSwaps = 'rwas_stocks-swaps',
+  /** Robinhood Chain promo banner on the Swaps screen */
+  BannerRobinhoodSwaps = 'banner-robinhood-swaps',
   /** Swap/Bridge token selector */
   Swap = 'swap',
+  /** Price alert notification deeplink */
+  PriceAlertNotification = 'price_alert_notification',
+  /** Watchlist section on the homepage */
+  WatchlistHomepage = 'watchlist_homepage',
+  /** Full-screen watchlist view */
+  WatchlistFullscreen = 'watchlist_fullscreen',
+  /** Full-screen watchlist search */
+  WatchlistFullscreenSearch = 'watchlist_fullscreen_search',
+  /** Explore Trending Tokens — watchlist filter pill active */
+  ExploreWatchlistFilter = 'explore_watchlist_filter',
+  /** Swap/Bridge token picker — watchlist filter pill active */
+  SwapWatchlistFilter = 'swap_watchlist_filter',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
@@ -37,6 +56,7 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreNowStocks,
   TokenDetailsSource.ExploreCryptoTrending,
   TokenDetailsSource.ExploreRwasStocks,
+  TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
 ]);
 
@@ -67,6 +87,8 @@ export enum TokenDetailsAction {
 export interface TokenDetailsRouteParams extends TokenI {
   source?: TokenDetailsSource;
   securityData?: TokenSecurityData;
+  /** CAIP-19 asset id when known at navigation time (e.g. watchlist / trending rows). */
+  caipAssetId?: CaipAssetType;
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
@@ -78,3 +100,9 @@ export type TokenDetailsExitAction =
   | 'back_navigation'
   | 'cta_clicked'
   | 'app_backgrounded';
+
+/**
+ * Technical indicators that occupy a sub-pane below the main chart.
+ * Derived from `buildIndicatorLegendConfig` — no manual sync needed.
+ */
+export { SUB_PANE_INDICATORS } from '../../Charts/AdvancedChart/indicatorColors';

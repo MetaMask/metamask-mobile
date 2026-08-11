@@ -4,13 +4,6 @@ import React, { useCallback, useRef } from 'react';
 // External dependencies
 import { View } from 'react-native';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -21,6 +14,13 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+import {
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 interface AccountPermissionsConfirmRevokeAllProps {
   route: {
@@ -76,7 +76,7 @@ const AccountPermissionsConfirmRevokeAll = (
           {strings('accounts.disconnect_all')}
         </BottomSheetHeader>
         <View style={styles.descriptionContainer}>
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('accounts.reconnect_notice', {
               dappUrl: hostname,
             })}
@@ -84,25 +84,27 @@ const AccountPermissionsConfirmRevokeAll = (
         </View>
         <View style={styles.buttonsContainer}>
           <Button
-            label={strings('accounts.cancel')}
             style={styles.button}
             size={ButtonSize.Lg}
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             onPress={onCancel}
             testID="revoke-all-permissions-cancel-button"
-          />
+          >
+            {strings('accounts.cancel')}
+          </Button>
 
           <Button
-            label={strings('accounts.disconnect')}
             style={styles.button}
             size={ButtonSize.Lg}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             onPress={revokeAllAccounts}
             testID={
               ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON
             }
             isDanger
-          />
+          >
+            {strings('accounts.disconnect')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

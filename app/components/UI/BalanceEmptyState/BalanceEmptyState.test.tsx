@@ -16,7 +16,6 @@ jest.mock('../Ramp/hooks/useRampNavigation', () => ({
 }));
 
 const mockButtonClickData: RampsButtonClickData = {
-  ramp_routing: undefined,
   is_authenticated: false,
   preferred_provider: undefined,
   order_count: 0,
@@ -25,14 +24,6 @@ const mockButtonClickData: RampsButtonClickData = {
 jest.mock('../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
-
-const mockUseRampsUnifiedV1Enabled = jest.fn();
-jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV1Enabled(),
-}));
-
-jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -57,7 +48,6 @@ describe('BalanceEmptyState', () => {
         createEventBuilder: mockCreateEventBuilder,
       }),
     );
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
   });
 
   const renderComponent = (props: Partial<BalanceEmptyStateProps> = {}) =>
@@ -95,8 +85,7 @@ describe('BalanceEmptyState', () => {
     expect(mockGoToBuy).toHaveBeenCalled();
   });
 
-  it('tracks RAMPS_BUTTON_CLICKED event with ramp_type BUY when unified V1 is disabled', () => {
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+  it('tracks RAMPS_BUTTON_CLICKED event with ramp_type UNIFIED_BUY_2', () => {
     const { getByTestId } = renderComponent();
     const actionButton = getByTestId('balance-empty-state-action-button');
 
@@ -110,33 +99,7 @@ describe('BalanceEmptyState', () => {
         button_text: 'Add funds',
         location: 'BalanceEmptyState',
         chain_id_destination: 1,
-        ramp_type: 'BUY',
-        ramp_routing: undefined,
-        is_authenticated: false,
-        preferred_provider: undefined,
-        order_count: 0,
-      }),
-    );
-    expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('tracks RAMPS_BUTTON_CLICKED event with ramp_type UNIFIED_BUY when unified V1 is enabled', () => {
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-    const { getByTestId } = renderComponent();
-    const actionButton = getByTestId('balance-empty-state-action-button');
-
-    fireEvent.press(actionButton);
-
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
-    );
-    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
-      expect.objectContaining({
-        button_text: 'Add funds',
-        location: 'BalanceEmptyState',
-        chain_id_destination: 1,
-        ramp_type: 'UNIFIED_BUY',
-        ramp_routing: undefined,
+        ramp_type: 'UNIFIED_BUY_2',
         is_authenticated: false,
         preferred_provider: undefined,
         order_count: 0,

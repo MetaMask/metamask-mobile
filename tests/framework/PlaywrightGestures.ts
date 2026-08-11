@@ -3,22 +3,66 @@ import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
+import {
+  createPlaywrightLogger,
+  debugElementAction,
+  formatSelector,
+} from './playwrightLogger.ts';
+
+const logger = createPlaywrightLogger('PlaywrightGestures');
 
 export interface ScrollOptions {
-  scrollParams?: { direction?: 'up' | 'down' };
+  scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
   from?: { x: number; y: number };
   to?: { x: number; y: number };
   percent?: number;
   scrollableElement?: PlaywrightElement;
   duration?: number;
+  /** WDIO native scrollIntoView limit; default is 10. */
+  maxScrolls?: number;
+}
+
+/**
+ * Ensures a Appium element has a resolved `elementId` before any call that
+ * would invoke `getElementRect` (`scrollIntoView`, `getLocation`, `getSize`).
+ */
+export async function assertResolvedElementId(
+  elem: PlaywrightElement,
+  action: string,
+  role: 'target' | 'scrollableElement' = 'target',
+): Promise<string> {
+  const unwrapped = elem.unwrap();
+  let elementId: unknown;
+  try {
+    elementId = await unwrapped.elementId;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Cannot ${action}: failed to read ${role} elementId (${detail})`,
+    );
+  }
+
+  if (elementId === undefined || elementId === null || elementId === '') {
+    let selectorLabel = '';
+    try {
+      selectorLabel = formatSelector(await unwrapped.selector);
+    } catch {
+      // Selector may be unavailable for unresolved/stale elements.
+    }
+    const selectorPart = selectorLabel ? ` (selector: ${selectorLabel})` : '';
+    throw new Error(
+      `Cannot ${action}: ${role} has no valid Appium elementId${selectorPart}. Element was not found or is stale — refusing to call getElementRect.`,
+    );
+  }
+
+  return String(elementId);
 }
 
 /**
  * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright
  *
  * This class provides gesture methods that wrap PlaywrightElement API.
- * Currently these are simple wrappers, but can be enhanced with retries,
- * stability checks, and logging in the future (similar to Detox Gestures).
+ * Currently these are simple wrappers with debug logging (similar to Detox Gestures).
  *
  * @example
  * const elem = await PlaywrightMatchers.getByXPath('...');
@@ -35,6 +79,7 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async tap(elem: PlaywrightElement): Promise<void> {
+    await debugElementAction(logger, 'Tapping element', elem);
     await elem.unwrap().click();
   }
 
@@ -91,6 +136,7 @@ export default class PlaywrightGestures {
    */
   private static async isElementInteractive(
     elem: PlaywrightElement,
+    memo?: { hasClickableAncestor?: boolean },
   ): Promise<boolean> {
     if (!(await elem.isEnabled())) {
       return false;
@@ -105,7 +151,31 @@ export default class PlaywrightGestures {
         elem.getAttribute('clickable'),
         elem.getAttribute('enabled'),
       ]);
-      return clickableAttr !== 'false' && enabledAttr !== 'false';
+      if (enabledAttr === 'false') {
+        return false;
+      }
+      if (clickableAttr !== 'false') {
+        return true;
+      }
+      // RN often attaches testIDs to non-clickable Text/View children whose
+      // touchable ancestor receives the tap (Appium clicks by coordinates), and
+      // whether the child is merged into the touchable's accessibility node is
+      // nondeterministic. A genuinely disabled control has no clickable ancestor.
+      if (memo?.hasClickableAncestor) {
+        return true;
+      }
+      // findElements returns [] for the ancestor axis on UiAutomator2 even when
+      // the ancestor exists, so probe with a scoped findElement and check error.
+      const ancestor = await elem
+        .unwrap()
+        .$('./ancestor::*[@clickable="true"]');
+      const hasClickableAncestor = ancestor.error === undefined;
+      if (hasClickableAncestor && memo) {
+        // The probe costs seconds (full page-source xpath); a positive verdict
+        // is structural and stable for the duration of one interactive wait.
+        memo.hasClickableAncestor = true;
+      }
+      return hasClickableAncestor;
     } catch {
       return true;
     }
@@ -123,9 +193,10 @@ export default class PlaywrightGestures {
     const requiredStableReads = options?.requiredStableReads ?? 6;
     const start = Date.now();
     let consecutiveInteractive = 0;
+    const memo: { hasClickableAncestor?: boolean } = {};
 
     while (Date.now() - start < timeout - interval) {
-      if (await this.isElementInteractive(elem)) {
+      if (await this.isElementInteractive(elem, memo)) {
         consecutiveInteractive += 1;
         if (consecutiveInteractive >= requiredStableReads) {
           return;
@@ -154,6 +225,7 @@ export default class PlaywrightGestures {
       checkForStable?: boolean;
       enabledStableReads?: number;
       postEnabledSettleMs?: number;
+      elemDescription?: string;
     },
   ): Promise<void> {
     const {
@@ -165,6 +237,7 @@ export default class PlaywrightGestures {
       checkForStable = false,
       enabledStableReads = 3,
       postEnabledSettleMs,
+      elemDescription,
     } = options || {};
 
     if (checkForDisplayed) {
@@ -193,6 +266,13 @@ export default class PlaywrightGestures {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
+    await debugElementAction(
+      logger,
+      elemDescription
+        ? `Wait and tap element: ${elemDescription}`
+        : 'Wait and tap element',
+      elem,
+    );
     await elem.unwrap().click();
   }
 
@@ -204,6 +284,7 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async typeText(elem: PlaywrightElement, text: string): Promise<void> {
+    await debugElementAction(logger, 'Typing into element', elem);
     await elem.unwrap().addValue(text);
   }
 
@@ -238,6 +319,7 @@ export default class PlaywrightGestures {
       from,
       to,
     } = options || {};
+    logger.debug(`Swiping ${scrollParams.direction ?? 'up'}`);
     await drv.swipe({
       direction: scrollParams.direction,
       duration,
@@ -248,26 +330,36 @@ export default class PlaywrightGestures {
   }
 
   /**
-   * Long press an element
+   * Long press an element via W3C pointer actions.
+   *
+   * Avoid `touchAction` — some WDIO/Appium combinations still route that call
+   * through the legacy `touch/perform` endpoint, which can fail for native
+   * mobile sessions (GET with body).
    */
   @boxedStep
   static async longPress(
     elem: PlaywrightElement,
     duration = 1000,
   ): Promise<void> {
+    await assertResolvedElementId(elem, 'longPress', 'target');
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
+    const x = Math.floor(location.x + size.width / 2);
+    const y = Math.floor(location.y + size.height / 2);
 
-    const x = location.x + size.width / 2;
-    const y = location.y + size.height / 2;
-
-    await elem
-      .unwrap()
-      .touchAction([
-        { action: 'press', x, y },
-        { action: 'wait', ms: duration },
-        'release',
-      ]);
+    await debugElementAction(logger, 'Long pressing element', elem);
+    await drv
+      .action('pointer', {
+        parameters: { pointerType: 'touch' },
+      })
+      .move({ x, y })
+      .down()
+      .pause(duration)
+      .up()
+      .perform();
   }
 
   /**
@@ -281,6 +373,7 @@ export default class PlaywrightGestures {
   static async dblTap(elem: PlaywrightElement, intervalMs = 60): Promise<void> {
     const wrapped = elem.unwrap();
 
+    await debugElementAction(logger, 'Double tapping element', elem);
     await wrapped.click();
 
     if (intervalMs > 0) {
@@ -305,7 +398,18 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement,
       duration,
+      maxScrolls = 30,
     } = options || {};
+    // Only guard scrollableElement here. The target may be off-screen / not yet
+    // in the hierarchy; WDIO scrolls until it becomes visible.
+    if (scrollableElement) {
+      await assertResolvedElementId(
+        scrollableElement,
+        'scrollIntoView',
+        'scrollableElement',
+      );
+    }
+    await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
       direction: scrollParams.direction,
       from,
@@ -313,6 +417,7 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement: scrollableElement?.unwrap(),
       duration,
+      maxScrolls,
     });
   }
 
@@ -335,6 +440,8 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) return;
 
+    // Re-check before getLocation/getSize — element may have gone stale after scroll.
+    await assertResolvedElementId(elem, 'scrollIntoViewFullyVisible', 'target');
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
     const windowSize = getWindowSize();
@@ -342,6 +449,11 @@ export default class PlaywrightGestures {
     const safeBottom = windowSize.height * 0.85;
 
     if (elementBottom > safeBottom) {
+      await debugElementAction(
+        logger,
+        'Adjusting scroll to clear bottom nav for element',
+        elem,
+      );
       const overshoot = Math.ceil(elementBottom - safeBottom) + 20;
       const midX = Math.floor(windowSize.width / 2);
       const startY = Math.floor(windowSize.height * 0.6);
@@ -392,13 +504,14 @@ export default class PlaywrightGestures {
       throw new Error('Package name or app id is not available');
     }
 
+    logger.debug(`Terminating app: ${bundleId}`);
     while (retries > 0) {
       try {
         await drv.terminateApp(bundleId);
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
         return;
       } catch (error) {
-        console.log('Error terminating app', bundleId);
+        logger.warn(`Error terminating app ${bundleId}:`, error);
         retries--;
       }
     }
@@ -421,6 +534,7 @@ export default class PlaywrightGestures {
     if (!drv) throw new Error('Driver is not available');
 
     if (packageId) {
+      logger.debug(`Activating app: ${packageId}`);
       await drv.activateApp(packageId);
       return;
     }
@@ -429,6 +543,7 @@ export default class PlaywrightGestures {
       currentDeviceDetails?.platform === 'android' &&
       currentDeviceDetails.packageName
     ) {
+      logger.debug(`Activating app: ${currentDeviceDetails.packageName}`);
       await drv.activateApp(currentDeviceDetails.packageName);
       return;
     }
@@ -437,6 +552,7 @@ export default class PlaywrightGestures {
       currentDeviceDetails?.platform === 'ios' &&
       currentDeviceDetails.appId
     ) {
+      logger.debug(`Activating app: ${currentDeviceDetails.appId}`);
       await drv.activateApp(currentDeviceDetails.appId);
       return;
     }
@@ -453,29 +569,203 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
+    logger.debug(`Backgrounding app for ${seconds}s`);
     await drv.execute('mobile: backgroundApp', { seconds });
+  }
+
+  /**
+   * Tap a single iOS soft-keyboard key by accessibility id (e.g. "Delete", "1").
+   */
+  @boxedStep
+  static async tapIosKeyboardKey(keyName: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const key = await drv.$(`~${keyName}`);
+    await key.waitForExist({ timeout: 5000 });
+    await key.click();
+  }
+
+  /**
+   * Type into the focused iOS soft keyboard by tapping keys.
+   * Supports lowercase letters, digits 0-9, '.', and space only.
+   *
+   * @param options.numberPad - When true, skip QWERTY `~more` switching
+   * (digits are already on the pad). Use for `keyboardType="numeric"` fields.
+   */
+  @boxedStep
+  static async typeViaIosKeyboard(
+    text: string,
+    options?: { numberPad?: boolean },
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    if (options?.numberPad) {
+      for (const ch of text) {
+        await this.tapIosKeyboardKey(ch);
+      }
+      return;
+    }
+
+    await drv
+      .$('//XCUIElementTypeKeyboard')
+      .waitForDisplayed({ timeout: 10000 });
+
+    let onNumbers = false;
+    const ensureLetters = async (): Promise<void> => {
+      if (onNumbers) {
+        await this.tapIosKeyboardKey('more');
+        onNumbers = false;
+      }
+    };
+    const ensureNumbers = async (): Promise<void> => {
+      if (!onNumbers) {
+        await this.tapIosKeyboardKey('more');
+        onNumbers = true;
+      }
+    };
+
+    for (const ch of text) {
+      if (ch === '.' || (ch >= '0' && ch <= '9')) {
+        await ensureNumbers();
+        await this.tapIosKeyboardKey(ch);
+      } else if (ch === ' ') {
+        await ensureLetters();
+        await this.tapIosKeyboardKey('space');
+      } else {
+        const letter = ch.toLowerCase();
+        if (letter < 'a' || letter > 'z') {
+          throw new Error(
+            `typeViaIosKeyboard: unsupported character "${ch}". Only letters, digits, "." and space are supported.`,
+          );
+        }
+        await ensureLetters();
+        await this.tapIosKeyboardKey(letter);
+      }
+    }
   }
 
   /**
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
-  static async hideKeyboard(keyName: string = 'Done'): Promise<void> {
+  static async hideKeyboard(): Promise<void> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
+    logger.debug('Hiding keyboard');
     if (PlatformDetector.isAndroid()) {
-      await drv.hideKeyboard();
+      try {
+        if (await drv.isKeyboardShown()) {
+          await drv.hideKeyboard();
+        }
+      } catch {
+        // Keyboard already hidden
+      }
     } else {
-      // iOS - tapOutside dismisses the keyboard by tapping outside the focused
-      // element, which works regardless of keyboard type (password, numeric, etc.)
+      // iOS — use 'tapOutside' to dismiss the keyboard without pressing a
+      // return key. 'pressKey: Done' would trigger onSubmitEditing on inputs
+      // that have returnKeyType='done', causing unintended form submissions
+      // before the test has a chance to interact with other elements.
       try {
         await drv.executeScript('mobile: hideKeyboard', [
-          { strategy: 'pressKey', key: keyName },
+          { strategy: 'tapOutside' },
         ]);
       } catch {
         // Keyboard may already be hidden
       }
     }
+  }
+
+  /**
+   * Dismiss the soft keyboard after typing in Bridge token search.
+   * tapOutside alone is flaky on iOS TextFieldSearch — rows can stay
+   * `displayed:false` under the keyboard. Follow with a tap on the
+   * network-pills strip (below the search field) to force blur.
+   */
+  static async dismissKeyboardAfterTokenSearch(): Promise<void> {
+    await PlaywrightGestures.hideKeyboard();
+    if (PlatformDetector.isAndroid()) {
+      return;
+    }
+    const drv = getDriver();
+    if (!drv) return;
+    try {
+      const { width, height } = getWindowSize();
+      await drv
+        .action('pointer', {
+          parameters: { pointerType: 'touch' },
+        })
+        .move({ x: Math.floor(width / 2), y: Math.floor(height * 0.28) })
+        .down()
+        .pause(50)
+        .up()
+        .perform();
+    } catch {
+      // Keyboard already dismissed / window size unavailable
+    }
+  }
+
+  /**
+   * Submit the focused Android URL field via KEYCODE_ENTER (66).
+   * Matches the ↵ key on the URL keyboard (no "Go" label on most IMEs).
+   */
+  @boxedStep
+  static async submitAndroidUrlBar(): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    logger.debug('submitAndroidUrlBar: pressKeyCode(66) ENTER');
+    await drv.pressKeyCode(66);
+  }
+
+  /**
+   * Press a return key on the soft keyboard (e.g. 'Next', 'Done', 'Go').
+   * Use when tapOutside cannot dismiss the keyboard (keyboardDismissMode="none")
+   * or when onSubmitEditing must fire to advance the flow.
+   */
+  @boxedStep
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    logger.debug(`Tapping keyboard return key: ${keyName}`);
+
+    if (PlatformDetector.isAndroid()) {
+      await drv.pressKeyCode(66);
+      return;
+    }
+
+    // iOS — tap the keyboard return key directly (separate window from app UI).
+    // e.g. Next: name="Next:" label="next" inside XCUIElementTypeKeyboard
+    const normalized = keyName.toLowerCase();
+    const titleCase = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+
+    // iOS keyboard keys commonly use "Next:" / label "next" — try those first.
+    const locators = [
+      `~${titleCase}:`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND name == '${titleCase}:'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}:']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@label='${normalized}']`,
+      `~${titleCase}`,
+      `~${normalized}`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND label == '${normalized}'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${normalized}']`,
+    ];
+
+    for (const locator of locators) {
+      const button = await drv.$(locator);
+      try {
+        await button.waitForDisplayed({ timeout: 5000 });
+        await button.click();
+        return;
+      } catch {
+        // try next locator variant
+      }
+    }
+
+    throw new Error(`Could not find iOS keyboard key "${keyName}"`);
   }
 }

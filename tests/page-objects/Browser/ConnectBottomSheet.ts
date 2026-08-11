@@ -4,45 +4,54 @@ import {
 } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 
 class ConnectBottomSheet {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.CONTAINER,
     );
   }
-  get connectButton(): DetoxElement {
+  get connectButton(): EncapsulatedElementType {
+    if (FrameworkDetector.isAppium()) {
+      return Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
+    }
+
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(CommonSelectorsIDs.CONNECT_BUTTON)
       : Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
   }
 
-  get connectAccountsButton(): DetoxElement {
+  get connectAccountsButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.CONNECT_ACCOUNTS,
     );
   }
 
-  get importButton(): DetoxElement {
+  get importButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.IMPORT_ACCOUNT,
     );
   }
 
-  get selectAllButton(): DetoxElement {
+  get selectAllButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.SELECT_ALL,
     );
   }
 
-  get selectMultiButton(): DetoxElement {
+  get selectMultiButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
@@ -55,6 +64,22 @@ class ConnectBottomSheet {
   }
 
   async tapConnectButton(): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
+      const button = await PlaywrightMatchers.getElementById(
+        CommonSelectorsIDs.CONNECT_BUTTON,
+      );
+      await PlaywrightGestures.waitAndTap(button, {
+        waitForInteractive: true,
+        postEnabledSettleMs: 300,
+        timeout: 15_000,
+      });
+      await button
+        .unwrap()
+        .waitForDisplayed({ reverse: true, timeout: 15_000 });
+      return;
+    }
+
     await Gestures.waitAndTap(this.connectButton, {
       elemDescription: 'Tap on the connect button',
     });

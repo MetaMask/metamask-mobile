@@ -263,6 +263,19 @@ describe('TrendingTokensFullView', () => {
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 
+  it('shows Crypto movers title when opened from the Now tab entry point', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        entryPoint: 'crypto_movers',
+        quickBuySource: 'explore_now',
+      },
+    });
+
+    const { getByText } = renderTrendingFullView();
+
+    expect(getByText(strings('trending.crypto_movers'))).toBeOnTheScreen();
+  });
+
   it('navigates back when back button is pressed', async () => {
     const mocks = arrangeMocks();
     const { getByTestId } = renderTrendingFullView();
@@ -352,6 +365,21 @@ describe('TrendingTokensFullView', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       sortBy: 'h1_trending',
       chainIds: null,
+      searchQuery: undefined,
+      filterLowQuality: true,
+    });
+  });
+
+  it('applies initial network filter from route params', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialNetwork: ['eip155:4663'] },
+    });
+
+    renderTrendingFullView();
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      sortBy: undefined,
+      chainIds: ['eip155:4663'],
       searchQuery: undefined,
       filterLowQuality: true,
     });

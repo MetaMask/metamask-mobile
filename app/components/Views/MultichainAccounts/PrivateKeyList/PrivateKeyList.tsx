@@ -8,6 +8,7 @@ import React, {
 import { TextInput, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -25,7 +26,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  Toaster,
   toast,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
@@ -69,7 +69,7 @@ const hasPrivateKeyAvailable = (account: InternalAccount) =>
  * @returns {JSX.Element} The rendered component.
  */
 export const PrivateKeyList = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { groupId, title } = useParams<PrivateKeyListParams>();
   const tw = useTailwind();
   const theme = useTheme();
@@ -124,7 +124,7 @@ export const PrivateKeyList = () => {
     await Promise.all(
       pkAccounts.map(async (account: InternalAccount) => {
         const pk = await KeyringController.exportAccount(
-          password,
+          { password },
           account.address,
         );
         privateKeyMap[account.id] = pk;
@@ -188,9 +188,7 @@ export const PrivateKeyList = () => {
               privateKeys[item.account.id],
             );
             toast({
-              description: strings(
-                'multichain_accounts.private_key_list.copied',
-              ),
+              title: strings('multichain_accounts.private_key_list.copied'),
               hasNoTimeout: false,
             });
           },
@@ -326,7 +324,6 @@ export const PrivateKeyList = () => {
       />
 
       {reveal ? renderPrivateKeyList() : renderPassword()}
-      <Toaster />
     </Box>
   );
 };

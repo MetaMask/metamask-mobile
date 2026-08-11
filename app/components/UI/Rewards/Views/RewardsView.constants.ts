@@ -7,6 +7,7 @@ export const REWARDS_VIEW_SELECTORS = {
   REFERRAL_BUTTON: 'rewards-view-referral-button',
   SETTINGS_BUTTON: 'rewards-view-settings-button',
   VIP_BUTTON: 'rewards-view-vip-button',
+  VIP_REFEREE_BUTTON: 'rewards-view-vip-referee-button',
   VIP_VIEW: 'rewards-view-vip-view',
   SEASON_SUMMARY_PLACEHOLDER: 'rewards-view-season-summary-placeholder',
   TAB_CONTENT_PREVIOUS_SEASON: 'rewards-view-tab-content-previous-season',
@@ -62,6 +63,8 @@ export const REWARDS_VIEW_SELECTORS = {
   // Earn rewards section
   EARN_REWARDS_PREVIEW: 'rewards-view-earn-rewards-preview',
   EARN_REWARDS_MUSD_CARD: 'rewards-view-earn-rewards-musd-card',
+  EARN_REWARDS_MUSD_DISCLAIMER_LINK:
+    'rewards-view-earn-rewards-musd-disclaimer-link',
   EARN_REWARDS_CARD_CARD: 'rewards-view-earn-rewards-card-card',
   // Campaigns
   CAMPAIGNS_PREVIEW: 'rewards-view-campaigns-preview',

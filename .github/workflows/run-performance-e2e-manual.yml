@@ -1,0 +1,100 @@
+name: Run Performance E2E Tests Manually
+
+# Scheduled runs use the e2e build from main:
+# - 00:00, 06:00, 12:00, 18:00 UTC
+on:
+  schedule:
+    - cron: '0 */6 * * 1-6'
+  workflow_dispatch:
+    inputs:
+      build_variant:
+        description: 'BrowserStack build profile'
+        required: false
+        type: choice
+        options:
+          - e2e
+          - exp
+          - rc
+        default: e2e
+      sentry_target:
+        description: 'Sentry target for performance events (test or real)'
+        required: false
+        type: choice
+        options:
+          - test
+          - real
+        default: test
+      browserstack_app_url_android_onboarding:
+        description: 'BrowserStack Android Onboarding App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_ios_onboarding:
+        description: 'BrowserStack iOS Onboarding App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_android_imported_wallet:
+        description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_ios_imported_wallet:
+        description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
+        required: false
+        type: string
+      performance_tags:
+        description: 'JSON array of performance tags. Blank runs all; [] skips all.'
+        required: false
+        type: string
+        default: ''
+      reuse_main_builds:
+        description: 'For e2e only, reuse and upload the latest Android APKs from main CI'
+        required: false
+        type: boolean
+        default: false
+      source_fingerprint:
+        description: 'Optional @expo/fingerprint hash for Android app reuse'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+  id-token: write
+  actions: write
+  pull-requests: write
+  statuses: write
+
+concurrency:
+  # Manual runs are isolated by ref and variant so they do not block the
+  # scheduled cadence.
+  group: performance-e2e-trigger-${{ github.event_name == 'schedule' && github.event.schedule || github.ref }}-${{ github.event_name == 'schedule' && 'scheduled' || inputs.build_variant }}
+  cancel-in-progress: false
+
+jobs:
+  scheduled-e2e:
+    name: Scheduled Performance E2E (e2e)
+    if: github.event_name == 'schedule' && github.event.schedule == '0 */6 * * 1-6'
+    uses: ./.github/workflows/run-performance-e2e.yml
+    with:
+      branch_name: main
+      source_ref: main
+      build_variant: e2e
+      sentry_target: test
+    secrets: inherit
+
+  manual:
+    name: Manual Performance E2E (${{ inputs.build_variant }})
+    if: github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/run-performance-e2e.yml
+    with:
+      branch_name: ${{ github.ref_name }}
+      source_ref: ${{ github.ref_name }}
+      build_variant: ${{ inputs.build_variant }}
+      sentry_target: ${{ inputs.sentry_target }}
+      browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
+      browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
+      browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
+      browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
+      performance_tags: ${{ inputs.performance_tags }}
+      reuse_main_builds: ${{ inputs.build_variant == 'e2e' && inputs.reuse_main_builds }}
+      source_fingerprint: ${{ inputs.source_fingerprint }}
+    secrets: inherit

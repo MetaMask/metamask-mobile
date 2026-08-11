@@ -41,6 +41,7 @@ describe('CandleStreamChannel', () => {
     channel = new CandleStreamChannel(mockGetIsInitialized);
     jest.clearAllMocks();
     jest.useFakeTimers();
+    jest.setSystemTime(new Date(1700000060000));
     mockGetIsInitialized.mockReturnValue(true);
 
     // Setup Engine.context.PerpsController mock
@@ -762,6 +763,54 @@ describe('CandleStreamChannel', () => {
 
       expect(callback).toHaveBeenCalledTimes(1);
     });
+
+    it('cancels deferred connect timers on disconnectAll', () => {
+      mockGetIsInitialized.mockReturnValue(false);
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      channel.disconnectAll();
+      mockGetIsInitialized.mockReturnValue(true);
+      jest.advanceTimersByTime(
+        PERFORMANCE_CONFIG.NavigationParamsDelayMs +
+          PERPS_CONSTANTS.ConnectRetryDelayMs,
+      );
+
+      expect(mockSubscribeToCandles).not.toHaveBeenCalled();
+    });
+
+    it('clears deferred connect and teardown timers on disconnectAll', () => {
+      mockGetIsInitialized.mockReturnValue(false);
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      const unsubscribe = channel.subscribe({
+        symbol: 'ETH',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      mockGetIsInitialized.mockReturnValue(true);
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+      unsubscribe();
+
+      channel.disconnectAll();
+      jest.advanceTimersByTime(
+        PERFORMANCE_CONFIG.CandleTeardownDelayMs +
+          PERPS_CONSTANTS.ConnectRetryDelayMs,
+      );
+
+      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('Clear Cache', () => {
@@ -832,6 +881,25 @@ describe('CandleStreamChannel', () => {
       );
 
       expect(mockSubscribeToCandles).not.toHaveBeenCalled();
+    });
+
+    it('cancels pending teardown timers on clearCache', () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToCandles.mockReturnValue(mockUnsubscribe);
+
+      const unsubscribe = channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      unsubscribe();
+
+      channel.clearCache();
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.CandleTeardownDelayMs);
+
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1062,6 +1130,603 @@ describe('CandleStreamChannel', () => {
       );
 
       expect(subscriber).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Prewarm Candles', () => {
+    const isCacheFresh = (
+      CandleStreamChannel as unknown as {
+        isCacheFresh: (data: CandleData, nowMs?: number) => boolean;
+      }
+    ).isCacheFresh;
+
+    it('returns false for cache freshness when candles are empty', () => {
+      const data: CandleData = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [],
+      };
+
+      const result = isCacheFresh(data, 1700000000000);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for cache freshness when interval is unsupported', () => {
+      const data: CandleData = {
+        symbol: 'BTC',
+        interval: 'unsupported' as CandlePeriod,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      };
+
+      const result = isCacheFresh(data, 1700000000000);
+
+      expect(result).toBe(false);
+    });
+
+    it('fetches latest candles into cache so subscribe can emit them immediately', async () => {
+      const warmedData: CandleData = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneWeek,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      };
+      mockFetchHistoricalCandles.mockResolvedValue(warmedData);
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneWeek,
+        TimeDuration.OneWeek,
+      );
+
+      const callback = jest.fn();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneWeek,
+        duration: TimeDuration.OneWeek,
+        callback,
+      });
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneWeek,
+        limit: 50,
+        endTime: expect.any(Number),
+      });
+      expect(callback).toHaveBeenCalledWith(warmedData);
+    });
+
+    it('skips prewarm fetch when cached candles are fresh', async () => {
+      const warmedData: CandleData = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      };
+      mockFetchHistoricalCandles.mockResolvedValue(warmedData);
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+      mockFetchHistoricalCandles.mockClear();
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+
+      expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
+    });
+
+    it('skips prewarm fetch when live subscription cache is fresh', async () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      capturedCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000060000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      });
+      mockFetchHistoricalCandles.mockClear();
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneMinute,
+        TimeDuration.OneWeek,
+      );
+
+      expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
+    });
+
+    it('suppresses duplicate in-flight prewarm requests for the same cache key', async () => {
+      const warmedData: CandleData = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      };
+      let resolveFetch: (value: CandleData) => void = () => undefined;
+      mockFetchHistoricalCandles.mockReturnValue(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+
+      const firstPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+      const secondPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+
+      resolveFetch(warmedData);
+      await Promise.all([firstPrewarm, secondPrewarm]);
+    });
+
+    it('does not cache or notify subscribers when prewarm returns empty candles', async () => {
+      const subscriber = jest.fn();
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+      mockFetchHistoricalCandles.mockResolvedValue({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [],
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneWeek,
+        callback: subscriber,
+      });
+      subscriber.mockClear();
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+
+      expect(subscriber).not.toHaveBeenCalled();
+      expect(channel.getCachedData('BTC', CandlePeriod.OneHour)).toBeNull();
+    });
+
+    it('swallows non-abort prewarm fetch failures', async () => {
+      mockFetchHistoricalCandles.mockRejectedValue(new Error('history down'));
+
+      await expect(
+        channel.prewarmCandles(
+          'BTC',
+          CandlePeriod.OneHour,
+          TimeDuration.OneWeek,
+        ),
+      ).resolves.toBeUndefined();
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('refreshes and merges stale cached candles during prewarm', async () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      const subscriber = jest.fn();
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: subscriber,
+      });
+      flushConnectDebounce();
+
+      capturedCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      });
+
+      jest.setSystemTime(new Date(1700000300000));
+      mockFetchHistoricalCandles.mockResolvedValue({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000240000,
+            open: '50600',
+            high: '51200',
+            low: '50500',
+            close: '51100',
+            volume: '90',
+          },
+        ],
+      });
+      subscriber.mockClear();
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneMinute,
+        TimeDuration.OneWeek,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        limit: 500,
+        endTime: 1700000300000,
+      });
+      expect(subscriber).toHaveBeenCalledWith(
+        expect.objectContaining({
+          candles: [
+            expect.objectContaining({ time: 1700000000000 }),
+            expect.objectContaining({ time: 1700000240000 }),
+          ],
+        }),
+      );
+    });
+
+    it('returns from duplicate in-flight prewarm request', async () => {
+      let resolveFetch: (value: CandleData) => void = () => undefined;
+      mockFetchHistoricalCandles.mockReturnValue(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+
+      const firstPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.FiveMinutes,
+        TimeDuration.OneWeek,
+      );
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.FiveMinutes,
+        TimeDuration.OneWeek,
+      );
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+
+      resolveFetch({
+        symbol: 'BTC',
+        interval: CandlePeriod.FiveMinutes,
+        candles: [mockCandleData.candles[0]],
+      });
+      await firstPrewarm;
+    });
+
+    it('logs stale cache refresh failures triggered by subscribe', async () => {
+      const { DevLogger } = jest.requireMock(
+        '../../../../../core/SDKConnect/utils/DevLogger',
+      );
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      capturedCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      });
+      jest.setSystemTime(new Date(1700000300000));
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetchHistoricalCandles.mockRejectedValue(abortError);
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'CandleStreamChannel: Failed to refresh stale cache',
+        expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneMinute,
+          error: 'The operation was aborted',
+        }),
+      );
+    });
+
+    it('logs non-error stale cache refresh rejections triggered by subscribe', async () => {
+      const { DevLogger } = jest.requireMock(
+        '../../../../../core/SDKConnect/utils/DevLogger',
+      );
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      capturedCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      });
+      jest.setSystemTime(new Date(1700000300000));
+      jest.spyOn(channel, 'prewarmCandles').mockRejectedValue('history down');
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      await Promise.resolve();
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'CandleStreamChannel: Failed to refresh stale cache',
+        expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneMinute,
+          error: 'history down',
+        }),
+      );
+    });
+
+    it('swallows non-abort prewarm fetch failures', async () => {
+      mockFetchHistoricalCandles.mockRejectedValue(new Error('history down'));
+
+      await expect(
+        channel.prewarmCandles(
+          'BTC',
+          CandlePeriod.OneHour,
+          TimeDuration.OneWeek,
+        ),
+      ).resolves.toBeUndefined();
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows non-error prewarm fetch failures', async () => {
+      mockFetchHistoricalCandles.mockRejectedValue('history down');
+
+      await expect(
+        channel.prewarmCandles(
+          'BTC',
+          CandlePeriod.OneHour,
+          TimeDuration.OneWeek,
+        ),
+      ).resolves.toBeUndefined();
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(1);
+    });
+
+    it('rethrows abort errors during prewarm', async () => {
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetchHistoricalCandles.mockRejectedValue(abortError);
+
+      await expect(
+        channel.prewarmCandles(
+          'BTC',
+          CandlePeriod.OneHour,
+          TimeDuration.OneWeek,
+        ),
+      ).rejects.toThrow('The operation was aborted');
+    });
+
+    it('does not emit stale cached candles immediately on subscribe', () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      const firstSubscriber = jest.fn();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: firstSubscriber,
+      });
+      flushConnectDebounce();
+
+      capturedCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      });
+
+      jest.setSystemTime(new Date(1700000300000));
+      const secondSubscriber = jest.fn();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: secondSubscriber,
+      });
+
+      expect(secondSubscriber).not.toHaveBeenCalled();
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        limit: 500,
+        endTime: 1700000300000,
+      });
+    });
+
+    it('emits refreshed merged candles after subscribing with stale cache', async () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      capturedCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      });
+
+      jest.setSystemTime(new Date(1700000300000));
+      const refreshedSubscriber = jest.fn();
+      mockFetchHistoricalCandles.mockResolvedValue({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000240000,
+            open: '50600',
+            high: '51200',
+            low: '50500',
+            close: '51100',
+            volume: '90',
+          },
+        ],
+      });
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: refreshedSubscriber,
+      });
+
+      expect(refreshedSubscriber).not.toHaveBeenCalled();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(refreshedSubscriber).toHaveBeenCalledWith(
+        expect.objectContaining({
+          candles: [
+            expect.objectContaining({ time: 1700000000000 }),
+            expect.objectContaining({ time: 1700000240000 }),
+          ],
+        }),
+      );
     });
   });
 

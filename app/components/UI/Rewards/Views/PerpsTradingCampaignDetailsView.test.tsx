@@ -471,7 +471,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     const map: Record<string, string> = {
       'rewards.perps_trading_campaign.title': 'Perps Trading',
       'rewards.perps_trading_campaign.stats_title': 'Stats',
-      'rewards.perps_trading_campaign.prize_pool_title': 'Prize pool',
+      'rewards.campaign_prize_pool.title': 'Prize pool',
       'rewards.perps_trading_campaign.leaderboard_title': 'Leaderboard',
       'rewards.campaigns_view.error_title': 'Error',
       'rewards.campaigns_view.error_description': 'Try again',

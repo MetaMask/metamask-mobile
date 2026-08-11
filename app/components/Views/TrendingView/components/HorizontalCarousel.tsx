@@ -44,49 +44,44 @@ function HorizontalCarousel<T>({
   const displayData = isLoading ? skeletonData : data;
 
   return (
-    <Box twClassName="-mx-4 mb-7">
-      <FlashList
-        ref={flashListRef}
-        data={displayData}
-        renderItem={({ item, index }) => {
-          const isLastItem = index === displayData.length - 1;
-          return (
-            <Box
-              style={tw.style({ width: CARD_WIDTH, minHeight: CARD_HEIGHT })}
-            >
-              <Box
-                borderColor={BoxBorderColor.BorderDefault}
-                twClassName={`rounded-2xl overflow-hidden ${
-                  !isLastItem ? 'pr-3' : ''
-                }`}
-              >
-                {isLoading ? (
-                  <Skeleton />
-                ) : (
-                  renderItem({
-                    item: item as T,
-                    index,
-                    target: 'Cell',
-                  })
-                )}
-              </Box>
-            </Box>
-          );
-        }}
-        contentContainerStyle={tw.style('px-4')}
-        keyExtractor={
-          isLoading
-            ? (_, index) => `${idPrefix}-skeleton-${index}`
-            : (_, index) => `${idPrefix}-${index}`
-        }
-        horizontal
-        pagingEnabled={false}
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={CARD_WIDTH}
-        decelerationRate="fast"
-        testID={testID ?? `${idPrefix}-flash-list`}
-      />
-    </Box>
+    <FlashList
+      ref={flashListRef}
+      data={displayData}
+      renderItem={({ item, index }) => {
+        const isLastItem = index === displayData.length - 1;
+        return (
+          <Box
+            borderColor={BoxBorderColor.BorderDefault}
+            style={tw.style({ width: CARD_WIDTH, minHeight: CARD_HEIGHT })}
+            twClassName={`rounded-2xl overflow-hidden ${
+              !isLastItem ? 'pr-3' : ''
+            }`}
+          >
+            {isLoading ? (
+              <Skeleton />
+            ) : (
+              renderItem({
+                item: item as T,
+                index,
+                target: 'Cell',
+              })
+            )}
+          </Box>
+        );
+      }}
+      contentContainerStyle={tw.style('px-4')}
+      keyExtractor={
+        isLoading
+          ? (_, index) => `${idPrefix}-skeleton-${index}`
+          : (_, index) => `${idPrefix}-${index}`
+      }
+      horizontal
+      pagingEnabled={false}
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={CARD_WIDTH}
+      decelerationRate="fast"
+      testID={testID ?? `${idPrefix}-flash-list`}
+    />
   );
 }
 

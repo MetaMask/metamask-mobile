@@ -11,6 +11,7 @@ jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../../../../../UI/Earn/hooks/useMusdConversionNavbar');
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
+  createNavigationDetails: jest.fn(() => jest.fn()),
 }));
 jest.mock('../../../../../../util/trace', () => ({
   endTrace: jest.fn(),

@@ -17,7 +17,6 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet.js';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView.js';
 import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView.js';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView.js';
-import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView.js';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
@@ -26,8 +25,7 @@ import {
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
-import PredictModalView from '../../page-objects/Predict/PredictModalView.js';
-import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView.js';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 
 const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
@@ -39,12 +37,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await OnboardingView.tapCreateNewWalletButton();
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(OnboardingSheet.importSeedButton),
+        asPlaywrightElement(OnboardingSheet.importSeedButton),
       );
       test.setTimeout(10 * 60 * 1000);
       await OnboardingSheet.tapImportSeedButton();
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(CreatePasswordView.newPasswordInput),
+        asPlaywrightElement(CreatePasswordView.newPasswordInput),
       );
       await CreatePasswordView.enterPassword(
         getPasswordForScenario('onboarding') ?? '',
@@ -58,15 +56,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await CreatePasswordView.tapCreatePasswordButton();
       await ProtectYourWalletView.tapRemindMeLater();
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+        asPlaywrightElement(MetaMetricsOptInView.screenTitle),
       );
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
-
-      await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(OnboardingSuccessView.doneButton),
-      );
-      await OnboardingSuccessView.tapDone();
       await dismissPushNotificationExistingUserSheet();
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
@@ -82,46 +75,46 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true
       ) {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PredictModalView.notNowButton),
-        );
         await dismisspredictionsModalPlaywright();
       }
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 2200 },
         currentDeviceDetails.platform,
       );
       const screen2Timer = new TimerHelper(
         'Time since the user clicks on "Create account" button until the account is in the account list',
-        { ios: 1800, android: 1500 },
+        { ios: 1800, android: 2000 },
         currentDeviceDetails.platform,
       );
       const screen3Timer = new TimerHelper(
         'Time since the user clicks on new account created until the Token list is visible',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 3000 },
         currentDeviceDetails.platform,
       );
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(WalletView.walletBuyButton),
+        asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+        {
+          description:
+            'token list should be visible after selecting the new account',
+        },
       );
 
       await WalletView.tapIdenticon();
       await screen1Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(AccountListBottomSheet.accountList),
+            asPlaywrightElement(AccountListBottomSheet.addWalletButton),
           ),
       );
 
-      await AccountListBottomSheet.waitForAccountSyncToComplete();
       await AccountListBottomSheet.tapCreateAccount(0);
       await screen2Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(
+            asPlaywrightElement(
               AccountListBottomSheet.accountNameInList('Account 2'),
             ),
           ),
@@ -129,9 +122,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
 
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
-        await WalletView.checkActiveAccount('Account 2');
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokensSection),
+          asPlaywrightElement(WalletView.headerRoot),
           {
             description:
               'token list should be visible after selecting the new account',

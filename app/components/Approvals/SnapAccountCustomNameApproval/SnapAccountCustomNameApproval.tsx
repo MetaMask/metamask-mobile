@@ -17,10 +17,6 @@ import BottomSheetFooter, {
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import {
   ButtonProps,
   ButtonSize,
@@ -29,6 +25,12 @@ import {
 import { useSelector } from 'react-redux';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getUniqueAccountName } from '../../../core/SnapKeyring/utils/getUniqueAccountName';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const SnapAccountCustomNameApproval = () => {
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
@@ -91,7 +93,11 @@ const SnapAccountCustomNameApproval = () => {
         <SheetHeader
           title={strings('snap_account_custom_name_approval.title')}
         />
-        <Text style={styles.inputTitle} variant={TextVariant.BodyMDBold}>
+        <Text
+          style={styles.inputTitle}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+        >
           {strings('snap_account_custom_name_approval.input_title')}
         </Text>
         <TextInput
@@ -101,7 +107,7 @@ const SnapAccountCustomNameApproval = () => {
           testID={SNAP_ACCOUNT_CUSTOM_NAME_INPUT}
         />
         {isNameTaken && (
-          <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
             {strings('snap_account_custom_name_approval.name_taken_message')}
           </Text>
         )}

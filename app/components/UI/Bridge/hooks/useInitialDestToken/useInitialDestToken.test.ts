@@ -3,7 +3,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useInitialDestToken } from '.';
 import { waitFor } from '@testing-library/react-native';
 import { BridgeViewMode, BridgeToken } from '../../types';
-import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
+import { getSwapDestToken } from '../../utils/getSwapDestToken';
 import { SolScope, BtcScope } from '@metamask/keyring-api';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
@@ -93,7 +93,7 @@ describe('useInitialDestToken', () => {
 
     await waitFor(() => {
       expect(setDestToken).toHaveBeenCalledWith(
-        DefaultSwapDestTokens[SolScope.Mainnet],
+        getSwapDestToken(SolScope.Mainnet),
       );
     });
   });
@@ -110,7 +110,7 @@ describe('useInitialDestToken', () => {
 
     await waitFor(() => {
       expect(setDestToken).toHaveBeenCalledWith(
-        DefaultSwapDestTokens[SolScope.Mainnet],
+        getSwapDestToken(SolScope.Mainnet),
       );
     });
   });

@@ -13,6 +13,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -44,7 +45,7 @@ type CampaignTourStepRouteParams = {
 
 const CampaignTourStepView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<CampaignTourStepRouteParams, 'RewardsCampaignTourStep'>
@@ -67,10 +68,15 @@ const CampaignTourStepView: React.FC = () => {
   const campaignType = campaign?.type;
 
   const navigateToDetails = useCallback(() => {
-    const detailsRoute =
-      campaignType === CampaignType.PERPS_TRADING
-        ? Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW
-        : Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW;
+    const detailsRoute = (() => {
+      if (campaignType === CampaignType.PERPS_TRADING) {
+        return Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW;
+      }
+      if (campaignType === CampaignType.PREDICT_THE_PITCH) {
+        return Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW;
+      }
+      return Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW;
+    })();
     navigation.dispatch(
       StackActions.replace(detailsRoute, {
         campaignId,

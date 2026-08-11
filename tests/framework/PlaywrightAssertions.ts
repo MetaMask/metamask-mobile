@@ -1,15 +1,27 @@
-import { BASE_DEFAULTS, sleep } from './Utilities.ts';
+import Utilities, { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import {
   addOverhead,
   isOverheadTrackingActive,
+  recordOverheadProbe,
+  recordSuccessPollCommand,
+  withImplicitWait,
 } from './PlaywrightUtilities.ts';
+import { createPlaywrightLogger } from './playwrightLogger.ts';
+
+const logger = createPlaywrightLogger('PlaywrightAssertions');
 
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
+}
+
+export interface TextDisplayedOptions extends AssertionOptions {
+  /** When set, asserts text on this element instead of searching the screen. */
+  within?: PlaywrightElement | Promise<PlaywrightElement>;
 }
 
 /**
@@ -18,23 +30,9 @@ export interface VisibilityWithSettleOptions extends AssertionOptions {
  *
  * ## How overhead compensation works
  *
- * Every Appium WebDriver command (findElement, isExisting, etc.) carries a
- * round-trip cost that on BrowserStack can be 3-18 s per call.  When a
- * `measure()` block wraps an assertion the raw wall-clock duration would be
- * dominated by that infrastructure latency, not by the app.
- *
- * To compensate we track two kinds of overhead:
- *
- * 1. **Element resolution** — the initial `$('~id')` HTTP call that locates
- * the element selector. Tracked in `expectElementToBeVisible`.
- *
- * 2. **Overhead probe** — after the element is confirmed visible we
- * immediately call `isExisting()` once more. Because the element is
- * already on-screen the entire call duration is pure Appium/network
- * overhead. This is the best single-call estimate we can get.
- *
- * `addOverhead()` is a no-op when no `measure()` is active, so these calls
- * are zero-cost for tests that don't use TimerHelper.
+ * While `TimerHelper.measure()` is active we subtract only the post-detect
+ * probe (`isExisting` after the element is visible). That is pure Appium RTT.
+ * Resolution / confirm waits stay in app time so cold start is not under-reported.
  */
 export default class PlaywrightAssertions {
   private static getTimeout(options: AssertionOptions): number {
@@ -43,45 +41,71 @@ export default class PlaywrightAssertions {
 
   /**
    * Polls for element existence using a single WebDriver command per attempt
-   * (`isExisting`).  This avoids the multiple internal HTTP round-trips that
+   * (`isExisting`). This avoids the multiple internal HTTP round-trips that
    * WebdriverIO's `waitForDisplayed` performs on each iteration.
    *
-   * Overhead tracking logic:
-   * - If the **first** `isExisting()` already returns `true`, the element
-   * was visible before or during the network round-trip. The entire call
-   * duration is infra overhead (BrowserStack latency, WDA snapshot) so
-   * it is registered via `addOverhead`.
-   * - Subsequent failed calls (element not yet visible) are NOT overhead
-   * — the app is genuinely still loading during those calls.
-   * - After detection a {@link probeOverhead} call measures the pure
-   * per-command cost and registers it for subtraction.
+   * Implicit wait is set once for the whole poll (not per attempt) so cloud
+   * Appium providers do not pay 2× `setTimeout` RTT every probe — that
+   * overhead was inflating performance timers.
+   *
+   * When measuring, only the successful confirm (+ probe) counts as infra.
+   * A shorter poll interval reduces detection lag without zeroing app time.
    */
+  private static readonly FINAL_WAIT_RESERVE_MS = 2_000;
+  /** Fast implicit wait for poll probes — avoids 3.5s find penalty per attempt. */
+  private static readonly POLL_IMPLICIT_WAIT_MS = 300;
+  private static readonly POLL_INTERVAL_MS = 300;
+  private static readonly POLL_INTERVAL_WHILE_MEASURING_MS = 50;
+
   private static async pollUntilVisible(
     el: PlaywrightElement,
     timeout: number,
   ): Promise<void> {
-    const interval = 300;
+    const tracking = isOverheadTrackingActive();
+    const interval = tracking
+      ? this.POLL_INTERVAL_WHILE_MEASURING_MS
+      : this.POLL_INTERVAL_MS;
     const start = Date.now();
-    let attempt = 0;
-    while (Date.now() - start < timeout - interval) {
-      try {
-        attempt++;
-        const t0 = Date.now();
-        const exists = await el.unwrap().isExisting();
-        if (exists) {
-          if (isOverheadTrackingActive()) {
-            await this.probeOverhead(el);
+
+    const found = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
           }
-          return;
+          const t0 = Date.now();
+          try {
+            const exists = await el.unwrap().isExisting();
+            if (exists) {
+              const displayed = await el.isVisible();
+              if (displayed) {
+                if (tracking) {
+                  recordSuccessPollCommand(Date.now() - t0);
+                  await this.probeOverhead(el);
+                }
+                return true;
+              }
+            }
+          } catch {
+            // element not ready yet
+          }
+          await sleep(Math.min(interval, remaining));
         }
-      } catch {
-        // element not ready yet
-      }
-      await sleep(interval);
+        return false;
+      },
+    );
+
+    if (found) {
+      return;
     }
+
+    const remainingTimeout = timeout - (Date.now() - start);
     await el.waitForDisplayed({
-      timeout: Math.max(interval, timeout - (Date.now() - start)),
+      timeout: Math.max(interval, remainingTimeout),
     });
+    // waitForDisplayed includes app-load time — do not record it as success infra.
     if (isOverheadTrackingActive()) {
       await this.probeOverhead(el);
     }
@@ -89,24 +113,19 @@ export default class PlaywrightAssertions {
 
   /**
    * Measures pure Appium/network overhead by running `isExisting()` on an
-   * element that is already visible.  The entire call duration is infra cost
-   * (network round-trip + WDA snapshot) with no app-loading component.
+   * element that is already visible. Used as RTT calibration and infra cost.
    */
   private static async probeOverhead(el: PlaywrightElement): Promise<void> {
     const t0 = Date.now();
     await el.unwrap().isExisting();
-    addOverhead(Date.now() - t0);
+    recordOverheadProbe(Date.now() - t0);
   }
 
   /**
    * Asserts that a target element eventually becomes visible.
    *
-   * When called inside a `TimerHelper.measure()` block two overhead sources
-   * are automatically tracked and later subtracted:
-   * - Element resolution (`await targetElement`) — the initial WebDriver
-   * `findElement` call that resolves the selector.
-   * - Post-detection probe — one extra `isExisting()` call after the element
-   * is confirmed visible (see {@link probeOverhead}).
+   * When called inside a `TimerHelper.measure()` block, Appium infra overhead
+   * (resolution, poll commands, sleeps, probe) is tracked and subtracted.
    */
   static async expectElementToBeVisible(
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
@@ -117,7 +136,50 @@ export default class PlaywrightAssertions {
     if (isOverheadTrackingActive()) {
       addOverhead(Date.now() - t0);
     }
+    logger.debug('Waiting for element to be visible');
     await this.pollUntilVisible(el, this.getTimeout(options));
+  }
+
+  /**
+   * Asserts that a target element eventually exists in the hierarchy.
+   * Prefer this over {@link expectElementToBeVisible} for BottomSheet /
+   * confirmation children that report isDisplayed=false while on screen.
+   */
+  static async expectElementToExist(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description = options.description ?? 'element';
+    const start = Date.now();
+
+    const found = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout) {
+          try {
+            if (await el.unwrap().isExisting()) {
+              return true;
+            }
+          } catch {
+            // element not ready yet
+          }
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
+          }
+          await sleep(Math.min(this.POLL_INTERVAL_MS, remaining));
+        }
+        return false;
+      },
+    );
+
+    if (!found) {
+      throw new Error(
+        `Element "${description}" not in hierarchy after ${timeout}ms`,
+      );
+    }
   }
 
   /**
@@ -174,10 +236,8 @@ export default class PlaywrightAssertions {
   /**
    * Polls until an element's text content matches the expected value.
    *
-   * Overhead tracking follows the same pattern as {@link pollUntilVisible}:
-   * if the text already matches on the first attempt the entire call
-   * duration is registered as infra overhead; a post-match probe captures
-   * the per-command cost.
+   * Overhead tracking mirrors {@link pollUntilVisible}: failed/success poll
+   * commands, sleeps, and a post-match probe for RTT calibration.
    */
   static async expectElementText(
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
@@ -191,19 +251,16 @@ export default class PlaywrightAssertions {
     }
 
     const timeout = this.getTimeout(options);
-    const interval = 300;
+    const tracking = isOverheadTrackingActive();
+    const interval = tracking ? 50 : 300;
     const start = Date.now();
-    let attempt = 0;
     while (Date.now() - start < timeout) {
       try {
-        attempt++;
         const t0 = Date.now();
         const text = await el.textContent();
         if (text === expected) {
-          if (attempt === 1) {
-            addOverhead(Date.now() - t0);
-          }
-          if (isOverheadTrackingActive()) {
+          if (tracking) {
+            recordSuccessPollCommand(Date.now() - t0);
             await this.probeOverhead(el);
           }
           return;
@@ -216,34 +273,175 @@ export default class PlaywrightAssertions {
     throw new Error(`Expected element text "${expected}" within ${timeout}ms`);
   }
 
+  /**
+   * Polls until an element's text content is not the forbidden value.
+   */
+  static async expectElementNotToHaveText(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    forbidden: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description =
+      options.description ?? `element text is not "${forbidden}"`;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const text = await el.textContent();
+        if (text === forbidden) {
+          throw new Error(`Element still has forbidden text "${forbidden}"`);
+        }
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
   static async expectElementToNotBeVisible(
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await targetElement;
-    await el.waitForDisplayed({
-      reverse: true,
-      timeout: this.getTimeout(options),
-    });
+    try {
+      const el = await targetElement;
+      try {
+        if (!(await el.unwrap().isExisting())) {
+          return;
+        }
+      } catch {
+        // Fall through to waitForDisplayed when existence cannot be determined.
+      }
+      await el.waitForDisplayed({
+        reverse: true,
+        timeout: this.getTimeout(options),
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('No elements found for XPath') ||
+          error.message.includes('An element could not be located') ||
+          error.message.includes('no such element'))
+      ) {
+        return;
+      }
+      if (
+        error instanceof TypeError &&
+        error.message.includes('waitForDisplayed')
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   static async expectTextDisplayed(
     text: string,
+    options: TextDisplayedOptions = {},
+  ): Promise<void> {
+    const { within, ...assertionOptions } = options;
+    if (within) {
+      await this.expectElementText(within, text, assertionOptions);
+      return;
+    }
+    const timeout = this.getTimeout(assertionOptions);
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = await PlaywrightMatchers.getElementByText(text);
+        await el.waitForDisplayed({ timeout: 100 });
+      },
+      {
+        timeout,
+        description: `Assert text "${text}" is displayed`,
+      },
+    );
+  }
+
+  static async expectElementToHaveLabel(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    expectedLabel: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText(text);
-    await el.waitForDisplayed({ timeout: this.getTimeout(options) });
+    const timeout = this.getTimeout(options);
+    const interval = 300;
+    const start = Date.now();
+    const el = await targetElement;
+
+    const normalize = (value: string): string =>
+      value
+        .replace(/[\s,]+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+    const matchesLabel = (actual: string): boolean => {
+      const normalizedActual = normalize(actual);
+      const normalizedExpected = normalize(expectedLabel);
+      if (normalizedActual.includes(normalizedExpected)) {
+        return true;
+      }
+
+      return expectedLabel
+        .split(',')
+        .map((part) => normalize(part))
+        .every((part) => part.length > 0 && normalizedActual.includes(part));
+    };
+
+    while (Date.now() - start < timeout) {
+      const label = await this.getElementAccessibilityLabel(el);
+      if (matchesLabel(label)) {
+        return;
+      }
+      await sleep(interval);
+    }
+
+    const lastLabel = await this.getElementAccessibilityLabel(el);
+    throw new Error(
+      `Expected label "${expectedLabel}" but got "${lastLabel}" within ${timeout}ms`,
+    );
+  }
+
+  private static async getElementAccessibilityLabel(
+    el: PlaywrightElement,
+  ): Promise<string> {
+    const raw = el.unwrap();
+    const isAndroid = await PlatformDetector.isAndroid();
+    const accessibilityText = isAndroid
+      ? ((await raw.getAttribute('content-desc')) ?? '')
+      : ((await raw.getAttribute('label')) ??
+        (await raw.getAttribute('name')) ??
+        '');
+    let text = '';
+    try {
+      text = await raw.getText();
+    } catch {
+      text = '';
+    }
+    return [accessibilityText, text].filter(Boolean).join(', ');
   }
 
   static async expectTextNotDisplayed(
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText(text);
-    await el.waitForDisplayed({
-      reverse: true,
-      timeout: this.getTimeout(options),
-    });
+    try {
+      const el = await PlaywrightMatchers.getElementByText(text);
+      await el.waitForDisplayed({
+        reverse: true,
+        timeout: this.getTimeout(options),
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('No elements found for XPath') ||
+          error.message.includes('No elements found') ||
+          error.message.includes('returned only 0 elements') ||
+          error.message.includes('Index out of bounds'))
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   /**
@@ -268,9 +466,7 @@ export default class PlaywrightAssertions {
         return;
       } catch (error) {
         lastError = error;
-        console.log(
-          `PlaywrightAssertions: condition not met on attempt ${i + 1}`,
-        );
+        logger.debug(`Condition not met on attempt ${i + 1}/${maxRetries}`);
         await new Promise((resolve) => setTimeout(resolve, interval));
       }
     }

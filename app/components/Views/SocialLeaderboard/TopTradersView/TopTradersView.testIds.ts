@@ -1,10 +1,18 @@
 export const TopTradersViewSelectorsIDs = {
   CONTAINER: 'top-traders-view-container',
+  HEADER: 'top-traders-view-header',
+  HEADER_TITLE: 'top-traders-view-header-title',
+  TITLE: 'top-traders-view-title',
+  TITLE_SECTION_WRAPPER: 'top-traders-view-title-section-wrapper',
+  PINNED_FILTER_BAR: 'top-traders-view-pinned-filter-bar',
   BACK_BUTTON: 'top-traders-view-back-button',
   NOTIFICATION_BUTTON: 'top-traders-view-notification-button',
+  NOTIFICATIONS_BANNER: 'top-traders-view-notifications-banner',
   TRADER_LIST: 'top-traders-view-list',
-  CHAIN_FILTER_ALL: 'chain-filter-all',
-  CHAIN_FILTER_BASE: 'chain-filter-base',
-  CHAIN_FILTER_SOLANA: 'chain-filter-solana',
-  CHAIN_FILTER_ETHEREUM: 'chain-filter-ethereum',
-};
+  TYPE_SELECTOR: 'top-traders-view-type-selector',
+  PINNED_TYPE_SELECTOR: 'top-traders-view-pinned-type-selector',
+  TIMEFRAME_SELECTOR: 'top-traders-view-timeframe-selector',
+  PINNED_TIMEFRAME_SELECTOR: 'top-traders-view-pinned-timeframe-selector',
+  SORT_SELECTOR: 'top-traders-view-sort-selector',
+  PINNED_SORT_SELECTOR: 'top-traders-view-pinned-sort-selector',
+} as const;

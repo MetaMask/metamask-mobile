@@ -17,7 +17,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Image } from 'expo-image';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import {
   PredictActivityType,
@@ -39,7 +40,6 @@ import {
   getPredictPositionsHistoryListSelector,
   PredictPositionsHistoryListSelectorsIDs,
 } from '../../Predict.testIds';
-import type { PredictNavigationParamList } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface PredictTransactionsViewProps {
@@ -57,6 +57,7 @@ interface PredictTransactionsViewProps {
   isPrivacyMode?: boolean;
   containerStyle?: string;
   activityContainerStyle?: string;
+  shouldTrackActivityViewed?: boolean;
 }
 
 interface ActivityHistoryItem {
@@ -105,8 +106,7 @@ const ClaimPendingPositionRow = ({
   position,
 }: ClaimPendingPositionRowProps) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
@@ -218,6 +218,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   isPrivacyMode = false,
   containerStyle,
   activityContainerStyle,
+  shouldTrackActivityViewed = true,
 }) => {
   const tw = useTailwind();
   const {
@@ -245,12 +246,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   // Track activity list viewed when tab becomes visible
   useEffect(() => {
-    if (isVisible && !isLoading) {
+    if (shouldTrackActivityViewed && isVisible && !isLoading) {
       Engine.context.PredictController.trackActivityViewed({
         activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
       });
     }
-  }, [isVisible, isLoading]);
+  }, [isVisible, isLoading, shouldTrackActivityViewed]);
 
   const sections: ActivitySection[] = useMemo(() => {
     const sortedClaimPendingPositions = claimPendingPositions

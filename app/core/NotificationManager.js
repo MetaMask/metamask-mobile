@@ -9,7 +9,7 @@ import NotificationsService from '../util/notifications/services/NotificationSer
 import { NotificationTransactionTypes, ChannelId } from '../util/notifications';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectEvmTicker } from '../selectors/networkController';
+
 import { store } from '../store';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 
@@ -21,6 +21,7 @@ import {
 import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
 import TransactionTypes from './TransactionTypes';
+import { getNotificationSkipPredicates } from './notificationSkipPredicates';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -42,6 +43,14 @@ export const IN_PROGRESS_SKIP_STATUS = [
   TransactionStatus.signed,
   TransactionStatus.submitted,
 ];
+
+// Re-exported for convenience. The registry lives in its own dependency-free
+// module (`notificationSkipPredicates`) so feature code can register a predicate
+// without importing this heavy module and its transitive store/saga graph.
+export {
+  registerNotificationSkipPredicate,
+  clearNotificationSkipPredicates,
+} from './notificationSkipPredicates';
 
 export const constructTitleAndMessage = (notification) => {
   let title, message;
@@ -492,61 +501,6 @@ class NotificationManager {
     );
   }
 
-  /**
-   * Generates a notification for an incoming transaction
-   */
-  gotIncomingTransaction = async (incomingTransactions) => {
-    try {
-      const {
-        AccountTrackerController,
-        AccountsController,
-        NetworkController,
-      } = Engine.context;
-
-      const selectedInternalAccount = AccountsController.getSelectedAccount();
-
-      const selectedInternalAccountChecksummedAddress = safeToChecksumAddress(
-        selectedInternalAccount.address,
-      );
-
-      const ticker = selectEvmTicker(store.getState());
-
-      // If a TX has been confirmed more than 10 min ago, it's considered old
-      const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
-
-      const filteredTransactions = incomingTransactions
-        .reverse()
-        .filter(
-          (tx) =>
-            safeToChecksumAddress(tx.txParams?.to) ===
-              selectedInternalAccountChecksummedAddress &&
-            safeToChecksumAddress(tx.txParams?.from) !==
-              selectedInternalAccountChecksummedAddress &&
-            tx.status === TransactionStatus.confirmed &&
-            tx.time > oldestTimeAllowed,
-        );
-
-      if (!filteredTransactions.length) {
-        return;
-      }
-
-      const txChainId = filteredTransactions[0]?.chainId;
-      if (txChainId) {
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(txChainId);
-
-        // Update balance upon detecting a new incoming transaction
-        AccountTrackerController.refresh([networkClientId]);
-      }
-    } catch (error) {
-      Logger.log(
-        'Notifications',
-        'Error while processing incoming transaction',
-        error,
-      );
-    }
-  };
-
   #shouldSkipNotification(transactionMeta) {
     const { TransactionController } = Engine.context;
     const { transactions } = TransactionController.state;
@@ -586,7 +540,24 @@ class NotificationManager {
         tx.batchId === transactionMeta?.batchId,
     );
 
-    return isSameBatch;
+    if (isSameBatch) {
+      return true;
+    }
+
+    // Feature-registered predicates (e.g. QuickBuy surfaces its own toasts and
+    // opts its transactions out of the generic notification). A throwing
+    // predicate must never break notifications.
+    for (const predicate of getNotificationSkipPredicates()) {
+      try {
+        if (predicate(transactionMeta)) {
+          return true;
+        }
+      } catch (error) {
+        Logger.error(error, 'Notification skip predicate threw');
+      }
+    }
+
+    return false;
   }
 }
 
@@ -617,9 +588,6 @@ export default {
   },
   setTransactionToView(id) {
     return instance?.setTransactionToView(id);
-  },
-  gotIncomingTransaction(incomingTransactions) {
-    return instance?.gotIncomingTransaction(incomingTransactions);
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);

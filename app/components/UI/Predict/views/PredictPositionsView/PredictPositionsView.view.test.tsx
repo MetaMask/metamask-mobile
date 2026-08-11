@@ -181,9 +181,9 @@ describe('PredictPositionsView component view', () => {
   });
 
   it('switches to history and renders activity through the history wrapper', async () => {
-    const trackActivityViewedSpy = jest.spyOn(
+    const trackPositionsTabViewedSpy = jest.spyOn(
       Engine.context.PredictController,
-      'trackActivityViewed',
+      'trackPositionsTabViewed',
     );
     mockPredictData({
       activity: [ACTIVITY],
@@ -200,8 +200,14 @@ describe('PredictPositionsView component view', () => {
     expect(await findByText('Predicted')).toBeOnTheScreen();
     expect(await findByText(ACTIVITY.title as string)).toBeOnTheScreen();
     await waitFor(() => {
-      expect(trackActivityViewedSpy).toHaveBeenCalledWith({
-        activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+      expect(trackPositionsTabViewedSpy).toHaveBeenCalledWith({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        openPositionsCount: 1,
+        claimablePositionsCount: 0,
+        hasClaimableWinnings: false,
+        predictScreen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
       });
     });
   });
@@ -219,6 +225,23 @@ describe('PredictPositionsView component view', () => {
 
     fireEvent.press(
       await findByTestId(PredictPositionsEmptySelectorsIDs.BROWSE_MARKETS_CTA),
+    );
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.PREDICT.MARKET_LIST)),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to the Predict market list when the user presses back from the root positions screen', async () => {
+    mockPredictData({});
+    const { findByTestId } = renderPredictPositionsViewWithRoutes({
+      extraRoutes: [{ name: Routes.PREDICT.MARKET_LIST }],
+    });
+
+    await findByTestId(PredictPositionsViewSelectorsIDs.CONTAINER);
+
+    fireEvent.press(
+      await findByTestId(PredictPositionsViewSelectorsIDs.BACK_BUTTON),
     );
 
     expect(

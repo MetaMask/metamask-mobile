@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -48,11 +49,13 @@ import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 import {
-  getBatchSellAtomicSourceAmount,
   getBatchSellSourceTokenAmount,
+  hasValidBatchSellSourceAmounts,
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
+import { useTrackBatchSellQuotePageViewed } from '../../hooks/useTrackBatchSellQuotePageViewed';
+import { useTrackBatchSellQuotePageReviewClicked } from '../../hooks/useTrackBatchSellQuotePageReviewClicked';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
@@ -109,7 +112,7 @@ function areBatchSellValueMapsEqual(
 }
 
 export function BatchSellReview() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
@@ -129,19 +132,13 @@ export function BatchSellReview() {
   const { updateBatchSellQuoteParams, getNewQuote: handleGetNewQuote } =
     useBatchSellQuoteRequest();
   const batchSellQuoteData = useBatchSellQuoteData();
-  const hasValidBatchSellInputs = useMemo(
+  const hasValidSourceAmounts = useMemo(
     () =>
-      Boolean(selectedDestinationToken) &&
-      selectedTokens.some((token) => {
-        const assetId = formatAddressToAssetId(token.address, token.chainId);
-        return (
-          assetId &&
-          getBatchSellAtomicSourceAmount(
-            token,
-            batchSellSourceTokenAmounts[assetId],
-          )
-        );
-      }),
+      hasValidBatchSellSourceAmounts(
+        selectedTokens,
+        batchSellSourceTokenAmounts,
+        selectedDestinationToken,
+      ),
     [batchSellSourceTokenAmounts, selectedDestinationToken, selectedTokens],
   );
 
@@ -164,14 +161,29 @@ export function BatchSellReview() {
   }, [selectedTokens]);
 
   useEffect(() => {
-    if (hasValidBatchSellInputs) {
+    if (hasValidSourceAmounts) {
       updateBatchSellQuoteParams();
+    } else {
+      updateBatchSellQuoteParams.cancel();
+      Engine.context.BridgeController?.resetState?.();
     }
 
     return () => {
       updateBatchSellQuoteParams.cancel();
     };
-  }, [hasValidBatchSellInputs, updateBatchSellQuoteParams]);
+  }, [hasValidSourceAmounts, updateBatchSellQuoteParams]);
+
+  useTrackBatchSellQuotePageViewed({
+    batchSellSlippages,
+    selectedTokens,
+    tokenData: batchSellQuoteData.tokenData,
+  });
+  const trackBatchSellQuotePageReviewClicked =
+    useTrackBatchSellQuotePageReviewClicked({
+      batchSellSlippages,
+      selectedTokens,
+      tokenData: batchSellQuoteData.tokenData,
+    });
 
   useEffect(
     () => () => {
@@ -287,10 +299,12 @@ export function BatchSellReview() {
   );
 
   const handleOpenFinalReview = useCallback(() => {
+    trackBatchSellQuotePageReviewClicked();
+
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });
-  }, [navigation]);
+  }, [navigation, trackBatchSellQuotePageReviewClicked]);
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {
@@ -329,7 +343,8 @@ export function BatchSellReview() {
   const hasReviewableQuote =
     batchSellQuoteData.hasAnyQuote && !batchSellQuoteData.hasPendingQuoteRows;
   const isReviewButtonDisabled =
-    !shouldGetNewQuote && (isFetchingQuotes || !hasReviewableQuote);
+    !hasValidSourceAmounts ||
+    (!shouldGetNewQuote && (isFetchingQuotes || !hasReviewableQuote));
   let reviewButtonLabel = strings('bridge.batch_sell_review');
 
   if (shouldGetNewQuote) {

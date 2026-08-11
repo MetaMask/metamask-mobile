@@ -20,8 +20,9 @@ import {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockAddTokenList = jest.fn().mockResolvedValue(undefined);
@@ -32,7 +33,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
   };
@@ -131,6 +131,16 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDC')).toBeOnTheScreen();
   });
 
+  it('calls goBack when HeaderStandard back button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    await userEvent.press(getByTestId('button-icon'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('calls goBack when back button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
@@ -142,7 +152,7 @@ describe('ConfirmAddAsset', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('calls addTokenList and navigates to wallet when import button is pressed', async () => {
+  it('calls addTokenList and navigates to tokens full view when import button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
@@ -153,12 +163,7 @@ describe('ConfirmAddAsset', () => {
     await userEvent.press(importButton);
 
     expect(mockAddTokenList).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
   });
 
   it('shows loading feedback and prevents duplicate import presses', async () => {
@@ -193,12 +198,7 @@ describe('ConfirmAddAsset', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
     });
   });
 
@@ -225,12 +225,9 @@ describe('ConfirmAddAsset', () => {
       getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT),
     ).toBeEnabled();
     expect(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON)).toBeEnabled();
-    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.WALLET.TOKENS_FULL_VIEW,
+    );
   });
 
   it('renders without crashing when asset has no image', () => {
@@ -252,11 +249,22 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeOnTheScreen();
   });
 
-  it('sets navigation bar options on mount', () => {
-    renderWithProvider(<ConfirmAddAsset />, {
+  it('renders HeaderStandard with the add asset title', () => {
+    const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
 
-    expect(mockSetOptions).toHaveBeenCalledTimes(1);
+    expect(getByText(strings('add_asset.title'))).toBeOnTheScreen();
+  });
+
+  it('renders SafeAreaView with left, right, and bottom edges only', () => {
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET).props
+        .edges,
+    ).toEqual(['left', 'right', 'bottom']);
   });
 });

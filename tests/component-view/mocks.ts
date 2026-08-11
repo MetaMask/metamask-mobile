@@ -92,6 +92,8 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           securityAlertsEnabled: true,
         },
+        setDismissSmartAccountSuggestionEnabled: jest.fn(),
+        setSmartTransactionsOptInStatus: jest.fn(),
         setTokenNetworkFilter() {
           return undefined;
         },
@@ -111,6 +113,9 @@ jest.mock('../../app/core/Engine', () => {
           onboarding: { requiresEmail: true },
           supportsPinView: true,
           supportsCashback: true,
+          supportsCredit: true,
+          supportsSensitiveDetailsView: false,
+          supportsTravel: true,
         }),
       },
       PhishingController: {
@@ -127,12 +132,16 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       CurrencyRateController: {
+        setCurrentCurrency: jest.fn(),
         startPolling() {
           return undefined;
         },
         stopPollingByPollingToken() {
           return undefined;
         },
+      },
+      AssetsController: {
+        setSelectedCurrency: jest.fn(),
       },
       TokenRatesController: {
         startPolling() {
@@ -196,6 +205,17 @@ jest.mock('../../app/core/Engine', () => {
       },
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+      },
+      GeolocationController: {
+        state: {
+          location: 'US',
+        },
+        refreshGeolocation: jest.fn().mockResolvedValue('US'),
+      },
+      SeedlessOnboardingController: {
+        state: {
+          accessToken: undefined,
+        },
       },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
@@ -268,6 +288,7 @@ jest.mock('../../app/core/Engine', () => {
         addTransaction: jest.fn().mockResolvedValue({}),
         getTransactions: jest.fn().mockReturnValue([]),
         updateEditableParams: jest.fn(),
+        updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),
         getNonceLock: jest
           .fn()
           .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
@@ -326,6 +347,7 @@ jest.mock('../../app/core/Engine', () => {
         resetState: jest.fn(),
         stopAllPolling: jest.fn(),
         setLocation: jest.fn(),
+        setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
       PredictController: {
@@ -333,6 +355,11 @@ jest.mock('../../app/core/Engine', () => {
           markets: [],
           nextCursor: null,
         }),
+        listMarkets: jest.fn().mockResolvedValue({
+          markets: [],
+          nextCursor: null,
+        }),
+        listFilterOptions: jest.fn().mockResolvedValue([]),
         searchMarkets: jest
           .fn()
           .mockResolvedValue({ markets: [], totalResults: 0 }),
@@ -345,25 +372,49 @@ jest.mock('../../app/core/Engine', () => {
         getActivity: jest.fn().mockResolvedValue([]),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
+        getPriceHistory: jest.fn().mockResolvedValue([]),
         getMarketSeries: jest.fn().mockResolvedValue([]),
         getCryptoPriceHistory: jest.fn().mockResolvedValue([]),
         getCryptoTargetPrice: jest.fn().mockResolvedValue(69000),
         subscribeToMarketPrices: jest.fn(() => () => undefined),
         subscribeToCryptoPrices: jest.fn(() => () => undefined),
-        getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
+        subscribeToGameUpdates: jest.fn(() => () => undefined),
+        subscribeToConnectionStatus: jest.fn(() => () => undefined),
+        getConnectionStatus: jest.fn(() => ({
+          marketConnected: false,
+          sportsConnected: false,
+          rtdsConnected: false,
+        })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),
+        trackSearchInteracted: jest.fn(),
+        trackHomeViewed: jest.fn(),
+        trackHomeSectionInteraction: jest.fn(),
+        trackFeedTabChanged: jest.fn(),
+        trackFeedFilterChanged: jest.fn(),
+        trackPortfolioPositionsButtonTapped: jest.fn(),
+        trackPortfolioTransactionInitiated: jest.fn(),
+        trackPositionsScreenViewed: jest.fn(),
+        trackPositionsTabViewed: jest.fn(),
+        trackPredictOrderEvent: jest.fn(),
+        trackBetslipDismissed: jest.fn(),
+        trackCategoryClicked: jest.fn(),
+        trackShareAction: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
         claimWithConfirmation: jest.fn().mockResolvedValue(undefined),
         depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
         prepareWithdraw: jest.fn().mockResolvedValue(undefined),
+        placeOrder: jest.fn().mockResolvedValue(undefined),
+        previewOrder: jest.fn().mockResolvedValue(undefined),
+        initPayWithAnyToken: jest.fn().mockResolvedValue(undefined),
+        getUnrealizedPnL: jest.fn().mockResolvedValue(undefined),
       },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
-      // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
+      // getMarkets returns one market so explore sections render "See all perps"
       PerpsController: {
         state: { isTestnet: false },
         init: jest.fn().mockResolvedValue({ success: true }),
@@ -391,6 +442,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
             szDecimals: 2,
           },
           {
@@ -401,6 +453,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
@@ -457,6 +510,7 @@ jest.mock('../../app/core/Engine', () => {
         markTutorialCompleted: jest.fn(),
         resetFirstTimeUserState: jest.fn(),
         clearPendingTransactionRequests: jest.fn(),
+        recordMarketViewed: jest.fn(),
       },
     },
     controllerMessenger: {
@@ -524,8 +578,25 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
 // Native deterministic version for gating logic
 jest.mock('react-native-device-info', () => ({
   __esModule: true,
-  getVersion: () => '99.0.0',
+  getVersion: jest.fn(() => '99.0.0'),
+  getBuildNumber: jest.fn(() => '999'),
+  getBrand: jest.fn(() => 'Apple'),
+  getApplicationName: jest.fn(() => Promise.resolve('MetaMask')),
 }));
+
+jest.mock(
+  '../../app/util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      platform: 'ios',
+      currentBuildNumber: '999',
+      applicationVersion: '99.0.0',
+      operatingSystemVersion: '17.0',
+      deviceBrand: 'Apple',
+    })),
+  }),
+);
 
 // Mock Animated Easing to avoid importing heavy bezier implementation during tests
 // and to prevent late imports after Jest environment teardown.

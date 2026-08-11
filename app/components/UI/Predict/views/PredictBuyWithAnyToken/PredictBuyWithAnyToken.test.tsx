@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBuyWithAnyToken from './PredictBuyWithAnyToken';
 import type { PredictBuyPreviewProps } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockHandleConfirm = jest.fn();
 const mockPlaceOrder = jest.fn();
@@ -151,6 +152,9 @@ jest.mock('./hooks/usePredictBuyInputState', () => ({
     mockUsePredictBuyInputState(...args),
 }));
 
+let mockBlockingPayAlertMessage: string | null = null;
+let mockHasBlockingPayAlerts = false;
+
 jest.mock('./hooks/usePredictBuyInfo', () => ({
   usePredictBuyInfo: () => ({
     toWin: 24,
@@ -161,6 +165,8 @@ jest.mock('./hooks/usePredictBuyInfo', () => ({
     depositFee: 3,
     rewardsFeeAmount: 5,
     totalPayForPredictBalance: 20,
+    hasBlockingPayAlerts: mockHasBlockingPayAlerts,
+    blockingPayAlertMessage: mockBlockingPayAlertMessage,
   }),
 }));
 
@@ -185,15 +191,17 @@ jest.mock('./hooks/usePredictBuyConditions', () => ({
   }),
 }));
 
+const mockUsePredictBuyError = jest.fn((..._args: unknown[]) => ({
+  errorMessage: mockErrorMessage,
+  errorMessageSource: mockErrorMessageSource,
+  buyErrorBanner: mockBuyErrorBanner,
+  isOrderNotFilled: false,
+  resetOrderNotFilled: mockResetOrderNotFilled,
+  clearBuyErrorBanner: mockClearBuyErrorBanner,
+}));
+
 jest.mock('./hooks/usePredictBuyError', () => ({
-  usePredictBuyError: () => ({
-    errorMessage: mockErrorMessage,
-    errorMessageSource: mockErrorMessageSource,
-    buyErrorBanner: mockBuyErrorBanner,
-    isOrderNotFilled: false,
-    resetOrderNotFilled: mockResetOrderNotFilled,
-    clearBuyErrorBanner: mockClearBuyErrorBanner,
-  }),
+  usePredictBuyError: (...args: unknown[]) => mockUsePredictBuyError(...args),
 }));
 
 jest.mock('./hooks/usePredictBuyActions', () => ({
@@ -439,6 +447,8 @@ describe('PredictBuyWithAnyToken', () => {
     mockIsCurrentTokenInsufficient = false;
     mockHasAlternativeBalance = false;
     mockIsPaymentSelectorNavigationLocked = false;
+    mockBlockingPayAlertMessage = null;
+    mockHasBlockingPayAlerts = false;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -983,6 +993,25 @@ describe('PredictBuyWithAnyToken', () => {
       expect(
         screen.getByTestId('predict-buy-preview-order-failed-banner'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('blocking payment alerts', () => {
+    it('forwards the shared no-pay-token-quotes message to usePredictBuyError', () => {
+      mockHasBlockingPayAlerts = true;
+      mockBlockingPayAlertMessage = strings(
+        'alert_system.no_pay_token_quotes.message',
+      );
+
+      renderWithProvider(<PredictBuyWithAnyToken />);
+
+      expect(mockUsePredictBuyError).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          blockingPayAlertMessage: strings(
+            'alert_system.no_pay_token_quotes.message',
+          ),
+        }),
+      );
     });
   });
 });

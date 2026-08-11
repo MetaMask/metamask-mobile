@@ -14,8 +14,15 @@ const defaultPerpsControllerState = {
     optionId: 'default',
     direction: 'desc' as const,
   },
+  mode: 'lite' as const,
   accountState: null,
   perpsBalances: {},
+  proLayoutPreferences: {
+    orderBookExpanded: false,
+    chartExpanded: false,
+    orderBookPosition: 'left' as const,
+    orderFormPosition: 'right' as const,
+  },
   selectedPaymentToken: null,
   activeProvider: 'hyperliquid' as const,
   isTestnet: false,
@@ -24,11 +31,15 @@ const defaultPerpsControllerState = {
 
 const defaultConfirmationTransactionId = 'perps-cv-confirmation-tx';
 
+interface InitialStatePerpsOptions {
+  mode?: 'lite' | 'pro';
+}
+
 /**
  * Returns a StateFixtureBuilder with minimal state for Perps views.
  * Use .withOverrides() to set PerpsController.isEligible, etc.
  */
-export const initialStatePerps = () =>
+export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
   createStateFixture()
     .withMinimalAccounts()
     .withMinimalKeyringController()
@@ -44,11 +55,18 @@ export const initialStatePerps = () =>
         featureVersion: null,
         minimumVersion: null,
       },
+      perpsWatchlistV2Enabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
     } as Record<string, unknown>)
     .withOverrides({
       engine: {
         backgroundState: {
-          PerpsController: defaultPerpsControllerState,
+          PerpsController: {
+            ...defaultPerpsControllerState,
+            mode: options.mode ?? defaultPerpsControllerState.mode,
+          },
           NetworkController: {
             providerConfig: { chainId: '0x1', type: 'mainnet' },
             selectedNetworkClientId: 'mainnet',
@@ -166,3 +184,8 @@ export const initialStatePerps = () =>
         },
       },
     } as unknown as DeepPartial<RootState>);
+
+/**
+ * Returns the Perps state fixture configured for the Pro interface.
+ */
+export const initialStatePerpsPro = () => initialStatePerps({ mode: 'pro' });

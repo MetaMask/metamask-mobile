@@ -1,5 +1,5 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { RootState } from '../../../../reducers';
+import type { RootState } from '../../../../reducers';
 import {
   Hex,
   CaipChainId,
@@ -39,7 +39,6 @@ import {
   hardwareWalletsSwapsReducer,
   initialHardwareWalletsSwapsState,
 } from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
-import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import {
@@ -50,12 +49,16 @@ import {
 } from '../../../../selectors/assets/assets-migration';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
+import { hasMinimumRequiredVersion } from '../../../../util/remoteFeatureFlag';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
-import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import {
+  isSameBridgeToken,
+  normalizeTokenAddress,
+} from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -69,6 +72,7 @@ export interface BridgeState {
   selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
   selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string | undefined;
+  isSlippageUserOverride?: boolean;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
@@ -101,6 +105,7 @@ export interface BridgeState {
    * When undefined, the recommended quote (best quote) is used.
    */
   selectedQuoteRequestId: string | undefined;
+  balanceRefreshKey: number;
   hardwareWalletsSwaps: HardwareWalletsSwapsState;
   batchSellSourceTokens: BridgeToken[];
   batchSellSourceTokenAmounts: Partial<
@@ -118,7 +123,8 @@ export const initialState: BridgeState = {
   destAddress: undefined,
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
-  slippage: '0.5',
+  slippage: undefined,
+  isSlippageUserOverride: false,
   isSubmittingTx: false,
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
@@ -131,6 +137,7 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  balanceRefreshKey: 0,
   hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
 
   // Batch Sell
@@ -154,6 +161,16 @@ const normalizeBridgeToken = <T extends BridgeToken | undefined>(
     ? token
     : ({ ...token, address: normalizedAddress } as T);
 };
+
+const clearSlippageState = (state: BridgeState) => {
+  state.slippage = undefined;
+  state.isSlippageUserOverride = false;
+};
+
+const didTokenChange = (
+  previous: BridgeToken | undefined,
+  next: BridgeToken | undefined,
+) => Boolean(previous || next) && !isSameBridgeToken(previous, next);
 
 export const setSourceTokenExchangeRate = createAsyncThunk(
   'bridge/setSourceTokenExchangeRate',
@@ -202,13 +219,29 @@ const slice = createSlice({
     resetBridgeState: () => ({
       ...initialState,
     }),
+    resetBridgeTokenInputs: (state) => {
+      state.sourceAmount = undefined;
+      state.destAmount = undefined;
+      state.isMaxSourceAmount = false;
+      state.selectedQuoteRequestId = undefined;
+    },
+    incrementBridgeBalanceRefreshKey: (state) => {
+      state.balanceRefreshKey += 1;
+    },
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
-      state.sourceToken = normalizeBridgeToken(action.payload);
+      const sourceToken = normalizeBridgeToken(action.payload);
+      if (didTokenChange(state.sourceToken, sourceToken)) {
+        clearSlippageState(state);
+      }
+      state.sourceToken = sourceToken;
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
       const destToken = normalizeBridgeToken(action.payload);
-      state.destToken = destToken;
+      if (didTokenChange(state.destToken, destToken)) {
+        clearSlippageState(state);
+      }
       // Update selectedDestChainId to match the destination token's chain ID
+      state.destToken = destToken;
       state.selectedDestChainId = destToken.chainId;
     },
     /**
@@ -223,6 +256,13 @@ const slice = createSlice({
     },
     setSlippage: (state, action: PayloadAction<string | undefined>) => {
       state.slippage = action.payload;
+    },
+    setSlippageUserOverride: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.slippage = action.payload;
+      state.isSlippageUserOverride = true;
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
@@ -342,7 +382,9 @@ const slice = createSlice({
         action.meta.arg.chainId === state.sourceToken.chainId &&
         action.meta.arg.tokenAddress === state.sourceToken.address
       ) {
-        state.sourceToken.currencyExchangeRate = action.payload ?? undefined;
+        const rate = action.payload;
+        state.sourceToken.currencyExchangeRate =
+          typeof rate === 'number' ? rate : undefined;
       }
     });
     builder.addCase(setDestTokenExchangeRate.fulfilled, (state, action) => {
@@ -352,7 +394,9 @@ const slice = createSlice({
         action.meta.arg.chainId === state.destToken.chainId &&
         action.meta.arg.tokenAddress === state.destToken.address
       ) {
-        state.destToken.currencyExchangeRate = action.payload ?? undefined;
+        const rate = action.payload;
+        state.destToken.currencyExchangeRate =
+          typeof rate === 'number' ? rate : undefined;
       }
     });
   },
@@ -634,6 +678,11 @@ export const selectSlippage = createSelector(
   (bridgeState) => bridgeState.slippage,
 );
 
+export const selectIsSlippageUserOverride = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSlippageUserOverride,
+);
+
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
@@ -642,6 +691,11 @@ export const selectDestAddress = createSelector(
 export const selectSelectedQuoteRequestId = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.selectedQuoteRequestId,
+);
+
+export const selectBridgeBalanceRefreshKey = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.balanceRefreshKey,
 );
 
 export const selectBatchSellSourceTokens = createSelector(
@@ -672,27 +726,50 @@ export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
 export const selectIsGasIncluded7702Supported = (state: RootState) =>
   state.bridge.isGasIncluded7702Supported;
 
-const selectControllerFields = (state: RootState) => ({
-  ...state.engine.backgroundState.BridgeController,
-  gasFeeEstimatesByChainId:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
-    {},
-  ...{
-    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
-    historicalPrices: {},
-  },
-  ...{
-    marketData: getTokenRatesControllerMarketData(state),
-  },
-  ...{
-    currencyRates: getCurrencyRateControllerCurrencyRates(state),
-    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
-  },
-  participateInMetaMetrics: analytics.isEnabled(),
-  remoteFeatureFlags: {
-    bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
-  },
-});
+const EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID = {};
+const EMPTY_HISTORICAL_PRICES = {};
+
+const selectGasFeeEstimatesByChainIdForBridge = (state: RootState) =>
+  state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+  EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID;
+
+const selectBridgeConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => remoteFeatureFlags.bridgeConfig,
+);
+
+export const selectControllerFields = createSelector(
+  selectBridgeControllerState,
+  selectGasFeeEstimatesByChainIdForBridge,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  selectBridgeConfig,
+  selectAnalyticsEnabled,
+  (
+    bridgeControllerState,
+    gasFeeEstimatesByChainId,
+    conversionRates,
+    marketData,
+    currencyRates,
+    currentCurrency,
+    bridgeConfig,
+    isAnalyticsEnabled,
+  ) => ({
+    ...bridgeControllerState,
+    gasFeeEstimatesByChainId,
+    conversionRates,
+    historicalPrices: EMPTY_HISTORICAL_PRICES,
+    marketData,
+    currencyRates,
+    currentCurrency,
+    participateInMetaMetrics: Boolean(isAnalyticsEnabled),
+    remoteFeatureFlags: {
+      bridgeConfig,
+    },
+  }),
+);
 
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
@@ -748,6 +825,11 @@ export const selectBatchSellTrades = createSelector(
 export const selectIsSolanaSourced = createSelector(
   selectSourceToken,
   (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
+);
+
+export const selectIsNonEvmSourced = createSelector(
+  selectSourceToken,
+  (sourceToken) => sourceToken?.chainId && isNonEvmChainId(sourceToken.chainId),
 );
 
 export const selectIsSolanaToNonSolana = createSelector(
@@ -955,12 +1037,15 @@ export const {
   setSourceAmountAsMax,
   setDestAmount,
   resetBridgeState,
+  resetBridgeTokenInputs,
+  incrementBridgeBalanceRefreshKey,
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,
+  setSlippageUserOverride,
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,

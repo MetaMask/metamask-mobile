@@ -1,10 +1,14 @@
 import { useCallback } from 'react';
 import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  navigateWithDetails,
+  resetWithRoutes,
+} from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import type { CaipChainId } from '@metamask/utils';
-import { normalizeProviderCode } from '@metamask/ramps-controller';
 
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
@@ -33,6 +37,17 @@ import { useRampsController } from './useRampsController';
 import { useTransakController } from './useTransakController';
 import { useTransakRouting } from './useTransakRouting';
 import useRampAccountAddress from './useRampAccountAddress';
+import {
+  endOpenRampsBuyCufChildrenByName,
+  endRampsBuyCufChildTrace,
+  startRampsBuyCufChildTrace,
+} from '../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_PATH,
+  RAMPS_BUY_CUF_TAG,
+} from '../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../util/trace';
 
 export interface ContinueWithQuoteContext {
   amount: number;
@@ -102,7 +117,7 @@ export interface UseContinueWithQuoteResult {
 export function useContinueWithQuote(
   options?: UseContinueWithQuoteOptions,
 ): UseContinueWithQuoteResult {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     selectedToken,
     selectedProvider,
@@ -129,7 +144,7 @@ export function useContinueWithQuote(
 
   const navigateAfterExternalBrowser = useCallback(
     (opts: Parameters<typeof getNavigateAfterExternalBrowserRoutes>[0]) => {
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 0,
         routes: getNavigateAfterExternalBrowserRoutes(opts),
       });
@@ -150,6 +165,32 @@ export function useContinueWithQuote(
       const effectiveChainId = ctx.chainId ?? selectedToken?.chainId ?? '';
       const effectivePaymentMethodId =
         ctx.paymentMethodId ?? selectedPaymentMethod?.id ?? '';
+      // The native Transak quote fetch requires a payment method. An empty
+      // value gets dropped from the request query and Transak rejects it with
+      // HTTP 400, so fail fast with a reported error instead of issuing a
+      // request that can never succeed.
+      //
+      // Gate on `ctx.headlessSessionId` so this guard is scoped to the
+      // headless buy flow. The shared UB2 path (BuildQuote ->
+      // continueWithQuote -> continueNative) never sets `headlessSessionId`,
+      // so its behavior is provably unchanged.
+      if (!effectivePaymentMethodId && ctx.headlessSessionId) {
+        throw new Error(
+          reportRampsError(
+            new Error('Native provider flow requires a payment method'),
+            { message: 'Missing payment method for native provider flow' },
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
+      }
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+      });
+      const nativeCufOpId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeToOrderCreated,
+        tags: { [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.NATIVE },
+      });
       try {
         const hasToken = await transakCheckExistingToken();
 
@@ -166,8 +207,9 @@ export function useContinueWithQuote(
           }
           await transakRouteAfterAuth(transakQuote, amount);
         } else if (hasAgreedTransakNativePolicy) {
-          navigation.navigate(
-            ...createV2EnterEmailNavDetails({
+          navigateWithDetails(
+            navigation,
+            createV2EnterEmailNavDetails({
               amount: String(amount),
               currency: effectiveCurrency,
               assetId,
@@ -175,8 +217,9 @@ export function useContinueWithQuote(
             }),
           );
         } else {
-          navigation.navigate(
-            ...createV2VerifyIdentityNavDetails({
+          navigateWithDetails(
+            navigation,
+            createV2VerifyIdentityNavDetails({
               amount: String(amount),
               currency: effectiveCurrency,
               assetId,
@@ -185,6 +228,15 @@ export function useContinueWithQuote(
           );
         }
       } catch (error) {
+        if (nativeCufOpId) {
+          endRampsBuyCufChildTrace({
+            id: nativeCufOpId,
+            data: {
+              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+            },
+          });
+        }
         throw new Error(
           reportRampsError(
             error,
@@ -225,8 +277,28 @@ export function useContinueWithQuote(
       let useExternalBrowser: boolean;
       let redirectUrl: string;
       let buyWidget: Awaited<ReturnType<typeof getBuyWidgetData>>;
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyContinueToCheckout, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+      });
+      const checkoutCufOpId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyContinueToCheckout,
+        tags: { [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.WIDGET },
+      });
+      const endCheckoutCuf = (success: boolean, reason?: string) => {
+        if (!checkoutCufOpId) {
+          return;
+        }
+        endRampsBuyCufChildTrace({
+          id: checkoutCufOpId,
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: success,
+            ...(reason ? { [RAMPS_BUY_CUF_TAG.REASON]: reason } : {}),
+          },
+        });
+      };
       try {
-        providerCode = normalizeProviderCode(quote.provider);
+        providerCode = quote.provider;
         const isCustom = isCustomAction(quote);
         const redirectConfig = getWidgetRedirectConfig(
           quote,
@@ -238,6 +310,7 @@ export function useContinueWithQuote(
         const quoteForWidget = buildQuoteWithRedirectUrl(quote, redirectUrl);
         buyWidget = await getBuyWidgetData(quoteForWidget);
       } catch (error) {
+        endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.ERROR);
         throw new Error(
           reportRampsError(
             error,
@@ -251,6 +324,7 @@ export function useContinueWithQuote(
       }
 
       if (!buyWidget?.url) {
+        endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.ERROR);
         throw new Error(
           reportRampsError(
             new Error('No widget URL available for provider'),
@@ -259,6 +333,8 @@ export function useContinueWithQuote(
           ),
         );
       }
+
+      endCheckoutCuf(true);
 
       try {
         const { network, effectiveWallet, effectiveOrderId } =
@@ -316,8 +392,9 @@ export function useContinueWithQuote(
           return;
         }
 
-        navigation.navigate(
-          ...createCheckoutNavDetails({
+        navigateWithDetails(
+          navigation,
+          createCheckoutNavDetails({
             url: buyWidget.url,
             providerName: effectiveProviderName,
             userAgent: getQuoteBuyUserAgent(quote),

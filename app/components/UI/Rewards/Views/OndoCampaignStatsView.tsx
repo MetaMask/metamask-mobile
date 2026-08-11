@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -26,6 +27,7 @@ import {
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
+import type { OndoHoldingDetails } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../locales/i18n';
 import { formatUsd, formatRewardsTimeOnly } from '../utils/formatUtils';
 import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../utils/ondoCampaignConstants';
@@ -60,7 +62,7 @@ const CheckIcon: React.FC = () => (
 
 const OndoCampaignStatsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<OndoCampaignStatsRouteParams, 'OndoCampaignStats'>>();
   const { campaignId, campaignName: routeCampaignName } = route.params;
@@ -151,7 +153,7 @@ const OndoCampaignStatsView: React.FC = () => {
     () =>
       leaderboardPosition && campaign && isCampaignActive
         ? getTierMinNetDeposit(
-            campaign.details?.tiers,
+            (campaign.details as OndoHoldingDetails | null | undefined)?.tiers,
             leaderboardPosition.projectedTier,
           )
         : null,

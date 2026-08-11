@@ -1,5 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
@@ -45,6 +48,7 @@ export const GaslessQuickPickOptions = ({
         {
           input: 'token_amount_source',
           input_value: inputValue,
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
           ...(preset && { input_amount_preset: preset }),
           // This Bridge-specific event bypasses the shared analytics wrappers,
           // so its A/B context still needs to be attached manually here.

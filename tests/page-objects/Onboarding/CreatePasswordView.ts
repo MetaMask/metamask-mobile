@@ -17,7 +17,7 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
 
 class CreatePasswordView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
@@ -140,7 +140,7 @@ class CreatePasswordView {
     });
   }
 
-  get iUnderstandCheckboxNewWallet(): DetoxElement {
+  get iUnderstandCheckboxNewWallet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
@@ -166,7 +166,7 @@ class CreatePasswordView {
     });
   }
 
-  get passwordError(): DetoxElement {
+  get passwordError(): EncapsulatedElementType {
     return Matchers.getElementByText(enContent.import_from_seed.password_error);
   }
 
@@ -250,6 +250,130 @@ class CreatePasswordView {
         await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
           description: 'Create Password - I Understand Checkbox',
         });
+      },
+    });
+  }
+
+  /**
+   * Reads marketing checkbox selection from native accessibility attributes.
+   * Returns undefined when state cannot be determined.
+   */
+  private parseMarketingCheckboxCheckedState(
+    attributes: Record<string, unknown>,
+  ): boolean | undefined {
+    const accessibilityState = attributes.accessibilityState as
+      | { checked?: boolean }
+      | undefined;
+
+    if (typeof accessibilityState?.checked === 'boolean') {
+      return accessibilityState.checked;
+    }
+
+    if (typeof attributes.checked === 'boolean') {
+      return attributes.checked;
+    }
+
+    if (attributes.checked === 'true') {
+      return true;
+    }
+
+    if (attributes.checked === 'false') {
+      return false;
+    }
+
+    if (attributes.value === 1 || attributes.value === '1') {
+      return true;
+    }
+
+    if (attributes.value === 0 || attributes.value === '0') {
+      return false;
+    }
+
+    if (attributes['aria-checked'] === 'true') {
+      return true;
+    }
+
+    if (attributes['aria-checked'] === 'false') {
+      return false;
+    }
+
+    return undefined;
+  }
+
+  private async readMarketingCheckboxChecked(
+    el: Detox.IndexableNativeElement,
+  ): Promise<boolean | undefined> {
+    try {
+      const attributes = (await el.getAttributes()) as Record<string, unknown>;
+      return this.parseMarketingCheckboxCheckedState(attributes);
+    } catch {
+      return undefined;
+    }
+  }
+
+  private async readMarketingCheckboxCheckedAppium(
+    checkbox: Awaited<ReturnType<typeof asPlaywrightElement>>,
+  ): Promise<boolean | undefined> {
+    // Fetch attributes independently. Android UiAutomator2 does not support
+    // `aria-checked` (only `checked` / `value`); requesting it floods WARN/ERROR
+    // logs and used to abort the whole read when tried first.
+    const attributes: Record<string, unknown> = {};
+    const attributeNames: ('checked' | 'value' | 'aria-checked')[] = [
+      'checked',
+      'value',
+    ];
+    if (PlatformDetector.isIOS()) {
+      attributeNames.push('aria-checked');
+    }
+
+    for (const name of attributeNames) {
+      try {
+        attributes[name] = await checkbox.getAttribute(name);
+      } catch {
+        // Unsupported on this platform/driver — try the next candidate.
+      }
+    }
+
+    return this.parseMarketingCheckboxCheckedState(attributes);
+  }
+
+  /**
+   * Ensures the marketing opt-in checkbox is checked for OAuth flows without
+   * toggling it off when already selected (e.g. USA locale default, TO-776).
+   */
+  async ensureMarketingOptInChecked(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        const checkbox = asDetoxElement(this.iUnderstandCheckbox);
+        const el = (await checkbox) as Detox.IndexableNativeElement;
+        const isChecked = await this.readMarketingCheckboxChecked(el);
+
+        // Only tap when explicitly unchecked. Ambiguous state keeps the default
+        // (USA devices start checked per TO-776).
+        if (isChecked === false) {
+          await Gestures.tap(checkbox, {
+            elemDescription: 'Create Password - Marketing opt-in checkbox',
+            checkVisibility: false,
+          });
+        }
+      },
+      appium: async () => {
+        const checkbox = await asPlaywrightElement(this.iUnderstandCheckbox);
+        const isChecked =
+          await this.readMarketingCheckboxCheckedAppium(checkbox);
+
+        if (isChecked === false) {
+          await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
+            description: 'Create Password - Marketing opt-in checkbox',
+          });
+          return;
+        }
+
+        if (isChecked === undefined) {
+          throw new Error(
+            'Unable to determine marketing opt-in checkbox state in Appium',
+          );
+        }
       },
     });
   }

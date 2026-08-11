@@ -1,4 +1,4 @@
-import { handleDeeplink } from '../handleDeeplink';
+import { handleDeeplink, resetDeeplinkDeduplication } from '../handleDeeplink';
 import { checkForDeeplink } from '../../../../../actions/user';
 import { saveAttribution } from '../../../../redux/slices/attribution';
 import ReduxService from '../../../../redux';
@@ -32,11 +32,13 @@ jest.mock('../../../../redux', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 jest.mock('../../../../AppStateEventListener', () => ({
   AppStateEventProcessor: {
     setCurrentDeeplink: jest.fn(),
+    promoteCurrentDeeplinkSource: jest.fn(),
   },
 }));
 
@@ -76,12 +78,15 @@ describe('handleDeeplink', () => {
   const mockLoggerError = Logger.error as jest.Mock;
   const mockSetCurrentDeeplink =
     AppStateEventProcessor.setCurrentDeeplink as jest.Mock;
+  const mockPromoteCurrentDeeplinkSource =
+    AppStateEventProcessor.promoteCurrentDeeplinkSource as jest.Mock;
   const mockIsMwpDeeplink = SDKConnectV2.isMwpDeeplink as unknown as jest.Mock;
   const mockHandleMwpDeeplink = SDKConnectV2.handleMwpDeeplink as jest.Mock;
   const mockTrackEvent = analytics.trackEvent as jest.Mock;
   const mockDetectAppInstallation = detectAppInstallation as jest.Mock;
   beforeEach(() => {
     jest.clearAllMocks();
+    resetDeeplinkDeduplication();
     mockIsMwpDeeplink.mockReturnValue(false);
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: true },
@@ -216,6 +221,88 @@ describe('handleDeeplink', () => {
     expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockCheckForDeeplink).not.toHaveBeenCalled();
+  });
+
+  describe('duplicate deeplink suppression', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('ignores an identical deeplink delivered within the dedup window', () => {
+      const testUri = 'https://link.metamask.io/dapp/example.com';
+
+      handleDeeplink({ uri: testUri });
+      handleDeeplink({ uri: testUri });
+
+      expect(mockSetCurrentDeeplink).toHaveBeenCalledTimes(1);
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
+    });
+
+    it('processes the same deeplink again once the dedup window has elapsed', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(0);
+      const testUri = 'https://link.metamask.io/dapp/example.com';
+
+      handleDeeplink({ uri: testUri });
+      jest.setSystemTime(3001);
+      handleDeeplink({ uri: testUri });
+
+      expect(mockSetCurrentDeeplink).toHaveBeenCalledTimes(2);
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(2);
+    });
+
+    it('processes distinct deeplinks delivered back-to-back', () => {
+      handleDeeplink({ uri: 'https://link.metamask.io/dapp/one.com' });
+      handleDeeplink({ uri: 'https://link.metamask.io/dapp/two.com' });
+
+      expect(mockSetCurrentDeeplink).toHaveBeenCalledTimes(2);
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not dispatch when a duplicate is suppressed', () => {
+      const testUri = 'metamask://duplicate';
+
+      handleDeeplink({ uri: testUri });
+      mockDispatch.mockClear();
+      mockSetCurrentDeeplink.mockClear();
+
+      handleDeeplink({ uri: testUri });
+
+      expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    // On Android, Braze opens push deeplinks itself, so RN Linking reports the
+    // same URI with no source and races the ORIGIN_BRAZE delivery. Whichever
+    // loses is suppressed here, so the origin has to survive suppression or the
+    // open is misattributed to `deeplink`.
+    it('records the push origin of a suppressed duplicate', () => {
+      const testUri = 'https://link.metamask.io/swap';
+
+      handleDeeplink({ uri: testUri });
+      handleDeeplink({ uri: testUri, source: 'braze' });
+
+      expect(mockPromoteCurrentDeeplinkSource).toHaveBeenCalledWith(
+        testUri,
+        'braze',
+      );
+      // Still suppressed for navigation.
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes the missing source through when the suppressed duplicate is untagged', () => {
+      const testUri = 'https://link.metamask.io/swap';
+
+      handleDeeplink({ uri: testUri, source: 'braze' });
+      handleDeeplink({ uri: testUri });
+
+      expect(mockPromoteCurrentDeeplinkSource).toHaveBeenCalledWith(
+        testUri,
+        undefined,
+      );
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('MWP deeplink handling', () => {

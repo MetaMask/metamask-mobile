@@ -19,12 +19,9 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockHasMinimumRequiredVersion = jest.fn();
-jest.mock(
-  '../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: () => mockHasMinimumRequiredVersion(),
-  }),
-);
+jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: () => mockHasMinimumRequiredVersion(),
+}));
 
 const mockPopularTokens = [
   createMockPopularToken({

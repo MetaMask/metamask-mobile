@@ -14,6 +14,8 @@ import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
 import { hasTestOverrides } from '../../../util/test/utils';
+import { OnboardingRiveAnimationIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useRivePerformance } from '../../../hooks/performance/useRivePerformance';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
@@ -29,21 +31,6 @@ const ANIMATION_TIMEOUT_MS = 3_000;
 // Persist across remounts so animation state is consistent for the app session
 let animationStarted = false;
 let animationComplete = false;
-
-// Use Canvas renderer on Android — the default Rive SurfaceView causes geometry distortion
-if (Platform.OS === 'android') {
-  try {
-    RiveRenderer.defaultRenderer(
-      RiveRendererIOS.Rive,
-      RiveRendererAndroid.Canvas,
-    );
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to set Rive Canvas renderer on Android',
-    );
-  }
-}
 
 interface FoxLoaderProps {
   appServicesReady?: boolean;
@@ -86,6 +73,10 @@ const FoxLoaderAnimation = ({
   onAnimationCompleteRef.current = onAnimationComplete;
   const staticFoxOpacity = useRef(new Animated.Value(1)).current;
   const riveOpacity = useRef(new Animated.Value(0)).current;
+  const { riveHandlers } = useRivePerformance({
+    animationId: OnboardingRiveAnimationIds.FOX_LOADER,
+    timeoutMs: ANIMATION_TIMEOUT_MS,
+  });
 
   const startAnimation = useCallback(() => {
     if (animationStarted) return;
@@ -208,10 +199,12 @@ const FoxLoaderAnimation = ({
             alignment={Alignment.Center}
             stateMachineName={SPLASH_STATE_MACHINE}
             onPlay={() => {
+              riveHandlers.onPlay();
               isPlayingRef.current = true;
               setIsPlaying(true);
             }}
             onError={(riveError: RNRiveError) => {
+              riveHandlers.onError(riveError);
               // Only bail out if Rive never started — runtime errors during playback are non-fatal
               if (!isCompleteRef.current && !isPlayingRef.current) {
                 Logger.error(

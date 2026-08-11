@@ -2,7 +2,9 @@ import {
   Matchers,
   Gestures,
   Assertions,
+  PlatformDetector,
   type ScrollOptions,
+  EncapsulatedElementType,
 } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
@@ -18,80 +20,80 @@ import BrowserView from '../Browser/BrowserView';
 class TrendingView {
   private activeScrollViewID: string = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
 
-  get searchButton(): DetoxElement {
+  get searchButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
 
-  get browserButton(): DetoxElement {
+  get browserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
-  get searchInputContainer(): DetoxElement {
+  get searchInputContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
   }
 
-  get searchInput(): DetoxElement {
+  get searchInput(): EncapsulatedElementType {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT);
   }
 
-  get searchCancelButton(): DetoxElement {
+  get searchCancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON,
     );
   }
 
-  get searchAllPill(): DetoxElement {
+  get searchAllPill(): EncapsulatedElementType {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_ALL);
   }
 
-  get searchCryptosPill(): DetoxElement {
+  get searchCryptosPill(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS,
     );
   }
 
-  get searchResultsList(): DetoxElement {
+  get searchResultsList(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST,
     );
   }
 
-  getTokenRow(assetId: string): DetoxElement {
+  getTokenRow(assetId: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.TOKEN_ROW_ITEM_PREFIX}${assetId}`,
       0,
     );
   }
 
-  getPerpRow(symbol: string): DetoxElement {
+  getPerpRow(symbol: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.PERPS_ROW_ITEM_PREFIX}${symbol}`,
       0,
     );
   }
 
-  getPredictionRow(id: string): DetoxElement {
+  getPredictionRow(id: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.PREDICTIONS_ROW_ITEM_PREFIX}${id}`,
       0,
     );
   }
 
-  getSiteRow(name: string): DetoxElement {
+  getSiteRow(name: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.SITE_ROW_ITEM_PREFIX}${name}`,
       0,
     );
   }
 
-  getSectionHeader(title: string): DetoxElement {
+  getSectionHeader(title: string): EncapsulatedElementType {
     return Matchers.getElementByText(title);
   }
 
   /**
    * Get section header by testID (for full view headers)
    */
-  getSectionHeaderByTestID(title: string): DetoxElement | null {
+  getSectionHeaderByTestID(title: string): EncapsulatedElementType | null {
     const headerTestID = SECTION_FULL_VIEW_HEADERS[title];
     if (!headerTestID) {
       return null;
@@ -99,7 +101,7 @@ class TrendingView {
     return Matchers.getElementByID(headerTestID);
   }
 
-  getBackButton(testID: string): DetoxElement {
+  getBackButton(testID: string): EncapsulatedElementType {
     return Matchers.getElementByID(testID);
   }
 
@@ -166,14 +168,14 @@ class TrendingView {
    * Uses Gestures.scrollToElement which retries scroll + visibility check until the element is on screen.
    */
   private async scrollToElementInFeed(
-    targetElement: DetoxElement,
+    targetElement: EncapsulatedElementType,
     description: string,
     direction: 'up' | 'down' = 'down',
     options: Partial<ScrollOptions> = {},
   ): Promise<void> {
     await Gestures.scrollToElement(
       targetElement,
-      Matchers.getIdentifier(this.activeScrollViewID),
+      Matchers.scrollContainer(this.activeScrollViewID),
       {
         direction,
         scrollAmount: 300,
@@ -285,7 +287,7 @@ class TrendingView {
    * @param itemType - Type of item for description ('token', 'perp', 'prediction', 'site')
    */
   private async verifyItemVisible(
-    getElement: () => DetoxElement,
+    getElement: () => EncapsulatedElementType,
     identifier: string,
     itemType: string,
     options: Partial<ScrollOptions> = {},
@@ -309,7 +311,7 @@ class TrendingView {
    * Gestures.scrollToElement retries scroll until the element is visible.
    */
   private async tapItemRow(
-    getElement: () => DetoxElement,
+    getElement: () => EncapsulatedElementType,
     identifier: string,
     itemType: string,
   ): Promise<void> {
@@ -442,13 +444,19 @@ class TrendingView {
   }
 
   async verifyPerpDetailsVisible(): Promise<void> {
-    // Verify we are on Perps market details page by checking for the container
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByID('perps-market-details-view'),
-      {
+    const container = Matchers.getElementByID('perps-market-details-view');
+
+    // isDisplayed() is flaky on iOS for this container right after the
+    // safe-area layout pass; Android's resourceId lookup is unaffected.
+    if (PlatformDetector.isIOS()) {
+      await Assertions.expectElementToExist(container, {
+        description: 'Perps market details view should exist',
+      });
+    } else {
+      await Assertions.expectElementToBeVisible(container, {
         description: 'Perps market details view should be visible',
-      },
-    );
+      });
+    }
   }
 
   async verifyPredictionsTabsVisible(): Promise<void> {

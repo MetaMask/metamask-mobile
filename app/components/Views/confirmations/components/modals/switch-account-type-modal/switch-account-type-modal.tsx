@@ -1,14 +1,18 @@
 import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+} from '@metamask/design-system-react-native';
 
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -18,11 +22,6 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useEIP7702Networks } from '../../../hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
 import styleSheet from './switch-account-type-modal.styles';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../../../core/Engine';
 
 interface SwitchAccountTypeModalRouteParams {
@@ -43,7 +42,7 @@ const SwitchAccountTypeModal = () => {
       >
     >();
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const selectedAccountAddress =
     Engine.context.AccountsController.getSelectedAccount()?.address;
   const address: Hex | undefined =
@@ -61,15 +60,11 @@ const SwitchAccountTypeModal = () => {
   // Handle case when no address is available
   if (!address) {
     return (
-      <BottomSheet>
-        <TouchableOpacity onPress={goBack} testID="switch-account-goback">
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Sm}
-            color={IconColor.Default}
-            style={styles.backIcon}
-          />
-        </TouchableOpacity>
+      <BottomSheet goBack={goBack}>
+        <BottomSheetHeader
+          onBack={goBack}
+          backButtonProps={{ testID: 'switch-account-goback' }}
+        />
         <View style={styles.wrapper}>
           <View style={styles.spinner} testID="no-address-fallback">
             <Text variant={TextVariant.BodyMD}>No account selected</Text>
@@ -80,15 +75,11 @@ const SwitchAccountTypeModal = () => {
   }
 
   return (
-    <BottomSheet>
-      <TouchableOpacity onPress={goBack} testID="switch-account-goback">
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Sm}
-          color={IconColor.Default}
-          style={styles.backIcon}
-        />
-      </TouchableOpacity>
+    <BottomSheet goBack={goBack}>
+      <BottomSheetHeader
+        onBack={goBack}
+        backButtonProps={{ testID: 'switch-account-goback' }}
+      />
       <View style={styles.wrapper}>
         {pending ? (
           <View style={styles.spinner} testID="network-data-loader">

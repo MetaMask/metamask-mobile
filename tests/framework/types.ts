@@ -20,7 +20,7 @@ export interface DeviceMatrix {
 
 // Gestures
 
-import { LanguageAndLocale } from 'detox/detox';
+import { LanguageAndLocale } from './legacy-detox-shim';
 import { DappVariants } from './Constants.ts';
 import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
@@ -114,6 +114,8 @@ export interface GestureOptions {
   checkStability?: boolean;
   checkVisibility?: boolean;
   checkEnabled?: boolean;
+  /** Appium: when false, skip waitForDisplayed (XCUITest visible=false nodes). */
+  checkForDisplayed?: boolean;
   elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 
@@ -142,7 +144,14 @@ export interface LongPressOptions extends GestureOptions {
 export interface MatcherOptions {
   exact?: boolean;
   lastElement?: boolean;
+  index?: number;
 }
+
+/** Detox scroll-container matcher; undefined when omitted on Appium. */
+export type ScrollViewMatcher = Promise<Detox.NativeMatcher | undefined>;
+
+/** Scroll container for scrollToElement — testID string or Detox matcher promise. */
+export type ScrollContainer = ScrollViewMatcher | string;
 
 /**
  * The options for the scroll gesture.
@@ -237,6 +246,8 @@ export enum E2ECommandTypes {
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
   exportState = 'export-state',
+  /** Inject QR sync sync-ready SRP payload (HAS_TEST_OVERRIDES Appium/Detox). */
+  applyQrSyncSyncReady = 'apply-qr-sync-sync-ready',
 }
 
 export enum GanacheHardfork {

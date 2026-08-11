@@ -3,8 +3,7 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   FontWeight,
-  HeaderBase,
-  IconName,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -23,13 +22,12 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 import AppConstants from '../../../../../../core/AppConstants';
 import { SMART_ACCOUNT_MODAL_TEST_IDS } from './SmartAccountModal.testIds';
-
-const HEADER_BASE_TITLE_TEST_ID = 'header-title';
 
 interface RootNavigationParamList extends ParamListBase {
   SmartAccount: {
@@ -43,7 +41,7 @@ const SmartAccountModal = () => {
   const route = useRoute<SmartAccountModalProp>();
   const { account } = route.params;
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Delay rendering NetworkList until after initial layout
   const [showNetworkList, setShowNetworkList] = useState(false);
@@ -71,19 +69,17 @@ const SmartAccountModal = () => {
   return (
     <SafeAreaView
       style={styles.safeArea}
+      edges={['left', 'right', 'bottom']}
       testID={SMART_ACCOUNT_MODAL_TEST_IDS.SAFE_AREA}
     >
-      <HeaderBase
-        style={styles.header}
-        titleTestID={HEADER_BASE_TITLE_TEST_ID}
-        startButtonIconProps={{
+      <HeaderStandard
+        includesTopInset
+        title={strings('multichain_accounts.account_details.smart_account')}
+        onBack={() => navigation.goBack()}
+        backButtonProps={{
           testID: SwitchAccountModalSelectorIDs.SMART_ACCOUNT_BACK_BUTTON,
-          iconName: IconName.ArrowLeft,
-          onPress: () => navigation.goBack(),
         }}
-      >
-        {strings('multichain_accounts.account_details.smart_account')}
-      </HeaderBase>
+      />
       <View style={styles.container}>
         <View
           style={styles.contentContainer}

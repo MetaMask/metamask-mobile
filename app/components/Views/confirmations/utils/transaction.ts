@@ -1,11 +1,14 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Interface } from '@ethersproject/abi';
 import {
+  hasTransactionType,
   TransactionMeta,
   TransactionParams,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+
+export { hasTransactionType } from '@metamask/transaction-controller';
 import {
   abiERC721,
   abiERC20,
@@ -106,21 +109,43 @@ export function get4ByteCode(data: string) {
   return data.slice(0, 10).toLowerCase();
 }
 
-export function hasTransactionType(
-  transactionMeta: TransactionMeta | undefined,
-  types: readonly TransactionType[],
-) {
-  const { nestedTransactions, type } = transactionMeta ?? {};
-
-  if (types.includes(type as TransactionType)) {
-    return true;
+/**
+ * Resolves the effective transaction type for fiat strategy purposes.
+ *
+ * For non-batch transactions returns the transaction's own type.
+ * For batch transactions returns the first nested transaction type
+ * that appears in the enabled types list, or the batch type itself
+ * if no nested type matches.
+ *
+ * @param transaction - The transaction metadata to inspect.
+ * @param types - Transaction types to resolve.
+ * @returns The resolved transaction type, or `undefined`.
+ */
+export function resolveTransactionType(
+  transaction: TransactionMeta,
+  types: TransactionType[],
+): TransactionType | undefined {
+  if (transaction.type !== TransactionType.batch) {
+    return transaction.type;
   }
 
-  return (
-    nestedTransactions?.some((tx) =>
-      types.includes(tx.type as TransactionType),
-    ) ?? false
-  );
+  const nestedType = transaction.nestedTransactions?.find(
+    (tx) => tx.type && types.includes(tx.type),
+  )?.type;
+
+  return nestedType ?? transaction.type;
+}
+
+export function getTransactionType(
+  transactionMeta: TransactionMeta | undefined,
+): string | undefined {
+  if (!transactionMeta) return undefined;
+  const { type, nestedTransactions } = transactionMeta;
+  if (nestedTransactions?.length) {
+    const nestedType = nestedTransactions.find((tx) => tx.type)?.type;
+    if (nestedType) return nestedType;
+  }
+  return type;
 }
 
 /**

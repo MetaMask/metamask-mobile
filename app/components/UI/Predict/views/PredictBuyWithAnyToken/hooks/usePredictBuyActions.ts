@@ -1,6 +1,5 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { PredictNavigationParamList } from '../../../types/navigation';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   ActiveOrderState,
@@ -69,8 +68,7 @@ export const usePredictBuyActions = ({
   onClose,
   transactionActiveAbTests,
 }: UsePredictBuyActionsParams) => {
-  const navigation =
-    useNavigation<StackNavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { onConfirm: onApprovalConfirm, approvalRequest } =
     useApprovalRequest();
   const { onReject } = useConfirmActions();
@@ -123,7 +121,8 @@ export const usePredictBuyActions = ({
     const doInit = async () => {
       batchIdRef.current = undefined;
       rejectPendingTransactions();
-      resetSelectedPaymentToken();
+      // Reset payment token on dismiss instead, so default auto-select is not
+      // overwritten when leftover PREVIEW lets that effect run before doInit.
       const result = await initPayWithAnyToken();
       if (result?.success && result.response?.batchId) {
         batchIdRef.current = result.response.batchId;
@@ -151,7 +150,6 @@ export const usePredictBuyActions = ({
     initPayWithAnyToken,
     payWithAnyTokenEnabled,
     PredictController,
-    resetSelectedPaymentToken,
     isSheetMode,
   ]);
 
@@ -162,6 +160,7 @@ export const usePredictBuyActions = ({
 
     if (isSheetMode) {
       return () => {
+        resetSelectedPaymentToken();
         onRejectRef.current(undefined, true);
         clearActiveOrderTransactionIdRef.current();
       };
@@ -186,6 +185,7 @@ export const usePredictBuyActions = ({
           activeAbTests: transactionActiveAbTests,
         });
       }
+      resetSelectedPaymentToken();
       onRejectRef.current(undefined, true);
       clearActiveOrderTransactionIdRef.current();
     });
@@ -195,6 +195,7 @@ export const usePredictBuyActions = ({
     isSheetMode,
     analyticsProperties,
     transactionActiveAbTests,
+    resetSelectedPaymentToken,
   ]);
 
   const handlePlaceOrder = useCallback(

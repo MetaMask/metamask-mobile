@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
+import type { CardSliceState } from '../../core/redux/slices/card';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
 import Device from '../../util/device';
@@ -182,6 +183,24 @@ const persistOnboardingTransform = createTransform(
   { whitelist: ['onboarding'] },
 );
 
+type PersistedCardState = Omit<CardSliceState, 'pendingMoneyAccountCardLink'>;
+
+const persistCardTransform = createTransform<
+  CardSliceState,
+  PersistedCardState
+>(
+  (inboundState) => {
+    const { pendingMoneyAccountCardLink: _omitSession, ...state } =
+      inboundState;
+    return state;
+  },
+  (outboundState) => ({
+    ...outboundState,
+    pendingMoneyAccountCardLink: null,
+  }),
+  { whitelist: ['card'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
@@ -195,7 +214,11 @@ const persistConfig = {
     'securityAlerts',
   ],
   storage: MigratedStorage,
-  transforms: [persistUserTransform, persistOnboardingTransform],
+  transforms: [
+    persistUserTransform,
+    persistOnboardingTransform,
+    persistCardTransform,
+  ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {
     debug: false,

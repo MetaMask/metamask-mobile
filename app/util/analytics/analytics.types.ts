@@ -132,7 +132,6 @@ export interface ITrackingEvent {
   readonly name: string;
   properties: JsonMap;
   sensitiveProperties: JsonMap;
-  saveDataRecording: boolean;
   get isAnonymous(): boolean;
   get hasProperties(): boolean;
 }
@@ -143,7 +142,7 @@ export interface ITrackingEvent {
 export const isTrackingEvent = (
   event: IMetaMetricsEvent | ITrackingEvent,
 ): event is ITrackingEvent =>
-  (event as ITrackingEvent).saveDataRecording !== undefined;
+  typeof (event as ITrackingEvent).name === 'string' && !('category' in event);
 
 /**
  * Monetized primitives associated with a transaction.
@@ -155,6 +154,7 @@ export enum MonetizedPrimitive {
   Ramps = 'ramps',
   Predict = 'predict',
   MmPay = 'mm_pay',
+  MoneyAccount = 'money_account',
 }
 
 /**

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
@@ -13,12 +13,24 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import ShimmerOverlay from './ShimmerOverlay';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+} from '../../../util/metrics';
 
 export interface SpendAndEarnPromoCardProps {
   apyPercent?: number;
   onPress: () => void;
   testID?: string;
   accessibilityLabel?: string;
+  analytics?: {
+    screen: CardScreens | string;
+    entrypoint: CardEntryPoint;
+    flow?: string;
+  };
 }
 
 // Pronounced dark sweep that reads against the white Primary button surface.
@@ -45,16 +57,51 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
   onPress,
   testID = 'use-money-account-cta',
   accessibilityLabel,
+  analytics,
 }) => {
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedViewRef = useRef(false);
 
   const resolvedAccessibilityLabel =
     accessibilityLabel ??
     strings('card.card_spending_limit.use_money_account_cta');
 
+  useEffect(() => {
+    if (hasTrackedViewRef.current || !analytics) return;
+    hasTrackedViewRef.current = true;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: analytics.screen,
+          entrypoint: analytics.entrypoint,
+          flow: analytics.flow,
+        })
+        .build(),
+    );
+  }, [analytics, trackEvent, createEventBuilder]);
+
+  const handlePress = useCallback(() => {
+    if (analytics) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            screen: analytics.screen,
+            entrypoint: analytics.entrypoint,
+            flow: analytics.flow,
+            action: CardActions.SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON,
+          })
+          .build(),
+      );
+    }
+
+    onPress();
+  }, [analytics, trackEvent, createEventBuilder, onPress]);
+
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={resolvedAccessibilityLabel}
       testID={testID}
@@ -111,7 +158,7 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Sm}
-              onPress={onPress}
+              onPress={handlePress}
             >
               {strings('card.card_spending_limit.spend_and_earn_cta')}
             </Button>

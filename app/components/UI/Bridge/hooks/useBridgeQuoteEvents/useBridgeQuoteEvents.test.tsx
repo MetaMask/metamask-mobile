@@ -4,6 +4,11 @@ import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  selectBridgeQuotes,
+  selectControllerFields,
+} from '../../../../../core/redux/slices/bridge';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -14,16 +19,41 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
+
+const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 describe('useBridgeQuoteEvents', () => {
+  const expectedQuotesReceivedProperties = {
+    best_quote_provider: 'lifi_jupiter',
+    can_submit: true,
+    feature_id: 'unified_swap_bridge',
+    gas_included: false,
+    gas_included_7702: false,
+    has_sufficient_gas_for_quote: null,
+    price_impact: -0.001991570073761955,
+    provider: 'lifi_jupiter',
+    quoted_time_minutes: 0.08333333333333333,
+    token_symbol_destination: 'USDC',
+    token_symbol_source: 'SOL',
+    usd_balance_source: 0,
+    usd_quoted_gas: 0,
+    usd_quoted_return: 0,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    selectControllerFields.clearCache();
+    selectControllerFields.memoizedResultFunc.clearCache();
+    selectBridgeQuotes.clearCache();
+    selectBridgeQuotes.memoizedResultFunc.clearCache();
   });
 
   it.each([
@@ -62,6 +92,40 @@ describe('useBridgeQuoteEvents', () => {
       ).not.toHaveBeenCalled();
     },
   );
+
+  it('ends the quote trace when the first quote arrives during streaming', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: RequestStatus.LOADING,
+        quoteFetchError: null,
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 0,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+    });
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).not.toHaveBeenCalled();
+  });
 
   it.each([
     [{ hasNoQuotesAvailable: true }, ['no_quotes']],
@@ -113,19 +177,76 @@ describe('useBridgeQuoteEvents', () => {
       expect(
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
       ).toHaveBeenCalledWith('Unified SwapBridge Quotes Received', {
-        best_quote_provider: 'lifi_jupiter',
-        can_submit: true,
-        gas_included: false,
-        gas_included_7702: false,
-        has_sufficient_gas_for_quote: null,
-        price_impact: -0.001991570073761955,
-        provider: 'lifi_jupiter',
-        quoted_time_minutes: 0.08333333333333333,
-        usd_balance_source: 0,
-        usd_quoted_gas: 0,
-        usd_quoted_return: 0,
+        ...expectedQuotesReceivedProperties,
         warnings,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.SwapQuoteFetch,
+        timestamp: expect.any(Number),
       });
     },
   );
+
+  it('ends the quote trace when a completed request has no quotes', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+        quotes: [],
+        quotesRefreshCount: 1,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: true,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+    });
+  });
+
+  it('ends the quote trace when quote fetching fails', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: 'Error fetching quotes',
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 1,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+      data: { success: false },
+    });
+  });
 });

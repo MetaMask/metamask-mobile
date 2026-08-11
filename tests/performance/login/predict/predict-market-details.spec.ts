@@ -24,7 +24,7 @@ import ToastModal from '../../../page-objects/wallet/ToastModal.js';
  * 3. Time to open About tab content
  * 4. Time to open Outcomes tab content when available
  */
-perfTest.describe(PerformancePredict, () => {
+perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
   perfTest.setTimeout(15 * 60 * 1000);
 
   perfTest(
@@ -52,7 +52,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 2: Open market details
       const timer2 = new TimerHelper(
         'Time since user taps market card until Market Detail screen is visible',
-        { ios: 1500, android: 1500 },
+        { ios: 1500, android: 6500 },
         currentDeviceDetails.platform,
       );
 

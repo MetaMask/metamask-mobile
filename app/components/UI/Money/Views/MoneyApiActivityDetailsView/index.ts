@@ -1,0 +1,1 @@
+export { MoneyApiActivityDetailsView } from './MoneyApiActivityDetailsView';

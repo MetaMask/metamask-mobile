@@ -21,6 +21,8 @@ interface UsePerpsOrderFormParams {
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
+  /** Surface-specific fallback used when no explicit or pending amount exists. */
+  fallbackAmount?: string;
   initialLeverage?: number;
   initialType?: OrderType;
   /** When paying with a custom token, the selected token amount in USD; used to cap maxPossibleAmount and handlers */
@@ -57,6 +59,7 @@ export function usePerpsOrderForm(
     initialAsset = 'BTC',
     initialDirection = 'long',
     initialAmount,
+    fallbackAmount: fallbackAmountParam,
     initialLeverage,
     initialType = 'market',
     effectiveAvailableBalance: effectiveAvailableBalanceParam,
@@ -103,6 +106,7 @@ export function usePerpsOrderForm(
     currentNetwork === 'mainnet'
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
+  const fallbackAmount = fallbackAmountParam ?? defaultAmount.toString();
 
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
   const defaultLeverage =
@@ -126,7 +130,11 @@ export function usePerpsOrderForm(
 
     // Don't calculate if price is not available yet to avoid temporary 0 values
     if (!currentPrice?.price) {
-      return defaultAmount.toString();
+      return fallbackAmount;
+    }
+
+    if (fallbackAmount === '') {
+      return '';
     }
 
     const tempMaxAmount = getMaxAllowedAmount({
@@ -136,19 +144,24 @@ export function usePerpsOrderForm(
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
-    // Return the target amount directly (USD as source of truth, no optimization)
-    // Use conservative default ($10) unless explicitly provided via navigation param
+    const numericFallbackAmount = Number.parseFloat(fallbackAmount);
+    if (!Number.isFinite(numericFallbackAmount)) {
+      return fallbackAmount;
+    }
+
+    // Return the target amount directly (USD as source of truth, no optimization).
+    // Lite uses its conservative network default; other surfaces can opt out.
     const targetAmount =
-      tempMaxAmount < defaultAmount
+      tempMaxAmount < numericFallbackAmount
         ? tempMaxAmount.toString()
-        : defaultAmount.toString();
+        : fallbackAmount;
 
     return targetAmount;
   }, [
     initialAmount,
     pendingConfig?.amount,
     balanceForMax,
-    defaultAmount,
+    fallbackAmount,
     currentPrice?.price,
     marketData?.szDecimals,
     defaultLeverage,
@@ -158,8 +171,10 @@ export function usePerpsOrderForm(
   const defaultOrderType = pendingConfig?.orderType || initialType || 'market';
 
   // Calculate initial balance percentage
-  const initialMarginRequired =
-    Number.parseFloat(initialAmountValue) / defaultLeverage;
+  const parsedInitialAmount = Number.parseFloat(initialAmountValue);
+  const initialMarginRequired = Number.isFinite(parsedInitialAmount)
+    ? parsedInitialAmount / defaultLeverage
+    : 0;
   const initialBalancePercent =
     spendableBalance > 0
       ? Math.min((initialMarginRequired / spendableBalance) * 100, 100)
@@ -259,7 +274,8 @@ export function usePerpsOrderForm(
   useEffect(() => {
     const currentAmount = Number.parseFloat(orderForm.amount);
     if (
-      currentAmount === 0 ||
+      !Number.isFinite(currentAmount) ||
+      currentAmount <= 0 ||
       maxPossibleAmount === 0 ||
       currentAmount < maxPossibleAmount
     )
@@ -273,34 +289,34 @@ export function usePerpsOrderForm(
   }, [balanceForMax, maxPossibleAmount, orderForm.amount]);
 
   // Update entire form
-  const updateOrderForm = (updates: Partial<OrderFormState>) => {
+  const updateOrderForm = useCallback((updates: Partial<OrderFormState>) => {
     setOrderForm((prev) => ({ ...prev, ...updates }));
-  };
+  }, []);
 
   // Individual setters for common operations
-  const setAmount = (amount: string) => {
+  const setAmount = useCallback((amount: string) => {
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
-  };
+  }, []);
 
-  const setLeverage = (leverage: number) => {
+  const setLeverage = useCallback((leverage: number) => {
     setOrderForm((prev) => ({ ...prev, leverage }));
-  };
+  }, []);
 
-  const setDirection = (direction: 'long' | 'short') => {
+  const setDirection = useCallback((direction: 'long' | 'short') => {
     setOrderForm((prev) => ({ ...prev, direction }));
-  };
+  }, []);
 
-  const setAsset = (asset: string) => {
+  const setAsset = useCallback((asset: string) => {
     setOrderForm((prev) => ({ ...prev, asset }));
-  };
+  }, []);
 
-  const setTakeProfitPrice = (price?: string) => {
+  const setTakeProfitPrice = useCallback((price?: string) => {
     // Convert empty string to undefined for proper clearing
     const cleanedPrice = price === '' || price === null ? undefined : price;
     setOrderForm((prev) => ({ ...prev, takeProfitPrice: cleanedPrice }));
-  };
+  }, []);
 
-  const setStopLossPrice = (price?: string) => {
+  const setStopLossPrice = useCallback((price?: string) => {
     // Convert empty string to undefined for proper clearing
     const cleanedPrice = price === '' || price === null ? undefined : price;
     setOrderForm((prev) => {
@@ -313,18 +329,18 @@ export function usePerpsOrderForm(
       });
       return newState;
     });
-  };
+  }, []);
 
-  const setLimitPrice = (price?: string) => {
+  const setLimitPrice = useCallback((price?: string) => {
     setOrderForm((prev) => {
       const newState = { ...prev, limitPrice: price };
       return newState;
     });
-  };
+  }, []);
 
-  const setOrderType = (type: OrderType) => {
+  const setOrderType = useCallback((type: OrderType) => {
     setOrderForm((prev) => ({ ...prev, type }));
-  };
+  }, []);
 
   // Handle percentage-based amount selection (respects custom token amount when set).
   // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
@@ -361,21 +377,40 @@ export function usePerpsOrderForm(
     }));
   }, [currentNetwork]);
 
-  return {
-    orderForm,
-    updateOrderForm,
-    setAmount,
-    setLeverage,
-    setDirection,
-    setAsset,
-    setTakeProfitPrice,
-    setStopLossPrice,
-    setLimitPrice,
-    setOrderType,
-    handlePercentageAmount,
-    handleMaxAmount,
-    handleMinAmount,
-    maxPossibleAmount,
-    balanceForValidation: balanceForMax,
-  };
+  return useMemo(
+    () => ({
+      orderForm,
+      updateOrderForm,
+      setAmount,
+      setLeverage,
+      setDirection,
+      setAsset,
+      setTakeProfitPrice,
+      setStopLossPrice,
+      setLimitPrice,
+      setOrderType,
+      handlePercentageAmount,
+      handleMaxAmount,
+      handleMinAmount,
+      maxPossibleAmount,
+      balanceForValidation: balanceForMax,
+    }),
+    [
+      orderForm,
+      updateOrderForm,
+      setAmount,
+      setLeverage,
+      setDirection,
+      setAsset,
+      setTakeProfitPrice,
+      setStopLossPrice,
+      setLimitPrice,
+      setOrderType,
+      handlePercentageAmount,
+      handleMaxAmount,
+      handleMinAmount,
+      maxPossibleAmount,
+      balanceForMax,
+    ],
+  );
 }

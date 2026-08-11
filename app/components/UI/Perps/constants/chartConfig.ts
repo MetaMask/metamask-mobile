@@ -73,6 +73,12 @@ export const TIME_DURATIONS = [
 ] as const;
 
 /**
+ * Source identifier for real (live/historical) candle data sent to the WebView.
+ * Centralised here to avoid magic strings in message-passing code.
+ */
+export const CANDLE_DATA_SOURCE = 'real' as const;
+
+/**
  * Helper function to get candlestick colors from theme
  * Prevents object creation on every render
  */

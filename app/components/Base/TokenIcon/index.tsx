@@ -16,11 +16,11 @@ import {
 } from 'react-native';
 
 import RemoteImage from '../RemoteImage';
-import Text from '../../../../app/component-library/components/Texts/Text/Text.tsx';
 import { useTheme } from '../../../util/theme';
 import imageIcons from '../../../images/image-icons';
 import ethLogo from '../../../images/eth-logo-new.png';
 import { ThemeColors } from '@metamask/design-tokens';
+import { Text } from '@metamask/design-system-react-native';
 
 const REGULAR_SIZE = 24;
 const REGULAR_RADIUS = 12;

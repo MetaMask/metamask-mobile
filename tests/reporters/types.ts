@@ -90,6 +90,7 @@ export interface ProfilingData {
       status?: string;
       detected_issues?: ProfilingIssue[];
       metrics: {
+        app_size?: number;
         cpu?: { avg?: number; max?: number };
         mem?: { avg?: number; max?: number };
         batt?: { total_batt_usage?: number; total_batt_usage_pct?: number };
@@ -118,6 +119,7 @@ export interface ProfilingSummary {
   status?: string;
   issues?: number;
   criticalIssues?: number;
+  appSizeMb?: number;
   cpu?: { avg: number; max: number; unit?: string };
   memory?: { avg: number; max: number; unit?: string };
   battery?: { total: number; percentage: number; unit?: string };
@@ -143,6 +145,22 @@ export interface NetworkLogEntry {
   url: string;
   status?: number;
   time?: number;
+}
+
+/**
+ * Per-scenario artifact written under `reports/app-profiling/`.
+ * One file per performance scenario: profiling data + API calls.
+ */
+export interface AppProfilingArtifact {
+  testName: string;
+  projectName: string | null;
+  sessionId: string | null;
+  device: DeviceInfo;
+  timestamp: string;
+  profilingSummary: ProfilingSummary | null;
+  profilingData: ProfilingData | null;
+  apiCalls: NetworkLogEntry[] | null;
+  apiCallsError: string | null;
 }
 
 export interface FailedTestEntry {

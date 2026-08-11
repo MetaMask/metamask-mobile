@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -26,7 +27,7 @@ interface TronStakingCtaProps {
 }
 
 const TronStakingCta = ({ asset, aprText }: TronStakingCtaProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { isEligible } = useStakingEligibility();
 

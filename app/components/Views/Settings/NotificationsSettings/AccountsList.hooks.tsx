@@ -10,19 +10,24 @@ import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 
 export function useNotificationAccountListProps() {
   const accountAddresses = useSelector(getValidNotificationAccounts);
   const accountsMap = useSelector(selectInternalAccountsById);
   const { update, initialLoading, accountsBeingUpdated, data } =
     useFetchAccountNotifications(accountAddresses);
+  const { refetch: refetchPreferences } = useNotificationStoragePreferences();
 
   // Only disable switches during initial data loading, not when individual accounts are updating
   const shouldDisableSwitches = initialLoading;
 
+  // Account toggles rewrite `walletActivity.accounts` behind the cached
+  // preferences, so refresh both — otherwise the next section write PUTs a
+  // stale accounts array.
   const refetchAccountSettings = useCallback(async () => {
-    await update(accountAddresses);
-  }, [accountAddresses, update]);
+    await Promise.all([update(accountAddresses), refetchPreferences()]);
+  }, [accountAddresses, update, refetchPreferences]);
 
   // Helper to get addresses from account IDs
   const getEvmAddressesFromAccountIds = useCallback(
@@ -58,6 +63,7 @@ export function useNotificationAccountListProps() {
     },
     [accountsBeingUpdated, getEvmAddressesFromAccountIds],
   );
+  const isAnyAccountUpdating = accountsBeingUpdated.length > 0;
 
   const isAccountEnabled = useCallback(
     (accountIds: string[]) => {
@@ -78,6 +84,7 @@ export function useNotificationAccountListProps() {
 
   return {
     shouldDisableSwitches,
+    isAnyAccountUpdating,
     refetchAccountSettings,
     isAccountLoading,
     isAccountEnabled,

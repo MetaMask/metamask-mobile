@@ -368,7 +368,7 @@ describe('persistConfig', () => {
 
   describe('transforms', () => {
     it('have correct number of transforms', () => {
-      expect(persistConfig.transforms).toHaveLength(2);
+      expect(persistConfig.transforms).toHaveLength(3);
     });
 
     it('have user transform configured', () => {
@@ -385,6 +385,14 @@ describe('persistConfig', () => {
         unknown
       > & { whitelist?: string[] };
       expect(onboardingTransform.whitelist).toEqual(['onboarding']);
+    });
+
+    it('has card transform configured', () => {
+      const cardTransform = persistConfig.transforms[2] as Transform<
+        unknown,
+        unknown
+      > & { whitelist?: string[] };
+      expect(cardTransform.whitelist).toEqual(['card']);
     });
   });
 

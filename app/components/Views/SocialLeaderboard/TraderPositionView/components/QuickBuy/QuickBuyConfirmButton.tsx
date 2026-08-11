@@ -1,39 +1,32 @@
 import React, { useEffect } from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   withTiming,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import {
+  Box,
+  ButtonBase,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../util/theme';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import type { QuickBuyTradeMode } from './types';
 
 export type ConfirmButtonState = 'idle' | 'loading' | 'success';
 
 const styles = StyleSheet.create({
-  container: {
+  successContainer: {
     height: 48,
     width: '100%',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-  },
-  inactive: {
-    opacity: 0.5,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
   },
 });
 
@@ -43,20 +36,30 @@ interface QuickBuyConfirmButtonProps {
   hasValidAmount: boolean;
   isDisabled: boolean;
   onPress: () => void;
+  /** Buy uses success (lime); sell uses error (red). */
+  tradeMode?: QuickBuyTradeMode;
   testID?: string;
 }
 
+/**
+ * Confirm CTA colors follow Figma Trade ButtonHero fills:
+ * buy → success-default (#baf24a in dark), sell → error-default.
+ * Do not use design-system ButtonHero here — its locked light primary is blue.
+ */
 const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   state,
   label,
-  hasValidAmount,
   isDisabled,
   onPress,
+  tradeMode = 'buy',
   testID,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const checkScale = useSharedValue(0);
+  const isSell = tradeMode === 'sell';
+  const buttonDisabled = state !== 'idle' || isDisabled;
+  const bgClass = isSell ? 'bg-error-default' : 'bg-success-default';
+  const textClass = isSell ? 'text-error-inverse' : 'text-success-inverse';
 
   useEffect(() => {
     checkScale.value =
@@ -67,46 +70,35 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
     transform: [{ scale: checkScale.value }],
   }));
 
-  // Use design-system ButtonPrimary token equivalents:
-  const activeContainerStyle = tw.style('bg-icon-default');
-  const activeLabelStyle = tw.style('text-primary-inverse');
-
-  const labelColor = hasValidAmount
-    ? (activeLabelStyle.color as string)
-    : colors.text.alternative;
-
-  const showInactiveStyle = isDisabled && state === 'idle';
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.container,
-        hasValidAmount
-          ? activeContainerStyle
-          : { backgroundColor: colors.background.muted },
-        showInactiveStyle && styles.inactive,
-      ]}
-      onPress={onPress}
-      disabled={state !== 'idle' || isDisabled}
-      testID={testID}
-      activeOpacity={0.8}
-    >
-      {state === 'loading' && (
-        <ActivityIndicator size="small" color={labelColor} />
-      )}
-      {state === 'success' && (
+  if (state === 'success') {
+    return (
+      <Box style={[styles.successContainer, tw.style(bgClass)]} testID={testID}>
         <Animated.View style={checkmarkStyle}>
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Lg}
-            color={labelColor}
+            color={tw.style(textClass).color as string}
           />
         </Animated.View>
-      )}
-      {state === 'idle' && (
-        <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
-      )}
-    </TouchableOpacity>
+      </Box>
+    );
+  }
+
+  return (
+    <ButtonBase
+      size={ButtonSize.Lg}
+      isLoading={state === 'loading'}
+      onPress={onPress}
+      isFullWidth
+      testID={testID}
+      isDisabled={buttonDisabled}
+      twClassName={(pressed) =>
+        `${bgClass}${pressed && !buttonDisabled && state === 'idle' ? ' opacity-90' : ''}`
+      }
+      textClassName={() => textClass}
+    >
+      {label}
+    </ButtonBase>
   );
 };
 

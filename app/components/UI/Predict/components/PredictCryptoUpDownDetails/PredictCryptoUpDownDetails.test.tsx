@@ -184,10 +184,10 @@ jest.mock('../PredictCryptoUpDownChart', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(({ market, targetPrice, onCurrentPriceChange }) => (
+    default: jest.fn(({ market, targetPrice, color, onCurrentPriceChange }) => (
       <TouchableOpacity
         testID="mock-predict-crypto-up-down-chart"
-        accessibilityLabel={`market:${market.id};target:${targetPrice ?? 'none'}`}
+        accessibilityLabel={`market:${market.id};target:${targetPrice ?? 'none'};color:${color ?? 'none'}`}
         onPress={() => {
           if (typeof mockChartCurrentPrice === 'number') {
             onCurrentPriceChange?.(mockChartCurrentPrice);
@@ -289,7 +289,13 @@ const getChartMarketId = () => {
 const getChartTargetPrice = () => {
   const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
   const label = chart.props.accessibilityLabel as string | undefined;
-  return label?.match(/;target:(.+)$/)?.[1];
+  return label?.match(/;target:([^;]+)/)?.[1];
+};
+
+const getChartColor = () => {
+  const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
+  const label = chart.props.accessibilityLabel as string | undefined;
+  return label?.match(/;color:(.+)$/)?.[1];
 };
 
 const getSelectedTimeSlotMarketId = () => {
@@ -495,6 +501,49 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(
       screen.getByTestId('mock-predict-crypto-up-down-chart'),
     ).toBeOnTheScreen();
+  });
+
+  it('uses the Bitcoin accent color for BTC markets', () => {
+    const market = createMockMarket({
+      slug: 'btc-up-or-down-5m',
+      tags: ['crypto', 'up-or-down', 'bitcoin'],
+    });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(getChartColor()).toBe('rgb(247, 147, 26)');
+  });
+
+  it('uses the Ethereum accent color for ETH markets', () => {
+    const ethSeries: PredictSeries = {
+      id: 's-eth',
+      slug: 'eth-up-or-down-5m',
+      title: 'ETH Up or Down - 5 Minutes',
+      recurrence: '5m',
+    };
+    const market = createMockMarket({
+      slug: 'eth-up-or-down-5m',
+      tags: ['crypto', 'up-or-down', 'ethereum'],
+      series: ethSeries,
+    });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(getChartColor()).toBe('rgb(94, 109, 183)');
+  });
+
+  it('falls back to the default accent color for unmapped crypto symbols', () => {
+    const market = createMockMarket({
+      slug: 'unknown-up-or-down-5m',
+      tags: ['crypto', 'up-or-down'],
+    });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(getChartColor()).toBe('rgb(245, 158, 11)');
   });
 
   it('renders claim action without a buy callback when positive pnl is available', () => {

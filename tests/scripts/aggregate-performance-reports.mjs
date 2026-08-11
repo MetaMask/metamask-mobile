@@ -9,20 +9,41 @@
  * Handles:
  * - Imported Wallet Tests: *-imported-wallet-test-results-*
  * - Onboarding Tests: *-onboarding-flow-test-results-*
- * - MM-Connect Tests: *-mm-connect-test-results-*
  */
 
 import fs from 'fs';
 import path from 'path';
 
 /**
- * Get build variant and display type from environment (rc = normal, exp = experimental).
+ * Get build variant and display type from environment.
  * @returns {{ buildVariant: string, buildType: string }}
  */
 function getBuildTypeInfo() {
   const variant = (process.env.BUILD_VARIANT || 'rc').toLowerCase();
-  const buildType = variant === 'exp' ? 'Experimental' : 'Normal';
+  let buildType = 'Normal';
+  if (variant === 'exp') {
+    buildType = 'Experimental';
+  } else if (variant === 'rc') {
+    buildType = 'RC';
+  } else if (variant === 'e2e') {
+    buildType = 'E2E';
+  }
   return { buildVariant: variant, buildType };
+}
+
+/**
+ * Resolve performance scenario from a test file path.
+ * Used so Slack category status can reflect quality-gate failures even when
+ * CI jobs exit green by design.
+ * @param {string|null|undefined} testFilePath
+ * @returns {'onboarding'|'imported-wallet'}
+ */
+function resolveScenarioFromTestFilePath(testFilePath) {
+  const pathValue = testFilePath || '';
+  if (pathValue.includes('/performance/onboarding/')) {
+    return 'onboarding';
+  }
+  return 'imported-wallet';
 }
 
 /**
@@ -57,6 +78,90 @@ function findJsonFiles(dir, jsonFiles = []) {
     }
   }
   return jsonFiles;
+}
+
+/**
+ * Recursively find per-scenario app profiling artifacts.
+ * Filenames follow: app-profiling-<scenario>-<device>-<os>.json
+ * @param {string} dir - Directory to search
+ * @param {string[]} profilingFiles - Array to collect found files
+ * @returns {string[]} Array of app-profiling JSON file paths
+ */
+function findAppProfilingFiles(dir, profilingFiles = []) {
+  if (!fs.existsSync(dir)) {
+    return profilingFiles;
+  }
+
+  const entries = fs.readdirSync(dir);
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry);
+    if (fs.statSync(fullPath).isDirectory()) {
+      findAppProfilingFiles(fullPath, profilingFiles);
+    } else if (
+      entry.endsWith('.json') &&
+      entry.startsWith('app-profiling-')
+    ) {
+      profilingFiles.push(fullPath);
+    }
+  }
+  return profilingFiles;
+}
+
+/**
+ * Copy per-scenario app profiling artifacts into the aggregated reports output
+ * so the pipeline's aggregated-reports artifact includes one file per scenario.
+ * Clears any previously collected profiling files first so re-aggregation does
+ * not leave stale scenario files from an earlier run.
+ * @param {string[]} searchDirs - Directories to search for profiling files
+ * @param {string} outputDir - Aggregated reports directory
+ * @returns {number} Number of profiling files copied
+ */
+function collectAppProfilingArtifacts(searchDirs, outputDir) {
+  const profilingOutputDir = path.join(outputDir, 'app-profiling');
+  const usedNames = new Map();
+  let copiedCount = 0;
+
+  // Reset output dir so a later aggregation with fewer scenarios does not keep
+  // stale app-profiling-*.json files from a previous run.
+  if (fs.existsSync(profilingOutputDir)) {
+    fs.rmSync(profilingOutputDir, { recursive: true, force: true });
+  }
+
+  const profilingFiles = [];
+  searchDirs.forEach((dir) => {
+    if (fs.existsSync(dir)) {
+      findAppProfilingFiles(dir, profilingFiles);
+    }
+  });
+
+  if (profilingFiles.length === 0) {
+    console.log('ℹ️ No per-scenario app profiling artifacts found to collect');
+    return 0;
+  }
+
+  fs.mkdirSync(profilingOutputDir, { recursive: true });
+
+  for (const sourcePath of profilingFiles) {
+    let fileName = path.basename(sourcePath);
+    const collisionCount = usedNames.get(fileName) ?? 0;
+    usedNames.set(fileName, collisionCount + 1);
+
+    if (collisionCount > 0) {
+      const ext = path.extname(fileName);
+      const base = path.basename(fileName, ext);
+      fileName = `${base}-${collisionCount + 1}${ext}`;
+    }
+
+    const destPath = path.join(profilingOutputDir, fileName);
+    fs.copyFileSync(sourcePath, destPath);
+    copiedCount += 1;
+    console.log(`📦 Collected app profiling artifact: ${destPath}`);
+  }
+
+  console.log(
+    `✅ Collected ${copiedCount} per-scenario app profiling artifact(s) into ${profilingOutputDir}`,
+  );
+  return copiedCount;
 }
 
 /**
@@ -103,18 +208,6 @@ function extractPlatformScenarioAndDevice(filePath) {
     scenario = 'onboarding';
     scenarioKey = 'Onboarding';
     console.log(`✅ Detected iOS Onboarding test`);
-  } else if (fullPath.includes('android-mm-connect-test-results')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'mm-connect';
-    scenarioKey = 'MMConnect';
-    console.log(`✅ Detected Android MM-Connect test`);
-  } else if (fullPath.includes('ios-mm-connect-test-results')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'mm-connect';
-    scenarioKey = 'MMConnect';
-    console.log(`✅ Detected iOS MM-Connect test`);
   } else {
     console.log(`⚠️ Could not determine platform/scenario from path`);
     console.log(`🔍 Full path: ${filePath}`);
@@ -123,8 +216,7 @@ function extractPlatformScenarioAndDevice(filePath) {
   // Extract device info from path
   const deviceMatch = pathParts.find(part =>
     part.includes('-imported-wallet-test-results-') ||
-    part.includes('-onboarding-flow-test-results-') ||
-    part.includes('-mm-connect-test-results-')
+    part.includes('-onboarding-flow-test-results-')
   );
 
   if (deviceMatch) {
@@ -134,7 +226,6 @@ function extractPlatformScenarioAndDevice(filePath) {
 
     // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion (5 parts)
     // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion (5 parts)
-    // Pattern: android-mm-connect-test-results-DeviceName-OSVersion (5 parts)
     const deviceInfoStart = 5;
     
     if (parts.length >= deviceInfoStart + 1) {
@@ -156,7 +247,7 @@ function extractPlatformScenarioAndDevice(filePath) {
   } else {
     console.log(`⚠️ No device match found in path parts`);
     console.log(
-      `🔍 Looking for patterns: -imported-wallet-test-results-, -onboarding-flow-test-results-, or -mm-connect-test-results-`
+      `🔍 Looking for patterns: -imported-wallet-test-results- or -onboarding-flow-test-results-`
     );
     console.log(`🔍 Available parts:`, pathParts);
   }
@@ -409,6 +500,10 @@ function createSummary(groupedResults) {
   const failedTestsByTeam = {};
   let totalFailedTests = 0;
   const failedTestsByPlatform = { android: 0, ios: 0 };
+  const failedTestsByCategory = {
+    onboarding: { android: 0, ios: 0 },
+    'imported-wallet': { android: 0, ios: 0 },
+  };
 
   const uniqueFailedTestNames = new Set();
 
@@ -425,10 +520,14 @@ function createSummary(groupedResults) {
       
       const { testInfo } = execution;
       const platformKey = testInfo.platform.toLowerCase();
+      const scenario = resolveScenarioFromTestFilePath(testInfo.testFilePath);
       
       // Track per-platform failures
       if (platformKey === 'android' || platformKey === 'ios') {
         failedTestsByPlatform[platformKey]++;
+        if (failedTestsByCategory[scenario]) {
+          failedTestsByCategory[scenario][platformKey]++;
+        }
       }
       
       // Track by team if team info available
@@ -455,6 +554,7 @@ function createSummary(groupedResults) {
           tags: testInfo.tags,
           platform: testInfo.platform,
           device: testInfo.device,
+          scenario,
           sessionId: testInfo.sessionId ?? null,
           recordingLink: testInfo.videoURL ?? null,
           failureReason,
@@ -522,6 +622,9 @@ function createSummary(groupedResults) {
         android: failedTestsByPlatform.android > 0 ? "failure" : "success",
         ios: failedTestsByPlatform.ios > 0 ? "failure" : "success"
       },
+      // Category/platform failure counts for Slack RESULTS BY CATEGORY.
+      // Reflects quality-gate failures even when CI jobs exit green.
+      failedTestsByCategory,
       failedTestsByPlatform,
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
@@ -1471,23 +1574,22 @@ function generateHtmlReport(groupedResults, summary) {
  * Main aggregation function
  */
 function aggregateReports() {
+  const outputDir = 'tests/aggregated-reports';
+  const searchDirs = [
+    './test-results',
+    './performance-results',
+    './onboarding-results',
+    './tests/reporters/reports',
+  ];
+
   try {
     console.log('🔍 Looking for performance JSON reports...');
     
     // Ensure output directory exists
-    const outputDir = 'tests/aggregated-reports';
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
       console.log(`📁 Created output directory: ${outputDir}`);
     }
-    
-    // Search only in directories where CI artifacts are downloaded
-    const searchDirs = [
-      './test-results',
-      './performance-results', 
-      './onboarding-results',
-      './tests/reporters/reports',
-    ];
     
     const jsonFiles = [];
     
@@ -1625,9 +1727,12 @@ function aggregateReports() {
     const htmlReportPath = 'tests/aggregated-reports/performance-report.html';
     fs.writeFileSync(htmlReportPath, htmlReport);
     console.log(`🌐 HTML report saved to: ${htmlReportPath}`);
-    
   } catch (error) {
     createFallbackReport('tests/aggregated-reports/performance-results.json', error);
+  } finally {
+    // Always collect profiling sidecars, including after aggregation failure,
+    // so per-job app-profiling artifacts still land in aggregated-reports.
+    collectAppProfilingArtifacts(searchDirs, outputDir);
   }
 }
 
@@ -1635,4 +1740,13 @@ function aggregateReports() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   aggregateReports();
 }
-export { aggregateReports, findJsonFiles, extractPlatformScenarioAndDevice, processTestReport, generateHtmlReport, formatDuration };
+export {
+  aggregateReports,
+  findJsonFiles,
+  findAppProfilingFiles,
+  collectAppProfilingArtifacts,
+  extractPlatformScenarioAndDevice,
+  processTestReport,
+  generateHtmlReport,
+  formatDuration,
+};

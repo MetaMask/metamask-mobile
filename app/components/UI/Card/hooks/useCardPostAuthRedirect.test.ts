@@ -38,8 +38,11 @@ describe('useCardPostAuthRedirect', () => {
 
     const { result } = renderHook(() => useCardPostAuthRedirect());
     expect(result.current).toEqual({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+      screen: Routes.HOME_TABS,
+      params: {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
     });
   });
 

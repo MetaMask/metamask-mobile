@@ -13,6 +13,10 @@ export interface CardTokenSet {
   accessTokenExpiresAt: number;
   refreshTokenExpiresAt?: number;
   location: string;
+  providerUserId?: string;
+  cardholderAccountId?: string;
+  accountAddress?: string;
+  keyringId?: string;
 }
 
 function keychainKey(providerId: string): string {

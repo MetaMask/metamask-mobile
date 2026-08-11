@@ -4,7 +4,10 @@ on:
   issues:
     types: [opened, edited, labeled, unlabeled, reopened]
   pull_request_target:
-    types: [opened, edited, labeled, unlabeled, reopened]
+    # `ready_for_review` / `converted_to_draft` flip the check between
+    # "informational" (draft) and "blocking" (non-draft) the moment the author
+    # changes state. `synchronize` keeps the status fresh as new commits land.
+    types: [opened, edited, labeled, unlabeled, reopened, ready_for_review, converted_to_draft, synchronize]
   merge_group:
 
 jobs:
@@ -32,6 +35,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
+        # WARNING: do NOT add `ref:` here — pull_request_target must stay on the base branch.
         uses: actions/checkout@v4
         with:
           fetch-depth: 1 # This retrieves only the latest commit.

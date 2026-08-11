@@ -8,8 +8,8 @@ import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import { IconSize } from '../../../component-library/components/Icons/Icon';
-import Text from '../../../component-library/components/Texts/Text';
 import { NETWORK_SELECTOR_TEST_IDS } from '../../../constants/networkSelector';
+import { Text } from '@metamask/design-system-react-native';
 
 interface ContextualNetworkPickerProps {
   onPress: () => void;

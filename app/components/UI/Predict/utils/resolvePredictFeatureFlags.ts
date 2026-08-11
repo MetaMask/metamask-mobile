@@ -7,19 +7,29 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
-import { filterSupportedLeagues } from '../constants/sports';
+import {
+  DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+  filterSupportedLeagues,
+} from '../constants/sports';
+import {
+  normalizeEnabledSportsMarketTypes,
+  normalizeSportsMarketTypes,
+} from '../providers/polymarket/outcomeGrouping';
 import {
   parse,
   PredictFeeCollectionSchema,
-  PredictWorldCupSchema,
+  PredictSportsFeedSchema,
+  PredictWimbledonTabSchema,
 } from '../schemas';
 import {
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
+  PredictWimbledonTabFlag,
 } from '../types/flags';
 import { unwrapRemoteFeatureFlag } from './flags';
 
@@ -85,11 +95,26 @@ export function resolvePredictFeatureFlags(
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
     ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
-  const extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
-    extendedSportsFlag,
-  )
+  const extendedSportsMarketsEnabled =
+    validatedVersionGatedFeatureFlag(extendedSportsFlag);
+  const extendedSportsMarketsLeagues = extendedSportsMarketsEnabled
     ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
     : [];
+  const enabledSportsMarketTypes = extendedSportsMarketsEnabled
+    ? normalizeEnabledSportsMarketTypes(
+        extendedSportsFlag.enabledSportsMarketTypes,
+      )
+    : [];
+  const hasNonRegTimeSportsMarketTypes = Object.prototype.hasOwnProperty.call(
+    extendedSportsFlag,
+    'nonRegTimeSportsMarketTypes',
+  );
+  const nonRegTimeSportsMarketTypes =
+    extendedSportsMarketsEnabled && hasNonRegTimeSportsMarketTypes
+      ? normalizeSportsMarketTypes(
+          extendedSportsFlag.nonRegTimeSportsMarketTypes,
+        )
+      : normalizeSportsMarketTypes(DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES);
   const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
     flags.predictFakOrders,
   );
@@ -105,35 +130,47 @@ export function resolvePredictFeatureFlags(
   const predictHomeRedesignEnabled = resolveVersionGatedBooleanFlag(
     flags.predictHomeRedesign,
   );
-  const predictHomepageDiscoveryNbaChampionEnabled =
-    resolveVersionGatedBooleanFlag(
-      flags.predictHomepageDiscoveryNbaChampionEnabled,
-      true,
-    );
-  const parsedPredictWorldCup = parse(
-    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictWorldCup']>(
-      flags.predictWorldCup,
-    ),
-    PredictWorldCupSchema,
-    DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  const predictSportCardLivePricesEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictSportCardLivePrices,
+    true,
   );
-  const predictWorldCup = validatedVersionGatedFeatureFlag(
-    parsedPredictWorldCup,
+  const parsedPredictSportsFeed = parse(
+    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
+      flags.predictSportsFeed,
+    ),
+    PredictSportsFeedSchema,
+    DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  );
+  const predictSportsFeed = validatedVersionGatedFeatureFlag(
+    parsedPredictSportsFeed,
   )
-    ? parsedPredictWorldCup
-    : DEFAULT_PREDICT_WORLD_CUP_FLAG;
+    ? parsedPredictSportsFeed
+    : DEFAULT_PREDICT_SPORTS_FEED_FLAG;
+  const parsedPredictWimbledonTab = parse(
+    unwrapRemoteFeatureFlag<PredictWimbledonTabFlag>(flags.predictWimbledon),
+    PredictWimbledonTabSchema,
+    DEFAULT_WIMBLEDON_TAB_FLAG,
+  );
+  const predictWimbledonTab = validatedVersionGatedFeatureFlag(
+    parsedPredictWimbledonTab,
+  )
+    ? parsedPredictWimbledonTab
+    : DEFAULT_WIMBLEDON_TAB_FLAG;
 
   return {
     feeCollection,
     liveSportsLeagues,
     extendedSportsMarketsLeagues,
+    enabledSportsMarketTypes,
+    nonRegTimeSportsMarketTypes,
     marketHighlightsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
-    predictHomepageDiscoveryNbaChampionEnabled,
-    predictWorldCup,
+    predictSportCardLivePricesEnabled,
+    predictSportsFeed,
+    predictWimbledonTab,
   };
 }

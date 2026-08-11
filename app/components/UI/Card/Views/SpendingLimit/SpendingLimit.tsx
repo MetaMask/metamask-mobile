@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -34,6 +35,7 @@ import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
+import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 import AccountRow from './components/AccountRow';
 import TokenRow from './components/TokenRow';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
@@ -57,7 +59,7 @@ interface SpendingLimitProps {
  * Supports three flows: onboarding, enable, and manage.
  */
 const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const tw = useTailwind();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -107,6 +109,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     limitType,
     customLimit,
     isLoading,
+    isUiInteractionLocked,
     handleAccountSelect,
     handleOtherSelect,
     handleLimitSelect,
@@ -118,11 +121,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     isMoneyAccountLocked,
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
-    moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
-    canLinkMoneyAccount,
     moneyAccountApyPercent,
-    hasMetalCard,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -132,14 +131,14 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 
-  const isLoadingRef = useRef(isLoading);
+  const isUiInteractionLockedRef = useRef(isUiInteractionLocked);
   useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
+    isUiInteractionLockedRef.current = isUiInteractionLocked;
+  }, [isUiInteractionLocked]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isLoadingRef.current) return;
+      if (!isUiInteractionLockedRef.current) return;
       e.preventDefault();
     });
     return unsubscribe;
@@ -167,22 +166,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     return customLimit || '0';
   }, [limitType, customLimit]);
 
-  const moneyAccountTokenDisplayLabel = useMemo(() => {
-    const symbol = strings(
-      'card.card_spending_limit.money_account_token_symbol',
-    );
-    if (moneyAccountTotalFiatFormatted) {
-      return `${symbol} (${moneyAccountTotalFiatFormatted})`;
-    }
-    return symbol;
-  }, [moneyAccountTotalFiatFormatted]);
-
-  const shouldWaitForMoneyAccountBalance =
-    (flow === 'onboarding' || flow === 'enable_card') && canLinkMoneyAccount;
-  if (
-    (isOnboardingFlow && isLoadingHookData) ||
-    (shouldWaitForMoneyAccountBalance && isMoneyAccountBalanceLoading)
-  ) {
+  if (isOnboardingFlow && isLoadingHookData) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
@@ -307,7 +291,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             selectedToken={selectedToken}
             tokenIconUrl={tokenIconUrl}
             tokenLabel={tokenLabel}
-            moneyAccountTokenDisplayLabel={moneyAccountTokenDisplayLabel}
             onPress={handleOtherSelect}
           />
 
@@ -347,6 +330,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           <SpendAndEarnPromoCard
             apyPercent={moneyAccountApyPercent}
             onPress={selectMoneyAccountAsSource}
+            analytics={{
+              screen: CardScreens.SPENDING_LIMIT,
+              entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+            }}
           />
         )}
 
@@ -374,7 +362,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 onPress={submit}
                 isFullWidth
                 isDisabled={!isValid || isLoading}
-                isLoading={isLoading}
+                isLoading={isLoading && !isMoneyAccountSource}
               >
                 {strings('card.card_spending_limit.confirm_new_limit')}
               </Button>

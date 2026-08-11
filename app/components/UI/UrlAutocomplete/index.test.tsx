@@ -150,7 +150,7 @@ import renderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 import { removeBookmark } from '../../../actions/bookmarks';
 import { noop } from 'lodash';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { RootState } from '../../../reducers';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
@@ -207,7 +207,7 @@ const defaultState: DeepPartial<RootState> = {
 
 type RenderWithProviderParams = Parameters<typeof renderWithProvider>;
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const render = (...args: RenderWithProviderParams) => {
   const Component = () => args[0];
   return renderWithProvider(

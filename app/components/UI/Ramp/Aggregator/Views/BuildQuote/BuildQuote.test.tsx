@@ -431,18 +431,6 @@ describe('BuildQuote View', () => {
     expect(mockPop).toBeCalledTimes(1);
   });
 
-  it('calls setOptions when rendering', () => {
-    render(BuildQuote);
-    expect(mockSetOptions).toHaveBeenCalled();
-
-    mockSetOptions.mockReset();
-
-    mockUseRampSDKValues.isBuy = false;
-    mockUseRampSDKValues.isSell = true;
-    render(BuildQuote);
-    expect(mockSetOptions).toHaveBeenCalled();
-  });
-
   it('calls setIntent when params have intent', () => {
     mockUseParamsValues = {
       assetId: 'eip155:1/er20:0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -475,6 +463,14 @@ describe('BuildQuote View', () => {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });
+  });
+
+  it('hides back button when showBack is false', () => {
+    mockUseParamsValues = { showBack: false };
+    render(BuildQuote);
+    expect(
+      screen.queryByTestId('deposit-back-navbar-button'),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls endTrace when the conditions are met', () => {
@@ -998,14 +994,14 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`0.25 ${symbol}`)).toBeTruthy();
 
       fireEvent.press(getByRoleButton(`0.25 ${symbol}`));
-      fireEvent.press(getByRoleButton('MAX'));
+      fireEvent.press(getByRoleButton('Max'));
       expect(getByRoleButton(`1 ${symbol}`)).toBeTruthy();
     });
 
     it('updates the amount input up to the max considering gas for native asset', () => {
       render(BuildQuote);
       const initialAmount = '0';
-      const quickAmount = 'MAX';
+      const quickAmount = 'Max';
       mockUseRampSDKValues = {
         ...mockUseRampSDKInitialValues,
         isBuy: false,
