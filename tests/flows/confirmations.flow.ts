@@ -321,7 +321,7 @@ const waitForTestDappButtonReady = async (
   pageUrl: string,
   buttonId: string,
   timeoutMs = DAPP_BUTTON_READY_TIMEOUT_MS,
-): Promise<TestDappButtonState | null> => {
+): Promise<{ state: TestDappButtonState | null; reloaded: boolean }> => {
   const startedAt = Date.now();
   let state: TestDappButtonState | null = null;
   let reloaded = false;
@@ -355,7 +355,7 @@ const waitForTestDappButtonReady = async (
     // Return the last observed state so the caller can include diagnostics.
   }
 
-  return state;
+  return { state, reloaded };
 };
 
 /**
@@ -398,7 +398,16 @@ const tapTestDappButtonAndWaitForConfirm = async (
           await ensureTestDappAccountsHydrated(pageUrl);
           // Document ready + ethereum + enabled button; for `?contract=` pages,
           // also wait until contract addresses are bound (reload once if not).
-          lastState = await waitForTestDappButtonReady(pageUrl, buttonId);
+          let buttonReady = await waitForTestDappButtonReady(pageUrl, buttonId);
+          lastState = buttonReady.state;
+          // Reload clears Active Provider / `#accounts`. Re-hydrate and wait
+          // again so we do not tap a post-reload page that looks "ready" without
+          // a connected provider (same EIP-6963 race this PR fixes).
+          if (buttonReady.reloaded) {
+            await ensureTestDappAccountsHydrated(pageUrl);
+            buttonReady = await waitForTestDappButtonReady(pageUrl, buttonId);
+            lastState = buttonReady.state;
+          }
           await WebView.tapById(buttonId, {
             pageUrl,
             description,
