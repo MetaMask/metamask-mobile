@@ -111,26 +111,31 @@ export const useRwaTokens = (opts?: {
     const requestId = ++requestIdRef.current;
     isLoadingRef.current = true;
     setIsLoading(true);
+
+    // Only the awaited call stays inside `try`: React Compiler cannot lower a
+    // `finally` clause, so the cleanup is duplicated across both exits instead.
+    let response: Awaited<ReturnType<typeof fetchPage>> | undefined;
     try {
-      const response = await fetchPage();
-      if (requestId === requestIdRef.current) {
-        setData(response.data.map(normalizeRwaToken));
-        setNextCursor(response.pageInfo.nextCursor || undefined);
-        setHasNextPage(response.pageInfo.hasNextPage);
-        setTotalCount(response.totalCount);
-      }
+      response = await fetchPage();
     } catch {
       if (requestId === requestIdRef.current) {
         setData([]);
         setNextCursor(undefined);
         setHasNextPage(false);
         setTotalCount(0);
-      }
-    } finally {
-      if (requestId === requestIdRef.current) {
         isLoadingRef.current = false;
         setIsLoading(false);
       }
+      return;
+    }
+
+    if (requestId === requestIdRef.current) {
+      setData(response.data.map(normalizeRwaToken));
+      setNextCursor(response.pageInfo.nextCursor || undefined);
+      setHasNextPage(response.pageInfo.hasNextPage);
+      setTotalCount(response.totalCount);
+      isLoadingRef.current = false;
+      setIsLoading(false);
     }
   }, [fetchPage]);
 
@@ -147,20 +152,27 @@ export const useRwaTokens = (opts?: {
     const requestId = requestIdRef.current;
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
+
+    let response: Awaited<ReturnType<typeof fetchPage>> | undefined;
     try {
-      const response = await fetchPage(nextCursor);
-      if (requestId === requestIdRef.current) {
-        setData((prev) => [...prev, ...response.data.map(normalizeRwaToken)]);
-        setNextCursor(response.pageInfo.nextCursor || undefined);
-        setHasNextPage(response.pageInfo.hasNextPage);
-        setTotalCount(response.totalCount);
-      }
+      response = await fetchPage(nextCursor);
     } catch {
       // Pagination errors are silent; existing results stay intact
-    } finally {
       isLoadingMoreRef.current = false;
       setIsLoadingMore(false);
+      return;
     }
+
+    if (requestId === requestIdRef.current) {
+      const pageTokens = response.data;
+      setData((prev) => [...prev, ...pageTokens.map(normalizeRwaToken)]);
+      setNextCursor(response.pageInfo.nextCursor || undefined);
+      setHasNextPage(response.pageInfo.hasNextPage);
+      setTotalCount(response.totalCount);
+    }
+
+    isLoadingMoreRef.current = false;
+    setIsLoadingMore(false);
   }, [hasNextPage, nextCursor, fetchPage]);
 
   useEffect(() => {
