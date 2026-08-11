@@ -27,7 +27,7 @@ describe('SecureContentView', () => {
       </SecureContentView>,
     );
 
-    expect(getByText('secret content')).toBeDefined();
+    expect(getByText('secret content')).toBeOnTheScreen();
   });
 
   it('falls back to a plain View on Android, where FLAG_SECURE handles protection', () => {
@@ -39,7 +39,7 @@ describe('SecureContentView', () => {
       </SecureContentView>,
     );
 
-    expect(getByText('secret content')).toBeDefined();
+    expect(getByText('secret content')).toBeOnTheScreen();
     expect(
       UNSAFE_queryAllByType(
         'ExpoScreenCapture' as unknown as React.ComponentType,
