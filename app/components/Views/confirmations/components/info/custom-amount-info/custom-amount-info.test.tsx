@@ -698,9 +698,12 @@ describe('CustomAmountInfo', () => {
     fireEvent.press(getByText(strings('confirm.custom_amount.buy_button')));
 
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: 'eip155:1/erc20:0x123',
-    });
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: 'eip155:1/erc20:0x123',
+      },
+      { surface: 'confirmation' },
+    );
   });
 
   it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
