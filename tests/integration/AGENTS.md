@@ -35,6 +35,13 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 | Perps              | [`harnesses/perps/`](harnesses/perps/)       | [`harnesses/perps/STRATEGY.md`](harnesses/perps/STRATEGY.md)       | [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md)           |
 | Networks / Core UX | [`harnesses/networks/`](harnesses/networks/) | [`harnesses/networks/STRATEGY.md`](harnesses/networks/STRATEGY.md) | [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md) |
 
+### PredictNext — [`harnesses/predict-next.ts`](harnesses/predict-next.ts)
+
+- **Real:** `PredictNextController`, `PredictMarketDataService`, `KalshiRemoteAdapter`, `PredictApiReadClient`, and controller/service messengers
+- **Mocked:** HTTP fetch and app-shell base URL/client version configuration
+- **Factory:** `buildPredictNextIntegrationHarness(responder)`
+- **Returns:** `{ controller, messenger, fetchMock, destroy }`
+
 ---
 
 ## New domain — definition of done

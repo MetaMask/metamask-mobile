@@ -431,7 +431,10 @@
     "location": "UNKNOWN",
     "status": "loading",
     "lastFetchedAt": null,
-    "error": null
+    "error": null,
+    "country": null,
+    "region": null,
+    "timezone": null
   },
   "GasFeeController": {
     "gasFeeEstimates": {},
