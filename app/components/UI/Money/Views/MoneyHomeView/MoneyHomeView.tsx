@@ -46,6 +46,7 @@ import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyBalanceAnimation from '../../hooks/useMoneyBalanceAnimation';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
@@ -60,6 +61,7 @@ import {
 } from '../../../../../selectors/cardController';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import {
+  selectMoneyBalanceAnimationEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableMoneyAccountFlag,
 } from '../../selectors/featureFlags';
@@ -237,12 +239,25 @@ const MoneyHomeView = () => {
     isCardStateResolved,
   });
 
+  const isBalanceAnimationEnabled = useSelector(
+    selectMoneyBalanceAnimationEnabledFlag,
+  );
+  const freshAmount =
+    totalFiatRaw === undefined ? undefined : Number(totalFiatRaw);
+  const { amount: balanceAmount, animated: isBalanceAnimated } =
+    useMoneyBalanceAnimation(freshAmount);
+
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
-  } else if (totalFiatFormatted !== undefined) {
+  } else if (totalFiatFormatted !== undefined && freshAmount !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
-    displayState = { kind: 'balance', value: totalFiatFormatted };
+    displayState = {
+      kind: 'balance',
+      value: totalFiatFormatted,
+      amount: balanceAmount ?? freshAmount,
+      animated: isBalanceAnimated,
+    };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a
@@ -904,6 +919,7 @@ const MoneyHomeView = () => {
           onApyInfoPress={handleApyInfoPress}
           privacyMode={privacyMode}
           onBalancePress={handleBalancePress}
+          isBalanceAnimationEnabled={isBalanceAnimationEnabled}
         />
         <MoneyActionButtonRow
           add={{

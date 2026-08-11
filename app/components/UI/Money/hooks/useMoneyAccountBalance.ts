@@ -180,6 +180,7 @@ const useMoneyAccountBalance = ({
         setLastKnownMoneyBalance({
           address: moneyAccountAddress,
           value: totalFiatFormatted,
+          amount: totalFiatRaw === undefined ? undefined : Number(totalFiatRaw),
           currency: currentCurrency,
           updatedAt: Date.now(),
         }),
@@ -191,6 +192,7 @@ const useMoneyAccountBalance = ({
     moneyAccountAddress,
     isBalanceFetchError,
     totalFiatFormatted,
+    totalFiatRaw,
     currentCurrency,
     isBalanceLoading,
   ]);

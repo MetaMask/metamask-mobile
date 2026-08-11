@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
@@ -463,6 +463,11 @@ describe('MoneyHomeView', () => {
     jest.mocked(selectPrivacyMode).mockReturnValue(false);
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
+
+    mockUseMoneyDepositTokens.mockReturnValue({
+      tokens: mockDepositTokens as ReturnType<typeof Array.from>,
+      isNoFeeToken: jest.fn(() => false),
+    });
 
     mockInitiateDeposit.mockResolvedValue(undefined);
     mockRefetchInterest.mockResolvedValue(undefined);
@@ -1348,7 +1353,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
-    mockUseMoneyDepositTokens.mockReturnValueOnce({
+    mockUseMoneyDepositTokens.mockReturnValue({
       tokens: Array.from({ length: 6 }, (_, i) => ({
         ...mockDepositTokens[0],
         address:
@@ -2027,14 +2032,14 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-      await Promise.resolve();
-
-      expect(Logger.default.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: expect.stringContaining('mUSD row'),
-        }),
-      );
+      await waitFor(() => {
+        expect(Logger.default.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: expect.stringContaining('mUSD row'),
+          }),
+        );
+      });
     });
 
     it('tracks the mUSD row Add click with the deposit redirect target', () => {
@@ -2310,7 +2315,7 @@ describe('MoneyHomeView', () => {
 
   describe('navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
-      mockUseMoneyDepositTokens.mockReturnValueOnce({
+      mockUseMoneyDepositTokens.mockReturnValue({
         tokens: Array.from({ length: 6 }, (_, i) => ({
           ...mockDepositTokens[0],
           address:
@@ -2397,14 +2402,14 @@ describe('MoneyHomeView', () => {
         ),
       );
 
-      await Promise.resolve();
-
-      expect(Logger.default.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: expect.stringContaining('MoneyHomeView'),
-        }),
-      );
+      await waitFor(() => {
+        expect(Logger.default.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: expect.stringContaining('MoneyHomeView'),
+          }),
+        );
+      });
     });
   });
 

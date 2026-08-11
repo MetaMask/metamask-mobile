@@ -14,6 +14,7 @@ import {
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyCardFlipAnimationEnabledFlag,
+  selectMoneyBalanceAnimationEnabledFlag,
   selectMoneyCardTiltAnimationEnabledFlag,
   selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
@@ -945,6 +946,38 @@ describe('selectMoneyCardFlipAnimationEnabledFlag', () => {
     const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyBalanceAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it.each([
+    ['remote flag is enabled and the version requirement is met', true, 'true'],
+    ['remote flag is disabled', false, 'false'],
+    ['remote flag is absent and env is unset', undefined, undefined],
+    ['remote flag is absent but env opts in', undefined, 'true'],
+  ])('resolves when the %s', (_name, remote, env) => {
+    mockedValidate.mockReturnValue(remote);
+    if (env === undefined) {
+      delete process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED;
+    } else {
+      process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED = env;
+    }
+    const state = createState({ earnMoneyBalanceAnimationEnabled: remote });
+
+    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(
+      remote ?? env === 'true',
+    );
   });
 });
 
