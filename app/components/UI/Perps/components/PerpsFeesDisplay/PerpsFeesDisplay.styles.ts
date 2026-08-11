@@ -6,7 +6,12 @@ const createStyles = (_colors: Theme['colors']) =>
     feeRowContent: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexShrink: 1,
       gap: 4,
+    },
+    vipBadgeContainer: {
+      flexShrink: 0,
+      alignSelf: 'center',
     },
   });
 

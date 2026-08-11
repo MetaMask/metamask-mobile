@@ -19,6 +19,7 @@ import { VIP_VOLUME_SECTION_TEST_IDS } from '../components/Vip/VipVolumeSection'
 import { VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS } from '../components/Vip/VipSwapsVolumeInfoSheet';
 import { VIP_POINTS_SECTION_TEST_IDS } from '../components/Vip/VipPointsSection';
 import { VIP_FEE_TILE_TEST_IDS } from '../components/Vip/VipFeeTile';
+import { VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS } from '../components/Vip/VipEquityMultiplierSection';
 
 const mockDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
@@ -26,6 +27,25 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockExitRewardsFlow = jest.fn();
 let mockVipSplashAccepted: Record<string, boolean> = {};
+
+jest.mock('../components/Vip/VipEquityMultiplierSection', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS: {
+      CONTAINER: 'vip-equity-multiplier-section',
+      TITLE: 'vip-equity-multiplier-title',
+      RADIAL: 'vip-equity-multiplier-radial',
+      RADIAL_PROGRESS: 'vip-equity-multiplier-radial-progress',
+      RADIAL_LABEL: 'vip-equity-multiplier-radial-label',
+    },
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'vip-equity-multiplier-section',
+      }),
+  };
+});
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
@@ -355,6 +375,8 @@ const defaultDashboard: VipDashboardState = {
     equityLockedDescription: 'Body copy',
     equityUnlockedTitle: 'VIP allocation unlocked',
     equityUnlockedDescription: 'Unlocked body copy',
+    equityMultiplierFailedTitle: 'Estimate failed',
+    equityMultiplierFailedDescription: 'Estimate failed body copy',
     topTierDescription: 'Top tier reached',
     nextTierSwapsFeeDelta: '↓ 9 bps next tier',
     nextTierPerpsFeeDelta: '↓ 6 bps next tier',
@@ -597,6 +619,21 @@ describe('RewardsVipView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the equity multiplier section after points', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+    expect(
+      getByTestId(VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
   it('renders the swaps volume help icon and opens the daily-refresh info sheet on press', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: defaultDashboard,
@@ -750,6 +787,8 @@ describe('RewardsVipView', () => {
           equityLockedDescription: 'Body copy',
           equityUnlockedTitle: 'Unlocked allocation',
           equityUnlockedDescription: 'Unlocked body copy',
+          equityMultiplierFailedTitle: 'Estimate failed',
+          equityMultiplierFailedDescription: 'Estimate failed body copy',
           topTierDescription: 'Top tier reached custom',
           nextTierSwapsFeeDelta: '↓ 9',
           nextTierPerpsFeeDelta: '↓ 6',
@@ -765,7 +804,7 @@ describe('RewardsVipView', () => {
 
     const { getAllByText, getByText } = render(<RewardsVipView />);
     expect(getAllByText('Acme Rewards Beta — Custom')[0]).toBeOnTheScreen();
-    expect(getByText('123.46k points to next tier')).toBeOnTheScreen();
+    expect(getByText('123.46K points to next tier')).toBeOnTheScreen();
     expect(getByText('Swap fees')).toBeOnTheScreen();
     expect(getByText('Perp fees')).toBeOnTheScreen();
     expect(getByText('Revenue')).toBeOnTheScreen();
@@ -855,7 +894,7 @@ describe('RewardsVipView', () => {
 
     expect(
       getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
-    ).toHaveTextContent('250k points to maintain this tier');
+    ).toHaveTextContent('250K points to maintain this tier');
   });
 
   it('does not pass a maintain subline when the current tier has no maintain threshold', () => {
