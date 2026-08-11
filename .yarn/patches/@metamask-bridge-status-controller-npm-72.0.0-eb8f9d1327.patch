@@ -1,0 +1,46 @@
+diff --git a/dist/strategy/evm-strategy.cjs b/dist/strategy/evm-strategy.cjs
+index 7f66317d148fa8afaf8830924ef88e336b041fe9..acfde491961fc9d01b741791524d3b72bdc742d0 100644
+--- a/dist/strategy/evm-strategy.cjs
++++ b/dist/strategy/evm-strategy.cjs
+@@ -100,6 +100,18 @@ async function* submitEvmHandler(args) {
+     await (0, transaction_1.handleMobileHardwareWalletDelay)(requireApproval);
+     if (requireApproval && approvalTxId) {
+         await (0, transaction_1.waitForTxConfirmation)(args.messenger, approvalTxId);
++        // Sei (chainId 1329) is a Cosmos SDK chain with EVM compatibility. After the
++        // approval tx reaches `confirmed` status locally, the Cosmos account_sequence
++        // has not yet propagated through the RPC, so an immediately-broadcast trade tx
++        // is rejected with `RPC submit: : incorrect account sequence`. That rejection
++        // surfaces a misleading hardware-wallet "Something went wrong" error even though
++        // the swap ultimately succeeds (metamask-mobile#30730). Mirror the LINEA/BASE
++        // pattern in `handleApprovalDelay` and pause for 3s on Sei after the approval
++        // confirms so the chain can update its account state before publishing the trade
++        // tx. This delay only runs on hardware-wallet flows, so it is invisible to others.
++        if (Number(quoteResponse.quote.srcChainId) === 1329) {
++            await new Promise((resolve) => setTimeout(resolve, 3000));
++        }
+     }
+     // Generate trade actionId for pre-submission history
+     const actionId = (0, transaction_1.generateActionId)();
+diff --git a/dist/strategy/evm-strategy.mjs b/dist/strategy/evm-strategy.mjs
+index 48e9cc946e3a8618965a7cf1fa73768977b6e81d..003fbebac7f0a402d8a5d9bfc5e28f9805303082 100644
+--- a/dist/strategy/evm-strategy.mjs
++++ b/dist/strategy/evm-strategy.mjs
+@@ -95,6 +95,18 @@ export async function* submitEvmHandler(args) {
+     await handleMobileHardwareWalletDelay(requireApproval);
+     if (requireApproval && approvalTxId) {
+         await waitForTxConfirmation(args.messenger, approvalTxId);
++        // Sei (chainId 1329) is a Cosmos SDK chain with EVM compatibility. After the
++        // approval tx reaches `confirmed` status locally, the Cosmos account_sequence
++        // has not yet propagated through the RPC, so an immediately-broadcast trade tx
++        // is rejected with `RPC submit: : incorrect account sequence`. That rejection
++        // surfaces a misleading hardware-wallet "Something went wrong" error even though
++        // the swap ultimately succeeds (metamask-mobile#30730). Mirror the LINEA/BASE
++        // pattern in `handleApprovalDelay` and pause for 3s on Sei after the approval
++        // confirms so the chain can update its account state before publishing the trade
++        // tx. This delay only runs on hardware-wallet flows, so it is invisible to others.
++        if (Number(quoteResponse.quote.srcChainId) === 1329) {
++            await new Promise((resolve) => setTimeout(resolve, 3000));
++        }
+     }
+     // Generate trade actionId for pre-submission history
+     const actionId = generateActionId();
