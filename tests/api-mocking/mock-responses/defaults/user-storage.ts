@@ -148,6 +148,17 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
       response: 'OK',
     },
     {
+      urlEndpoint:
+        /^https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/rampsOrders\/[a-fA-F0-9]+$/,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint: rampsOrdersStorageUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
       urlEndpoint: assetsWatchlistUrl,
       responseCode: 200,
       response: 'OK',
