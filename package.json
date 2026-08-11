@@ -303,7 +303,7 @@
     "@metamask/ethjs-query": "^0.7.1",
     "@metamask/ethjs-unit": "^0.3.0",
     "@metamask/gas-fee-controller": "^26.3.0",
-    "@metamask/gator-permissions-controller": "^4.0.0",
+    "@metamask/gator-permissions-controller": "^5.0.1",
     "@metamask/geolocation-controller": "^1.0.0",
     "@metamask/hw-wallet-sdk": "^0.8.0",
     "@metamask/json-rpc-engine": "^10.5.0",
