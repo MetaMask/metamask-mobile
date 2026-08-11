@@ -667,13 +667,13 @@ describe('MoneyHomeView', () => {
 
   describe('time to content telemetry', () => {
     it('marks APY and earnings ready when cached content is visible during refetch', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({
-        ...defaultMoneyAccountBalance,
+      mockUseMoneyVaultApy.mockReturnValue({
+        ...defaultMoneyVaultApy,
         vaultApyQuery: {
-          ...defaultMoneyAccountBalance.vaultApyQuery,
+          ...defaultMoneyVaultApy.vaultApyQuery,
           isLoading: true,
         },
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      } as ReturnType<typeof useMoneyVaultApy>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
@@ -712,6 +712,8 @@ describe('MoneyHomeView', () => {
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
         isBalanceLoading: true,
+      } as ReturnType<typeof useMoneyAccountBalance>);
+      mockUseMoneyVaultApy.mockReturnValue({
         apyDecimal: undefined,
         apyPercent: undefined,
         apyPercentFormatted: undefined,
@@ -720,7 +722,7 @@ describe('MoneyHomeView', () => {
           isLoading: true,
           isError: false,
         },
-      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      } as ReturnType<typeof useMoneyVaultApy>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
@@ -748,14 +750,14 @@ describe('MoneyHomeView', () => {
     });
 
     it('treats displayed APY and earnings fallbacks as successful content', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({
-        ...defaultMoneyAccountBalance,
+      mockUseMoneyVaultApy.mockReturnValue({
+        ...defaultMoneyVaultApy,
         vaultApyQuery: {
           data: undefined,
           isLoading: false,
           isError: true,
         },
-      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      } as ReturnType<typeof useMoneyVaultApy>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
