@@ -60,7 +60,35 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.musdConversion,
 ];
 
-export const Footer = () => {
+/**
+ * Thin visibility gate for the confirmation footer.
+ *
+ * This wrapper runs ONLY the cheap hooks required to decide whether the footer
+ * should render at all. For the many confirmation types in
+ * `HIDE_FOOTER_BY_DEFAULT_TYPES` (e.g. `moneyAccountDeposit`) the footer renders
+ * `null`, and gating here avoids paying for the heavy hook chain in
+ * `FooterInternal` (`useConfirmActions` -> `useTransactionConfirm` ->
+ * `useHandleHwSend` -> gas subtree, plus alerts/pay/gasless hooks). Because
+ * hooks can't be conditional, keeping those in the wrapper would run them and
+ * throw the result away on every hidden-footer render.
+ */
+export function Footer() {
+  const transactionMetadata = useTransactionMetadataRequest();
+  const { isFooterVisible: isFooterVisibleFlag } = useConfirmationContext();
+
+  const isFooterVisible =
+    isFooterVisibleFlag ??
+    (!transactionMetadata ||
+      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
+
+  if (!isFooterVisible) {
+    return null;
+  }
+
+  return <FooterInternal />;
+}
+
+function FooterInternal() {
   const {
     alerts,
     fieldAlerts,
@@ -86,8 +114,7 @@ export const Footer = () => {
   );
   const isPayAmountStale = useIsTransactionPayAmountStale();
   const { isGaslessLoading } = useIsGaslessLoading();
-  const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
-    useConfirmationContext();
+  const { isTransactionValueUpdating } = useConfirmationContext();
 
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -217,15 +244,6 @@ export const Footer = () => {
     },
   ];
 
-  const isFooterVisible =
-    isFooterVisibleFlag ??
-    (!transactionMetadata ||
-      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
-
-  if (!isFooterVisible) {
-    return null;
-  }
-
   if (
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
@@ -285,7 +303,7 @@ export const Footer = () => {
       )}
     </>
   );
-};
+}
 
 export function FooterSkeleton() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
