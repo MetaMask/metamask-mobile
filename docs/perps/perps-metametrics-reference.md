@@ -6,6 +6,17 @@ MetaMetrics uses **9 consolidated events** with discriminating properties (vs 38
 
 **Example:** `PERPS_SCREEN_VIEWED` with `screen_type: 'trading' | 'withdrawal' | ...` instead of 9 separate screen events.
 
+### Global properties (all Perps events)
+
+These are attached automatically — do not pass them manually unless overriding:
+
+| Property     | Values              | Source                                                                                                                        |
+| ------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `timestamp`  | number (ms)         | `usePerpsEventTracking`                                                                                                       |
+| `perps_mode` | `'lite'` \| `'pro'` | Current Perps interface mode via `enrichWithPerpsMode` in `analytics.trackEvent` (all `Perp *` events + Perps `Asset Viewed`) |
+
+`perps_mode` is the Lite/Pro interface mode. It is intentionally separate from `mode` (`PERPS_EVENT_PROPERTY.MODE`), which search already uses for query intent (`'discovery'` \| `'intent'` \| `'browse'`).
+
 ## Three Tracking Approaches
 
 ### 1. `usePerpsEventTracking` Hook (Components)
@@ -74,7 +85,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Deposit screens:** `'deposit_input'` | `'deposit_review'`
   - **Market list screens:** `'market_list'` | `'market_list_all'` | `'market_list_crypto'` | `'market_list_stocks'`
   - **Position management:** `'close_all_positions'` | `'cancel_all_orders'` | `'increase_exposure'` | `'add_margin'` | `'remove_margin'`
-  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'` | `'cancel_trade_with_token_toast'`
+  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'` | `'cancel_trade_with_token_toast'` | `'mode_selection'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from
@@ -132,6 +143,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
   - **Discovery interactions:** `'related_market_clicked'`
   - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(`PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER`)_
+  - **Mode selection:** `'mode_selection_dismissed'` — Lite/Pro chooser closed without selecting _(local constant `PERPS_MODE_SELECTION_DISMISSED`, pending addition to `PERPS_EVENT_VALUE`)_. Includes `source`, `entry`, and `time_on_screen_ms`. Selection itself uses `button_clicked` with `perps_mode`. Header toggles also use `button_clicked` with `perps_mode`, but only after the mode is actually applied (not when the chooser opens instead).
 - `action` (optional): Specific action performed: `'connection_retry'` | `'connection_go_back'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -718,7 +730,7 @@ Section names used in impression events:
 2. **Track status** - Always include success/failure
 3. **Track duration** - Include `completion_duration` for transactions
 4. **Use properties** - Don't create new events for minor variations
-5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
+5. **Auto timestamp + Lite/Pro mode** - `usePerpsEventTracking` adds `timestamp`. `analytics.trackEvent` (`enrichWithPerpsMode`) adds `perps_mode: 'lite' | 'pro'` on every `Perp *` event and on companion Perps `Asset Viewed` emissions (`trade_type: 'Perps'`). Explicit caller `perps_mode` wins (e.g. mode toggle emits the selected next mode **after** the parent confirms the switch applied — chooser-gated toggles return `false` and skip toggle analytics; the chooser emits its own selection/dismiss events). Search intent continues to use `mode` (`discovery` | `intent` | `browse`) for backwards compatibility.
 6. **AB test tracking** - Only in screen view events, not every interaction
 7. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
 8. **Source = current screen** - The `source` property must always identify the screen the user is currently on, never a screen from earlier in the navigation chain. If the user navigates A → B → action C, the source for C must be B, not A.
@@ -736,6 +748,7 @@ Section names used in impression events:
 ## Related Files
 
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
+- **Lite/Pro mode enrichment**: `app/util/analytics/enrichWithPerpsMode.ts`, `app/components/UI/Perps/utils/perpsModeAnalytics.ts` (`getPerpsModeAnalyticsProperties`)
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
 - **Properties & Values**: Exported from `@metamask/perps-controller` as `PERPS_EVENT_PROPERTY`, `PERPS_EVENT_VALUE` (source: `packages/perps-controller/src/constants/eventNames.ts` in the [MetaMask/core](https://github.com/MetaMask/core) monorepo)
 - **Metrics Adapter**: `app/components/UI/Perps/adapters/mobileInfrastructure.ts` (maps `trackPerpsEvent` to MetaMetrics)
