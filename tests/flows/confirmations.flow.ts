@@ -151,7 +151,9 @@ const tapTestDappButtonAndWaitForConfirm = async (
           preferNative: attempt > 1,
         });
         try {
-          await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_AFTER_TAP_MS);
+          await FooterActions.waitForConfirmButton(
+            ANDROID_CONFIRM_AFTER_TAP_MS,
+          );
         } catch (error) {
           if (!dismissedPushSheet) {
             dismissedPushSheet = true;
