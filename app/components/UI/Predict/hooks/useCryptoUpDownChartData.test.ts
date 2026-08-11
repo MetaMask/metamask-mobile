@@ -718,6 +718,31 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.value).toBe(51000);
     });
 
+    it('removes Chainlink history when the same market switches to TWAP', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const twapMarket = createMarket({ twapWindowSeconds: 30 });
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
+
+      rerender({ activeMarket: twapMarket });
+
+      expect(result.current.data).toEqual([]);
+      expect(result.current.value).toBe(0);
+      expect(result.current.loading).toBe(true);
+    });
+
     it('accepts live updates after changing away from a reset market', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({

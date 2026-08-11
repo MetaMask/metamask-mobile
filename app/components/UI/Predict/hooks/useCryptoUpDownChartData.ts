@@ -194,6 +194,8 @@ export const useCryptoUpDownChartData = (
 
   const prevMarketIdRef = useRef(market.id);
   const previousTwapWindowRef = useRef(twapWindowSeconds);
+  const hasPriceSourceChanged =
+    previousTwapWindowRef.current !== twapWindowSeconds;
   const isCurrentMarket = prevMarketIdRef.current === market.id;
   const pendingFrozenMarketIdRef = useRef<string | undefined>(undefined);
   const latestLiveObservationRef = useRef<number | undefined>(undefined);
@@ -210,8 +212,7 @@ export const useCryptoUpDownChartData = (
     frozenMarketIdRef.current = nextFrozenMarketId;
     pendingFrozenMarketIdRef.current = nextFrozenMarketId;
     pendingFrozenSyncRef.current = true;
-    const sourceChanged = previousTwapWindowRef.current !== twapWindowSeconds;
-    if (sourceChanged) {
+    if (hasPriceSourceChanged) {
       liveLoadingRef.current = true;
       stableHistoricalDataRef.current = EMPTY_DATA;
       fallbackStartPointRef.current = EMPTY_DATA;
@@ -234,6 +235,8 @@ export const useCryptoUpDownChartData = (
       return;
     }
     previousTwapWindowRef.current = twapWindowSeconds;
+    stableHistoricalDataRef.current = EMPTY_DATA;
+    fallbackStartPointRef.current = EMPTY_DATA;
     setLiveStreamStale(true);
     liveLoadingRef.current = true;
     setLiveLoading(true);
@@ -420,15 +423,20 @@ export const useCryptoUpDownChartData = (
         : false,
   });
 
-  const historicalData = historicalQuery.data ?? EMPTY_DATA;
+  const historicalData =
+    twapWindowSeconds === undefined && !hasPriceSourceChanged
+      ? (historicalQuery.data ?? EMPTY_DATA)
+      : EMPTY_DATA;
   const hasUsableHistoricalData = preserveHistoricalDataAcrossMarket
     ? historicalData.length >= 2
     : historicalData.length > 0;
-  const stableHistoricalData = hasUsableHistoricalData
-    ? historicalData
-    : stableHistoricalDataRef.current;
+  const stableHistoricalData = hasPriceSourceChanged
+    ? EMPTY_DATA
+    : hasUsableHistoricalData
+      ? historicalData
+      : stableHistoricalDataRef.current;
   const historicalValue =
-    historicalQuery.data?.at(-1)?.value ?? stableHistoricalData.at(-1)?.value;
+    historicalData.at(-1)?.value ?? stableHistoricalData.at(-1)?.value;
 
   useEffect(() => {
     if (!enabled) return;
@@ -463,7 +471,10 @@ export const useCryptoUpDownChartData = (
     }
   }, [enabled, fallbackStartPoint]);
 
-  const firstLivePointTime = livePoints[0]?.time;
+  const currentSourceLivePoints = hasPriceSourceChanged
+    ? EMPTY_DATA
+    : livePoints;
+  const firstLivePointTime = currentSourceLivePoints[0]?.time;
   const livePointOffsetFromEventStart =
     typeof firstLivePointTime === 'number' &&
     typeof eventStartTimeSecs === 'number'
@@ -482,17 +493,17 @@ export const useCryptoUpDownChartData = (
           shouldUseFallbackStartPoint ? stableFallbackStartPoint : EMPTY_DATA,
           stableHistoricalData,
         ),
-        livePoints,
+        currentSourceLivePoints,
       ),
     [
-      livePoints,
+      currentSourceLivePoints,
       shouldUseFallbackStartPoint,
       stableFallbackStartPoint,
       stableHistoricalData,
     ],
   );
   const hasRenderableChartData = chartData.length >= 2;
-  const newestLivePointTime = livePoints.at(-1)?.time;
+  const newestLivePointTime = currentSourceLivePoints.at(-1)?.time;
   const liveWindowStartSecs =
     typeof newestLivePointTime === 'number'
       ? newestLivePointTime - LIVE_CHART_WINDOW_SECS
