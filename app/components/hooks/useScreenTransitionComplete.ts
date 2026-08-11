@@ -27,24 +27,36 @@ export function useScreenTransitionComplete(): boolean {
   const [isTransitionComplete, setIsTransitionComplete] = useState(false);
 
   useEffect(() => {
+    let fallbackTimeout: ReturnType<typeof setTimeout>;
     const markComplete = () => setIsTransitionComplete(true);
 
-    const unsubscribe = navigation.addListener('transitionEnd', (event) => {
-      // `closing` belongs to the screen leaving the stack.
-      if (event.data.closing) {
-        return;
-      }
-      markComplete();
-    });
+    const armFallback = () => {
+      clearTimeout(fallbackTimeout);
+      fallbackTimeout = setTimeout(() => {
+        if (navigation.isFocused()) {
+          markComplete();
+        }
+      }, SCREEN_TRANSITION_FALLBACK_MS);
+    };
 
-    const fallbackTimeout = setTimeout(
-      markComplete,
-      SCREEN_TRANSITION_FALLBACK_MS,
+    armFallback();
+
+    const unsubscribeFocus = navigation.addListener('focus', armFallback);
+    const unsubscribeTransition = navigation.addListener(
+      'transitionEnd',
+      (event) => {
+        // `closing` belongs to the screen leaving the stack.
+        if (event.data.closing) {
+          return;
+        }
+        markComplete();
+      },
     );
 
     return () => {
       clearTimeout(fallbackTimeout);
-      unsubscribe();
+      unsubscribeFocus();
+      unsubscribeTransition();
     };
   }, [navigation]);
 
