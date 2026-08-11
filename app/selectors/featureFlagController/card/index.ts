@@ -162,6 +162,7 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     partnerAccountId: '',
     fundingChannelId: '',
     spenderAddress: '',
+    secureApiBaseUrl: '',
   },
   immersveCountries: ['GB'],
 };
@@ -178,22 +179,17 @@ export interface CardFeatureFlag {
   immersveCountries?: string[];
 }
 
-export interface CardProgramIdOption {
-  name: string;
-  id: string;
-}
-
 export interface ImmersveProgramConfig {
   enabled?: boolean;
   network?: string;
   cardProgramId?: string;
-  /** Temporary: multi-program list for internal testing selectors. Easy to remove. */
-  cardProgramIds?: CardProgramIdOption[];
   clientApplicationId?: string;
   partnerAccountId?: string;
   fundingChannelId?: string;
   spenderAddress?: string;
   apiBaseUrl?: string;
+  /** Separate Immersve secure host used for set-PIN (and similar) calls. */
+  secureApiBaseUrl?: string;
   appUrl?: string;
 }
 

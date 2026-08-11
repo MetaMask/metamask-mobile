@@ -7,11 +7,16 @@ import {
   CardAction,
   CardDetails,
   CardFundingAsset,
+  CardMerchantCategory,
   CardProviderErrorCode,
+  CardProviderIds,
+  CardTransactionStatus,
+  CardTransactionType,
   FundingAssetStatus,
   isCardAuthTokenError,
   type CardAuthTokens,
 } from '../provider-types';
+import { encodeCardCursor } from '../utils/transactionCursor';
 import { BaanxProvider } from './BaanxProvider';
 import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 
@@ -529,6 +534,7 @@ describe('BaanxProvider', () => {
       accessTokenExpiresAt: 1,
       refreshTokenExpiresAt: 2,
       location: 'international',
+      providerUserId: 'baanx-user-1',
     };
 
     const buildProvider = (request: jest.Mock) =>
@@ -613,6 +619,7 @@ describe('BaanxProvider', () => {
           accessToken: 'new-at',
           refreshToken: 'new-rt',
           location: 'international',
+          providerUserId: 'baanx-user-1',
           accessTokenExpiresAt: Date.now() + 60_000,
           refreshTokenExpiresAt: Date.now() + 120_000,
         });
@@ -672,6 +679,21 @@ describe('BaanxProvider', () => {
       expect(isCardAuthTokenError(new CardApiError(403, '/v1/user', ''))).toBe(
         false,
       );
+    });
+
+    it('rejects on a 429 from a sub-request instead of degrading to null card', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/card/status') {
+          return Promise.reject(new CardApiError(429, path, ''));
+        }
+        return Promise.resolve(null);
+      });
+
+      await expect(
+        buildProvider(get).getCardHomeData('0xabc', tokens),
+      ).rejects.toMatchObject({
+        statusCode: 429,
+      });
     });
 
     it('degrades to a partial payload when a sub-request fails transiently', async () => {
@@ -1034,6 +1056,422 @@ describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', (
       const result = await provider.getOnChainAssets(OWNER);
 
       expect(result.fundingAssets[0]?.spendableBalance).toBe('0');
+    });
+  });
+});
+
+describe('BaanxProvider — listTransactions', () => {
+  const tokens: CardAuthTokens = {
+    accessToken: 'at',
+    accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+    location: 'international',
+  };
+
+  const buildProvider = (get: jest.Mock) =>
+    new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+  const buildRawTransaction = (overrides: Record<string, unknown> = {}) => ({
+    id: 'tx-1',
+    cardId: 'card-1',
+    panLast4: '9189',
+    transactionId: '1122334477422',
+    dateTime: '2024-10-14T10:44:36.276Z',
+    sign: 'DEBIT',
+    merchantNameLocation: 'WWW.ALIEXPRESS.COM, LONDON',
+    merchantType: 'OutOfWalletOnline',
+    mcc: 5964,
+    mccCategory: 'MISC',
+    transactionCurrency: 'EUR',
+    amountInTransactionCurrency: '0.79',
+    feesInTransactionCurrency: '0',
+    originalCurrency: 'USD',
+    amountInOriginalCurrency: '0.85',
+    billingConversionRate: '0.9294117647058824',
+    status: 'CONFIRMED',
+    declineReason: '',
+    fundingSources: [
+      {
+        id: 'fs-1',
+        address: '0x3a11a86cf218c448be519728cd3ac5c741fb3424',
+        network: 'linea',
+        txHash: '0xb92de09d893e8162b0861c0f7321f68df022',
+        currency: 'usdc',
+        amount: '0.104201',
+        fees: '0',
+        swapFee: '0.00208',
+      },
+    ],
+    ...overrides,
+  });
+
+  it('maps a confirmed purchase with merchant, amounts, and funding sources', async () => {
+    const get = jest.fn().mockResolvedValue([buildRawTransaction()]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
+      id: 'tx-1',
+      providerId: 'baanx',
+      timestamp: new Date('2024-10-14T10:44:36.276Z').getTime(),
+      status: CardTransactionStatus.Completed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '0.79', currency: 'EUR' },
+      originalAmount: { value: '0.85', currency: 'USD' },
+      conversionRate: '0.9294117647058824',
+      merchant: {
+        name: 'WWW.ALIEXPRESS.COM',
+        city: 'LONDON',
+        mcc: '5964',
+        category: CardMerchantCategory.Misc,
+      },
+      description: 'WWW.ALIEXPRESS.COM, LONDON',
+      reference: '1122334477422',
+      cardLastFour: '9189',
+      fundingSources: [
+        {
+          txHash: '0xb92de09d893e8162b0861c0f7321f68df022',
+          address: '0x3a11a86cf218c448be519728cd3ac5c741fb3424',
+          network: 'linea',
+          chainId: 'eip155:59144',
+          amount: '0.104201',
+          currency: 'usdc',
+          fees: '0',
+          swapFee: '0.00208',
+        },
+      ],
+    });
+    // Empty declineReason and zero fee are dropped rather than mapped.
+    expect(result.items[0].declineReason).toBeUndefined();
+    expect(result.items[0].feeAmount).toBeUndefined();
+  });
+
+  it('maps a declined transaction to Failed with its decline reason', async () => {
+    const get = jest.fn().mockResolvedValue([
+      buildRawTransaction({
+        status: 'DECLINED',
+        declineReason: 'Insufficient funds',
+        fundingSources: [],
+      }),
+    ]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items[0]).toMatchObject({
+      status: CardTransactionStatus.Failed,
+      declineReason: { message: 'Insufficient funds' },
+      fundingSources: [],
+    });
+  });
+
+  it('maps an unknown runtime status conservatively to Pending', async () => {
+    const get = jest
+      .fn()
+      .mockResolvedValue([buildRawTransaction({ status: 'NEW_API_STATUS' })]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items[0].status).toBe(CardTransactionStatus.Pending);
+  });
+
+  it('maps CREDIT to a refund and REVERTED to Reversed', async () => {
+    const get = jest
+      .fn()
+      .mockResolvedValue([
+        buildRawTransaction({ sign: 'CREDIT', status: 'REVERTED' }),
+      ]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items[0]).toMatchObject({
+      type: CardTransactionType.Refund,
+      status: CardTransactionStatus.Reversed,
+      isDebit: false,
+    });
+  });
+
+  it('maps ATM debits to withdrawals', async () => {
+    const get = jest
+      .fn()
+      .mockResolvedValue([buildRawTransaction({ mccCategory: 'ATM' })]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items[0]).toMatchObject({
+      type: CardTransactionType.Withdrawal,
+      merchant: expect.objectContaining({
+        category: CardMerchantCategory.Atm,
+      }),
+    });
+  });
+
+  it('omits merchant when the name field is absent', async () => {
+    const get = jest
+      .fn()
+      .mockResolvedValue([
+        buildRawTransaction({ merchantNameLocation: undefined }),
+      ]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items[0].merchant).toBeUndefined();
+  });
+
+  it('keeps commas inside merchant names, splitting city on the last comma only', async () => {
+    const get = jest.fn().mockResolvedValue([
+      buildRawTransaction({
+        merchantNameLocation: 'BEN, JERRY AND CO, NEW YORK',
+      }),
+    ]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items[0].merchant).toMatchObject({
+      name: 'BEN, JERRY AND CO',
+      city: 'NEW YORK',
+    });
+  });
+
+  it('omits originalAmount when it matches the billing currency', async () => {
+    const get = jest.fn().mockResolvedValue([
+      buildRawTransaction({
+        originalCurrency: 'EUR',
+        amountInOriginalCurrency: '0.79',
+      }),
+    ]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items[0].originalAmount).toBeUndefined();
+  });
+
+  it('requests page 0 without filters by default', async () => {
+    const get = jest.fn().mockResolvedValue([]);
+
+    await buildProvider(get).listTransactions({}, tokens);
+
+    expect(get).toHaveBeenCalledWith('/v1/card/transactions?page=0', tokens);
+  });
+
+  it('passes searchQuery as searchKey', async () => {
+    const get = jest.fn().mockResolvedValue([]);
+
+    await buildProvider(get).listTransactions(
+      { searchQuery: 'uber eats' },
+      tokens,
+    );
+
+    expect(get).toHaveBeenCalledWith(
+      '/v1/card/transactions?page=0&searchKey=uber+eats',
+      tokens,
+    );
+  });
+
+  it('sends dateFrom/dateTo only as a pair (API rejects a lone bound)', async () => {
+    const get = jest.fn().mockResolvedValue([]);
+    const provider = buildProvider(get);
+
+    await provider.listTransactions(
+      {
+        fromDate: new Date('2024-10-01T00:00:00Z').getTime(),
+        toDate: new Date('2024-10-31T12:00:00Z').getTime(),
+      },
+      tokens,
+    );
+    await provider.listTransactions(
+      { fromDate: new Date('2024-10-01T00:00:00Z').getTime() },
+      tokens,
+    );
+
+    expect(get).toHaveBeenNthCalledWith(
+      1,
+      '/v1/card/transactions?page=0&dateFrom=2024-10-01&dateTo=2024-10-31',
+      tokens,
+    );
+    expect(get).toHaveBeenNthCalledWith(
+      2,
+      '/v1/card/transactions?page=0',
+      tokens,
+    );
+  });
+
+  it('returns a nextCursor after a full page and requests page 1 with it', async () => {
+    const fullPage = Array.from({ length: 20 }, (_, i) =>
+      buildRawTransaction({ id: `tx-${i}` }),
+    );
+    const get = jest.fn().mockResolvedValue(fullPage);
+    const provider = buildProvider(get);
+
+    const firstPage = await provider.listTransactions({}, tokens);
+    expect(firstPage.nextCursor).toBeDefined();
+
+    await provider.listTransactions({ cursor: firstPage.nextCursor }, tokens);
+
+    expect(get).toHaveBeenNthCalledWith(
+      2,
+      '/v1/card/transactions?page=1',
+      tokens,
+    );
+  });
+
+  it('omits nextCursor for a short (final) page', async () => {
+    const get = jest
+      .fn()
+      .mockResolvedValue([buildRawTransaction(), buildRawTransaction()]);
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.nextCursor).toBeUndefined();
+  });
+
+  it('terminates when an out-of-range page wraps back to page 0', async () => {
+    const fullPage = Array.from({ length: 20 }, (_, i) =>
+      buildRawTransaction({ id: `tx-${i}` }),
+    );
+    // Baanx returns page 0 again for pages past the end.
+    const get = jest.fn().mockResolvedValue(fullPage);
+    const provider = buildProvider(get);
+
+    const firstPage = await provider.listTransactions({}, tokens);
+    const secondPage = await provider.listTransactions(
+      { cursor: firstPage.nextCursor },
+      tokens,
+    );
+
+    expect(secondPage.items).toHaveLength(0);
+    expect(secondPage.nextCursor).toBeUndefined();
+  });
+
+  it('detects a wrapped page even when a newer transaction changes its first row', async () => {
+    const firstPageRows = Array.from({ length: 20 }, (_, i) =>
+      buildRawTransaction({ id: `tx-${i}` }),
+    );
+    const wrappedRows = [
+      buildRawTransaction({ id: 'new-tx' }),
+      ...firstPageRows.slice(0, 19),
+    ];
+    const get = jest
+      .fn()
+      .mockResolvedValueOnce(firstPageRows)
+      .mockResolvedValueOnce(wrappedRows);
+    const provider = buildProvider(get);
+
+    const firstPage = await provider.listTransactions({}, tokens);
+    const secondPage = await provider.listTransactions(
+      { cursor: firstPage.nextCursor },
+      tokens,
+    );
+
+    expect(secondPage).toStrictEqual({ items: [] });
+  });
+
+  it('does not treat a single shifted boundary row as page wraparound', async () => {
+    const firstPageRows = Array.from({ length: 20 }, (_, i) =>
+      buildRawTransaction({ id: `tx-${i}` }),
+    );
+    const secondPageRows = [
+      buildRawTransaction({ id: 'tx-19' }),
+      ...Array.from({ length: 19 }, (_, i) =>
+        buildRawTransaction({ id: `older-tx-${i}` }),
+      ),
+    ];
+    const get = jest
+      .fn()
+      .mockResolvedValueOnce(firstPageRows)
+      .mockResolvedValueOnce(secondPageRows);
+    const provider = buildProvider(get);
+
+    const firstPage = await provider.listTransactions({}, tokens);
+    const secondPage = await provider.listTransactions(
+      { cursor: firstPage.nextCursor },
+      tokens,
+    );
+
+    expect(secondPage.items).toHaveLength(20);
+    expect(secondPage.items[0].id).toBe('tx-19');
+    expect(secondPage.nextCursor).toBeDefined();
+  });
+
+  it('does not treat a half-page shift from new transactions as wraparound', async () => {
+    const firstPageRows = Array.from({ length: 20 }, (_, i) =>
+      buildRawTransaction({ id: `tx-${i}` }),
+    );
+    const secondPageRows = [
+      ...firstPageRows.slice(10),
+      ...Array.from({ length: 10 }, (_, i) =>
+        buildRawTransaction({ id: `older-tx-${i}` }),
+      ),
+    ];
+    const get = jest
+      .fn()
+      .mockResolvedValueOnce(firstPageRows)
+      .mockResolvedValueOnce(secondPageRows);
+    const provider = buildProvider(get);
+
+    const firstPage = await provider.listTransactions({}, tokens);
+    const secondPage = await provider.listTransactions(
+      { cursor: firstPage.nextCursor },
+      tokens,
+    );
+
+    expect(secondPage.items).toHaveLength(20);
+    expect(secondPage.items.map(({ id }) => id)).toStrictEqual(
+      secondPageRows.map(({ id }) => id),
+    );
+    expect(secondPage.nextCursor).toBeDefined();
+  });
+
+  it('rejects a cursor issued by a different provider', async () => {
+    const get = jest.fn().mockResolvedValue([]);
+    const foreignCursor = encodeCardCursor(CardProviderIds.Immersve, {
+      pg: 7,
+    });
+
+    await expect(
+      buildProvider(get).listTransactions({ cursor: foreignCursor }, tokens),
+    ).rejects.toThrow('Invalid transaction pagination cursor');
+
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { pg: 1 },
+    { pg: 0, i: ['tx-1'] },
+    { pg: Number.MAX_SAFE_INTEGER + 1, i: ['tx-1'] },
+  ])('rejects malformed cursor payload $pg', async (payload) => {
+    const get = jest.fn().mockResolvedValue([]);
+    const malformedCursor = encodeCardCursor(CardProviderIds.Baanx, payload);
+
+    await expect(
+      buildProvider(get).listTransactions({ cursor: malformedCursor }, tokens),
+    ).rejects.toThrow('Invalid transaction pagination cursor');
+
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it('returns an empty page for a non-array response body', async () => {
+    const get = jest.fn().mockResolvedValue({ unexpected: true });
+
+    const result = await buildProvider(get).listTransactions({}, tokens);
+
+    expect(result.items).toHaveLength(0);
+    expect(result.nextCursor).toBeUndefined();
+  });
+
+  it('maps a 401 to an auth token error', async () => {
+    const get = jest
+      .fn()
+      .mockRejectedValue(new CardApiError(401, '/v1/card/transactions', ''));
+
+    await expect(
+      buildProvider(get).listTransactions({}, tokens),
+    ).rejects.toMatchObject({
+      name: 'CardProviderError',
+      code: CardProviderErrorCode.InvalidCredentials,
+      statusCode: 401,
     });
   });
 });

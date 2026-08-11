@@ -57,6 +57,20 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// Escapes a filesystem path for safe embedding in a RegExp so the mm CLI
+// daemon-artifact blockList entries below only match paths anchored at the
+// worktree root, not the same substring appearing anywhere in node_modules.
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// mm CLI (visual testing) daemon artifacts, anchored to this worktree root.
+// Anchoring prevents an unrelated dependency whose path merely *contains*
+// `.mm-server` or `test-artifacts/` from being silently dropped from the bundle.
+const mmDaemonArtifactBlockList = [
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-daemon.log'))}$`),
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-server'))}`),
+  new RegExp(`^${escapeRegExp(path.join(__dirname, 'test-artifacts'))}/`),
+];
+
 // True when the module being resolved was requested from a file inside
 // @metamask/perps-controller. Normalizes separators first so this works on
 // Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
@@ -112,9 +126,33 @@ module.exports = function (baseConfig) {
             ),
           );
 
+      // Isolate Metro transform cache between with-SRP and without-SRP dual
+      // repacks. Expo export:embed forces resetCache=false in CI, so babel
+      // inlines of PREDEFINED_PASSWORD / ADDITIONAL_SRP_* from the first pack
+      // would otherwise be reused from /tmp/metro-cache by the second pack.
+      // Prefer an explicit METRO_TRANSFORM_PROFILE; fall back to presence-only
+      // detection (never put secret values into cacheVersion).
+      const metroTransformProfile =
+        process.env.METRO_TRANSFORM_PROFILE ||
+        (process.env.PREDEFINED_PASSWORD || process.env.ADDITIONAL_SRP_1
+          ? 'with-srp'
+          : 'without-srp');
+
       return wrapWithReanimatedMetroConfig(
         mergeConfig(defaultConfig, {
+          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
           resolver: {
+            // Exclude mm CLI daemon artifacts from the file watcher so that
+            // log writes, state updates and test-artifact captures don't
+            // trigger unnecessary Fast Refresh cycles during visual testing.
+            blockList: [
+              ...(Array.isArray(defaultConfig.resolver.blockList)
+                ? defaultConfig.resolver.blockList
+                : defaultConfig.resolver.blockList
+                  ? [defaultConfig.resolver.blockList]
+                  : []),
+              ...mmDaemonArtifactBlockList,
+            ],
             unstable_enablePackageExports: true,
             assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
             sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],

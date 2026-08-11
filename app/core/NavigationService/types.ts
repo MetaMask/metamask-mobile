@@ -976,7 +976,6 @@ export type RootStackParamList = {
   PredictFeed: PredictNavigationParamList['PredictFeed'];
   PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
   PredictPositions: PredictNavigationParamList['PredictPositions'];
-  PredictWorldCup: PredictNavigationParamList['PredictWorldCup'];
   PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
   PredictModals:
     | NavigatorScreenParams<PredictModalsNavigationParamList>
@@ -1113,6 +1112,9 @@ export type RootStackParamList = {
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];
   CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
+  CardSetPin: CardScreensStackParamList['CardSetPin'];
+  CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
+  CardSetPinSuccess: CardScreensStackParamList['CardSetPinSuccess'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
   OrderCompleted: CardScreensStackParamList['OrderCompleted'];
   CardOnboarding: CardScreensStackParamList['CardOnboarding'];

@@ -31,6 +31,7 @@ interface ManageCardOptionsProps {
   cardDetailsVisible: boolean;
   onViewCardDetails: () => void;
   onViewPin: () => void;
+  onSetPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
   showUnlinkMoneyAccount: boolean;
@@ -60,6 +61,7 @@ const ManageCardOptions = ({
   cardDetailsVisible,
   onViewCardDetails,
   onViewPin,
+  onSetPin,
   onToggleFreeze,
   onManageSpendingLimit,
   showUnlinkMoneyAccount,
@@ -120,6 +122,7 @@ const ManageCardOptions = ({
           />
         )}
         {capabilities?.supportsFundingLimits &&
+          !showUnlinkMoneyAccount &&
           ((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.change_asset')}
@@ -176,6 +179,22 @@ const ManageCardOptions = ({
             onPress={onViewPin}
             isLoading={isPinLoading}
             testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+          />
+        )}
+        {((isAuthenticated &&
+          !isLoading &&
+          card &&
+          card.status === CardStatus.ACTIVE &&
+          capabilities?.supportsPinSet &&
+          !hideManageOptions) ||
+          (showTeaserOptions && capabilities?.supportsPinSet)) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.set_pin')}
+            description={strings(
+              'card.card_home.manage_card_options.set_pin_description',
+            )}
+            onPress={onSetPin}
+            testID={CardHomeSelectors.SET_PIN_BUTTON}
           />
         )}
         {((isAuthenticated &&

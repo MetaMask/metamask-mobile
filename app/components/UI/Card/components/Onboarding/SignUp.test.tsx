@@ -10,8 +10,16 @@ import { validatePassword } from '../../util/validatePassword';
 import SignUp from './SignUp';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockUseCardPostAuthRedirect = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
 jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
   useCardPostAuthRedirect: () => mockUseCardPostAuthRedirect(),
@@ -19,6 +27,58 @@ jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
     screen: 'Money',
     params: { screen: 'MoneyHome' },
   },
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+const mockRefetchLegalDocs = jest.fn();
+const mockUseImmersveSupportedRegions = jest.fn(
+  (
+    _regionCode?: string | null,
+    _options?: { enabled?: boolean },
+  ): {
+    region: null;
+    onboardingDocuments: {
+      id: string;
+      title: string;
+      url: string;
+    }[];
+    permanentDocuments: never[];
+    isLoading: boolean;
+    error: Error | null;
+    refetch: jest.Mock;
+  } => ({
+    region: null,
+    onboardingDocuments: [
+      {
+        id: 'generalTermsOfUse',
+        title: 'Terms of Use',
+        url: 'https://example.com/terms',
+      },
+      {
+        id: 'privacyPolicy',
+        title: 'Privacy Policy',
+        url: 'https://example.com/privacy',
+      },
+    ],
+    permanentDocuments: [],
+    isLoading: false,
+    error: null,
+    refetch: mockRefetchLegalDocs,
+  }),
+);
+
+jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) =>
+    (
+      mockUseImmersveSupportedRegions as unknown as (...a: unknown[]) => unknown
+    )(...args),
 }));
 
 // Mock navigation
@@ -100,7 +160,6 @@ jest.mock('../../util/validatePassword');
 // Mock Engine
 const mockSetUserLocation = jest.fn();
 const mockSetSelectedCountry = jest.fn();
-const mockSetSelectedCardProgramId = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
 const mockGetResumeCardInfo = jest.fn();
@@ -112,8 +171,6 @@ jest.mock('../../../../../core/Engine', () => ({
       setUserLocation: (...args: unknown[]) => mockSetUserLocation(...args),
       setSelectedCountry: (...args: unknown[]) =>
         mockSetSelectedCountry(...args),
-      setSelectedCardProgramId: (...args: unknown[]) =>
-        mockSetSelectedCardProgramId(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
@@ -192,19 +249,14 @@ jest.mock('./OnboardingStep', () => {
 // Create test store
 // SignUp reads geoLocation from state.engine.backgroundState.GeolocationController.location
 // via selectGeolocationLocation. Pass { geoLocation: 'US' } etc. to control it.
-// Pass { selectedCardProgramId } to seed CardController override state.
 const createTestStore = (initialState: Record<string, unknown> = {}) => {
-  const { geoLocation, selectedCardProgramId, ...cardState } = initialState;
+  const { geoLocation, ...cardState } = initialState;
   const engineState = {
     backgroundState: {
       GeolocationController:
         typeof geoLocation === 'string' ? { location: geoLocation } : undefined,
       CardController: {
         selectedCountry: null,
-        selectedCardProgramId:
-          typeof selectedCardProgramId === 'string'
-            ? selectedCardProgramId
-            : null,
         activeProviderId: 'baanx',
         isAuthenticated: false,
         cardholderAccounts: [],
@@ -255,6 +307,26 @@ describe('SignUp Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
+    mockUseImmersveSupportedRegions.mockReturnValue({
+      region: null,
+      onboardingDocuments: [
+        {
+          id: 'generalTermsOfUse',
+          title: 'Terms of Use',
+          url: 'https://example.com/terms',
+        },
+        {
+          id: 'privacyPolicy',
+          title: 'Privacy Policy',
+          url: 'https://example.com/privacy',
+        },
+      ],
+      permanentDocuments: [],
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchLegalDocs,
+    });
+    mockRefetchLegalDocs.mockResolvedValue(null);
     mockNavigate = jest.fn();
     mockGoBack = jest.fn();
     mockUseNavigation.mockReturnValue({
@@ -288,6 +360,63 @@ describe('SignUp Component', () => {
     );
     mockGetResumeCardInfo.mockResolvedValue(null);
     store = createTestStore();
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED event on mount', () => {
+      render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.SIGN_UP,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_BUTTON_CLICKED with SIGN_UP_BUTTON when continue is pressed', async () => {
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+
+      const { getByTestId } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const continueButton = getByTestId('signup-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'Password123!');
+      });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action: CardActions.SIGN_UP_BUTTON,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('Initial Render', () => {
@@ -658,6 +787,111 @@ describe('SignUp Component', () => {
         '7911123456',
       );
     };
+
+    it('shows Immersve legal clickwrap for Immersve countries', () => {
+      enableImmersve();
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('signup-immersve-legal-clickwrap')).toBeOnTheScreen();
+      expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
+      expect(mockUseImmersveSupportedRegions).toHaveBeenCalledWith('GB');
+    });
+
+    it('hides Immersve legal clickwrap for non-Immersve countries', () => {
+      const { selectImmersveOnboardingEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(false);
+
+      const { queryByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(queryByTestId('signup-immersve-legal-clickwrap')).toBeNull();
+    });
+
+    it('disables Next while Immersve legal docs are loading', () => {
+      enableImmersve();
+      mockUseImmersveSupportedRegions.mockReturnValue({
+        region: null,
+        onboardingDocuments: [],
+        permanentDocuments: [],
+        isLoading: true,
+        error: null,
+        refetch: mockRefetchLegalDocs,
+      });
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+      const { getByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fillImmersveForm(getByTestId);
+
+      expect(getByTestId('signup-continue-button')).toBeDisabled();
+      expect(getByTestId('signup-immersve-legal-loading')).toBeOnTheScreen();
+    });
+
+    it('disables Next and shows retry when Immersve legal docs fail to load', () => {
+      enableImmersve();
+      mockUseImmersveSupportedRegions.mockReturnValue({
+        region: null,
+        onboardingDocuments: [],
+        permanentDocuments: [],
+        isLoading: false,
+        error: new Error('502'),
+        refetch: mockRefetchLegalDocs,
+      });
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+      const { getByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fillImmersveForm(getByTestId);
+
+      expect(getByTestId('signup-continue-button')).toBeDisabled();
+      fireEvent.press(getByTestId('signup-immersve-legal-retry'));
+      expect(mockRefetchLegalDocs).toHaveBeenCalled();
+    });
+
+    it('disables Next and shows retry when Immersve legal docs are empty after load', () => {
+      enableImmersve();
+      mockUseImmersveSupportedRegions.mockReturnValue({
+        region: null,
+        onboardingDocuments: [],
+        permanentDocuments: [],
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchLegalDocs,
+      });
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+      const { getByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fillImmersveForm(getByTestId);
+
+      expect(getByTestId('signup-continue-button')).toBeDisabled();
+      expect(getByTestId('signup-immersve-legal-error')).toBeOnTheScreen();
+      fireEvent.press(getByTestId('signup-immersve-legal-retry'));
+      expect(mockRefetchLegalDocs).toHaveBeenCalled();
+    });
 
     it('new user: SIWE, creates a funding source, patches contact, then routes', async () => {
       enableImmersve();
@@ -1061,127 +1295,6 @@ describe('SignUp Component', () => {
         postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
       });
       expect(mockGoBack).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Card program selector (temporary testing)', () => {
-    const PROGRAM_ALPHA = {
-      name: 'Monavate (Alpha)',
-      id: '836aae2080a211f1b5a601a9d64744df',
-    };
-    const PROGRAM_BRAVO = {
-      name: 'Immersve (Bravo)',
-      id: 'ba73e21080a211f1b059af0e8fb8b5f1',
-    };
-
-    const enableImmersve = () => {
-      const { selectImmersveOnboardingEnabled } = jest.requireMock(
-        '../../../../../selectors/featureFlagController/card',
-      );
-      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
-    };
-
-    const setCardProgramFlag = (
-      cardProgramIds?: { name: string; id: string }[],
-      cardProgramId = PROGRAM_ALPHA.id,
-    ) => {
-      const { selectCardFeatureFlag } = jest.requireMock(
-        '../../../../../selectors/featureFlagController/card',
-      );
-      const actual = jest.requireActual(
-        '../../../../../selectors/featureFlagController/card',
-      );
-      (selectCardFeatureFlag as jest.Mock).mockReturnValue({
-        ...actual.defaultCardFeatureFlag,
-        immersve: {
-          ...actual.defaultCardFeatureFlag.immersve,
-          cardProgramId,
-          ...(cardProgramIds ? { cardProgramIds } : {}),
-        },
-      });
-    };
-
-    const renderImmersveSignUp = (extras: Record<string, unknown> = {}) => {
-      enableImmersve();
-      return render(
-        <Provider store={createTestStore({ geoLocation: 'GB', ...extras })}>
-          <SignUp />
-        </Provider>,
-      );
-    };
-
-    it('does not render the selector for non-Immersve countries even with multiple programs', () => {
-      setCardProgramFlag([PROGRAM_ALPHA, PROGRAM_BRAVO], PROGRAM_ALPHA.id);
-
-      const { queryByTestId } = render(
-        <Provider store={createTestStore({ geoLocation: 'US' })}>
-          <SignUp />
-        </Provider>,
-      );
-
-      expect(
-        queryByTestId('signup-card-program-selector'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not render the selector when cardProgramIds is absent', () => {
-      setCardProgramFlag(undefined);
-
-      const { queryByTestId } = renderImmersveSignUp();
-
-      expect(
-        queryByTestId('signup-card-program-selector'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not render the selector when cardProgramIds has a single option', () => {
-      setCardProgramFlag([PROGRAM_ALPHA]);
-
-      const { queryByTestId } = renderImmersveSignUp();
-
-      expect(
-        queryByTestId('signup-card-program-selector'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders the selector and pre-selects the default cardProgramId', () => {
-      setCardProgramFlag([PROGRAM_ALPHA, PROGRAM_BRAVO], PROGRAM_ALPHA.id);
-
-      const { getByTestId, getByText } = renderImmersveSignUp();
-
-      expect(getByTestId('signup-card-program-selector')).toBeOnTheScreen();
-      expect(getByText(PROGRAM_ALPHA.name)).toBeOnTheScreen();
-      expect(getByText(PROGRAM_BRAVO.name)).toBeOnTheScreen();
-      // Default option is checked (component-library RadioButton icon).
-      expect(getByTestId('RadioButton-icon-component')).toBeOnTheScreen();
-    });
-
-    it('persists the selection via setSelectedCardProgramId', () => {
-      setCardProgramFlag([PROGRAM_ALPHA, PROGRAM_BRAVO], PROGRAM_ALPHA.id);
-
-      const { getByTestId } = renderImmersveSignUp();
-
-      fireEvent.press(getByTestId(`signup-card-program-${PROGRAM_BRAVO.id}`));
-
-      expect(mockSetSelectedCardProgramId).toHaveBeenCalledWith(
-        PROGRAM_BRAVO.id,
-      );
-    });
-
-    it('prefers a previously persisted selection over the flag default', () => {
-      setCardProgramFlag([PROGRAM_ALPHA, PROGRAM_BRAVO], PROGRAM_ALPHA.id);
-
-      const { getByTestId } = renderImmersveSignUp({
-        selectedCardProgramId: PROGRAM_BRAVO.id,
-      });
-
-      // Persisted Bravo is pre-checked (only one checked icon rendered).
-      expect(getByTestId('RadioButton-icon-component')).toBeOnTheScreen();
-      // Changing selection writes the new id through to the controller.
-      fireEvent.press(getByTestId(`signup-card-program-${PROGRAM_ALPHA.id}`));
-      expect(mockSetSelectedCardProgramId).toHaveBeenCalledWith(
-        PROGRAM_ALPHA.id,
-      );
     });
   });
 });
