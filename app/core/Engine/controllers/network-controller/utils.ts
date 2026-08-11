@@ -7,12 +7,6 @@ import { BUILT_IN_CUSTOM_NETWORKS_RPC } from '@metamask/controller-utils';
 import { isPublicRpcDomain } from '../../../../util/rpc-domain-utils';
 
 /**
- * We capture Segment events for degraded or unavailable RPC endpoints for 1%
- * of our userbase.
- */
-const SAMPLING_RATE = 0.01;
-
-/**
  * Environments that are expected to resemble production, or production itself.
  */
 export const PRODUCTION_LIKE_ENVIRONMENTS = [
@@ -102,7 +96,8 @@ export function getRpcServiceEventsSampleRate(): number {
   }
 
   if (PRODUCTION_LIKE_ENVIRONMENTS.includes(process.env.METAMASK_ENVIRONMENT)) {
-    return SAMPLING_RATE;
+    // Sample 1% of users in production-like environments.
+    return 0.01;
   }
 
   return 1;
