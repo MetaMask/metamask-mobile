@@ -29877,7 +29877,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-modules-core@npm:55.0.25":
+"expo-modules-core@npm:55.0.25, expo-modules-core@npm:~55.0.25":
   version: 55.0.25
   resolution: "expo-modules-core@npm:55.0.25"
   dependencies:
@@ -29893,13 +29893,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-screen-capture@npm:~55.0.16":
+"expo-screen-capture@npm:55.0.16":
   version: 55.0.16
   resolution: "expo-screen-capture@npm:55.0.16"
   peerDependencies:
     expo: "*"
     react: "*"
   checksum: 10/0b9e2a6f9d6a83850c2a516bb2d2b0a3ec37f8c0dafa3608082e3f5ce5c7f77b7555950264bd97ec94b69c6fc0e75cd52726123040647b2e6dbdf23b57ea73b5
+  languageName: node
+  linkType: hard
+
+"expo-screen-capture@patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch":
+  version: 55.0.16
+  resolution: "expo-screen-capture@patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch::version=55.0.16&hash=78b475"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+  checksum: 10/643aa3f08313866c0d0b140dc0b3c64cf54b091d5e435509908bdc2213debff95704282a7e80481ae6632cf8d6e9e6db27778a0278b46f4f164a1650b0c3ad4e
   languageName: node
   linkType: hard
 
@@ -36516,7 +36526,8 @@ __metadata:
     expo-haptics: "npm:~55.0.14"
     expo-image: "npm:~55.0.11"
     expo-local-authentication: "npm:~55.0.14"
-    expo-screen-capture: "npm:~55.0.16"
+    expo-modules-core: "npm:~55.0.25"
+    expo-screen-capture: "patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch"
     expo-screen-orientation: "npm:~55.0.16"
     expo-sensors: "npm:~55.0.15"
     expo-splash-screen: "npm:~55.0.21"

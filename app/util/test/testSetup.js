@@ -54,6 +54,9 @@ jest.mock('expo-modules-core', () => ({
   NativeModulesProxy: {},
   requireNativeModule: jest.fn(() => ({})),
   requireOptionalNativeModule: jest.fn(() => null),
+  // Native view managers resolve to a host component name so that children
+  // (and their testIDs) still render in tests.
+  requireNativeViewManager: jest.fn((name) => name),
   Platform: { OS: 'ios' },
   CodedError: class CodedError extends Error {},
   UnavailabilityError: class UnavailabilityError extends Error {},

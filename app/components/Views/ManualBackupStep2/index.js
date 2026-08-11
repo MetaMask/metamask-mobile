@@ -22,6 +22,7 @@ import {
 import { connect } from 'react-redux';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import SecureContentView from '../../UI/SecureContentView';
 import { strings } from '../../../../locales/i18n';
 import { seedphraseBackedUp } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
@@ -326,53 +327,59 @@ const ManualBackupStep2 = ({
 
   const renderGrid = useCallback(
     () => (
-      <Box twClassName="bg-muted rounded-[10px] mb-4 p-4 gap-1">
-        <FlatList
-          data={gridWords}
-          numColumns={3}
-          keyExtractor={(_, index) => index.toString()}
-          renderItem={renderGridItem}
-        />
-      </Box>
+      <SecureContentView>
+        <Box twClassName="bg-muted rounded-[10px] mb-4 p-4 gap-1">
+          <FlatList
+            data={gridWords}
+            numColumns={3}
+            keyExtractor={(_, index) => index.toString()}
+            renderItem={renderGridItem}
+          />
+        </Box>
+      </SecureContentView>
     ),
     [gridWords, renderGridItem],
   );
 
   const renderMissingWords = useCallback(
     () => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-wrap"
-      >
-        {missingWords.map((word, i) => {
-          const isUsed = usedWordIndices.has(i);
-          return (
-            <TouchableOpacity
-              key={`${word}-${i}`}
-              testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
-              style={tw.style(
-                'py-1 px-2 m-2 rounded-lg bg-default border border-primary-default flex-row items-center justify-center h-10',
-                isUsed && 'bg-alternative border-0',
-                { width: innerWidth / 3.9 },
-              )}
-              onPress={() => handleWordSelect(word, i)}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={
-                  isUsed ? TextColor.TextAlternative : TextColor.PrimaryDefault
-                }
-                testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
-                maxFontSizeMultiplier={1}
+      <SecureContentView>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-wrap"
+        >
+          {missingWords.map((word, i) => {
+            const isUsed = usedWordIndices.has(i);
+            return (
+              <TouchableOpacity
+                key={`${word}-${i}`}
+                testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
+                style={tw.style(
+                  'py-1 px-2 m-2 rounded-lg bg-default border border-primary-default flex-row items-center justify-center h-10',
+                  isUsed && 'bg-alternative border-0',
+                  { width: innerWidth / 3.9 },
+                )}
+                onPress={() => handleWordSelect(word, i)}
               >
-                {word}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </Box>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={
+                    isUsed
+                      ? TextColor.TextAlternative
+                      : TextColor.PrimaryDefault
+                  }
+                  testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
+                  maxFontSizeMultiplier={1}
+                >
+                  {word}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </Box>
+      </SecureContentView>
     ),
     [missingWords, usedWordIndices, innerWidth, handleWordSelect, tw],
   );

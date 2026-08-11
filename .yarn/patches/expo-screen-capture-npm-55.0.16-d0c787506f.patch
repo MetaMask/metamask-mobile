@@ -1,0 +1,121 @@
+diff --git a/ios/ScreenCaptureModule.swift b/ios/ScreenCaptureModule.swift
+index ae59d79a8b17e7d3c5e58ad389b360b93c70edb1..bfdb876cdbe81110d4c95e018c35a699c5f4f327 100644
+--- a/ios/ScreenCaptureModule.swift
++++ b/ios/ScreenCaptureModule.swift
+@@ -64,6 +64,10 @@ public final class ScreenCaptureModule: Module {
+     AsyncFunction("disableAppSwitcherProtection") {
+       disableAppSwitcherProtection()
+     }.runOnQueue(.main)
++
++    View(SecureContentView.self) {
++      Events("onStatus")
++    }
+   }
+ 
+   private func setIsBeing(observed: Bool) {
+diff --git a/ios/SecureContentView.swift b/ios/SecureContentView.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..5950b1b6a85fcfde0b0dd63440af51a3ad06df69
+--- /dev/null
++++ b/ios/SecureContentView.swift
+@@ -0,0 +1,100 @@
++import ExpoModulesCore
++import UIKit
++
++private enum HiddenCanvasLookupError: Error {
++  case unsupportedOSVersion
++  case containerNotFound(String)
++}
++
++private func hiddenCanvasClassName() throws -> String {
++  if #available(iOS 15, *) {
++    return "_UITextLayoutCanvasView"
++  }
++  if #available(iOS 13, *) {
++    return "_UITextFieldCanvasView"
++  }
++  if #available(iOS 12, *) {
++    return "_UITextFieldContentView"
++  }
++  throw HiddenCanvasLookupError.unsupportedOSVersion
++}
++
++private func findHiddenCanvas(in view: UIView) throws -> UIView {
++  let className = try hiddenCanvasClassName()
++  guard let container = view.subviews.first(where: { type(of: $0).description() == className }) else {
++    throw HiddenCanvasLookupError.containerNotFound(className)
++  }
++  return container
++}
++
++// Wraps its React children inside the protected rendering surface a secure
++// UITextField uses for its text (the same surface iOS uses to hide passcode
++// digits). Content inside is excluded from screenshots, screen recording, and
++// AirPlay/QuickTime mirroring, while remaining a normal interactive subview.
++//
++// The text field itself is never added to the view hierarchy — its private
++// canvas subview is pulled out and adopted directly, and isSecureTextEntry is
++// flipped on asynchronously after adoption (setting it during init doesn't
++// take effect). This relies on a private UIKit view class name, which is not
++// a stable API; onStatus reports usingSecureCanvas=false if a future iOS
++// release changes it, so callers can fall back or alert rather than silently
++// exposing content.
++class SecureContentView: ExpoView {
++  private let secureField = UITextField()
++  private var hiddenCanvas: UIView?
++  let onStatus = EventDispatcher()
++
++  required init(appContext: AppContext? = nil) {
++    super.init(appContext: appContext)
++
++    secureField.backgroundColor = .clear
++    secureField.isUserInteractionEnabled = false
++
++    guard let canvas = try? findHiddenCanvas(in: secureField) else {
++      onStatus(["usingSecureCanvas": false])
++      return
++    }
++    hiddenCanvas = canvas
++    canvas.isUserInteractionEnabled = true
++    addSubview(canvas)
++
++    DispatchQueue.main.async { [weak self] in
++      self?.secureField.isSecureTextEntry = true
++      self?.onStatus(["usingSecureCanvas": true])
++    }
++  }
++
++  override func layoutSubviews() {
++    super.layoutSubviews()
++    hiddenCanvas?.frame = bounds
++  }
++
++  // On the new architecture (Fabric), children arrive through
++  // mountChildComponentView — didUpdateReactSubviews never runs — and the
++  // default implementation inserts them directly into the component view,
++  // bypassing the secure canvas. Route them into the canvas instead.
++  override func mountChildComponentView(_ childComponentView: UIView, index: Int) {
++    guard let canvas = hiddenCanvas else {
++      super.mountChildComponentView(childComponentView, index: index)
++      return
++    }
++    canvas.insertSubview(childComponentView, at: min(index, canvas.subviews.count))
++  }
++
++  override func unmountChildComponentView(_ childComponentView: UIView, index: Int) {
++    // Mirror mountChildComponentView: children that went through super must be
++    // unmounted through super too, so React Native's own child bookkeeping stays
++    // consistent. Only canvas-adopted children are detached directly.
++    guard hiddenCanvas != nil else {
++      super.unmountChildComponentView(childComponentView, index: index)
++      return
++    }
++    childComponentView.removeFromSuperview()
++  }
++
++  // Old architecture (Paper) fallback.
++  override func didUpdateReactSubviews() {
++    let target = hiddenCanvas ?? self
++    reactSubviews()?.forEach { target.addSubview($0) }
++  }
++}

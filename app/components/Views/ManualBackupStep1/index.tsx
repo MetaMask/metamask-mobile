@@ -31,6 +31,7 @@ import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import SecureContentView from '../../UI/SecureContentView';
 import {
   MANUAL_BACKUP_STEPS,
   SEED_PHRASE,
@@ -356,37 +357,39 @@ const ManualBackupStep1 = () => {
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
-          <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
-            <FlatList
-              data={words}
-              numColumns={3}
-              keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item, index }) => (
-                <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    maxFontSizeMultiplier={1}
-                  >
-                    {index + 1}.
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                    key={index}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.7}
-                    style={tw.style('flex-1')}
-                    testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                    maxFontSizeMultiplier={1}
-                  >
-                    {item}
-                  </Text>
-                </Box>
-              )}
-            />
-          </Box>
+          <SecureContentView style={tw.style('w-full')}>
+            <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
+              <FlatList
+                data={words}
+                numColumns={3}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item, index }) => (
+                  <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                      maxFontSizeMultiplier={1}
+                    >
+                      {index + 1}.
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                      key={index}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                      style={tw.style('flex-1')}
+                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
+                      maxFontSizeMultiplier={1}
+                    >
+                      {item}
+                    </Text>
+                  </Box>
+                )}
+              />
+            </Box>
+          </SecureContentView>
         )}
       </Box>
       <Box
