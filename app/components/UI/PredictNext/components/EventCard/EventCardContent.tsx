@@ -89,7 +89,7 @@ export const EventCardContent = ({
           variant={ButtonVariant.Tertiary}
           onPress={onPress}
         >
-          +{hiddenCount} more
+          <Text>+{hiddenCount} more</Text>
         </Button>
       ) : null}
     </EventCard.Root>
