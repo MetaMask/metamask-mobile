@@ -11,6 +11,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { subscribePerf } from './perf-marker';
+import { subscribeJstrace, type JstraceStatus } from './jstrace-runtime';
 
 const styles = StyleSheet.create({
   container: {
@@ -29,20 +30,82 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
+  jtText: {
+    fontSize: 12,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    marginTop: 2,
+  },
 });
+
+// Compact human-readable event count (1234567 -> "1.2M", 12345 -> "12.3K").
+function fmtCount(n: number): string {
+  if (n >= 1_000_000) {
+    return `${(n / 1_000_000).toFixed(1)}M`;
+  }
+  if (n >= 1_000) {
+    return `${(n / 1_000).toFixed(1)}K`;
+  }
+  return String(n);
+}
+
+// Map a jstrace status to overlay text + color. Yellow while active, green when
+// the file has flushed to disk, red on error, orange when the ring wrapped
+// (trace truncated).
+function jtLine(s: JstraceStatus): { label: string; color: string } {
+  switch (s.kind) {
+    case 'recording':
+      return { label: 'JT: recording…', color: '#FFD400' };
+    case 'writing':
+      return { label: 'JT: writing…', color: '#FFD400' };
+    case 'written':
+      return s.wrapped
+        ? {
+            label: `JT: written ${fmtCount(s.events)} ev ⚠ WRAPPED`,
+            color: '#FF8C00',
+          }
+        : { label: `JT: written ${fmtCount(s.events)} ev ✓`, color: '#00FF00' };
+    case 'error':
+      return { label: `JT: write FAILED — ${s.message}`, color: '#FF3B30' };
+    default:
+      return { label: '', color: '#00FF00' };
+  }
+}
 
 export function PerfOverlay(): React.ReactElement | null {
   const [ms, setMs] = useState<number | null>(null);
+  const [jt, setJt] = useState<JstraceStatus | null>(null);
+
+  // The jstrace runtime only installs `__jtStart` when the app was built with
+  // JSTRACE=1 (see index.js). When tracing isn't enabled we don't subscribe and
+  // never render the JT status line — the overlay shows only CTA→VISIBLE.
+  const jstraceEnabled =
+    typeof (globalThis as Record<string, unknown>).__jtStart === 'function';
 
   useEffect(() => subscribePerf(setMs), []);
+  useEffect(() => {
+    if (!jstraceEnabled) {
+      return undefined;
+    }
+    return subscribeJstrace(setJt);
+  }, [jstraceEnabled]);
 
-  if (ms === null) {
+  // Render as soon as EITHER signal has fired, so the jstrace status is visible
+  // even before the first CTA→VISIBLE completes.
+  if (ms === null && jt === null) {
     return null;
   }
 
+  const jtInfo = jt ? jtLine(jt) : null;
+
   return (
     <View pointerEvents="none" style={styles.container}>
-      <Text style={styles.text}>{`CTA→VISIBLE: ${ms}ms`}</Text>
+      {ms !== null && <Text style={styles.text}>{`CTA→VISIBLE: ${ms}ms`}</Text>}
+      {jtInfo && (
+        <Text style={[styles.jtText, { color: jtInfo.color }]}>
+          {jtInfo.label}
+        </Text>
+      )}
     </View>
   );
 }

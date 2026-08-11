@@ -36,6 +36,34 @@ let head = 0; // next write position
 let wrapped = false;
 let recording = false;
 
+// TEMP jstrace status pub/sub (Remove before merge). Lets the on-screen
+// PerfOverlay show when a trace starts recording, when the async file write
+// begins, and when it has actually flushed to disk (or errored) — so you never
+// have to guess whether a trace file was produced.
+export type JstraceStatus =
+  | { kind: 'recording' }
+  | { kind: 'writing' }
+  | { kind: 'written'; events: number; wrapped: boolean; path: string }
+  | { kind: 'error'; message: string };
+
+let lastStatus: JstraceStatus | null = null;
+const statusListeners = new Set<(s: JstraceStatus) => void>();
+
+export function subscribeJstrace(fn: (s: JstraceStatus) => void): () => void {
+  statusListeners.add(fn);
+  if (lastStatus !== null) {
+    fn(lastStatus);
+  }
+  return () => {
+    statusListeners.delete(fn);
+  };
+}
+
+function emitStatus(s: JstraceStatus): void {
+  lastStatus = s;
+  statusListeners.forEach((fn) => fn(s));
+}
+
 const nowUs = (): number =>
   typeof globalThis.performance?.now === 'function'
     ? globalThis.performance.now() * 1000
@@ -71,6 +99,7 @@ function start(): void {
   wrapped = false;
   recording = true;
   console.log('[JSTRACE] recording started');
+  emitStatus({ kind: 'recording' });
 }
 
 function stop(): void {
@@ -135,8 +164,17 @@ async function dump(
   };
 
   const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
-  await RNFS.writeFile(path, JSON.stringify(profile), 'utf8');
+  emitStatus({ kind: 'writing' });
+  try {
+    await RNFS.writeFile(path, JSON.stringify(profile), 'utf8');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`[JSTRACE] write FAILED -> ${path}: ${message}`);
+    emitStatus({ kind: 'error', message });
+    throw err;
+  }
   console.log(`[JSTRACE] wrote ${total} events -> ${path}`);
+  emitStatus({ kind: 'written', events: total, wrapped, path });
   return path;
 }
 

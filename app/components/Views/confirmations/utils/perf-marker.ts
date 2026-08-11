@@ -66,7 +66,10 @@ export function perfConfirmationVisible(): void {
   if (typeof g.__jtStop === 'function') {
     (g.__jtStop as () => void)();
     if (typeof g.__jtDump === 'function') {
-      (g.__jtDump as () => Promise<string>)();
+      // Fire-and-forget: status (writing -> written / error) is surfaced to the
+      // overlay via the jstrace status pub/sub. Swallow the rejection here so a
+      // failed write doesn't become an unhandled promise rejection.
+      (g.__jtDump as () => Promise<string>)().catch(() => undefined);
     }
   }
 }
