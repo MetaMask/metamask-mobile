@@ -7,7 +7,10 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectIsCardAuthenticated } from '../../../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectCardActiveProviderId,
+} from '../../../../../../selectors/cardController';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -55,6 +58,7 @@ export function useCardHomeActions({
 }: UseCardHomeActionsParams) {
   const navigation = useNavigation<AppNavigationProp>();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -385,6 +389,45 @@ export function useCardHomeActions({
     toastRef,
   ]);
 
+  const setPinAction = useCallback(async () => {
+    if (!isAuthenticated) {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+      return;
+    }
+    const cardId = data?.card?.id;
+    if (!cardId) {
+      return;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.SET_PIN_BUTTON,
+          provider: activeProviderId,
+        })
+        .build(),
+    );
+    await withBiometricAuth({
+      reauthenticate,
+      navigation,
+      toastRef,
+      passwordDescription: strings(
+        'card.password_bottomsheet.description_set_pin',
+      ),
+      onSuccess: () => {
+        navigation.navigate(Routes.CARD.SET_PIN, { cardId });
+      },
+    });
+  }, [
+    isAuthenticated,
+    data?.card?.id,
+    activeProviderId,
+    reauthenticate,
+    navigation,
+    toastRef,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   // --- Navigation actions ---
 
   const switchToFundingAccountIfNeeded = useCallback(() => {
@@ -580,6 +623,7 @@ export function useCardHomeActions({
     viewCardDetailsAction,
     isPinLoading,
     viewPinAction,
+    setPinAction,
     addFundsAction,
     changeAssetAction,
     enableCardAction,
