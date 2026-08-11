@@ -8175,7 +8175,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.19.0, @metamask/controller-utils@npm:^11.20.0":
+"@metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.20.0":
   version: 11.20.0
   resolution: "@metamask/controller-utils@npm:11.20.0"
   dependencies:
@@ -9118,19 +9118,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/logging-controller@npm:^8.0.0, @metamask/logging-controller@npm:^8.0.1":
-  version: 8.0.1
-  resolution: "@metamask/logging-controller@npm:8.0.1"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/messenger": "npm:^1.0.0"
-    uuid: "npm:^8.3.2"
-  checksum: 10/6789bd696613eb4bba648034d8f47fb68a3462d2070d5ef20b58f6a2f017627ffda01cd50511cfde83c4132c811c9f39dfc7d07919cc4b7348dc0ac1d71cfeb9
-  languageName: node
-  linkType: hard
-
-"@metamask/logging-controller@npm:^8.0.2":
+"@metamask/logging-controller@npm:^8.0.0, @metamask/logging-controller@npm:^8.0.2":
   version: 8.0.2
   resolution: "@metamask/logging-controller@npm:8.0.2"
   dependencies:
@@ -10133,29 +10121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/signature-controller@npm:^39.2.0":
-  version: 39.2.0
-  resolution: "@metamask/signature-controller@npm:39.2.0"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^37.2.0"
-    "@metamask/approval-controller": "npm:^9.0.1"
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^11.20.0"
-    "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/gator-permissions-controller": "npm:^4.0.0"
-    "@metamask/keyring-controller": "npm:^25.2.0"
-    "@metamask/logging-controller": "npm:^8.0.1"
-    "@metamask/messenger": "npm:^1.1.1"
-    "@metamask/network-controller": "npm:^30.0.1"
-    "@metamask/utils": "npm:^11.9.0"
-    jsonschema: "npm:^1.4.1"
-    lodash: "npm:^4.17.21"
-    uuid: "npm:^8.3.2"
-  checksum: 10/8fb15cea880279e21d0e703639283e6d47167bce362c79988b4483f68c2dfcd0cbde6273c7b141d4c1e06bce76dae010da0088fa263338644c0b1af7406b35ae
-  languageName: node
-  linkType: hard
-
-"@metamask/signature-controller@npm:^39.2.9":
+"@metamask/signature-controller@npm:^39.2.0, @metamask/signature-controller@npm:^39.2.9":
   version: 39.2.9
   resolution: "@metamask/signature-controller@npm:39.2.9"
   dependencies:
