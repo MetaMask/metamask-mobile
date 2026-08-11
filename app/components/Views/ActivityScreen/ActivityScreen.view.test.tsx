@@ -525,7 +525,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     const secondaryAmount = await findByTestId(
       activityListRowSecondaryAmountTestId(sendHash),
     );
-    expect(secondaryAmount).toHaveTextContent(/^-.*USD/);
+    expect(secondaryAmount).toHaveTextContent(/^-\$2,500\.00/);
 
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(sendHash)),
