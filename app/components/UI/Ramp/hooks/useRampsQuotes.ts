@@ -151,8 +151,19 @@ export function useRampsQuotes(
 
     // Open span belongs to a different key (e.g. switched to a cached amount while
     // a prior fetch was in flight). Do not attribute this query's success/error.
+    // Keep quoteCufKeyRef on the active key so a later background refetch of that
+    // settled key does not open a spurious CUF (same guard as the success path).
     if (quoteCufKeyRef.current !== quoteFetchKey) {
-      endOpenQuoteCuf(RAMPS_BUY_CUF_END_REASON.SUPERSEDED);
+      const opId = quoteCufOpIdRef.current;
+      quoteCufOpIdRef.current = null;
+      quoteCufKeyRef.current = quoteFetchKey;
+      endRampsBuyQuoteFetchTrace({
+        id: opId,
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+        },
+      });
       return;
     }
 

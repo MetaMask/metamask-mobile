@@ -422,7 +422,18 @@ describe('useRampsQuotes', () => {
       // Cached key should not be recorded as a successful quote-fetch CUF.
       expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(2);
       expect(result.current.status).toBe('success');
-      expect(queryClient).toBeDefined();
+
+      // Background refetch of the settled cached key must not open another CUF.
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        mockQuotesResponse,
+      );
+      await act(async () => {
+        await queryClient.invalidateQueries({ queryKey: ['ramps', 'quotes'] });
+      });
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+      expect(mockStartRampsBuyQuoteFetchTrace).toHaveBeenCalledTimes(2);
 
       await act(async () => {
         resolveSlow(mockQuotesResponse);
