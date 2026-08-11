@@ -1,39 +1,87 @@
-# FeatureNotificationsGate — Feature Overview
+# FeatureNotificationsGate
 
----
+## Overview
 
-## 1. Overview
+`FeatureNotificationsGate` lets a feature require notification setup before the user continues. If the requirement is not satisfied, it presents a bottom sheet with feature-specific copy, a notification preview, and one shared “Turn on notifications” action.
 
-A drop-in gate supported feature screens can embed. When a user lands on a feature that sends notifications but hasn't enabled them yet, a bottom sheet explains the benefit and offers one action to turn notifications on. The action enables the global master toggle and both channels for that feature. Once enabled, the sheet closes automatically. The user can also dismiss the sheet without enabling; in that case they are navigated back. Nothing is shown if notifications are already set up.
+The gate renders nothing itself. It opens `Routes.SHEET.FEATURE_NOTIFICATIONS_GATE` in the root modal flow as a `transparentModal`, ensuring the sheet renders above the feature screen without relying on `zIndex`, a native `Modal`, or sibling order.
 
-**The sheet is a navigation route.** The gate does not render the sheet inline. It navigates to a dedicated sheet screen registered on the app's root modal stack (`Routes.MODAL.ROOT_MODAL_FLOW` → `Routes.SHEET.FEATURE_NOTIFICATIONS_GATE`, presented as a `transparentModal`). This is the same mechanism every other bottom sheet in the app uses, and it is what guarantees the sheet always renders above all screen content — keypads, footers, forms — with no `zIndex`, native `Modal`, or render-order tricks. Opening the sheet is a `navigate`; closing it (X button, overlay tap, or auto-close) is a `goBack` that pops the route.
+The implementation is split across:
 
-**Components**
+- [`FeatureNotificationsGate`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.tsx): mounted by the feature screen; decides whether to present the sheet, handles an unsatisfied dismissal, and checks OS push permission.
+- [`FeatureNotificationsGateSheet`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet.tsx): renders the preview and CTA, enables notifications, and closes the sheet route.
+- [`featureNotificationsGateConfig`](../../app/components/Views/Settings/NotificationsSettings/featureNotificationsGateConfig.ts): maps supported notification preference sections to their localized copy keys.
+- [`useFeatureNotificationsStatus`](../../app/components/Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus.ts): reads the master toggle, feature channels, and preference-loading state.
 
-| Component                                                                                                                       | Role                                                                                                                                                                                      |
-| ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`FeatureNotificationsGate`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.tsx)            | Rendered by the feature screen; renders nothing itself. Opens the sheet route when the gate is blocked, dismisses the screen if the user gives up, and runs the OS push permission check. |
-| [`FeatureNotificationsGateSheet`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet.tsx)  | The sheet screen registered on the root modal stack. Owns the preview, single CTA, enable operation, and auto-close.                                                                      |
-| [`featureNotificationsGateConfig`](../../app/components/Views/Settings/NotificationsSettings/featureNotificationsGateConfig.ts) | Maps supported notification preference sections to localized title, description, and preview copy keys.                                                                                   |
+## Integration guide
 
-Both the gate and the sheet read the feature's notification state (master toggle + per-feature channels + whether preferences have loaded) through the shared [`useFeatureNotificationsStatus`](../../app/components/Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus.ts) hook.
+### 1. Register the feature copy
 
-**How to add it to a screen**
+Configuring feature-specific copy is required. TypeScript does not allow a feature to be passed to `FeatureNotificationsGate` until it is registered.
 
-First add the feature's copy keys to `FEATURE_NOTIFICATIONS_GATE_COPY`, then render `<FeatureNotificationsGate feature="yourFeature" />` in the screen's component tree. The registry only accepts keys from `NotificationPreferenceSection`, and the component only accepts keys present in the registry. This makes an invalid or unmapped feature a type error. Currently supported: `priceAlerts`.
+Add the source copy under `notifications.feature_gate.<feature>` in [`locales/languages/en.json`](../../locales/languages/en.json):
 
-The CTA copy is shared by every feature and remains in `notifications.feature_gate.cta`. By default, dismissing without enabling navigates back. Pass an `onDismiss` prop to override that behaviour.
+```json
+{
+  "notifications": {
+    "feature_gate": {
+      "your_feature": {
+        "title": "Feature-specific heading",
+        "description": "Explain why notifications are useful.",
+        "preview": {
+          "title": "Notification preview title",
+          "message": "Notification preview message",
+          "timestamp": "now"
+        }
+      }
+    }
+  }
+}
+```
 
-**Contract: only mount the gate on a screen that intends to stay.** The gate binds its dismiss logic to the screen that presented the sheet. A screen that may still redirect on its own (e.g. replace itself after a fetch resolves) must not mount the gate until that decision is made — otherwise the sheet outlives its presenter and, if the user closes it without enabling, it re-opens once instead of dismissing. [`ManagePriceAlertsView`](../../app/components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx) shows the pattern: it mounts the gate behind a `hasAlertsToManage` flag, because every other fetch outcome navigates away.
+Every feature must provide:
 
-**Unit-testing a screen that embeds the gate**
+- `title`
+- `description`
+- `preview.title`
+- `preview.message`
+- `preview.timestamp`
 
-The gate pulls in the whole notification preferences stack: `useNotificationStoragePreferences` needs a TanStack `QueryClientProvider`, and it reads feature flags through `useSelector`, so it needs a Redux store too. Any unit test that renders a screen containing `<FeatureNotificationsGate />` must either:
+The CTA is shared and already defined at `notifications.feature_gate.cta`; do not add a feature-specific CTA.
 
-1. **Mock the gate** (preferred for the host screen's tests — gate behaviour is covered in [`FeatureNotificationsGate.test.tsx`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.test.tsx)), or
-2. Wrap the render tree in **both** a `QueryClientProvider` and a Redux `Provider` (e.g. `renderWithProvider`)
+### 2. Register the localization keys
 
-Otherwise the suite fails with `No QueryClient set, use QueryClientProvider to set one` or `could not find react-redux context value; please ensure the component is wrapped in a <Provider>`. Mocking keeps the host screen's tests from having to track whichever providers the gate depends on next.
+Add the notification preference key and its five localization keys to `FEATURE_NOTIFICATIONS_GATE_COPY` in [`featureNotificationsGateConfig.ts`](../../app/components/Views/Settings/NotificationsSettings/featureNotificationsGateConfig.ts).
+
+The registry only accepts keys from `NotificationPreferenceSection`, and the component only accepts keys present in the registry. TypeScript rejects both invalid preference keys and valid-but-unconfigured features. Currently configured: `priceAlerts`.
+
+### 3. Mount the gate
+
+Render the gate after the screen has decided it will remain mounted:
+
+```tsx
+{
+  screenWillStay && (
+    <FeatureNotificationsGate
+      feature="yourFeature"
+      autoDismiss
+      onDismiss={handleDismiss}
+    />
+  );
+}
+```
+
+Props:
+
+- `feature`: required; a configured notification preference section.
+- `autoDismiss`: optional; closes the sheet when the requirement is satisfied. Defaults to `true`.
+- `onDismiss`: optional; runs when the user closes the sheet without satisfying the requirement. Defaults to `navigation.goBack()`.
+
+Only mount the gate on a screen that intends to stay. A screen that may still redirect, such as after a fetch, must wait until that decision is complete. Otherwise, the sheet can outlive its presenting screen. [`ManagePriceAlertsView`](../../app/components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx) demonstrates this by mounting the gate only when `hasAlertsToManage` is true.
+
+### 4. Test the integration
+
+Host-screen unit tests should normally mock the gate because its behavior is covered by [`FeatureNotificationsGate.test.tsx`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.test.tsx):
 
 ```ts
 jest.mock('.../NotificationsSettings/FeatureNotificationsGate', () => ({
@@ -41,88 +89,61 @@ jest.mock('.../NotificationsSettings/FeatureNotificationsGate', () => ({
 }));
 ```
 
-See [`CreatePriceAlertView.test.tsx`](../../app/components/UI/Assets/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView.test.tsx) and [`ManagePriceAlertsView.test.tsx`](../../app/components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.test.tsx) for host-screen examples.
+See [`CreatePriceAlertView.test.tsx`](../../app/components/UI/Assets/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView.test.tsx) and [`ManagePriceAlertsView.test.tsx`](../../app/components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.test.tsx) for examples.
 
-Component view tests (`*.view.test.tsx`) need no such change — `tests/component-view/render.tsx` already supplies both providers, and mocking anything beyond Engine and native modules is forbidden there. Those tests exercise the real gate.
+If a unit test renders the real gate, its tree needs both a TanStack `QueryClientProvider` and a Redux `Provider`, such as those supplied by `renderWithProvider`. Component view tests already receive both providers from `tests/component-view/render.tsx` and should exercise the real gate.
 
----
+## Runtime behavior
 
-## 2. How the gate and the sheet talk to each other
+### When the sheet appears
 
-Because the sheet is a separate route, the gate cannot watch it directly. It uses **navigation focus** as the signal instead:
+The gate waits for stored preferences to load, then presents the sheet when either:
 
-- Presenting the sheet takes focus away from the host screen.
-- Closing the sheet (any way) gives focus back.
+- The global MetaMask notifications toggle is off.
+- Both push and in-app channels are off for the selected feature.
 
-So the gate only acts when its screen is focused while the gate is still blocked, and there are exactly two possibilities:
+Nothing is presented when the global toggle and at least one feature channel are enabled.
 
-1. **No sheet was presented yet** → present it (and remember that it was, in a ref).
-2. **A sheet was presented before** → it just closed with the gate still blocked, meaning the user gave up → dismiss the screen (`onDismiss`, default `navigation.goBack()`).
+### What the CTA does
 
-If the user _satisfied_ the gate instead, the sheet auto-closes and the refocus does nothing — the gate is no longer blocked and the screen just becomes usable.
+Pressing “Turn on notifications”:
 
-The ref is needed because those two moments are otherwise indistinguishable: a closed sheet leaves no trace in navigation state, so "never presented" and "presented and rejected" look identical without one bit of memory. See the `useGateSheetPresentation` hook in [`FeatureNotificationsGate.tsx`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.tsx) for the full reasoning.
+1. Opens the Basic Functionality consent sheet instead if Basic Functionality is disabled.
+2. Otherwise, enables the global notifications toggle when needed.
+3. Enables both push and in-app channels for the selected feature.
 
-One consequence of the route split: `onDismiss` stays a prop on the gate component (functions can't travel through route params), while `feature` and `autoDismiss` are plain data and are forwarded to the sheet as route params.
+With `autoDismiss` enabled, the sheet closes once the global toggle and at least one feature channel are on. The CTA enables both channels, but accepting either channel as satisfied also handles an existing or concurrent preference change.
 
----
+### Closing the sheet
 
-## 3. Sheet content and enable action
+The user can close the sheet using the close button, overlay, or swipe gesture.
 
-**When the sheet appears**
+- If the gate is satisfied, the user remains on the feature screen.
+- If it is still blocked, `onDismiss` runs. Its default implementation calls `navigation.goBack()`.
+- If `autoDismiss` is `false`, satisfying the gate does not close the sheet automatically.
 
-The sheet is presented if either:
+## Implementation details
 
-- The MetaMask master notifications toggle is off, **or**
-- Both push and in-app channels are off for that specific feature
+### Route and focus communication
 
-If notifications are fully set up, nothing is presented.
+Because the sheet is a separate route, the gate uses navigation focus to detect when it closes:
 
-The sheet is not presented until the stored preferences have loaded. An unresolved read looks identical to "every channel is off", so deciding earlier would open the sheet for users who already have the feature set up.
+1. The host screen is focused and blocked, so the gate presents the sheet and records that it did so.
+2. Presenting the sheet takes focus from the host screen.
+3. Closing the sheet returns focus to the host screen.
+4. If the host screen is still blocked, the user dismissed without satisfying the requirement, so `onDismiss` runs.
+5. If the requirement is satisfied, the screen remains usable.
 
-The sheet always renders:
+The ref in `useGateSheetPresentation` stores the one bit of history needed to distinguish “the sheet has never opened” from “the sheet opened and was dismissed.” A closed sheet leaves no equivalent trace in navigation state.
 
-- The feature's configured notification preview
-- The feature's configured title and description
-- The shared “Turn on notifications” CTA
+`onDismiss` remains on the gate because functions should not be passed through route params. The serializable `feature` and `autoDismiss` values are forwarded to the sheet route.
 
-Pressing the CTA enables the global master toggle when needed, then enables both push and in-app channels for the selected feature. The copy is selected from `FEATURE_NOTIFICATIONS_GATE_COPY` using the `feature` route parameter.
+### OS push permission
 
----
+When the feature's push channel is enabled, the gate also checks the OS push permission:
 
-## 4. OS push notification permissions
+- If permission is granted, nothing happens.
+- If the OS can still prompt, the native permission dialog appears.
+- If permission was previously denied, the user is directed to device settings.
 
-When push notifications are enabled for a feature, the gate also checks whether the OS has granted push permission.
-
-- If already granted → nothing happens
-- If the OS can still prompt → native system dialog appears
-- If the user previously denied the OS dialog → they're deep-linked to the device Settings app
-
-This check runs **independently of whether the sheet is open** — it lives in the gate component on the screen, not in the sheet. If a user already has everything enabled when they land on the screen (sheet never opens), the OS check still runs. This covers the case where push was enabled elsewhere but the OS permission dialog was never shown.
-
-The OS dialog is intentionally delayed until after the sheet finishes opening, so both don't compete for the user's attention at the same time.
-
-If the user later turns push off and back on, the OS check runs again — it resets each time push is disabled.
-
----
-
-## 5. Dismiss behaviour
-
-**Auto-close (no user action needed)**
-
-The sheet closes itself once the master toggle and at least one feature channel are enabled. The CTA enables both channels, but accepting either channel as satisfied also handles an existing or concurrent preference change.
-
-After auto-close, the user stays on the feature screen. No navigation happens.
-
-**User-initiated close**
-
-The user can tap the X or swipe the sheet down at any time. What happens next depends on whether they satisfied the gate before closing:
-
-| User closes sheet                        | Gate satisfied? | Result                                 |
-| ---------------------------------------- | --------------- | -------------------------------------- |
-| After enabling notifications             | Yes             | Stays on screen                        |
-| Without enabling (taps X or swipes down) | No              | Navigated back (or custom `onDismiss`) |
-
-**Configuring dismiss**
-
-The default behaviour on an unsatisfied dismiss is `navigation.goBack()`. This can be overridden per usage — e.g. staying on the screen, showing an error state, or navigating somewhere specific — by passing an `onDismiss` callback. Auto-close behaviour is controlled by the `autoDismiss` prop (default `true`).
+This check runs independently of sheet visibility. It therefore also covers users whose in-app notification preferences are already enabled while OS push permission remains off. The check is delayed until sheet opening interactions finish, and it is armed again whenever the feature's push channel is disabled.
