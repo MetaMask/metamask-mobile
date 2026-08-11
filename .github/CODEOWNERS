@@ -218,6 +218,7 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
 app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
+app/components/UI/QuickBuy/                                          @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
@@ -233,6 +234,7 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/SocialLeaderboard/**                                              @MetaMask/social-ai
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
+**/QuickBuy/**                                                       @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
 
 # Predict Team
