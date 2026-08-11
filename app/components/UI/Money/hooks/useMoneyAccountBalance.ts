@@ -224,13 +224,16 @@ const useMoneyAccountBalance = ({
       ? vaultApyOverride
       : (serviceApy ?? (shouldUseFallback ? vaultApyFallback : undefined));
 
-  const apyPercent =
-    apyDecimal !== undefined
-      ? new BigNumber(apyDecimal)
-          .multipliedBy(100)
-          .dp(1, BigNumber.ROUND_HALF_UP)
-          .toNumber()
-      : undefined;
+  const apyPercent = useMemo(
+    () =>
+      apyDecimal !== undefined
+        ? new BigNumber(apyDecimal)
+            .multipliedBy(100)
+            .dp(1, BigNumber.ROUND_HALF_UP)
+            .toNumber()
+        : undefined,
+    [apyDecimal],
+  );
 
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
