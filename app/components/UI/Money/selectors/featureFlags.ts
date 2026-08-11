@@ -428,6 +428,15 @@ export const DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES = ['GB'];
 export const selectMoneyAccountGeoBlockedCountries = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string[] => {
+    // TEMPORARY (do NOT merge): disable Money account geo-blocking so the
+    // deposit flow can be exercised on a device from any region during perf
+    // testing. Revert this early return to restore the real remote-flag /
+    // env-var / GB-default resolution below.
+    const DISABLE_GEO_BLOCK_FOR_TESTING = true;
+    if (DISABLE_GEO_BLOCK_FOR_TESTING) {
+      return [];
+    }
+
     // Try remote flag first (takes precedence)
     const remoteFlag = remoteFeatureFlags?.moneyAccountGeoBlockedCountries as
       | { blockedRegions?: string[] }
