@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from '@metamask/design-system-react-native';
 import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
+import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -58,5 +59,22 @@ describe('PerpsProPositionsOptionSheet', () => {
 
     expect(mockOnApply).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('renders options inside the Android modal gesture root', () => {
+    render(
+      <PerpsProPositionsOptionSheet
+        isVisible
+        title="Options"
+        onClose={mockOnClose}
+        onApply={mockOnApply}
+      >
+        <Text>Option</Text>
+      </PerpsProPositionsOptionSheet>,
+    );
+
+    expect(
+      screen.getByTestId(PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID),
+    ).toBeOnTheScreen();
   });
 });
