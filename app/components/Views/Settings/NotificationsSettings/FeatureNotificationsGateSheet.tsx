@@ -51,8 +51,7 @@ type FeatureNotificationsGateSheetRouteProp = RouteProp<
 /**
  * The gate bottom sheet, registered as a `transparentModal` route in the root
  * modal flow. Living on the root stack guarantees it renders above all screen
- * content — no zIndex, native Modal, or sibling-order tricks — and survives
- * navigation happening underneath it.
+ * content.
  *
  * Do not navigate here directly; render `FeatureNotificationsGate` inside the
  * gated screen instead.
@@ -101,11 +100,6 @@ export const FeatureNotificationsGateSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
-  // Runs after every close path (header button, overlay tap, auto-close):
-  // pop this sheet route. The gate component on the screen below reacts to
-  // regaining focus and decides whether to dismiss that screen too. Every
-  // close path only fires while this sheet is focused (user interaction
-  // requires it, auto-close is focus-gated above), so goBack pops this sheet.
   const handleSheetClosed = () => {
     navigation.goBack();
   };
