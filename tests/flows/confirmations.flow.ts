@@ -84,10 +84,49 @@ const waitForTestDappProviderReady = async (pageUrl: string): Promise<void> => {
 };
 
 /**
+ * After navigation/reload, fixture permissions can inject `window.ethereum`
+ * without the Test Dapp firing `globalConnectionChange`, so action buttons stay
+ * disabled. Request accounts and emit the same event the dapp uses on connect.
+ */
+const ensureTestDappConnectionEvents = async (
+  pageUrl: string,
+): Promise<void> => {
+  await ChromeCdpHelpers.evaluateInWebView<boolean>(
+    pageUrl,
+    `(async () => {
+      const eth = window.ethereum;
+      if (!eth || typeof eth.request !== 'function') {
+        return false;
+      }
+      let accounts = [];
+      try {
+        accounts = await eth.request({ method: 'eth_requestAccounts' });
+      } catch (_requestError) {
+        try {
+          accounts = await eth.request({ method: 'eth_accounts' });
+        } catch (_accountsError) {
+          return false;
+        }
+      }
+      if (!Array.isArray(accounts) || accounts.length === 0) {
+        return false;
+      }
+      document.dispatchEvent(
+        new CustomEvent('globalConnectionChange', {
+          detail: { connected: true },
+        }),
+      );
+      return true;
+    })()`,
+  );
+};
+
+/**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
  *
- * Android CDP can report a successful DOM click without MetaMask opening the
- * confirmation sheet — wait for provider + enabled control, then prefer native tap.
+ * Android: wait for provider + connection events + enabled control, then use a
+ * trusted CDP click (with native fallback). Retry when confirm-button never
+ * appears — CDP/native taps can report success without opening the sheet.
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -98,6 +137,7 @@ const tapTestDappButtonAndWaitForConfirm = async (
 
   if (FrameworkDetector.isAppium()) {
     await waitForTestDappProviderReady(pageUrl);
+    await ensureTestDappConnectionEvents(pageUrl);
     await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
       pageUrl,
       buttonId,
@@ -109,11 +149,17 @@ const tapTestDappButtonAndWaitForConfirm = async (
     let dismissedPushSheet = false;
     await Utilities.executeWithRetry(
       async () => {
-        await WebView.tapById(buttonId, {
+        const clicked = await ChromeCdpHelpers.clickByIdInWebView(
           pageUrl,
-          description,
-          preferNative: true,
-        });
+          buttonId,
+        );
+        if (!clicked) {
+          await WebView.tapById(buttonId, {
+            pageUrl,
+            description,
+            preferNative: true,
+          });
+        }
         try {
           await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
         } catch (error) {
