@@ -3136,6 +3136,9 @@
       "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
       "order_failed_title": "Order failed",
       "order_failed_body": "Your order couldn't be filled. Try again?",
+      "payment_failed_title": "Payment didn't go through",
+      "payment_failed_body": "We couldn't convert your {{token}}. Add funds to your Predict balance instead.",
+      "payment_failed_body_generic": "We couldn't convert your token. Add funds to your Predict balance instead.",
       "price_changed_title": "Price changed",
       "price_changed_body": "Couldn't buy at {{price}}. Try at market price?",
       "retry": "Retry",
@@ -3206,7 +3209,9 @@
       "preview_not_available": "No preview available",
       "market_pending_resolution": "This market is pending resolution.",
       "market_not_accepting_bets": "This market is no longer accepting bets.",
-      "market_bettable_check_failed": "We couldn't confirm this market is accepting bets. Try again."
+      "market_bettable_check_failed": "We couldn't confirm this market is accepting bets. Try again.",
+      "deposit_failed": "We couldn't add funds to your Predict balance. Try again.",
+      "withdraw_failed": "We couldn't complete your withdrawal. Try again."
     },
     "game_details_footer": {
       "pick_a_winner": "Pick a winner",
@@ -8971,6 +8976,7 @@
       "description": "Enter your wallet password to view card details.",
       "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "description_view_pin": "Enter your wallet password to view your card PIN.",
+      "description_set_pin": "Enter your wallet password to set your card PIN.",
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",
@@ -8979,6 +8985,24 @@
     },
     "view_pin_bottomsheet": {
       "title": "Your Card PIN"
+    },
+    "set_pin": {
+      "set_title": "Set your card PIN",
+      "set_description": "You won't be able to view this PIN later. If you forget it, you can set a new one.",
+      "set_label": "PIN",
+      "continue": "Continue",
+      "confirm_title": "Confirm your card PIN",
+      "confirm_description": "Re-enter your PIN to confirm",
+      "confirm_label": "Confirm PIN",
+      "submit": "Set PIN",
+      "mismatch_error": "PINs must match.",
+      "invalid_pin_error": "That PIN can't be used. Choose a different one.",
+      "repeating_pin_error": "That PIN can't be used. Choose a different one.",
+      "forbidden_error": "You can't set a PIN on this card right now.",
+      "network_error": "Something went wrong. Please try again.",
+      "success_title": "PIN set",
+      "success_description": "Your card PIN is ready to use. Make sure you keep it safe—you won't be able to view it in the app.",
+      "success_done": "Done"
     },
     "choose_your_card": {
       "title": "Choose your card",
@@ -9361,6 +9385,8 @@
         "view_pin": "View PIN",
         "view_pin_description": "View your card PIN securely",
         "view_pin_error": "Failed to load PIN. Please try again.",
+        "set_pin": "Set card PIN",
+        "set_pin_description": "Set a 4-digit PIN for ATM and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",

@@ -16,6 +16,7 @@ import MoneyNextBestActionParallax, {
 } from '../MoneyNextBestActionParallax';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -54,7 +55,8 @@ const MoneyOnboardingCard = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { tokenTotal, isBalanceLoading, apyPercent } = useMoneyAccountBalance();
+  const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
   const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
