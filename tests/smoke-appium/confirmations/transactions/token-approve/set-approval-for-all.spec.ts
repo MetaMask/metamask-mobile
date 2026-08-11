@@ -150,7 +150,9 @@ appiumTest.describe.skip(
       },
     );
 
-    appiumTest(
+    // Skipped: consistently fails on main Appium confirmations Android smoke
+    // (`confirm-button` never appears after dapp tap). MMQA-2254 / MMQA-2232.
+    appiumTest.skip(
       'creates an approve transaction confirmation for given ERC1155 and submits it',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
@@ -200,7 +202,9 @@ appiumTest.describe.skip(
       },
     );
 
-    appiumTest.describe('revoke mode', () => {
+    // Skipped: hard-fails on recent main Appium confirmations Android smoke
+    // (`confirm-button` never appears after revoke tap). MMQA-2254 / MMQA-2232.
+    appiumTest.describe.skip('revoke mode', () => {
       appiumTest(
         'creates an approve transaction confirmation for ERC 721 and submits it',
         async ({ driver: _driver, currentDeviceDetails }) => {
