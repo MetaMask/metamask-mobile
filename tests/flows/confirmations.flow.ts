@@ -86,12 +86,12 @@ const waitForTestDappProviderReady = async (pageUrl: string): Promise<void> => {
   }
 };
 
-type TestDappConnectionState = {
+interface TestDappConnectionState {
   accountsUi: string;
   ethAccountCount: number;
   connectLabel: string;
   hasProviderRequest: boolean;
-};
+}
 
 const readTestDappConnectionState = async (
   pageUrl: string,
