@@ -53,7 +53,7 @@ import {
   resolveQuickBuyOriginalEntryPointFromPositionSource,
   type QuickBuyOriginalEntryPoint,
   type QuickBuySheetSource,
-} from './components/QuickBuy/analytics';
+} from '../../../UI/QuickBuy/analytics';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
