@@ -3,8 +3,9 @@ import type { WalletOptions } from '@metamask/wallet';
 import { captureException } from '@sentry/react-native';
 import { devApiEnv, type DevApiEnv } from '../../../devApiEnv';
 
-type SubscriptionServiceInstanceOptions =
-  WalletOptions['instanceOptions']['subscriptionService'];
+type SubscriptionServiceInstanceOptions = NonNullable<
+  WalletOptions['instanceOptions']['subscriptionService']
+>;
 
 const SUBSCRIPTION_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
   dev: Env.DEV,
