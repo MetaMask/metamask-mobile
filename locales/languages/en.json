@@ -6026,8 +6026,9 @@
     "default_message_title": "MetaMask",
     "default_message_description": "Tap to view",
     "feature_gate": {
-      "title": "Turn on notifications",
-      "description": "Choose how you want to be notified."
+      "title": "Don't miss a price alert",
+      "description": "Turn on notifications so we can alert you when a price target is hit.",
+      "cta": "Turn on notifications"
     },
     "received_payment_title": "Instant payment received",
     "pending_message": "Waiting for confirmation",

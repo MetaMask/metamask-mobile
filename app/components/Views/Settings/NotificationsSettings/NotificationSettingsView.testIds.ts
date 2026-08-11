@@ -20,4 +20,6 @@ export const NotificationSettingsViewSelectorsIDs = {
     `notification-settings-account-notifications-${address}`,
   FEATURE_GATE_SHEET: 'notification-settings-feature-gate-sheet',
   FEATURE_GATE_CLOSE_BUTTON: 'notification-settings-feature-gate-close-button',
+  FEATURE_GATE_TURN_ON_BUTTON:
+    'notification-settings-feature-gate-turn-on-button',
 };
