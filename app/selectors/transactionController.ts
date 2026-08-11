@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { createDeepEqualSelector } from './util';
 import {
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
@@ -129,7 +128,7 @@ function matchesTransactionType(
 const selectTransactionControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionController;
 
-const selectTransactionsStrict = createSelector(
+export const selectTransactions = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) =>
     transactionControllerState?.transactions ?? [],
@@ -142,13 +141,13 @@ const selectTransactionBatchesStrict = createSelector(
 );
 
 export const selectRequiredTransactionIds = createSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (transactions) =>
     new Set(transactions.flatMap((tx) => tx.requiredTransactionIds ?? [])),
 );
 
 export const selectRequiredTransactions = createSelector(
-  [selectTransactionsStrict, selectRequiredTransactionIds],
+  [selectTransactions, selectRequiredTransactionIds],
   (transactions, requiredTransactionIds) =>
     transactions.filter((tx) => requiredTransactionIds.has(tx.id)),
 );
@@ -168,7 +167,7 @@ export const selectRequiredTransactionHashes = createSelector(
  * the user action. Redesigned Activity hides them as separate rows (TMCU-1064).
  */
 export const selectGasPaymentTransactions = createSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (transactions) =>
     transactions.filter((tx) => tx.type === TransactionType.gasPayment),
 );
@@ -207,7 +206,7 @@ export const selectExcludedActivityTransactionHashes = createSelector(
 );
 
 export const selectRelatedChainIdsByTransactionId = createSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (transactions) => {
     const transactionsById = new Map<string, TransactionMeta>(
       transactions.map((tx) => [tx.id, tx]),
@@ -235,18 +234,8 @@ export const selectRelatedChainIdsByTransactionId = createSelector(
   },
 );
 
-export const selectTransactions = createDeepEqualSelector(
-  selectTransactionsStrict,
-  (transactions) => transactions,
-  {
-    devModeChecks: {
-      identityFunctionCheck: 'never',
-    },
-  },
-);
-
 export const selectHasUnapprovedTransactions = createSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (transactions) =>
     transactions.some((tx) => tx.status === TransactionStatus.unapproved),
 );
@@ -275,13 +264,13 @@ function belongsToActiveAccount(
   return areAddressesEqual(fromAddress, activeEvmAddress);
 }
 
-export const selectNonReplacedTransactions = createDeepEqualSelector(
-  selectTransactionsStrict,
+export const selectNonReplacedTransactions = createSelector(
+  selectTransactions,
   (transactions) =>
     transactions.filter((transaction) => !isReplacedTransaction(transaction)),
 );
 
-export const selectSortedTransactions = createDeepEqualSelector(
+export const selectSortedTransactions = createSelector(
   [selectNonReplacedTransactions, selectPendingSmartTransactionsBySender],
   (nonReplacedTransactions, pendingSmartTransactions) =>
     [...nonReplacedTransactions, ...pendingSmartTransactions].sort(
@@ -349,7 +338,7 @@ export const selectLastUsedPaymentMethod = createSelector(
 );
 
 export const selectSortedEVMTransactionsForSelectedAccountGroup =
-  createDeepEqualSelector(
+  createSelector(
     [
       selectNonReplacedTransactions,
       selectPendingSmartTransactionsForSelectedAccountGroup,
@@ -360,7 +349,7 @@ export const selectSortedEVMTransactionsForSelectedAccountGroup =
       ),
   );
 
-export const selectLocalTransactions = createDeepEqualSelector(
+export const selectLocalTransactions = createSelector(
   [
     selectNonReplacedTransactions,
     selectPendingSmartTransactionsForSelectedAccountGroup,
@@ -414,9 +403,9 @@ export const selectLocalTransactions = createDeepEqualSelector(
  * type and amount (its live replacement drives the status). Address/required
  * filtering mirrors {@link selectLocalTransactions} so the two align by nonce.
  */
-export const selectReplacedLocalTransactions = createDeepEqualSelector(
+export const selectReplacedLocalTransactions = createSelector(
   [
-    selectTransactionsStrict,
+    selectTransactions,
     selectSelectedAccountGroupEvmInternalAccount,
     selectEvmAddress,
     selectRequiredTransactionIds,
@@ -458,8 +447,8 @@ export const selectSwapsTransactions = createSelector(
     transactionControllerState?.swapsTransactions ?? {},
 );
 
-export const selectTransactionMetadataById = createDeepEqualSelector(
-  selectTransactionsStrict,
+export const selectTransactionMetadataById = createSelector(
+  selectTransactions,
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
 );
@@ -474,7 +463,7 @@ export const makeSelectTransactionMetadataById =
  * carries the tx hash but none of the local metadata.
  */
 export const selectTransactionMetadataByHash = createSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (_: RootState, hash: string | undefined) => hash,
   (transactions, hash) =>
     hash
@@ -484,14 +473,14 @@ export const selectTransactionMetadataByHash = createSelector(
       : undefined,
 );
 
-export const selectTransactionBatchMetadataById = createDeepEqualSelector(
+export const selectTransactionBatchMetadataById = createSelector(
   selectTransactionBatchesStrict,
   (_: RootState, id: string) => id,
   (transactionBatches, id) => transactionBatches?.find((tx) => tx.id === id),
 );
 
 export const selectTransactionsByIds = createSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (_: RootState, ids: string[]) => ids,
   (transactions, ids) =>
     ids
@@ -500,7 +489,7 @@ export const selectTransactionsByIds = createSelector(
 );
 
 export const selectTransactionsByBatchId = createSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (_: RootState, batchId: string) => batchId,
   (transactions, batchId) =>
     transactions.filter((tx) => tx.batchId === batchId),
