@@ -346,6 +346,66 @@ export default class Assertions {
   }
 
   /**
+   * Read Appium Switch / checkbox on-state from native attributes.
+   * iOS XCUITest switches report `value` as `"1"` / `"0"`; Android often uses
+   * `checked` (`"true"` / `"false"`). Returns undefined when no known attr is set.
+   */
+  private static parseAppiumToggleOnState(
+    attributes: Record<string, unknown>,
+  ): boolean | undefined {
+    if (attributes.checked === true || attributes.checked === 'true') {
+      return true;
+    }
+    if (attributes.checked === false || attributes.checked === 'false') {
+      return false;
+    }
+    if (attributes.value === 1 || attributes.value === '1') {
+      return true;
+    }
+    if (attributes.value === 0 || attributes.value === '0') {
+      return false;
+    }
+    if (attributes.value === true || attributes.value === 'true') {
+      return true;
+    }
+    if (attributes.value === false || attributes.value === 'false') {
+      return false;
+    }
+    return undefined;
+  }
+
+  private static async readAppiumToggleOn(
+    elem: EncapsulatedElementType,
+  ): Promise<boolean> {
+    const el = await asPlaywrightElement(elem);
+    const attributes: Record<string, unknown> = {
+      checked: await el.getAttribute('checked'),
+      value: await el.getAttribute('value'),
+    };
+    const state = this.parseAppiumToggleOnState(attributes);
+    if (state === undefined) {
+      throw new Error(
+        `Unable to determine toggle state from attributes: checked=${String(
+          attributes.checked,
+        )} value=${String(attributes.value)}`,
+      );
+    }
+    return state;
+  }
+
+  /**
+   * Returns whether a Switch/toggle is currently on (Appium-safe).
+   */
+  static async isToggleOn(elem: EncapsulatedElementType): Promise<boolean> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error(
+        'Assertions.isToggleOn is only supported for Appium sessions',
+      );
+    }
+    return this.readAppiumToggleOn(elem);
+  }
+
+  /**
    * Assert element is enabled with auto-retry
    */
   static async expectToggleToBeOn(
@@ -356,6 +416,27 @@ export default class Assertions {
       timeout = BASE_DEFAULTS.timeout,
       description = 'element should be enabled',
     } = options;
+
+    if (FrameworkDetector.isAppium()) {
+      return Utilities.executeWithRetry(
+        async () => {
+          const isOn = await this.readAppiumToggleOn(elem);
+          if (!isOn) {
+            throw new Error(
+              [
+                '🔄 Toggle state mismatch detected',
+                `   Expected: on`,
+                `   Actual:   off`,
+              ].join('\n'),
+            );
+          }
+        },
+        {
+          timeout,
+          description: `Assert ${description}`,
+        },
+      );
+    }
 
     return Utilities.executeWithRetry(
       async () => {
@@ -394,6 +475,27 @@ export default class Assertions {
       timeout = BASE_DEFAULTS.timeout,
       description = 'element should be disabled',
     } = options;
+
+    if (FrameworkDetector.isAppium()) {
+      return Utilities.executeWithRetry(
+        async () => {
+          const isOn = await this.readAppiumToggleOn(elem);
+          if (isOn) {
+            throw new Error(
+              [
+                '🔄 Toggle state mismatch detected',
+                `   Expected: off`,
+                `   Actual:   on`,
+              ].join('\n'),
+            );
+          }
+        },
+        {
+          timeout,
+          description: `Assert ${description}`,
+        },
+      );
+    }
 
     return Utilities.executeWithRetry(
       async () => {
