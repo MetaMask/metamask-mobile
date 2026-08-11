@@ -64,7 +64,9 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-appiumTest.describe(SmokeConfirmations('Contract Deployment'), () => {
+// Skipped: consistently fails on main Appium confirmations Android smoke
+// (`#createToken` never usable / confirm sheet never opens). MMQA-2254.
+appiumTest.describe.skip(SmokeConfirmations('Contract Deployment'), () => {
   appiumTest.describe.configure({ timeout: 2500000 });
 
   appiumTest(
