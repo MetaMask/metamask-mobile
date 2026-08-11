@@ -41,18 +41,28 @@ export function useEthFiatAmount(
     [conversionRate, currentCurrency, ethAmount],
   );
 
-  if (
-    !conversionRate ||
-    !showFiat ||
-    currentCurrency.toUpperCase() === 'ETH' ||
-    conversionRate <= 0 ||
-    ethAmount === undefined
-  ) {
+  // Memoize the BigNumber fiat calc so it isn't recomputed on every render when
+  // the inputs are unchanged. Kept above the early-return guard below to respect
+  // the Rules of Hooks (the stash version placed it after the guard, which would
+  // be a conditional hook call). The bail-out condition is folded into the memo
+  // so the BigNumber math is skipped entirely on the return-undefined path
+  // rather than running on every render.
+  const fiatAmount = useMemo(() => {
+    if (
+      !conversionRate ||
+      !showFiat ||
+      currentCurrency.toUpperCase() === 'ETH' ||
+      conversionRate <= 0 ||
+      ethAmount === undefined
+    ) {
+      return undefined;
+    }
+    return new BigNumber(ethAmount.toString()).times(conversionRate);
+  }, [conversionRate, currentCurrency, ethAmount, showFiat]);
+
+  if (fiatAmount === undefined) {
     return undefined;
   }
-
-  // Calculate the fiat amount
-  const fiatAmount = new BigNumber(ethAmount.toString()).times(conversionRate);
 
   // Handle small fiat amounts
   if (
