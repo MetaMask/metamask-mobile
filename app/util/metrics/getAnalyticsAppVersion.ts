@@ -33,9 +33,6 @@ export const formatAnalyticsAppVersion = (
  * Does not change native CFBundleShortVersionString / Android versionName.
  */
 const getAnalyticsAppVersion = (): string =>
-  formatAnalyticsAppVersion(
-    getVersion(),
-    process.env.METAMASK_ENVIRONMENT,
-  );
+  formatAnalyticsAppVersion(getVersion(), process.env.METAMASK_ENVIRONMENT);
 
 export default getAnalyticsAppVersion;

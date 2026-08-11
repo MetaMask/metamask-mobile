@@ -69,10 +69,7 @@ export const analyticsControllerInit: MessengerClientInitFunction<
 
   const platformAdapter = hasTestOverrides
     ? createE2EPlatformAdapter()
-    : createPlatformAdapter([
-        getBrazePlugin(),
-        new AppVersionSegmentPlugin(),
-      ]);
+    : createPlatformAdapter([getBrazePlugin(), new AppVersionSegmentPlugin()]);
 
   const controller = new AnalyticsController({
     messenger: controllerMessenger,
