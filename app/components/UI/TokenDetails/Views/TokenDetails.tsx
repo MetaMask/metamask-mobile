@@ -446,7 +446,10 @@ const TokenDetails: React.FC<{
     }
     assetDetailsEndedRef.current = true;
     endTrace({ name: TraceName.AssetDetails });
-  }, [txLoading]);
+    // Re-evaluate on token change too: a same-chain token switch can leave
+    // `txLoading` unchanged, and without this the reset above would clear
+    // the guard without ever re-running this effect to end the new trace.
+  }, [txLoading, token.chainId, token.address, token.symbol]);
 
   const hasTransactions =
     transactions.length > 0 ||

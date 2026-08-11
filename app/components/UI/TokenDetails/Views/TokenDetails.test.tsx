@@ -560,6 +560,30 @@ describe('TokenDetails', () => {
 
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
     });
+
+    it('ends a new trace when switching tokens even when txLoading never changes', () => {
+      // Regression test: a same-chain token switch does not toggle
+      // `txLoading` (it stays false the whole time), so the end effect must
+      // also react to token identity changes to avoid leaving the newly
+      // started trace open.
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        loading: false,
+      });
+
+      const { rerender } = render(<TokenDetails />);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+      });
+      rerender(<TokenDetails />);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('Swap/Buy sticky buttons', () => {
