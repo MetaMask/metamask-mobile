@@ -198,15 +198,17 @@ const useMoneyAccountBalance = ({
 
   // Stash the exact atomic redeemable (vmusdValueInMusd, already raw mUSD) so
   // the transaction-pay resolveSourceAmount callback can read it synchronously
-  // from Redux (it runs outside React and cannot use this hook).
-  const withdrawableMusdRaw =
-    !isBalanceFetchError && !isBalanceLoading
-      ? (moneyBalanceQuery.data?.vmusdValueInMusd ?? undefined)
-      : undefined;
+  // from Redux (it runs outside React and cannot use this hook). Only write on
+  // a successful fetch, so an error/loading state never clobbers the last known
+  // value (mirrors the lastKnownBalance persistence above).
+  const withdrawableMusdRaw = moneyBalanceQuery.data?.vmusdValueInMusd;
 
   useEffect(() => {
+    if (isBalanceFetchError || isBalanceLoading) {
+      return;
+    }
     dispatch(setMoneyAccountRedeemableRaw(withdrawableMusdRaw ?? null));
-  }, [dispatch, withdrawableMusdRaw]);
+  }, [dispatch, withdrawableMusdRaw, isBalanceFetchError, isBalanceLoading]);
 
   // True whenever there is no fresh balance to show — still loading or a fetch
   // error.
