@@ -14,6 +14,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
@@ -56,10 +57,20 @@ jest.mock('../../MarketInsights', () => ({
   selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
 }));
 
+const MOCK_PERPS_MARKET_DATA: PerpsMarketData = {
+  symbol: 'ETH',
+  name: 'ETH',
+  maxLeverage: '50x',
+  price: '$3,000.00',
+  change24h: '+$50.00',
+  change24hPercent: '+1.5%',
+  volume: '$1.2B',
+};
+
 const mockUsePerpsActions = jest.fn(
   (..._args: unknown[]): UsePerpsActionsResult => ({
     hasPerpsMarket: true,
-    marketData: { symbol: 'ETH', name: 'ETH', maxLeverage: '50x' },
+    marketData: MOCK_PERPS_MARKET_DATA,
     isLoading: false,
     error: null,
     handlePerpsAction: mockHandlePerpsAction,
@@ -903,7 +914,7 @@ describe('AssetOverviewContent', () => {
       });
       mockUsePerpsActions.mockReturnValue({
         hasPerpsMarket: true,
-        marketData: { symbol: 'ETH', name: 'ETH', maxLeverage: '50x' },
+        marketData: MOCK_PERPS_MARKET_DATA,
         isLoading: false,
         error: null,
         handlePerpsAction: mockHandlePerpsAction,
