@@ -160,6 +160,113 @@ describe('useComplianceGate', () => {
     });
   });
 
+  describe('freshness cache', () => {
+    it('skips the network call when a fresh cached result already exists for the address', async () => {
+      const recentTimestamp = new Date().toISOString();
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(false) // selectAreAnyWalletsBlocked
+        .mockReturnValueOnce({
+          [SAFE_ADDRESS]: {
+            address: SAFE_ADDRESS,
+            blocked: false,
+            checkedAt: recentTimestamp,
+          },
+        }); // selectWalletComplianceStatusMap
+
+      const action = jest.fn().mockResolvedValue('result');
+      const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const value = await result.current.gate(action);
+
+      expect(mockCheckWalletsCompliance).not.toHaveBeenCalled();
+      expect(action).toHaveBeenCalledTimes(1);
+      expect(value).toBe('result');
+    });
+
+    it('trusts a fresh cached blocked=true result without a network call', async () => {
+      const recentTimestamp = new Date().toISOString();
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(true) // selectAreAnyWalletsBlocked
+        .mockReturnValueOnce({
+          [BLOCKED_ADDRESS]: {
+            address: BLOCKED_ADDRESS,
+            blocked: true,
+            checkedAt: recentTimestamp,
+          },
+        }); // selectWalletComplianceStatusMap
+
+      const action = jest.fn();
+      const { result } = renderHook(() => useComplianceGate(BLOCKED_ADDRESS));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const value = await result.current.gate(action);
+
+      expect(mockCheckWalletsCompliance).not.toHaveBeenCalled();
+      expect(action).not.toHaveBeenCalled();
+      expect(mockShowAccessRestrictedModal).toHaveBeenCalledTimes(1);
+      expect(value).toBeUndefined();
+    });
+
+    it('calls checkCompliance when the cached result is older than the freshness window', async () => {
+      const staleTimestamp = new Date(
+        Date.now() - 20 * 60 * 1000, // 20 minutes ago, past the freshness window
+      ).toISOString();
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(false) // selectAreAnyWalletsBlocked
+        .mockReturnValueOnce({
+          [SAFE_ADDRESS]: {
+            address: SAFE_ADDRESS,
+            blocked: false,
+            checkedAt: staleTimestamp,
+          },
+        }); // selectWalletComplianceStatusMap
+
+      renderHook(() => useComplianceGate(SAFE_ADDRESS));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockCheckWalletsCompliance).toHaveBeenCalledWith([SAFE_ADDRESS]);
+    });
+
+    it('calls checkCompliance when only some addresses in the set have a fresh cached result', async () => {
+      const recentTimestamp = new Date().toISOString();
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(true) // selectAreAnyWalletsBlocked
+        .mockReturnValueOnce({
+          [SAFE_ADDRESS]: {
+            address: SAFE_ADDRESS,
+            blocked: false,
+            checkedAt: recentTimestamp,
+          },
+          // BLOCKED_ADDRESS has no cached entry yet
+        }); // selectWalletComplianceStatusMap
+
+      renderHook(() => useComplianceGate([SAFE_ADDRESS, BLOCKED_ADDRESS]));
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockCheckWalletsCompliance).toHaveBeenCalledWith([
+        SAFE_ADDRESS,
+        BLOCKED_ADDRESS,
+      ]);
+    });
+  });
+
   describe('gate()', () => {
     it('executes action directly when compliance is disabled', async () => {
       mockUseSelector

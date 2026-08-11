@@ -2,11 +2,19 @@ import { useSelector } from 'react-redux';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { selectAreAnyWalletsBlocked } from '../../../../selectors/complianceController';
+import {
+  selectAreAnyWalletsBlocked,
+  selectWalletComplianceStatusMap,
+} from '../../../../selectors/complianceController';
 import { selectComplianceEnabled } from '../../../../selectors/featureFlagController/compliance';
 import { useAccessRestrictedModal } from '../contexts/AccessRestrictedContext';
 
 type AddressInput = string | string[];
+
+// OFAC status for a wallet doesn't change minute-to-minute, so a recent
+// result already in the store is trusted instead of re-checking on every
+// screen mount that gates on the same address.
+const COMPLIANCE_CACHE_FRESHNESS_MS = 10 * 60 * 1000;
 
 /**
  * Guards an async action behind an OFAC compliance check.
@@ -52,6 +60,14 @@ export function useComplianceGate(address?: AddressInput) {
 
   const isComplianceEnabled = useSelector(selectComplianceEnabled);
   const rawIsBlocked = useSelector(selectAreAnyWalletsBlocked(addresses));
+  const rawComplianceStatusMap = useSelector(selectWalletComplianceStatusMap);
+  // Defaults to {} so a test/selector returning undefined can't crash the
+  // freshness lookup below, without creating a new object identity on every
+  // render when the selector already returns a value.
+  const complianceStatusMap = useMemo(
+    () => rawComplianceStatusMap ?? {},
+    [rawComplianceStatusMap],
+  );
   const { showAccessRestrictedModal } = useAccessRestrictedModal();
 
   const isBlocked = isComplianceEnabled && rawIsBlocked;
@@ -62,6 +78,34 @@ export function useComplianceGate(address?: AddressInput) {
       addresses,
     );
   }, [addresses, addressKey]);
+
+  // True when every address already has a compliance result recorded within
+  // the freshness window, so the prefetch effect can reuse it instead of
+  // firing a redundant network request.
+  const hasFreshCachedResult = useCallback(
+    (addressesToCheck: string[]) => {
+      if (addressesToCheck.length === 0) return false;
+      const now = Date.now();
+      return addressesToCheck.every((addr) => {
+        const status = complianceStatusMap[addr];
+        if (!status) return false;
+        return (
+          now - new Date(status.checkedAt).getTime() <
+          COMPLIANCE_CACHE_FRESHNESS_MS
+        );
+      });
+    },
+    [complianceStatusMap],
+  );
+
+  // Latest-value refs so the prefetch effect can read the freshest cache
+  // state without depending on it — the map/rawIsBlocked update as a *result*
+  // of the effect's own fetch, so depending on them directly would cause the
+  // effect to re-run again right after every fetch completes.
+  const hasFreshCachedResultRef = useRef(hasFreshCachedResult);
+  hasFreshCachedResultRef.current = hasFreshCachedResult;
+  const rawIsBlockedRef = useRef(rawIsBlocked);
+  rawIsBlockedRef.current = rawIsBlocked;
 
   // Holds the in-flight prefetch tagged with the address set it belongs to, so
   // gate() can verify the cached prefetch belongs to the current wallet before
@@ -103,8 +147,21 @@ export function useComplianceGate(address?: AddressInput) {
       prefetchRef.current = null;
       return;
     }
+
+    // Bump the request id unconditionally (even on the cache-hit path below)
+    // so a still-in-flight fetch for a previous address can never resolve
+    // later and overwrite the status we're about to set for this one.
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
+
+    // Skip the network round-trip when a recent result already covers every
+    // address in this set — trust the Redux-cached status instead.
+    if (hasFreshCachedResultRef.current(addresses)) {
+      prefetchBlockedRef.current = rawIsBlockedRef.current;
+      prefetchRef.current = { addressKey, promise: Promise.resolve() };
+      return;
+    }
+
     prefetchBlockedRef.current = false; // reset while in-flight
     const promise = checkCompliance()
       .then((results) => {
@@ -121,7 +178,7 @@ export function useComplianceGate(address?: AddressInput) {
         }
       });
     prefetchRef.current = { addressKey, promise };
-  }, [addressKey, checkCompliance, isComplianceEnabled]);
+  }, [addressKey, addresses, checkCompliance, isComplianceEnabled]);
 
   const gate = useCallback(
     async <T>(action: () => Promise<T>): Promise<T | void> => {
