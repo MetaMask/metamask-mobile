@@ -338,6 +338,29 @@ describe('PredictCryptoUpDownChart', () => {
     expect(onCurrentPriceChange).toHaveBeenCalledWith(51000);
   });
 
+  it('reports the first TWAP observation while Liveline waits for renderable data', () => {
+    const market = { ...createMockMarket(), twapWindowSeconds: 30 as const };
+    const onCurrentPriceChange = jest.fn();
+
+    mockUseCryptoUpDownChartData.mockReturnValueOnce({
+      data: [{ time: 1, value: 51000 }],
+      value: 51000,
+      loading: true,
+      isLive: true,
+      window: 300,
+      connectionError: false,
+    });
+
+    render(
+      <PredictCryptoUpDownChart
+        market={market}
+        onCurrentPriceChange={onCurrentPriceChange}
+      />,
+    );
+
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(51000);
+  });
+
   it('does not report placeholder current price without chart data', () => {
     const market = createMockMarket();
     const onCurrentPriceChange = jest.fn();

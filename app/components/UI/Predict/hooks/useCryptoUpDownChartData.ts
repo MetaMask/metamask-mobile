@@ -230,11 +230,11 @@ export const useCryptoUpDownChartData = (
 
   useEffect(() => {
     latestLiveObservationRef.current = undefined;
-    setLiveStreamStale(true);
     if (previousTwapWindowRef.current === twapWindowSeconds) {
       return;
     }
     previousTwapWindowRef.current = twapWindowSeconds;
+    setLiveStreamStale(true);
     liveLoadingRef.current = true;
     setLiveLoading(true);
     setLiveValue(0);
@@ -589,8 +589,7 @@ export const useCryptoUpDownChartData = (
   if (isLive || hasFrozenLiveData || hasExpiredLiveData) {
     return {
       data: chartData,
-      value:
-        isLive && twapWindowSeconds && liveStreamStale ? 0 : displayedLiveValue,
+      value: displayedLiveValue,
       // While live, treat a stalled stream (no recent tick) as loading so the
       // chart shows the spinner instead of a blank canvas once the last point
       // scrolls out of the live window. Frozen/expired data only "loads" when

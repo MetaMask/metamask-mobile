@@ -686,6 +686,38 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.value).toBe(51000);
     });
 
+    it('preserves a fresh TWAP price across same-window market rollover', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ twapWindowSeconds: 30 });
+      const nextMarket = createMarket({
+        id: 'market-2',
+        twapWindowSeconds: 30,
+      });
+      historicalData = [];
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+      });
+
+      rerender({ activeMarket: nextMarket });
+
+      expect(result.current.data).toEqual([{ time: 100, value: 51000 }]);
+      expect(result.current.value).toBe(51000);
+    });
+
     it('accepts live updates after changing away from a reset market', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({

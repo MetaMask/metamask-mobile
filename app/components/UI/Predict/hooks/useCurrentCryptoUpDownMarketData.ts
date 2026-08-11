@@ -107,7 +107,8 @@ export const useCurrentCryptoUpDownMarketData = ({
   const currentPrice = useMemo(() => {
     if (
       market.twapWindowSeconds &&
-      (chartData.loading || chartData.connectionError)
+      (chartData.connectionError ||
+        (chartData.loading && chartData.data.length === 0))
     ) {
       return undefined;
     }
