@@ -265,7 +265,12 @@ const tapTestDappButtonAndWaitForConfirm = async (
 
   if (FrameworkDetector.isAppium()) {
     await waitForTestDappProviderReady(pageUrl);
-    await ensureTestDappAccountsHydrated(pageUrl);
+    // Android-only: EIP-6963 Active Provider race + account hydration. iOS
+    // evaluateInWebView cannot await async eth_accounts Promises, and iOS
+    // confirmations already pass without this path.
+    if (PlatformDetector.isAndroidAppium()) {
+      await ensureTestDappAccountsHydrated(pageUrl);
+    }
     await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
       pageUrl,
       buttonId,
