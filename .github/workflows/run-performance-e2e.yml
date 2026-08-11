@@ -304,7 +304,6 @@ jobs:
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
       (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
-      needs.ensure-fingerprint.result == 'success' &&
       (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
       (
         !inputs.reuse_main_builds ||
