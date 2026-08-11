@@ -2,7 +2,7 @@ import Assertions from '../framework/Assertions';
 import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import Utilities, { sleep } from '../framework/Utilities';
+import Utilities from '../framework/Utilities';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
 import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
@@ -108,27 +108,36 @@ const waitForTestDappButtonReady = async (
   timeoutMs = DAPP_BUTTON_READY_TIMEOUT_MS,
 ): Promise<TestDappButtonState | null> => {
   const startedAt = Date.now();
-  const deadline = startedAt + timeoutMs;
   let state: TestDappButtonState | null = null;
   let reloaded = false;
 
-  while (Date.now() < deadline) {
-    state = await readTestDappButtonState(pageUrl, buttonId);
-    if (isTestDappButtonReady(state)) {
-      return state;
-    }
+  try {
+    await Utilities.waitUntil(
+      async () => {
+        state = await readTestDappButtonState(pageUrl, buttonId);
+        if (isTestDappButtonReady(state)) {
+          return true;
+        }
 
-    if (
-      !reloaded &&
-      state?.contractParam &&
-      !state.contractBound &&
-      Date.now() - startedAt >= DAPP_CONTRACT_RELOAD_AFTER_MS
-    ) {
-      reloaded = true;
-      await ChromeCdpHelpers.evaluateInWebView(pageUrl, 'location.reload()');
-    }
+        if (
+          !reloaded &&
+          state?.contractParam &&
+          !state.contractBound &&
+          Date.now() - startedAt >= DAPP_CONTRACT_RELOAD_AFTER_MS
+        ) {
+          reloaded = true;
+          await ChromeCdpHelpers.evaluateInWebView(
+            pageUrl,
+            'location.reload()',
+          );
+        }
 
-    await sleep(DAPP_BUTTON_READY_POLL_MS);
+        return false;
+      },
+      { timeout: timeoutMs, interval: DAPP_BUTTON_READY_POLL_MS },
+    );
+  } catch {
+    // Return the last observed state so the caller can include diagnostics.
   }
 
   return state;
