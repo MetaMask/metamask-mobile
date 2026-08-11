@@ -4223,6 +4223,21 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictConfig: {
+    name: 'predictConfig',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      venues: {
+        polymarket: { enabled: true },
+        kalshi: { enabled: false },
+      },
+      venueSelection: { enabled: false },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictFakOrders: {
     name: 'predictFakOrders',
     type: FeatureFlagType.Remote,
