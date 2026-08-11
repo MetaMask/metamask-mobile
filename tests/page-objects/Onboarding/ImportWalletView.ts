@@ -65,6 +65,12 @@ class ImportWalletView {
   }
 
   seedPhraseInput(index: number, onboarding = true): EncapsulatedElementType {
+    // Onboarding ImportFromSecretRecoveryPhrase uses phrase-input-id;
+    // post-onboarding ImportNewSecretRecoveryPhrase uses seed-phrase-input.
+    const androidSeedPhraseInputPrefix = onboarding
+      ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+      : ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_FIELD;
+
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(
@@ -79,8 +85,8 @@ class ImportWalletView {
           // SEED_PHRASE_INPUT_FIELD (`seed-phrase-input`, used by Import New SRP).
           PlaywrightMatchers.getElementById(
             index === 0
-              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
-              : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+              ? androidSeedPhraseInputPrefix
+              : `${androidSeedPhraseInputPrefix}_${index}`,
             {
               exact: true,
             },

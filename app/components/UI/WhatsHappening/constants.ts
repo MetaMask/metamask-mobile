@@ -1,4 +1,5 @@
-export const MAX_ITEMS_DISPLAYED = 5;
+/** Skeleton placeholder count while the market overview is loading. */
+export const SKELETON_CARD_COUNT = 5;
 
 /** Compact carousel card width (px). */
 export const WHATS_HAPPENING_CARD_WIDTH = 280;

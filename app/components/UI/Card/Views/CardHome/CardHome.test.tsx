@@ -406,13 +406,13 @@ jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
   default: () => mockUseMoneyAccountCardLinkage(),
 }));
 
-const mockUseMoneyAccountBalance = jest.fn(() => ({
+const mockUseMoneyVaultApy = jest.fn(() => ({
   apyPercent: undefined as number | undefined,
 }));
 
-jest.mock('../../../Money/hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../../Money/hooks/useMoneyVaultApy', () => ({
   __esModule: true,
-  default: () => mockUseMoneyAccountBalance(),
+  default: () => mockUseMoneyVaultApy(),
 }));
 
 const mockFetchCardDetailsToken = jest.fn();
@@ -6939,7 +6939,7 @@ describe('CardHome Component', () => {
     it('advertises 1% mUSD back for virtual cardholders', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: 4 });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
 
       render();
 
@@ -6980,7 +6980,7 @@ describe('CardHome Component', () => {
         isError: false,
         refetch: mockRefetchAllData,
       });
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: 4 });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
 
       render();
 
@@ -6991,7 +6991,7 @@ describe('CardHome Component', () => {
     it('renders the no-APY subtitle and omits the APY bullet when apyPercent is undefined', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: undefined });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: undefined });
 
       render();
 
@@ -7004,7 +7004,7 @@ describe('CardHome Component', () => {
     it('interpolates apyPercent into the subtitle and APY bullet when defined', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: 4 });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
 
       render();
 

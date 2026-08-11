@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
-import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import type { ImmersveProgramConfig } from '../../../../../selectors/featureFlagController/card';
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
@@ -39,22 +39,16 @@ const CONFIG: ImmersveProviderConfig = {
   appUrl: 'https://app.immersve.com',
 };
 
-const FEATURE_FLAG: CardFeatureFlag = {
-  immersve: {
-    network: 'base-sepolia',
-    cardProgramId: 'program-1',
-    partnerAccountId: 'partner-1',
-    fundingChannelId: 'base-channel',
-  },
-  immersveCountries: ['GB'],
+const PROGRAM_CONFIG: ImmersveProgramConfig = {
+  network: 'base-sepolia',
+  cardProgramId: 'program-1',
+  partnerAccountId: 'partner-1',
+  fundingChannelId: 'base-channel',
 };
 
-const FEATURE_FLAG_WITH_SPENDER: CardFeatureFlag = {
-  immersve: {
-    ...FEATURE_FLAG.immersve,
-    spenderAddress: '0x2222222222222222222222222222222222222222',
-  },
-  immersveCountries: ['GB'],
+const PROGRAM_CONFIG_WITH_SPENDER: ImmersveProgramConfig = {
+  ...PROGRAM_CONFIG,
+  spenderAddress: '0x2222222222222222222222222222222222222222',
 };
 
 function makeJwt(expMs: number): string {
@@ -64,7 +58,9 @@ function makeJwt(expMs: number): string {
   return `h.${payload}.s`;
 }
 
-function createProvider(featureFlag: CardFeatureFlag | null = FEATURE_FLAG) {
+function createProvider(
+  programConfig: ImmersveProgramConfig | null = PROGRAM_CONFIG,
+) {
   const service = {
     get: jest.fn(),
     post: jest.fn(),
@@ -79,7 +75,7 @@ function createProvider(featureFlag: CardFeatureFlag | null = FEATURE_FLAG) {
   const provider = new ImmersveProvider({
     service,
     config: CONFIG,
-    getCardFeatureFlag: () => featureFlag,
+    getProgramConfig: () => programConfig,
   });
   return { provider, service };
 }
@@ -184,8 +180,8 @@ describe('ImmersveProvider', () => {
 
     it('prefers the feature-flag clientApplicationId over the env config', async () => {
       const { provider, service } = createProvider({
-        immersve: { ...FEATURE_FLAG.immersve, clientApplicationId: 'flag-app' },
-        immersveCountries: ['GB'],
+        ...PROGRAM_CONFIG,
+        clientApplicationId: 'flag-app',
       });
       service.post.mockResolvedValue({
         id: 'login-req-1',
@@ -202,8 +198,8 @@ describe('ImmersveProvider', () => {
 
     it('prefers the feature-flag appUrl over the env config', async () => {
       const { provider, service } = createProvider({
-        immersve: { ...FEATURE_FLAG.immersve, appUrl: 'https://flag.app' },
-        immersveCountries: ['GB'],
+        ...PROGRAM_CONFIG,
+        appUrl: 'https://flag.app',
       });
       service.post.mockResolvedValue({
         id: 'login-req-1',
@@ -545,7 +541,7 @@ describe('ImmersveProvider', () => {
     });
 
     it('createFundingSource throws when fundingChannelId is unconfigured', async () => {
-      const { provider } = createProvider({ immersve: { cardProgramId: 'p' } });
+      const { provider } = createProvider({ cardProgramId: 'p' });
       await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
         CardProviderError,
       );
@@ -722,7 +718,7 @@ describe('ImmersveProvider', () => {
 
     it('getSpendingPrerequisites uses hardcoded constants when program fields are absent', async () => {
       const { provider, service } = createProvider({
-        immersve: { cardProgramId: 'program-1' },
+        cardProgramId: 'program-1',
       });
       service.post.mockResolvedValue({ prerequisites: [] });
 
@@ -740,7 +736,7 @@ describe('ImmersveProvider', () => {
     });
 
     it('getSpendingPrerequisites throws when cardProgramId is unconfigured', async () => {
-      const { provider } = createProvider({ immersve: {} });
+      const { provider } = createProvider({});
 
       await expect(
         provider.getSpendingPrerequisites('fs-1', {}, TOKENS),
@@ -1029,7 +1025,7 @@ describe('ImmersveProvider', () => {
         ...TOKENS,
         accountAddress: fundingAddress,
       };
-      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
       service.get.mockImplementation(
         routeGet({
           cards: { items: [activeCard] },
@@ -1069,7 +1065,7 @@ describe('ImmersveProvider', () => {
         ...TOKENS,
         accountAddress: fundingAddress,
       };
-      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
       service.get.mockImplementation(
         routeGet({
           cards: { items: [activeCard] },
@@ -1100,7 +1096,7 @@ describe('ImmersveProvider', () => {
         ...TOKENS,
         accountAddress: fundingAddress,
       };
-      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
       service.get.mockImplementation(
         routeGet({
           cards: { items: [activeCard] },
@@ -1149,7 +1145,7 @@ describe('ImmersveProvider', () => {
         ...TOKENS,
         accountAddress: fundingAddress,
       };
-      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
       service.get.mockImplementation(
         routeGet({
           cards: { items: [activeCard] },
@@ -1355,10 +1351,8 @@ describe('ImmersveProvider', () => {
 
     it('prefers feature-flag secureApiBaseUrl over config', async () => {
       const { provider, service } = createProvider({
-        immersve: {
-          ...FEATURE_FLAG.immersve,
-          secureApiBaseUrl: 'https://ff-sec.example.com',
-        },
+        ...PROGRAM_CONFIG,
+        secureApiBaseUrl: 'https://ff-sec.example.com',
       });
       service.request.mockResolvedValue({});
 
