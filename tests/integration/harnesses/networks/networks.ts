@@ -24,7 +24,7 @@
  * USAGE — see also tests/integration/AGENTS.md
  *
  *     import { buildNetworksIntegrationHarness }
- *       from '../../tests/integration/harnesses/networks';
+ *       from '../../tests/integration/harnesses/networks/networks';
  *
  *     const { networkController } = buildNetworksIntegrationHarness();
  *     networkController.addNetwork({ chainId: '0x64', ... });

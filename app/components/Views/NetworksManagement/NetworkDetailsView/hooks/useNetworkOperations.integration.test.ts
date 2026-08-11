@@ -9,8 +9,8 @@
 import { act } from '@testing-library/react-native';
 import { KnownCaipNamespace } from '@metamask/utils';
 
-import { buildNetworksFlowHarness } from '../../../../../../tests/integration/harnesses/networks-flow';
-import { HARNESS_CUSTOM_CHAIN_ID } from '../../../../../../tests/integration/harnesses/networks';
+import { buildNetworksFlowHarness } from '../../../../../../tests/integration/harnesses/networks/networks-flow';
+import { HARNESS_CUSTOM_CHAIN_ID } from '../../../../../../tests/integration/harnesses/networks/networks';
 import type { NetworkFormState } from '../NetworkDetailsView.types';
 import { useNetworkOperations } from './useNetworkOperations';
 

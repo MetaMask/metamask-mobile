@@ -27,7 +27,7 @@
  * USAGE:
  *
  *     import { buildNetworksFlowHarness }
- *       from '../../../../../../tests/integration/harnesses/networks-flow';
+ *       from '../../../../../../tests/integration/harnesses/networks/networks-flow';
  *     import { useNetworkOperations } from './useNetworkOperations';
  *
  *     const flow = buildNetworksFlowHarness();
@@ -56,7 +56,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn(),
 }));
 
-jest.mock('../../../app/components/hooks/useAnalytics/useAnalytics', () => ({
+jest.mock('../../../../app/components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     identify: mockIdentify,
@@ -64,13 +64,13 @@ jest.mock('../../../app/components/hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-import Engine from '../../../app/core/Engine';
+import Engine from '../../../../app/core/Engine';
 import {
   renderHookWithProvider,
   type DeepPartial,
-} from '../../../app/util/test/renderWithProvider';
-import initialRootState from '../../../app/util/test/initial-root-state';
-import type { RootState } from '../../../app/reducers';
+} from '../../../../app/util/test/renderWithProvider';
+import initialRootState from '../../../../app/util/test/initial-root-state';
+import type { RootState } from '../../../../app/reducers';
 import {
   buildNetworksIntegrationHarness,
   type NetworksIntegrationHarness,

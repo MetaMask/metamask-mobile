@@ -11,7 +11,7 @@ Four layers, each owning what no other can cover cheaply:
 - **CV** — real component render, mocked Engine. Owns UI variants and visual concerns.
 - **Unit** — pure functions. Owns business logic correctness.
 
-The point of Integration is _not_ "find bugs CV missed." It's "every flow a user can trigger has a deterministic 50ms test that proves it works end-to-end through real controller code." Bug-finding falls out of that as a side effect — including, as one example, the reverse-position class of bug that prompted this work. See [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration of perps use cases mapped to layers.
+The point of Integration is _not_ "find bugs CV missed." It's "every flow a user can trigger has a deterministic 50ms test that proves it works end-to-end through real controller code." Bug-finding falls out of that as a side effect — including, as one example, the reverse-position class of bug that prompted this work. See [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md) for the full enumeration of perps use cases mapped to layers.
 
 ## Strategy at a glance
 
@@ -96,7 +96,7 @@ The pattern: each layer is robust to the kinds of refactors that don't affect wh
 
 ## Perps coverage plan
 
-Driven by the use-case matrix in [`perps-use-cases.md`](perps-use-cases.md), which enumerates every user-facing perps flow and assigns each one to its primary test layer. The summary by area:
+Driven by the use-case matrix in [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md), which enumerates every user-facing perps flow and assigns each one to its primary test layer. The summary by area:
 
 | Area                                                        |   E2E | Integration |     CV |    Unit |   Total |
 | ----------------------------------------------------------- | ----: | ----------: | -----: | ------: | ------: |
@@ -120,7 +120,7 @@ Distribution: ~6% E2E, ~32% Integration, ~26% CV, ~36% Unit. A normal pyramid �
 
 Six phases, ~6 weeks total. Each phase is a **vertical slice through one functional area** — implementing all four layers (E2E, Integration, CV, Unit) at once for that area, then pausing for review before continuing. This lets the team validate the approach end-to-end on a small surface before scaling, and catches "the harness doesn't quite work for X" early rather than after 30 tests are written.
 
-The functional areas come from [`perps-use-cases.md`](perps-use-cases.md). Order is by user impact + integration-layer exercise (start where the harness gets stretched the most).
+The functional areas come from [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md). Order is by user impact + integration-layer exercise (start where the harness gets stretched the most).
 
 ### Phase 1 — Order lifecycle (week 1–2, ~20 hours)
 
@@ -178,7 +178,7 @@ Cross-cutting cleanup and the data-collection scaffolding for measuring the roll
 - **Mutation testing.** Schedule the first quarterly run — reintroduce a known controller bug, verify integration catches it.
 - **Outcome.** Smaller, faster, less flaky perps E2E suite. Measurement infra producing data to pitch wider rollout (Card, Rewards, Bridge, Swaps).
 
-See [`coverage-and-tracking.md`](coverage-and-tracking.md) for coverage targets and bug-tracking mechanism details, and [`perps-use-cases.md`](perps-use-cases.md) for the per-use-case layer assignments that drive each phase.
+See [`coverage-and-tracking.md`](coverage-and-tracking.md) for coverage targets and bug-tracking mechanism details, and [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md) for the per-use-case layer assignments that drive each phase.
 
 ---
 
@@ -186,7 +186,7 @@ See [`coverage-and-tracking.md`](coverage-and-tracking.md) for coverage targets 
 
 ```ts
 // app/path/to/myFeature.integration.test.ts
-import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps';
+import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps/perps';
 import { PERPS_ERROR_CODES } from '../../../../controllers/perps/perpsErrorCodes';
 
 describe('My perps feature', () => {
@@ -210,11 +210,17 @@ tests/integration/                           ← framework, mirrors tests/compon
 ├── STRATEGY.md                                this file
 ├── coverage.svg                               the diagram above
 ├── coverage-and-tracking.md                   coverage targets + bug-tracking mechanisms
-├── perps-use-cases.md                         every perps use case → primary test layer
 └── harnesses/
-    ├── perps.ts                               Shape A: provider-level harness
-    ├── perps-flow.ts                          Shape B: hook-flow harness
-    └── perps-component.tsx                    Shape C: rendered-component harness
+    ├── perps/
+    │   ├── perps.ts                           Shape A: provider-level harness
+    │   ├── perps-flow.ts                      Shape B: hook-flow harness
+    │   ├── perps-component.tsx                Shape C: rendered-component harness
+    │   └── perps-use-cases.md                 every perps use case → primary test layer
+    └── networks/
+        ├── networks.ts                        Shape A: controller-level harness
+        ├── networks-flow.ts                   Shape B: hook-flow harness
+        ├── networks.integration.test.ts       Shape A smoke + token wipe
+        └── core-ux-use-cases.md               Core UX network flows → layer
 
 app/components/UI/Perps/hooks/
 ├── usePerpsFlipPosition.test.ts               unit test (existing)

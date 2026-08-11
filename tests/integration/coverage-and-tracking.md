@@ -65,7 +65,7 @@ Per trading method: happy path + 3–5 main error paths + 1 multi-step flow ≈ 
 
 - First 20 tests: ~1 hour each (harness extensions for TradingService, PerpsController, multi-provider; learning curve)
 - Tests 20–150: ~30 min each (harness reused, patterns established)
-- Harness work: ~1 sprint upfront (extend `tests/integration/harnesses/perps.ts` to cover TradingService + full PerpsController, not just provider)
+- Harness work: ~1 sprint upfront (extend `tests/integration/harnesses/perps/perps.ts` to cover TradingService + full PerpsController, not just provider)
 
 **Total: 2–3 dev weeks for the pilot, including harness work.**
 
