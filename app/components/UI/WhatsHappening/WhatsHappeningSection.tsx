@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -30,7 +31,7 @@ import MarketInsightsDisclaimerBottomSheet from '../MarketInsights/components/Ma
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  MAX_ITEMS_DISPLAYED,
+  SKELETON_CARD_COUNT,
   WHATS_HAPPENING_CARD_MIN_HEIGHT,
   WHATS_HAPPENING_CARD_WIDTH,
   WhatsHappeningInteractionType,
@@ -58,13 +59,8 @@ const CARD_WIDTH = WHATS_HAPPENING_CARD_WIDTH;
 const VIEW_MORE_MIN_HEIGHT_CLASS = `min-h-[${WHATS_HAPPENING_CARD_MIN_HEIGHT}px]`;
 const GAP = 12;
 
-const SNAP_OFFSETS = Array.from(
-  { length: MAX_ITEMS_DISPLAYED },
-  (_, i) => i * (CARD_WIDTH + GAP),
-);
-
 const SKELETON_KEYS = Array.from(
-  { length: MAX_ITEMS_DISPLAYED },
+  { length: SKELETON_CARD_COUNT },
   (__, i) => `skeleton-${i}`,
 );
 
@@ -96,10 +92,19 @@ const WhatsHappeningSection = forwardRef<
   const title = strings('whats_happening.title');
   const [isAIDisclaimerVisible, setIsAIDisclaimerVisible] = useState(false);
 
-  const internalFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED, {
+  const internalFeed = useWhatsHappening({
     enabled: feed === undefined,
   });
   const { items, isLoading, error, refresh } = feed ?? internalFeed;
+
+  const snapOffsets = useMemo(
+    () =>
+      Array.from(
+        { length: items.length + 1 },
+        (_, i) => i * (CARD_WIDTH + GAP),
+      ),
+    [items.length],
+  );
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -210,7 +215,7 @@ const WhatsHappeningSection = forwardRef<
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={tw.style('px-4 gap-3')}
-        snapToOffsets={SNAP_OFFSETS}
+        snapToOffsets={snapOffsets}
         decelerationRate="fast"
         onMomentumScrollEnd={handleMomentumScrollEnd}
         testID={WhatsHappeningSelectorsIDs.CAROUSEL}
