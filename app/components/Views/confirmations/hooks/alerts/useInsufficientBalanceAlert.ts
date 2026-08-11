@@ -7,7 +7,7 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import {
@@ -37,7 +37,7 @@ export const useInsufficientBalanceAlert = ({
   const { goToBuy } = useRampNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isTransactionValueUpdating } = useConfirmationContext();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
   const { isSupported: isGaslessSupported, pending: isGaslessCheckPending } =
     useIsGaslessSupported();
   const isUsingPay = useTransactionPayHasSourceAmount();

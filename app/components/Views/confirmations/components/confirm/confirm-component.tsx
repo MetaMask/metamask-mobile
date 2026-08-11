@@ -19,7 +19,7 @@ import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
-import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
@@ -150,9 +150,9 @@ interface ConfirmInternalProps extends ConfirmProps {
 
 /**
  * The confirmation shell that mounts only once an approval request exists.
- * Everything expensive lives here — `useConfirmActions` (and its
- * `useTransactionConfirm` fan-out), `useFullScreenConfirmation`, styles — so it
- * never runs during the loader phase.
+ * Everything expensive lives here — `useFullScreenConfirmation`, styles — so it
+ * never runs during the loader phase. Reject-only, so it uses the lightweight
+ * `useConfirmReject` rather than the full `useConfirmActions` fan-out.
  */
 const ConfirmInternal = ({
   approvalRequestType,
@@ -162,7 +162,7 @@ const ConfirmInternal = ({
 }: ConfirmInternalProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
     disableSafeArea,

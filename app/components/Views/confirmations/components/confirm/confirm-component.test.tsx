@@ -12,12 +12,21 @@ import {
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Confirm, ConfirmationLoader } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
-import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 
-jest.mock('../../hooks/useConfirmActions');
+jest.mock('../../hooks/useConfirmReject');
+
+// The rendered <Footer /> still uses the full useConfirmActions hook; mock it
+// so its useTransactionConfirm -> ramps/react-query fan-out doesn't run here.
+jest.mock('../../hooks/useConfirmActions', () => ({
+  useConfirmActions: () => ({
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
+  }),
+}));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -151,14 +160,13 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
 }));
 
 describe('Confirm', () => {
-  const useConfirmActionsMock = jest.mocked(useConfirmActions);
+  const useConfirmRejectMock = jest.mocked(useConfirmReject);
   const mockOnReject = jest.fn();
   const useParamsMock = jest.mocked(useParams);
 
   beforeEach(() => {
-    useConfirmActionsMock.mockReturnValue({
+    useConfirmRejectMock.mockReturnValue({
       onReject: mockOnReject,
-      onConfirm: jest.fn(),
     });
 
     jest.mocked(useConfirmationAlerts).mockReturnValue([]);

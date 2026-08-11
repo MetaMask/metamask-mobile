@@ -5,13 +5,13 @@ import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
-import Routes from '../../../../constants/navigation/Routes';
 import { navigateToActivityAfterConfirmation } from '../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { isSignatureRequest } from '../utils/confirm';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
+import { useConfirmReject } from './useConfirmReject';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
@@ -21,20 +21,13 @@ import { useLedgerConfirm } from './useLedgerConfirm';
 import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 
 export const useConfirmActions = () => {
-  const {
-    onConfirm: onRequestConfirm,
-    onReject: onRequestReject,
-    approvalRequest,
-  } = useApprovalRequest();
+  const { onConfirm: onRequestConfirm, approvalRequest } = useApprovalRequest();
+  const { onReject } = useConfirmReject();
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
   const transactionMetadata = useTransactionMetadataRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
-  const {
-    cancelQRScanRequestIfPresent,
-    isSigningQRObject,
-    setScannerVisible,
-    setSigningConfirmed,
-  } = useQRHardwareContext();
+  const { isSigningQRObject, setScannerVisible, setSigningConfirmed } =
+    useQRHardwareContext();
   const navigation = useNavigation<AppNavigationProp>();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
@@ -43,31 +36,6 @@ export const useConfirmActions = () => {
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
   const isQrAccount = useIsConfirmationFromQrAccount();
-
-  const onReject = useCallback(
-    async (error?: Error, skipNavigation = false, navigateToHome = false) => {
-      await cancelQRScanRequestIfPresent();
-      onRequestReject(error);
-      if (!skipNavigation) {
-        navigation.goBack();
-      }
-      if (navigateToHome) {
-        navigation.navigate(Routes.WALLET_VIEW);
-      }
-      if (isSignatureReq && approvalRequest?.id) {
-        captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
-        PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
-      }
-    },
-    [
-      cancelQRScanRequestIfPresent,
-      captureSignatureMetrics,
-      navigation,
-      onRequestReject,
-      isSignatureReq,
-      approvalRequest?.id,
-    ],
-  );
 
   const executeApproval = useCallback(async () => {
     const waitForResult = approvalType !== ApprovalType.TransactionBatch;
