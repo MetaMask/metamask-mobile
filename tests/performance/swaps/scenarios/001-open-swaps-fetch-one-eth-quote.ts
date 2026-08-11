@@ -14,12 +14,13 @@ import {
   RuntimeCapture,
   ScenarioPhase,
   summarizeCapture,
+  SWAPS_PERFORMANCE_SCENARIO_001,
   SwapsPerformanceArtifact,
-} from './diagnostics';
+} from '../diagnostics';
 import {
   buildMmSessionProbeArgs,
   formatMmSessionSetupCommand,
-} from './runner-config';
+} from '../runner-config';
 
 const LOG_PREFIX = '[SWAPS_PERF_ANALYSIS]';
 const DEFAULT_METRO_PORT = 8081;
@@ -219,9 +220,9 @@ function writeArtifact(artifact: SwapsPerformanceArtifact): {
 async function runScenario(): Promise<void> {
   const metroPort = parseMetroPort(process.argv.slice(2));
   const createdAt = new Date();
-  const runId = `open-swaps-fetch-one-eth-quote-${createdAt
-    .toISOString()
-    .replace(/[:.]/gu, '-')}`;
+  const runId = `${SWAPS_PERFORMANCE_SCENARIO_001.id.toLowerCase()}-${
+    SWAPS_PERFORMANCE_SCENARIO_001.slug
+  }-${createdAt.toISOString().replace(/[:.]/gu, '-')}`;
   const phases: ScenarioPhase[] = [];
   let capture: RuntimeCapture | null = null;
   let sourceTokenText: string | null = null;
@@ -243,7 +244,7 @@ async function runScenario(): Promise<void> {
       throw new Error(
         `No active mm session is available. First run ${formatMmSessionSetupCommand(
           metroPort,
-        )}, then unlock MetaMask and leave it on Wallet before rerunning the prototype.`,
+        )}, then unlock MetaMask and leave it on Wallet before rerunning ${SWAPS_PERFORMANCE_SCENARIO_001.id}.`,
       );
     }
     sessionAvailable = true;
@@ -326,7 +327,9 @@ async function runScenario(): Promise<void> {
       schemaVersion: 1,
       run: {
         id: runId,
-        scenario: 'open-swaps-fetch-one-eth-quote',
+        scenario: SWAPS_PERFORMANCE_SCENARIO_001.slug,
+        scenarioId: SWAPS_PERFORMANCE_SCENARIO_001.id,
+        scenarioName: SWAPS_PERFORMANCE_SCENARIO_001.name,
         createdAt: createdAt.toISOString(),
         commit: getCommit(),
         platform: 'ios-simulator',

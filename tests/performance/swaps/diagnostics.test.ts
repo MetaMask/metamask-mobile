@@ -10,6 +10,7 @@ import {
   ScenarioPhase,
   ScenarioSummary,
   summarizeCapture,
+  SWAPS_PERFORMANCE_SCENARIO_001,
   SwapsPerformanceArtifact,
 } from './diagnostics';
 
@@ -20,7 +21,9 @@ function createArtifact(
     schemaVersion: 1,
     run: {
       id: 'run-id',
-      scenario: 'open-swaps-fetch-one-eth-quote',
+      scenario: SWAPS_PERFORMANCE_SCENARIO_001.slug,
+      scenarioId: SWAPS_PERFORMANCE_SCENARIO_001.id,
+      scenarioName: SWAPS_PERFORMANCE_SCENARIO_001.name,
       createdAt: '2026-08-11T00:00:00.000Z',
       commit: 'abc1234',
       platform: 'ios-simulator',
@@ -177,6 +180,38 @@ describe('Swaps performance diagnostics', () => {
     const parsedArtifact = parseSwapsPerformanceArtifact(parsedJson);
 
     expect(parsedArtifact).toEqual(artifact);
+  });
+
+  it('labels legacy artifacts with the numbered scenario metadata', () => {
+    const artifact = createArtifact();
+    const legacyArtifact = {
+      ...artifact,
+      run: {
+        id: artifact.run.id,
+        scenario: artifact.run.scenario,
+        createdAt: artifact.run.createdAt,
+        commit: artifact.run.commit,
+        platform: artifact.run.platform,
+        metroPort: artifact.run.metroPort,
+        status: artifact.run.status,
+      },
+    };
+    const parsedArtifact = parseSwapsPerformanceArtifact(legacyArtifact);
+
+    expect(parsedArtifact?.run.scenarioId).toBe('SWAPS-PERF-001');
+    expect(parsedArtifact?.run.scenarioName).toBe(
+      'Open Swaps and fetch a 1 ETH quote',
+    );
+  });
+
+  it('formats the numbered scenario ID and name in the report title', () => {
+    const artifact = createArtifact();
+
+    const report = formatArtifactMarkdown(artifact);
+
+    expect(report).toContain(
+      '# SWAPS-PERF-001 — Open Swaps and fetch a 1 ETH quote',
+    );
   });
 
   it('flags failed network requests', () => {

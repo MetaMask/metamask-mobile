@@ -1,6 +1,12 @@
 export const SWAPS_PERFORMANCE_DIAGNOSTICS_KEY =
   '__SWAPS_PERF_ANALYSIS__' as const;
 
+export const SWAPS_PERFORMANCE_SCENARIO_001 = {
+  id: 'SWAPS-PERF-001',
+  name: 'Open Swaps and fetch a 1 ETH quote',
+  slug: 'open-swaps-fetch-one-eth-quote',
+} as const;
+
 export interface ScenarioPhase {
   name: 'open-swaps' | 'select-destination' | 'fetch-first-quote';
   startedAt: number;
@@ -57,7 +63,9 @@ export interface SwapsPerformanceArtifact {
   schemaVersion: 1;
   run: {
     id: string;
-    scenario: 'open-swaps-fetch-one-eth-quote';
+    scenario: typeof SWAPS_PERFORMANCE_SCENARIO_001.slug;
+    scenarioId: typeof SWAPS_PERFORMANCE_SCENARIO_001.id;
+    scenarioName: typeof SWAPS_PERFORMANCE_SCENARIO_001.name;
     createdAt: string;
     commit: string;
     platform: 'ios-simulator';
@@ -204,7 +212,7 @@ function parseScenarioSummary(value: unknown): ScenarioSummary | null {
 }
 
 /**
- * Builds the opt-in Hermes collector used by the Swaps performance prototype.
+ * Builds the opt-in Hermes collector used by the Swaps performance analysis.
  * Network URLs are reduced to host and normalized path before storage.
  *
  * @returns A self-contained JavaScript expression for Runtime.evaluate.
@@ -231,7 +239,7 @@ export function buildInstallDiagnosticsExpression(): string {
     function sanitizeMessage(message){
       return String(message).replace(/https?:\\/\\/\\S+/g,'[url]').replace(/0x[0-9a-f]{16,}/gi,'[hex]').slice(0,240);
     }
-    if(!root.fetch.__swapsPerfPrototypeWrapped){
+    if(!root.fetch.__swapsPerfAnalysisWrapped&&!root.fetch.__swapsPerfPrototypeWrapped){
       var originalFetch=root.fetch;
       var wrappedFetch=function(){
         var args=arguments;
@@ -246,12 +254,13 @@ export function buildInstallDiagnosticsExpression(): string {
         if(capture.network.length>1000){capture.network=capture.network.slice(-750);}
         return originalFetch.apply(root,args).then(function(response){entry.status=response.status;entry.durationMs=Date.now()-entry.timestamp;return response;}).catch(function(error){entry.error=sanitizeMessage(error);entry.durationMs=Date.now()-entry.timestamp;throw error;});
       };
+      wrappedFetch.__swapsPerfAnalysisWrapped=true;
       wrappedFetch.__swapsPerfPrototypeWrapped=true;
       root.fetch=wrappedFetch;
     }
     ['warn','error'].forEach(function(level){
       var original=root.console[level];
-      if(original.__swapsPerfPrototypeWrapped){return;}
+      if(original.__swapsPerfAnalysisWrapped||original.__swapsPerfPrototypeWrapped){return;}
       var wrapped=function(){
         var capture=root[key];
         if(capture&&capture.enabled){
@@ -261,6 +270,7 @@ export function buildInstallDiagnosticsExpression(): string {
         }
         return original.apply(root.console,arguments);
       };
+      wrapped.__swapsPerfAnalysisWrapped=true;
       wrapped.__swapsPerfPrototypeWrapped=true;
       root.console[level]=wrapped;
     });
@@ -373,7 +383,11 @@ export function parseSwapsPerformanceArtifact(
     value.schemaVersion !== 1 ||
     !isRecord(value.run) ||
     typeof value.run.id !== 'string' ||
-    value.run.scenario !== 'open-swaps-fetch-one-eth-quote' ||
+    value.run.scenario !== SWAPS_PERFORMANCE_SCENARIO_001.slug ||
+    (value.run.scenarioId !== undefined &&
+      value.run.scenarioId !== SWAPS_PERFORMANCE_SCENARIO_001.id) ||
+    (value.run.scenarioName !== undefined &&
+      value.run.scenarioName !== SWAPS_PERFORMANCE_SCENARIO_001.name) ||
     typeof value.run.createdAt !== 'string' ||
     typeof value.run.commit !== 'string' ||
     value.run.platform !== 'ios-simulator' ||
@@ -407,7 +421,9 @@ export function parseSwapsPerformanceArtifact(
     schemaVersion: 1,
     run: {
       id: value.run.id,
-      scenario: 'open-swaps-fetch-one-eth-quote',
+      scenario: SWAPS_PERFORMANCE_SCENARIO_001.slug,
+      scenarioId: SWAPS_PERFORMANCE_SCENARIO_001.id,
+      scenarioName: SWAPS_PERFORMANCE_SCENARIO_001.name,
       createdAt: value.run.createdAt,
       commit: value.run.commit,
       platform: 'ios-simulator',
@@ -507,7 +523,7 @@ export function hasPositiveNumericValue(text: string | null): boolean {
 }
 
 /**
- * Produces a compact analysis for one prototype artifact.
+ * Produces a compact analysis for one scenario artifact.
  *
  * @param capture - Runtime render/network/console capture.
  * @param phases - Scenario phase boundaries using the same wall clock.
@@ -657,7 +673,7 @@ function summarizeNetworkRequestCounts(
 }
 
 /**
- * Formats the single-run prototype result as a reviewable Markdown report.
+ * Formats the single-run scenario result as a reviewable Markdown report.
  *
  * @param artifact - Completed or failed scenario artifact.
  * @returns Markdown report text.
@@ -667,7 +683,7 @@ export function formatArtifactMarkdown(
 ): string {
   const findings = findScenarioFindings(artifact);
   const lines = [
-    '# Swaps performance prototype',
+    `# ${artifact.run.scenarioId} — ${artifact.run.scenarioName}`,
     '',
     `Status: **${artifact.run.status}**`,
     `Run: \`${artifact.run.id}\``,
