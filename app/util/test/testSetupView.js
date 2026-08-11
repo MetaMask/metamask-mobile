@@ -117,6 +117,29 @@ jest.mock('expo/fetch', () => ({
   fetch,
 }));
 
+// Mock expo-modules-core: globalThis.expo is installed by the native runtime,
+// which doesn't run in Jest, so importing it unmocked throws. SecureContentView
+// pulls it in and is reachable from most views via ErrorBoundary.
+jest.mock('expo-modules-core', () => ({
+  EventEmitter: jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+    emit: jest.fn(),
+  })),
+  NativeModule: jest.fn(),
+  NativeModulesProxy: {},
+  requireNativeModule: jest.fn(() => ({})),
+  requireOptionalNativeModule: jest.fn(() => null),
+  // Native view managers resolve to a host component name so that children
+  // (and their testIDs) still render in tests.
+  requireNativeViewManager: jest.fn((name) => name),
+  Platform: { OS: 'ios' },
+  CodedError: class CodedError extends Error {},
+  UnavailabilityError: class UnavailabilityError extends Error {},
+  LegacyEventEmitter: jest.fn(),
+}));
+
 // Mock expo-screen-capture: it reaches for a native module at import time, so
 // importing it unmocked throws.
 jest.mock('expo-screen-capture', () => ({
