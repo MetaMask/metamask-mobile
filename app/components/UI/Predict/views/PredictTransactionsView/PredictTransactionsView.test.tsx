@@ -467,6 +467,29 @@ describe('PredictTransactionsView', () => {
     expect(screen.queryByText('+$4.50')).toBeNull();
   });
 
+  it('shows redeemable push positions as resolved rather than won', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[
+          createClaimPendingPosition({
+            cashPnl: 0,
+            status: PredictPositionStatus.REDEEMABLE,
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('Prediction resolved')).toBeOnTheScreen();
+    expect(screen.queryByText('Prediction won')).toBeNull();
+  });
+
   it('omits non-actionable claim pending positions', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({

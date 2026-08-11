@@ -64,7 +64,7 @@ import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import useCreditBalance from '../../hooks/useCreditBalance';
-import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
 import {
   ToastContext,
@@ -195,7 +195,7 @@ const CardHome = () => {
     startLinkFlow: startMoneyAccountLink,
     isLinking: isMoneyAccountLinkInProgress,
   } = useMoneyAccountCardLinkage();
-  const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
+  const { apyPercent: moneyAccountApyPercent } = useMoneyVaultApy();
   const credit = useCreditBalance();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const hasMetalCard = data?.card?.type === CardType.METAL;

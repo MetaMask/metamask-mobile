@@ -31,7 +31,7 @@ const HomepageBalanceBreakdownAllocationBar = ({
   const privacyMode = useSelector(selectPrivacyMode);
 
   return (
-    <Box twClassName="mb-2 gap-3 pt-1">
+    <Box twClassName="mx-4 mb-2 gap-3 pt-1">
       <Text
         testID={HomepageBalanceBreakdownTestIds.ALLOCATION_TITLE}
         variant={TextVariant.HeadingMd}

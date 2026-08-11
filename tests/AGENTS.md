@@ -6,9 +6,9 @@ Single agent index for **tests/**. Pointers only; details live in the canonical 
 
 - **tests/smoke-appium** — Appium smoke specs (Playwright). Primary E2E path for new coverage.
 - **tests/page-objects**, **tests/selectors** — Shared Page Objects and selectors used by Appium smoke.
+- **tests/helpers** — Shared E2E helpers (swap, perps, analytics, etc.).
+- **tests/smoke** — No Detox specs left; only shared Appium helpers under `identity/utils/` and `snaps/mocks.ts` (relocate in a follow-up to avoid feature-team CODEOWNERS globs).
 - **tests/** — `tests/framework/`, `tests/api-mocking/`, `tests/docs/`, `tests/smoke-appium/`, etc. Framework, fixtures, mocking, smoke specs.
-- **tests/smoke** — Legacy Detox smoke (do not add new coverage here; treat as gone for new work).
-- **wdio/** — Removed / deprecated legacy WebdriverIO. Do not extend.
 - **component view tests** — `app/**/*.view.test.tsx`. Jest component view tests.
 - **integration tests** — `app/**/*.integration.test.ts?(x)`. Jest controller-app integration tests that use `tests/integration/` harnesses and `jest.config.integration.js`.
 
@@ -24,6 +24,21 @@ Single agent index for **tests/**. Pointers only; details live in the canonical 
 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Canonical guide: patterns, Page Objects, assertions, gestures, prohibited patterns.
 - [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke: main-e2e builds, `yarn appium-smoke:*`, local setup, CI.
+
+## Dual-framework lint freeze (MMQA-2230)
+
+ESLint blocks **new** dual-framework debt in POs, flows, and Appium specs:
+
+| Banned                                                                                         | Prefer                                             |
+| ---------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `UnifiedGestures`                                                                              | `Gestures`                                         |
+| `FrameworkDetector`                                                                            | Appium-only `Gestures` / `Assertions` / `Matchers` |
+| `encapsulated` / `encapsulatedAction` / `asPlaywrightElement` / `asDetoxElement`               | `Matchers` + `Gestures` / `Assertions`             |
+| `PlaywrightMatchers` / `PlaywrightGestures` / `PlaywrightAssertions` / `PlaywrightWebMatchers` | `Matchers` / `Gestures` / `Assertions`             |
+
+- **New files**: **error**
+- **Allowlisted existing debt**: **warn** — list in [`tests/framework/dual-framework-burndown.js`](framework/dual-framework-burndown.js). Do not add paths to that list; migrate instead.
+- Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
 
 ## Canonical Sources (read these, do not duplicate)
 
@@ -49,8 +64,7 @@ Unit tests under `tests/` (e.g. framework tests): [docs/testing/unit-testing.md]
 
 ## Before working
 
-- **E2E (new work)** — Appium smoke only (`tests/smoke-appium/`). Use `withFixtures` + `FixtureBuilder`; Page Object methods only; wait with Assertions (not fixed delays); selectors in `tests/selectors/` or page folder; import `Gestures` / `Assertions` / `Matchers` from `tests/framework/index.ts`. **Do not** import `UnifiedGestures`. Runbook: [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md).
+- **E2E (new work)** — Appium smoke only (`tests/smoke-appium/`). Use `withFixtures` + `FixtureBuilder`; Page Object methods only; wait with Assertions (not fixed delays); selectors in `tests/selectors/` or page folder; import `Gestures` / `Assertions` / `Matchers` from `tests/framework/index.ts`. **Do not** import `UnifiedGestures`, `FrameworkDetector`, `encapsulated*`, or `Playwright*` dual APIs. Runbook: [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md).
 - **tests/framework** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Yarn only.
 - **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See [docs/testing/component-view-tests.md](../docs/testing/component-view-tests.md).
 - **integration tests** — Use `tests/integration/harnesses/<domain>.ts`; no test-local `jest.mock(...)`; run with `yarn jest -c jest.config.integration.js`. See [tests/integration/AGENTS.md](integration/AGENTS.md).
-- **wdio/** / **tests/smoke (Detox)** — Do not extend. New coverage goes to Appium smoke.

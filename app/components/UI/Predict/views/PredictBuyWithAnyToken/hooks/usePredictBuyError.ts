@@ -272,6 +272,29 @@ export const usePredictBuyError = ({
       }
 
       if (orderError.status === 'error') {
+        if (activeOrder.errorStage === 'payment') {
+          const tokenSymbol =
+            activeOrder.paymentTokenSymbol ??
+            selectedPaymentToken?.symbol ??
+            undefined;
+          const description = tokenSymbol
+            ? strings('predict.order.payment_failed_body', {
+                token: tokenSymbol,
+              })
+            : strings('predict.order.payment_failed_body_generic');
+
+          DevLogger.log('usePredictBuyError: Showing payment error banner', {
+            rawError: activeOrder.error,
+            tokenSymbol,
+          });
+
+          return {
+            variant: 'payment_failed',
+            title: strings('predict.order.payment_failed_title'),
+            description,
+          };
+        }
+
         const errorMessage =
           orderError.error ?? strings('predict.order.order_failed_body');
 
@@ -290,6 +313,9 @@ export const usePredictBuyError = ({
       return null;
     }, [
       activeOrder?.error,
+      activeOrder?.errorStage,
+      activeOrder?.paymentTokenSymbol,
+      selectedPaymentToken?.symbol,
       preview,
       outcomeTokenPrice,
       isPlacingOrder,
