@@ -162,12 +162,17 @@ export class PredictMarketDataService extends BaseDataService<
       {
         queryKey: descriptor.queryKey,
         staleTime: descriptor.staleTime,
-        queryFn: ({ pageParam, signal }) =>
-          this.#marketData.fetchEvents(
+        queryFn: async ({ pageParam, signal }) => {
+          const page = await this.#marketData.fetchEvents(
             { ...params, cursor: pageParam as string | undefined },
             { signal: options?.signal ?? signal },
-          ) as Promise<Json & GetEventsResult>,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
+          );
+          return {
+            ...page,
+            nextCursor: page.nextCursor || undefined,
+          } as Json & GetEventsResult;
+        },
+        getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
       },
       cursor,
     );

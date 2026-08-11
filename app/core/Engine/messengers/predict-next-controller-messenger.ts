@@ -13,6 +13,6 @@ export const getPredictNextControllerMessenger = (
   >,
 ): PredictNextControllerMessenger =>
   new Messenger({
-    namespace: 'PredictNextController',
+    namespace: 'PredictMarketDataService',
     parent: rootMessenger,
   });

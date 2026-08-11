@@ -44,6 +44,18 @@ describe('PredictNext market data hooks', () => {
     expect(nextCursor).toBe('next');
   });
 
+  it('stops Event pagination for an empty cursor', () => {
+    useEventList(venueId, { limit: 20 });
+    const options = mockedUseInfiniteQuery.mock.calls[0][0];
+
+    const nextCursor = options.getNextPageParam?.(
+      { items: [], nextCursor: '' },
+      [],
+    );
+
+    expect(nextCursor).toBeUndefined();
+  });
+
   it('uses the Event detail descriptor', () => {
     useEventDetail(venueId, eventId);
 

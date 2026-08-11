@@ -13,5 +13,5 @@ export const useEventList = (
 ) =>
   useInfiniteQuery<GetEventsResult>({
     queryKey: marketDataQueries.getEvents(venueId, params).queryKey,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
   });

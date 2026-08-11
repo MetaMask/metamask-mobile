@@ -1,23 +1,15 @@
 import type { CreateServicePolicyOptions } from '@metamask/controller-utils';
-import { Messenger } from '@metamask/messenger';
 import Logger from '../../../../util/Logger';
 import { KalshiRemoteAdapter } from '../adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../adapters/remote/PredictApiReadClient';
 import {
-  PREDICT_MARKET_DATA_SERVICE_NAME,
   PredictMarketDataService,
-  type PredictMarketDataServiceActions,
-  type PredictMarketDataServiceEvents,
   type PredictMarketDataServiceMessenger,
 } from '../services/PredictMarketDataService';
 
 export const PREDICT_NEXT_CONTROLLER_NAME = 'PredictNextController' as const;
 
-export type PredictNextControllerMessenger = Messenger<
-  typeof PREDICT_NEXT_CONTROLLER_NAME,
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents
->;
+export type PredictNextControllerMessenger = PredictMarketDataServiceMessenger;
 
 export interface PredictNextControllerOptions {
   messenger: PredictNextControllerMessenger;
@@ -66,12 +58,8 @@ export class PredictNextController {
     }
 
     const adapter = new KalshiRemoteAdapter(client);
-    const messenger: PredictMarketDataServiceMessenger = new Messenger({
-      namespace: PREDICT_MARKET_DATA_SERVICE_NAME,
-      parent: this.#options.messenger,
-    });
     this.#service = new PredictMarketDataService({
-      messenger,
+      messenger: this.#options.messenger,
       marketData: adapter.marketData,
       venueId: adapter.venueId,
       policyOptions: this.#options.policyOptions,

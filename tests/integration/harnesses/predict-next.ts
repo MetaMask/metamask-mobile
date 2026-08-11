@@ -13,7 +13,7 @@ import type {
  * PredictNext integration-test harness.
  *
  * REAL: PredictNextController, PredictMarketDataService, KalshiRemoteAdapter,
- * PredictApiReadClient, and both messenger namespaces.
+ * PredictApiReadClient, and the public service messenger namespace.
  * MOCKED: HTTP fetch and app-shell base URL/client version configuration.
  */
 
@@ -45,10 +45,10 @@ export const buildPredictNextIntegrationHarness = (
   responder: PredictFetchResponder,
 ): PredictNextIntegrationHarness => {
   const messenger: PredictNextControllerMessenger = new Messenger<
-    'PredictNextController',
+    'PredictMarketDataService',
     PredictMarketDataServiceActions,
     PredictMarketDataServiceEvents
-  >({ namespace: 'PredictNextController' });
+  >({ namespace: 'PredictMarketDataService' });
   const fetchMock = jest.fn(async (input, init) =>
     jsonResponse(await responder(String(input), init)),
   ) as jest.MockedFunction<typeof fetch>;

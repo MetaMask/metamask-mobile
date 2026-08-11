@@ -65,6 +65,16 @@ describe('PredictMarketDataService', () => {
     );
   });
 
+  it('stops Event pagination for an empty cursor', async () => {
+    const marketData = createMarketData();
+    marketData.fetchEvents.mockResolvedValue({ items: [], nextCursor: '' });
+    const service = buildService(marketData);
+
+    const result = await service.getEvents(KALSHI_VENUE_ID, {});
+
+    expect(result.nextCursor).toBeUndefined();
+  });
+
   it('retries transient errors twice after the initial attempt', async () => {
     const marketData = createMarketData();
     marketData.fetchVenueStatus.mockRejectedValue(

@@ -14,10 +14,10 @@ jest.mock('../../../../util/Logger');
 
 const createMessenger = (): PredictNextControllerMessenger =>
   new Messenger<
-    'PredictNextController',
+    'PredictMarketDataService',
     PredictMarketDataServiceActions,
     PredictMarketDataServiceEvents
-  >({ namespace: 'PredictNextController' });
+  >({ namespace: 'PredictMarketDataService' });
 
 const status: PredictVenueStatus = {
   venueId: 'kalshi' as PredictVenueStatus['venueId'],
@@ -91,15 +91,7 @@ describe('PredictNextController', () => {
 
   it('surfaces service construction failures', () => {
     const messenger = createMessenger();
-    const serviceMessenger: Messenger<
-      'PredictMarketDataService',
-      PredictMarketDataServiceActions,
-      PredictMarketDataServiceEvents
-    > = new Messenger({
-      namespace: 'PredictMarketDataService',
-      parent: messenger,
-    });
-    serviceMessenger.registerActionHandler(
+    messenger.registerActionHandler(
       'PredictMarketDataService:invalidateQueries',
       jest.fn(),
     );
