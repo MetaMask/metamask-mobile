@@ -228,7 +228,7 @@
     "@metamask/permission-controller": "^13.1.1",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
     "@metamask/transaction-controller": "69.5.1",
-    "@metamask/keyring-controller": "^27.1.0",
+    "@metamask/keyring-controller": "^27.1.1",
     "expo-web-browser@npm:~55.0.16": "55.0.16",
     "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",

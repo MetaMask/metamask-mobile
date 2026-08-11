@@ -8433,25 +8433,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-hd-keyring@npm:^14.1.1":
-  version: 14.1.1
-  resolution: "@metamask/eth-hd-keyring@npm:14.1.1"
-  dependencies:
-    "@ethereumjs/tx": "npm:^5.4.0"
-    "@ethereumjs/util": "npm:^9.1.0"
-    "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/key-tree": "npm:^10.0.2"
-    "@metamask/keyring-api": "npm:^23.1.0"
-    "@metamask/keyring-sdk": "npm:^2.0.2"
-    "@metamask/keyring-utils": "npm:^3.2.0"
-    "@metamask/scure-bip39": "npm:^2.1.1"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.11.0"
-    ethereum-cryptography: "npm:^2.2.1"
-  checksum: 10/f711742682a77990310272013523595822e29bfb61980828d1460ab8af888d7c344bb50f04d2611d801d63438e31532d3d66698c595b4fd3ad512b02056b7234
-  languageName: node
-  linkType: hard
-
 "@metamask/eth-hd-keyring@npm:^15.0.0":
   version: 15.0.0
   resolution: "@metamask/eth-hd-keyring@npm:15.0.0"
@@ -8635,18 +8616,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-simple-keyring@npm:^12.0.2":
-  version: 12.0.2
-  resolution: "@metamask/eth-simple-keyring@npm:12.0.2"
+"@metamask/eth-simple-keyring@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "@metamask/eth-simple-keyring@npm:13.0.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/keyring-api": "npm:^23.1.0"
-    "@metamask/keyring-sdk": "npm:^2.0.2"
+    "@metamask/keyring-api": "npm:^24.0.0"
+    "@metamask/keyring-sdk": "npm:^3.0.0"
     "@metamask/utils": "npm:^11.11.0"
     ethereum-cryptography: "npm:^2.2.1"
     randombytes: "npm:^2.1.0"
-  checksum: 10/ac8a3a5871fb1b7503ae8714beaad07102ad473522f1c65cf09786a3f3498564763d96a51569ed712702f3a62dfaada4c9342def4d48e2c5a1f0985b5cd49725
+  checksum: 10/aa7fd327574d12eb221756931ce51278a66b9a4412f7f64bce1dc63cc2197be04d5107ab94786fa3ab4abfe133283ac92790a66bf5f417b4b699f9d27b4f9bfa
   languageName: node
   linkType: hard
 
@@ -8911,26 +8892,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-controller@npm:^27.1.0":
-  version: 27.1.0
-  resolution: "@metamask/keyring-controller@npm:27.1.0"
+"@metamask/keyring-controller@npm:^27.1.1":
+  version: 27.1.1
+  resolution: "@metamask/keyring-controller@npm:27.1.1"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/eth-hd-keyring": "npm:^14.1.1"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/eth-hd-keyring": "npm:^15.0.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/eth-simple-keyring": "npm:^12.0.2"
-    "@metamask/keyring-api": "npm:^23.1.0"
-    "@metamask/keyring-internal-api": "npm:^11.0.1"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/eth-simple-keyring": "npm:^13.0.0"
+    "@metamask/keyring-api": "npm:^24.0.0"
+    "@metamask/keyring-internal-api": "npm:^12.0.0"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/utils": "npm:^11.11.0"
     async-mutex: "npm:^0.5.0"
     ethereumjs-wallet: "npm:^1.0.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
     ulid: "npm:^2.3.0"
-  checksum: 10/72c3cd205c88ac0becff32f1d22dae841d13a6847fc165a16782d1cd8daafb434b472ef867b94833d2f8bcb5f98a9663b630c8bed231332305ba1a395385c241
+  checksum: 10/c4a1a3b40f98d179dfadba128c9135e795a7440a6d2cc5cd107644716e931cd71d6e7407211cb5eacd2ffb37e38d22f48d4123da0ed6b462e10a59a902fe0ece
   languageName: node
   linkType: hard
 
@@ -8958,7 +8940,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-sdk@npm:^2.0.2, @metamask/keyring-sdk@npm:^2.1.1":
+"@metamask/keyring-sdk@npm:^2.1.1":
   version: 2.3.0
   resolution: "@metamask/keyring-sdk@npm:2.3.0"
   dependencies:
@@ -9043,7 +9025,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-utils@npm:^3.2.0, @metamask/keyring-utils@npm:^3.3.1":
+"@metamask/keyring-utils@npm:^3.3.1":
   version: 3.3.1
   resolution: "@metamask/keyring-utils@npm:3.3.1"
   dependencies:
