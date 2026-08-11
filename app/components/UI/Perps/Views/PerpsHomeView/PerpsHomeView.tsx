@@ -94,10 +94,7 @@ import {
 } from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
-import {
-  WhatsHappeningSource,
-  MAX_ITEMS_DISPLAYED,
-} from '../../../../UI/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
   useWhatsHappening,
   isWhatsHappeningSectionVisible,
@@ -164,13 +161,13 @@ const PerpsHomeView = () => {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
-    async (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode): Promise<boolean> => {
       const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
         entry: 'home',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       });
       if (openedChooser) {
-        return;
+        return false;
       }
 
       // Chooser already completed — flip immediately without the sheet.
@@ -190,6 +187,7 @@ const PerpsHomeView = () => {
           ],
         });
       }
+      return true;
     },
     [navigation, setPerpsMode],
   );
@@ -210,7 +208,7 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
-  const whatsHappeningFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const whatsHappeningFeed = useWhatsHappening();
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
     isWhatsHappeningSectionVisible({

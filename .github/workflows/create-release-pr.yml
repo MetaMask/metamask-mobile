@@ -93,15 +93,9 @@ jobs:
         run: |
           .github/scripts/resolve-previous-ref.sh
 
-  generate-build-version:
-    needs: resolve-bases
-    if: needs.resolve-bases.outputs.is_ota != 'true'
-    uses: ./.github/workflows/generate-build-version.yml
-
   create-release-pr:
-    needs: [resolve-bases, resolve-previous-ref, generate-build-version]
-    # When generate-build-version is skipped (OTA), this job must still run; see https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow#handling-skipped-dependent-jobs
-    if: always() && needs.resolve-bases.result == 'success' && needs.resolve-previous-ref.result == 'success' && (needs.generate-build-version.result == 'success' || needs.generate-build-version.result == 'skipped')
+    needs: [resolve-bases, resolve-previous-ref]
+    if: needs.resolve-bases.result == 'success' && needs.resolve-previous-ref.result == 'success'
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
     steps:
@@ -123,6 +117,26 @@ jobs:
             members: read
             workflows: write
 
+      # Read current build number from version files for github-tools (non-OTA only).
+      # Kept in this job to avoid a separate runner just for the metadata read.
+      - name: Checkout repository
+        if: needs.resolve-bases.outputs.is_ota != 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve-bases.outputs.checkout_base }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        if: needs.resolve-bases.outputs.is_ota != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Read build number from version files
+        if: needs.resolve-bases.outputs.is_ota != 'true'
+        id: meta
+        run: ./scripts/get-build-metadata.sh --ci
+
       - name: Create Release PR (semver / native version bump)
         if: needs.resolve-bases.outputs.is_ota != 'true'
         uses: MetaMask/github-tools/.github/actions/create-release-pr@v1.16.0
@@ -132,7 +146,10 @@ jobs:
           release-pr-base-branch: ${{ needs.resolve-bases.outputs.release_base }}
           semver-version: ${{ inputs.semver-version }}
           previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
-          mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
+          # github-tools requires this input for mobile, but only bumps semver on the release branch.
+          # Build numbers are applied locally at build time (see build.yml build_number input).
+          # ios_version_code is the shared mobile build number from get-build-metadata.sh.
+          mobile-build-version: ${{ steps.meta.outputs.ios_version_code }}
           github-token: ${{ steps.get-token.outputs.token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
 
