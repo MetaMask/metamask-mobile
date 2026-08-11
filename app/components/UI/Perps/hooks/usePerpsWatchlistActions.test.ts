@@ -39,13 +39,21 @@ jest.mock('./usePerpsEventTracking', () => ({
 }));
 
 const mockShowToast = jest.fn();
+const mockAdded = { variant: 'success', labelOptions: [] };
+const mockRemoved = { variant: 'info', labelOptions: [] };
 const mockAddError = { variant: 'error', labelOptions: [] };
+const mockLimitReached = { variant: 'info', labelOptions: [] };
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     showToast: mockShowToast,
     PerpsToastOptions: {
-      watchlist: { addError: mockAddError },
+      watchlist: {
+        added: mockAdded,
+        removed: mockRemoved,
+        addError: mockAddError,
+        limitReached: mockLimitReached,
+      },
     },
   })),
 }));
@@ -136,6 +144,33 @@ describe('usePerpsWatchlistActions', () => {
       expect(mockShowToast).toHaveBeenCalledWith(mockAddError);
     });
 
+    it('shows the added toast on successful add', async () => {
+      mockGetWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
+
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      await act(async () => {
+        await result.current.addToWatchlist('ETH');
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(mockAdded);
+    });
+
+    it('shows the limitReached toast and skips toggle when watchlist is full', async () => {
+      const fullList = Array.from({ length: 100 }, (_, i) => `MKT${i}`);
+      mockGetWatchlistMarkets.mockReturnValue(fullList);
+
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      await act(async () => {
+        await result.current.addToWatchlist('NEW');
+      });
+
+      expect(mockToggleWatchlistMarket).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(mockLimitReached);
+      expect(mockShowToast).not.toHaveBeenCalledWith(mockAdded);
+    });
+
     it('does not call track when toggleWatchlistMarket throws', async () => {
       mockToggleWatchlistMarket.mockImplementationOnce(() => {
         throw new Error('fail');
@@ -180,6 +215,18 @@ describe('usePerpsWatchlistActions', () => {
           [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: 0,
         }),
       );
+    });
+
+    it('shows the removed toast on successful remove', async () => {
+      mockGetWatchlistMarkets.mockReturnValue([]);
+
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      await act(async () => {
+        await result.current.removeFromWatchlist('BTC');
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(mockRemoved);
     });
 
     it('calls Logger.error on failure without showing toast', async () => {
