@@ -16,8 +16,6 @@ function buildRequest(
   overrides: Partial<ResolveSourceAmountRequest> = {},
 ): ResolveSourceAmountRequest {
   return {
-    token: {} as ResolveSourceAmountRequest['token'],
-    paymentToken: {} as ResolveSourceAmountRequest['paymentToken'],
     isMaxAmount: true,
     paymentOverride: PaymentOverride.MoneyAccount,
     ...overrides,
