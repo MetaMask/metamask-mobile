@@ -1,6 +1,14 @@
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
 
+// TEMP full-program tracing profiler (Remove before merge). Installs the
+// global.__jt enter/exit hook that scripts/babel-plugin-jstrace.js injects into
+// every function. Only loaded when built with JSTRACE=1 (no-op otherwise).
+if (process.env.JSTRACE === '1') {
+  // eslint-disable-next-line global-require
+  require('./app/components/Views/confirmations/utils/jstrace-runtime');
+}
+
 // Native C++ networking (nitro-fetch + nitro-websockets). Must run after shim.
 import './app/core/NitroFetchSetup';
 import './app/core/NitroWebSocketSetup';

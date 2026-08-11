@@ -103,6 +103,11 @@ module.exports = {
   ],
   plugins: [
     ...reactCompilerBabelConfig,
+    // TEMP full-program tracing profiler (Remove before merge). Only active
+    // when JSTRACE=1 is set for the Metro process; a no-op otherwise. Wraps
+    // every function with global.__jt enter/exit events -> Speedscope.
+    // eslint-disable-next-line import-x/no-commonjs
+    require('./scripts/babel-plugin-jstrace'),
     // `JEST_WORKER_ID` must NOT be inlined: Metro runs Babel transforms inside
     // `jest-worker` child processes, which set `JEST_WORKER_ID` in their env.
     // Inlining it bakes a truthy value into the app bundle and defeats every
