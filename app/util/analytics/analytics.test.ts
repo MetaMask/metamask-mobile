@@ -64,9 +64,9 @@ jest.mock('./whenEngineReady', () => ({
 
 jest.mock('../Logger');
 
-jest.mock('../../components/UI/Perps/utils/perpsAnalyticsAttribution', () => ({
-  TRADING_MODE_ANALYTICS_PROPERTY: 'trading_mode',
-  getTradingModeAnalyticsProperties: jest.fn(() => ({ trading_mode: 'lite' })),
+jest.mock('../../components/UI/Perps/utils/perpsModeAnalytics', () => ({
+  PERPS_MODE_ANALYTICS_PROPERTY: 'perps_mode',
+  getPerpsModeAnalyticsProperties: jest.fn(() => ({ perps_mode: 'lite' })),
 }));
 
 import { analytics } from './analytics';
@@ -78,7 +78,7 @@ import {
   selectAnalyticsOptedIn,
 } from '../../selectors/analyticsController';
 import Logger from '../Logger';
-import { getTradingModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsAnalyticsAttribution';
+import { getPerpsModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsModeAnalytics';
 
 const mockedGetAnalyticsIdFromStorage =
   getAnalyticsIdFromStorage as jest.MockedFunction<
@@ -134,14 +134,34 @@ describe('analytics', () => {
 
       analytics.trackEvent(event);
 
-      expect(getTradingModeAnalyticsProperties).toHaveBeenCalled();
+      expect(getPerpsModeAnalyticsProperties).toHaveBeenCalled();
       expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
         'trackEvent',
         expect.objectContaining({
           name: 'Perp Screen Viewed',
           properties: expect.objectContaining({
-            trading_mode: 'lite',
+            perps_mode: 'lite',
             screen_type: 'trading',
+          }),
+        }),
+      );
+    });
+
+    it('injects Lite/Pro mode onto Perps Asset Viewed companion events', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
+        .addProperties({ trade_type: 'Perps', screen_type: 'asset_details' })
+        .build();
+
+      analytics.trackEvent(event);
+
+      expect(getPerpsModeAnalyticsProperties).toHaveBeenCalled();
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        expect.objectContaining({
+          name: 'Asset Viewed',
+          properties: expect.objectContaining({
+            perps_mode: 'lite',
+            trade_type: 'Perps',
           }),
         }),
       );

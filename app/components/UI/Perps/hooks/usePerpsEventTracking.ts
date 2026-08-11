@@ -55,8 +55,8 @@ interface EventTrackingOptions {
  * 1. Imperative: const { track } = usePerpsEventTracking(); track(event, props);
  * 2. Declarative: usePerpsEventTracking({ eventName, conditions, properties });
  *
- * All events include timestamp automatically. Lite/Pro `trading_mode` is
- * attached centrally by `enrichWithTradingMode` in `analytics.trackEvent`.
+ * All events include timestamp automatically. Lite/Pro `perps_mode` is
+ * attached centrally by `enrichWithPerpsMode` in `analytics.trackEvent`.
  *
  * @example
  * // IMPERATIVE: Manual tracking (backward compatible)
@@ -89,8 +89,8 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
       eventName: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
       properties: Record<string, unknown> = {},
     ) => {
-      // Timestamp on every event. Lite/Pro `trading_mode` is injected later by
-      // enrichWithTradingMode in analytics.trackEvent (caller props still win).
+      // Timestamp on every event. Lite/Pro `perps_mode` is injected later by
+      // enrichWithPerpsMode in analytics.trackEvent (caller props still win).
       // UTM is Screen Viewed only.
       const props = {
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: Date.now(),

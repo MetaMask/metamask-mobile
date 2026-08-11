@@ -7,18 +7,18 @@ import {
 } from '@metamask/perps-controller';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  getPerpsUtmAttributionProperties,
-  TRADING_MODE_ANALYTICS_PROPERTY,
-} from '../utils/perpsAnalyticsAttribution';
+import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../utils/perpsModeAnalytics';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../utils/perpsAnalyticsAttribution', () => ({
-  TRADING_MODE_ANALYTICS_PROPERTY: 'trading_mode',
   getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+jest.mock('../utils/perpsModeAnalytics', () => ({
+  PERPS_MODE_ANALYTICS_PROPERTY: 'perps_mode',
 }));
 
 const mockGetPerpsUtmAttributionProperties = jest.mocked(
@@ -85,19 +85,19 @@ describe('usePerpsEventTracking', () => {
       });
     });
 
-    it('passes through explicit trading_mode for enrichWithTradingMode to honor', () => {
+    it('passes through explicit perps_mode for enrichWithPerpsMode to honor', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
 
       act(() => {
         result.current.track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+          [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
         });
       });
 
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
-        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
       });
     });
 

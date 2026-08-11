@@ -9,7 +9,7 @@ import PerpsModeToggle from './PerpsModeToggle';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { GLOW_TOTAL_MS } from './PerpsModeSwitchPill';
-import { TRADING_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
 
 const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -204,7 +204,7 @@ describe('PerpsModeToggle', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
       },
@@ -243,7 +243,7 @@ describe('PerpsModeToggle', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
       },
     );
   });
@@ -306,7 +306,7 @@ describe('PerpsModeToggle', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       },

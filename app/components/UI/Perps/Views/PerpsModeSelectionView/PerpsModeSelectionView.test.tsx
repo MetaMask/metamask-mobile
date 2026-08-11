@@ -8,7 +8,7 @@ import React from 'react';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../Perps.testIds';
-import { TRADING_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
 import {
   PERPS_MODE_SELECTION_DISMISSED,
   PERPS_MODE_SELECTION_SCREEN_TYPE,
@@ -214,7 +214,7 @@ describe('PerpsModeSelectionView', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
         entry: 'trade',

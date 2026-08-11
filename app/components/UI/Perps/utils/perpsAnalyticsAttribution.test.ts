@@ -1,19 +1,14 @@
 import {
-  getTradingModeAnalyticsProperties,
   getPerpsUtmAttributionProperties,
   hasPerpsUtmAttribution,
   parsePerpsUtmFromPath,
-  TRADING_MODE_ANALYTICS_PROPERTY,
   setPerpsUtmAttribution,
   toPerpsEntryAttribution,
 } from './perpsAnalyticsAttribution';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { DEFAULT_PERPS_MODE, PerpsMode } from '@metamask/perps-controller';
 
 const mockSetAttributionContext = jest.fn();
 const mockMergeAttributionContext = jest.fn();
-const mockSelectPerpsMode = jest.fn((_state?: unknown) => PerpsMode.Pro);
-const mockGetState = jest.fn(() => ({}));
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -32,16 +27,6 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   __esModule: true,
   default: { log: jest.fn() },
-}));
-
-jest.mock('../../../../store', () => ({
-  store: {
-    getState: () => mockGetState(),
-  },
-}));
-
-jest.mock('../selectors/perpsController', () => ({
-  selectPerpsMode: (state: unknown) => mockSelectPerpsMode(state),
 }));
 
 describe('perpsAnalyticsAttribution', () => {
@@ -132,26 +117,6 @@ describe('perpsAnalyticsAttribution', () => {
       // a usable object so the screen-view emit is never taken down.
       expect(() => getPerpsUtmAttributionProperties()).not.toThrow();
       expect(getPerpsUtmAttributionProperties()).toEqual({});
-      expect(DevLogger.log).toHaveBeenCalled();
-    });
-  });
-
-  describe('getTradingModeAnalyticsProperties', () => {
-    it('returns the current Lite/Pro mode from the selector', () => {
-      mockSelectPerpsMode.mockReturnValue(PerpsMode.Pro);
-      expect(getTradingModeAnalyticsProperties()).toEqual({
-        [TRADING_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
-      });
-      expect(mockSelectPerpsMode).toHaveBeenCalledWith(mockGetState());
-    });
-
-    it('falls back to DEFAULT_PERPS_MODE and logs when lookup fails', () => {
-      mockSelectPerpsMode.mockImplementation(() => {
-        throw new Error('store unavailable');
-      });
-      expect(getTradingModeAnalyticsProperties()).toEqual({
-        [TRADING_MODE_ANALYTICS_PROPERTY]: DEFAULT_PERPS_MODE,
-      });
       expect(DevLogger.log).toHaveBeenCalled();
     });
   });
