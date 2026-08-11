@@ -25,7 +25,8 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
     },
     scrollView: {
-      paddingHorizontal: vars.disableSafeArea === true ? 0 : 16,
+      // Content owns its 16px insets (MMDS KeyValueRow/Select, keyboard, buttons).
+      paddingHorizontal: 0,
     },
     scrollViewContent: {
       flexGrow: vars.isFullScreenConfirmation ? 1 : undefined,

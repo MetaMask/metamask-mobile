@@ -43,6 +43,7 @@ const styleSheet = (params: {
       gap: 16,
     },
     redesignedRowContainer: {
+      marginHorizontal: 16,
       paddingBottom: 8,
     },
   });

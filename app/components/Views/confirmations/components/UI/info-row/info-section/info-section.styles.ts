@@ -12,6 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 12,
       paddingBottom: 8,
       paddingHorizontal: 8,
+      marginHorizontal: 16,
       marginBottom: 12,
     },
   });

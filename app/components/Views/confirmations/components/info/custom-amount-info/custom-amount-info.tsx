@@ -418,10 +418,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={styles.bottomBlock}
         >
           {stage !== CustomAmountStage.Loading && (
-            <AlertMessage
-              content={alertContent}
-              alertMessage={alertMessage ?? headlessBuyError}
-            />
+            <View style={styles.contentInset}>
+              <AlertMessage
+                content={alertContent}
+                alertMessage={alertMessage ?? headlessBuyError}
+              />
+            </View>
           )}
           {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>
@@ -470,35 +472,43 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {stage === CustomAmountStage.AmountInput &&
             (hasPaymentOption || hasAccountNoFunds) && (
-              <DepositKeyboard
-                hidePercentageButtons={
-                  Boolean(selectedFiatPaymentMethodId) ||
-                  shouldHideAccountSelector
-                }
-                alertMessage={alertTitle}
-                value={amountFiat}
-                onChange={updatePendingAmount}
-                onDonePress={handleDone}
-                onPercentagePress={handlePercentagePress}
-                hasInput={hasInput}
-                hasMax={
-                  (hasMax || isMoneyDepositNoFee) &&
-                  (isWithdraw || !isNativePayToken)
-                }
-              />
+              <View style={styles.contentInset}>
+                <DepositKeyboard
+                  hidePercentageButtons={
+                    Boolean(selectedFiatPaymentMethodId) ||
+                    shouldHideAccountSelector
+                  }
+                  alertMessage={alertTitle}
+                  value={amountFiat}
+                  onChange={updatePendingAmount}
+                  onDonePress={handleDone}
+                  onPercentagePress={handlePercentagePress}
+                  hasInput={hasInput}
+                  hasMax={
+                    (hasMax || isMoneyDepositNoFee) &&
+                    (isWithdraw || !isNativePayToken)
+                  }
+                />
+              </View>
             )}
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
-            !isDepositPrefillEnabled && <CustomAmountBuy />}
+            !isDepositPrefillEnabled && (
+              <View style={styles.contentInset}>
+                <CustomAmountBuy />
+              </View>
+            )}
           {stage !== CustomAmountStage.AmountInput && (
-            <CustomAmountConfirmButton
-              alertTitle={alertTitle}
-              isDisabled={
-                disableConfirm || isAccountSelectionNeeded || isPrefillPending
-              }
-              onContinue={trackContinue}
-              stage={stage}
-            />
+            <View style={styles.contentInset}>
+              <CustomAmountConfirmButton
+                alertTitle={alertTitle}
+                isDisabled={
+                  disableConfirm || isAccountSelectionNeeded || isPrefillPending
+                }
+                onContinue={trackContinue}
+                stage={stage}
+              />
+            </View>
           )}
         </Box>
       </Box>
@@ -517,7 +527,9 @@ export function CustomAmountInfoSkeleton() {
       </Box>
       <Box>
         <PayWithRowSkeleton />
-        <DepositKeyboardSkeleton />
+        <View style={styles.contentInset}>
+          <DepositKeyboardSkeleton />
+        </View>
       </Box>
     </Box>
   );
@@ -588,7 +600,9 @@ export function AdvancedCustomAmountInfoSkeleton() {
             <PayWithRowSkeleton />
           </>
         )}
-        <DepositKeyboardSkeleton />
+        <View style={styles.contentInset}>
+          <DepositKeyboardSkeleton />
+        </View>
       </View>
     </View>
   );

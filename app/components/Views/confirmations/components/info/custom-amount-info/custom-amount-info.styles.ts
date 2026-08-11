@@ -24,12 +24,17 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: Platform.OS === 'android' ? 16 : 0,
     },
 
+    contentInset: {
+      paddingHorizontal: 16,
+    },
+
     disabledButton: {
       opacity: 0.5,
     },
 
     footerText: {
       alignSelf: 'center',
+      paddingHorizontal: 16,
     },
 
     separator: {
@@ -48,7 +53,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center' as const,
       justifyContent: 'space-between' as const,
       paddingVertical: 12,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
     },
 
     skeletonInfoRow: {
@@ -56,7 +61,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center' as const,
       justifyContent: 'space-between' as const,
       paddingBottom: 10,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
     },
 
     skeletonRowRight: {
