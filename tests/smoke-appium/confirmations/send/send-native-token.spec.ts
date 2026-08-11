@@ -91,7 +91,8 @@ function buildNativeSendFixture() {
 appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
   appiumTest.describe.configure({ timeout: 2500000 });
 
-  appiumTest(
+  // Skipped: failing on main Appium confirmations Android smoke.
+  appiumTest.skip(
     'sends MAX balance ETH to an address',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(

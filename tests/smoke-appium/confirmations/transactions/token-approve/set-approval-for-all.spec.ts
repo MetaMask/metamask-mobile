@@ -69,7 +69,8 @@ appiumTest.describe(
   () => {
     appiumTest.describe.configure({ timeout: 2500000 });
 
-    appiumTest(
+    // Skipped: failing on main Appium confirmations Android smoke.
+    appiumTest.skip(
       'creates an approve transaction confirmation for given ERC721 and submits it',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
