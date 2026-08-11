@@ -165,6 +165,24 @@ export async function setupMusdMocks(
     responseCode: 200,
   });
 
+  // `@metamask/geolocation-controller` v1+ reads geolocation from the
+  // `/v2/geolocation` endpoint (JSON), so mock it alongside the legacy on-ramp
+  // `/geolocation` endpoint (plain text) to keep the US location in effect.
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return /geolocation\.(dev-|uat-)?api\.cx\.metamask\.io\/v2\/geolocation/.test(
+        url,
+      );
+    })
+    .asPriority(998)
+    .thenCallback(() => ({
+      statusCode: 200,
+      body: JSON.stringify({ country: 'US', region: null, timezone: null }),
+      headers: { 'content-type': 'application/json' },
+    }));
+
   await mockServer
     .forGet('/proxy')
     .matching((request) => {

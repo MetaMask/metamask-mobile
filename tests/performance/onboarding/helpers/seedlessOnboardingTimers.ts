@@ -76,7 +76,6 @@ export async function measurePredictGtmModalIfShown(
       await PlaywrightAssertions.expectElementToBeVisible(
         asPlaywrightElement(PredictModalView.notNowButton),
         {
-          timeout: 10000,
           description: 'Predict modal should be visible',
         },
       );
