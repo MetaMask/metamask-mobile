@@ -1749,7 +1749,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Search-only (no category filter active)', () => {
-      it('shows the NO_RESULTS container with "No tokens found" title', () => {
+      it('shows the NO_RESULTS container with "No markets found" title', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ searchQuery: 'XYZ' }),
         );
@@ -1758,7 +1758,7 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
         ).toBeOnTheScreen();
-        expect(screen.getByText('No tokens found')).toBeOnTheScreen();
+        expect(screen.getByText('No markets found')).toBeOnTheScreen();
       });
 
       it('shows the EMPTY_STATE_CTA with "Clear search" label', () => {
