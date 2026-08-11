@@ -158,13 +158,25 @@ function useFiatTokenValue(
   tokenValue: Hex | undefined,
   chainId?: string,
 ) {
-  const { decimals, rateWei } = gasFeeToken ?? { decimals: 0, rateWei: '0x0' };
+  const { decimals, rateWei } = gasFeeToken ?? {};
 
-  const nativeWei = new BigNumber(tokenValue ?? '0x0')
-    .shiftedBy(-decimals)
-    .multipliedBy(new BigNumber(rateWei));
+  const nativeWei = useMemo(() => {
+    if (!tokenValue || !decimals || !rateWei) {
+      return undefined;
+    }
 
-  const nativeEth = nativeWei.shiftedBy(-18);
+    return new BigNumber(tokenValue ?? '0x0')
+      .shiftedBy(-decimals)
+      .multipliedBy(new BigNumber(rateWei));
+  }, [tokenValue, decimals, rateWei]);
+
+  const nativeEth = useMemo(() => {
+    if (!nativeWei) {
+      return undefined;
+    }
+
+    return nativeWei?.shiftedBy(-18);
+  }, [nativeWei]);
 
   const fiatValue = useEthFiatAmount(
     nativeEth,
