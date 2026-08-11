@@ -1,7 +1,7 @@
 import type { CaipChainId } from '@metamask/utils';
 import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
-import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import type { ImmersveProgramConfig } from '../../../../../selectors/featureFlagController/card';
 import {
   ARBITRUM_SEPOLIA_RPC_URL,
   BASE_MAINNET_RPC_URL,
@@ -276,24 +276,24 @@ export class ImmersveProvider implements ICardProvider {
 
   private readonly service: ImmersveService;
   private readonly config: ImmersveProviderConfig;
-  private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
+  private readonly getProgramConfig: () => ImmersveProgramConfig;
 
   constructor({
     service,
     config,
-    getCardFeatureFlag,
+    getProgramConfig,
   }: {
     service: ImmersveService;
     config: ImmersveProviderConfig;
-    getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
+    getProgramConfig?: () => ImmersveProgramConfig | null | undefined;
   }) {
     this.service = service;
     this.config = config;
-    this.getCardFeatureFlag = () => getCardFeatureFlag?.() ?? null;
+    this.getProgramConfig = () => getProgramConfig?.() ?? {};
   }
 
-  private get programConfig() {
-    return this.getCardFeatureFlag()?.immersve ?? {};
+  private get programConfig(): ImmersveProgramConfig {
+    return this.getProgramConfig();
   }
 
   private get network(): string {

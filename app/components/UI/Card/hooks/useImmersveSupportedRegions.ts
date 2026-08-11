@@ -3,8 +3,8 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
-  selectCardFeatureFlag,
-  selectImmersveOnboardingEnabled,
+  selectCardImmersveCountries,
+  selectCardImmersveEnabled,
 } from '../../../../selectors/featureFlagController/card';
 import { cardQueries } from '../queries';
 import {
@@ -37,15 +37,13 @@ const useImmersveSupportedRegions = (
   regionCode: string | null | undefined,
   options: UseImmersveSupportedRegionsOptions = {},
 ) => {
-  const immersveOnboardingEnabled = useSelector(
-    selectImmersveOnboardingEnabled,
-  );
-  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
+  const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
+  const immersveCountries = useSelector(selectCardImmersveCountries);
 
   const isImmersveCountry = Boolean(
     immersveOnboardingEnabled &&
       regionCode &&
-      (cardFeatureFlag.immersveCountries ?? []).includes(regionCode),
+      immersveCountries.includes(regionCode),
   );
 
   const queryEnabled =
