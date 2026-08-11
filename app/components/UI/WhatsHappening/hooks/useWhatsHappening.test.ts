@@ -77,6 +77,12 @@ const mockOverview = {
   trends: [mockTrend],
 };
 
+const createMockTrends = (count: number) =>
+  Array.from({ length: count }, (_, index) => ({
+    ...mockTrend,
+    title: `${mockTrend.title} ${index + 1}`,
+  }));
+
 describe('useWhatsHappening', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -132,15 +138,17 @@ describe('useWhatsHappening', () => {
   });
 
   it('returns all trends from the API without client-side slicing', async () => {
+    const trends = createMockTrends(7);
     mockFetchMarketOverview.mockResolvedValue({
       ...mockOverview,
-      trends: [mockTrend, mockTrend, mockTrend],
+      trends,
     });
+
     const { result } = renderHook(() => useWhatsHappening());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.items).toHaveLength(3);
+    expect(result.current.items).toHaveLength(trends.length);
   });
 
   it('sets error and clears items on fetch failure', async () => {
