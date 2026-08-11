@@ -728,7 +728,7 @@ const PerpsMarketListView = ({
     // filtered (via the memoized visibleWatchlistMarkets / visibleSuggestedMarkets
     // above) so the user can find any relevant market by name or symbol, and so
     // search analytics (visibleSearchResults) match what's rendered here.
-    // "No tokens found" is only shown when nothing matches in either section.
+    // Empty search description is only shown when nothing matches in either section.
     if (isWatchlistEnabled && showFavoritesOnly) {
       if (
         trimmedSearchQuery &&
@@ -738,7 +738,6 @@ const PerpsMarketListView = ({
         return (
           <PerpsMarketListEmptyState
             containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-            title={strings('perps.no_markets_found')}
             description={strings('perps.no_tokens_found_description', {
               searchQuery,
             })}
@@ -776,7 +775,6 @@ const PerpsMarketListView = ({
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-          title={strings('perps.no_markets_found')}
           description={strings('perps.no_markets_search_description', {
             searchQuery: searchQuery.trim(),
           })}
@@ -792,7 +790,6 @@ const PerpsMarketListView = ({
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-          title={strings('perps.no_markets_found')}
           description={strings('perps.no_tokens_found_description', {
             searchQuery,
           })}
@@ -808,7 +805,6 @@ const PerpsMarketListView = ({
       return (
         <PerpsMarketListEmptyState
           containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER}
-          title={strings('perps.no_markets_found')}
           description={strings('perps.no_markets_found_description')}
           ctaLabel={strings('perps.clear_filter')}
           onCtaPress={() => setMarketTypeFilter('all')}

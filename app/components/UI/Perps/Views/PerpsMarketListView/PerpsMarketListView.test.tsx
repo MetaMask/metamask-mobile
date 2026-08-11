@@ -1747,7 +1747,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Search-only (no category filter active)', () => {
-      it('shows the NO_RESULTS container with "No markets found" title', () => {
+      it('shows the NO_RESULTS container with no-markets description', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ searchQuery: 'XYZ' }),
         );
@@ -1756,7 +1756,11 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
         ).toBeOnTheScreen();
-        expect(screen.getByText('No markets found')).toBeOnTheScreen();
+        expect(
+          screen.getByText(
+            'We couldn\'t find any markets with the name "XYZ". Try a different search.',
+          ),
+        ).toBeOnTheScreen();
       });
 
       it('shows the EMPTY_STATE_CTA with "Clear search" label', () => {
@@ -1802,7 +1806,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Filter + search (filter-priority branch)', () => {
-      it('shows the NO_RESULTS container with "No markets found" title', () => {
+      it('shows the NO_RESULTS container with filter-search description', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ searchQuery: 'XYZ', marketTypeFilter: 'crypto' }),
         );
@@ -1811,7 +1815,11 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
         ).toBeOnTheScreen();
-        expect(screen.getByText('No markets found')).toBeOnTheScreen();
+        expect(
+          screen.getByText(
+            'No markets match "XYZ" in this category. Try a different search or clear the filter.',
+          ),
+        ).toBeOnTheScreen();
       });
 
       it('shows the EMPTY_STATE_CTA with "Clear filter" label', () => {
@@ -1856,7 +1864,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Filter-only (no search query)', () => {
-      it('shows the NO_RESULTS_FILTER container with "No markets found" title', () => {
+      it('shows the NO_RESULTS_FILTER container with filter description', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ marketTypeFilter: 'stock' }),
         );
@@ -1865,7 +1873,11 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER),
         ).toBeOnTheScreen();
-        expect(screen.getByText('No markets found')).toBeOnTheScreen();
+        expect(
+          screen.getByText(
+            'No markets match your current filter. Try a different category.',
+          ),
+        ).toBeOnTheScreen();
       });
 
       it('shows the EMPTY_STATE_CTA with "Clear filter" label', () => {

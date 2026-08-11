@@ -247,26 +247,30 @@ const WhatsHappeningSection = forwardRef<
     return null;
   }
 
-  const sectionBody = (
-    <>
-      {header}
-      {carouselContent}
-      {isAIDisclaimerVisible ? (
-        <MarketInsightsDisclaimerBottomSheet
-          onClose={handleAIDisclaimerClose}
-        />
-      ) : null}
-    </>
-  );
+  const aiDisclaimerSheet = isAIDisclaimerVisible ? (
+    <MarketInsightsDisclaimerBottomSheet onClose={handleAIDisclaimerClose} />
+  ) : null;
 
   if (isExploreSection) {
-    return <Box>{sectionBody}</Box>;
+    return (
+      <>
+        <Box>
+          {header}
+          {carouselContent}
+        </Box>
+        {aiDisclaimerSheet}
+      </>
+    );
   }
 
   return (
-    <Box paddingBottom={3} style={styles.sectionGap}>
-      {sectionBody}
-    </Box>
+    <>
+      <Box paddingBottom={3} style={styles.sectionGap}>
+        {header}
+        {carouselContent}
+      </Box>
+      {aiDisclaimerSheet}
+    </>
   );
 });
 

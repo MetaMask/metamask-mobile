@@ -89,7 +89,7 @@ describe('PerpsMarketListView', () => {
       });
     });
 
-    it('shows "No markets found" empty state when search matches nothing and no category filter is active', async () => {
+    it('shows the search empty state when search matches nothing and no category filter is active', async () => {
       renderPerpsMarketListView({
         streamOverrides: { marketData: marketDataWithCategories },
       });
@@ -101,7 +101,11 @@ describe('PerpsMarketListView', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(strings('perps.no_markets_found')),
+          screen.getByText(
+            strings('perps.no_tokens_found_description', {
+              searchQuery: 'ZZZ-NOT-FOUND',
+            }),
+          ),
         ).toBeOnTheScreen();
         expect(
           screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
@@ -112,7 +116,7 @@ describe('PerpsMarketListView', () => {
       });
     });
 
-    it('shows "No markets found" empty state when search matches nothing and a category filter is active', async () => {
+    it('shows the filter-aware empty state when search matches nothing and a category filter is active', async () => {
       renderPerpsMarketListView({
         streamOverrides: { marketData: marketDataWithCategories },
         initialParams: { defaultMarketTypeFilter: 'commodity' },
@@ -125,7 +129,11 @@ describe('PerpsMarketListView', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(strings('perps.no_markets_found')),
+          screen.getByText(
+            strings('perps.no_markets_search_description', {
+              searchQuery: 'ZZZ-NOT-FOUND',
+            }),
+          ),
         ).toBeOnTheScreen();
         expect(
           screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
