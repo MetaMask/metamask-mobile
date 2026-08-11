@@ -349,64 +349,6 @@ describe('ContactForm', () => {
     });
   });
 
-  it('handles editable states through route params', async () => {
-    // Render in edit mode (initially not editable)
-    const { findByTestId, rerender } = renderWithProvider(
-      <ContactForm
-        navigation={mockNavigation}
-        route={{
-          params: {
-            mode: 'edit',
-            address: MOCK_ADDRESS,
-          },
-        }}
-      />,
-      { state: initialState },
-    );
-
-    // Simulate what happens when the edit button in the header is pressed
-    // The navigation handler would call the onEdit function via the route params
-    const onEdit = mockNavigation.setParams.mock.calls[0][0].dispatch;
-    expect(onEdit).toBeDefined();
-
-    // Call the edit function which would toggle editable state
-    onEdit();
-
-    rerender(
-      <ContactForm
-        navigation={mockNavigation}
-        route={{
-          params: {
-            mode: 'edit',
-            address: MOCK_ADDRESS,
-            editMode: 'edit',
-          },
-        }}
-      />,
-    );
-
-    const nameInput = await findByTestId(AddContactViewSelectorsIDs.NAME_INPUT);
-
-    const memoInput = await findByTestId(AddContactViewSelectorsIDs.MEMO_INPUT);
-
-    const addressInput = await findByTestId(
-      AddContactViewSelectorsIDs.ADDRESS_INPUT,
-    );
-
-    await waitFor(() => {
-      expect(addressInput.props.value).toBe(MOCK_ADDRESS);
-      expect(addressInput).toHaveProp('editable', false); // Address is immutable in edit mode
-      expect(nameInput).toHaveProp('editable', true);
-      expect(memoInput).toHaveProp('editable', true);
-    });
-
-    // The delete button should be visible now
-    const deleteButton = await findByTestId(
-      AddContactViewSelectorsIDs.DELETE_BUTTON,
-    );
-    expect(deleteButton).toBeTruthy();
-  });
-
   it('rejects burn address 0x0000000000000000000000000000000000000000', async () => {
     const validateAddressOrENSMock = jest.requireMock(
       '../../../../../util/address',

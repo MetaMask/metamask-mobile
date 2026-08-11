@@ -422,9 +422,9 @@ generateAndroidBinary() {
 			fi
 			# Enable verbose logging for E2E builds to help diagnose build failures
 			gradleLoggingFlags="--stacktrace --info"
-			# Disable expo-updates delay-load-app to prevent Detox ANR.
+			# Disable expo-updates delay-load-app to prevent ANR on release-like E2E builds.
 			# expo-updates defaults this to true, which causes a blocking launchAssetFile
-			# call when useDeveloperSupport=false (release-like E2E builds).
+			# call when useDeveloperSupport=false (main-e2e / Appium builds).
 			exUpdatesArgs="-PEX_UPDATES_ANDROID_DELAY_LOAD_APP=false"
 		fi
 	fi
