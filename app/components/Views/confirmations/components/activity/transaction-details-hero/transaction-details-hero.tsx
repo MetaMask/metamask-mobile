@@ -345,13 +345,43 @@ function isSingleRowMoneyDeposit(transactionMeta: TransactionMeta): boolean {
   return Boolean(fiat?.orderId) || isMusdToken(tokenAddress);
 }
 
+/**
+ * Fiat value of what actually left the account.
+ *
+ * `metamaskPay.totalFiat` is documented as the total cost "including gas, fees,
+ * and the funds themselves", which holds for deposits: the required token is the
+ * target and the fees are paid on top of it. Post-quote flows (withdrawals)
+ * invert that — the required token is the source, so the amount the user chose
+ * already covers the fees — yet the controller still adds them, inflating
+ * `totalFiat` by the fee amount.
+ *
+ * For those flows, rebuild the sent amount from what the user received plus the
+ * fees the details screen itself lists, so the hero reconciles with the rows
+ * below it. `targetFiat` is '0' for same-token flows that produce no quotes;
+ * those have no fees to double-count, so `totalFiat` stands.
+ */
+function resolveSentFiat(transactionMeta: TransactionMeta): string | undefined {
+  const { bridgeFeeFiat, isPostQuote, networkFeeFiat, targetFiat, totalFiat } =
+    transactionMeta.metamaskPay ?? {};
+
+  if (!isPostQuote || !targetFiat || targetFiat === '0') {
+    return totalFiat;
+  }
+
+  return new BigNumber(targetFiat)
+    .plus(bridgeFeeFiat ?? 0)
+    .plus(networkFeeFiat ?? 0)
+    .toString(10);
+}
+
 function resolveTwoAssetData(
   transactionMeta: TransactionMeta,
   sentData: TokenData,
   receivedData: TokenData,
   formatFiat: (value: BigNumber) => string,
 ): { sent: TokenDisplayData; received: TokenDisplayData } {
-  const { totalFiat, targetFiat } = transactionMeta.metamaskPay ?? {};
+  const { targetFiat } = transactionMeta.metamaskPay ?? {};
+  const sentFiat = resolveSentFiat(transactionMeta);
 
   const isOutbound = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -361,7 +391,7 @@ function resolveTwoAssetData(
     return {
       sent: {
         ...receivedData,
-        fiatAmount: formatFiat(new BigNumber(totalFiat ?? receivedData.amount)),
+        fiatAmount: formatFiat(new BigNumber(sentFiat ?? receivedData.amount)),
       },
       received: {
         ...sentData,
@@ -370,7 +400,7 @@ function resolveTwoAssetData(
     };
   }
 
-  const fiatSent = formatFiat(new BigNumber(totalFiat ?? sentData.amount));
+  const fiatSent = formatFiat(new BigNumber(sentFiat ?? sentData.amount));
   const fiatReceived = formatFiat(
     new BigNumber(targetFiat ?? receivedData.amount),
   );
