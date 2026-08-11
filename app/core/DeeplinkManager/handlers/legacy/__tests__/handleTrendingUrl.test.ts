@@ -169,24 +169,14 @@ describe('handleTrendingUrl - trending tokens chain filter (chainId=...)', () =>
   });
 
   it.each([
+    { description: 'EVM CAIP chain id', chainIdParam: 'eip155:4663' },
     {
-      description: 'CAIP chain id',
-      chainIdParam: 'eip155:4663',
-      expectedCaipChainId: 'eip155:4663',
-    },
-    {
-      description: 'hex chain id',
-      chainIdParam: '0x2105',
-      expectedCaipChainId: 'eip155:8453',
-    },
-    {
-      description: 'decimal chain id',
-      chainIdParam: '8453',
-      expectedCaipChainId: 'eip155:8453',
+      description: 'Solana CAIP chain id',
+      chainIdParam: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     },
   ])(
-    'opens the trending tokens view filtered by a $description',
-    async ({ chainIdParam, expectedCaipChainId }) => {
+    'opens the trending tokens view filtered by an $description',
+    async ({ chainIdParam }) => {
       await handleTrendingUrl({
         actionPath: `?screen=trending-tokens&chainId=${chainIdParam}`,
       });
@@ -196,20 +186,17 @@ describe('handleTrendingUrl - trending tokens chain filter (chainId=...)', () =>
       expect(mockNavigate).toHaveBeenNthCalledWith(
         2,
         Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-        { initialNetwork: [expectedCaipChainId] },
+        { initialNetwork: [chainIdParam] },
       );
     },
   );
 
   it.each([
     { description: 'malformed value', chainIdParam: 'not-a-chain' },
-    {
-      description: 'chain unsupported by trending',
-      chainIdParam: 'eip155:999999',
-    },
-    { description: 'zero chain id', chainIdParam: '0' },
+    { description: 'hex chain id (not CAIP)', chainIdParam: '0x2105' },
+    { description: 'decimal chain id (not CAIP)', chainIdParam: '8453' },
   ])(
-    'opens the unfiltered trending tokens view for a $description',
+    'drops the chain filter for a $description and opens the unfiltered view',
     async ({ chainIdParam }) => {
       await handleTrendingUrl({
         actionPath: `?screen=trending-tokens&chainId=${chainIdParam}`,
@@ -235,11 +222,15 @@ describe('handleTrendingUrl - trending tokens chain filter (chainId=...)', () =>
     );
   });
 
-  it('falls back to the Explore tab when only an invalid chainId is provided', async () => {
-    await handleTrendingUrl({ actionPath: '?chainId=not-a-chain' });
+  it('opens the unfiltered trending tokens view when only an invalid chainId is provided', async () => {
+    await handleTrendingUrl({ actionPath: '?chainId=8453' });
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+    );
   });
 
   it('prioritizes tab over an implied chain-filtered trending tokens view', async () => {

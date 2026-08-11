@@ -1,14 +1,9 @@
-import {
-  isCaipChainId,
-  isStrictHexString,
-  type CaipChainId,
-} from '@metamask/utils';
+import { isCaipChainId, type CaipChainId } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   EXPLORE_TAB_INDEX,
   type ExploreTabIndex,
 } from '../../../../constants/navigation/exploreTabIndices';
-import { TRENDING_CAIP_CHAIN_IDS } from '../../../../components/UI/Trending/utils/trendingNetworks.constants';
 import type { TimeOption } from '../../../../components/UI/Trending/components/TrendingTokensBottomSheet';
 import type { TrendingTokensFullViewParams } from '../../../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { ExploreFeedRouteParams } from '../../../../components/Views/TrendingView/TrendingView';
@@ -123,46 +118,16 @@ const isExploreTimeframeDeeplinkParam = (
     value as ExploreTimeframeDeeplinkParam,
   );
 
-/** Chains the trending tokens view can filter by. */
-const TRENDING_CHAIN_ID_SET = new Set<CaipChainId>(TRENDING_CAIP_CHAIN_IDS);
-
 /**
- * Normalizes a `?chainId=` value to a CAIP chain id, accepting the EVM
- * shorthands campaign links commonly use: `eip155:8453`, `0x2105`, or `8453`.
- */
-const normalizeChainIdParam = (value: string): CaipChainId | undefined => {
-  if (isCaipChainId(value)) {
-    return value;
-  }
-
-  let decimalChainId = Number.NaN;
-  if (isStrictHexString(value)) {
-    decimalChainId = parseInt(value, 16);
-  } else if (/^\d+$/u.test(value)) {
-    decimalChainId = Number(value);
-  }
-
-  if (!Number.isSafeInteger(decimalChainId) || decimalChainId <= 0) {
-    return undefined;
-  }
-  return `eip155:${decimalChainId}`;
-};
-
-/**
- * Chains trending doesn't support are dropped so the link still lands on the
- * unfiltered list instead of an empty filtered one.
+ * `?chainId=` values must be CAIP chain ids (e.g. `eip155:4663`); anything
+ * else is dropped so the view opens unfiltered.
  */
 const getTrendingChainFilterParam = (
   urlParams: URLSearchParams,
 ): CaipChainId[] | undefined => {
   const chainIdParam = urlParams.get(TRENDING_QUERY_PARAM.CHAIN_ID)?.trim();
-  if (!chainIdParam) {
-    return undefined;
-  }
-
-  const caipChainId = normalizeChainIdParam(chainIdParam);
-  return caipChainId && TRENDING_CHAIN_ID_SET.has(caipChainId)
-    ? [caipChainId]
+  return chainIdParam && isCaipChainId(chainIdParam)
+    ? [chainIdParam]
     : undefined;
 };
 
@@ -271,8 +236,9 @@ const getUrlParams = (actionPath: string): URLSearchParams =>
  * Resolves the trending/explore deeplink:
  * - `?screen=<view>` opens a full-screen view above the Explore tab (see {@link EXPLORE_SCREEN_DEEPLINK_PARAM}).
  * - `?screen=search&q=<query>` (or `query=`) opens Explore search with the query prefilled.
- * - `?screen=trending-tokens` supports `chainId=<caip|hex|decimal>` (chain filter) and `timeframe=<5m|1h|6h|24h>` (time filter).
+ * - `?screen=trending-tokens` supports `chainId=<caip>` (chain filter) and `timeframe=<5m|1h|6h|24h>` (time filter).
  * - `?chainId=<chainId>` without `screen`/`tab` opens the trending tokens view filtered to that chain.
+ * - Invalid `chainId`/`timeframe` values are dropped; the view opens unfiltered.
  * - `?tab=<tab>` opens Explore with the given tab preselected (see {@link EXPLORE_TAB_DEEPLINK_PARAM}).
  * - Anything else falls back to the Explore tab on its default tab.
  */
@@ -291,14 +257,14 @@ export const createTrendingDeeplinkIntent = ({
     return { target: exploreTabTarget(EXPLORE_TAB_PARAM_TO_INDEX[tabParam]) };
   }
 
-  // A chain filter alone implies the trending tokens view — the only Explore
+  // A chainId param alone implies the trending tokens view — the only Explore
   // surface that can apply it (e.g. `?chainId=eip155:8453` with no `screen=`).
-  const trendingTokensParams = getTrendingTokensViewParams(urlParams);
-  if (trendingTokensParams?.initialNetwork) {
+  // An invalid value still lands there, just without the filter.
+  if (urlParams.has(TRENDING_QUERY_PARAM.CHAIN_ID)) {
     return {
       target: exploreFullScreenTarget(
         Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-        trendingTokensParams,
+        getTrendingTokensViewParams(urlParams),
       ),
     };
   }
