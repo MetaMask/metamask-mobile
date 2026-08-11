@@ -1762,6 +1762,7 @@ describe('PredictController', () => {
           expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+            errorStage: 'order',
           });
           expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
         },
@@ -1809,6 +1810,7 @@ describe('PredictController', () => {
           expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
+            errorStage: 'order',
           });
         },
         {
