@@ -846,6 +846,7 @@ export class ImmersveProvider implements ICardProvider {
       holderName: detail.cardholderName,
       isFreezable: status === CardStatus.ACTIVE || status === CardStatus.FROZEN,
       regionCode: detail.regionCode,
+      hasPin: true,
     };
   }
 
