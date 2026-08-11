@@ -57,7 +57,6 @@ export function CustomAmountConfirmButton({
 
   return (
     <Button
-      twClassName={disabled ? 'opacity-50' : undefined}
       size={ButtonSize.Lg}
       variant={ButtonVariant.Primary}
       isFullWidth
