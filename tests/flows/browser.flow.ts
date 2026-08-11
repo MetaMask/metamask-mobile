@@ -20,6 +20,9 @@ import PlaywrightContextHelpers from '../framework/PlaywrightContextHelpers';
 import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 
+/** Dapp <h1 id="logo-text">; always at the top of the page, unlike the action buttons. */
+const TEST_DAPP_LOAD_LABEL = 'E2E Test Dapp';
+
 /**
  * Waits for the test dapp to load.
  * @async
@@ -29,25 +32,19 @@ import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
  */
 export const waitForTestDappToLoad = async (): Promise<void> => {
   if (FrameworkDetector.isAppium()) {
-    // URL bar head-truncates long dapp URLs, so match testIDs not URL text.
     await Assertions.expectElementToBeVisible(
-      PlaywrightMatchers.getElementById(
-        BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT,
-      ),
+      Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
       {
-        description: 'Browser URL display text should be visible',
+        description: 'Browser WebView native container',
         timeout: 30_000,
       },
     );
-    await Assertions.expectElementToBeVisible(
-      PlaywrightMatchers.getElementById(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      ),
-      {
-        description: 'Browser WebView container should be mounted',
-        timeout: 30_000,
-      },
-    );
+    // Dapp-rendered heading: proves the page painted, unlike the URL bar which
+    // updates before navigation commits and head-truncates long dapp URLs.
+    await Assertions.expectTextDisplayed(TEST_DAPP_LOAD_LABEL, {
+      timeout: 30_000,
+      description: 'Test dapp heading should be visible',
+    });
     return;
   }
 
