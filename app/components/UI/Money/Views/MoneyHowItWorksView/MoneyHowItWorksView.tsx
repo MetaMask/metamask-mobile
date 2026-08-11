@@ -29,7 +29,7 @@ import Animated, {
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
 import { formatNoFeeTokenBullets } from '../../utils/depositFaqTokens';
 import AppConstants from '../../../../../core/AppConstants';
@@ -142,7 +142,7 @@ const MoneyHowItWorksView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { colors: themeColors } = useTheme();
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
 
   const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);

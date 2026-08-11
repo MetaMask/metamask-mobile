@@ -26,7 +26,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -61,7 +61,7 @@ const MoneyPotentialEarningsView = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { apyDecimal } = useMoneyAccountBalance();
+  const { apyDecimal } = useMoneyVaultApy();
   const apyDecimalForProjection = apyDecimal ?? 0;
 
   const { eligibleTokens, totalAssetsFiat, projectedAmount, currency } =
