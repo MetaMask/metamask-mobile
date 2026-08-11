@@ -1,10 +1,12 @@
 /* eslint-disable import-x/no-nodejs-modules, import-x/no-extraneous-dependencies */
 import { execFileSync } from 'node:child_process';
-import type {
-  IPlatformDriver,
-  SessionLaunchInput,
-  StateSnapshotCapability,
-  WorkflowContext,
+import {
+  generateSessionId,
+  knowledgeStore,
+  type IPlatformDriver,
+  type SessionLaunchInput,
+  type StateSnapshotCapability,
+  type WorkflowContext,
 } from '@metamask/client-mcp-core';
 import { MetaMaskMobileSessionManager } from '../metamask-provider';
 import {
@@ -20,7 +22,12 @@ import {
   type ResolvedIOSLaunchOptions,
 } from '../launcher-types';
 
-jest.mock('@metamask/client-mcp-core', () => ({}));
+jest.mock('@metamask/client-mcp-core', () => ({
+  generateSessionId: jest.fn().mockReturnValue('mm-test-session-id'),
+  knowledgeStore: {
+    writeSessionMetadata: jest.fn().mockResolvedValue('/tmp/session.json'),
+  },
+}));
 jest.mock('node:child_process', () => ({ execFileSync: jest.fn() }));
 jest.mock('../ios/prerequisites', () => ({
   validateIOSPrerequisites: jest.fn(),
@@ -48,6 +55,10 @@ const mockEnsureAccessibilityBridgeEnabled = jest.mocked(
   ensureAccessibilityBridgeEnabled,
 );
 const mockProbeHermesHealthy = jest.mocked(probeHermesHealthy);
+const mockGenerateSessionId = jest.mocked(generateSessionId);
+const mockWriteSessionMetadata = jest.mocked(
+  knowledgeStore.writeSessionMetadata,
+);
 
 const resolved: ResolvedIOSLaunchOptions = {
   simulatorDeviceId: 'SIM-UDID',
@@ -203,6 +214,22 @@ describe('MetaMaskMobileSessionManager', () => {
       'xcrun',
       expect.arrayContaining(['fixtureServerPort']),
       expect.anything(),
+    );
+  });
+
+  it('generates an mm-prefixed session ID and persists session metadata', async () => {
+    await sessionManager.launch(createLaunchInput({ goal: 'test goal' }));
+
+    expect(mockGenerateSessionId).toHaveBeenCalledTimes(1);
+    expect(mockWriteSessionMetadata).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: 'mm-test-session-id',
+        goal: 'test goal',
+        schemaVersion: 1,
+      }),
+    );
+    expect(sessionManager.getSessionMetadata()).toEqual(
+      expect.objectContaining({ sessionId: 'mm-test-session-id' }),
     );
   });
 

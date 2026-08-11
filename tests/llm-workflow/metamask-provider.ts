@@ -1,6 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules, import-x/no-extraneous-dependencies */
 import { execFileSync } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
 
 import type { BrowserContext, Page } from '@playwright/test';
 import {
@@ -22,6 +21,8 @@ import {
   type TabRole,
   type TrackedPage,
   type WorkflowContext,
+  generateSessionId,
+  knowledgeStore,
 } from '@metamask/client-mcp-core';
 
 import {
@@ -289,7 +290,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       }
 
       const state = await iosDriver.driver.getAppState();
-      const sessionId = randomUUID();
+      const sessionId = generateSessionId();
       const startedAt = new Date().toISOString();
 
       this.sessionId = sessionId;
@@ -317,6 +318,8 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
           ports: undefined,
         },
       };
+
+      await knowledgeStore.writeSessionMetadata(this.sessionMetadata);
 
       return {
         sessionId,
