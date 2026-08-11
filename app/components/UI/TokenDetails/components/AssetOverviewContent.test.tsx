@@ -19,6 +19,7 @@ import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 // eslint-disable-next-line import-x/no-namespace
 import * as TokenDetailsActionsModule from './TokenDetailsActions';
+import type { UsePerpsActionsResult } from '../hooks/usePerpsActions';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -55,18 +56,20 @@ jest.mock('../../MarketInsights', () => ({
   selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
 }));
 
-const mockUsePerpsActions = jest.fn(() => ({
-  hasPerpsMarket: true,
-  marketData: { symbol: 'ETH', name: 'ETH', maxLeverage: '50x' },
-  isLoading: false,
-  error: null,
-  handlePerpsAction: mockHandlePerpsAction,
-}));
+const mockUsePerpsActions = jest.fn(
+  (..._args: unknown[]): UsePerpsActionsResult => ({
+    hasPerpsMarket: true,
+    marketData: { symbol: 'ETH', name: 'ETH', maxLeverage: '50x' },
+    isLoading: false,
+    error: null,
+    handlePerpsAction: mockHandlePerpsAction,
+  }),
+);
 jest.mock('../hooks/usePerpsActions', () => ({
   usePerpsActions: (...args: unknown[]) => mockUsePerpsActions(...args),
 }));
 
-const mockUseTokenBuyability = jest.fn(() => ({
+const mockUseTokenBuyability = jest.fn((..._args: unknown[]) => ({
   isBuyable: true,
   isLoading: false,
 }));
