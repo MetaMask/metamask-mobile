@@ -163,7 +163,8 @@ export const useTokenTransactions = (
   const txsRef = useRef<Transaction[]>([]);
   const txsPendingRef = useRef<Transaction[]>([]);
   const isNormalizingRef = useRef(false);
-  const chainIdRef = useRef('');
+  // Initialize to the current chain so the first mount does not flash loading.
+  const chainIdRef = useRef(chainId ?? '');
   const mountedRef = useRef(false);
 
   // Selectors

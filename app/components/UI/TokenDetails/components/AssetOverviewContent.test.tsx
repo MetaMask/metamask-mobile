@@ -55,14 +55,24 @@ jest.mock('../../MarketInsights', () => ({
   selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
 }));
 
+const mockUsePerpsActions = jest.fn(() => ({
+  hasPerpsMarket: true,
+  marketData: { symbol: 'ETH', name: 'ETH', maxLeverage: '50x' },
+  isLoading: false,
+  error: null,
+  handlePerpsAction: mockHandlePerpsAction,
+}));
 jest.mock('../hooks/usePerpsActions', () => ({
-  usePerpsActions: () => ({
-    hasPerpsMarket: true,
-    marketData: { symbol: 'ETH', name: 'ETH', maxLeverage: '50x' },
-    isLoading: false,
-    error: null,
-    handlePerpsAction: mockHandlePerpsAction,
-  }),
+  usePerpsActions: (...args: unknown[]) => mockUsePerpsActions(...args),
+}));
+
+const mockUseTokenBuyability = jest.fn(() => ({
+  isBuyable: true,
+  isLoading: false,
+}));
+jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseTokenBuyability(...args),
 }));
 
 jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
@@ -864,5 +874,87 @@ describe('AssetOverviewContent', () => {
         );
       },
     );
+  });
+
+  describe('TokenDetailsActions isLoading prop', () => {
+    let tokenDetailsActionsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'test-event' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: null,
+        hasFundsInPerps: false,
+        isLoading: false,
+      });
+      mockUsePerpsActions.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: { symbol: 'ETH', name: 'ETH', maxLeverage: '50x' },
+        isLoading: false,
+        error: null,
+        handlePerpsAction: mockHandlePerpsAction,
+      });
+      mockUseTokenBuyability.mockReturnValue({
+        isBuyable: true,
+        isLoading: false,
+      });
+      tokenDetailsActionsSpy = jest.spyOn(
+        TokenDetailsActionsModule,
+        'TokenDetailsActions',
+      );
+    });
+
+    afterEach(() => {
+      tokenDetailsActionsSpy.mockRestore();
+    });
+
+    it('does not block the action buttons on perps market resolution', () => {
+      // Perps market data is still resolving, but buyability already
+      // resolved — the buttons should render immediately rather than
+      // wait for perps, avoiding a skeleton flash on every open.
+      mockUsePerpsActions.mockReturnValue({
+        hasPerpsMarket: false,
+        marketData: null,
+        isLoading: true,
+        error: null,
+        handlePerpsAction: undefined,
+      });
+
+      renderWithProvider(<AssetOverviewContent {...defaultProps} />, {
+        state: createState(true),
+      });
+
+      expect(tokenDetailsActionsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ isLoading: false }),
+        undefined,
+      );
+    });
+
+    it('blocks the action buttons while buyability is still resolving', () => {
+      mockUseTokenBuyability.mockReturnValue({
+        isBuyable: false,
+        isLoading: true,
+      });
+
+      renderWithProvider(<AssetOverviewContent {...defaultProps} />, {
+        state: createState(true),
+      });
+
+      expect(tokenDetailsActionsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ isLoading: true }),
+        undefined,
+      );
+    });
   });
 });

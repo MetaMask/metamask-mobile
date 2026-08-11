@@ -360,7 +360,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
 
-  const isButtonsLoading = isBuyableLoading || isPerpsLoading;
+  // Do not block the default action buttons on perps resolution — swap to
+  // Long/Short when hasPerpsMarket becomes true without a skeleton flash.
+  const isButtonsLoading = isBuyableLoading;
 
   // Check if user has a position for this asset (only if market exists)
   const { position: perpsPosition, isLoading: isPerpsPositionLoading } =

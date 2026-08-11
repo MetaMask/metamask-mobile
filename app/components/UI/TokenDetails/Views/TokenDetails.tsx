@@ -187,7 +187,7 @@ const TokenDetails: React.FC<{
   onCtaClicked,
   onPerpsMarketResolved,
 }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
@@ -271,10 +271,6 @@ const TokenDetails: React.FC<{
     assetId: caip19AssetId,
     prefetchedData: token.securityData,
   });
-
-  useEffect(() => {
-    endTrace({ name: TraceName.AssetDetails });
-  }, []);
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
@@ -439,76 +435,166 @@ const TokenDetails: React.FC<{
     bridgeArrivalTxs,
   } = useTokenTransactions(token);
 
+  // End AssetDetails when the screen is past the full-screen loader (interactive).
+  const assetDetailsEndedRef = useRef(false);
+  useEffect(() => {
+    assetDetailsEndedRef.current = false;
+  }, [token.chainId, token.address, token.symbol]);
+  useEffect(() => {
+    if (txLoading || assetDetailsEndedRef.current) {
+      return;
+    }
+    assetDetailsEndedRef.current = true;
+    endTrace({ name: TraceName.AssetDetails });
+  }, [txLoading]);
+
   const hasTransactions =
     transactions.length > 0 ||
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
-  const renderHeader = () => (
-    <>
-      <AssetOverviewContent
-        token={token}
-        balance={balance}
-        balanceCta={moneyBalanceCta}
-        balanceDescription={moneyBalanceDescription}
-        balancePriceChangeOverride={
-          moneyAssetOverviewCtas.isBalanceCtaVisible &&
-          moneyAssetOverviewCtas.apyPercent !== undefined
-            ? strings('money.asset_overview.balance_cta.earn_apy', {
-                apy: moneyAssetOverviewCtas.apyPercent,
-              })
-            : undefined
-        }
-        balancePriceChangeOverrideColor={
-          moneyAssetOverviewCtas.isBalanceCtaVisible
-            ? TextColor.Success
-            : undefined
-        }
-        mainBalance={fiatBalance ?? ''}
-        secondaryBalance={tokenFormattedBalance}
-        currentPrice={currentPrice}
-        priceDiff={priceDiff}
-        comparePrice={comparePrice}
-        prices={prices}
-        isLoading={isLoading}
-        hasInsufficientCoverage={hasInsufficientCoverage}
-        timePeriod={timePeriod}
-        setTimePeriod={setTimePeriod}
-        chartNavigationButtons={chartNavigationButtons}
-        currentCurrency={currentCurrency}
-        onBuy={handleBuy}
-        onSend={handleSend}
-        onReceive={onReceive}
-        onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        onMarketInsightsDisclaimerPress={() =>
-          setIsInsightsDisclaimerVisible(true)
-        }
-        securityData={securityData}
-        isSecurityDataLoading={isSecurityDataLoading}
-        hasSecurityDataError={Boolean(securityDataError)}
-        onPriceDirectionChange={handlePriceDirectionChange}
-        useAmbientColor={useAmbientColor}
-        onExitAction={onCtaClicked}
-        isPricePositive={chartPricePositive}
-        onPerpsMarketResolved={onPerpsMarketResolved}
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        stakedTrxAsset={stakedTrxAsset}
-        inLockPeriodBalance={inLockPeriodBalance}
-        readyForWithdrawalBalance={readyForWithdrawalBalance}
-        ///: END:ONLY_INCLUDE_IF
-      />
-      {(txLoading || hasTransactions) && (
-        <ActivityHeader
-          asset={{
-            ...token,
-            hasBalanceError: token.hasBalanceError ?? false,
-          }}
-        />
-      )}
-    </>
-  );
+  const handleMarketInsightsDisclaimerPress = useCallback(() => {
+    setIsInsightsDisclaimerVisible(true);
+  }, []);
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleCopyAddress = useCallback(() => {
+    trackActionTapped(TokenDetailsAction.CopyTokenAddress);
+  }, [trackActionTapped]);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
+
+  const starButton = useMemo(
+    () => (
+      <WatchlistStarButton
+        assetId={caip19AssetId}
+        assetType={isNativeToken ? 'native' : 'erc20'}
+        hasBalance={hasBalanceValue}
+        source="token_details"
+      />
+    ),
+    [caip19AssetId, isNativeToken, hasBalanceValue],
+  );
+
+  const balancePriceChangeOverride = useMemo(() => {
+    if (
+      !(
+        moneyAssetOverviewCtas.isBalanceCtaVisible &&
+        moneyAssetOverviewCtas.apyPercent !== undefined
+      )
+    ) {
+      return undefined;
+    }
+    return strings('money.asset_overview.balance_cta.earn_apy', {
+      apy: moneyAssetOverviewCtas.apyPercent,
+    });
+  }, [
+    moneyAssetOverviewCtas.apyPercent,
+    moneyAssetOverviewCtas.isBalanceCtaVisible,
+  ]);
+
+  const balancePriceChangeOverrideColor =
+    moneyAssetOverviewCtas.isBalanceCtaVisible ? TextColor.Success : undefined;
+
+  const activityHeaderAsset = useMemo(
+    () => ({
+      ...token,
+      hasBalanceError: token.hasBalanceError ?? false,
+    }),
+    [token],
+  );
+
+  const header = useMemo(
+    () => (
+      <>
+        <AssetOverviewContent
+          token={token}
+          balance={balance}
+          balanceCta={moneyBalanceCta}
+          balanceDescription={moneyBalanceDescription}
+          balancePriceChangeOverride={balancePriceChangeOverride}
+          balancePriceChangeOverrideColor={balancePriceChangeOverrideColor}
+          mainBalance={fiatBalance ?? ''}
+          secondaryBalance={tokenFormattedBalance}
+          currentPrice={currentPrice}
+          priceDiff={priceDiff}
+          comparePrice={comparePrice}
+          prices={prices}
+          isLoading={isLoading}
+          hasInsufficientCoverage={hasInsufficientCoverage}
+          timePeriod={timePeriod}
+          setTimePeriod={setTimePeriod}
+          chartNavigationButtons={chartNavigationButtons}
+          currentCurrency={currentCurrency}
+          onBuy={handleBuy}
+          onSend={handleSend}
+          onReceive={onReceive}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+          onMarketInsightsDisclaimerPress={handleMarketInsightsDisclaimerPress}
+          securityData={securityData}
+          isSecurityDataLoading={isSecurityDataLoading}
+          hasSecurityDataError={Boolean(securityDataError)}
+          onPriceDirectionChange={handlePriceDirectionChange}
+          useAmbientColor={useAmbientColor}
+          onExitAction={onCtaClicked}
+          isPricePositive={chartPricePositive}
+          onPerpsMarketResolved={onPerpsMarketResolved}
+          ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          stakedTrxAsset={stakedTrxAsset}
+          inLockPeriodBalance={inLockPeriodBalance}
+          readyForWithdrawalBalance={readyForWithdrawalBalance}
+          ///: END:ONLY_INCLUDE_IF
+        />
+        {(txLoading || hasTransactions) && (
+          <ActivityHeader asset={activityHeaderAsset} />
+        )}
+      </>
+    ),
+    [
+      token,
+      balance,
+      moneyBalanceCta,
+      moneyBalanceDescription,
+      balancePriceChangeOverride,
+      balancePriceChangeOverrideColor,
+      fiatBalance,
+      tokenFormattedBalance,
+      currentPrice,
+      priceDiff,
+      comparePrice,
+      prices,
+      isLoading,
+      hasInsufficientCoverage,
+      timePeriod,
+      setTimePeriod,
+      chartNavigationButtons,
+      currentCurrency,
+      handleBuy,
+      handleSend,
+      onReceive,
+      onMarketInsightsDisplayResolved,
+      handleMarketInsightsDisclaimerPress,
+      securityData,
+      isSecurityDataLoading,
+      securityDataError,
+      handlePriceDirectionChange,
+      useAmbientColor,
+      onCtaClicked,
+      chartPricePositive,
+      onPerpsMarketResolved,
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      stakedTrxAsset,
+      inLockPeriodBalance,
+      readyForWithdrawalBalance,
+      ///: END:ONLY_INCLUDE_IF
+      txLoading,
+      hasTransactions,
+      activityHeaderAsset,
+    ],
+  );
 
   const renderLoader = () => (
     <View style={styles.loader}>
@@ -520,16 +606,9 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         token={token}
         securityData={securityData}
-        onBackPress={() => navigation.goBack()}
+        onBackPress={handleBackPress}
         onSharePress={handleShare}
-        starButton={
-          <WatchlistStarButton
-            assetId={caip19AssetId}
-            assetType={isNativeToken ? 'native' : 'erc20'}
-            hasBalance={hasBalanceValue}
-            source="token_details"
-          />
-        }
+        starButton={starButton}
         onPriceAlertPress={
           isPriceAlertsChainSupported &&
           (currentPriceUsd ?? 0) > 0 &&
@@ -537,16 +616,14 @@ const TokenDetails: React.FC<{
             ? handlePriceAlertPress
             : undefined
         }
-        onCopyAddress={() =>
-          trackActionTapped(TokenDetailsAction.CopyTokenAddress)
-        }
+        onCopyAddress={handleCopyAddress}
       />
 
       {txLoading ? (
         renderLoader()
       ) : txIsNonEvmAsset ? (
         <MultichainTransactionsView
-          header={renderHeader()}
+          header={header}
           transactions={transactions}
           navigation={navigation}
           selectedAddress={selectedAddress}
@@ -558,7 +635,7 @@ const TokenDetails: React.FC<{
         />
       ) : (
         <Transactions
-          header={renderHeader()}
+          header={header}
           assetSymbol={token.symbol}
           navigation={navigation}
           transactions={transactions}
@@ -633,24 +710,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
   const token = route.params as TokenDetailsRouteParams;
-
-  const [perpsMarket, setPerpsMarket] = useState<{
-    hasPerpsMarket: boolean;
-    isLoading: boolean;
-  }>({ hasPerpsMarket: false, isLoading: true });
-  const { hasPerpsMarket, isLoading: isPerpsMarketLoading } = perpsMarket;
-
-  // undefined = not yet resolved; null = footer won't render; string = resolved value
-  const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
-    | 'both'
-    | 'buy'
-    | 'swap'
-    | 'swap_earn'
-    | 'earn_buy'
-    | 'earn'
-    | null
-    | undefined
-  >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
@@ -732,71 +791,93 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   );
 
   /**
-   * Defer TOKEN_DETAILS_OPENED until both market insights and perps market
-   * data have settled. Using plain state instead of ref+nonce keeps
-   * `handleMarketInsightsDisplayResolved` stable (setState identity is
-   * guaranteed by React) so the child effect in AssetOverviewContent
-   * doesn't re-trigger.
+   * Collect analytics inputs in refs so child resolutions do not re-render
+   * RouteWrapper. Fire TOKEN_DETAILS_OPENED once all three have settled.
    */
-  const [pendingInsights, setPendingInsights] = useState<{
+  const tokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
+  const insightsRef = useRef<{
     tokenKey: string;
     isDisplayed: boolean;
     severity: string | undefined;
   } | null>(null);
+  const perpsRef = useRef<{
+    hasPerpsMarket: boolean;
+    isLoading: boolean;
+  }>({ hasPerpsMarket: false, isLoading: true });
+  const stickyButtonsRef = useRef<
+    | 'both'
+    | 'buy'
+    | 'swap'
+    | 'swap_earn'
+    | 'earn_buy'
+    | 'earn'
+    | null
+    | undefined
+  >(undefined);
+  const openedTrackedRef = useRef(false);
+  const prevTokenKeyRef = useRef(tokenKey);
 
-  const tokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
-
-  // Reset perps market state when the token changes so stale results from a
-  // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
-  const prevTokenKeyRef = useRef<string | null>(null);
+  // Reset analytics refs during render on token change so child effects in the
+  // same commit cannot be wiped by a later parent useEffect.
   if (prevTokenKeyRef.current !== tokenKey) {
     prevTokenKeyRef.current = tokenKey;
-    if (perpsMarket.hasPerpsMarket || !perpsMarket.isLoading) {
-      setPerpsMarket({ hasPerpsMarket: false, isLoading: true });
-    }
+    insightsRef.current = null;
+    perpsRef.current = { hasPerpsMarket: false, isLoading: true };
+    stickyButtonsRef.current = undefined;
+    openedTrackedRef.current = false;
   }
 
-  const handleMarketInsightsDisplayResolved = useCallback(
-    (payload: { isDisplayed: boolean; severity: string | undefined }) => {
-      setPendingInsights({
-        tokenKey,
-        ...payload,
-      });
-    },
-    [tokenKey],
-  );
-
-  useEffect(() => {
-    if (!pendingInsights) {
+  const tryTrackTokenDetailsOpened = useCallback(() => {
+    if (openedTrackedRef.current) {
       return;
     }
-    if (pendingInsights.tokenKey !== tokenKey) {
-      // Ignore stale payloads from a previously viewed token.
-      setPendingInsights(null);
+    const insights = insightsRef.current;
+    if (!insights || insights.tokenKey !== tokenKey) {
       return;
     }
-    if (isPerpsMarketLoading) {
+    if (perpsRef.current.isLoading) {
       return;
     }
-    if (resolvedStickyButtons === undefined) {
-      // Wait until sticky buttons have settled before firing the event.
+    if (stickyButtonsRef.current === undefined) {
       return;
     }
     trackTokenDetailsOpened({
-      isMarketInsightsDisplayed: pendingInsights.isDisplayed,
-      severity: pendingInsights.severity,
-      hasPerpsMarket,
-      stickyButtonsShown: resolvedStickyButtons ?? undefined,
+      isMarketInsightsDisplayed: insights.isDisplayed,
+      severity: insights.severity,
+      hasPerpsMarket: perpsRef.current.hasPerpsMarket,
+      stickyButtonsShown: stickyButtonsRef.current ?? undefined,
     });
-    setPendingInsights(null);
-  }, [
-    pendingInsights,
-    hasPerpsMarket,
-    isPerpsMarketLoading,
-    resolvedStickyButtons,
-    tokenKey,
-    trackTokenDetailsOpened,
-  ]);
+    openedTrackedRef.current = true;
+  }, [tokenKey, trackTokenDetailsOpened]);
+
+  const handleMarketInsightsDisplayResolved = useCallback(
+    (payload: { isDisplayed: boolean; severity: string | undefined }) => {
+      insightsRef.current = {
+        tokenKey,
+        ...payload,
+      };
+      tryTrackTokenDetailsOpened();
+    },
+    [tokenKey, tryTrackTokenDetailsOpened],
+  );
+
+  const handlePerpsMarketResolved = useCallback(
+    (result: { hasPerpsMarket: boolean; isLoading: boolean }) => {
+      perpsRef.current = result;
+      tryTrackTokenDetailsOpened();
+    },
+    [tryTrackTokenDetailsOpened],
+  );
+
+  const handleStickyButtonsResolved = useCallback(
+    (
+      shown: 'both' | 'buy' | 'swap' | 'swap_earn' | 'earn_buy' | 'earn' | null,
+    ) => {
+      stickyButtonsRef.current = shown;
+      tryTrackTokenDetailsOpened();
+    },
+    [tryTrackTokenDetailsOpened],
+  );
 
   const handleCtaClicked = useCallback(() => {
     closeSourceRef.current = 'cta_clicked';
@@ -807,9 +888,9 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     <TokenDetails
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
-      onStickyButtonsResolved={setResolvedStickyButtons}
+      onStickyButtonsResolved={handleStickyButtonsResolved}
       onCtaClicked={handleCtaClicked}
-      onPerpsMarketResolved={setPerpsMarket}
+      onPerpsMarketResolved={handlePerpsMarketResolved}
     />
   );
 };

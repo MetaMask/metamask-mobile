@@ -31,6 +31,10 @@ import {
   type CrosshairData,
   type IndicatorType,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
+
+/** Stable empty arrays so line-chart renders don't churn AdvancedChart props. */
+const EMPTY_INDICATORS: IndicatorType[] = [];
+const EMPTY_SELECTED_MAS: string[] = [];
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
@@ -1041,8 +1045,12 @@ const PriceAdvanced = ({
               }
               volumeOverlay
               chartType={chartType}
-              indicators={showChartIndicators ? indicatorsArray : []}
-              selectedMAs={showChartIndicators ? selectedMAs : []}
+              indicators={
+                showChartIndicators ? indicatorsArray : EMPTY_INDICATORS
+              }
+              selectedMAs={
+                showChartIndicators ? selectedMAs : EMPTY_SELECTED_MAS
+              }
               subPaneHeightRatio={
                 advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
               }

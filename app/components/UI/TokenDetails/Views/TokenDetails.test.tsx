@@ -27,6 +27,12 @@ jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
   useMoneyAssetOverviewCtas: () => mockUseMoneyAssetOverviewCtas(),
 }));
 
+const mockEndTrace = jest.fn();
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
+
 jest.mock('../../Money/components/MoneyAssetOverviewBalanceCta', () => ({
   MoneyAssetOverviewBalanceCta: () => null,
   MoneyAssetOverviewBalanceCtaSkeleton: () => null,
@@ -506,6 +512,54 @@ describe('TokenDetails', () => {
     const { UNSAFE_getByType } = render(<TokenDetails />);
 
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  describe('AssetDetails trace', () => {
+    it('does not end the AssetDetails trace while transactions are still loading', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        loading: true,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('ends the AssetDetails trace once transactions finish loading', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        loading: true,
+      });
+
+      const { rerender } = render(<TokenDetails />);
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        loading: false,
+      });
+      rerender(<TokenDetails />);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({ name: 'Asset Details' });
+    });
+
+    it('does not end the trace again on subsequent renders once already ended', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        loading: false,
+      });
+
+      const { rerender } = render(<TokenDetails />);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      rerender(<TokenDetails />);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Swap/Buy sticky buttons', () => {

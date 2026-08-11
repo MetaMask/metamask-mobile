@@ -405,6 +405,19 @@ describe('UnconnectedTransactions', () => {
       expect(screen.getByTestId('transactions-container')).toBeOnTheScreen();
     });
 
+    it('renders the list immediately without waiting on a mount delay', () => {
+      // No jest.advanceTimersByTime() here — the list must not be gated
+      // behind an artificial timeout on mount.
+      render(
+        <UnconnectedTransactions
+          {...createDefaultTestProps()}
+          loading={false}
+        />,
+      );
+
+      expect(screen.getByTestId('transactions-container')).toBeOnTheScreen();
+    });
+
     it('expands the transaction selected by a notification', () => {
       const transaction = { id: 'notification-transaction', time: 2 };
       (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(

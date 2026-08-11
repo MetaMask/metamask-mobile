@@ -120,6 +120,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
+    useIsFocused: () => true,
   };
 });
 
@@ -371,6 +372,22 @@ describe('PredictionsSection', () => {
     );
 
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
+  });
+
+  it('gates crypto up/down market data on homepage focus', () => {
+    const { useCurrentCryptoUpDownMarketData } = jest.requireMock(
+      '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
+    ) as {
+      useCurrentCryptoUpDownMarketData: jest.Mock;
+    };
+
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(useCurrentCryptoUpDownMarketData).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
   });
 
   it('navigates with home_section entry_point when trending markets title is pressed', () => {

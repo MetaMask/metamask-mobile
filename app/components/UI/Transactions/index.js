@@ -176,7 +176,7 @@ const Transactions = (props) => {
   const theme = useContext(ThemeContext) || mockTheme;
   const { colors } = theme;
   const [selectedTransactions, setSelectedTransactions] = useState(new Map());
-  const [ready, setReady] = useState(false);
+  const [ready] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [cancelIsOpen, setCancelIsOpen] = useState(false);
   const [speedUpIsOpen, setSpeedUpIsOpen] = useState(false);
@@ -300,30 +300,22 @@ const Transactions = (props) => {
 
   useEffect(() => {
     mountedRef.current = true;
-    const timeout = setTimeout(() => {
-      if (!mountedRef.current) {
-        return;
-      }
-      setReady(true);
-      const txToView = NotificationManager.getTransactionToView();
-      if (txToView) {
-        notificationTimeoutRef.current = setTimeout(() => {
-          const { transactions: latestTransactions } =
-            latestMountPropsRef.current;
-          const index = latestTransactions.findIndex(
-            (tx) => txToView === tx.id,
-          );
-          if (index >= 0) {
-            toggleDetailsViewRef.current?.(txToView, index);
-          }
-        }, 1000);
-      }
-      latestMountPropsRef.current.onRefSet?.(flatListRef);
-    }, 100);
+    // Mount header/list immediately — do not defer behind a 100ms ready gate.
+    const txToView = NotificationManager.getTransactionToView();
+    if (txToView) {
+      notificationTimeoutRef.current = setTimeout(() => {
+        const { transactions: latestTransactions } =
+          latestMountPropsRef.current;
+        const index = latestTransactions.findIndex((tx) => txToView === tx.id);
+        if (index >= 0) {
+          toggleDetailsViewRef.current?.(txToView, index);
+        }
+      }, 1000);
+    }
+    latestMountPropsRef.current.onRefSet?.(flatListRef);
 
     return () => {
       mountedRef.current = false;
-      clearTimeout(timeout);
       if (notificationTimeoutRef.current) {
         clearTimeout(notificationTimeoutRef.current);
       }
