@@ -4,6 +4,7 @@ import CardButton from './CardButton';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import type { CardProviderId } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const mockTrackEvent = jest.fn();
 const mockBuiltEvent = { name: 'Card Button Viewed', properties: {} };
@@ -26,7 +27,7 @@ jest.mock('../../../../../util/Logger', () => ({ log: jest.fn() }));
 interface RenderOptions {
   /** Set to 0 to simulate flags not yet loaded. Defaults to 1 (resolved). */
   cacheTimestamp?: number;
-  activeProviderId?: string | null;
+  activeProviderId?: CardProviderId | null;
 }
 
 function renderWithProvider(

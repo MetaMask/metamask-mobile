@@ -662,7 +662,7 @@ const SignUp = () => {
             error={legalDocsError}
             treatEmptyAsError
             onRetry={() => {
-              void refetchLegalDocs();
+              refetchLegalDocs().catch(() => undefined);
             }}
           />
         </Box>
