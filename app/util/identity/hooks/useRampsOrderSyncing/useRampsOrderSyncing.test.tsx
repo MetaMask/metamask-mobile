@@ -93,7 +93,7 @@ describe('useShouldDispatchRampsOrderSyncing()', () => {
     return { successTestCase, failureStateCases };
   })();
 
-  it('should return true if all conditions are met', () => {
+  it('returns true if all conditions are met', () => {
     const { state } = arrangeMockState(testCases.successTestCase.state);
     const hook = renderHookWithProvider(
       () => useShouldDispatchRampsOrderSyncing(),
@@ -105,7 +105,7 @@ describe('useShouldDispatchRampsOrderSyncing()', () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   it.each(testCases.failureStateCases)(
-    'should return false if not all conditions are met [%s = false]',
+    'returns false if not all conditions are met [%s = false]',
     ({
       state: failureState,
     }: (typeof testCases)['failureStateCases'][number]) => {
@@ -135,7 +135,7 @@ describe('useRampsOrderSyncing', () => {
     return { dispatchRampsOrderSyncing, shouldDispatchRampsOrderSyncing };
   };
 
-  it('should dispatch if conditions are met', async () => {
+  it('dispatches if conditions are met', async () => {
     const { dispatchRampsOrderSyncing, shouldDispatchRampsOrderSyncing } =
       arrangeAndAct({
         completedOnboarding: true,
@@ -152,7 +152,7 @@ describe('useRampsOrderSyncing', () => {
     expect(shouldDispatchRampsOrderSyncing).toBe(true);
   });
 
-  it('should not dispatch conditions are not met', async () => {
+  it('does not dispatch if conditions are not met', async () => {
     const { dispatchRampsOrderSyncing, shouldDispatchRampsOrderSyncing } =
       arrangeAndAct({
         completedOnboarding: true,
