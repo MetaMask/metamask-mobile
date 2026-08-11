@@ -34,6 +34,7 @@ const ignorableOnly =
 
 const flags = computeE2EPlatformFlags({
   githubEventName: process.env.GITHUB_EVENT_NAME || '',
+  prBaseRef: process.env.PR_BASE_REF || '',
   isFork: readBool(process.env.IS_FORK),
   shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
   allChangesCount,
@@ -51,6 +52,7 @@ const flags = computeE2EPlatformFlags({
 let runAppiumIos = false;
 if (
   process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+  process.env.PR_BASE_REF !== 'stable' &&
   !readBool(process.env.IS_FORK)
 ) {
   if (readBool(process.env.RUN_APPIUM_IOS_LABEL)) {
@@ -78,6 +80,7 @@ if (readBool(process.env.LABEL_BLOCKS_MERGE) && !ignorableOnly) {
 let runPerformance = false;
 if (
   process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+  process.env.PR_BASE_REF !== 'stable' &&
   !readBool(process.env.IS_FORK) &&
   readBool(process.env.RUN_PERFORMANCE_LABEL)
 ) {
