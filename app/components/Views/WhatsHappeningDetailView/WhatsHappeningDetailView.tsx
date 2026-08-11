@@ -17,7 +17,7 @@ import { strings } from '../../../../locales/i18n';
 import { useWhatsHappening } from '../../UI/WhatsHappening/hooks';
 import WhatsHappeningExpandedCardSkeleton from './components/WhatsHappeningExpandedCardSkeleton';
 import {
-  MAX_ITEMS_DISPLAYED,
+  SKELETON_CARD_COUNT,
   WhatsHappeningInteractionType,
   WhatsHappeningSource,
   WhatsHappeningView,
@@ -43,7 +43,7 @@ export const CARD_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - GAP;
 const SNAP_INTERVAL = CARD_WIDTH + GAP;
 
 const SKELETON_KEYS = Array.from(
-  { length: MAX_ITEMS_DISPLAYED },
+  { length: SKELETON_CARD_COUNT },
   (_, i) => `skeleton-${i}`,
 );
 
@@ -70,10 +70,9 @@ const WhatsHappeningDetailView = () => {
     route.params?.source ?? WhatsHappeningSource.Unknown;
   const outdatedItemId = route.params?.outdatedItemId;
 
-  const { items, isLoading, error, refresh } = useWhatsHappening(
-    MAX_ITEMS_DISPLAYED,
-    { outdatedItemId },
-  );
+  const { items, isLoading, error, refresh } = useWhatsHappening({
+    outdatedItemId,
+  });
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [cardHeight, setCardHeight] = useState(0);
