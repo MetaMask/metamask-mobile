@@ -1,33 +1,14 @@
-import { deepEqual } from 'fast-equals';
-import { createSelectorCreator, lruMemoize } from 'reselect';
+import { createSelector } from '@reduxjs/toolkit';
 
 /**
- * Creates a selector with deep equality checking for input comparisons.
+ * Historically created a selector with deep equality checking for input
+ * comparisons (via `fast-equals` `deepEqual`). Aliased to the standard
+ * reference-equality `createSelector` to remove the deep-compare overhead that
+ * dominated the confirmation critical path — the upstream input selectors are
+ * already reference-stable (Immer + `createSelector`), so the deep compare was
+ * pure cost with no memoization benefit.
  *
- * Uses deep equality instead of reference equality to prevent unnecessary
- * recalculations when input selectors return identical objects with different references.
- *
- * @example
- * ```typescript
- * const selectUserPreferences = createDeepEqualSelector(
- *   selectUserPreferencesState,
- *   (preferences) => preferences
- * );
- *
- * const selectFilteredItems = createDeepEqualSelector(
- *   [selectItems, selectComplexFilterConfig],
- *   (items, filterConfig) => items.filter(item => matchesFilter(item, filterConfig))
- * );
- * ```
- *
- * **When to use:**
- * - Input selectors return complex objects that should be compared by value
- * - Result function returns identity/passthrough (acceptable here)
- *
- * **Avoid when:**
- * - Working with primitives or when deep equality checks would be expensive
+ * Retained as a named export so the ~35 existing call sites do not need to
+ * change.
  */
-export const createDeepEqualSelector = createSelectorCreator(
-  lruMemoize,
-  deepEqual,
-);
+export const createDeepEqualSelector = createSelector;
