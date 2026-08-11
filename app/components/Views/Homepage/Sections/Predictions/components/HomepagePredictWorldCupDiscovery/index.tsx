@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -53,7 +53,6 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   onTreatmentCtaClick,
 }) => {
   const navigation = useNavigation();
-  const isFocused = useIsFocused();
   const { navigateToMarketDetails } = usePredictNavigation();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const {
@@ -64,7 +63,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     countdown: btcCountdown,
   } = useCurrentCryptoUpDownMarketData({
     series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
-    enabled: isPredictEnabled && isFocused,
+    enabled: isPredictEnabled,
   });
   const eventSlotRows = useMemo<ChampionshipRowState[]>(
     () =>
