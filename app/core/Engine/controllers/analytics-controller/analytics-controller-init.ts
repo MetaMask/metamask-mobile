@@ -75,9 +75,17 @@ export const analyticsControllerInit: MessengerClientInitFunction<
     state,
     platformAdapter,
     isAnonymousEventsFeatureEnabled: true,
+    // Geolocation enrichment is intentionally disabled. With this off, the
+    // controller never calls `GeolocationController:getGeolocationData`, so that
+    // action does not need to be delegated to the analytics messenger.
+    isGeolocationEnabled: false,
   });
 
-  controller.init();
+  // `AnalyticsController.init` is asynchronous as of `@metamask/analytics-controller@2`.
+  // We intentionally don't block controller initialization on it; log any failure.
+  controller.init().catch((error) => {
+    Logger.error(error as Error, 'analyticsControllerInit: Error initializing');
+  });
 
   let lastCompositionFingerprint = '';
   initMessenger.subscribe(
