@@ -58,6 +58,8 @@ const newOverrides = [
       'app/selectors/featureFlagController/confirmations/index.test.ts',
       'app/selectors/featureFlagController/seedlessTelegramLogin/index.ts',
       'app/selectors/featureFlagController/seedlessTelegramLogin/index.test.ts',
+      'app/hooks/useProSubscriptionEnabled.ts',
+      'app/hooks/useProSubscriptionEnabled.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
       'app/constants/bridge.ts',
