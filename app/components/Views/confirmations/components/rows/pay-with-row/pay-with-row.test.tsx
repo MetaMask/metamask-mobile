@@ -251,7 +251,7 @@ describe('PayWithRow', () => {
       const { getByTestId } = render();
       const balanceEl = getByTestId('pay-with-balance');
 
-      expect(balanceEl).toHaveTextContent('($1,234.99)');
+      expect(balanceEl).toHaveTextContent('test ($1,234.99)');
       expect(balanceEl).not.toHaveTextContent('1,235');
     });
   });

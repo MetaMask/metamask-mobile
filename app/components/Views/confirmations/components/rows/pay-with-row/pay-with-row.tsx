@@ -20,17 +20,11 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
-  Icon,
   IconColor,
-  IconName,
-  IconSize,
   KeyValueSelect,
   KeyValueSelectVariant,
   Skeleton,
-  Text,
   TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { BigNumber } from 'bignumber.js';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
@@ -109,16 +103,6 @@ export const PayWithRow = memo(PayWithRowComponent);
 
 type PayWithEndArrow = 'down' | 'right';
 
-/**
- * Chevron for selectable KeyValueSelect rows:
- * - `down` → opens a bottom sheet
- * - `right` → navigates to another page
- */
-const END_ARROW_ICON: Record<PayWithEndArrow, IconName> = {
-  down: IconName.ArrowDown,
-  right: IconName.ArrowRight,
-};
-
 function PayWithRowLayout({
   label,
   disabled,
@@ -152,35 +136,10 @@ function PayWithRowLayout({
     onPress?.();
   };
 
-  const selectPlaceholder =
-    placeholder ?? strings('confirm.label.select_token');
-
-  // SelectButton cannot show both a custom endAccessory and its built-in arrow,
-  // so when a balance is present the chevron is composed next to the balance.
-  const valueEndAccessory =
-    balance != null ? (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
-          testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
-        >
-          {`(${balance})`}
-        </Text>
-        {endArrow ? (
-          <Icon
-            name={END_ARROW_ICON[endArrow]}
-            size={IconSize.Sm}
-            color={disabled ? IconColor.IconMuted : IconColor.IconDefault}
-          />
-        ) : null}
-      </Box>
-    ) : undefined;
+  // SelectButton cannot show both endAccessory and its built-in arrow, so append
+  // balance to the string value and let selectButtonProps own the chevron.
+  const selectValue =
+    value != null && balance != null ? `${value} (${balance})` : value;
 
   return (
     <KeyValueSelect
@@ -190,20 +149,26 @@ function PayWithRowLayout({
       keyTextProps={{
         color: disabled ? TextColor.TextMuted : TextColor.TextAlternative,
       }}
-      value={value}
+      value={selectValue}
       valueStartAccessory={startAccessory}
-      valueEndAccessory={valueEndAccessory}
       valueTextProps={{
         color: disabled ? TextColor.TextMuted : TextColor.TextDefault,
+        ...(balance != null
+          ? { testID: TransactionPayComponentIDs.PAY_WITH_BALANCE }
+          : {}),
       }}
       isDisabled={disabled}
       onPress={handlePress}
       selectButtonProps={{
-        placeholder: selectPlaceholder,
-        // Native SelectButton arrow when there is no balance endAccessory.
-        hideEndArrow: Boolean(valueEndAccessory) || !endArrow,
-        ...(endArrow && !valueEndAccessory
-          ? { endArrowDirection: endArrow }
+        placeholder: placeholder ?? strings('confirm.label.select_token'),
+        hideEndArrow: !endArrow,
+        ...(endArrow
+          ? {
+              endArrowDirection: endArrow,
+              endArrowDirectionIconProps: {
+                color: disabled ? IconColor.IconMuted : IconColor.IconDefault,
+              },
+            }
           : {}),
         // testID is forwarded to SelectButton but omitted from shared selectButtonProps.
         ...({
