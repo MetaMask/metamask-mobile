@@ -16,10 +16,12 @@ export interface PersistedMoneyBalance {
 
 export interface MoneyBalanceSliceState {
   lastKnownBalance: PersistedMoneyBalance | null;
+  redeemableRaw: string | null;
 }
 
 export const initialState: MoneyBalanceSliceState = {
   lastKnownBalance: null,
+  redeemableRaw: null,
 };
 
 const name = 'moneyBalance';
@@ -37,6 +39,12 @@ const slice = createSlice({
     clearLastKnownMoneyBalance: (state) => {
       state.lastKnownBalance = null;
     },
+    setMoneyAccountRedeemableRaw: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.redeemableRaw = action.payload;
+    },
   },
 });
 
@@ -49,6 +57,11 @@ const selectMoneyBalanceState = (state: RootState) => state[name];
 export const selectLastKnownMoneyBalance = createSelector(
   selectMoneyBalanceState,
   (moneyBalance) => moneyBalance.lastKnownBalance,
+);
+
+export const selectMoneyAccountRedeemableRaw = createSelector(
+  selectMoneyBalanceState,
+  (moneyBalance) => moneyBalance.redeemableRaw,
 );
 
 /**
@@ -66,4 +79,8 @@ export const isPersistedMoneyBalanceUsable = (
   areAddressesEqual(persisted?.address ?? '', address ?? '') &&
   persisted?.currency === currency;
 
-export const { setLastKnownMoneyBalance, clearLastKnownMoneyBalance } = actions;
+export const {
+  setLastKnownMoneyBalance,
+  clearLastKnownMoneyBalance,
+  setMoneyAccountRedeemableRaw,
+} = actions;

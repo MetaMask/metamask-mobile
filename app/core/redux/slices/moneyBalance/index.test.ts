@@ -2,7 +2,9 @@ import reducer, {
   initialState,
   setLastKnownMoneyBalance,
   clearLastKnownMoneyBalance,
+  setMoneyAccountRedeemableRaw,
   selectLastKnownMoneyBalance,
+  selectMoneyAccountRedeemableRaw,
   isPersistedMoneyBalanceUsable,
   PersistedMoneyBalance,
   MoneyBalanceSliceState,
@@ -20,6 +22,7 @@ describe('moneyBalance slice', () => {
   it('returns the initial state', () => {
     expect(reducer(undefined, { type: '@@INIT' })).toEqual(initialState);
     expect(initialState.lastKnownBalance).toBeNull();
+    expect(initialState.redeemableRaw).toBeNull();
   });
 
   it('setLastKnownMoneyBalance stores the balance', () => {
@@ -29,11 +32,25 @@ describe('moneyBalance slice', () => {
   });
 
   it('clearLastKnownMoneyBalance resets the balance to null', () => {
-    const populated: MoneyBalanceSliceState = { lastKnownBalance: balance };
+    const populated: MoneyBalanceSliceState = {
+      lastKnownBalance: balance,
+      redeemableRaw: null,
+    };
 
     const state = reducer(populated, clearLastKnownMoneyBalance());
 
     expect(state.lastKnownBalance).toBeNull();
+  });
+
+  it('setMoneyAccountRedeemableRaw stores and clears the raw value', () => {
+    const stored = reducer(
+      initialState,
+      setMoneyAccountRedeemableRaw('15019083'),
+    );
+    expect(stored.redeemableRaw).toBe('15019083');
+
+    const cleared = reducer(stored, setMoneyAccountRedeemableRaw(null));
+    expect(cleared.redeemableRaw).toBeNull();
   });
 
   it('selectLastKnownMoneyBalance returns the stored balance', () => {
@@ -42,6 +59,14 @@ describe('moneyBalance slice', () => {
     } as unknown as RootState;
 
     expect(selectLastKnownMoneyBalance(state)).toEqual(balance);
+  });
+
+  it('selectMoneyAccountRedeemableRaw returns the stored raw value', () => {
+    const state = {
+      moneyBalance: { redeemableRaw: '15019083' },
+    } as unknown as RootState;
+
+    expect(selectMoneyAccountRedeemableRaw(state)).toBe('15019083');
   });
 
   describe('isPersistedMoneyBalanceUsable', () => {

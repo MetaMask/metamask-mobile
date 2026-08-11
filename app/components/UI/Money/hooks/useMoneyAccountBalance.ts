@@ -18,6 +18,7 @@ import {
   isPersistedMoneyBalanceUsable,
   selectLastKnownMoneyBalance,
   setLastKnownMoneyBalance,
+  setMoneyAccountRedeemableRaw,
 } from '../../../../core/redux/slices/moneyBalance';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 
@@ -194,6 +195,18 @@ const useMoneyAccountBalance = ({
     currentCurrency,
     isBalanceLoading,
   ]);
+
+  // Stash the exact atomic redeemable (vmusdValueInMusd, already raw mUSD) so
+  // the transaction-pay resolveSourceAmount callback can read it synchronously
+  // from Redux (it runs outside React and cannot use this hook).
+  const withdrawableMusdRaw =
+    !isBalanceFetchError && !isBalanceLoading
+      ? (moneyBalanceQuery.data?.vmusdValueInMusd ?? undefined)
+      : undefined;
+
+  useEffect(() => {
+    dispatch(setMoneyAccountRedeemableRaw(withdrawableMusdRaw ?? null));
+  }, [dispatch, withdrawableMusdRaw]);
 
   // True whenever there is no fresh balance to show — still loading or a fetch
   // error.
