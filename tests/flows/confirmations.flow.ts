@@ -31,7 +31,8 @@ const LOCAL_CHAIN_CAIP = 'eip155:1337';
 const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
 const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
-const ANDROID_CONFIRM_POLL_MS = 3_000;
+/** Per-tap wait for the confirmation sheet (gas estimation can exceed a few seconds). */
+const ANDROID_CONFIRM_AFTER_TAP_MS = 15_000;
 const TEST_DAPP_PROVIDER_READY_TIMEOUT_MS = 30_000;
 const TEST_DAPP_BUTTON_ENABLED_TIMEOUT_MS = 30_000;
 
@@ -85,35 +86,25 @@ const waitForTestDappProviderReady = async (pageUrl: string): Promise<void> => {
 
 /**
  * After navigation/reload, fixture permissions can inject `window.ethereum`
- * without the Test Dapp firing `globalConnectionChange`, so action buttons stay
- * disabled. Request accounts and emit the same event the dapp uses on connect.
+ * without the Test Dapp firing UI gate events, so action buttons stay disabled
+ * (and `#sendEIP1559Button` stays hidden until base-fee support is advertised).
+ * Emit the same CustomEvents the dapp listens for — do not call
+ * `eth_requestAccounts` here (it can open/queue a connect sheet and block txs).
  */
 const ensureTestDappConnectionEvents = async (
   pageUrl: string,
 ): Promise<void> => {
   await ChromeCdpHelpers.evaluateInWebView<boolean>(
     pageUrl,
-    `(async () => {
-      const eth = window.ethereum;
-      if (!eth || typeof eth.request !== 'function') {
-        return false;
-      }
-      let accounts = [];
-      try {
-        accounts = await eth.request({ method: 'eth_requestAccounts' });
-      } catch (_requestError) {
-        try {
-          accounts = await eth.request({ method: 'eth_accounts' });
-        } catch (_accountsError) {
-          return false;
-        }
-      }
-      if (!Array.isArray(accounts) || accounts.length === 0) {
-        return false;
-      }
+    `(() => {
       document.dispatchEvent(
         new CustomEvent('globalConnectionChange', {
           detail: { connected: true },
+        }),
+      );
+      document.dispatchEvent(
+        new CustomEvent('blockBaseFeePerGasUpdate', {
+          detail: { supported: true },
         }),
       );
       return true;
@@ -124,9 +115,10 @@ const ensureTestDappConnectionEvents = async (
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
  *
- * Android: wait for provider + connection events + enabled control, then use a
- * trusted CDP click (with native fallback). Retry when confirm-button never
- * appears — CDP/native taps can report success without opening the sheet.
+ * Android: wait for provider + UI gate events + enabled control, then tap like
+ * signature smokes (`WebView.tapById`). Wait long enough after each tap for gas
+ * estimation — re-tapping every few seconds rejects in-flight `eth_sendTransaction`
+ * and leaves the Test Dapp showing errors like "Creation Failed".
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -147,30 +139,39 @@ const tapTestDappButtonAndWaitForConfirm = async (
 
   if (PlatformDetector.isAndroidAppium()) {
     let dismissedPushSheet = false;
+    let attempt = 0;
     await Utilities.executeWithRetry(
       async () => {
-        const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+        attempt += 1;
+        await WebView.tapById(buttonId, {
           pageUrl,
-          buttonId,
-        );
-        if (!clicked) {
-          await WebView.tapById(buttonId, {
-            pageUrl,
-            description,
-            preferNative: true,
-          });
-        }
+          description,
+          // First attempt matches signature smokes (CDP then native). Later
+          // attempts force native in case CDP reported a false-success click.
+          preferNative: attempt > 1,
+        });
         try {
-          await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
+          await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_AFTER_TAP_MS);
         } catch (error) {
           if (!dismissedPushSheet) {
             dismissedPushSheet = true;
             await dismissPushNotificationExistingUserSheet();
+            // Push sheet may have covered confirm — check again before re-tap.
+            try {
+              await FooterActions.waitForConfirmButton(5_000);
+              return;
+            } catch {
+              // Fall through to retry with another tap.
+            }
           }
           throw error;
         }
       },
-      { timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS },
+      {
+        timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS,
+        // Keep retries sparse so we do not stampede eth_sendTransaction.
+        interval: 2_000,
+      },
     );
     return;
   }
