@@ -65,8 +65,8 @@ jest.mock('react-native-performance', () => ({
   clearMarks: jest.fn(),
   clearMeasures: jest.fn(),
 }));
-jest.mock('../../../app/util/haptics', () => {
-  const actual = jest.requireActual('../../../app/util/haptics');
+jest.mock('../../../../app/util/haptics', () => {
+  const actual = jest.requireActual('../../../../app/util/haptics');
   return {
     ...actual,
     fireSwitchHaptic: jest.fn(),
@@ -84,7 +84,7 @@ jest.mock('../../../app/util/haptics', () => {
     }),
   };
 });
-jest.mock('../../../app/util/trace', () => ({
+jest.mock('../../../../app/util/trace', () => ({
   TraceName: {
     PerpsOrderView: 'PerpsOrderView',
     PerpsOrderSubmissionToast: 'PerpsOrderSubmissionToast',
@@ -110,27 +110,27 @@ import { buildPerpsFlowHarness, type PerpsFlowHarness } from './perps-flow';
 import type { PerpsHarnessOptions } from './perps';
 import renderWithProvider, {
   type DeepPartial,
-} from '../../../app/util/test/renderWithProvider';
-import type { RootState } from '../../../app/reducers';
-import { ToastContext } from '../../../app/component-library/components/Toast';
+} from '../../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../../app/reducers';
+import { ToastContext } from '../../../../app/component-library/components/Toast';
 import {
   PerpsConnectionContext,
   type PerpsConnectionContextValue,
-} from '../../../app/components/UI/Perps/providers/PerpsConnectionProvider';
+} from '../../../../app/components/UI/Perps/providers/PerpsConnectionProvider';
 import {
   PerpsStreamProvider,
   type PerpsStreamManager,
-} from '../../../app/components/UI/Perps/providers/PerpsStreamManager';
+} from '../../../../app/components/UI/Perps/providers/PerpsStreamManager';
 import type {
   ToastOptions,
   ToastRef,
-} from '../../../app/component-library/components/Toast/Toast.types';
-import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
-import Routes from '../../../app/constants/navigation/Routes';
-import { initialStatePerps } from '../../component-view/presets/perpsStatePreset';
+} from '../../../../app/component-library/components/Toast/Toast.types';
+import { AccessRestrictedProvider } from '../../../../app/components/UI/Compliance';
+import Routes from '../../../../app/constants/navigation/Routes';
+import { initialStatePerps } from '../../../component-view/presets/perpsStatePreset';
 import HardwareWalletContext, {
   type HardwareWalletContextValue,
-} from '../../../app/core/HardwareWallet/contexts/HardwareWalletContext';
+} from '../../../../app/core/HardwareWallet/contexts/HardwareWalletContext';
 
 type ToastOptionsForHarness = ToastOptions;
 
