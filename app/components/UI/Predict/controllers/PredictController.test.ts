@@ -1750,6 +1750,7 @@ describe('PredictController', () => {
           expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+            errorStage: 'order',
           });
           expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
         },
@@ -1797,6 +1798,7 @@ describe('PredictController', () => {
           expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
+            errorStage: 'order',
           });
         },
         {
@@ -2533,6 +2535,212 @@ describe('PredictController', () => {
 
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('getMarkets with hidden markets', () => {
+    const createMockMarket = (
+      id: string,
+      slug = `slug-${id}`,
+      category = 'ending-soon',
+    ) => ({
+      id,
+      slug,
+      title: `Market ${id}`,
+      category,
+      outcomes: ['YES', 'NO'],
+      status: 'open',
+    });
+
+    const createHiddenFlagState = (flag: {
+      enabled: boolean;
+      minimumVersion?: string;
+      hidden: {
+        category: string;
+        marketIds?: string[];
+        slugs?: string[];
+      }[];
+    }) => ({
+      remoteFeatureFlags: {
+        predictHiddenMarkets: {
+          ...flag,
+          minimumVersion: flag.minimumVersion ?? '0.0.0',
+        },
+      },
+      cacheTimestamp: Date.now(),
+    });
+
+    it('removes markets hidden by id for the matching category', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [
+              createMockMarket('market-1'),
+              createMockMarket('hidden-market'),
+              createMockMarket('market-2'),
+            ] as any,
+            nextCursor: 'next-cursor',
+          });
+
+          const result = await controller.getMarkets({
+            category: 'ending-soon',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'market-1',
+            'market-2',
+          ]);
+          expect(result.nextCursor).toBe('next-cursor');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: true,
+                hidden: [
+                  { category: 'ending-soon', marketIds: ['hidden-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('removes markets hidden by slug for the matching category', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [
+              createMockMarket('market-1'),
+              createMockMarket('market-2', 'guinea-bissau-election'),
+            ] as any,
+            nextCursor: null,
+          });
+
+          const result = await controller.getMarkets({
+            category: 'ending-soon',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'market-1',
+          ]);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: true,
+                hidden: [
+                  {
+                    category: 'ending-soon',
+                    slugs: ['guinea-bissau-election'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('applies hiding on paginated pages with afterCursor', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [
+              createMockMarket('hidden-market'),
+              createMockMarket('market-1'),
+            ] as any,
+            nextCursor: null,
+          });
+
+          const result = await controller.getMarkets({
+            category: 'ending-soon',
+            afterCursor: 'cursor-1',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'market-1',
+          ]);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: true,
+                hidden: [
+                  { category: 'ending-soon', marketIds: ['hidden-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('does not hide markets in other categories', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [
+              createMockMarket('hidden-market', 'slug-hidden', 'trending'),
+            ] as any,
+            nextCursor: null,
+          });
+
+          const result = await controller.getMarkets({
+            category: 'trending',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'hidden-market',
+          ]);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: true,
+                hidden: [
+                  { category: 'ending-soon', marketIds: ['hidden-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('does not hide markets when the flag is disabled', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [createMockMarket('hidden-market')] as any,
+            nextCursor: null,
+          });
+
+          const result = await controller.getMarkets({
+            category: 'ending-soon',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'hidden-market',
+          ]);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: false,
+                hidden: [
+                  { category: 'ending-soon', marketIds: ['hidden-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
     });
   });
 
@@ -5680,12 +5888,16 @@ describe('PredictController', () => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.PREVIEW,
           error: 'some error',
+          errorStage: 'payment',
         });
 
         controller.clearOrderError();
 
         expect(
           controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage,
         ).toBeUndefined();
       });
     });
@@ -5931,6 +6143,46 @@ describe('PredictController', () => {
         expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
+      });
+    });
+
+    it('preserves payment-stage error after successful re-init', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Deposit reverted',
+          errorStage: 'payment',
+        });
+
+        const result = await controller.initPayWithAnyToken();
+
+        expect(result.success).toBe(true);
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit reverted',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+      });
+    });
+
+    it('clears non-payment error after successful re-init', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Order placement failed',
+          errorStage: 'order',
+        });
+
+        const result = await controller.initPayWithAnyToken();
+
+        expect(result.success).toBe(true);
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage,
+        ).toBeUndefined();
       });
     });
 
@@ -12507,6 +12759,12 @@ describe('PredictController', () => {
         ).toMatchObject({
           payment_token_address: '0xpaytoken',
         });
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit reverted',
+        );
       });
     });
 
@@ -12811,6 +13069,12 @@ describe('PredictController', () => {
           success: false,
           error: 'Deposit preparation returned undefined',
         });
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit preparation returned undefined',
+        );
       });
     });
 

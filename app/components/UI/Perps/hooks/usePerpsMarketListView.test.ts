@@ -336,6 +336,7 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.searchState.clearSearch).toBe(
         mockSearchState.clearSearch,
       );
+      expect(result.current.searchState.searchResultCount).toBe(1);
     });
   });
 

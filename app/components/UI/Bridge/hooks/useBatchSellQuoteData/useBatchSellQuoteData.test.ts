@@ -6,7 +6,12 @@ import { BridgeToken } from '../../types';
 import { useBatchSellQuoteData } from '.';
 import {
   formatAddressToAssetId,
-  type QuoteMetadata,
+  formatChainIdToCaip,
+  mergeQuoteMetadata,
+  formatChainIdToDec,
+  toQuoteResponseV2,
+  validateQuoteResponseV1,
+  type QuoteResponse,
   type QuoteResponseV1,
   type selectBatchSellQuotes,
   type selectBatchSellTrades,
@@ -99,19 +104,29 @@ function buildMockRecommendedQuote(
     gasSponsored: boolean;
     quoteBpsFee: number | undefined;
   }> = {},
-): QuoteResponseV1 & QuoteMetadata {
+): QuoteResponse {
   const { quoteBpsFee = 87.5, ...remainingQuoteOverrides } = quoteOverrides;
 
-  return {
+  const v1 = {
+    chainId: formatChainIdToCaip(sourceToken.chainId),
     quoteId,
+    estimatedProcessingTimeInSeconds: 60,
     quote: {
       requestId: quoteId,
+      bridgeId: 'test',
+      bridges: [],
+      steps: [],
+      srcTokenAmount: amount,
+      destTokenAmount: amount,
+      minDestTokenAmount: amount,
       srcAsset: {
         ...sourceToken,
         assetId: formatAddressToAssetId(
           sourceToken.address,
           sourceToken.chainId,
         ) as CaipAssetType,
+        name: 'TOKEN1',
+        chainId: formatChainIdToDec(sourceToken.chainId),
       } as never,
       srcChainId: Number(sourceToken.chainId),
       destAsset: {
@@ -120,17 +135,45 @@ function buildMockRecommendedQuote(
           destinationToken.address,
           destinationToken.chainId,
         ) as CaipAssetType,
+        name: 'TOKEN2',
+        chainId: formatChainIdToDec(destinationToken.chainId),
       } as never,
+
       destChainId: Number(destinationToken.chainId),
       feeData: {
-        metabridge: { quoteBpsFee, amount: '0', asset: usdcToken as never },
+        metabridge: {
+          quoteBpsFee,
+          amount: '0',
+          asset: {
+            ...usdcToken,
+            assetId: formatAddressToAssetId(
+              usdcToken.address,
+              usdcToken.chainId,
+            ) as CaipAssetType,
+            name: 'TOKEN1',
+            chainId: formatChainIdToDec(usdcToken.chainId),
+          } as never,
+        },
       },
       ...(priceData ? { priceData } : {}),
       ...remainingQuoteOverrides,
     } as unknown as QuoteResponseV1['quote'],
+    trade: {
+      chainId: 1,
+      data: '0x0523245',
+      value: '0x0',
+      from: sourceToken.address,
+      to: destinationToken.address,
+      gasLimit: 10000,
+    },
+  };
+
+  validateQuoteResponseV1(v1);
+
+  return mergeQuoteMetadata(toQuoteResponseV2(v1), {
     toTokenAmount: { amount, valueInCurrency },
     minToTokenAmount: { amount, valueInCurrency },
-  } as QuoteResponseV1 & QuoteMetadata;
+  });
 }
 
 const ethNetworkFeeAsset = {

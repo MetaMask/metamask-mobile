@@ -36,7 +36,7 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../../../Views/TrendingView/search/abTestConfig';
-import type { QuickBuySheetSource } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import type { QuickBuySheetSource } from '../../../QuickBuy/analytics';
 import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { CaipChainId } from '@metamask/utils';
@@ -144,15 +144,12 @@ const TrendingTokensFullView = () => {
     null,
   );
   const trendingChainIds = useTrendingChainIds();
-  const trendingNetworks = useMemo(
-    () => {
-      const allowedChainIds = new Set(trendingChainIds);
-      return TRENDING_NETWORKS_LIST.filter((network) =>
-        allowedChainIds.has(network.caipChainId),
-      )
-    },
-    [trendingChainIds],
-  );
+  const trendingNetworks = useMemo(() => {
+    const allowedChainIds = new Set(trendingChainIds);
+    return TRENDING_NETWORKS_LIST.filter((network) =>
+      allowedChainIds.has(network.caipChainId),
+    );
+  }, [trendingChainIds]);
   const { variant: quickBuyVariant } = useABTest(
     EXPLORE_QUICK_BUY_AB_KEY,
     EXPLORE_QUICK_BUY_VARIANTS,

@@ -23,7 +23,7 @@ export const useTrendingChainIds = (
       return providedChainIds;
     }
 
-    const blockList = new Set([]);
+    const blockList = new Set<CaipChainId>();
     if (!isStellarAccountsEnabled) {
       blockList.add(NetworkToCaipChainId.STELLAR);
     }
