@@ -1,6 +1,26 @@
-// Legal URLs shown on the VBA (Virtual Bank Account) "Get your Pix Key" screen.
-// MoonPay's is the real public policy; Trace's is a placeholder pending the
-// real legal URL from the Iron/Trace integration team.
+// ISO 3166-1 alpha-3 country code the VBA KYC API scopes disclaimers to.
+// This MVP is Brazil-only.
+export const VBA_KYC_COUNTRY_CODE = 'BRA';
+
+/**
+ * Base URL of the VBA KYC API (`va-mmcx-universal-kyc-api`), used by
+ * `useKycDisclaimers` to fetch the vendor's current Privacy Policy / T&C
+ * links instead of hardcoding them. That service isn't deployed to a
+ * reachable environment yet, so this is empty by default, in which case
+ * `useKycDisclaimers` skips the fetch and callers fall back to the static
+ * URLs below. Set `MM_VBA_KYC_API_BASE_URL` locally once a dev URL exists.
+ *
+ * This whole fetch-it-ourselves setup is a stand-in for the real
+ * `@metamask/kyc-controller` integration, which isn't published/wired into
+ * Engine yet; swap it out once that package lands.
+ */
+export const KYC_API_BASE_URL = process.env.MM_VBA_KYC_API_BASE_URL ?? '';
+
+// Fallback legal URLs shown on the VBA "Get your Pix Key" screen when the
+// dynamic disclaimers fetch above is unavailable (not configured, loading,
+// or errored). MoonPay's is the real public policy; Trace's is a
+// placeholder pending the real legal URL from the Iron/Trace integration
+// team.
 export const MOONPAY_PRIVACY_POLICY_URL =
   'https://www.moonpay.com/legal/privacy_policy';
 export const MOONPAY_TERMS_URL = 'https://www.moonpay.com/legal/terms_of_use';
