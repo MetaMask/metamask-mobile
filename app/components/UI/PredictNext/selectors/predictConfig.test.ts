@@ -7,7 +7,9 @@ const createState = (remote: unknown, override?: unknown): RootState =>
     engine: {
       backgroundState: {
         RemoteFeatureFlagController: {
-          remoteFeatureFlags: { predictConfig: remote },
+          remoteFeatureFlags: {
+            predictConfig: override === undefined ? remote : override,
+          },
           localOverrides:
             override === undefined ? {} : { predictConfig: override },
         },
