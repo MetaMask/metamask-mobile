@@ -13,6 +13,7 @@ import {
   RegistrationSettingsResponse,
   CardLocation,
   CardStatus,
+  CardType,
   type CardNetwork,
 } from '../../../../../components/UI/Card/types';
 import type {
@@ -628,7 +629,10 @@ export class BaanxProvider implements ICardProvider {
       const primaryFundingAsset = this.pickPrimaryAsset(fundingAssets);
 
       const card = cardDetailsResponse
-        ? this.mapCardDetails(cardDetailsResponse)
+        ? this.mapCardDetails(
+            cardDetailsResponse,
+            tokens.location as CardLocation,
+          )
         : null;
       const account = user
         ? this.mapAccountStatus(user, cardDetailsResponse)
@@ -677,7 +681,7 @@ export class BaanxProvider implements ICardProvider {
         '/v1/card/status',
         tokens,
       );
-      return this.mapCardDetails(response);
+      return this.mapCardDetails(response, tokens.location as CardLocation);
     } catch (error) {
       if (error instanceof CardApiError && error.statusCode === 404) {
         throw new CardProviderError(
@@ -1806,7 +1810,10 @@ export class BaanxProvider implements ICardProvider {
     return fallback ?? userPriority;
   }
 
-  private mapCardDetails(response: CardDetailsResponse): CardDetails {
+  private mapCardDetails(
+    response: CardDetailsResponse,
+    location: CardLocation,
+  ): CardDetails {
     return {
       id: response.id,
       status: response.status,
@@ -1814,6 +1821,7 @@ export class BaanxProvider implements ICardProvider {
       lastFour: response.panLast4,
       holderName: response.holderName,
       isFreezable: response.isFreezable,
+      hasPin: location === 'us' || response.type !== CardType.VIRTUAL,
     };
   }
 
