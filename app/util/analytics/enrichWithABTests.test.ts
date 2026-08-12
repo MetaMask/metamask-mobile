@@ -25,22 +25,24 @@ describe('enrichWithABTests', () => {
   });
 
   it('injects one active assignment for a matching allowlisted event', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Token Details Opened',
+    )
       .addProperties({
         screen: 'wallet',
       })
       .build();
 
     const result = enrichWithABTests(event, {
-      cardCARD338AbtestAttentionBadge: 'withBadge',
+      assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
     });
 
     expect(result.properties).toMatchObject({
       screen: 'wallet',
       active_ab_tests: [
         createActiveABTestAssignment(
-          'cardCARD338AbtestAttentionBadge',
-          'withBadge',
+          'assetsASSETS3205AbtestAmbientPriceColor',
+          'treatment',
         ),
       ],
     });
@@ -186,7 +188,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      cardCARD338AbtestAttentionBadge: 'withBadge',
+      assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
     });
 
     expect(result.properties).toEqual({
@@ -208,16 +210,17 @@ describe('enrichWithABTests', () => {
   });
 
   it('supports both string flags and controller object flags', () => {
-    const event =
-      AnalyticsEventBuilder.createEventBuilder('Card Button Viewed').build();
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Token Details Opened',
+    ).build();
 
     const result = enrichWithABTests(event, {
-      cardCARD338AbtestAttentionBadge: { name: 'control' },
+      assetsASSETS3205AbtestAmbientPriceColor: { name: 'control' },
     });
 
     expect(result.properties.active_ab_tests).toEqual([
       createActiveABTestAssignment(
-        'cardCARD338AbtestAttentionBadge',
+        'assetsASSETS3205AbtestAmbientPriceColor',
         'control',
       ),
     ]);
@@ -364,7 +367,9 @@ describe('enrichWithABTests', () => {
   });
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Token Details Opened',
+    )
       .addProperties({
         button_type: 'card',
       })
@@ -374,7 +379,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      cardCARD338AbtestAttentionBadge: 'control',
+      assetsASSETS3205AbtestAmbientPriceColor: 'control',
     });
 
     expect(result.properties.button_type).toBe('card');

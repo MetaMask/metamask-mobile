@@ -105,10 +105,8 @@ if (hasTestOverrides) {
 // We pass dynamic ports via launchArgs in FixtureHelper.ts, but react-native-launch-arguments
 // library behavior differs by platform:
 //
-// iOS: LaunchArguments.value() successfully reads Detox launchArgs → returns { fixtureServerPort: "30002", ... }
-//      App uses the dynamic port directly.
-//
-// Android: LaunchArguments.value() returns {} (library doesn't integrate with Detox on Android)
+// iOS: LaunchArguments.value() successfully reads E2E launchArgs → returns { fixtureServerPort: "30002", ... }
+// Android: LaunchArguments.value() returns {} (library doesn't integrate reliably on Android)
 //          → ALWAYS falls back to hardcoded ports (12345 for fixtures, 2446 for command queue)
 //          Since we need dynamic ports for parallel test execution, the E2E infrastructure uses
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
@@ -117,7 +115,7 @@ if (hasTestOverrides) {
 if (isTestEnvironment) {
   const raw = LaunchArguments.value();
 
-  // Priority: LaunchArgs (Detox) → NSUserDefaults (mm CLI daemon) → hardcoded fallback
+  // Priority: LaunchArgs (E2E) → NSUserDefaults (mm CLI daemon) → hardcoded fallback
   const nsDefaults =
     Platform.OS === 'ios' ? Settings.get('fixtureServerPort') : undefined;
   testConfig.fixtureServerPort = raw?.fixtureServerPort

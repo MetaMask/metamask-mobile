@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type {
   MarketOverview,
@@ -6,7 +6,12 @@ import type {
 } from '@metamask/ai-controllers';
 import Engine from '../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import type { WhatsHappeningItem } from '../types';
+
+/** Internal error flag when fetch rejects with a non-Error value (not shown in UI). */
+export const WHATS_HAPPENING_FETCH_FAILED = 'WHATS_HAPPENING_FETCH_FAILED';
 
 /**
  * Result interface for useWhatsHappening hook
@@ -36,11 +41,8 @@ export const isWhatsHappeningSectionVisible = ({
 }: Pick<UseWhatsHappeningResult, 'isLoading' | 'items' | 'error'>): boolean =>
   isLoading || items.length > 0 || Boolean(error);
 
-const mapTrendsToItems = (
-  overview: MarketOverview,
-  limit: number,
-): WhatsHappeningItem[] =>
-  overview.trends.slice(0, limit).map((trend, index) => ({
+const mapTrendsToItems = (overview: MarketOverview): WhatsHappeningItem[] =>
+  overview.trends.map((trend, index) => ({
     id: `trend-${index}`,
     title: trend.title,
     description: trend.description,
@@ -112,13 +114,11 @@ const getTitleKey = (title: string): string =>
  *
  * @param outdatedItem - The fetched front-page item to prepend, or `null`.
  * @param baseItems - The latest market overview items.
- * @param limit - Maximum number of items to return.
- * @returns The items to render, capped at `limit`.
+ * @returns The items to render.
  */
 const prependOutdatedItem = (
   outdatedItem: WhatsHappeningItem | null,
   baseItems: WhatsHappeningItem[],
-  limit: number,
 ): WhatsHappeningItem[] => {
   if (!outdatedItem) {
     return baseItems;
@@ -139,7 +139,7 @@ const prependOutdatedItem = (
       )
     : baseItems;
 
-  return [item, ...rest].slice(0, limit);
+  return [item, ...rest];
 };
 
 /**
@@ -147,13 +147,13 @@ const prependOutdatedItem = (
  *
  * Calls `AiDigestController.fetchMarketOverview()` (which handles caching
  * internally) and maps the returned `MarketOverviewTrend` entries to
- * `WhatsHappeningItem` shape for the carousel cards.
+ * `WhatsHappeningItem` shape for the carousel cards. Item count is owned by
+ * the Digest API — the client does not slice the response.
  *
- * @param limit - Maximum number of items to return (default: 5)
+ * @param options - Hook options (`enabled`, `outdatedItemId`).
  * @returns Object with items, isLoading, error, refresh
  */
 export const useWhatsHappening = (
-  limit = 5,
   options?: UseWhatsHappeningOptions,
 ): UseWhatsHappeningResult => {
   const isFeatureEnabled = useSelector(selectWhatsHappeningEnabled);
@@ -164,46 +164,92 @@ export const useWhatsHappening = (
   const [items, setItems] = useState<WhatsHappeningItem[]>([]);
   const [isLoading, setIsLoading] = useState(isActive);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const pendingRefreshRef = useRef<{
+    generation: number;
+    resolve: () => void;
+  } | null>(null);
 
-  const fetchItems = useCallback(async () => {
+  useEffect(() => {
+    const generation = refreshKey;
+    let cancelled = false;
+
+    const settleRefresh = () => {
+      const pending = pendingRefreshRef.current;
+      if (pending?.generation === generation) {
+        pending.resolve();
+        pendingRefreshRef.current = null;
+      }
+    };
+
     if (!isActive) {
       setItems([]);
       setIsLoading(false);
       setError(null);
-      return;
+      settleRefresh();
+      return () => {
+        cancelled = true;
+        settleRefresh();
+      };
     }
 
     setIsLoading(true);
     setError(null);
 
-    try {
-      const data =
-        await Engine.context.AiDigestController.fetchMarketOverview();
-      const baseItems = data === null ? [] : mapTrendsToItems(data, limit);
+    const load = async () => {
+      try {
+        const data =
+          await Engine.context.AiDigestController.fetchMarketOverview();
+        const baseItems = data === null ? [] : mapTrendsToItems(data);
 
-      // When a deep link supplied an id, prepend that front-page item as the
-      // first card, deduped against the latest feed. It is flagged "Outdated"
-      // only when it is not already in the feed (see prependOutdatedItem).
-      const outdatedItem = await fetchOutdatedItem(outdatedItemId);
+        // When a deep link supplied an id, prepend that front-page item as the
+        // first card, deduped against the latest feed. It is flagged "Outdated"
+        // only when it is not already in the feed (see prependOutdatedItem).
+        const outdatedItem = await fetchOutdatedItem(outdatedItemId);
 
-      setItems(prependOutdatedItem(outdatedItem, baseItems, limit));
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch trending items',
-      );
-      setItems([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isActive, limit, outdatedItemId]);
+        if (!cancelled) {
+          setItems(prependOutdatedItem(outdatedItem, baseItems));
+          setError(null);
+        }
+      } catch (err) {
+        Logger.error(ensureError(err, 'useWhatsHappening.fetchItems'), {
+          tags: { feature: 'WhatsHappening' },
+          extra: { hook: 'useWhatsHappening' },
+        });
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : WHATS_HAPPENING_FETCH_FAILED,
+          );
+          setItems([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+          settleRefresh();
+        }
+      }
+    };
 
-  const refresh = useCallback(async () => {
-    await fetchItems();
-  }, [fetchItems]);
+    load().catch(() => undefined);
 
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    return () => {
+      cancelled = true;
+      settleRefresh();
+    };
+  }, [isActive, outdatedItemId, refreshKey]);
+
+  const refresh = useCallback(
+    () =>
+      new Promise<void>((resolve) => {
+        pendingRefreshRef.current?.resolve();
+        setRefreshKey((key) => {
+          const nextKey = key + 1;
+          pendingRefreshRef.current = { generation: nextKey, resolve };
+          return nextKey;
+        });
+      }),
+    [],
+  );
 
   return { items, isLoading, error, refresh };
 };

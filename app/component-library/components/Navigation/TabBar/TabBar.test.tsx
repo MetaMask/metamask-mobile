@@ -15,6 +15,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import TabBar from './TabBar';
 import { TabBarIconKey, ExtendedBottomTabDescriptor } from './TabBar.types';
 import Routes from '../../../../constants/navigation/Routes';
+import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 
 // Minimal descriptor interface for tests - only includes what TabBar component uses
 interface TestTabDescriptor {
@@ -142,7 +143,10 @@ describe('TabBar', () => {
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Activity}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { entryPoint: ActivityScreenEntryPoint.BottomNavClick },
+    });
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {

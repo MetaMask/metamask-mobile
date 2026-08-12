@@ -15,8 +15,10 @@ import {
   formatAbbreviatedUsd,
   formatPercent,
   formatSignedUsd,
+  formatTradeUnitPrice,
   formatUsd,
 } from '../../utils/formatters';
+import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
 import type {
   FeedAction,
@@ -28,10 +30,6 @@ import type {
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
-
-/** Trade timestamps from the social API may be in seconds or milliseconds. */
-const toMs = (timestamp: number): number =>
-  timestamp < 1e12 ? timestamp * 1000 : timestamp;
 
 interface FeedItemPresentation {
   valueLabel: string;
@@ -55,7 +53,7 @@ function findTriggeringTrade(
   }
 
   const exact = trades.find(
-    (trade) => toMs(trade.timestamp) === feedTimestampMs,
+    (trade) => tradeTimestampToMs(trade.timestamp) === feedTimestampMs,
   );
   if (exact) {
     return exact;
@@ -63,7 +61,9 @@ function findTriggeringTrade(
 
   return trades.reduce(
     (latest, trade) =>
-      toMs(trade.timestamp) > toMs(latest.timestamp) ? trade : latest,
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
     trades[0],
   );
 }
@@ -120,14 +120,13 @@ function buildSubHeader(
     };
   }
 
-  const price =
-    trade.tokenAmount > 0 ? Math.abs(trade.usdCost / trade.tokenAmount) : null;
+  const tokenAmount = Math.abs(trade.tokenAmount);
+  const price = tokenAmount > 0 ? Math.abs(trade.usdCost) / tokenAmount : null;
 
-  // Guard against sub-cent prices rendering as a misleading "$0.00".
-  if (price != null && price >= 0.01) {
+  if (price != null && price > 0) {
     return {
       sizeLabel,
-      contextValueLabel: formatUsd(price),
+      contextValueLabel: formatTradeUnitPrice(price),
       contextKind: 'price',
     };
   }
@@ -313,7 +312,7 @@ function mapSpotFeedItem(
 export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const { timestamp, trades } = coreItem;
 
-  const timestampMs = toMs(timestamp);
+  const timestampMs = tradeTimestampToMs(timestamp);
   const isPerp = isPerpPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
   const isClosed = isFeedItemClosed(coreItem, trade);
