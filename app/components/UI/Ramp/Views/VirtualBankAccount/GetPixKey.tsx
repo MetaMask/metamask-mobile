@@ -14,20 +14,30 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { brandColor } from '@metamask/design-tokens';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import TagBase from '../../../../../component-library/base-components/TagBase';
+import { TagShape } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { VBA_KYC_COUNTRY_CODE } from './constants';
+import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+
+// Pix's badge always renders bold italic white text on its brand teal,
+// regardless of app theme, so this is a plain style object rather than a
+// twClassName.
+const PIX_TAG_TEXT_STYLE = {
+  color: brandColor.white,
+  fontStyle: 'italic' as const,
+  fontWeight: 'bold' as const,
+};
 
 const BenefitRow = ({
   icon,
@@ -42,7 +52,7 @@ const BenefitRow = ({
     twClassName="gap-3"
   >
     <Box twClassName="shrink-0 pt-0.5">
-      <Icon name={icon} size={IconSize.Md} color={IconColor.IconAlternative} />
+      <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
     </Box>
     <Box twClassName="flex-1">{children}</Box>
   </Box>
@@ -120,8 +130,8 @@ const GetPixKey = () => {
           {strings('virtual_bank_account.get_pix_key.description')}
         </Text>
 
-        <Box twClassName="mt-4 p-4 gap-4 rounded-xl bg-muted">
-          <BenefitRow icon={IconName.Receive}>
+        <Box twClassName="mt-4 p-5 gap-5 rounded-xl bg-muted">
+          <BenefitRow icon={IconName.Share}>
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -132,7 +142,15 @@ const GetPixKey = () => {
                   'virtual_bank_account.get_pix_key.benefit_deposit_pix',
                 )}
               </Text>
-              <Tag severity={TagSeverity.Info}>Pix</Tag>
+              {/* Pix has no design-system token — this is its brand teal,
+              matched to the vendor's own badge styling. */}
+              <TagBase
+                shape={TagShape.Rectangle}
+                style={{ backgroundColor: PIX_BRAND_COLOR }}
+                textProps={{ style: PIX_TAG_TEXT_STYLE }}
+              >
+                pix
+              </TagBase>
             </Box>
           </BenefitRow>
           <BenefitRow icon={IconName.Global}>
@@ -211,15 +229,12 @@ const GetPixKey = () => {
       </ScrollView>
 
       <Box twClassName="p-4 gap-3">
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextMuted}>
-          {strings('virtual_bank_account.get_pix_key.agreement_text')}
-        </Text>
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextMuted}
           twClassName="text-center"
         >
-          {strings('virtual_bank_account.get_pix_key.powered_by_moonpay')}
+          {strings('virtual_bank_account.get_pix_key.agreement_text')}
         </Text>
         <Button
           variant={ButtonVariant.Primary}
@@ -231,6 +246,13 @@ const GetPixKey = () => {
         >
           {strings('virtual_bank_account.get_pix_key.button')}
         </Button>
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextMuted}
+          twClassName="text-center"
+        >
+          {strings('virtual_bank_account.get_pix_key.powered_by_moonpay')}
+        </Text>
       </Box>
     </SafeAreaView>
   );

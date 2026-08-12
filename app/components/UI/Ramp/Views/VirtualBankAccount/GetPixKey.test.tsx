@@ -43,6 +43,7 @@ describe('GetPixKey', () => {
 
     expect(getByText('Get your Pix Key')).toBeOnTheScreen();
     expect(getByText('Deposit with')).toBeOnTheScreen();
+    expect(getByText('pix')).toBeOnTheScreen();
     expect(
       getByText('Send local and international payments'),
     ).toBeOnTheScreen();
