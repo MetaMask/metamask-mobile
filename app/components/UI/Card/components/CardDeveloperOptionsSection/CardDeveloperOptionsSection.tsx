@@ -6,16 +6,15 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import {
   resetOnboardingState,
   setCardArrivalAnimationSeen,
   setCardArrivalPreviewRequested,
 } from '../../../../../core/redux/slices/card';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -59,15 +58,15 @@ const CardDeveloperOptionsSection = () => {
   return (
     <Box twClassName="mt-2 gap-2">
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
         style={tw.style('mt-4')}
       >
         {strings('app_settings.developer_options.card.title')}
       </Text>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={tw.style('mt-2')}
       >
         {strings(
@@ -84,8 +83,8 @@ const CardDeveloperOptionsSection = () => {
         {strings('app_settings.developer_options.card.reset_onboarding_button')}
       </Button>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={tw.style('mt-6')}
       >
         {strings(
@@ -107,8 +106,8 @@ const CardDeveloperOptionsSection = () => {
       </Button>
       {!isUnlinkable && (
         <Text
-          color={TextColor.Muted}
-          variant={TextVariant.BodySM}
+          color={TextColor.TextMuted}
+          variant={TextVariant.BodySm}
           style={tw.style('mt-2')}
           testID="card-dev-unlink-money-account-disabled-hint"
         >
@@ -118,8 +117,8 @@ const CardDeveloperOptionsSection = () => {
         </Text>
       )}
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={tw.style('mt-6')}
       >
         {strings(

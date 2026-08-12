@@ -242,5 +242,68 @@ describe('useCardArrivalAnimation', () => {
 
       expect(result.current.cardStyle.opacity).toBe(1);
     });
+
+    // Re-hiding a card the user has already seen reads as a glitch, so the
+    // timed-out skip has to outlast a late-resolving input.
+    it('keeps the card visible when its type resolves after the wait timed out', () => {
+      jest.useFakeTimers();
+      const params: { cardType: CardType | undefined } = {
+        cardType: undefined,
+      };
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useCardArrivalAnimation({
+            fromCardOnboarding: true,
+            isRevealingCardDetails: false,
+            cardType: params.cardType,
+          }),
+        {
+          state: { card: { ...initialCardState } } as ProviderValues['state'],
+        },
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(CARD_ARRIVAL_PENDING_TIMEOUT_MS);
+      });
+      expect(result.current.cardStyle.opacity).toBe(1);
+
+      params.cardType = CardType.VIRTUAL;
+      act(() => rerender({} as never));
+
+      expect(result.current.cardStyle.opacity).toBe(1);
+      expect(result.current.usesRiveCard).toBe(false);
+    });
+  });
+
+  describe('once the reveal has been consumed', () => {
+    it('does not replay when the user closes their card details', () => {
+      let isRevealingCardDetails = false;
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useCardArrivalAnimation({
+            fromCardOnboarding: true,
+            cardType: CardType.VIRTUAL,
+            isRevealingCardDetails,
+          }),
+        {
+          state: { card: { ...initialCardState } } as ProviderValues['state'],
+        },
+      );
+
+      expect(result.current.usesRiveCard).toBe(true);
+      expect(result.current.playReveal).toBe(true);
+
+      isRevealingCardDetails = true;
+      act(() => rerender({} as never));
+      expect(result.current.usesRiveCard).toBe(false);
+
+      isRevealingCardDetails = false;
+      act(() => rerender({} as never));
+
+      expect(result.current.usesRiveCard).toBe(true);
+      expect(result.current.playReveal).toBe(false);
+    });
   });
 });

@@ -588,7 +588,7 @@ const CardHome = () => {
                 key={arrival.revealKey}
                 isMetalCard={hasMetalCard}
                 fillWidth
-                playRevealOnMount
+                playRevealOnMount={arrival.playReveal}
                 revealDelayMs={arrival.revealDelayMs}
                 testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
               />

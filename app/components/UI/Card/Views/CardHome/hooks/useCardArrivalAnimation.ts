@@ -71,6 +71,13 @@ export const useCardArrivalAnimation = ({
   const [hasStartedReveal, setHasStartedReveal] = useState(false);
   // Bumped per sequence to remount the Rive view — its trigger fires once only.
   const [revealKey, setRevealKey] = useState(0);
+  // Viewing card details unmounts the Rive view; without this, closing them
+  // would remount it and fire `startAnimation` again, replaying the one-shot on
+  // the same visit. Tracked on unmount rather than on completion so the prop
+  // never flips while the Rive view is live — that would swap its
+  // `stateMachineName` mid-reveal. A ref, not state: toggling the details also
+  // re-renders, so the read below is already fresh without a second pass.
+  const revealConsumed = useRef(false);
 
   const resolved: CardArrivalDecision = resolveCardArrivalDecision({
     flagEnabled: canPlayReveal,
@@ -81,9 +88,14 @@ export const useCardArrivalAnimation = ({
   });
 
   // `pending` withholds the card, so it must be bounded: card data can be slow
-  // or never arrive, and the reduce-motion lookup is asynchronous.
-  const decision: CardArrivalDecision =
-    resolved === 'pending' && pendingTimedOut ? 'skip' : resolved;
+  // or never arrive, and the reduce-motion lookup is asynchronous. The skip is
+  // permanent for this sequence — once the bound is hit the settled card is on
+  // screen, and a late `animate` would hide a card the user has already seen.
+  const decision: CardArrivalDecision = pendingTimedOut ? 'skip' : resolved;
+
+  useEffect(() => {
+    if (isRevealingCardDetails) revealConsumed.current = true;
+  }, [isRevealingCardDetails]);
 
   useEffect(() => {
     if (resolved !== 'pending') return undefined;
@@ -117,6 +129,7 @@ export const useCardArrivalAnimation = ({
     // Mount Rive immediately so the file parses during the delay, but hold the
     // card hidden: the trigger is what waits, not the load.
     setHasStartedReveal(true);
+    revealConsumed.current = false;
     setRevealKey((key) => key + 1);
     // Seed explicitly: the initial argument applies on first render only, and
     // a replay is commonly requested on an already-mounted dashboard.
@@ -149,6 +162,12 @@ export const useCardArrivalAnimation = ({
      * their details, which the Rive card has no surface for.
      */
     usesRiveCard: hasStartedReveal && !isRevealingCardDetails,
+    /**
+     * Whether the mounting Rive view should fire its reveal trigger. False once
+     * the sequence's reveal has been consumed, so remounting the card after the
+     * user closes their details renders it settled instead of replaying.
+     */
+    playReveal: hasStartedReveal && !revealConsumed.current,
     /** Changes per sequence; use as the Rive view's `key` so it remounts. */
     revealKey,
     revealDelayMs: CARD_ARRIVAL_START_DELAY_MS,
