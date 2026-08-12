@@ -228,12 +228,17 @@ const selectPerpsProPositionsSideFilter = createSelector(
 );
 
 /**
- * Pro Positions list sort config. Persisted globally across markets and app
- * restarts via `PerpsController.proLayoutPreferences.positionsSortConfig`.
+ * Pro Positions list sort config composed from flat controller fields.
+ * Persisted globally across markets and app restarts via
+ * `positionsSortField` / `positionsSortDirection` on
+ * `PerpsController.proLayoutPreferences`.
  */
 const selectPerpsProPositionsSortConfig = createSelector(
   selectPerpsProLayoutPreferences,
-  (proLayoutPreferences) => proLayoutPreferences.positionsSortConfig,
+  (proLayoutPreferences) => ({
+    field: proLayoutPreferences.positionsSortField,
+    direction: proLayoutPreferences.positionsSortDirection,
+  }),
 );
 
 // Factory function to create selector for specific market

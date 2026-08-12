@@ -64,7 +64,7 @@ describe('usePerpsProPositionsPreferences', () => {
     ).toHaveBeenCalledWith({ positionsSideFilter: 'short' });
   });
 
-  it('persists positionsSortConfig via setProLayoutPreferences', () => {
+  it('maps nested sortConfig to flat controller fields on write', () => {
     mockUseSelector.mockReturnValue({
       field: 'positionValue',
       direction: 'desc',
@@ -82,7 +82,8 @@ describe('usePerpsProPositionsPreferences', () => {
     expect(
       Engine.context.PerpsController.setProLayoutPreferences,
     ).toHaveBeenCalledWith({
-      positionsSortConfig: { field: 'fundingRate', direction: 'asc' },
+      positionsSortField: 'fundingRate',
+      positionsSortDirection: 'asc',
     });
   });
 });

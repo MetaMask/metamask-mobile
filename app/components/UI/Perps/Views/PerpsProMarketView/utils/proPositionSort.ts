@@ -1,19 +1,23 @@
 import {
   DEFAULT_PRO_LAYOUT_PREFERENCES,
   type Position,
-  type ProPositionsSortConfig,
+  type ProPositionsSortDirection,
   type ProPositionsSortField,
 } from '@metamask/perps-controller';
-import { compareProSortValues, type ProSortDirection } from './proSortCompare';
+import { compareProSortValues } from './proSortCompare';
 
 export type ProPositionSortField = ProPositionsSortField;
 
-export type ProPositionSortDirection = ProSortDirection;
+export type ProPositionSortDirection = ProPositionsSortDirection;
 
-export type ProPositionSortConfig = ProPositionsSortConfig;
+export interface ProPositionSortConfig {
+  field: ProPositionSortField;
+  direction: ProPositionSortDirection;
+}
 
 export const DEFAULT_PRO_POSITION_SORT: ProPositionSortConfig = {
-  ...DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortConfig,
+  field: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortField,
+  direction: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortDirection,
 };
 
 export const PRO_POSITION_SORT_OPTIONS: {

@@ -45,9 +45,10 @@ jest.mock('../../../hooks/usePerpsProPositionsPreferences', () => {
       const [sideFilter, setSideFilter] = useState(
         DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSideFilter,
       );
-      const [sortConfig, setSortConfig] = useState(
-        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortConfig,
-      );
+      const [sortConfig, setSortConfig] = useState({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortDirection,
+      });
       return { sideFilter, sortConfig, setSideFilter, setSortConfig };
     },
   };

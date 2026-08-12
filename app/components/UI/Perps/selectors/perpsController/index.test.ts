@@ -1025,26 +1025,27 @@ describe('PerpsController Selectors', () => {
   });
 
   describe('selectPerpsProPositionsSortConfig', () => {
-    it('returns the persisted positions sort config', () => {
-      const positionsSortConfig = {
-        field: 'fundingRate' as const,
-        direction: 'asc' as const,
-      };
+    it('composes nested sort config from flat persisted fields', () => {
       const mockState = createMockState({
-        proLayoutPreferences: { positionsSortConfig },
+        proLayoutPreferences: {
+          positionsSortField: 'fundingRate',
+          positionsSortDirection: 'asc',
+        },
       });
 
-      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual(
-        positionsSortConfig,
-      );
+      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual({
+        field: 'fundingRate',
+        direction: 'asc',
+      });
     });
 
-    it('returns the controller default when the preference is unset', () => {
+    it('returns the controller defaults when the preference is unset', () => {
       const mockState = createMockState({});
 
-      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual(
-        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortConfig,
-      );
+      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortDirection,
+      });
     });
   });
 });
