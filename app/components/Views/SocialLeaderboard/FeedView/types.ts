@@ -1,5 +1,6 @@
 import type { CaipChainId } from '@metamask/utils';
 import type { PositionTokenAvatarData } from '../components/PositionTokenAvatar';
+import type { TradeAction } from '../utils/tradeAction';
 
 /**
  * Feed audience filter. `all` shows every trader's activity; `following` shows
@@ -14,8 +15,12 @@ export type FeedAudience = 'all' | 'following';
  */
 export type { SocialTypeFilter as FeedTypeFilter } from '../components/Filters/types';
 
-/** Trade action verb, shown after the trader username. */
-export type FeedAction = 'bought' | 'sold' | 'opened' | 'closed';
+/**
+ * Position-lifecycle stage of the trade a row announces, shown after the
+ * trader username. Rendered as `opened / added / reduced / closed` for perps
+ * and `bought / bought more / sold some / sold all` for spot.
+ */
+export type FeedAction = TradeAction;
 
 /** Perp position direction, used for the LONG / SHORT badge. */
 export type FeedPerpDirection = 'long' | 'short';

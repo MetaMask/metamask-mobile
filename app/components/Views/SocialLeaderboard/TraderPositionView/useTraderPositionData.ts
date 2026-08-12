@@ -4,6 +4,7 @@ import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { chainNameToId } from '../utils/chainMapping';
 import { isPerpPosition, isClosedPosition } from '../utils/perp';
+import { resolveTradeActions, type TradeAction } from '../utils/tradeAction';
 import { tradeTimestampToMs } from '../utils/tradeTimestamp';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { usePerpsTraderPositionPrices } from './usePerpsTraderPositionPrices';
@@ -154,6 +155,12 @@ export interface TraderPositionData {
   isPnlPositive: boolean;
 
   allTrades: Position['trades'];
+  /**
+   * Lifecycle stage per entry in {@link allTrades}, same order. Resolved here
+   * rather than per row because a fill's stage depends on the fills before it
+   * and on the position's remaining size.
+   */
+  tradeActions: TradeAction[];
   chartTrades: Position['trades'];
 
   // Time period
@@ -356,6 +363,11 @@ export function useTraderPositionData(
     [positionParam?.trades],
   );
 
+  const tradeActions = useMemo(
+    () => (positionParam ? resolveTradeActions(positionParam) : []),
+    [positionParam],
+  );
+
   const chartTrades = useMemo(() => {
     const now = Date.now();
     return allTrades.filter(
@@ -381,6 +393,7 @@ export function useTraderPositionData(
     pnlPercent,
     isPnlPositive,
     allTrades,
+    tradeActions,
     chartTrades,
     activeTimePeriod,
     isTimePeriodAutoSelected,
