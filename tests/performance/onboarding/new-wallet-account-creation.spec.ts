@@ -18,6 +18,7 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView.js';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import {
+  closePredictModal,
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow.js';
@@ -57,6 +58,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
       await dismissPushNotificationExistingUserSheet();
+      await closePredictModal();
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',

@@ -879,7 +879,7 @@ class AccountListBottomSheet {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;
-    const initialWaitTimeout = 5000; // 5 seconds to wait for syncing/discovering to appear
+    const initialWaitTimeout = 2000; // 2 seconds to wait for syncing/discovering to appear
 
     const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
 

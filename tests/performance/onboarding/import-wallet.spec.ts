@@ -14,6 +14,7 @@ import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
 import {
+  closePredictModal,
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
@@ -104,6 +105,7 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
       await MetaMetricsOptInView.tapIAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
       await dismissPushNotificationExistingUserSheet();
+      await closePredictModal();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(WalletView.headerRoot),
