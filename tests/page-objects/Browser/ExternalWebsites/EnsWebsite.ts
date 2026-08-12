@@ -28,18 +28,27 @@ class EnsWebsite {
       if (PlatformDetector.isAndroid()) {
         // Android Chromedriver context switch fails under LavaMoat ShadowRoot
         // scuttling — tap via the native accessibility tree instead.
+        // WebView a11y nodes often report isDisplayed/isEnabled=false even when
+        // present, so wait on existence and tap without strict gating.
         await PlaywrightContextHelpers.switchToNativeContext();
         await PlaywrightAssertions.expectElementToBeVisible(
           PlaywrightMatchers.getElementByAndroidUIAutomator(
             EnsWebsiteSelectorsText.PAGE_HEADING,
           ),
+          { timeout: 30_000 },
         );
 
-        await PlaywrightGestures.waitAndTap(
+        const generalLink =
           await PlaywrightMatchers.getElementByAndroidUIAutomator(
             EnsWebsiteSelectorsText.GENERAL_LINK,
-          ),
-        );
+          );
+        await generalLink.unwrap().waitForExist({ timeout: 30_000 });
+        await PlaywrightGestures.waitAndTap(generalLink, {
+          checkForDisplayed: false,
+          checkForEnabled: false,
+          timeout: 30_000,
+          elemDescription: 'ENS General link (Android native WebView a11y)',
+        });
         return;
       }
 

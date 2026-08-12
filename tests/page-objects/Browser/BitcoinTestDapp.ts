@@ -147,12 +147,51 @@ class BitcoinTestDapp {
     );
   }
 
+  /**
+   * Opens the wallet-selection modal, picks MetaMask, and approves connect.
+   * On Android CI the Bitcoin provider may register after the first Connect
+   * tap, so re-tap Connect until the wallet option appears (same pattern as
+   * waitForReconnect approving a late connect sheet).
+   */
   async connect(): Promise<void> {
-    await this.click(`button${sel(header.connect)}`);
-    await this.waitForElement(
-      `button${sel(walletSelectionModal.walletOption)}`,
-    );
-    await this.click(`button${sel(walletSelectionModal.walletOption)}`);
+    const walletOptionSelector = `button${sel(walletSelectionModal.walletOption)}`;
+    const connectSelector = `button${sel(header.connect)}`;
+    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
+    let lastConnectAttemptAt = 0;
+    let walletOptionVisible = false;
+
+    while (Date.now() < deadline) {
+      const exists = await this.evaluate<boolean>(
+        `Boolean(document.querySelector(${JSON.stringify(walletOptionSelector)}))`,
+      ).catch(() => false);
+      if (exists) {
+        walletOptionVisible = true;
+        break;
+      }
+
+      if (Date.now() - lastConnectAttemptAt >= 3_000) {
+        lastConnectAttemptAt = Date.now();
+        // Best-effort Connect tap: provider may not be registered yet.
+        await this.evaluate<boolean>(
+          `(() => {
+            const el = document.querySelector(${JSON.stringify(connectSelector)});
+            if (!el) return false;
+            el.click();
+            return true;
+          })()`,
+        ).catch(() => false);
+      }
+
+      await wait(POLL_MS);
+    }
+
+    if (!walletOptionVisible) {
+      throw new Error(
+        `Timed out waiting for "${walletOptionSelector}" to appear`,
+      );
+    }
+
+    await this.click(walletOptionSelector);
     await this.click(`button${sel(walletSelectionModal.standardButton)}`);
     await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
     await this.verifyConnectionStatus('Connected', CONNECT_TIMEOUT_MS);

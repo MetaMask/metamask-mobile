@@ -140,6 +140,10 @@ appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
             },
             {
               description: 'wait for ENS page to load and tap General link',
+              // Android native WebView a11y can surface the General link late;
+              // POM already waits ~30s per attempt — keep a wider outer budget.
+              timeout: 60_000,
+              maxRetries: 3,
             },
           );
         },
