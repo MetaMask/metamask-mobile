@@ -265,7 +265,6 @@ jobs:
       # Compare against the native baseline itself: the invariant an RC OTA must hold is that the
       # JS bundle still matches the native binary testers already have installed.
       base_branch: ${{ needs.resolve-native-baseline.outputs.baseline_sha }}
-      ota_revision_count: ${{ needs.resolve-native-baseline.outputs.ota_revision_count }}
       native_build_number: ${{ needs.resolve-native-baseline.outputs.native_build_number }}
     secrets: inherit
 

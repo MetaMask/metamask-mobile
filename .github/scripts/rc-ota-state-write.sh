@@ -8,8 +8,8 @@
 # Two modes:
 #   MODE=baseline      Record a new native baseline (after a successful native RC build)
 #                      and reset ota_revision_count to 0.
-#   MODE=ota-revision  Increment ota_revision_count (after a successful auto-OTA push),
-#                      leaving the baseline fields untouched.
+#   MODE=ota-revision  Increment ota_revision_count (to reserve the revision an auto-OTA push is
+#                      about to publish under), leaving the baseline fields untouched.
 #
 # The state branch is an orphan branch holding nothing but these JSON files, so it is
 # never checked out over the working tree: the state repo is materialised in a temp
@@ -69,14 +69,26 @@ git remote add origin "${AUTH_URL}"
 git config user.name 'metamaskbot'
 git config user.email 'metamaskbot@users.noreply.github.com'
 
+# Set once the attempt loop has a commit that has not made it to the remote yet. It only stays
+# true while the remote branch is still missing, i.e. during bootstrap: with no remote tip to
+# reconcile against, a rejected push is transient and the same commit can simply be pushed again.
+HAVE_PENDING_COMMIT=false
+
 # Materialises STATE_BRANCH at its current remote tip, or an empty orphan branch when the
 # branch does not exist yet. Called before every attempt so retries rebuild from the latest tip.
 sync_state_branch() {
-  rm -rf ./state
   if git fetch --quiet --depth 1 origin "${STATE_BRANCH}" 2>/dev/null; then
+    rm -rf ./state
     git checkout --quiet -B "${STATE_BRANCH}" FETCH_HEAD
+    HAVE_PENDING_COMMIT=false
     echo "📥 Synced ${STATE_BRANCH} at $(git rev-parse --short HEAD)"
+  elif [[ "${HAVE_PENDING_COMMIT}" == true ]]; then
+    # `--orphan` fails once the branch name exists locally, so reuse the branch this loop
+    # created on an earlier attempt instead of trying to create it a second time.
+    git checkout --quiet "${STATE_BRANCH}"
+    echo "🌱 Reusing the ${STATE_BRANCH} commit from the previous attempt (remote still has no such branch)"
   else
+    rm -rf ./state
     # --orphan on an empty repo leaves an unborn branch, so no `git rm` cleanup is needed.
     git checkout --quiet --orphan "${STATE_BRANCH}"
     echo "🌱 ${STATE_BRANCH} does not exist yet; will create it as an orphan branch"
@@ -156,16 +168,21 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
 
   sync_state_branch
 
-  if ! write_state_file; then
-    echo "✅ ${STATE_PATH} already records this state (ota_revision_count=${NEW_REVISION_COUNT}); nothing to push."
-    break
-  fi
+  # A pending commit already holds exactly what this run wants to write, and there is no new
+  # remote tip to rebase onto, so go straight back to pushing it.
+  if [[ "${HAVE_PENDING_COMMIT}" != true ]]; then
+    if ! write_state_file; then
+      echo "✅ ${STATE_PATH} already records this state (ota_revision_count=${NEW_REVISION_COUNT}); nothing to push."
+      break
+    fi
 
-  git add "${STATE_PATH}"
-  if [[ "$MODE" == "baseline" ]]; then
-    git commit --quiet -m "chore(rc-ota): baseline ${RELEASE_BRANCH} at ${BASELINE_SHA:0:7} (build ${NATIVE_BUILD_NUMBER:-unknown})"
-  else
-    git commit --quiet -m "chore(rc-ota): OTA revision ${NEW_REVISION_COUNT} for ${RELEASE_BRANCH}"
+    git add "${STATE_PATH}"
+    if [[ "$MODE" == "baseline" ]]; then
+      git commit --quiet -m "chore(rc-ota): baseline ${RELEASE_BRANCH} at ${BASELINE_SHA:0:7} (build ${NATIVE_BUILD_NUMBER:-unknown})"
+    else
+      git commit --quiet -m "chore(rc-ota): OTA revision ${NEW_REVISION_COUNT} for ${RELEASE_BRANCH}"
+    fi
+    HAVE_PENDING_COMMIT=true
   fi
 
   if git push --quiet origin "HEAD:refs/heads/${STATE_BRANCH}"; then

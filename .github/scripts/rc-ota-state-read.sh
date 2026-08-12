@@ -11,7 +11,7 @@
 #     "baseline_short_sha":  "<short form of baseline_sha>",
 #     "fingerprint":         "<Expo fingerprint at baseline_sha>",
 #     "native_build_number": "<build number that native build was stamped with>",
-#     "ota_revision_count":  <number of auto-OTA pushes on top of that baseline>,
+#     "ota_revision_count":  <highest auto-OTA revision reserved on top of that baseline>,
 #     "updated_at":          "<ISO8601>"
 #   }
 #
