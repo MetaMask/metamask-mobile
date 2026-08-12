@@ -108,6 +108,16 @@ const REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN = {
   },
 };
 
+const REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN_OVERRIDE = {
+  ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+  localOverrides: {
+    predictWithAnyToken: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+  },
+};
+
 const DEFAULT_NETWORK_CLIENT = {
   blockTracker: {
     checkForLatestBlock: jest.fn().mockResolvedValue(undefined),
@@ -644,7 +654,7 @@ describe('PredictController', () => {
   });
 
   describe('feature flag resolution', () => {
-    it('resolves predictWithAnyToken from the effective feature flags', () => {
+    it('uses local overrides for predictWithAnyToken', () => {
       withController(
         ({ controller }) => {
           expect(
@@ -659,7 +669,9 @@ describe('PredictController', () => {
           mocks: {
             getRemoteFeatureFlagState: jest
               .fn()
-              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+              .mockReturnValue(
+                REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN_OVERRIDE,
+              ),
           },
         },
       );

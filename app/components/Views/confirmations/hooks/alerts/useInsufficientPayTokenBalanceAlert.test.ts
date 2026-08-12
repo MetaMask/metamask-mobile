@@ -31,6 +31,7 @@ import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactio
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useConfirmationContext } from '../../context/confirmation-context';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 
 jest.mock('../pay/useTransactionPayToken');
@@ -39,6 +40,7 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('../tokens/useTokenWithBalance');
 jest.mock('../pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
+jest.mock('../../context/confirmation-context');
 
 const PAY_TOKEN_MOCK = {
   address: '0x123' as Hex,
@@ -99,9 +101,14 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useConfirmationContextMock = jest.mocked(useConfirmationContext);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useConfirmationContextMock.mockReturnValue({
+      isMaxDeposit: false,
+    } as ReturnType<typeof useConfirmationContext>);
 
     useTransactionPayRequiredTokensMock.mockReturnValue([REQUIRED_TOKEN_MOCK]);
     useTransactionPayTotalsMock.mockReturnValue(TOTALS_MOCK);
@@ -214,6 +221,16 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         ]);
       });
 
+      it('returns no alert when isMaxDeposit is true (same Max path as isMax)', () => {
+        useConfirmationContextMock.mockReturnValue({
+          isMaxDeposit: true,
+        } as ReturnType<typeof useConfirmationContext>);
+
+        const { result } = runHook();
+
+        expect(result.current).toStrictEqual([]);
+      });
+
       it('returns no alert when isMax is true for a money account deposit', () => {
         useTransactionPayIsMaxAmountMock.mockReturnValue(true);
 
@@ -223,6 +240,33 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       });
 
       it('returns an alert when the deposit is not a Max deposit', () => {
+        useConfirmationContextMock.mockReturnValue({
+          isMaxDeposit: false,
+        } as ReturnType<typeof useConfirmationContext>);
+
+        const { result } = runHook();
+
+        expect(result.current).toStrictEqual([
+          {
+            key: AlertKeys.InsufficientPayTokenBalance,
+            field: RowAlertKey.Amount,
+            isBlocking: true,
+            message: strings(
+              'alert_system.insufficient_pay_token_balance.message',
+            ),
+            severity: Severity.Danger,
+          },
+        ]);
+      });
+
+      it('still flags a non-money-account deposit even when isMaxDeposit is true', () => {
+        useTransactionMetadataRequestMock.mockReturnValue(
+          undefined as unknown as TransactionMeta,
+        );
+        useConfirmationContextMock.mockReturnValue({
+          isMaxDeposit: true,
+        } as ReturnType<typeof useConfirmationContext>);
+
         const { result } = runHook();
 
         expect(result.current).toStrictEqual([

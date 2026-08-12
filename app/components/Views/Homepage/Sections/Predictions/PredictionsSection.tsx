@@ -287,6 +287,14 @@ const PredictionsSectionDefault = forwardRef<
       hasPositions,
       predictHomepageUnrealizedPnl,
     } = usePredictPositionsSectionData(isPredictEnabled);
+    const {
+      markets,
+      isLoading: isLoadingMarkets,
+      error: marketsError,
+      refetch: refetchMarkets,
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
+      enabled: isPredictEnabled,
+    });
 
     const {
       discoveryLayout,
@@ -295,15 +303,6 @@ const PredictionsSectionDefault = forwardRef<
       predictEmptyStateVariantName,
       isPredictEmptyStateAssignmentActive,
     } = usePredictHomepageDiscoveryExperiment();
-
-    const {
-      markets,
-      isLoading: isLoadingMarkets,
-      error: marketsError,
-      refetch: refetchMarkets,
-    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
-      enabled: isPredictEnabled && !isTreatmentDiscovery,
-    });
 
     const homepageMarketSlots = useHomepagePredictMarketSlots({
       enabled: isPredictEnabled && isTreatmentDiscovery,

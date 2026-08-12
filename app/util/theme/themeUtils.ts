@@ -1,3 +1,4 @@
+import { useTheme } from './index';
 import { AppThemeKey, Theme } from './models';
 import { isPureBlackEnabled } from './pureBlackPreview';
 
@@ -5,15 +6,15 @@ export { isPureBlackEnabled };
 
 // Stopgap surface helper for the MM_PURE_BLACK_PREVIEW rollout.
 //
-// When pure black is OFF, returns the default background (current behavior —
-// no change for normal light/dark mode users).
+// When pure black is OFF, returns `bg-default` (current behavior — no change
+// for normal light/dark mode users).
 //
 // When pure black is ON:
-//   - dark  → alternative background (elevated so surfaces don't collapse
+//   - dark  → `bg-section` (elevated `#1c1d1f` so surfaces don't collapse
 //             into the pure-black screen background)
-//   - light → default background (unchanged, light mode is unaffected)
+//   - light → `bg-default` (unchanged, light mode is unaffected)
 //
-// Remove this helper once the MMDS package ships its own pure-black-aware
+// Remove these helpers once the MMDS package ships its own pure-black-aware
 // surface tokens and the flag is enabled by default.
 
 export const getElevatedSurfaceColor = (theme: Theme): string => {
@@ -21,4 +22,10 @@ export const getElevatedSurfaceColor = (theme: Theme): string => {
   return theme.themeAppearance === AppThemeKey.dark
     ? theme.colors.background.alternative
     : theme.colors.background.default;
+};
+
+export const useElevatedSurface = () => {
+  const { themeAppearance } = useTheme();
+  if (!isPureBlackEnabled) return 'bg-default';
+  return themeAppearance === AppThemeKey.dark ? 'bg-alternative' : 'bg-default';
 };

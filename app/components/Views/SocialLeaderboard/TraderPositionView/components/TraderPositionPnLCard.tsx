@@ -11,7 +11,7 @@ import {
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
-import { EM_DASH, formatPercent, formatUsd } from '../../utils/formatters';
+import { formatPercent, formatUsd } from '../../utils/formatters';
 
 export interface TraderPositionPnLCardProps {
   isClosed: boolean;
@@ -75,7 +75,7 @@ const TraderPositionPnLCard: React.FC<TraderPositionPnLCardProps> = ({
                 : 'text-error-default'
           }
         >
-          {pnlValue != null ? formatPnl(pnlValue) : EM_DASH}
+          {pnlValue != null ? formatPnl(pnlValue) : '\u2014'}
         </Text>
         <Text
           variant={TextVariant.BodySm}

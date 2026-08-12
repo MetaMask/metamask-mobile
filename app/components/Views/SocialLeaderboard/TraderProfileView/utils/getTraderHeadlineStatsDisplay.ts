@@ -1,5 +1,5 @@
 import type { TraderStats } from '@metamask/social-controllers';
-import { EM_DASH, formatSignedFullUsdNoDecimals } from '../../utils/formatters';
+import { formatSignedFullUsdNoDecimals } from '../../utils/formatters';
 
 export interface TraderHeadlineStatsDisplay {
   winRate: string;
@@ -13,7 +13,9 @@ export function getTraderHeadlineStatsDisplay(
   stats: TraderStats,
 ): TraderHeadlineStatsDisplay {
   const winRate =
-    stats.winRate7d != null ? `${Math.round(stats.winRate7d * 100)}%` : EM_DASH;
+    stats.winRate7d != null
+      ? `${Math.round(stats.winRate7d * 100)}%`
+      : '\u2014';
   const isWinRatePositive = (stats.winRate7d ?? 0) > 0;
   const hasPnl = stats.pnl7d != null;
   const pnl = formatSignedFullUsdNoDecimals(stats.pnl7d);

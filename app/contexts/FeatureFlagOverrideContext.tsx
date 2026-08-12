@@ -9,14 +9,9 @@ import { useSelector } from 'react-redux';
 import {
   selectRemoteFeatureFlagsUnfiltered,
   selectLocalOverrides,
-  selectRawRemoteFeatureFlags,
+  selectRawFeatureFlags,
 } from '../selectors/featureFlagController';
-import {
-  FeatureFlagInfo,
-  FeatureFlagType,
-  getFeatureFlagType,
-  isAbTestOptionsArray,
-} from '../util/feature-flags';
+import { FeatureFlagInfo, getFeatureFlagType } from '../util/feature-flags';
 import Engine from '../core/Engine';
 import type { Json } from '@metamask/utils';
 
@@ -50,7 +45,7 @@ export const FeatureFlagOverrideProvider: React.FC<
   const featureFlagsWithOverrides = useSelector(
     selectRemoteFeatureFlagsUnfiltered,
   );
-  const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
+  const rawFeatureFlags = useSelector(selectRawFeatureFlags);
 
   const overrides = useSelector(selectLocalOverrides);
 
@@ -76,35 +71,27 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   const featureFlags = useMemo(() => {
     const allKeys = new Set([
-      ...Object.keys(rawRemoteFeatureFlags || {}),
+      ...Object.keys(rawFeatureFlags || {}),
       ...Object.keys(featureFlagsWithOverrides || {}),
     ]);
     const allFlags: { [key: string]: FeatureFlagInfo } = {};
 
     Array.from(allKeys).forEach((key: string) => {
-      const originalValue = rawRemoteFeatureFlags?.[key];
+      const originalValue = rawFeatureFlags?.[key];
       const currentValue = featureFlagsWithOverrides?.[key];
       const isOverridden = hasOverride(key);
-
-      // A/B flags resolve to a single group's value, so the effective value no
-      // longer carries the `{ name, value }` shape. Detect them from the raw
-      // group array (still stored in `rawRemoteFeatureFlags`) so the override
-      // screen keeps showing the variant picker.
-      const type = isAbTestOptionsArray(originalValue)
-        ? FeatureFlagType.FeatureFlagAbTest
-        : getFeatureFlagType(currentValue ?? originalValue);
 
       const flagValue = {
         key,
         value: currentValue,
         originalValue,
-        type,
+        type: getFeatureFlagType(currentValue ?? originalValue),
         isOverridden,
       };
       allFlags[key] = flagValue;
     });
     return allFlags;
-  }, [rawRemoteFeatureFlags, featureFlagsWithOverrides, hasOverride]);
+  }, [rawFeatureFlags, featureFlagsWithOverrides, hasOverride]);
 
   const featureFlagsList = useMemo(
     () =>
@@ -120,7 +107,7 @@ export const FeatureFlagOverrideProvider: React.FC<
   const contextValue: FeatureFlagOverrideContextType = useMemo(
     () => ({
       featureFlags,
-      originalFlags: rawRemoteFeatureFlags,
+      originalFlags: rawFeatureFlags,
       featureFlagsList,
       overrides,
       setOverride,
@@ -131,7 +118,7 @@ export const FeatureFlagOverrideProvider: React.FC<
     }),
     [
       featureFlags,
-      rawRemoteFeatureFlags,
+      rawFeatureFlags,
       featureFlagsList,
       overrides,
       setOverride,

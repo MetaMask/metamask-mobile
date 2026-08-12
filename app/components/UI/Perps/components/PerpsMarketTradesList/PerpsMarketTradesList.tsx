@@ -29,7 +29,7 @@ import { transformFillsToTransactions } from '../../utils/transactionTransforms'
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
-  ACTIVITY_DETAIL_EVENTS,
+  TRANSACTION_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 import {
@@ -76,7 +76,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const handleTradePress = useCallback(
     (transaction: PerpsTransaction) => {
       trackEvent(
-        createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
+        createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
           .addProperties({
             transaction_type: `perps_${transaction.type}`,
             transaction_status: 'confirmed',

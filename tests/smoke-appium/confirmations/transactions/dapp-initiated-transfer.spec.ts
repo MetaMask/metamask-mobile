@@ -115,9 +115,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-// Skipped: consistently fails on main Appium confirmations Android smoke
-// (`#sendEIP1559Button` never enabled; can hang the job ~35m). MMQA-2254.
-appiumTest.describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
+appiumTest.describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
   appiumTest.describe.configure({ timeout: 2500000 });
 
   appiumTest(

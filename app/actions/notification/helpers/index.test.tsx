@@ -17,6 +17,7 @@ import {
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
 } from '.';
 import Engine from '../../../core/Engine';
+
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));

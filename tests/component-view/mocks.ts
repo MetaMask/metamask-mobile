@@ -92,8 +92,6 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           securityAlertsEnabled: true,
         },
-        setDismissSmartAccountSuggestionEnabled: jest.fn(),
-        setSmartTransactionsOptInStatus: jest.fn(),
         setTokenNetworkFilter() {
           return undefined;
         },
@@ -132,16 +130,12 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       CurrencyRateController: {
-        setCurrentCurrency: jest.fn(),
         startPolling() {
           return undefined;
         },
         stopPollingByPollingToken() {
           return undefined;
         },
-      },
-      AssetsController: {
-        setSelectedCurrency: jest.fn(),
       },
       TokenRatesController: {
         startPolling() {

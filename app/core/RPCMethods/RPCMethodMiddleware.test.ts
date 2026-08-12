@@ -1345,11 +1345,11 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('skips account validation if the account is missing from the transaction parameters', async () => {
-      const mockAddress = '0x0000000000000000000000000000000000000001';
-      const mockTransactionParameters = { chainId: '0x1', from: mockAddress };
+      // Downcast needed here because `from` is required by this type
+      const mockTransactionParameters = { chainId: '0x1' };
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
-        permittedAccounts: { 'example.metamask.io': [mockAddress] },
+        // Set minimal network controller state to support validation
         selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
         networkConfigurationsByChainId: {
@@ -1412,9 +1412,10 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('returns a JSON-RPC error if an error is thrown when adding this transaction', async () => {
-      const mockTransactionParameters = {
-        from: '0x0000000000000000000000000000000000000001',
-      } as unknown as (TransactionParams & JsonRpcParams)[];
+      // Omit `from` and `chainId` here to skip validation for simplicity
+      // Downcast needed here because `from` is required by this type
+      const mockTransactionParameters = {} as (TransactionParams &
+        JsonRpcParams)[];
       // Transaction fails before returning a result
       mockAddTransaction.mockImplementation(async () => {
         throw new Error('Failed to add transaction');
@@ -1445,16 +1446,15 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {
-      const mockTransactionParameters = {
-        from: '0x0000000000000000000000000000000000000001',
-      } as unknown as (TransactionParams & JsonRpcParams)[];
-      const rejectResult = Promise.reject(
-        new Error('Failed to process transaction'),
-      );
-      rejectResult.catch(() => undefined);
+      // Omit `from` and `chainId` here to skip validation for simplicity
+      // Downcast needed here because `from` is required by this type
+      const mockTransactionParameters = {} as (TransactionParams &
+        JsonRpcParams)[];
       setupGlobalState({
-        addTransactionResult: rejectResult,
-        selectedNetworkClientId: 'mainnet',
+        addTransactionResult: Promise.reject(
+          new Error('Failed to process transaction'),
+        ),
+        selectedNetworkClientId: 'mainnet', // Added to fix the linting error
       });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),

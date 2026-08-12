@@ -723,7 +723,6 @@ const CardHome = () => {
             }
             onViewCardDetails={actions.viewCardDetailsAction}
             onViewPin={actions.viewPinAction}
-            onSetPin={actions.setPinAction}
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}

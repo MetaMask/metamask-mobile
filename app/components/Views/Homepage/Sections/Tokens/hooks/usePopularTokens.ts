@@ -242,14 +242,11 @@ export const usePopularTokens = () => {
       : mapped;
   }, [rawTokens, shouldExcludeMusd]);
 
-  return useMemo(
-    () => ({
-      tokens,
-      isInitialLoading,
-      isRefreshing,
-      error,
-      refetch: fetchPrices,
-    }),
-    [tokens, isInitialLoading, isRefreshing, error, fetchPrices],
-  );
+  return {
+    tokens,
+    isInitialLoading,
+    isRefreshing,
+    error,
+    refetch: fetchPrices,
+  };
 };

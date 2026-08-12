@@ -2,35 +2,45 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokeSeedlessOnboarding } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
+import { PlatformDetector } from '../../framework/PlatformLocator.js';
 import {
+  completeGoogleNewUserOnboarding,
   FIXTURE_PASSWORD,
   lockApp,
   loginWithFixturePassword,
+  setupGoogleNewUserOAuthMock,
   unlockApp,
 } from './helpers/seedless-helpers.js';
 
-/**
- * Device smoke: lock / unlock via keychain + login screen.
- * Does not re-run Google onboard (covered by google-login-new-user).
- */
 appiumTest.describe(
   SmokeSeedlessOnboarding('Google Login - Lock and Unlock'),
   () => {
     appiumTest(
-      'locks and unlocks a fixture wallet',
+      'onboards with Google login, locks, and unlocks the app',
       async ({ driver: _driver, currentDeviceDetails }) => {
+        const fixture = PlatformDetector.isIOS()
+          ? new FixtureBuilder().build()
+          : new FixtureBuilder({ onboarding: true }).build();
+
         await withFixtures(
           {
-            fixture: new FixtureBuilder().build(),
+            fixture,
             restartDevice: true,
             currentDeviceDetails,
+            testSpecificMock: setupGoogleNewUserOAuthMock,
           },
           async () => {
-            await loginWithFixturePassword();
+            if (PlatformDetector.isIOS()) {
+              await loginWithFixturePassword();
+            } else {
+              await completeGoogleNewUserOnboarding();
+            }
 
             await lockApp();
 
-            await unlockApp(FIXTURE_PASSWORD);
+            await unlockApp(
+              PlatformDetector.isIOS() ? FIXTURE_PASSWORD : undefined,
+            );
           },
         );
       },

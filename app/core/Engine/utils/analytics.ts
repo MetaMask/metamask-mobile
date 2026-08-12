@@ -14,7 +14,6 @@ import { store } from '../../../store';
 import {
   enrichWithABTests,
   getRemoteFeatureFlagsFromState,
-  getFeatureFlagThresholdGroupsFromState,
 } from '../../../util/analytics/enrichWithABTests';
 
 /**
@@ -34,11 +33,9 @@ export const trackEvent = (
   let enrichedEvent: AnalyticsTrackingEvent;
 
   try {
-    const state = store.getState();
     enrichedEvent = enrichWithABTests(
       event,
-      getRemoteFeatureFlagsFromState(state),
-      getFeatureFlagThresholdGroupsFromState(state),
+      getRemoteFeatureFlagsFromState(store.getState()),
     );
   } catch {
     enrichedEvent = event;

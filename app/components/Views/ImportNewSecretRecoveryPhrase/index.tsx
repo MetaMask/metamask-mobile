@@ -56,11 +56,7 @@ import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import {
-  getTrimmedSeedPhraseWords,
-  isSRPLengthValid,
-  SPACE_CHAR,
-} from '../../../util/srp/srpInputUtils';
+import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
   validateCompleteness,
@@ -195,14 +191,16 @@ const ImportNewSecretRecoveryPhrase = () => {
   );
 
   const onSubmit = useCallback(async () => {
-    const trimmedWords = getTrimmedSeedPhraseWords(seedPhrase);
-    const phrase = trimmedWords.join(SPACE_CHAR);
+    const phrase = seedPhrase
+      .map((item) => item.trim())
+      .filter((item) => item !== '')
+      .join(SPACE_CHAR);
 
     setError('');
 
-    const invalidWords = Array(trimmedWords.length).fill(false);
-    let validationResult = validateSRP(trimmedWords, invalidWords);
-    validationResult = validateCompleteness(validationResult, trimmedWords);
+    const invalidWords = Array(seedPhrase.length).fill(false);
+    let validationResult = validateSRP(seedPhrase, invalidWords);
+    validationResult = validateCompleteness(validationResult, seedPhrase);
     validationResult = validateCase(validationResult, phrase);
     validationResult = validateWords(validationResult);
     validationResult = validateMnemonic(validationResult, phrase);

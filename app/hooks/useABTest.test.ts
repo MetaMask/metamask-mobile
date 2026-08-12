@@ -3,10 +3,7 @@ import { useSelector } from 'react-redux';
 import { useABTest } from './useABTest';
 import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../core/Analytics';
-import {
-  selectRemoteFeatureFlags,
-  selectFeatureFlagThresholdGroups,
-} from '../selectors/featureFlagController';
+import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
 import { getDetectedGeolocation } from '../reducers/fiatOrders';
 
 // Mock react-redux
@@ -19,7 +16,6 @@ jest.mock('../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlags: jest.fn(
     (state: { featureFlags?: unknown }) => state?.featureFlags,
   ),
-  selectFeatureFlagThresholdGroups: jest.fn(),
 }));
 
 jest.mock('../reducers/fiatOrders', () => ({
@@ -37,15 +33,6 @@ const mockUseAnalytics = useAnalytics as jest.MockedFunction<
 const mockTrackEvent = jest.fn();
 type MockEvent = string | { category: string } | { name: string };
 
-// Per-test selector values. `useSelector` is routed by selector identity so the
-// remote-feature-flags, threshold-groups, and geolocation selectors each return
-// their own value instead of a single shared blanket value.
-let mockFeatureFlags: unknown = {};
-let mockThresholdGroups: Record<string, string> = {};
-const setMockFeatureFlags = (value: unknown) => {
-  mockFeatureFlags = value;
-};
-
 describe('useABTest', () => {
   // Test variants configuration
   const buttonColorVariants = {
@@ -60,17 +47,6 @@ describe('useABTest', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFeatureFlags = {};
-    mockThresholdGroups = {};
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectFeatureFlagThresholdGroups) {
-        return mockThresholdGroups;
-      }
-      if (selector === getDetectedGeolocation) {
-        return undefined;
-      }
-      return mockFeatureFlags;
-    });
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: (event: MockEvent) => ({
@@ -96,7 +72,7 @@ describe('useABTest', () => {
 
   describe('with object format { name } from controller', () => {
     it('returns correct variant data when flag is object with name property', () => {
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         buttonColorTest: { name: 'control' },
       });
 
@@ -110,7 +86,7 @@ describe('useABTest', () => {
     });
 
     it('returns correct variant data for treatment variant in object format', () => {
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         buttonColorTest: { name: 'monochrome' },
       });
 
@@ -124,7 +100,7 @@ describe('useABTest', () => {
     });
 
     it('handles object format with optional value property', () => {
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         swapsQuoteLayout: { name: 'expanded', value: undefined },
       });
 
@@ -140,7 +116,7 @@ describe('useABTest', () => {
     });
 
     it('falls back to control when object name does not match any variant', () => {
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         buttonColorTest: { name: 'invalid_variant' },
       });
 
@@ -156,7 +132,7 @@ describe('useABTest', () => {
 
   describe('with legacy string format (backward compatibility)', () => {
     it('returns correct variant data when flag is a string', () => {
-      setMockFeatureFlags({ buttonColorTest: 'control' });
+      mockUseSelector.mockReturnValue({ buttonColorTest: 'control' });
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -168,7 +144,7 @@ describe('useABTest', () => {
     });
 
     it('returns correct variant data when flag matches treatment variant', () => {
-      setMockFeatureFlags({ buttonColorTest: 'monochrome' });
+      mockUseSelector.mockReturnValue({ buttonColorTest: 'monochrome' });
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -180,7 +156,7 @@ describe('useABTest', () => {
     });
 
     it('sets isActive to true when flag value matches a valid variant', () => {
-      setMockFeatureFlags({ swapsQuoteLayout: 'expanded' });
+      mockUseSelector.mockReturnValue({ swapsQuoteLayout: 'expanded' });
 
       const { result } = renderHook(() =>
         useABTest('swapsQuoteLayout', quoteLayoutVariants),
@@ -196,7 +172,7 @@ describe('useABTest', () => {
 
   describe('with null or undefined flag value', () => {
     it('falls back to control when flag is null', () => {
-      setMockFeatureFlags({ buttonColorTest: null });
+      mockUseSelector.mockReturnValue({ buttonColorTest: null });
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -208,7 +184,7 @@ describe('useABTest', () => {
     });
 
     it('falls back to control when flag is undefined', () => {
-      setMockFeatureFlags({ buttonColorTest: undefined });
+      mockUseSelector.mockReturnValue({ buttonColorTest: undefined });
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -220,7 +196,7 @@ describe('useABTest', () => {
     });
 
     it('falls back to control when flag key does not exist', () => {
-      setMockFeatureFlags({});
+      mockUseSelector.mockReturnValue({});
 
       const { result } = renderHook(() =>
         useABTest('nonExistentFlag', buttonColorVariants),
@@ -232,7 +208,7 @@ describe('useABTest', () => {
     });
 
     it('sets isActive to false when flag value is not set', () => {
-      setMockFeatureFlags({});
+      mockUseSelector.mockReturnValue({});
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -244,7 +220,7 @@ describe('useABTest', () => {
 
   describe('with invalid flag value not matching any variant', () => {
     it('falls back to control when flag value is invalid', () => {
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         buttonColorTest: 'invalid_variant_name',
       });
 
@@ -257,7 +233,7 @@ describe('useABTest', () => {
     });
 
     it('sets isActive to false when flag value does not match any variant', () => {
-      setMockFeatureFlags({ buttonColorTest: 'unknown_variant' });
+      mockUseSelector.mockReturnValue({ buttonColorTest: 'unknown_variant' });
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -267,7 +243,7 @@ describe('useABTest', () => {
     });
 
     it('falls back to control when flag value is empty string', () => {
-      setMockFeatureFlags({ buttonColorTest: '' });
+      mockUseSelector.mockReturnValue({ buttonColorTest: '' });
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -292,7 +268,7 @@ describe('useABTest', () => {
         },
       };
 
-      setMockFeatureFlags({ complexTest: 'treatment' });
+      mockUseSelector.mockReturnValue({ complexTest: 'treatment' });
 
       const { result } = renderHook(() =>
         useABTest('complexTest', complexVariants),
@@ -312,7 +288,7 @@ describe('useABTest', () => {
         expanded: { items: ['a', 'b', 'c', 'd'], count: 4 },
       };
 
-      setMockFeatureFlags({ arrayTest: 'expanded' });
+      mockUseSelector.mockReturnValue({ arrayTest: 'expanded' });
 
       const { result } = renderHook(() =>
         useABTest('arrayTest', arrayVariants),
@@ -327,7 +303,7 @@ describe('useABTest', () => {
 
   describe('with multiple feature flags', () => {
     it('reads correct flag from multiple flags in state', () => {
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         buttonColorTest: 'control',
         swapsQuoteLayout: 'expanded',
         anotherFlag: 'value',
@@ -357,7 +333,7 @@ describe('useABTest', () => {
         treatment_b: { layout: 'expanded' },
       };
 
-      setMockFeatureFlags({ multiVariantTest: 'treatment_b' });
+      mockUseSelector.mockReturnValue({ multiVariantTest: 'treatment_b' });
 
       const { result } = renderHook(() =>
         useABTest('multiVariantTest', threeVariants),
@@ -375,7 +351,7 @@ describe('useABTest', () => {
         treatment_b: { layout: 'expanded' },
       };
 
-      setMockFeatureFlags({});
+      mockUseSelector.mockReturnValue({});
 
       const { result } = renderHook(() =>
         useABTest('multiVariantTest', threeVariants),
@@ -389,7 +365,7 @@ describe('useABTest', () => {
 
   describe('edge cases', () => {
     it('handles flags state being null', () => {
-      setMockFeatureFlags(null);
+      mockUseSelector.mockReturnValue(null);
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -401,7 +377,7 @@ describe('useABTest', () => {
     });
 
     it('handles flags state being undefined', () => {
-      setMockFeatureFlags(undefined);
+      mockUseSelector.mockReturnValue(undefined);
 
       const { result } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -417,7 +393,7 @@ describe('useABTest', () => {
         control: { value: 'default' },
       };
 
-      setMockFeatureFlags({});
+      mockUseSelector.mockReturnValue({});
 
       const { result } = renderHook(() =>
         useABTest('controlOnlyTest', controlOnly),
@@ -429,7 +405,7 @@ describe('useABTest', () => {
     });
 
     it('returns consistent variantName as string', () => {
-      setMockFeatureFlags({ numericKeyTest: 'treatment' });
+      mockUseSelector.mockReturnValue({ numericKeyTest: 'treatment' });
 
       const variants = {
         control: { id: 0 },
@@ -451,7 +427,7 @@ describe('useABTest', () => {
         control: { color: 'green' },
       };
 
-      setMockFeatureFlags({});
+      mockUseSelector.mockReturnValue({});
 
       const { result } = renderHook(() =>
         useABTest('testFlag', variantsWithTreatmentFirst),
@@ -477,7 +453,7 @@ describe('useABTest', () => {
           monochrome: { long: 'white', short: 'white' },
         };
 
-      setMockFeatureFlags({ typedTest: 'control' });
+      mockUseSelector.mockReturnValue({ typedTest: 'control' });
 
       const { result } = renderHook(() =>
         useABTest('typedTest', typedVariants),
@@ -492,7 +468,7 @@ describe('useABTest', () => {
 
   describe('hook stability', () => {
     it('returns stable results when flag value does not change', () => {
-      setMockFeatureFlags({ buttonColorTest: 'control' });
+      mockUseSelector.mockReturnValue({ buttonColorTest: 'control' });
 
       const { result, rerender } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -507,7 +483,7 @@ describe('useABTest', () => {
     });
 
     it('updates when flag value changes', () => {
-      setMockFeatureFlags({ buttonColorTest: 'control' });
+      mockUseSelector.mockReturnValue({ buttonColorTest: 'control' });
 
       const { result, rerender } = renderHook(() =>
         useABTest('buttonColorTest', buttonColorVariants),
@@ -516,7 +492,7 @@ describe('useABTest', () => {
       expect(result.current.variantName).toBe('control');
 
       // Simulate flag value change
-      setMockFeatureFlags({ buttonColorTest: 'monochrome' });
+      mockUseSelector.mockReturnValue({ buttonColorTest: 'monochrome' });
       rerender(undefined);
 
       expect(result.current.variantName).toBe('monochrome');
@@ -532,7 +508,7 @@ describe('useABTest', () => {
 
     it('emits Experiment Viewed with required fields for treatment', async () => {
       const flagKey = `${experimentFlagKey}Treatment`;
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         [flagKey]: { name: 'treatment' },
       });
 
@@ -550,7 +526,7 @@ describe('useABTest', () => {
 
     it('emits Experiment Viewed with required fields for control', async () => {
       const flagKey = `${experimentFlagKey}Control`;
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         [flagKey]: { name: 'control' },
       });
 
@@ -567,7 +543,7 @@ describe('useABTest', () => {
 
     it('does not emit Experiment Viewed when assignment is inactive', () => {
       const flagKey = `${experimentFlagKey}Inactive`;
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         [flagKey]: { name: 'unknown_variant' },
       });
 
@@ -578,7 +554,7 @@ describe('useABTest', () => {
 
     it('emits once per experiment/variation assignment across multiple mounts', async () => {
       const flagKey = `${experimentFlagKey}MultiMount`;
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         [flagKey]: { name: 'control' },
       });
 
@@ -591,9 +567,7 @@ describe('useABTest', () => {
     it('emits separate exposure events when variation changes', async () => {
       const flagKey = `${experimentFlagKey}VariationChange`;
       let flags = { [flagKey]: { name: 'control' } };
-      mockUseSelector.mockImplementation((selector: unknown) =>
-        selector === selectRemoteFeatureFlags ? flags : undefined,
-      );
+      mockUseSelector.mockImplementation(() => flags);
 
       const { rerender } = renderHook(() =>
         useABTest(flagKey, experimentVariants),
@@ -623,7 +597,7 @@ describe('useABTest', () => {
       );
 
       flagKeys.forEach((flagKey) => {
-        setMockFeatureFlags({
+        mockUseSelector.mockReturnValue({
           [flagKey]: { name: 'control' },
         });
         renderHook(() => useABTest(flagKey, evictionVariants));
@@ -633,7 +607,7 @@ describe('useABTest', () => {
         timeout: 4000,
       });
 
-      setMockFeatureFlags({
+      mockUseSelector.mockReturnValue({
         [flagKeys[0]]: { name: 'control' },
       });
       renderHook(() => useABTest(flagKeys[0], evictionVariants));

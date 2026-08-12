@@ -1,0 +1,22 @@
+diff --git a/android/detox/src/full/java/com/wix/detox/espresso/hierarchy/ViewHierarchyGenerator.kt b/android/detox/src/full/java/com/wix/detox/espresso/hierarchy/ViewHierarchyGenerator.kt
+index 564838a10114b3dd929b0742d1a99ae28b08717f..8e3dbfa23906e2c02b6d44f273a689670c288272 100644
+--- a/android/detox/src/full/java/com/wix/detox/espresso/hierarchy/ViewHierarchyGenerator.kt
++++ b/android/detox/src/full/java/com/wix/detox/espresso/hierarchy/ViewHierarchyGenerator.kt
+@@ -19,6 +19,7 @@ import kotlin.coroutines.resume
+ 
+ private const val GET_HTML_SCRIPT = """
+ (function() {
++  try {
+     const blacklistedTags = ['script', 'style', 'head', 'meta'];
+     const blackListedTagsSelector = blacklistedTags.join(',');
+ 
+@@ -39,6 +40,9 @@ private const val GET_HTML_SCRIPT = """
+ 
+     // Return the serialized HTML as a string
+     return serializedHtml;
++  } catch {
++    return '<html xmlns="http://www.w3.org/1999/xhtml"><body></body></html>';
++  }
+ })();
+ """
+ 

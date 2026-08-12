@@ -1,11 +1,7 @@
 import { getVersion } from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 
-import {
-  getFeatureFlagType,
-  isAbTestOptionsArray,
-  isMinimumRequiredVersionSupported,
-} from './index';
+import { getFeatureFlagType, isMinimumRequiredVersionSupported } from './index';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(),
@@ -218,57 +214,6 @@ describe('Feature Flags Utility Functions', () => {
       const result = getFeatureFlagType(flagValue);
 
       expect(result).toBe('boolean nested');
-    });
-  });
-
-  describe('isAbTestOptionsArray', () => {
-    it('returns true for a non empty array of named groups', () => {
-      const groups = [
-        {
-          name: 'control',
-          value: { variant: 'A' },
-          scope: { type: 'threshold', value: 0 },
-        },
-        {
-          name: 'treatment',
-          value: { variant: 'B' },
-          scope: { type: 'threshold', value: 1 },
-        },
-      ];
-
-      expect(isAbTestOptionsArray(groups)).toBe(true);
-    });
-
-    it('returns true for named groups without a value (percentage rollout)', () => {
-      const groups = [
-        { name: 'control', scope: { type: 'percentage_rollout', value: 0.5 } },
-        {
-          name: 'treatment',
-          scope: { type: 'percentage_rollout', value: 0.5 },
-        },
-      ];
-
-      expect(isAbTestOptionsArray(groups)).toBe(true);
-    });
-
-    it('returns false for an empty array', () => {
-      expect(isAbTestOptionsArray([])).toBe(false);
-    });
-
-    it('returns false for arrays of primitives', () => {
-      expect(isAbTestOptionsArray([1, 2, 3])).toBe(false);
-    });
-
-    it('returns false when an entry has no string name', () => {
-      expect(isAbTestOptionsArray([{ value: true }])).toBe(false);
-      expect(isAbTestOptionsArray([{ name: 123, value: true }])).toBe(false);
-    });
-
-    it('returns false for non array values', () => {
-      expect(isAbTestOptionsArray({ name: 'control' })).toBe(false);
-      expect(isAbTestOptionsArray('control')).toBe(false);
-      expect(isAbTestOptionsArray(null)).toBe(false);
-      expect(isAbTestOptionsArray(undefined)).toBe(false);
     });
   });
 

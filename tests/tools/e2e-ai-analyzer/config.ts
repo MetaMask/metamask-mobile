@@ -140,7 +140,12 @@ export const APP_CONFIG = {
    */
   critical: {
     /** Exact file names that are critical (checked with file.includes(file)) */
-    files: ['package.json', 'metro.config.js', 'babel.config.js'],
+    files: [
+      'package.json',
+      'metro.config.js',
+      'babel.config.js',
+      '.detoxrc.js',
+    ],
 
     /** Keywords that indicate critical files (checked with file.includes(keyword)) */
     keywords: ['Controller', 'Engine'],

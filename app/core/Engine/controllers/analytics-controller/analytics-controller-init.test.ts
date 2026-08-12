@@ -25,7 +25,7 @@ type InternalAccounts = AccountsControllerState['internalAccounts']['accounts'];
 jest.mock('@metamask/analytics-controller', () => ({
   ...jest.requireActual('@metamask/analytics-controller'),
   AnalyticsController: jest.fn().mockImplementation(() => ({
-    init: jest.fn().mockResolvedValue(undefined),
+    init: jest.fn(),
   })),
 }));
 
@@ -154,7 +154,6 @@ describe('analyticsControllerInit', () => {
         state: expect.objectContaining({ analyticsId: 'test-analytics-id' }),
         platformAdapter: expect.any(Object),
         isAnonymousEventsFeatureEnabled: true,
-        isGeolocationEnabled: false,
       });
     });
 

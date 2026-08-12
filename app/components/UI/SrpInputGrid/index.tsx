@@ -27,7 +27,6 @@ import {
   getTrimmedSeedPhraseLength,
   isFirstInput as isFirstInputUtil,
   getInputValue,
-  MAX_SRP_LENGTH,
   SRP_LENGTHS,
   SPACE_CHAR,
   checkValidSeedWord,
@@ -178,9 +177,8 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         const updatedTrimmedText = trimmedText
           .split(SPACE_CHAR)
           .filter((word) => word !== '');
-        const endsWithSpace = text.length > 0 && text.at(-1) === SPACE_CHAR;
 
-        if (SRP_LENGTHS.includes(updatedTrimmedText.length) && !endsWithSpace) {
+        if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
           onSeedPhraseChange(updatedTrimmedText);
           setErrorWordIndexes(validateWords(updatedTrimmedText));
           setNextSeedPhraseInputFocusedIndex(null);
@@ -294,14 +292,16 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         }));
 
         const currentWordPosition = targetIndex + 1;
-        const isLastWordOfMaxSrp = currentWordPosition >= MAX_SRP_LENGTH;
+        const isLastWordOfValidSrp = SRP_LENGTHS.includes(currentWordPosition);
 
-        const updatedText = isLastWordOfMaxSrp ? word : `${word}${SPACE_CHAR}`;
+        const updatedText = isLastWordOfValidSrp
+          ? word
+          : `${word}${SPACE_CHAR}`;
 
         handleSeedPhraseChangeAtIndexRef.current(updatedText, targetIndex);
         onCurrentWordChange?.('');
 
-        if (isLastWordOfMaxSrp) {
+        if (isLastWordOfValidSrp) {
           const inputRef = seedPhraseInputRefs.current?.get(targetIndex);
           inputRef?.focus();
         }

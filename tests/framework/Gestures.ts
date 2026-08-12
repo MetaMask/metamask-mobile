@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
-import { waitFor } from './legacy-detox-shim';
+import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
 import {
   LongPressOptions,

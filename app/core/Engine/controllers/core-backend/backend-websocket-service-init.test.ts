@@ -61,18 +61,13 @@ describe('backendWebSocketServiceInit', () => {
       return isEnabled;
     };
 
-    it.each([
-      [
-        'flag resolves to a bare boolean (rff v5 threshold shape)',
-        { remoteFeatureFlags: { backendWebSocketConnection: true } },
-      ],
-      [
-        'flag is a legacy { value: true } wrapper',
-        { remoteFeatureFlags: { backendWebSocketConnection: { value: true } } },
-      ],
-    ])('returns true when %s', (_description, mockReturnValue) => {
+    it('returns true when remote feature flag is enabled', () => {
       const mocks = arrangeMocks();
-      (mocks.initMessenger.call as jest.Mock).mockReturnValue(mockReturnValue);
+      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
+        remoteFeatureFlags: {
+          backendWebSocketConnection: { value: true },
+        },
+      });
 
       backendWebSocketServiceInit(mocks);
 
@@ -84,17 +79,13 @@ describe('backendWebSocketServiceInit', () => {
 
     it.each([
       [
-        'flag resolves to a bare false (rff v5 threshold shape)',
-        { remoteFeatureFlags: { backendWebSocketConnection: false } },
-      ],
-      [
-        'flag is a legacy { value: false } wrapper',
+        'flag is disabled',
         {
           remoteFeatureFlags: { backendWebSocketConnection: { value: false } },
         },
       ],
       [
-        'flag is a string',
+        'flag is not an object',
         { remoteFeatureFlags: { backendWebSocketConnection: 'invalid' } },
       ],
       [

@@ -25,10 +25,6 @@ import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
-import SetCardPin, {
-  ConfirmCardPin,
-  SetCardPinSuccess,
-} from '../Views/SetCardPin';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
@@ -103,16 +99,6 @@ const MainRoutes = () => {
       <ScreensStack.Screen
         name={Routes.CARD.CREDIT_REDEEM}
         component={CreditRedeem}
-      />
-      <ScreensStack.Screen name={Routes.CARD.SET_PIN} component={SetCardPin} />
-      <ScreensStack.Screen
-        name={Routes.CARD.CONFIRM_PIN}
-        component={ConfirmCardPin}
-      />
-      <ScreensStack.Screen
-        name={Routes.CARD.SET_PIN_SUCCESS}
-        component={SetCardPinSuccess}
-        options={{ gestureEnabled: false }}
       />
       <ScreensStack.Screen
         name={Routes.CARD.AUTHENTICATION}

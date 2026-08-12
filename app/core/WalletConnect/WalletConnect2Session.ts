@@ -1,5 +1,4 @@
 import { WalletDevice } from '@metamask/transaction-controller';
-import { validateTransactionParams } from '@metamask/eth-json-rpc-middleware';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -841,7 +840,6 @@ class WalletConnect2Session {
     unverifiedOrigin: string,
   ) {
     try {
-      validateTransactionParams(methodParams[0]);
       const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,

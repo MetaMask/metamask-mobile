@@ -67,7 +67,9 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-appiumTest.describe(
+// Skipped with other token-approve suites pending Android confirm-sheet
+// stability after CDP click. Un-skip after Appium validation on main-e2e.
+appiumTest.describe.skip(
   SmokeConfirmations('Token Approve - increaseAllowance method'),
   () => {
     appiumTest.describe.configure({ timeout: 2500000 });

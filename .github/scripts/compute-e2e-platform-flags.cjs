@@ -9,7 +9,6 @@
 function computeE2EPlatformFlags(input) {
   const {
     githubEventName,
-    prBaseRef = '',
     isFork,
     shouldSkipE2E,
     allChangesCount,
@@ -41,14 +40,8 @@ function computeE2EPlatformFlags(input) {
     e2eTestFilesCount > 0 &&
     e2eWorkflowsCount === 0;
 
-  const isStableTarget =
-    githubEventName === 'pull_request' && prBaseRef === 'stable';
-
-  if (isStableTarget) {
-    message = 'Skipping E2E (stable branch synchronization PR)';
-  } else if (githubEventName === 'schedule' || githubEventName === 'push') {
-    message =
-      'E2E for both platforms (scheduled or push to main/release/*)';
+  if (githubEventName === 'schedule' || githubEventName === 'push') {
+    message = 'E2E for both platforms (scheduled or push to main)';
     android = true;
     ios = true;
   } else if (githubEventName === 'merge_group') {

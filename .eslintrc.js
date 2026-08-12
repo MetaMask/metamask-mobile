@@ -285,8 +285,11 @@ module.exports = {
       },
     },
     {
-      files: ['tests/smoke-appium/**/*.{js,ts}'],
-      excludedFiles: ['tests/smoke-appium/**/*.test.ts'],
+      files: ['tests/smoke-appium/**/*.{js,ts}', 'tests/smoke/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/smoke-appium/**/*.test.ts',
+        'tests/smoke/**/*.test.ts',
+      ],
       rules: {
         'no-restricted-syntax': [
           'error',
@@ -301,11 +304,6 @@ module.exports = {
           {
             selector: "Identifier[name='UnifiedGestures']",
             message: 'Use Gestures instead of UnifiedGestures.',
-          },
-          {
-            selector: "Identifier[name='FrameworkDetector']",
-            message:
-              'Do not use FrameworkDetector in specs. Use Gestures/Assertions/Matchers.',
           },
         ],
       },
@@ -944,5 +942,5 @@ module.exports = {
     'no-loss-of-precision': 'off',
   },
 
-  ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
+  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
 };

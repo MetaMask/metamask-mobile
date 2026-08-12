@@ -33,7 +33,7 @@ import { parseCaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
 import {
-  ACTIVITY_DETAIL_EVENTS,
+  TRANSACTION_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
@@ -64,7 +64,7 @@ const MultichainBridgeTransactionListItem = ({
 
   const handlePress = () => {
     trackEvent(
-      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
         .addProperties({
           transaction_type: isSwap ? 'swap' : 'bridge',
           transaction_status: transaction.status ?? 'unknown',

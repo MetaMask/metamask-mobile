@@ -71,7 +71,7 @@ describe('resolvePredictFeatureFlags', () => {
     expect(result.liveSportsLeagues).toEqual([]);
   });
 
-  it('resolves the effective flag value (overrides already merged by the controller)', () => {
+  it('uses local overrides instead of remote flags when both are provided', () => {
     mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
       Boolean(
         flag &&
@@ -83,6 +83,9 @@ describe('resolvePredictFeatureFlags', () => {
 
     const result = resolvePredictFeatureFlags({
       remoteFeatureFlags: {
+        predictFakOrders: { enabled: true, minimumVersion: '1.0.0' },
+      },
+      localOverrides: {
         predictFakOrders: { enabled: false, minimumVersion: '1.0.0' },
       },
     });
@@ -776,6 +779,13 @@ describe('resolvePredictFeatureFlags', () => {
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
           predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba', 'ucl'],
+          },
+        },
+        localOverrides: {
+          predictExtendedSportsMarkets: {
             enabled: false,
             minimumVersion: '1.0.0',
             leagues: ['nba', 'ucl'],
@@ -957,6 +967,14 @@ describe('resolvePredictFeatureFlags', () => {
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['moneyline', 'spreads'],
+          },
+        },
+        localOverrides: {
           predictExtendedSportsMarkets: {
             enabled: true,
             minimumVersion: '1.0.0',

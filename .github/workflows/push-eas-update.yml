@@ -389,9 +389,7 @@ jobs:
     needs:
       - fingerprint-comparison
       - validate-pr
-    if: >
-      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      inputs.channel == 'production'
+    if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Get token
@@ -418,17 +416,9 @@ jobs:
       - verify-release-branch
       - setup-dependencies
       - prepare
-    # approval is intentionally skipped for non-production channels, so the default implicit
-    # success() (which treats a skipped dependency as failing) must be overridden here.
     if: >
-      always() && !cancelled() &&
-      needs.fingerprint-comparison.result == 'success' &&
-      needs.validate-pr.result == 'success' &&
-      needs.verify-release-branch.result == 'success' &&
-      needs.setup-dependencies.result == 'success' &&
-      needs.prepare.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
+      needs.approval.result == 'success' &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
     uses: ./.github/workflows/eas-update-platform.yml
     with:
@@ -450,16 +440,9 @@ jobs:
       - validate-pr
       - setup-dependencies
       - prepare
-    # approval is intentionally skipped for non-production channels, so the default implicit
-    # success() (which treats a skipped dependency as failing) must be overridden here.
     if: >
-      always() && !cancelled() &&
-      needs.fingerprint-comparison.result == 'success' &&
-      needs.validate-pr.result == 'success' &&
-      needs.setup-dependencies.result == 'success' &&
-      needs.prepare.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
+      needs.approval.result == 'success' &&
       (inputs.platform == 'all' || inputs.platform == 'android')
     uses: ./.github/workflows/eas-update-platform.yml
     with:

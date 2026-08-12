@@ -12,7 +12,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  ACTIVITY_DETAIL_EVENTS,
+  TRANSACTION_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
@@ -368,7 +368,7 @@ describe('TransactionElement', () => {
   });
 
   describe('analytics tracking', () => {
-    it('tracks Activity Details Opened when pressed', async () => {
+    it('tracks Transaction Detail List Item Clicked when pressed', async () => {
       const tx = {
         id: 'tx-analytics-1',
         type: TransactionType.simpleSend,
@@ -395,7 +395,7 @@ describe('TransactionElement', () => {
       fireEvent.press(getByText('Test Action'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        ACTIVITY_DETAIL_EVENTS.OPENED,
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

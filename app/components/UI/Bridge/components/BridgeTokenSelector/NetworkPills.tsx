@@ -29,13 +29,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { useABTest } from '../../../../../hooks';
-import { useChainValueOrder } from '../../hooks/useChainValueOrder';
-import {
-  CHAIN_VALUE_ORDER_AB_KEY,
-  CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
-  CHAIN_VALUE_ORDER_VARIANTS,
-} from './abTestConfig';
 
 /** Maximum number of network pills visible in the horizontal list */
 export const MAX_VISIBLE_PILLS = 4;
@@ -60,10 +53,6 @@ interface ChainRankingEntry {
   name: string;
 }
 
-interface NetworkPillsContentProps extends NetworkPillsProps {
-  chainRanking: ChainRankingEntry[];
-}
-
 /**
  * Returns the first MAX_VISIBLE_PILLS chain IDs from chainRanking.
  * The ranking order is determined by the feature flag, so the first entries
@@ -72,8 +61,7 @@ interface NetworkPillsContentProps extends NetworkPillsProps {
 const getVisibleChainIds = (chainRanking: ChainRankingEntry[]): CaipChainId[] =>
   chainRanking.slice(0, MAX_VISIBLE_PILLS).map((c) => c.chainId);
 
-const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
-  chainRanking,
+export const NetworkPills: React.FC<NetworkPillsProps> = ({
   selectedChainId,
   onChainSelect,
   onMorePress,
@@ -85,11 +73,12 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
   const theme = useTheme();
   const dispatch = useDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
+  const chainRanking: ChainRankingEntry[] = useSelector(
+    selectAllowedChainRanking,
+  );
 
   // Visible pill chain IDs from Redux (shared across source/dest pickers).
-  // Once set (out-of-list promotion), Redux is the session SSOT — holdings /
-  // treatment ranking updates must not change membership. While unset, fall
-  // back to the first N from the current chainRanking.
+  // Falls back to first N from chainRanking on initial mount.
   const reduxVisibleChainIds = useSelector(selectVisiblePillChainIds);
   const visibleChainIds =
     reduxVisibleChainIds ?? getVisibleChainIds(chainRanking);
@@ -105,14 +94,13 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
 
   const remainingCount = chainRanking.length - visibleChains.length;
 
-  // On selection change only:
-  // - Out-of-list chain → pin [selected, ...current visible].slice(0, N) in
-  //   Redux for the Swaps session, then scroll to start.
-  // - Already visible → scroll only (do not rewrite Redux).
-  // - All (undefined) → scroll to start; keep any existing session pin.
+  // When a non-visible network is selected (e.g. from the bottom sheet),
+  // push it to the first position and pop the last visible pill.
+  // Also scroll the pills to bring the selected network into view.
   //
-  // Do not depend on chainRanking / visibleChainIds: that would re-scroll on
-  // routine holdings updates while Redux is still unset.
+  // Only `selectedChainId` is listed as a dependency because
+  // `visibleChainIds` is derived from Redux state that this effect updates;
+  // including it would cause an infinite update loop.
   useEffect(() => {
     if (!selectedChainId) {
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
@@ -122,7 +110,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
     const existingIndex = visibleChainIds.indexOf(selectedChainId);
 
     if (existingIndex === -1) {
-      // Session pin: promote selected to first for the rest of this Swaps session
+      // Non-visible network: push to front and scroll to start
       dispatch(
         setVisiblePillChainIds([
           selectedChainId,
@@ -130,13 +118,12 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
         ]),
       );
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
-      return;
+    } else {
+      // Already visible: scroll to bring it into view
+      const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
+      scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
     }
-
-    const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
-    scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- selection-only; Redux pins after promote
-  }, [selectedChainId]);
+  }, [selectedChainId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderChainPill = (chain: ChainRankingEntry) => {
     // Only one pill may appear selected at a time (star, All, or one network).
@@ -234,30 +221,4 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
       )}
     </ScrollView>
   );
-};
-
-const NetworkValueOrderedPills: React.FC<NetworkPillsContentProps> = ({
-  chainRanking,
-  ...props
-}) => {
-  const orderedChainRanking = useChainValueOrder(chainRanking);
-
-  return <NetworkPillsContent {...props} chainRanking={orderedChainRanking} />;
-};
-
-export const NetworkPills: React.FC<NetworkPillsProps> = (props) => {
-  const chainRanking: ChainRankingEntry[] = useSelector(
-    selectAllowedChainRanking,
-  );
-  const { variant } = useABTest(
-    CHAIN_VALUE_ORDER_AB_KEY,
-    CHAIN_VALUE_ORDER_VARIANTS,
-    CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
-  );
-
-  if (variant.orderByValue) {
-    return <NetworkValueOrderedPills {...props} chainRanking={chainRanking} />;
-  }
-
-  return <NetworkPillsContent {...props} chainRanking={chainRanking} />;
 };

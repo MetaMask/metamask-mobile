@@ -9,14 +9,12 @@
 import type { Mockttp } from 'mockttp';
 import {
   createLogger,
-  getRegionLocationCode,
   LogLevel,
   type TestSpecificMock,
   RampsRegion,
 } from '../../framework';
 import { safeGetBodyText } from '../MockServerE2E.ts';
 import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers.ts';
-import { buildV2GeolocationResponse } from './ramps/responses/ramps-geolocation.ts';
 
 const logger = createLogger({
   name: 'PerpsArbitrumMocks',
@@ -587,41 +585,33 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
 
 /**
  * Mock the geolocation endpoint for Perps eligibility checks.
- *
- * `@metamask/geolocation-controller` v1 resolves the user's location from the
- * `/v2/geolocation` endpoint (JSON `{ country, region, timezone }`), not the
- * legacy on-ramp `/geolocation` endpoint (plain text). Perps reads it via
- * `GeolocationController`, so the mock must answer the v2 endpoint, otherwise
- * the request falls through to the default (US) mock and the user is geo-blocked
- * (blocked regions: US, CA-ON, GB, BE).
- *
+ * The EligibilityService fetches geolocation via /proxy and compares
+ * the plain-text result against the blocked regions list (US, CA-ON, GB, BE).
  * Pass a non-blocked region (e.g. Spain, France) to ensure eligibility.
  */
 export const mockPerpsGeolocation = async (
   mockServer: Mockttp,
   region: RampsRegion,
 ): Promise<void> => {
-  const v2Response = buildV2GeolocationResponse(region);
+  const regionCode = region.id.replace('/regions/', '');
 
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
       const urlParam = new URL(request.url).searchParams.get('url') || '';
-      return /geolocation\.(dev-|uat-)?api\.cx\.metamask\.io\/v2\/geolocation/.test(
+      return /on-ramp\.(dev-api|uat-api|api)\.cx\.metamask\.io\/geolocation/.test(
         urlParam,
       );
     })
     .asPriority(1000)
     .thenCallback(() => {
       logger.info(
-        `[Perps E2E Mock] Intercepted geolocation request → ${getRegionLocationCode(
-          region,
-        )}`,
+        `[Perps E2E Mock] Intercepted geolocation request → ${regionCode}`,
       );
       return {
         statusCode: 200,
-        body: JSON.stringify(v2Response),
-        headers: { 'Content-Type': 'application/json' },
+        body: regionCode,
+        headers: { 'Content-Type': 'text/plain' },
       };
     });
 };

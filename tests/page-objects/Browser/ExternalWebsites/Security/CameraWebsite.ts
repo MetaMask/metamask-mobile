@@ -8,7 +8,7 @@ import PlaywrightMatchers from '../../../../framework/PlaywrightMatchers';
 import PlaywrightWebMatchers from '../../../../framework/PlaywrightWebMatchers';
 import { encapsulatedAction } from '../../../../framework/encapsulatedAction';
 import { PlatformDetector } from '../../../../framework/PlatformLocator';
-import { waitFor } from '../../../../framework/legacy-detox-shim';
+import { waitFor } from 'detox';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execFileSync } from 'child_process';
 

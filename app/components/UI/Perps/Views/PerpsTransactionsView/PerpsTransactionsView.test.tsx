@@ -20,7 +20,7 @@ import {
 import type { CaipAccountId } from '@metamask/utils';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../util/test/network';
-import { ACTIVITY_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
@@ -1010,7 +1010,7 @@ describe('PerpsTransactionsView', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks Activity Details Opened when a transaction item is pressed', async () => {
+    it('tracks Transaction Detail List Item Clicked when a transaction item is pressed', async () => {
       const component = renderWithProvider(<PerpsTransactionsView />, {
         state: mockInitialState,
       });
@@ -1032,7 +1032,7 @@ describe('PerpsTransactionsView', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        ACTIVITY_DETAIL_EVENTS.OPENED,
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

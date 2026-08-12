@@ -264,20 +264,16 @@ describe('UnifiedGestures', () => {
     it('reuses the same strategy instance across calls', async () => {
       await UnifiedGestures.tap(encapsulatedElem);
       await UnifiedGestures.tap(encapsulatedElem);
-      const { AppiumGestureStrategy } = jest.requireMock(
-        './GestureStrategy.ts',
-      );
-      expect(AppiumGestureStrategy).toHaveBeenCalledTimes(1);
+      const { DetoxGestureStrategy } = jest.requireMock('./GestureStrategy.ts');
+      expect(DetoxGestureStrategy).toHaveBeenCalledTimes(1);
     });
 
     it('creates a fresh strategy after resetStrategy()', async () => {
       await UnifiedGestures.tap(encapsulatedElem);
       UnifiedGestures.resetStrategy();
       await UnifiedGestures.tap(encapsulatedElem);
-      const { AppiumGestureStrategy } = jest.requireMock(
-        './GestureStrategy.ts',
-      );
-      expect(AppiumGestureStrategy).toHaveBeenCalledTimes(2);
+      const { DetoxGestureStrategy } = jest.requireMock('./GestureStrategy.ts');
+      expect(DetoxGestureStrategy).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -43,7 +43,6 @@ import FeedSpotBuyAction, {
 } from '../FeedView/components/FeedSpotBuyAction';
 import TopTradersView from '../TopTradersView';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
 import {
   TabsBar,
@@ -350,11 +349,13 @@ const SocialTradersTabsView: React.FC = () => {
   ]);
 
   return (
-    // Top and bottom edges are deliberately off — see
-    // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
-    // `includesTopInset` (JS `marginTop` off the already resolved provider).
+    // The top edge is deliberately off: a native SafeAreaView top padding is
+    // recalculated as the view is attached, which lands after this screen's
+    // `slide_from_right` push and visibly drops the header into place. The top
+    // inset comes from `includesTopInset` (JS `marginTop` off the already
+    // resolved provider) instead.
     <SafeAreaView
-      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
+      edges={['bottom', 'left', 'right']}
       style={tw.style('flex-1 bg-default')}
       testID={SocialTradersTabsViewSelectorsIDs.CONTAINER}
     >

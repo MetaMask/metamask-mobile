@@ -1,7 +1,6 @@
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 export const SRP_LENGTHS = [12, 15, 18, 21, 24];
-export const MAX_SRP_LENGTH = Math.max(...SRP_LENGTHS);
 export const SPACE_CHAR = ' ';
 
 /**
@@ -15,12 +14,6 @@ export const checkValidSeedWord = (text: string): boolean =>
  */
 export const getTrimmedSeedPhraseLength = (seedPhrase: string[]): number =>
   seedPhrase.filter((word) => word.trim() !== '').length;
-
-/**
- * Non-empty trimmed words from an SRP input grid (drops trailing/blank slots).
- */
-export const getTrimmedSeedPhraseWords = (seedPhrase: string[]): string[] =>
-  seedPhrase.map((word) => word.trim()).filter((word) => word !== '');
 
 /**
  * Check if SRP continue button should be disabled

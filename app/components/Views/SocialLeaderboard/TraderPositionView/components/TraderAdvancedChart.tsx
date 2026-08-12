@@ -26,7 +26,6 @@ import {
   type TimeRange,
 } from '../../../../UI/Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../../../UI/Charts/AdvancedChart/useOHLCVChart';
-import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 import type { TimePeriod } from '../useTraderPositionData';
 import TraderPriceChart from './TraderPriceChart';
 
@@ -76,6 +75,9 @@ const SOCIAL_PERIOD_TO_TIME_RANGE: Record<TimePeriod, TimeRange> = {
  */
 const CHART_VS_CURRENCY = 'usd';
 
+/** Normalize a trade timestamp: treat values < 1e12 as seconds → convert to ms. */
+const normalizeTs = (ts: number) => (ts > 0 && ts < 1e12 ? ts * 1000 : ts);
+
 export function getTradeFocusSpanMs(period: TimePeriod): number {
   return TRADE_FOCUS_SPAN_MS[period];
 }
@@ -85,7 +87,7 @@ export function getRecommendedTradeFocusPeriod(
   _isPerp: boolean,
   nowMs: number = Date.now(),
 ): TimePeriod {
-  const tradeTime = tradeTimestampToMs(timestamp);
+  const tradeTime = normalizeTs(timestamp);
   const ageMs = Number.isFinite(tradeTime)
     ? Math.max(0, nowMs - tradeTime)
     : Number.POSITIVE_INFINITY;
@@ -123,7 +125,7 @@ export function mapTradesToAdvancedMarkers(
   for (const trade of trades) {
     if (!trade.tokenAmount) continue;
     markers.push({
-      time: tradeTimestampToMs(trade.timestamp),
+      time: normalizeTs(trade.timestamp),
       intent: trade.intent,
       id: trade.transactionHash,
     });
@@ -574,7 +576,7 @@ const TraderAdvancedChart = ({
     if (!focusRequest || chartLoading || shouldFallback) return;
     if (handledFocusNonceRef.current === focusRequest.nonce) return;
 
-    const tradeTime = tradeTimestampToMs(focusRequest.timestamp);
+    const tradeTime = normalizeTs(focusRequest.timestamp);
     const firstBarTime = ohlcvData[0]?.time;
     const latestBarTime = ohlcvData[ohlcvData.length - 1]?.time;
 

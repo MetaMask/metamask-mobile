@@ -128,7 +128,7 @@ export const WalletViewSelectorsText = {
   DEFI_TAB: enContent.wallet.defi,
   PREDICTIONS_TAB: enContent.wallet.predict,
   AVAILABLE_BALANCE: enContent.predict.available_balance,
-  PERPETUALS_SECTION: enContent.homepage.sections.perpetuals,
+  PERPETUALS_SECTION: enContent.homepage.sections.perps,
   TOKENS_SECTION: enContent.homepage.sections.tokens,
   DEFI_SECTION: enContent.homepage.sections.defi,
   NFTS_SECTION: enContent.homepage.sections.nfts,

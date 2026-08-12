@@ -7,7 +7,6 @@ import {
   MOCK_CHAIN_IDS,
 } from '../testUtils/fixtures';
 import { PopularToken } from '../types';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
 
 global.fetch = jest.fn();
 
@@ -18,15 +17,6 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-
-jest.mock('../../../../util/trace', () => ({
-  ...jest.requireActual('../../../../util/trace'),
-  trace: jest.fn(),
-  endTrace: jest.fn(),
-}));
-
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
-const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 describe('useSearchTokens', () => {
   beforeEach(() => {
@@ -88,28 +78,6 @@ describe('useSearchTokens', () => {
           body: expect.stringContaining('test query'),
         }),
       );
-      expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.SwapTokenSearch,
-        id: expect.any(String),
-        startTime: expect.any(Number),
-      });
-      const traceId = mockTrace.mock.calls[0][0].id;
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.SwapTokenSearch,
-        id: traceId,
-        timestamp: expect.any(Number),
-      });
-    });
-
-    it('does not trace empty queries', async () => {
-      const { result } = renderHook(() => useSearchTokens(defaultParams));
-
-      await act(async () => {
-        await result.current.searchTokens('   ');
-      });
-
-      expect(mockTrace).not.toHaveBeenCalled();
-      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('resets search when query is empty', async () => {
@@ -185,8 +153,6 @@ describe('useSearchTokens', () => {
 
       expect(result.current.searchResults).toEqual([]);
       expect(result.current.searchCursor).toBeUndefined();
-      expect(mockTrace).toHaveBeenCalledTimes(1);
-      expect(mockEndTrace).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -219,7 +185,6 @@ describe('useSearchTokens', () => {
           body: expect.stringContaining('test query'),
         }),
       );
-      expect(mockTrace).toHaveBeenCalledTimes(1);
     });
 
     it('ignores queries below minimum length', async () => {
@@ -272,8 +237,6 @@ describe('useSearchTokens', () => {
       expect((result.current.searchResults[0] as PopularToken).isVerified).toBe(
         true,
       );
-      expect(mockTrace).toHaveBeenCalledTimes(1);
-      expect(mockEndTrace).toHaveBeenCalledTimes(1);
     });
 
     it('sets isLoadingMore for pagination requests', async () => {
@@ -359,8 +322,6 @@ describe('useSearchTokens', () => {
         'Error searching tokens:',
         expect.any(Error),
       );
-      expect(mockTrace).toHaveBeenCalledTimes(1);
-      expect(mockEndTrace).toHaveBeenCalledTimes(1);
 
       consoleSpy.mockRestore();
     });

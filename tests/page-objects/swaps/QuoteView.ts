@@ -1,4 +1,4 @@
-import { waitFor } from '../../framework/legacy-detox-shim';
+import { waitFor } from 'detox';
 import {
   Assertions,
   Gestures,

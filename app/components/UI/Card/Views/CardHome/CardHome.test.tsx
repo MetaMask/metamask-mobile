@@ -640,12 +640,10 @@ const BAANX_CAPABILITIES = {
   supportsPushProvisioning: true,
   onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
   supportsPinView: true,
-  supportsPinSet: false,
   supportsCashback: true,
   supportsCredit: true,
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
-  supportsTransactionHistory: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<

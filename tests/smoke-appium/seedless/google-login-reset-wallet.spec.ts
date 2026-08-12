@@ -2,30 +2,38 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokeSeedlessOnboarding } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
+import { PlatformDetector } from '../../framework/PlatformLocator.js';
 import {
+  completeGoogleNewUserOnboarding,
   lockApp,
   loginWithFixturePassword,
   resetWallet,
+  setupGoogleNewUserOAuthMock,
 } from './helpers/seedless-helpers.js';
 
-/**
- * Device smoke: reset wallet from the login screen (native vault wipe).
- * Does not re-run Google onboard (covered by google-login-new-user).
- */
 appiumTest.describe(
   SmokeSeedlessOnboarding('Google Login - Reset Wallet'),
   () => {
     appiumTest(
-      'locks a fixture wallet and resets it from the login screen',
+      'onboards with Google login, locks, and resets the wallet',
       async ({ driver: _driver, currentDeviceDetails }) => {
+        const fixture = PlatformDetector.isIOS()
+          ? new FixtureBuilder().build()
+          : new FixtureBuilder({ onboarding: true }).build();
+
         await withFixtures(
           {
-            fixture: new FixtureBuilder().build(),
+            fixture,
             restartDevice: true,
             currentDeviceDetails,
+            testSpecificMock: setupGoogleNewUserOAuthMock,
           },
           async () => {
-            await loginWithFixturePassword();
+            if (PlatformDetector.isIOS()) {
+              await loginWithFixturePassword();
+            } else {
+              await completeGoogleNewUserOnboarding();
+            }
 
             await lockApp();
 

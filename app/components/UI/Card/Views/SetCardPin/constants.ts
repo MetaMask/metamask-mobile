@@ -1,2 +1,0 @@
-export const PIN_UNMASK_DURATION_MS = 300;
-export const PIN_ERROR_RESET_DELAY_MS = 1500;

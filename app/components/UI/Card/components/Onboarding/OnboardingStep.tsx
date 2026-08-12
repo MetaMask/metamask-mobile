@@ -30,12 +30,6 @@ interface OnboardingStepProps {
    * Navigator headers are hidden; onboarding screens own their header chrome.
    */
   headerMode?: CardHeaderMode;
-  /**
-   * Optional override for the back header action when `headerMode` is `"back"`.
-   * Use for multi-step screens that share one route (back should change local
-   * step state instead of calling `navigation.goBack()`).
-   */
-  onBackPress?: () => void;
 }
 
 const OnboardingStep = ({
@@ -45,14 +39,9 @@ const OnboardingStep = ({
   actions,
   stickyActions = false,
   headerMode = 'none',
-  onBackPress,
 }: OnboardingStepProps) => {
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers(headerMode);
-  const resolvedHeaderHandlers =
-    headerMode === 'back' && onBackPress
-      ? { ...headerHandlers, onBack: onBackPress }
-      : headerHandlers;
 
   const renderHeader = () => {
     if (headerMode === 'none') {
@@ -63,7 +52,7 @@ const OnboardingStep = ({
       <HeaderStandard
         includesTopInset
         twClassName="bg-background-default"
-        {...resolvedHeaderHandlers}
+        {...headerHandlers}
       />
     );
   };

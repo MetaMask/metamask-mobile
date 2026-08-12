@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
-import type { StyleProp, ViewStyle } from 'react-native';
 import MoneyCardTiltAnimation from './MoneyCardTiltAnimation';
 import { MoneyCardTiltAnimationTestIds } from './MoneyCardTiltAnimation.testIds';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
@@ -11,9 +10,7 @@ import mmCardMetal from '../../../../../images/mm_card_metal.png';
 const mockSetNumber = jest.fn();
 const mockViewTag = jest.fn((): number | null => 1);
 const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
-const mockRiveProps: {
-  current?: { artboardName?: string; style?: StyleProp<ViewStyle> };
-} = {};
+const mockRiveProps: { current?: { artboardName?: string } } = {};
 const mockMountCount = { current: 0 };
 
 jest.mock('rive-react-native', () => {
@@ -28,7 +25,6 @@ jest.mock('rive-react-native', () => {
         props: {
           testID?: string;
           artboardName?: string;
-          style?: StyleProp<ViewStyle>;
           onError?: (error: { message: string }) => void;
         },
         ref: React.Ref<{
@@ -37,10 +33,7 @@ jest.mock('rive-react-native', () => {
         }>,
       ) => {
         mockOnErrorRef.current = props.onError;
-        mockRiveProps.current = {
-          artboardName: props.artboardName,
-          style: props.style,
-        };
+        mockRiveProps.current = { artboardName: props.artboardName };
         ReactActual.useImperativeHandle(ref, () => ({
           setNumber: mockSetNumber,
           viewTag: mockViewTag,
@@ -197,30 +190,10 @@ describe('MoneyCardTiltAnimation', () => {
       y: number,
     ) => void;
 
-    act(() => applyTilt(1, 1));
+    act(() => applyTilt(0.5, 0.5));
 
-    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 100);
-    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 0);
-  });
-
-  it('drives a partial tilt past the raw curve reported by the hook', () => {
-    render(<MoneyCardTiltAnimation isMetalCard={false} />);
-
-    const applyTilt = mockUseDeviceOrientation.mock.calls[0][0] as (
-      x: number,
-      y: number,
-    ) => void;
-
-    act(() => applyTilt(0.5, 0));
-
-    // The hook reports an already-squared tilt, so 0.5 means the device is
-    // ~71% of the way through its travel. Mapping it straight through would
-    // under-read at 75; the shaping recovers the real angle.
-    const [, xValue] = mockSetNumber.mock.calls.find(
-      ([property]) => property === 'xValue',
-    ) as [string, number];
-    expect(xValue).toBeGreaterThan(75);
-    expect(xValue).toBeLessThan(100);
+    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 75);
+    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 25);
   });
 
   it('does not dispatch tilt values while the native Rive view is detached', () => {
@@ -269,42 +242,5 @@ describe('MoneyCardTiltAnimation', () => {
     expect(
       getByTestId(MoneyCardTiltAnimationTestIds.CONTAINER),
     ).toBeOnTheScreen();
-  });
-
-  describe('sizing', () => {
-    it('falls back to the Money home thumbnail size', () => {
-      const { getByTestId } = render(
-        <MoneyCardTiltAnimation isMetalCard={false} />,
-      );
-
-      expect(getByTestId(MoneyCardTiltAnimationTestIds.CONTAINER)).toHaveStyle({
-        width: 104,
-        height: 66,
-      });
-    });
-
-    it('sizes the container and the Rive view from the props', () => {
-      const { getByTestId } = render(
-        <MoneyCardTiltAnimation isMetalCard={false} width={111} height={70} />,
-      );
-
-      expect(getByTestId(MoneyCardTiltAnimationTestIds.CONTAINER)).toHaveStyle({
-        width: 111,
-        height: 70,
-      });
-      expect(mockRiveProps.current?.style).toEqual({ width: 111, height: 70 });
-    });
-
-    it('sizes the static fallback image from the props', () => {
-      mockUseSelector.mockReturnValue(false);
-
-      const { getByTestId } = render(
-        <MoneyCardTiltAnimation isMetalCard={false} width={111} height={70} />,
-      );
-
-      expect(
-        getByTestId(MoneyCardTiltAnimationTestIds.STATIC_IMAGE),
-      ).toHaveStyle({ width: 111, height: 70, borderRadius: 6 });
-    });
   });
 });

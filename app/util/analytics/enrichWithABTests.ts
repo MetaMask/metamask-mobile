@@ -1,8 +1,5 @@
 import { resolveABTestAssignment } from '../abTest';
-import {
-  selectRemoteFeatureFlags,
-  selectFeatureFlagThresholdGroups,
-} from '../../selectors/featureFlagController';
+import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController';
 import type { StateWithPartialEngine } from '../../selectors/featureFlagController/types';
 import { AB_TEST_ANALYTICS_MAPPINGS } from './abTestAnalyticsRegistry';
 import type { ABTestAnalyticsMapping } from './abTestAnalytics.types';
@@ -100,16 +97,6 @@ export const getRemoteFeatureFlagsFromState = (
   }
 };
 
-export const getFeatureFlagThresholdGroupsFromState = (
-  state: StateWithPartialEngine | null | undefined,
-): Record<string, string> => {
-  try {
-    return selectFeatureFlagThresholdGroups(state as StateWithPartialEngine);
-  } catch {
-    return {};
-  }
-};
-
 export const enrichWithABTests = <
   T extends {
     name: string;
@@ -118,7 +105,6 @@ export const enrichWithABTests = <
 >(
   event: T,
   featureFlags: Record<string, unknown>,
-  thresholdGroups: Record<string, string> = {},
 ): T => {
   const existingAssignments = normalizeActiveABTestAssignments(
     event.properties.active_ab_tests,
@@ -144,7 +130,6 @@ export const enrichWithABTests = <
       featureFlags,
       mapping.flagKey,
       mapping.validVariants,
-      thresholdGroups,
     );
 
     return isActive

@@ -27,10 +27,7 @@
 
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectRemoteFeatureFlags,
-  selectFeatureFlagThresholdGroups,
-} from '../selectors/featureFlagController';
+import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
 import { MetaMetricsEvents } from '../core/Analytics';
 import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
 import { resolveABTestAssignment } from '../util/abTest';
@@ -171,7 +168,6 @@ export function useABTest<T extends ABTestVariants>(
 ): UseABTestResult<T> {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const flags = useSelector(selectRemoteFeatureFlags);
-  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
   const geolocation = useSelector(getDetectedGeolocation);
   const countryCode =
     typeof geolocation === 'string'
@@ -181,7 +177,6 @@ export function useABTest<T extends ABTestVariants>(
     flags,
     flagKey,
     Object.keys(variants),
-    thresholdGroups,
   );
   const activeVariationName =
     exposureMetadata?.variationNames?.[variantName as Extract<keyof T, string>];

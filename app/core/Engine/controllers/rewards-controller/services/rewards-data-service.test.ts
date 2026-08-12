@@ -105,10 +105,6 @@ describe('RewardsDataService', () => {
 
   afterEach(() => {
     process.env = originalEnv;
-    // Only timers are restored here: resetting mock implementations would wipe
-    // the defaults set in the jest.mock factories (e.g. getVersion), and mocks
-    // that individual tests mutate are re-established in beforeEach.
-    jest.useRealTimers();
   });
 
   describe('initialization', () => {
@@ -211,10 +207,6 @@ describe('RewardsDataService', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getVIPDashboard',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:getVipEquityMultiplier',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -1395,22 +1387,11 @@ describe('RewardsDataService', () => {
       next: null,
     };
 
-    // getDiscoverSeasons coerces an expired current season to previous by
-    // comparing against the wall clock, so pin it for every test here.
-    const NOW = new Date('2025-10-01T00:00:00.000Z');
-
-    const yearsFromNow = (years: number): Date => {
-      const date = new Date(NOW);
-      date.setFullYear(date.getFullYear() + years);
-      return date;
-    };
-
     beforeEach(() => {
-      jest.useFakeTimers();
-      jest.setSystemTime(NOW);
-
       // Use a future date to ensure current season doesn't get moved to previous
-      const futureEndDateString = yearsFromNow(1).toISOString();
+      const futureEndDate = new Date();
+      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
+      const futureEndDateString = futureEndDate.toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1427,10 +1408,6 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
     });
 
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
     it('fetches discover seasons from the correct public endpoint', async () => {
       const result = await service.getDiscoverSeasons();
 
@@ -1444,7 +1421,7 @@ describe('RewardsDataService', () => {
       );
       expect(result.current?.endDate).toBeInstanceOf(Date);
       // Verify end date is in the future (at least 6 months from now)
-      const minFutureDate = new Date(NOW);
+      const minFutureDate = new Date();
       minFutureDate.setMonth(minFutureDate.getMonth() + 6);
       expect(result.current?.endDate.getTime()).toBeGreaterThan(
         minFutureDate.getTime(),
@@ -1493,7 +1470,9 @@ describe('RewardsDataService', () => {
 
     it('converts date strings to Date objects for current season', async () => {
       // Use a future date to ensure current season doesn't get moved to previous
-      const futureEndDateString = yearsFromNow(1).toISOString();
+      const futureEndDate = new Date();
+      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
+      const futureEndDateString = futureEndDate.toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1523,8 +1502,13 @@ describe('RewardsDataService', () => {
 
     it('handles response with previous, current and next seasons', async () => {
       // Use future dates to ensure seasons don't get moved
-      const futureEndDateString = yearsFromNow(1).toISOString();
-      const futureNextEndDateString = yearsFromNow(2).toISOString();
+      const futureEndDate = new Date();
+      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
+      const futureEndDateString = futureEndDate.toISOString();
+
+      const futureNextEndDate = new Date();
+      futureNextEndDate.setFullYear(futureNextEndDate.getFullYear() + 2);
+      const futureNextEndDateString = futureNextEndDate.toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1627,6 +1611,7 @@ describe('RewardsDataService', () => {
     });
 
     it('coerces current season to previous when end date equals current time', async () => {
+      const now = new Date();
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
@@ -1634,7 +1619,7 @@ describe('RewardsDataService', () => {
           current: {
             id: '7444682d-9050-43b8-9038-28a6a62d6264',
             startDate: '2019-09-01T04:00:00.000Z',
-            endDate: NOW.toISOString(),
+            endDate: now.toISOString(),
           },
           next: null,
         }),
@@ -1649,7 +1634,8 @@ describe('RewardsDataService', () => {
     });
 
     it('does not coerce current season when end date is in the future', async () => {
-      const futureEndDate = yearsFromNow(1);
+      const futureEndDate = new Date();
+      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
@@ -1929,13 +1915,17 @@ describe('RewardsDataService', () => {
     });
 
     it('handles timeout correctly', async () => {
-      const abortError = new Error('The operation was aborted');
-      abortError.name = 'AbortError';
-      mockFetch.mockRejectedValue(abortError);
+      // Mock fetch that never resolves (simulate timeout)
+      mockFetch.mockImplementation(
+        () =>
+          new Promise((_resolve, reject) => {
+            setTimeout(() => reject(new Error('AbortError')), 100);
+          }),
+      );
 
       await expect(
         service.getReferralDetails(mockSubscriptionId),
-      ).rejects.toThrow('Request timeout after 10000ms');
+      ).rejects.toThrow('AbortError');
     });
   });
 
@@ -4488,8 +4478,6 @@ describe('RewardsDataService', () => {
         equityLockedDescription: 'Body copy',
         equityUnlockedTitle: 'VIP allocation unlocked',
         equityUnlockedDescription: 'Unlocked body copy',
-        equityMultiplierFailedTitle: 'Estimate failed',
-        equityMultiplierFailedDescription: 'Estimate failed body copy',
       },
     };
 
@@ -4543,65 +4531,6 @@ describe('RewardsDataService', () => {
       await expect(service.getVIPDashboard(mockSubscriptionId)).rejects.toThrow(
         'Get VIP dashboard failed: 500',
       );
-    });
-  });
-
-  describe('getVipEquityMultiplier', () => {
-    const mockSubscriptionId = 'sub-vip';
-    const mockToken = 'test-bearer-token';
-
-    beforeEach(() => {
-      mockGetSubscriptionToken.mockResolvedValue({
-        success: true,
-        token: mockToken,
-      });
-    });
-
-    it('POSTs holdingsUsd and returns the multiplier payload', async () => {
-      const payload = {
-        available: true as const,
-        multiplier: '1.0889',
-        state: 'active' as const,
-        progressPercent: 44.4,
-        tierNumber: 6,
-        tierName: 'VIP 6',
-        capUsd: '10000000',
-        computedAt: '2099-06-30T14:52:00.000Z',
-        localizedText: {
-          title: 'Estimated equity multiplier',
-          description: '1.09x active. Accumulate more mUSD to increase.',
-        },
-      };
-      mockFetch.mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: jest.fn().mockResolvedValue(payload),
-      } as unknown as Response);
-
-      const result = await service.getVipEquityMultiplier(
-        mockSubscriptionId,
-        '5000000',
-      );
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://uat.rewards.test/vip/equity-multiplier',
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({ holdingsUsd: '5000000' }),
-        }),
-      );
-      expect(result).toEqual(payload);
-    });
-
-    it('returns null on 404', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 404,
-      } as Response);
-
-      await expect(
-        service.getVipEquityMultiplier(mockSubscriptionId, '5000000'),
-      ).resolves.toBeNull();
     });
   });
 

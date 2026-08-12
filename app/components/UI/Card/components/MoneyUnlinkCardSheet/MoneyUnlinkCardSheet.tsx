@@ -14,6 +14,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import { CardEntryPoint } from '../../util/metrics';
 import { MoneyUnlinkCardSheetTestIds } from './MoneyUnlinkCardSheet.testIds';
@@ -27,6 +28,7 @@ const MoneyUnlinkCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
+  const surfaceClass = useElevatedSurface();
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const routeParams = route.params as
     | MoneyUnlinkCardSheetRouteParams
@@ -58,6 +60,7 @@ const MoneyUnlinkCardSheet = () => {
       goBack={handleGoBack}
       testID={MoneyUnlinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

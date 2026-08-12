@@ -61,8 +61,7 @@ export interface QuickBuyAnalyticsContext {
   tokenPriceFiat?: number;
 }
 
-/** Props for `QuickBuy.Root` — the sheet that hosts the whole flow. */
-export interface QuickBuyRootProps {
+export interface QuickBuySheetProps {
   isVisible: boolean;
   target: QuickBuyTarget | null;
   onClose: () => void;
@@ -70,6 +69,9 @@ export interface QuickBuyRootProps {
   analyticsContext?: QuickBuyAnalyticsContext;
   children?: ReactNode;
 }
+
+/** Same contract as `QuickBuySheetProps` — props for `QuickBuy.Root`. */
+export type QuickBuyRootProps = QuickBuySheetProps;
 
 /**
  * Maps a social leaderboard position into a portable QuickBuy target.

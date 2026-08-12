@@ -136,6 +136,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
 
     (useAlerts as jest.Mock).mockReturnValue({
@@ -256,6 +258,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -361,6 +365,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
 
     const moneyAccountDepositConfirmation = {
@@ -401,6 +407,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
 
     const moneyAccountWithdrawConfirmation = {
@@ -441,6 +449,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
 
     const { queryByTestId } = renderWithProvider(<Footer />, {

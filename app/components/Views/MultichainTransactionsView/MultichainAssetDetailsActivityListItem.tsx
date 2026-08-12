@@ -20,7 +20,7 @@ import { getActivityDetailsRoute } from '../ActivityList/getActivityDetailsRoute
 import { mapKeyringTransaction } from '../../../util/activity-adapters';
 import {
   getMultichainTransactionDetailEventProperties,
-  ACTIVITY_DETAIL_EVENTS,
+  TRANSACTION_DETAIL_EVENTS,
 } from './MultichainAssetDetailsActivityListItem.utils';
 
 interface MultichainAssetDetailsActivityListItemProps {
@@ -56,7 +56,7 @@ export const MultichainAssetDetailsActivityListItem = ({
 
   const handlePress = useCallback(() => {
     trackEvent(
-      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
         .addProperties(
           getMultichainTransactionDetailEventProperties({
             transaction,

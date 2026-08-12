@@ -1,6 +1,5 @@
 import type { Trade } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
-import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 
 export interface TradeMarker {
   /** Index into the `priceList` array derived from `prices`. */
@@ -10,6 +9,9 @@ export interface TradeMarker {
   /** Stable React key and testID suffix. */
   transactionHash: string;
 }
+
+/** Normalize a trade timestamp: treat values < 1e12 as seconds → convert to ms. */
+const normalizeTs = (ts: number) => (ts > 0 && ts < 1e12 ? ts * 1000 : ts);
 
 /**
  * Maps each `Trade` to the nearest price-data index in `prices`.
@@ -29,7 +31,7 @@ export function mapTradesToMarkers(
   const last = tsList[tsList.length - 1];
 
   return trades.flatMap((t) => {
-    const ts = tradeTimestampToMs(t.timestamp);
+    const ts = normalizeTs(t.timestamp);
     if (ts < first || ts > last) return [];
 
     // Binary search: find the largest index whose timestamp <= ts.

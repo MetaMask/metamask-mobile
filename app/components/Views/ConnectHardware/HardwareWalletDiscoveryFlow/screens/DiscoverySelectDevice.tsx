@@ -22,6 +22,7 @@ import {
 import type { DiscoveredDevice } from '../../../../../core/HardwareWallet/types';
 import type { DeviceUIConfig } from '../DiscoveryFlow.types';
 import { strings } from '../../../../../../locales/i18n';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface DiscoverySelectDeviceScreenProps {
   devices: DiscoveredDevice[];
@@ -43,6 +44,7 @@ const DiscoverySelectDeviceScreen: React.FC<
   config,
 }) => {
   const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasValidSelection = devices.some(
     (deviceSelected) => deviceSelected.id === selectedDeviceId,
@@ -63,6 +65,7 @@ const DiscoverySelectDeviceScreen: React.FC<
     <BottomSheet
       ref={sheetRef}
       onClose={onClose}
+      twClassName={surfaceClass}
       testID="discovery-select-device-sheet"
     >
       <BottomSheetHeader

@@ -145,10 +145,14 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
     });
   };
 
+  const mergedFlags = (state: RemoteFeatureFlagControllerState) => ({
+    ...state.remoteFeatureFlags,
+    ...(state.localOverrides ?? {}),
+  });
+
   const readVaultConfig = (): MoneyAccountVaultConfig | undefined =>
     getMoneyAccountVaultConfig(
-      initMessenger.call('RemoteFeatureFlagController:getState')
-        .remoteFeatureFlags,
+      mergedFlags(initMessenger.call('RemoteFeatureFlagController:getState')),
     );
 
   const configsEqual = (
@@ -217,7 +221,7 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
   };
 
   const onFlagState = (state: RemoteFeatureFlagControllerState) => {
-    const flags = state.remoteFeatureFlags;
+    const flags = mergedFlags(state);
     if (!isMoneyAccountEnabled(flags)) {
       return;
     }

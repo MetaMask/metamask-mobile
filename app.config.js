@@ -43,6 +43,12 @@ module.exports = {
         },
       },
     ],
+    [
+      '@config-plugins/detox',
+      {
+        subdomains: '*',
+      },
+    ],
     'expo-apple-authentication',
     [
       'expo-screen-orientation',

@@ -1,13 +1,34 @@
-import {
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import GeneralSettings, {
+  GENERAL_SETTINGS_CURRENCY_SELECTOR,
   updateUserTraitsWithCurrentCurrency,
   updateUserTraitsWithCurrencyType,
-} from '.';
+} from './';
+import configureMockStore from 'redux-mock-store';
+import { Provider } from 'react-redux';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { analytics } from '../../../../util/analytics/analytics';
 
+const mockSetCurrentCurrency = jest.fn();
+const mockSetSelectedCurrency = jest.fn();
+
 jest.mock('../../../../core/Engine', () => ({
-  context: {},
+  context: {
+    CurrencyRateController: {
+      setCurrentCurrency: (...args: unknown[]) =>
+        mockSetCurrentCurrency(...args),
+    },
+    AssetsController: {
+      setSelectedCurrency: (...args: unknown[]) =>
+        mockSetSelectedCurrency(...args),
+    },
+  },
 }));
 
 jest.mock('../../../../core/Analytics');
@@ -31,35 +52,130 @@ jest.mock('../../../../util/analytics/AnalyticsEventBuilder', () => ({
     createEventBuilder: (...args: unknown[]) => mockCreateEventBuilder(...args),
   },
 }));
+jest.mock(
+  '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
+  () => ({
+    __esModule: true,
+    default: () => null,
+    AvatarAccountType: {
+      JazzIcon: 'JazzIcon',
+      Blockies: 'Blockies',
+      Maskicon: 'Maskicon',
+    },
+  }),
+);
+
+const mockStore = configureMockStore();
+const initialState = {
+  privacy: { approvedHosts: [] },
+  browser: { history: [] },
+  settings: {
+    lockTime: 1000,
+    searchEngine: 'Google',
+    avatarAccountType: AvatarAccountType.Maskicon,
+  },
+  engine: {
+    backgroundState,
+  },
+  user: { appTheme: AppThemeKey.light },
+};
+const store = mockStore(initialState);
+
+const mockNavigation = {
+  goBack: jest.fn(),
+  navigate: jest.fn(),
+};
+
+const renderComponent = () =>
+  render(
+    <Provider store={store}>
+      <ThemeContext.Provider value={mockTheme}>
+        <GeneralSettings navigation={mockNavigation} />
+      </ThemeContext.Provider>
+    </Provider>,
+  );
+
+describe('GeneralSettings', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render correctly', () => {
+    const { getByText } = renderComponent();
+    expect(getByText('General')).toBeOnTheScreen();
+  });
+
+  it('renders header with correct title', () => {
+    const { getByText } = renderComponent();
+    expect(getByText('General')).toBeTruthy();
+  });
+
+  it('calls navigation.goBack when back button is pressed', () => {
+    const { getByTestId } = renderComponent();
+    const backButton = getByTestId('button-icon');
+    fireEvent.press(backButton);
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('GeneralSettings currency selection', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('updates both CurrencyRateController and AssetsController when a currency is selected', () => {
+    const { getByTestId, getByText } = renderComponent();
+
+    fireEvent.press(getByTestId(GENERAL_SETTINGS_CURRENCY_SELECTOR));
+    fireEvent.press(getByText('EUR - Euro'));
+
+    expect(mockSetCurrentCurrency).toHaveBeenCalledWith('eur');
+    expect(mockSetSelectedCurrency).toHaveBeenCalledWith('eur');
+  });
+});
 
 describe('updateUserTraitsWithCurrentCurrency', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('adds the selected currency trait', () => {
-    const currency = 'USD';
+  it('adds selected currency trait', () => {
+    const mockCurrency = 'USD';
 
-    updateUserTraitsWithCurrentCurrency(currency);
+    updateUserTraitsWithCurrentCurrency(mockCurrency);
 
     expect(analytics.identify).toHaveBeenCalledWith({
-      [UserProfileProperty.CURRENT_CURRENCY]: currency,
+      [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
     });
   });
 
-  it('tracks the currency changed event', () => {
-    const currency = 'USD';
+  it('tracks currency changed event', () => {
+    const mockCurrency = 'USD';
 
-    updateUserTraitsWithCurrentCurrency(currency);
+    updateUserTraitsWithCurrentCurrency(mockCurrency);
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.CURRENCY_CHANGED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
-      [UserProfileProperty.CURRENT_CURRENCY]: currency,
+      [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
       location: 'app_settings',
     });
     expect(analytics.trackEvent).toHaveBeenCalledWith(mockBuild());
+  });
+
+  it('does not throw errors when a valid currency is passed', () => {
+    const mockCurrency = 'USD';
+
+    expect(() => {
+      updateUserTraitsWithCurrentCurrency(mockCurrency);
+    }).not.toThrow();
   });
 });
 
@@ -76,5 +192,13 @@ describe('updateUserTraitsWithCurrencyType', () => {
     expect(analytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
     });
+  });
+
+  it('does not throw errors', () => {
+    const primaryCurrency = 'fiat';
+
+    expect(() => {
+      updateUserTraitsWithCurrencyType(primaryCurrency);
+    }).not.toThrow();
   });
 });

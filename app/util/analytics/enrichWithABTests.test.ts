@@ -4,7 +4,6 @@ import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingV
 import { HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY } from '../../components/Views/Homepage/abTestConfig';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
-import { CHAIN_VALUE_ORDER_AB_KEY } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 
 describe('enrichWithABTests', () => {
   it('loads swap AB configs when the Analytics barrel initializes first', () => {
@@ -83,52 +82,6 @@ describe('enrichWithABTests', () => {
         'control',
       ),
     ]);
-  });
-
-  it('injects the network value order assignment into swap funnel events', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder(
-      'Unified SwapBridge Submitted',
-    ).build();
-
-    const result = enrichWithABTests(event, {
-      [CHAIN_VALUE_ORDER_AB_KEY]: { name: 'treatment' },
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(CHAIN_VALUE_ORDER_AB_KEY, 'treatment'),
-    ]);
-  });
-
-  it('injects the network value order assignment into Swaps Asset Viewed', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
-      .addProperties({
-        trade_type: 'Swaps',
-      })
-      .build();
-
-    const result = enrichWithABTests(event, {
-      [CHAIN_VALUE_ORDER_AB_KEY]: 'control',
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(CHAIN_VALUE_ORDER_AB_KEY, 'control'),
-    ]);
-  });
-
-  it('does not inject the network value order assignment into Perps Asset Viewed', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
-      .addProperties({
-        trade_type: 'Perps',
-      })
-      .build();
-
-    const result = enrichWithABTests(event, {
-      [CHAIN_VALUE_ORDER_AB_KEY]: 'treatment',
-    });
-
-    expect(result.properties).toEqual({
-      trade_type: 'Perps',
-    });
   });
 
   it('injects swap AB assignments for Asset Viewed only when trade_type is Swaps', () => {

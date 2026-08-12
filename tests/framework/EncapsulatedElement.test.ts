@@ -167,12 +167,12 @@ describe('EncapsulatedElement', () => {
         expect(result).toBe(TestFramework.APPIUM);
       });
 
-      it('returns APPIUM as default when no globals are present', () => {
+      it('returns DETOX as default when no globals are present', () => {
         FrameworkDetector.reset();
 
         const result = FrameworkDetector.detect();
 
-        expect(result).toBe(TestFramework.APPIUM);
+        expect(result).toBe(TestFramework.DETOX);
       });
 
       it('caches the framework after first detection', () => {

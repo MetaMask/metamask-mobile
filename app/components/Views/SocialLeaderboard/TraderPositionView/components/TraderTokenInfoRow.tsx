@@ -25,7 +25,7 @@ import {
 import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import { EM_DASH, formatPercent } from '../../utils/formatters';
+import { formatPercent } from '../../utils/formatters';
 import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface TraderTokenInfoRowProps {
@@ -129,7 +129,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
           </Text>
         ) : (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {EM_DASH}
+            {'\u2014'}
           </Text>
         )}
       </Box>
@@ -172,10 +172,10 @@ const TraderHeaderStat: React.FC<TraderHeaderStatProps> = ({
   const value = isPerp
     ? currentPrice != null
       ? formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL })
-      : EM_DASH
+      : '\u2014'
     : marketCap != null
       ? formatCompactUsd(marketCap)
-      : EM_DASH;
+      : '\u2014';
 
   return (
     <Box alignItems={BoxAlignItems.End}>

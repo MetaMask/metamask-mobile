@@ -1,8 +1,11 @@
 import React from 'react';
+import Svg, { Circle } from 'react-native-svg';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   Text,
   TextColor,
@@ -10,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { formatCompactValue } from '../../utils/formatUtils';
 import type { VipEquityAllocation } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import VipCircularProgress from './VipCircularProgress';
+import { VIP_GOLD_TEXT_DEFAULT } from './Vip.constants';
 
 export const VIP_POINTS_SECTION_TEST_IDS = {
   CONTAINER: 'vip-points-section',
@@ -29,6 +32,14 @@ interface VipPointsSectionProps {
   equityUnlockedDescription: string;
 }
 
+const RADIAL_SIZE = 96;
+const STROKE_WIDTH = 8;
+const RADIUS = (RADIAL_SIZE - STROKE_WIDTH) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const clampPercent = (value: number): number =>
+  Math.max(0, Math.min(100, value));
+
 const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   pointsAllocation,
   title,
@@ -37,12 +48,18 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   equityUnlockedTitle,
   equityUnlockedDescription,
 }) => {
+  const tw = useTailwind();
+  const trackColor = tw.color('background-muted') ?? 'transparent';
+  const fillColor = VIP_GOLD_TEXT_DEFAULT ?? 'transparent';
+
   const isEquityUnlocked =
     pointsAllocation.earned >= pointsAllocation.threshold;
   const subtitle = isEquityUnlocked ? equityUnlockedTitle : equityLockedTitle;
   const description = isEquityUnlocked
     ? equityUnlockedDescription
     : equityLockedDescription;
+  const filledPercent = clampPercent(pointsAllocation.percent);
+  const dashOffset = CIRCUMFERENCE * (1 - filledPercent / 100);
 
   return (
     <Box
@@ -69,19 +86,55 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
             {description}
           </Text>
         </Box>
-        <VipCircularProgress
-          percent={pointsAllocation.percent}
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          style={{ width: RADIAL_SIZE, height: RADIAL_SIZE }}
           testID={VIP_POINTS_SECTION_TEST_IDS.RADIAL}
-          progressTestID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_PROGRESS}
-          labelTestID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_LABEL}
         >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {formatCompactValue(pointsAllocation.earned)}
-          </Text>
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            {`/${formatCompactValue(pointsAllocation.threshold)}`}
-          </Text>
-        </VipCircularProgress>
+          <Svg
+            width={RADIAL_SIZE}
+            height={RADIAL_SIZE}
+            viewBox={`0 0 ${RADIAL_SIZE} ${RADIAL_SIZE}`}
+          >
+            <Circle
+              cx={RADIAL_SIZE / 2}
+              cy={RADIAL_SIZE / 2}
+              r={RADIUS}
+              stroke={trackColor}
+              strokeWidth={STROKE_WIDTH}
+              fill="none"
+            />
+            <Circle
+              cx={RADIAL_SIZE / 2}
+              cy={RADIAL_SIZE / 2}
+              r={RADIUS}
+              stroke={fillColor}
+              strokeWidth={STROKE_WIDTH}
+              fill="none"
+              strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
+              strokeDashoffset={dashOffset}
+              strokeLinecap="round"
+              transform={`rotate(-90 ${RADIAL_SIZE / 2} ${RADIAL_SIZE / 2})`}
+              testID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_PROGRESS}
+            />
+          </Svg>
+          <Box
+            twClassName="absolute"
+            alignItems={BoxAlignItems.Center}
+            testID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_LABEL}
+          >
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+              {formatCompactValue(pointsAllocation.earned)}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
+              {`/${formatCompactValue(pointsAllocation.threshold)}`}
+            </Text>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

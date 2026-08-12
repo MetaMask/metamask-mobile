@@ -33,7 +33,6 @@ function buildRemoteFeatureFlagControllerMock(
     state: {
       remoteFeatureFlags: {
         bridgeQuoteStatusManager,
-        ...localOverrides,
       },
       localOverrides,
     },

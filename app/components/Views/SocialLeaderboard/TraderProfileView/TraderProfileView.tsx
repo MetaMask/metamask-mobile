@@ -54,7 +54,6 @@ import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
 import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
 import { useTraderMute } from '../hooks/useTraderMute';
-import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
@@ -356,11 +355,13 @@ const TraderProfileView = () => {
   const headerTitle = profile?.profile.name;
 
   return (
-    // Top and bottom edges are deliberately off — see
-    // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
-    // `includesTopInset` (JS `marginTop` off the already resolved provider).
+    // The top edge is deliberately off: a native SafeAreaView top padding is
+    // recalculated as the view is attached, which lands after this screen's
+    // `slide_from_right` push and visibly drops the header into place. The top
+    // inset comes from `includesTopInset` (JS `marginTop` off the already
+    // resolved provider) instead.
     <SafeAreaView
-      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
+      edges={['bottom', 'left', 'right']}
       style={tw.style('flex-1 bg-default')}
       testID={TraderProfileViewSelectorsIDs.CONTAINER}
     >

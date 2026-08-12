@@ -2,7 +2,6 @@ import {
   Matchers,
   Gestures,
   Assertions,
-  PlatformDetector,
   type ScrollOptions,
   EncapsulatedElementType,
 } from '../../framework';
@@ -444,19 +443,13 @@ class TrendingView {
   }
 
   async verifyPerpDetailsVisible(): Promise<void> {
-    const container = Matchers.getElementByID('perps-market-details-view');
-
-    // isDisplayed() is flaky on iOS for this container right after the
-    // safe-area layout pass; Android's resourceId lookup is unaffected.
-    if (PlatformDetector.isIOS()) {
-      await Assertions.expectElementToExist(container, {
-        description: 'Perps market details view should exist',
-      });
-    } else {
-      await Assertions.expectElementToBeVisible(container, {
+    // Verify we are on Perps market details page by checking for the container
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID('perps-market-details-view'),
+      {
         description: 'Perps market details view should be visible',
-      });
-    }
+      },
+    );
   }
 
   async verifyPredictionsTabsVisible(): Promise<void> {
