@@ -77,7 +77,7 @@ jobs:
   run-tests:
     name: Run ${{ inputs.build_type }} Tests on ${{ inputs.platform }} - ${{ matrix.device.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
