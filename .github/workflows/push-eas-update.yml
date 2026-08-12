@@ -65,6 +65,13 @@ on:
         type: string
         required: false
         default: ''
+      rc_auto_commit_sha:
+        description: >-
+          Short SHA of the commit the Auto RC OTA revision was published from, surfaced in-app
+          next to the label. Set only by publish-rc-auto-ota.yml, like rc_auto_label.
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -402,6 +409,7 @@ jobs:
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
       rc_auto_label: ${{ inputs.rc_auto_label }}
+      rc_auto_commit_sha: ${{ inputs.rc_auto_commit_sha }}
     secrets: inherit
 
   push-update-android:
@@ -434,6 +442,7 @@ jobs:
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
       rc_auto_label: ${{ inputs.rc_auto_label }}
+      rc_auto_commit_sha: ${{ inputs.rc_auto_commit_sha }}
     secrets: inherit
 
   fingerprint-mismatch:

@@ -42,6 +42,13 @@ on:
         type: string
         required: false
         default: ''
+      rc_auto_commit_sha:
+        description: >-
+          Short SHA of the commit that Auto RC OTA revision was published from, inlined into the
+          bundle next to the label. Empty for every flow other than the Auto RC OTA path.
+        type: string
+        required: false
+        default: ''
 
 jobs:
   push-update:
@@ -60,6 +67,7 @@ jobs:
       # Read by app/constants/ota.ts and inlined into the bundle by
       # babel-plugin-transform-inline-environment-variables during expo export.
       OTA_RC_AUTO_LABEL: ${{ inputs.rc_auto_label }}
+      OTA_RC_AUTO_COMMIT: ${{ inputs.rc_auto_commit_sha }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -171,6 +179,7 @@ jobs:
           echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
           echo "  Auto RC OTA label: ${OTA_RC_AUTO_LABEL:-<not set>}"
+          echo "  Auto RC OTA commit: ${OTA_RC_AUTO_COMMIT:-<not set>}"
 
       - name: Diagnose - expo export in isolation
         env:
