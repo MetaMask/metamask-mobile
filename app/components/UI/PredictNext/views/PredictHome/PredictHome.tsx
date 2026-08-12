@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -24,6 +24,7 @@ export const PredictHome = () => {
   const statusQuery = useVenueStatus(KALSHI_VENUE_ID);
   const eventsQuery = useEventList(KALSHI_VENUE_ID, { limit: PAGE_SIZE });
   const endReached = useRef(false);
+  const [paginationError, setPaginationError] = useState(false);
   const events = useMemo(
     () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [eventsQuery.data],
@@ -55,9 +56,13 @@ export const PredictHome = () => {
       !eventsQuery.isFetchingNextPage
     ) {
       endReached.current = true;
-      eventsQuery.fetchNextPage().finally(() => {
-        endReached.current = false;
-      });
+      eventsQuery
+        .fetchNextPage()
+        .then((result) => setPaginationError(result.isError))
+        .catch(() => setPaginationError(true))
+        .finally(() => {
+          endReached.current = false;
+        });
     }
   };
 
@@ -107,11 +112,11 @@ export const PredictHome = () => {
           ListFooterComponent={
             eventsQuery.isFetchingNextPage ? (
               <Text testID="predict-next-footer-loading">Loading…</Text>
-            ) : eventsQuery.isError ? (
+            ) : paginationError ? (
               <Button
                 testID="predict-next-footer-retry"
                 variant={ButtonVariant.Tertiary}
-                onPress={() => eventsQuery.fetchNextPage()}
+                onPress={loadNextPage}
               >
                 Retry
               </Button>

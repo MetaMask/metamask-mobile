@@ -293,6 +293,9 @@ describe('PredictScreenStack', () => {
 describe('PredictModalStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPayWithAnyTokenEnabled = false;
+    mockPredictPortfolioEnabled = true;
+    mockPredictHomeRedesignEnabled = false;
     navigationRef = React.createRef();
   });
 
