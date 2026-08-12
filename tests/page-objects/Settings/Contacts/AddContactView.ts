@@ -12,9 +12,7 @@ class AddContactView {
   }
 
   get addButton(): EncapsulatedElementType {
-    return PlatformDetector.isIOS()
-      ? Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
   get editButton(): EncapsulatedElementType {
@@ -28,9 +26,7 @@ class AddContactView {
   }
 
   get deleteButton(): EncapsulatedElementType {
-    return PlatformDetector.isIOS()
-      ? Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON)
-      : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }
 
   get nameInput(): EncapsulatedElementType {

@@ -34,6 +34,11 @@ import {
   VAULT_ERROR,
   DENY_PIN_ERROR_ANDROID,
 } from './constants';
+import {
+  LOGIN_APP_START_TYPE,
+  LOGIN_CONTENT_STATE,
+  resetLoginAppStartTypeForTesting,
+} from './loginPerformanceTags';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
@@ -338,6 +343,7 @@ describe('Login', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetLoginAppStartTypeForTesting();
     Alert.alert = mockAlertAlert;
     mockNavigate.mockClear();
     mockReplace.mockClear();
@@ -1788,7 +1794,27 @@ describe('Login', () => {
   });
 
   describe('Trace integration', () => {
-    it('calls trace for AuthenticateUser during login', async () => {
+    it('starts LoginUserInteraction with locked and app_start_type tags', () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
+
+      renderWithProvider(<Login />);
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.LoginUserInteraction,
+        op: TraceOperation.Login,
+        tags: {
+          locked: true,
+          app_start_type: LOGIN_APP_START_TYPE.COLD,
+        },
+      });
+    });
+
+    it('ends LoginUserInteraction with content_state on password unlock', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -1799,16 +1825,69 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockTrace).toHaveBeenCalledTimes(2);
-      expect(mockTrace).toHaveBeenNthCalledWith(1, {
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.LoginUserInteraction,
-        op: TraceOperation.Login,
+        data: {
+          success: true,
+          content_state: LOGIN_CONTENT_STATE.FILLED,
+        },
       });
-      expect(mockTrace).toHaveBeenNthCalledWith(
-        2,
+      expect(mockTrace).toHaveBeenCalledWith(
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
+          tags: {
+            locked: false,
+            app_start_type: LOGIN_APP_START_TYPE.COLD,
+          },
+        },
+        expect.any(Function),
+      );
+    });
+
+    it('ends LoginUserInteraction on device authentication unlock', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      mockUseAuthCapabilities.mockReturnValue({
+        capabilities: defaultCapabilities,
+        isLoading: false,
+      });
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        availableBiometryType: 'TouchID',
+      });
+      mockUnlockWallet.mockResolvedValueOnce(true);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const biometryButton = getByTestId(
+        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+      );
+
+      await act(async () => {
+        fireEvent.press(biometryButton);
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.LoginUserInteraction,
+        data: {
+          success: true,
+          content_state: LOGIN_CONTENT_STATE.FILLED,
+        },
+      });
+      expect(mockTrace).toHaveBeenCalledWith(
+        {
+          name: TraceName.LoginBiometricAuthentication,
+          op: TraceOperation.Login,
+          tags: {
+            locked: false,
+            app_start_type: LOGIN_APP_START_TYPE.COLD,
+          },
         },
         expect.any(Function),
       );

@@ -15,6 +15,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardFlipAnimationEnabledFlag } from '../../selectors/featureFlags';
+import {
+  MONEY_SHEET_ENTRANCE_DURATION_MS,
+  MONEY_SHEET_ENTRANCE_TRANSLATE_Y,
+} from '../../constants/sheetEntrance';
 import { useReduceMotionState } from '../../hooks/useReduceMotion';
 import CardTiltAnimation from '../../../../../animations/card_tilt_v1.3.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
@@ -40,9 +44,11 @@ const RIVE_ARTBOARD_VIRTUAL = 'Card Tilt Y Animation - Digital';
 /** Artboard holding the metal-card flip animation. */
 const RIVE_ARTBOARD_METAL = 'Card Tilt Y Animation - Metal';
 
-const ENTRANCE_DURATION_MS = 250;
-const ENTRANCE_TRANSLATE_Y = 10;
-const ENTRANCE_INITIAL_OPACITY = 0.5;
+// Step 0 of the sheet's entrance wave; the remaining steps are staggered off
+// the same cadence in `constants/sheetEntrance`.
+const ENTRANCE_DURATION_MS = MONEY_SHEET_ENTRANCE_DURATION_MS;
+const ENTRANCE_TRANSLATE_Y = MONEY_SHEET_ENTRANCE_TRANSLATE_Y;
+const ENTRANCE_INITIAL_OPACITY = 0;
 
 interface MoneyCardFlipAnimationProps {
   /**
@@ -51,11 +57,19 @@ interface MoneyCardFlipAnimationProps {
    * the one-shot flip plays only once, with the correct variant.
    */
   isMetalCard?: boolean;
+  /**
+   * Holds the flip back until the surface presenting it has settled. A sheet
+   * that mounts this while it is still opening would otherwise run both
+   * motions at once, and they compete. Space is reserved while held, so
+   * starting the flip shifts nothing.
+   */
+  shouldPlay?: boolean;
   testID?: string;
 }
 
 const MoneyCardFlipAnimation = ({
   isMetalCard,
+  shouldPlay = true,
   testID,
 }: MoneyCardFlipAnimationProps) => {
   const flagEnabled = useSelector(selectMoneyCardFlipAnimationEnabledFlag);
@@ -69,6 +83,9 @@ const MoneyCardFlipAnimation = ({
   // flashes the static image before swapping to the Rive flip.
   const reduceMotionPending =
     flagEnabled && !hasRiveError && reduceMotionState === null;
+  // Nothing to sequence when the static image is what renders, so the hold
+  // only applies while animating.
+  const isHeld = animate && !shouldPlay;
 
   const entranceOpacity = useSharedValue(ENTRANCE_INITIAL_OPACITY);
   const entranceTranslateY = useSharedValue(ENTRANCE_TRANSLATE_Y);
@@ -78,12 +95,12 @@ const MoneyCardFlipAnimation = ({
   }));
 
   useEffect(() => {
-    if (!animate || !variantKnown) return;
+    if (!animate || !variantKnown || isHeld) return;
     entranceOpacity.value = withTiming(1, { duration: ENTRANCE_DURATION_MS });
     entranceTranslateY.value = withTiming(0, {
       duration: ENTRANCE_DURATION_MS,
     });
-  }, [animate, variantKnown, entranceOpacity, entranceTranslateY]);
+  }, [animate, variantKnown, isHeld, entranceOpacity, entranceTranslateY]);
 
   const { riveFile } = useRiveFile(CardTiltAnimation);
 
@@ -93,7 +110,7 @@ const MoneyCardFlipAnimation = ({
   }, []);
 
   let content: React.ReactNode;
-  if (!variantKnown || reduceMotionPending) {
+  if (!variantKnown || reduceMotionPending || isHeld) {
     content = animate ? null : <Box style={styles.placeholder} />;
   } else if (animate) {
     content = (

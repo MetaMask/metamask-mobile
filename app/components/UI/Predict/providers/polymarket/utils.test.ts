@@ -4,6 +4,7 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import {
+  PredictPositionStatus,
   Side,
   type OrderPreview,
   type PredictMarket,
@@ -37,6 +38,7 @@ import {
   getContractConfig,
   getIsApprovedForAll,
   getOrderBook,
+  getPredictPositionStatus,
   getRawBalance,
   getTickSizeRoundConfig,
   parsePolymarketEvents,
@@ -126,6 +128,38 @@ const buyPreview: OrderPreview = {
 };
 
 describe('polymarket utils', () => {
+  describe('getPredictPositionStatus', () => {
+    it.each([
+      {
+        claimable: false,
+        cashPnl: 10,
+        expectedStatus: PredictPositionStatus.OPEN,
+      },
+      {
+        claimable: true,
+        cashPnl: 10,
+        expectedStatus: PredictPositionStatus.WON,
+      },
+      {
+        claimable: true,
+        cashPnl: 0,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
+      },
+      {
+        claimable: true,
+        cashPnl: -10,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+    ])(
+      'returns $expectedStatus when claimable is $claimable and cashPnl is $cashPnl',
+      ({ claimable, cashPnl, expectedStatus }) => {
+        expect(getPredictPositionStatus({ claimable, cashPnl })).toBe(
+          expectedStatus,
+        );
+      },
+    );
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     clearClobMarketInfoSessionState();
@@ -1614,38 +1648,6 @@ describe('polymarket utils', () => {
       expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
       expect(url).toContain('after_cursor=cursor-1');
       expect(url).not.toContain('offset=');
-    });
-
-    it('uses exact World Cup custom query params without normal feed filters', async () => {
-      await fetchEventsFromPolymarketApi({
-        category: 'world-cup',
-        limit: 20,
-        customQueryParams:
-          'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/keyset?limit=20&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
-      );
-      const requestedUrl = String(mockFetch.mock.calls[0][0]);
-      expect(requestedUrl).not.toContain('liquidity_min');
-      expect(requestedUrl).not.toContain('volume_min');
-      expect(requestedUrl).not.toContain('offset=');
-    });
-
-    it('falls back to default World Cup query params without normal feed filters', async () => {
-      await fetchEventsFromPolymarketApi({
-        category: 'world-cup',
-        limit: 10,
-      });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/keyset?limit=10&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
-      );
-      const requestedUrl = String(mockFetch.mock.calls[0][0]);
-      expect(requestedUrl).not.toContain('liquidity_min');
-      expect(requestedUrl).not.toContain('volume_min');
-      expect(requestedUrl).not.toContain('offset=');
     });
 
     it('uses exact Wimbledon custom query params without normal feed filters', async () => {

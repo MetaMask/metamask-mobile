@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -17,6 +16,7 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -25,7 +25,6 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import MoneyCardTiltAnimation from '../MoneyCardTiltAnimation';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
-import styles from './MoneyMetaMaskCard.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -34,9 +33,12 @@ import {
   CardScreens,
 } from '../../../Card/util/metrics';
 
-import mmCardRegular from '../../../../../images/mm_card_regular.png';
-import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
+
+// The link layout gives the card slightly more room than the upsell and manage
+// rows, which use the component's default thumbnail size.
+const LINK_CARD_WIDTH = 111;
+const LINK_CARD_HEIGHT = 70;
 
 interface MoneyMetaMaskCardProps {
   /**
@@ -44,7 +46,7 @@ interface MoneyMetaMaskCardProps {
    * 'link': card-linking CTA layout.
    * 'manage': cardholder management layout with available balance and metal upsell.
    */
-  mode?: 'upsell' | 'link' | 'manage' | 'verifying';
+  mode?: 'upsell' | 'link' | 'manage' | 'verifying' | 'loading';
   onGetNowPress: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
@@ -215,9 +217,10 @@ const LinkContent = ({
           twClassName="gap-4"
           testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
         >
-          <Image
-            source={showMetalCard ? mmCardMetal : mmCardRegular}
-            style={styles.linkCardImage}
+          <MoneyCardTiltAnimation
+            isMetalCard={showMetalCard}
+            width={LINK_CARD_WIDTH}
+            height={LINK_CARD_HEIGHT}
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
           <Box twClassName="gap-2 flex-1 justify-center">
@@ -435,6 +438,17 @@ const MoneyMetaMaskCard = ({
         />
       </Box>
     );
+  } else if (mode === 'loading') {
+    content = (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="py-3"
+        testID={MoneyMetaMaskCardTestIds.LOADING_SPINNER}
+      >
+        <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
+      </Box>
+    );
   } else {
     content = (
       <>
@@ -459,7 +473,7 @@ const MoneyMetaMaskCard = ({
   let headerTitleKey: string;
   if (mode === 'link') {
     headerTitleKey = 'money.metamask_card.link_title';
-  } else if (mode === 'manage' || mode === 'verifying') {
+  } else if (mode === 'manage' || mode === 'verifying' || mode === 'loading') {
     headerTitleKey = 'money.metamask_card.title';
   } else {
     headerTitleKey = 'money.metamask_card.upsell_title';

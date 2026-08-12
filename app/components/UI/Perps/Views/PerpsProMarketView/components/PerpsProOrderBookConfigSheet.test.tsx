@@ -4,6 +4,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 
 const mockOnOpenBottomSheet = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
@@ -147,6 +148,12 @@ describe('PerpsProOrderBookConfigSheet', () => {
     expect(getByTestId('config-sheet-metric-total')).toBeOnTheScreen();
     expect(getByTestId('config-sheet-grouping-1')).toBeOnTheScreen();
     expect(getByTestId('config-sheet-grouping-1000')).toBeOnTheScreen();
+  });
+
+  it('renders order-book settings inside the Android modal gesture root', () => {
+    const { getByTestId } = renderSheet();
+
+    expect(getByTestId(PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID)).toBeOnTheScreen();
   });
 
   it('opens the bottom sheet when it becomes visible', () => {

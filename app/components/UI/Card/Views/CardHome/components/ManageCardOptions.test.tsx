@@ -32,6 +32,7 @@ const buildCapabilities = (
   ({
     supportsFundingLimits: true,
     supportsPinView: false,
+    supportsPinSet: false,
     supportsCashback: false,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
@@ -41,10 +42,15 @@ const buildCapabilities = (
 const renderComponent = (
   capabilities: CardProviderCapabilities,
   cardDetailsVisible = false,
+  showUnlinkMoneyAccount = false,
+  overrides: {
+    card?: CardDetails;
+    isFrozen?: boolean;
+  } = {},
 ) =>
   render(
     <ManageCardOptions
-      card={CARD}
+      card={overrides.card ?? CARD}
       account={{ verificationStatus: 'VERIFIED' } as never}
       capabilities={capabilities}
       isMetalCardCheckoutEnabled={false}
@@ -54,15 +60,16 @@ const renderComponent = (
       hasAlertOnlyState={false}
       hasSetupAlerts={false}
       userLocation="gb"
-      isFrozen={false}
+      isFrozen={overrides.isFrozen ?? false}
       isFreezeLoading={false}
       isPinLoading={false}
       cardDetailsVisible={cardDetailsVisible}
       onViewCardDetails={jest.fn()}
       onViewPin={jest.fn()}
+      onSetPin={jest.fn()}
       onToggleFreeze={jest.fn()}
       onManageSpendingLimit={jest.fn()}
-      showUnlinkMoneyAccount={false}
+      showUnlinkMoneyAccount={showUnlinkMoneyAccount}
       onUnlinkMoneyAccount={jest.fn()}
       onOrderMetalCard={jest.fn()}
       isSpendingLimitActive
@@ -96,6 +103,22 @@ describe('ManageCardOptions funding-limit gating', () => {
     expect(
       queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
     ).toBeNull();
+  });
+
+  it('hides change asset when the Money Account unlink action is available', () => {
+    const { queryByTestId, getByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      false,
+      true,
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON)).toBeNull();
+    expect(
+      getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+    ).toBeOnTheScreen();
   });
 });
 
@@ -138,5 +161,89 @@ describe('ManageCardOptions view/hide card details label', () => {
     expect(
       getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
     ).toHaveTextContent('Hide card details');
+  });
+});
+
+describe('ManageCardOptions set PIN gating', () => {
+  it('shows set PIN when supportsPinSet is true and card is ACTIVE', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: true }),
+    );
+
+    expect(getByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('shows set PIN when hasPin is true', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: true }),
+      false,
+      false,
+      { card: { ...CARD, hasPin: true } },
+    );
+
+    expect(getByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('hides set PIN when hasPin is false', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: true }),
+      false,
+      false,
+      { card: { ...CARD, hasPin: false } },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
+  });
+
+  it('hides set PIN when supportsPinSet is false', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: false }),
+    );
+
+    expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
+  });
+
+  it('hides set PIN when the card is not ACTIVE', () => {
+    const frozenCard = { ...CARD, status: CardStatus.FROZEN };
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: true }),
+      false,
+      false,
+      { card: frozenCard, isFrozen: true },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
+  });
+});
+
+describe('ManageCardOptions view PIN gating', () => {
+  it('hides view PIN when hasPin is false', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      false,
+      false,
+      { card: { ...CARD, hasPin: false } },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
+  });
+
+  it('shows view PIN when hasPin is true', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      false,
+      false,
+      { card: { ...CARD, hasPin: true } },
+    );
+
+    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('shows view PIN when hasPin is absent', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+    );
+
+    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
   });
 });

@@ -24,6 +24,7 @@ import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions'
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeolocationLocation';
+import { useABTest } from '../../../../hooks/useABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -31,6 +32,10 @@ import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
+import {
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
+} from './abTestConfig';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -39,23 +44,26 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
     paddingVertical: 4,
   },
-  button: {
+  iconButton: {
     flex: 1,
-  },
-  subsequentButton: {
-    flex: 1,
-    marginLeft: 16,
+    paddingLeft: 0,
+    paddingRight: 4,
   },
   quickBuyButton: {
     width: 48,
     height: 48,
-    marginLeft: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderRadius: 999,
+  },
+  earnButton: {
+    flex: 1,
+    paddingLeft: 0,
+    paddingRight: 0,
   },
 });
 
@@ -192,7 +200,13 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const trackStickyFooterTapped = useStickyFooterTracking();
 
-  const isMoneyEarnCtaActive = Boolean(moneyEarnCta);
+  const { variant: moneyEarnCtaVisibilityVariant } = useABTest(
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
+  );
+  const isMoneyEarnCtaActive =
+    Boolean(moneyEarnCta) &&
+    moneyEarnCtaVisibilityVariant.showMoneyDepositFooterCta;
   const showSwapButton = isMoneyEarnCtaActive
     ? hasTokenBalance && hasEligibleSwapTokens
     : hasEligibleSwapTokens;
@@ -328,7 +342,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       variant={
         hasTokenBalance ? ButtonVariant.Primary : ButtonVariant.Secondary
       }
-      style={showSwapButton ? styles.subsequentButton : styles.button}
+      style={styles.earnButton}
       twClassName={
         hasTokenBalance ? successBg : `bg-transparent ${successBorder}`
       }
@@ -361,7 +375,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               variant={
                 swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
               }
-              style={styles.button}
+              style={styles.iconButton}
               twClassName={
                 swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
               }
@@ -397,11 +411,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               variant={
                 buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
               }
-              style={
-                showSwapButton || (isMoneyEarnCtaActive && !hasTokenBalance)
-                  ? styles.subsequentButton
-                  : styles.button
-              }
+              style={styles.iconButton}
               twClassName={
                 buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
               }
@@ -460,7 +470,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         </View>
         {isMoneyEarnCtaActive && !moneyEarnCta?.isLoading && (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             twClassName="mt-2 text-center"
           >

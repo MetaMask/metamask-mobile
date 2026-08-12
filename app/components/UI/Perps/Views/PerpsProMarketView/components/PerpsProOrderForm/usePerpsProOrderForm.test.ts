@@ -1,5 +1,8 @@
 import { act, renderHook } from '@testing-library/react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 
 // ---------------------------------------------------------------------------
@@ -11,9 +14,15 @@ const mockNavigate = jest.fn();
 const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
+const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+
+let mockIsEligible = true;
 
 let mockExecutionOptions: {
   onSuccess?: (position?: unknown) => void;
@@ -40,9 +49,11 @@ const mockSetStopLossPrice = jest.fn();
 const mockSetLimitPrice = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
+const mockUpdateOrderForm = jest.fn();
 
 const mockContextValue = {
   orderForm: mockOrderForm,
+  updateOrderForm: mockUpdateOrderForm,
   setAmount: mockSetAmount,
   setLeverage: mockSetLeverage,
   setDirection: mockSetDirection,
@@ -95,8 +106,13 @@ jest.mock('../../../../contexts/PerpsOrderContext', () => ({
   usePerpsOrderContext: () => mockContextValue,
 }));
 
+let mockPositionStreamLoading = false;
+
 jest.mock('../../../../hooks', () => ({
-  useHasExistingPosition: () => ({ existingPosition: mockExistingPosition }),
+  useHasExistingPosition: () => ({
+    existingPosition: mockExistingPosition,
+    isLoading: mockPositionStreamLoading,
+  }),
   usePerpsLiquidationPrice: () => ({ liquidationPrice: '80000' }),
   usePerpsMarketData: () => ({
     marketData: { szDecimals: 3, maxLeverage: 40 },
@@ -127,8 +143,19 @@ jest.mock('../../../../hooks', () => ({
 jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
   usePerpsHomeActions: () => ({
     handleAddFunds: mockHandleAddFunds,
+    isEligible: mockIsEligible,
     isEligibilityModalVisible: false,
     closeEligibilityModal: mockCloseEligibilityModal,
+    showEligibilityModal: mockShowEligibilityModal,
+  }),
+}));
+
+jest.mock('../../../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
   }),
 }));
 
@@ -180,6 +207,10 @@ jest.mock('react-redux', () => ({
   useSelector: () => false,
 }));
 
+jest.mock('../../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
+}));
+
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -196,6 +227,7 @@ const renderProForm = () => renderHook(() => usePerpsProOrderForm({ market }));
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockExecutionOptions = {};
     mockOrderForm.type = 'market';
     mockOrderForm.direction = 'long';
     mockOrderForm.amount = '100';
@@ -209,6 +241,11 @@ describe('usePerpsProOrderForm', () => {
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
     mockIsInitialized = true;
+    mockPositionStreamLoading = false;
+    mockIsEligible = true;
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
   });
 
@@ -255,7 +292,7 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('notices', () => {
-    it('maps a validation error to an inline notice', () => {
+    it('maps a margin validation error to a priority banner', () => {
       // Arrange
       mockValidation.isValid = false;
       mockValidation.errors = ['Insufficient funds'];
@@ -264,8 +301,9 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       // Assert
-      const inline = result.current.notices.find((n) => n.variant === 'inline');
-      expect(inline?.message).toBe('Insufficient funds');
+      const banner = result.current.notices.find((n) => n.id === 'margin');
+      expect(banner?.variant).toBe('banner');
+      expect(banner?.message).toBe('Insufficient funds');
     });
 
     it('maps an OI cap to a banner notice', () => {
@@ -312,11 +350,162 @@ describe('usePerpsProOrderForm', () => {
         result.current.notices.find((n) => n.id === 'sl-invalid'),
       ).toBeDefined();
     });
+
+    it('shows the reduce-only no-position banner and suppresses TP/SL notices', () => {
+      mockOrderForm.takeProfitPrice = '85000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(
+        result.current.notices.find((n) => n.id === 'reduce-only')?.message,
+      ).toBe(
+        'You need to have an open position in this market to place reduce-only orders',
+      );
+      expect(
+        result.current.notices.find((n) => n.id === 'tp-invalid'),
+      ).toBeUndefined();
+    });
+
+    it('shows the reduce-only wrong-side banner for same-direction orders', () => {
+      mockExistingPosition = {
+        size: '1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(
+        result.current.notices.find((n) => n.id === 'reduce-only')?.message,
+      ).toBe(
+        'Reduce-only orders can only reduce an existing position. Switch to the opposite side.',
+      );
+    });
+
+    it('shows the reduce-only too-large banner and disables submit when size exceeds position', () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.amount = '100000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(
+        result.current.notices.find((n) => n.id === 'reduce-only')?.message,
+      ).toBe('Reduce only order is larger than your open position');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('suppresses stale validation notices while the position is loading', () => {
+      // Arrange: retain a prior margin error (skipValidation freezes errors)
+      // while the position is still loading after Reduce Only is enabled.
+      mockValidation.isValid = false;
+      mockValidation.errors = ['Insufficient funds'];
+      mockPositionStreamLoading = true;
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      // Assert: no stale margin/limit banner, and Place Order stays disabled.
+      expect(
+        result.current.notices.find((n) => n.id === 'margin'),
+      ).toBeUndefined();
+      expect(
+        result.current.notices.find((n) => n.id === 'reduce-only'),
+      ).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
   });
 
   describe('handlePlaceOrder', () => {
+    it('executes order for an eligible compliant user', async () => {
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockShowEligibilityModal).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens geo-block modal and skips execution for an ineligible user', async () => {
+      mockIsEligible = false;
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockShowEligibilityModal).toHaveBeenCalledWith(
+        PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('skips geo handling and execution when compliance gate blocks', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+      mockIsEligible = false;
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockShowEligibilityModal).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('commits pending slider preview without invoking compliance or submitting', async () => {
+      const { result, rerender } = renderProForm();
+      act(() => {
+        result.current.sizeSlider.onValueChange(250);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockSetAmount).toHaveBeenCalledWith('250');
+      expect(mockComplianceGate).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      mockOrderForm.amount = '250';
+      mockIsEligible = false;
+      rerender({});
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockShowEligibilityModal).toHaveBeenCalledWith(
+        PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
     it('builds OrderParams including reduceOnly and calls executeOrder', async () => {
-      // Arrange
+      // Arrange: long form reduces a short position; stale TP must be ignored.
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.takeProfitPrice = '95000';
       const { result } = renderProForm();
       act(() => {
         result.current.onReduceOnlyChange(true);
@@ -337,10 +526,109 @@ describe('usePerpsProOrderForm', () => {
         usdAmount: '100',
         reduceOnly: true,
       });
+      expect(params).not.toHaveProperty('takeProfitPrice');
+      expect(mockUpdatePositionTPSL).not.toHaveBeenCalled();
       expect(submitted).toHaveBeenCalled();
       expect(mockClearPendingTradeConfiguration).toHaveBeenCalledWith('BTC');
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith({
+        amount: '',
+        direction: 'long',
+        type: 'market',
+        balancePercent: 0,
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      });
+      expect(result.current.reduceOnly).toBe(false);
       // No success navigation
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('flushes a pending slider preview before allowing submission', async () => {
+      // Arrange
+      const { result, rerender } = renderProForm();
+      act(() => {
+        result.current.sizeSlider.onValueChange(250);
+      });
+
+      // Act: the first tap commits the preview but must not race submission
+      // against the canonical order-form state update.
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockSetAmount).toHaveBeenCalledWith('250');
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      // Arrange: echo the context update and render the canonical amount.
+      mockOrderForm.amount = '250';
+      rerender({});
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder.mock.calls[0][0]).toMatchObject({
+        usdAmount: '250',
+      });
+    });
+
+    it('submits on the first tap when a pending slider preview is unchanged', async () => {
+      // Arrange
+      const { result } = renderProForm();
+      act(() => {
+        result.current.sizeSlider.onValueChange(100);
+      });
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder.mock.calls[0][0]).toMatchObject({
+        usdAmount: '100',
+      });
+    });
+
+    it('blocks reduce-only submit when there is no open position', async () => {
+      const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('blocks reduce-only submit when size exceeds the open position', async () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.amount = '100000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('blocks submit and shows a toast when validation is invalid', async () => {
@@ -424,12 +712,19 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it('skips clearPendingConfig when the order fails (plain else path)', async () => {
-      // Arrange: no TP/SL, controller returns failure
+      // Arrange: valid reduce-only order with no TP/SL; controller returns failure
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
       mockExecuteOrder.mockResolvedValueOnce({
         success: false,
         error: 'rejected',
       });
       const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
 
       // Act
       await act(async () => {
@@ -438,6 +733,8 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(mockClearPendingTradeConfiguration).not.toHaveBeenCalled();
+      expect(mockUpdateOrderForm).not.toHaveBeenCalled();
+      expect(result.current.reduceOnly).toBe(true);
     });
   });
 
@@ -526,6 +823,23 @@ describe('usePerpsProOrderForm', () => {
       expect(params.price).toBe('80000');
       expect(params.orderType).toBe('limit');
     });
+
+    it('finalizes a trailing decimal separator from the limit price before submit', async () => {
+      // Arrange: Place Order can fire before blur commits a state update.
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = '12.';
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      const params = mockExecuteOrder.mock.calls[0][0];
+      expect(params.price).toBe('12');
+      expect(params.orderType).toBe('limit');
+    });
   });
 
   describe('additional notices', () => {
@@ -611,6 +925,52 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('ignores TP/SL blockers while Reduce Only is on with a valid closing side', () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.takeProfitPrice = '85000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('disables Place Order while the reduce-only position is loading', () => {
+      mockPositionStreamLoading = true;
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+  });
+
+  describe('reduceOnly toggle', () => {
+    it('clears TP/SL state when Reduce Only turns on', () => {
+      mockOrderForm.takeProfitPrice = '95000';
+      mockOrderForm.stopLossPrice = '80000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(mockSetTakeProfitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetStopLossPrice).toHaveBeenCalledWith(undefined);
+      expect(result.current.reduceOnly).toBe(true);
     });
   });
 
@@ -702,11 +1062,11 @@ describe('usePerpsProOrderForm', () => {
 
       // Act
       act(() => {
-        result.current.onSizeChange('1234567890'); // 10 digits -> ignored
+        result.current.sizeInput.onChange('1234567890'); // 10 digits -> ignored
       });
       expect(mockSetAmount).not.toHaveBeenCalled();
       act(() => {
-        result.current.onSizeChange('1234'); // valid
+        result.current.sizeInput.onChange('1234'); // valid
       });
 
       // Assert
@@ -730,6 +1090,73 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetLimitPrice).toHaveBeenCalledWith('1234.56');
     });
 
+    it('normalizes leading zeroes in limit price input', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceChange('0012.5');
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).toHaveBeenCalledWith('12.5');
+    });
+
+    it('normalizes comma decimal input in the limit price', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceChange('0012,5');
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).toHaveBeenCalledWith('12.5');
+    });
+
+    it('rejects repeated decimal separators in limit price input', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceChange('1.2.3');
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).not.toHaveBeenCalled();
+    });
+
+    it('finalizes a trailing decimal separator from the limit price on blur', () => {
+      // Arrange
+      mockOrderForm.limitPrice = '12.';
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceBlur();
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).toHaveBeenCalledWith('12');
+    });
+
+    it('does not update the limit price on blur when already finalized', () => {
+      // Arrange
+      mockOrderForm.limitPrice = '12.5';
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceBlur();
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).not.toHaveBeenCalled();
+    });
+
     it('sets the limit price from the live mid', () => {
       // Arrange
       const { result } = renderProForm();
@@ -743,17 +1170,21 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetLimitPrice).toHaveBeenCalled();
     });
 
-    it('maps a slider percentage to a fractional amount handler', () => {
+    it('previews a slider USD amount before committing on drag end', () => {
       // Arrange
       const { result } = renderProForm();
 
       // Act
       act(() => {
-        result.current.onBalancePercentageChange(50);
+        result.current.sizeSlider.onValueChange(500);
+      });
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      act(() => {
+        result.current.sizeSlider.onDragEnd(500);
       });
 
       // Assert
-      expect(mockHandlePercentageAmount).toHaveBeenCalledWith(0.5);
+      expect(mockSetAmount).toHaveBeenCalledWith('500');
     });
 
     it('forwards the direction and add-funds handlers', () => {

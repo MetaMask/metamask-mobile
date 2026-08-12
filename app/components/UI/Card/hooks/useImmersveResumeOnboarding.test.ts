@@ -3,7 +3,6 @@ import { useImmersveResumeOnboarding } from './useImmersveResumeOnboarding';
 import type { CardSpendingPrerequisite } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 const mockSetSelectedCountry = jest.fn();
-const mockSetSelectedCardProgramId = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
 const mockGetResumeCardInfo = jest.fn();
@@ -14,8 +13,6 @@ jest.mock('../../../../core/Engine', () => ({
     CardController: {
       setSelectedCountry: (...args: unknown[]) =>
         mockSetSelectedCountry(...args),
-      setSelectedCardProgramId: (...args: unknown[]) =>
-        mockSetSelectedCardProgramId(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
@@ -43,12 +40,10 @@ jest.mock('./useImmersveOnboardingRouter', () => ({
 }));
 
 const mockDispatch = jest.fn();
-let mockCardFeatureFlag: unknown = {
-  immersve: { fundingChannelId: 'base-channel' },
-};
+let mockImmersveConfig: unknown = { fundingChannelId: 'base-channel' };
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: () => mockCardFeatureFlag,
+  useSelector: () => mockImmersveConfig,
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
@@ -76,7 +71,7 @@ const contactPrereqs: CardSpendingPrerequisite[] = [
 describe('useImmersveResumeOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCardFeatureFlag = { immersve: { fundingChannelId: 'base-channel' } };
+    mockImmersveConfig = { fundingChannelId: 'base-channel' };
     mockSignIn.mockResolvedValue({ done: true });
     mockGetResumeCardInfo.mockResolvedValue(null);
     mockGetFundingSources.mockResolvedValue([]);
@@ -323,7 +318,7 @@ describe('useImmersveResumeOnboarding', () => {
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
-  it('uses the existing card program and funding source when present', async () => {
+  it('uses the existing funding source when present', async () => {
     mockGetResumeCardInfo.mockResolvedValue({
       cardProgramId: 'program-arbitrum',
       fundingSourceIds: ['fs-arbitrum'],
@@ -334,9 +329,6 @@ describe('useImmersveResumeOnboarding', () => {
       await result.current(PARAMS);
     });
 
-    expect(mockSetSelectedCardProgramId).toHaveBeenCalledWith(
-      'program-arbitrum',
-    );
     expect(mockGetFundingSources).not.toHaveBeenCalled();
     expect(mockCreateFundingSource).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -360,7 +352,6 @@ describe('useImmersveResumeOnboarding', () => {
       await result.current(PARAMS);
     });
 
-    expect(mockSetSelectedCardProgramId).not.toHaveBeenCalled();
     expect(mockGetFundingSources).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'card/setImmersveFundingSourceId',

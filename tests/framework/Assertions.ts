@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor } from './legacy-detox-shim';
 import Utilities, { BASE_DEFAULTS, stripJsonKeys } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import Matchers from './Matchers.ts';
@@ -63,6 +63,33 @@ export default class Assertions {
         description: `Assert ${description}`,
       },
     );
+  }
+
+  /**
+   * Assert element exists in the hierarchy (may not report as displayed).
+   * Use for BottomSheet / confirmation children under Appium where
+   * isDisplayed=false while the UI is on screen.
+   */
+  static async expectElementToExist(
+    elem:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement
+      | EncapsulatedElementType
+      | (() => EncapsulatedElementType),
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const resolved = typeof elem === 'function' ? elem() : elem;
+      return PlaywrightAssertions.expectElementToExist(
+        asPlaywrightElement(resolved as EncapsulatedElementType),
+        options,
+      );
+    }
+
+    // Detox: existence is already how iOS visibility is asserted.
+    return this.expectElementToBeVisible(elem, options);
   }
 
   /**

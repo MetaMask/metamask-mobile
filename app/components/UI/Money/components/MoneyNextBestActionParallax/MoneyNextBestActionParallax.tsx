@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -19,6 +19,7 @@ import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useRiveParallaxTilt } from '../../hooks/useRiveParallaxTilt';
+import { shapeParallaxTilt, smoothParallaxTilt } from '../../utils/parallax';
 import NextBestActionParallaxAnimation from '../../../../../animations/next_best_action_module_v1.riv';
 import styles from './MoneyNextBestActionParallax.styles';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
@@ -56,12 +57,32 @@ const MoneyNextBestActionParallax = ({
   const reduceMotion = useReduceMotion();
   const [erroredArtboard, setErroredArtboard] = useState<string | null>(null);
   const hasRiveError = erroredArtboard === artboardName;
+  // Last values shaped for the artboard, in tilt units (0 = at rest). Kept
+  // here rather than in state so smoothing costs no re-renders.
+  const smoothedTilt = useRef({ x: 0, y: 0 });
 
   const { riveFile } = useRiveFile(NextBestActionParallaxAnimation);
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
+
+  // The Rive view is remounted per artboard and whenever animation resumes,
+  // and a fresh one starts at the artboard's rest pose. Carrying the previous
+  // smoothed value across would jump it away from rest on the first sample.
+  useEffect(() => {
+    smoothedTilt.current = { x: 0, y: 0 };
+  }, [artboardName, animate]);
+
+  const shapeTilt = useCallback((x: number, y: number, hz: number) => {
+    smoothedTilt.current = {
+      x: smoothParallaxTilt(smoothedTilt.current.x, shapeParallaxTilt(x), hz),
+      y: smoothParallaxTilt(smoothedTilt.current.y, shapeParallaxTilt(y), hz),
+    };
+    return smoothedTilt.current;
+  }, []);
+
   const instance = useRiveParallaxTilt(riveFile, {
     artboardName,
     enabled: animate,
+    shapeTilt,
   });
 
   const handleError = useCallback(

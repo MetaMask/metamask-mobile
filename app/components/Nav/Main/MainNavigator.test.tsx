@@ -224,6 +224,33 @@ describe('MainNavigator', () => {
       );
     });
 
+    it.each([
+      Routes.BROWSER.HOME,
+      Routes.TRANSACTIONS_VIEW,
+      Routes.REWARDS_VIEW,
+    ])(
+      'opts %s out of freeze-on-blur so its unmount-on-blur wrapper can commit',
+      (tabName) => {
+        // Given HomeTabs is rendered
+        const HomeTabs = getHomeTabsComponent();
+
+        // When the tab screens are inspected
+        const { root: homeRoot } = renderWithProvider(
+          <HomeTabs route={{ params: {} }} />,
+          { state: initialRootState },
+        );
+        const tabScreen = homeRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabScreen' &&
+            node.props?.name === tabName,
+        )[0];
+
+        // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
+        // frozen subtree suspends the wrapper's unmount and keeps the tab alive
+        expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
+      },
+    );
+
     describe('Rewards sub-page tab bar visibility', () => {
       // rewardsViewRoute is found via .find(r => r.name === Routes.REWARDS_VIEW),
       // so the inner route that wraps the nested nav state must carry that name.
@@ -978,7 +1005,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes StakeScreens route', () => {
@@ -1063,7 +1090,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Asset screen', () => {
@@ -1176,7 +1203,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1191,7 +1218,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
   });
 

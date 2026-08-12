@@ -19,6 +19,12 @@ export enum ActiveOrderState {
   SUCCESS = 'success',
 }
 
+/**
+ * Which leg of a PWAT buy failed. Defaults to `'order'` when omitted so
+ * existing failure UX (Retry-only) is preserved for non-payment failures.
+ */
+export type PredictOrderErrorStage = 'payment' | 'order';
+
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
   SIX_HOUR = '6h',
@@ -154,7 +160,6 @@ export type PredictCategory =
   | 'crypto'
   | 'politics'
   | 'hot'
-  | 'world-cup'
   | 'wimbledon';
 
 // Sports league types

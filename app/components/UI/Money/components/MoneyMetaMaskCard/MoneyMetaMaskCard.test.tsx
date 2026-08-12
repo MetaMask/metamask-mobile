@@ -29,7 +29,14 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 const MOCK_TILT_ANIMATION_TEST_ID = 'mock-money-card-tilt-animation';
+interface MockTiltAnimationProps {
+  isMetalCard: boolean;
+  width?: number;
+  height?: number;
+  testID?: string;
+}
 const mockTiltAnimationCalls: { isMetalCard: boolean }[] = [];
+const mockTiltAnimationProps: MockTiltAnimationProps[] = [];
 
 // Animated Rive thumbnail pulls in redux + device sensors; not exercised here.
 jest.mock('../MoneyCardTiltAnimation', () => {
@@ -37,10 +44,11 @@ jest.mock('../MoneyCardTiltAnimation', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ isMetalCard }: { isMetalCard: boolean }) => {
-      mockTiltAnimationCalls.push({ isMetalCard });
+    default: (props: MockTiltAnimationProps) => {
+      mockTiltAnimationCalls.push({ isMetalCard: props.isMetalCard });
+      mockTiltAnimationProps.push(props);
       return ReactActual.createElement(RNView, {
-        testID: MOCK_TILT_ANIMATION_TEST_ID,
+        testID: props.testID ?? MOCK_TILT_ANIMATION_TEST_ID,
       });
     },
   };
@@ -57,6 +65,7 @@ describe('MoneyMetaMaskCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTiltAnimationCalls.length = 0;
+    mockTiltAnimationProps.length = 0;
   });
 
   it('renders the section title and subtitle', () => {
@@ -548,6 +557,38 @@ describe('MoneyMetaMaskCard', () => {
     });
   });
 
+  describe('mode="loading"', () => {
+    it('renders the MetaMask Card title and a loading spinner', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyMetaMaskCard mode="loading" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(getByText(strings('money.metamask_card.title'))).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render link, manage, verifying, or upsell content', () => {
+      const { queryByTestId } = render(
+        <MoneyMetaMaskCard mode="loading" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('upsell mode (default)', () => {
     it('renders only the virtual card row regardless of showMetalCard', () => {
       const { getByTestId, queryByTestId } = render(
@@ -631,16 +672,79 @@ describe('MoneyMetaMaskCard', () => {
       expect(mockTiltAnimationCalls).toEqual([{ isMetalCard: false }]);
     });
 
-    it('keeps the static card image in link mode and does not render the tilt animation', () => {
-      const { getByTestId, queryByTestId } = render(
+    it('renders the tilt animation in link mode, sized for the link layout', () => {
+      const { getByTestId } = render(
         <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
       );
 
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
       ).toBeOnTheScreen();
-      expect(queryByTestId(MOCK_TILT_ANIMATION_TEST_ID)).toBeNull();
+      expect(mockTiltAnimationProps).toEqual([
+        {
+          isMetalCard: false,
+          width: 111,
+          height: 70,
+          testID: MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE,
+        },
+      ]);
+    });
+
+    it('renders the metal variant in link mode when showMetalCard is true', () => {
+      render(
+        <MoneyMetaMaskCard
+          mode="link"
+          onGetNowPress={jest.fn()}
+          showMetalCard
+        />,
+      );
+
+      expect(mockTiltAnimationCalls).toEqual([{ isMetalCard: true }]);
+    });
+
+    it('does not render the tilt animation in link mode when hideCardImage is true', () => {
+      render(
+        <MoneyMetaMaskCard
+          mode="link"
+          onGetNowPress={jest.fn()}
+          hideCardImage
+        />,
+      );
+
       expect(mockTiltAnimationCalls).toEqual([]);
+    });
+
+    it('leaves the upsell row on the default thumbnail size', () => {
+      render(<MoneyMetaMaskCard onGetNowPress={jest.fn()} />);
+
+      expect(mockTiltAnimationProps).toEqual([
+        {
+          isMetalCard: false,
+          width: undefined,
+          height: undefined,
+          testID: undefined,
+        },
+      ]);
+    });
+
+    it('leaves the manage row on the default thumbnail size', () => {
+      render(
+        <MoneyMetaMaskCard
+          mode="manage"
+          onGetNowPress={jest.fn()}
+          onManagePress={jest.fn()}
+          cardBalance="$0.00"
+        />,
+      );
+
+      expect(mockTiltAnimationProps).toEqual([
+        {
+          isMetalCard: false,
+          width: undefined,
+          height: undefined,
+          testID: undefined,
+        },
+      ]);
     });
 
     it('does not render the tilt animation in verifying mode', () => {

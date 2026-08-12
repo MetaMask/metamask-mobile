@@ -34,8 +34,9 @@ export {
 } from './ActivityDetailsFees';
 export {
   ActivityDetailsPayFeesAndTotal,
-  hasActivityPayFiat,
+  useActivityPayFiat,
 } from './ActivityDetailsPayFees';
+export { ActivityDetailsPayNetworkRow } from './ActivityDetailsPayNetworkRow';
 export {
   ActivityDetailsFooter,
   ActivityDetailsBlockExplorerButton,

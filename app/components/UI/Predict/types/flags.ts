@@ -47,35 +47,23 @@ export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
 }
 
+export interface PredictHiddenMarketsEntry {
+  category: string;
+  /** IDs matching `PredictMarket.id` (Polymarket event ids) to hide. */
+  marketIds: string[];
+  /** Slugs matching `PredictMarket.slug` (Polymarket event slugs) to hide. */
+  slugs: string[];
+}
+
+export interface PredictHiddenMarketsFlag extends VersionGatedFeatureFlag {
+  hidden: PredictHiddenMarketsEntry[];
+}
+
 export interface PredictExtendedSportsMarketsFlag
   extends VersionGatedFeatureFlag {
   leagues: string[];
   enabledSportsMarketTypes: string[];
   nonRegTimeSportsMarketTypes?: string[];
-}
-
-export interface PredictWorldCupStageConfig {
-  key: string;
-  labelKey?: string;
-  label?: string;
-  eventIds: string[];
-}
-
-export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
-  showMainFeedBanner: boolean;
-  showMainFeedTab: boolean;
-  showWorldCupScreen: boolean;
-  showHubV2: boolean;
-  showHubBanner: boolean;
-  tagSlug: string;
-  gamesTagId: string;
-  winnerEventId: string;
-  bannerImage?: {
-    url: string;
-    width: number;
-    height: number;
-  };
-  stages: PredictWorldCupStageConfig[];
 }
 
 export type PredictSportsFeedChipKind = 'games' | 'props' | 'tag';
@@ -130,10 +118,10 @@ export interface PredictFeatureFlags {
   enabledSportsMarketTypes: string[];
   nonRegTimeSportsMarketTypes: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
+  hiddenMarketsFlag: PredictHiddenMarketsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
-  predictWorldCup: PredictWorldCupConfig;
   predictSportsFeed: PredictSportsFeedConfig;
   predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
