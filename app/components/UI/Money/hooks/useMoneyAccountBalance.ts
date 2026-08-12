@@ -189,8 +189,20 @@ const useMoneyAccountBalance = ({
     if (isBalanceFetchError || isBalanceLoading) {
       return;
     }
-    dispatch(setMoneyAccountRedeemableRaw(withdrawableMusdRaw ?? null));
-  }, [dispatch, withdrawableMusdRaw, isBalanceFetchError, isBalanceLoading]);
+    dispatch(
+      setMoneyAccountRedeemableRaw(
+        moneyAccountAddress && withdrawableMusdRaw
+          ? { address: moneyAccountAddress, raw: withdrawableMusdRaw }
+          : null,
+      ),
+    );
+  }, [
+    dispatch,
+    moneyAccountAddress,
+    withdrawableMusdRaw,
+    isBalanceFetchError,
+    isBalanceLoading,
+  ]);
 
   // True whenever there is no fresh balance to show — still loading or a fetch
   // error.

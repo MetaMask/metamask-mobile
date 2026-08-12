@@ -14,14 +14,21 @@ export interface PersistedMoneyBalance {
   updatedAt: number;
 }
 
+export interface PersistedRedeemableRaw {
+  /** Money account address this redeemable amount belongs to. */
+  address: string;
+  /** Exact atomic (raw) redeemable mUSD amount for that account. */
+  raw: string;
+}
+
 export interface MoneyBalanceSliceState {
   lastKnownBalance: PersistedMoneyBalance | null;
-  redeemableRaw: string | null;
+  redeemable: PersistedRedeemableRaw | null;
 }
 
 export const initialState: MoneyBalanceSliceState = {
   lastKnownBalance: null,
-  redeemableRaw: null,
+  redeemable: null,
 };
 
 const name = 'moneyBalance';
@@ -41,9 +48,9 @@ const slice = createSlice({
     },
     setMoneyAccountRedeemableRaw: (
       state,
-      action: PayloadAction<string | null>,
+      action: PayloadAction<PersistedRedeemableRaw | null>,
     ) => {
-      state.redeemableRaw = action.payload;
+      state.redeemable = action.payload;
     },
   },
 });
@@ -59,10 +66,26 @@ export const selectLastKnownMoneyBalance = createSelector(
   (moneyBalance) => moneyBalance.lastKnownBalance,
 );
 
-export const selectMoneyAccountRedeemableRaw = createSelector(
+export const selectMoneyAccountRedeemable = createSelector(
   selectMoneyBalanceState,
-  (moneyBalance) => moneyBalance.redeemableRaw,
+  (moneyBalance) => moneyBalance.redeemable,
 );
+
+/**
+ * A cached redeemable is only safe to use as the exact source amount when it
+ * belongs to the Money Account currently funding the transaction — otherwise a
+ * stale value from a previously viewed account could be sent to the quote.
+ */
+export const getUsableMoneyAccountRedeemableRaw = (
+  redeemable: PersistedRedeemableRaw | null | undefined,
+  address: string | undefined,
+): string | undefined =>
+  redeemable &&
+  address &&
+  areAddressesEqual(redeemable.address, address) &&
+  redeemable.raw
+    ? redeemable.raw
+    : undefined;
 
 /**
  * A persisted balance is only safe to show as the "last known" figure when it

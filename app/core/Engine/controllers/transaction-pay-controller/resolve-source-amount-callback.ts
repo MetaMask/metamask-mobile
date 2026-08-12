@@ -5,7 +5,11 @@ import {
 } from '@metamask/transaction-pay-controller';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
-import { selectMoneyAccountRedeemableRaw } from '../../../../core/redux/slices/moneyBalance';
+import {
+  getUsableMoneyAccountRedeemableRaw,
+  selectMoneyAccountRedeemable,
+} from '../../../../core/redux/slices/moneyBalance';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 
 export function resolveSourceAmount({
   isMaxAmount,
@@ -16,7 +20,13 @@ export function resolveSourceAmount({
   }
 
   const state = ReduxService.store.getState() as RootState;
-  const redeemableRaw = selectMoneyAccountRedeemableRaw(state);
+  const redeemable = selectMoneyAccountRedeemable(state);
+  const activeAddress = selectPrimaryMoneyAccount(state)?.address;
+
+  const redeemableRaw = getUsableMoneyAccountRedeemableRaw(
+    redeemable,
+    activeAddress,
+  );
 
   if (!redeemableRaw) {
     return undefined;
