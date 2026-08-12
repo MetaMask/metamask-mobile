@@ -10,6 +10,7 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -74,6 +75,16 @@ jest.mock('../../../../../selectors/transactionController', () => ({
   selectHasUnapprovedTransactions: jest.fn(() => false),
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyAccount',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/featureFlagController/moneyAccount',
+    ),
+    selectMoneyMovementBrazilNeobankEnabled: jest.fn(),
+  }),
+);
+
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
@@ -133,6 +144,9 @@ describe('MoneyAddMoneySheet', () => {
       true,
     );
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
+    (
+      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
+    ).mockReturnValue(true);
   });
 
   it('renders all options', () => {
@@ -146,8 +160,9 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('mUSD')).toBeOnTheScreen();
     expect(getByText('Bank account')).toBeOnTheScreen();
     expect(getByText('External address')).toBeOnTheScreen();
-    // Bank account and External address are both coming soon.
-    expect(getAllByText('Coming soon')).toHaveLength(2);
+    // Only External address is coming soon; Bank account is live with a "New" badge.
+    expect(getAllByText('Coming soon')).toHaveLength(1);
+    expect(getByText('New')).toBeOnTheScreen();
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
     ).toBeOnTheScreen();
@@ -172,13 +187,34 @@ describe('MoneyAddMoneySheet', () => {
     }
   });
 
-  it('renders the Bank account row as a coming-soon, non-pressable option', () => {
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+  it('renders the Bank account row enabled with a "New" badge when the neobank flag is on', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
 
     const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
     expect(bankRow).toBeOnTheScreen();
+    expect(getByText('New')).toBeOnTheScreen();
 
+    // The KYC flow is not wired up yet, so pressing must not start a deposit.
     fireEvent.press(bankRow);
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {
+    (
+      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
+    ).mockReturnValue(false);
+
+    const { getByTestId, getAllByText, queryByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    // Bank account and External address are both coming soon again.
+    expect(getAllByText('Coming soon')).toHaveLength(2);
+    expect(queryByText('New')).toBeNull();
+
+    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
@@ -448,12 +484,12 @@ describe('MoneyAddMoneySheet', () => {
     });
   });
 
-  it('keeps Debit card or Apple Pay active, with only Bank account and External address coming soon', () => {
+  it('keeps Debit card or Apple Pay active, with only External address coming soon', () => {
     const { getByTestId, getAllByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
-    expect(getAllByText('Coming soon')).toHaveLength(2);
+    expect(getAllByText('Coming soon')).toHaveLength(1);
 
     fireEvent.press(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
@@ -472,6 +508,7 @@ describe('MoneyAddMoneySheet', () => {
     root: ReturnType<typeof renderWithProvider>['UNSAFE_root'],
   ): string[] => {
     const optionTestIds: string[] = [
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
@@ -489,11 +526,12 @@ describe('MoneyAddMoneySheet', () => {
       });
   };
 
-  it('keeps the original order when all options are enabled', () => {
+  it('keeps the original order, with Bank account first, when all options are enabled', () => {
     const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
     const order = getOptionOrder(UNSAFE_root);
 
     expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
@@ -509,6 +547,7 @@ describe('MoneyAddMoneySheet', () => {
     const order = getOptionOrder(UNSAFE_root);
 
     expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,

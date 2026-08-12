@@ -25,6 +25,31 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
   },
 );
 
+export const MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY =
+  'money-movement-brazil-neobank' as const;
+
+interface MoneyMovementBrazilNeobankFlag {
+  enabled?: boolean;
+}
+
+/**
+ * Gates the Virtual Bank Account (Brazil-first neobank) flow: the Bank
+ * account entry in the Add funds sheet and the KYC flow behind it.
+ * LaunchDarkly variations are `{"enabled": true|false}`; the local env
+ * override supports development while the flag is off in every environment.
+ */
+export const selectMoneyMovementBrazilNeobankEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const localOverrideEnabled =
+      process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED === 'true';
+    const flag = remoteFeatureFlags?.[
+      MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY
+    ] as unknown as MoneyMovementBrazilNeobankFlag | undefined;
+    return localOverrideEnabled || flag?.enabled === true;
+  },
+);
+
 export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
   'moneyEnableOnboardingStepperAnimation' as const;
 
