@@ -7,6 +7,7 @@ import {
   ARC_NATIVE_ASSET_ID,
   ARC_NATIVE_ASSET_ID_LEGACY,
 } from '../../../hooks/useArcDefaultTokens';
+import { assetIdsMatch } from '@metamask/bridge-controller';
 
 /**
  * Merges API tokens with balance data from the selector
@@ -26,7 +27,7 @@ export const useTokensWithBalances = (
       balancesByAssetId,
     ).filter(
       (token) =>
-        token.assetId !== ARC_NATIVE_ASSET_ID &&
-        token.assetId !== ARC_NATIVE_ASSET_ID_LEGACY,
+        !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID) &&
+        !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY),
     );
   }, [apiTokens, balancesByAssetId]);
