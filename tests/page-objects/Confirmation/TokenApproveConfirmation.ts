@@ -69,8 +69,7 @@ class TokenApproveConfirmation {
     }
 
     await Gestures.typeText(this.EditSpendingCapInput, spendingCap, {
-      elemDescription:
-        'Edit Spending Cap Input in Token Approve Confirmation',
+      elemDescription: 'Edit Spending Cap Input in Token Approve Confirmation',
       hideKeyboard: true,
       clearFirst: true,
     });

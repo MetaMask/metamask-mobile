@@ -40,9 +40,7 @@ class TransactionPayConfirmation {
   }
 
   get payWithSymbol(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      TransactionPayComponentIDs.PAY_WITH_SYMBOL,
-    );
+    return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_SYMBOL);
   }
 
   get payWithFiat(): EncapsulatedElementType {
@@ -50,9 +48,7 @@ class TransactionPayConfirmation {
   }
 
   get payWithBalance(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      TransactionPayComponentIDs.PAY_WITH_BALANCE,
-    );
+    return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_BALANCE);
   }
 
   get keyboardContinueButton(): EncapsulatedElementType {
@@ -78,9 +74,7 @@ class TransactionPayConfirmation {
   }
 
   get transactionFee(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      ConfirmationRowComponentIDs.TRANSACTION_FEE,
-    );
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.TRANSACTION_FEE);
   }
 
   get payWithTokenList(): EncapsulatedElementType {
