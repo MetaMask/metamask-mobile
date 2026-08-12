@@ -2,7 +2,11 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CardDeveloperOptionsSection from './CardDeveloperOptionsSection';
-import { resetOnboardingState } from '../../../../../core/redux/slices/card';
+import {
+  resetOnboardingState,
+  setCardArrivalAnimationSeen,
+  setCardArrivalPreviewRequested,
+} from '../../../../../core/redux/slices/card';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectIsMoneyAccountDelegatedForCard } from '../../../../../selectors/cardController';
@@ -10,6 +14,14 @@ import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccount
 
 jest.mock('../../../../../core/redux/slices/card', () => ({
   resetOnboardingState: jest.fn(() => ({ type: 'card/resetOnboardingState' })),
+  setCardArrivalAnimationSeen: jest.fn((payload: boolean) => ({
+    type: 'card/setCardArrivalAnimationSeen',
+    payload,
+  })),
+  setCardArrivalPreviewRequested: jest.fn((payload: boolean) => ({
+    type: 'card/setCardArrivalPreviewRequested',
+    payload,
+  })),
 }));
 
 const mockDispatch = jest.fn();
@@ -58,6 +70,7 @@ const MONEY_ACCOUNT_ADDRESS = '0xma000000000000000000000000000000000000aa';
 const UNLINK_BUTTON_TEST_ID = 'card-dev-unlink-money-account-button';
 const UNLINK_DISABLED_HINT_TEST_ID =
   'card-dev-unlink-money-account-disabled-hint';
+const RESET_CARD_ARRIVAL_BUTTON_TEST_ID = 'card-dev-reset-card-arrival-button';
 
 const setSelectorState = ({
   isAlreadyDelegated,
@@ -248,6 +261,30 @@ describe('CardDeveloperOptionsSection', () => {
       expect(loggedContext).toBe(
         'CardDeveloperOptionsSection: unlink Money Account failed',
       );
+    });
+  });
+
+  describe('reset card arrival animation', () => {
+    it('renders the preview description and button', () => {
+      const { getByText, getByTestId } = renderWithProvider(
+        <CardDeveloperOptionsSection />,
+      );
+
+      expect(getByText(/Clear the card arrival animation state/)).toBeDefined();
+      expect(getByText('Reset arrival animation')).toBeDefined();
+      expect(getByTestId(RESET_CARD_ARRIVAL_BUTTON_TEST_ID)).toBeDefined();
+    });
+
+    it('clears the seen flag and requests the replay', () => {
+      const { getByTestId } = renderWithProvider(
+        <CardDeveloperOptionsSection />,
+      );
+
+      fireEvent.press(getByTestId(RESET_CARD_ARRIVAL_BUTTON_TEST_ID));
+
+      expect(setCardArrivalAnimationSeen).toHaveBeenCalledWith(false);
+      expect(setCardArrivalPreviewRequested).toHaveBeenCalledWith(true);
+      expect(mockDispatch).toHaveBeenCalledTimes(2);
     });
   });
 });
