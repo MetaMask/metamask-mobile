@@ -50,6 +50,8 @@ export type CardControllerState = {
   activeProviderId: CardProviderId | null;
   /** Whether the user is authenticated with the active provider. */
   isAuthenticated: boolean;
+  /** Stable user identifier issued by the active card provider. */
+  providerUserId: string | null;
   /** Last reason the active provider session became unauthenticated. */
   lastUnauthenticatedReason: CardUnauthenticatedReason | null;
   /** CAIP-10 account IDs that are card holders. */

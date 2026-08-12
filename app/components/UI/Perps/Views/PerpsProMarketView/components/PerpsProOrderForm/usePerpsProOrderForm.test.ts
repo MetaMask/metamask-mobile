@@ -1,5 +1,8 @@
 import { act, renderHook } from '@testing-library/react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 
 // ---------------------------------------------------------------------------
@@ -11,9 +14,15 @@ const mockNavigate = jest.fn();
 const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
+const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+
+let mockIsEligible = true;
 
 let mockExecutionOptions: {
   onSuccess?: (position?: unknown) => void;
@@ -134,8 +143,19 @@ jest.mock('../../../../hooks', () => ({
 jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
   usePerpsHomeActions: () => ({
     handleAddFunds: mockHandleAddFunds,
+    isEligible: mockIsEligible,
     isEligibilityModalVisible: false,
     closeEligibilityModal: mockCloseEligibilityModal,
+    showEligibilityModal: mockShowEligibilityModal,
+  }),
+}));
+
+jest.mock('../../../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
   }),
 }));
 
@@ -187,6 +207,10 @@ jest.mock('react-redux', () => ({
   useSelector: () => false,
 }));
 
+jest.mock('../../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
+}));
+
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -218,6 +242,10 @@ describe('usePerpsProOrderForm', () => {
     mockEstimatedSlippageBps = 50;
     mockIsInitialized = true;
     mockPositionStreamLoading = false;
+    mockIsEligible = true;
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
   });
 
@@ -401,6 +429,76 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('handlePlaceOrder', () => {
+    it('executes order for an eligible compliant user', async () => {
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockShowEligibilityModal).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens geo-block modal and skips execution for an ineligible user', async () => {
+      mockIsEligible = false;
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockShowEligibilityModal).toHaveBeenCalledWith(
+        PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('skips geo handling and execution when compliance gate blocks', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+      mockIsEligible = false;
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockShowEligibilityModal).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('commits pending slider preview without invoking compliance or submitting', async () => {
+      const { result, rerender } = renderProForm();
+      act(() => {
+        result.current.sizeSlider.onValueChange(250);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockSetAmount).toHaveBeenCalledWith('250');
+      expect(mockComplianceGate).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      mockOrderForm.amount = '250';
+      mockIsEligible = false;
+      rerender({});
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockShowEligibilityModal).toHaveBeenCalledWith(
+        PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
     it('builds OrderParams including reduceOnly and calls executeOrder', async () => {
       // Arrange: long form reduces a short position; stale TP must be ignored.
       mockExistingPosition = {

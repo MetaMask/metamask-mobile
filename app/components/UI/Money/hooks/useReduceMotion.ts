@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
+import Logger from '../../../../util/Logger';
 
 /**
  * Reduce-motion setting with an explicit unresolved state: `null` until the
@@ -13,9 +14,18 @@ export function useReduceMotionState(): boolean | null {
   useEffect(() => {
     let mounted = true;
 
-    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (mounted) setReduceMotion(enabled);
-    });
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((enabled) => {
+        if (mounted) setReduceMotion(enabled);
+      })
+      .catch((error) => {
+        // Resolve to "reduce motion on" rather than leaving callers pending
+        // forever: they withhold content while this is null.
+        Logger.error(error as Error, {
+          message: 'useReduceMotionState: isReduceMotionEnabled failed',
+        });
+        if (mounted) setReduceMotion(true);
+      });
 
     const subscription = AccessibilityInfo.addEventListener(
       'reduceMotionChanged',

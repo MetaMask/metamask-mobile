@@ -40,12 +40,10 @@ jest.mock('./useImmersveOnboardingRouter', () => ({
 }));
 
 const mockDispatch = jest.fn();
-let mockCardFeatureFlag: unknown = {
-  immersve: { fundingChannelId: 'base-channel' },
-};
+let mockImmersveConfig: unknown = { fundingChannelId: 'base-channel' };
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: () => mockCardFeatureFlag,
+  useSelector: () => mockImmersveConfig,
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
@@ -73,7 +71,7 @@ const contactPrereqs: CardSpendingPrerequisite[] = [
 describe('useImmersveResumeOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCardFeatureFlag = { immersve: { fundingChannelId: 'base-channel' } };
+    mockImmersveConfig = { fundingChannelId: 'base-channel' };
     mockSignIn.mockResolvedValue({ done: true });
     mockGetResumeCardInfo.mockResolvedValue(null);
     mockGetFundingSources.mockResolvedValue([]);

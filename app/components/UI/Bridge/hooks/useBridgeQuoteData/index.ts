@@ -35,6 +35,7 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import AppConstants from '../../../../../core/AppConstants';
+import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import { parseCaipAssetType } from '@metamask/utils';
 import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
