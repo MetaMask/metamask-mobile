@@ -1021,10 +1021,10 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onQuickBuyPress).not.toHaveBeenCalled();
     });
 
-    it('hides the quick buy button when the account has no eligible swap source', () => {
+    it('renders the quick buy button when the account has no eligible swap source', () => {
       mockHasEligibleSwapTokens = false;
       const onQuickBuyPress = jest.fn();
-      const { queryByTestId } = render(
+      const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           onQuickBuyPress={onQuickBuyPress}
@@ -1032,7 +1032,9 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      expect(queryByTestId(quickBuyTestID)).toBeNull();
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(onQuickBuyPress).toHaveBeenCalledTimes(1);
     });
   });
 });
