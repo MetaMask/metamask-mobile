@@ -214,9 +214,6 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
-  // Behind the money-movement-brazil-neobank flag the Bank account row is the
-  // live VBA entry (top of the list, "New" badge); without it, it stays the
-  // shipped coming-soon placeholder (disabled rows are reordered last).
   const bankAccountOption: MoneySheetOption = isVirtualBankAccountEnabled
     ? {
         label: strings('money.add_money_sheet.bank_account'),
