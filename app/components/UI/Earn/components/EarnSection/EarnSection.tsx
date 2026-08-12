@@ -33,14 +33,18 @@ import { getAssetImageUrl } from '../../../Bridge/hooks/useAssetMetadata/utils';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import { strings } from '../../../../../../locales/i18n';
 import { MUSD_TOKEN_ADDRESS } from '../../constants/musd';
+import type { TokenI } from '../../../Tokens/types';
 import EarnSectionAssetCard from '../EarnSectionAssetCard';
 import EarnSectionCard from '../EarnSectionCard';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { homepageSectionTitleTestId } from '../../../../Views/Homepage/Homepage.testIds';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
+import { useNavigation } from '@react-navigation/native';
 
 interface EarnSectionProps {
   sectionIndex: number;
@@ -55,6 +59,7 @@ interface EarnAssetIcon {
 interface EarnSectionAssetCardConfig {
   key: string;
   icon: EarnAssetIcon;
+  token: TokenI;
   primaryTextKey: string;
   secondaryTextKey: string;
   tertiaryTextKey: string;
@@ -67,6 +72,28 @@ const EARN_ASSET_NETWORK_IMAGE_SOURCE = getNetworkImageSource({
   chainId: EARN_ASSET_CHAIN_ID,
 });
 
+const createTemporaryToken = (
+  symbol: string,
+  address: string,
+  decimals: number,
+): TokenI => ({
+  address,
+  decimals,
+  image: '',
+  name: symbol,
+  symbol,
+  balance: '0',
+  logo: undefined,
+  isETH: symbol === 'ETH',
+  chainId: EARN_ASSET_CHAIN_ID,
+});
+
+const MONEY_ACCOUNT_TOKEN = createTemporaryToken(
+  'USDC',
+  '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  6,
+);
+
 const TEMP_EARN_ASSET_CARD_CONFIGS: EarnSectionAssetCardConfig[] = [
   {
     key: 'usdc',
@@ -74,6 +101,11 @@ const TEMP_EARN_ASSET_CARD_CONFIGS: EarnSectionAssetCardConfig[] = [
       name: 'USDC',
       address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     },
+    token: createTemporaryToken(
+      'USDC',
+      '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      6,
+    ),
     primaryTextKey: 'earn_module.usdc',
     secondaryTextKey: 'earn_module.usdc_balance',
     tertiaryTextKey: 'earn_module.stablecoin_apy',
@@ -84,6 +116,11 @@ const TEMP_EARN_ASSET_CARD_CONFIGS: EarnSectionAssetCardConfig[] = [
       name: 'USDT',
       address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     },
+    token: createTemporaryToken(
+      'USDT',
+      '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      6,
+    ),
     primaryTextKey: 'earn_module.usdt',
     secondaryTextKey: 'earn_module.usdt_balance',
     tertiaryTextKey: 'earn_module.stablecoin_apy',
@@ -94,6 +131,7 @@ const TEMP_EARN_ASSET_CARD_CONFIGS: EarnSectionAssetCardConfig[] = [
       name: 'mUSD',
       address: MUSD_TOKEN_ADDRESS,
     },
+    token: createTemporaryToken('mUSD', MUSD_TOKEN_ADDRESS, 18),
     primaryTextKey: 'earn_module.musd',
     secondaryTextKey: 'earn_module.musd_balance',
     tertiaryTextKey: 'earn_module.stablecoin_apy',
@@ -104,6 +142,11 @@ const TEMP_EARN_ASSET_CARD_CONFIGS: EarnSectionAssetCardConfig[] = [
       name: 'aUSDC',
       address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
     },
+    token: createTemporaryToken(
+      'aUSDC',
+      '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
+      6,
+    ),
     primaryTextKey: 'earn_module.ausdc',
     secondaryTextKey: 'earn_module.ausdc_balance',
     tertiaryTextKey: 'earn_module.stablecoin_apy',
@@ -113,6 +156,7 @@ const TEMP_EARN_ASSET_CARD_CONFIGS: EarnSectionAssetCardConfig[] = [
     icon: {
       name: 'ETH',
     },
+    token: createTemporaryToken('ETH', '', 18),
     primaryTextKey: 'earn_module.eth',
     secondaryTextKey: 'earn_module.eth_balance',
     tertiaryTextKey: 'earn_module.eth_apr',
@@ -162,6 +206,7 @@ const renderNewTag = () => (
 const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const tw = useTailwind();
+    const navigation = useNavigation<AppNavigationProp>();
 
     const sectionViewRef = useRef<View>(null);
 
@@ -195,10 +240,15 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       alert('Under construction 🚧');
     };
 
-    const handleAssetCardPress = () => {
-      // eslint-disable-next-line no-alert
-      alert('Under construction 🚧');
-    };
+    const handleAssetCardPress = useCallback(
+      (token: TokenI) => {
+        navigation.navigate(Routes.EARN.ROOT, {
+          screen: Routes.EARN.STRATEGY_SELECTION,
+          params: { token },
+        });
+      },
+      [navigation],
+    );
 
     const handleViewMoreCardPress = () => {
       // eslint-disable-next-line no-alert
@@ -229,11 +279,13 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
               secondaryText={strings('earn_module.get_started')}
               tertiaryText={strings('earn_module.money_apy')}
               testID="earn-section-money-account-card"
+              onPress={() => handleAssetCardPress(MONEY_ACCOUNT_TOKEN)}
             />
             {TEMP_EARN_ASSET_CARD_CONFIGS.map(
               ({
                 key,
                 icon,
+                token,
                 primaryTextKey,
                 secondaryTextKey,
                 tertiaryTextKey,
@@ -245,7 +297,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   secondaryText={strings(secondaryTextKey)}
                   tertiaryText={strings(tertiaryTextKey)}
                   testID={`earn-section-${key}-card`}
-                  onPress={handleAssetCardPress}
+                  onPress={() => handleAssetCardPress(token)}
                 />
               ),
             )}
