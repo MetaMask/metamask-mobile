@@ -1533,11 +1533,8 @@
       "size_percentage": "订单规模百分比",
       "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "切换规模单位",
-<<<<<<< HEAD
-=======
       "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
       "available_balance": "{{amount}} 可用",
->>>>>>> f7642f0f43 (chore: New Crowdin Translations by GitHub Action cp-8.7.0 (#34315))
       "available_balance_unavailable": "-- 可用",
       "est_liquidation": "预估清算",
       "tpsl": "止盈/止损",
