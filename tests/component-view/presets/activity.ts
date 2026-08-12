@@ -318,6 +318,42 @@ export const activityCvCrossChainSwapBridgeHistoryEntry = {
   slippagePercentage: 0,
 };
 
+/**
+ * Submitted cross-chain swap for ActivityDetails pending status CV.
+ * Same quote shape as the confirmed fixture; status is still in-flight.
+ */
+export const buildPendingLocalCrossChainSwapTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-pending-cross-chain-swap',
+    hash: '0xactivitycvpendingcrosschainswap',
+    chainId: '0x1',
+    status: TransactionStatus.submitted,
+    time: 1_716_367_789_500,
+    type: TransactionType.swap,
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0xde0b6b3a7640000',
+      nonce: '0x9',
+    },
+  }) as unknown as TransactionMeta;
+
+/** Quote for {@link buildPendingLocalCrossChainSwapTransaction}. */
+export const activityCvPendingCrossChainSwapBridgeHistoryEntry = {
+  ...activityCvCrossChainSwapBridgeHistoryEntry,
+  txMetaId: 'activity-cv-pending-cross-chain-swap',
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvpendingcrosschainswap',
+    },
+    destChain: {
+      chainId: 59144,
+    },
+  },
+  startTime: 1_716_367_789_500,
+};
+
 export const buildPendingLocalSendTransaction = (): TransactionMeta =>
   ({
     id: 'activity-cv-pending-send',
@@ -525,6 +561,11 @@ export const initialStateActivity = () =>
           PreferencesController: {
             showTestNetworks: false,
             tokenNetworkFilter: {},
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
           },
           SmartTransactionsController: {
             smartTransactionsState: {
@@ -614,3 +655,126 @@ export const initialStateActivityWithAccountsApi = () =>
       },
     },
   } as unknown as DeepPartial<RootState>);
+
+/** Solana mainnet scope used by ActivityDetails non-EVM fiat CV. */
+export const ACTIVITY_CV_SOLANA_CHAIN_ID =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+export const ACTIVITY_CV_SOLANA_ACCOUNT_ID = 'activity-cv-solana-acc';
+
+export const ACTIVITY_CV_SOLANA_ADDRESS = '11111111111111111111111111111111';
+
+export const ACTIVITY_CV_SOLANA_SEND_ID = 'activity-cv-solana-send';
+
+export const ACTIVITY_CV_SOLANA_ASSET_ID =
+  `${ACTIVITY_CV_SOLANA_CHAIN_ID}/slip44:501` as const;
+
+/**
+ * Confirmed Solana native send (2 SOL). Keyring amounts are human-readable.
+ * Pair with {@link activityCvSolanaSendStateOverrides} for details fiat CV.
+ */
+export const activityCvSolanaSendTransaction = {
+  id: ACTIVITY_CV_SOLANA_SEND_ID,
+  chain: ACTIVITY_CV_SOLANA_CHAIN_ID,
+  account: ACTIVITY_CV_SOLANA_ACCOUNT_ID,
+  status: 'confirmed',
+  timestamp: 1_716_367_795,
+  type: 'send',
+  from: [
+    {
+      address: ACTIVITY_CV_SOLANA_ADDRESS,
+      asset: {
+        fungible: true,
+        type: ACTIVITY_CV_SOLANA_ASSET_ID,
+        unit: 'SOL',
+        amount: '2',
+      },
+    },
+  ],
+  to: [
+    {
+      address: 'So11111111111111111111111111111111111111112',
+      asset: null,
+    },
+  ],
+  fees: [],
+  events: [],
+};
+
+/**
+ * Redux overrides: Solana account in the selected group, non-EVM send history,
+ * and multichain rate 4 → 2 SOL totals $8 on ActivityDetails.
+ */
+export const activityCvSolanaSendStateOverrides = {
+  engine: {
+    backgroundState: {
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [ACTIVITY_CV_SOLANA_ACCOUNT_ID]: {
+              id: ACTIVITY_CV_SOLANA_ACCOUNT_ID,
+              address: ACTIVITY_CV_SOLANA_ADDRESS,
+              type: 'solana:data-account',
+              options: {},
+              methods: [],
+              metadata: {
+                name: 'Solana Account 1',
+                importTime: 1,
+                keyring: { type: 'Snap Keyring' },
+              },
+              scopes: [ACTIVITY_CV_SOLANA_CHAIN_ID],
+            },
+          },
+        },
+      },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {
+            'entropy:wallet1': {
+              id: 'entropy:wallet1',
+              type: 'Entropy',
+              metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
+              groups: {
+                'entropy:wallet1/0': {
+                  id: 'entropy:wallet1/0',
+                  type: 'MultipleAccount',
+                  metadata: {
+                    name: 'Group 1',
+                    pinned: false,
+                    hidden: false,
+                    lastSelected: 0,
+                  },
+                  accounts: ['acc-1', ACTIVITY_CV_SOLANA_ACCOUNT_ID],
+                },
+              },
+            },
+          },
+        },
+        selectedAccountGroup: 'entropy:wallet1/0',
+      },
+      MultichainTransactionsController: {
+        nonEvmTransactions: {
+          [ACTIVITY_CV_SOLANA_ACCOUNT_ID]: {
+            [ACTIVITY_CV_SOLANA_CHAIN_ID]: {
+              transactions: [activityCvSolanaSendTransaction],
+              next: null,
+              lastUpdated: 1_716_367_795_000,
+            },
+          },
+        },
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            rate: '4',
+            currency: 'usd',
+          },
+        },
+      },
+      MultichainNetworkController: {
+        isEvmSelected: false,
+        selectedMultichainNetworkChainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;

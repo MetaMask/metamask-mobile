@@ -296,6 +296,7 @@ jest.mock('../../app/core/Engine', () => {
       NetworkController: {
         state: { networksMetadata: {}, networkConfigurationsByChainId: {} },
         addNetwork: jest.fn().mockResolvedValue(undefined),
+        removeNetwork: jest.fn(),
         getProviderAndBlockTracker() {
           return {
             provider: {
