@@ -35,6 +35,13 @@ on:
         description: 'JSON mapping of secret aliases from builds.yml'
         type: string
         required: true
+      rc_auto_label:
+        description: >-
+          Auto RC OTA revision label (e.g. 8.0.0.2) to inline into the bundle so testers can see
+          which OTA revision they are running. Empty for every flow other than the Auto RC OTA path.
+        type: string
+        required: false
+        default: ''
 
 jobs:
   push-update:
@@ -50,6 +57,9 @@ jobs:
       TARGET_CHANNEL: ${{ inputs.channel }}
       OTA_PUSH_PLATFORM: ${{ inputs.platform }}
       GIT_BRANCH: ${{ github.ref_name }}
+      # Read by app/constants/ota.ts and inlined into the bundle by
+      # babel-plugin-transform-inline-environment-variables during expo export.
+      OTA_RC_AUTO_LABEL: ${{ inputs.rc_auto_label }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -160,6 +170,7 @@ jobs:
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
           echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
+          echo "  Auto RC OTA label: ${OTA_RC_AUTO_LABEL:-<not set>}"
 
       - name: Diagnose - expo export in isolation
         env:
