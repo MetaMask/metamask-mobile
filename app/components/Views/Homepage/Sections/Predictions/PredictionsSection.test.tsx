@@ -79,17 +79,33 @@ const HOMEPAGE_DISCOVERY_EPL_MARKET = {
   slug: 'epl-2027-champion-20260701200428749',
 };
 
-const HOMEPAGE_DISCOVERY_NBA_MARKET = {
+const HOMEPAGE_DISCOVERY_LA_LIGA_MARKET = {
   ...HOMEPAGE_DISCOVERY_MARKET_BASE,
-  id: '478277',
-  title: 'NBA: 2027 Champion',
-  slug: 'nba-2027-champion',
+  id: '659548',
+  title: 'La Liga: 2027 Champion',
+  slug: 'laliga-2027-champion-20260701200737375',
+};
+
+const HOMEPAGE_DISCOVERY_BUNDESLIGA_MARKET = {
+  ...HOMEPAGE_DISCOVERY_MARKET_BASE,
+  id: '681261',
+  title: 'Bundesliga: 2027 Champion',
+  slug: 'bundesliga-2027-champion-20260708164840303',
+};
+
+const HOMEPAGE_DISCOVERY_SERIE_A_MARKET = {
+  ...HOMEPAGE_DISCOVERY_MARKET_BASE,
+  id: '659488',
+  title: 'Serie A: 2027 Champion',
+  slug: 'serie-a-2027-champion-20260701200118390',
 };
 
 const homepageMarketSlotsMock = () =>
   homepageMarketSlotsResultMock([
     HOMEPAGE_DISCOVERY_EPL_MARKET,
-    HOMEPAGE_DISCOVERY_NBA_MARKET,
+    HOMEPAGE_DISCOVERY_LA_LIGA_MARKET,
+    HOMEPAGE_DISCOVERY_BUNDESLIGA_MARKET,
+    HOMEPAGE_DISCOVERY_SERIE_A_MARKET,
   ]);
 
 const mockUseABTest = jest.fn(
@@ -652,7 +668,9 @@ describe('PredictionsSection', () => {
 
       await waitFor(() => {
         expect(screen.getByText('EPL: 2027 Champion')).toBeOnTheScreen();
-        expect(screen.getByText('NBA: 2027 Champion')).toBeOnTheScreen();
+        expect(screen.getByText('La Liga: 2027 Champion')).toBeOnTheScreen();
+        expect(screen.getByText('Bundesliga: 2027 Champion')).toBeOnTheScreen();
+        expect(screen.getByText('Serie A: 2027 Champion')).toBeOnTheScreen();
       });
     });
 
@@ -674,6 +692,12 @@ describe('PredictionsSection', () => {
         expect(
           screen.getByTestId('homepage-predict-discovery-market-slot-3'),
         ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId('homepage-predict-discovery-market-slot-4'),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId('homepage-predict-discovery-market-slot-5'),
+        ).toBeOnTheScreen();
       });
       expect(
         within(
@@ -683,7 +707,17 @@ describe('PredictionsSection', () => {
       expect(
         within(
           screen.getByTestId('homepage-predict-discovery-market-slot-3'),
-        ).getByText('NBA: 2027 Champion'),
+        ).getByText('La Liga: 2027 Champion'),
+      ).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId('homepage-predict-discovery-market-slot-4'),
+        ).getByText('Bundesliga: 2027 Champion'),
+      ).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId('homepage-predict-discovery-market-slot-5'),
+        ).getByText('Serie A: 2027 Champion'),
       ).toBeOnTheScreen();
     });
 
@@ -743,7 +777,7 @@ describe('PredictionsSection', () => {
       });
     });
 
-    it('tracks the NBA slot click as a sports CTA', async () => {
+    it('tracks the La Liga slot click as a sports CTA', async () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: noPositionsTrendingMarkets,
         isLoading: false,
@@ -755,12 +789,12 @@ describe('PredictionsSection', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('NBA: 2027 Champion')).toBeOnTheScreen();
+        expect(screen.getByText('La Liga: 2027 Champion')).toBeOnTheScreen();
       });
 
       mockTrackEvent.mockClear();
 
-      fireEvent.press(screen.getByText('NBA: 2027 Champion'));
+      fireEvent.press(screen.getByText('La Liga: 2027 Champion'));
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({
@@ -794,6 +828,12 @@ describe('PredictionsSection', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId('homepage-predict-discovery-market-slot-3'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('homepage-predict-discovery-market-slot-4'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('homepage-predict-discovery-market-slot-5'),
       ).toBeOnTheScreen();
     });
 
@@ -1129,7 +1169,15 @@ describe('PredictionsSection', () => {
         expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
       });
       expect(screen.queryByText('EPL: 2027 Champion')).not.toBeOnTheScreen();
-      expect(screen.queryByText('NBA: 2027 Champion')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('La Liga: 2027 Champion'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('Bundesliga: 2027 Champion'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('Serie A: 2027 Champion'),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not render active position rows in claimable-only state', async () => {

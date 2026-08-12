@@ -17,7 +17,7 @@ export type HomepagePredictMarketSlot =
   | HomepagePredictEventSlot;
 
 /**
- * Predict homepage market slots for August 3–16, 2026.
+ * Predict homepage market slots for August 17–30, 2026.
  *
  * Polymarket represents the championship selections as events containing one
  * market per team, so their IDs are queried through the Gamma events endpoint.
@@ -30,8 +30,18 @@ export const HOMEPAGE_PREDICT_EVENT_SLOTS = [
   },
   {
     type: 'event',
-    id: '478277',
-    slug: 'nba-2027-champion',
+    id: '659548',
+    slug: 'laliga-2027-champion-20260701200737375',
+  },
+  {
+    type: 'event',
+    id: '681261',
+    slug: 'bundesliga-2027-champion-20260708164840303',
+  },
+  {
+    type: 'event',
+    id: '659488',
+    slug: 'serie-a-2027-champion-20260701200118390',
   },
 ] as const satisfies readonly HomepagePredictEventSlot[];
 
