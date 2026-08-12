@@ -580,6 +580,12 @@ jest.mock('./hooks/PerpsActivitySource', () => {
   };
 });
 
+const mockUseActivityScreenViewed = jest.fn();
+jest.mock('../ActivityScreen/hooks/useActivityScreenViewed', () => ({
+  useActivityScreenViewed: (params: unknown) =>
+    mockUseActivityScreenViewed(params),
+}));
+
 let mockPredictSourceState: {
   items: unknown[];
   isLoading: boolean;
@@ -739,6 +745,58 @@ describe('ActivityList', () => {
     (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
       selector(selectorValues),
     );
+  });
+
+  describe('Activity Screen Viewed settling', () => {
+    it('does not report the Perps list as settled before its source has loaded', () => {
+      selectorValues.perpsEnabled = true;
+      mockPerpsSourceState = { items: [], isLoading: false, error: null };
+
+      render(
+        <ActivityList
+          header={<></>}
+          trackScreenViewed
+          typeFilter={ActivityTypeFilter.Perps}
+        />,
+      );
+
+      const [firstCall] = mockUseActivityScreenViewed.mock.calls;
+      expect(firstCall[0].isSettled).toBe(false);
+    });
+
+    it('reports the Perps list as settled once its source has loaded', () => {
+      selectorValues.perpsEnabled = true;
+      mockPerpsSourceState = { items: [], isLoading: false, error: null };
+
+      render(
+        <ActivityList
+          header={<></>}
+          trackScreenViewed
+          typeFilter={ActivityTypeFilter.Perps}
+        />,
+      );
+
+      const lastCall =
+        mockUseActivityScreenViewed.mock.calls[
+          mockUseActivityScreenViewed.mock.calls.length - 1
+        ];
+      expect(lastCall[0].isSettled).toBe(true);
+    });
+
+    it('reports EVM-backed filters as settled without waiting on Perps or Predict', () => {
+      selectorValues.perpsEnabled = true;
+
+      render(
+        <ActivityList
+          header={<></>}
+          trackScreenViewed
+          typeFilter={ActivityTypeFilter.Transactions}
+        />,
+      );
+
+      const [firstCall] = mockUseActivityScreenViewed.mock.calls;
+      expect(firstCall[0].isSettled).toBe(true);
+    });
   });
 
   it('renders local pending and confirmed rows, refreshes, paginates, and opens the EVM explorer', async () => {

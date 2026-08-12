@@ -351,13 +351,14 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
     });
 
-    it('exposes TP/SL as a button action', () => {
+    it('exposes TP/SL as a button action with a down arrow affordance', () => {
       renderForm({ onTPSLPress: jest.fn() });
 
       expect(screen.getByTestId(ids.TPSL)).toHaveProp(
         'accessibilityRole',
         'button',
       );
+      expect(screen.getByTestId(`${ids.TPSL}-arrow`)).toBeOnTheScreen();
     });
 
     it('calls onTPSLPress when TP/SL is pressed', () => {
