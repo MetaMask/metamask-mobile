@@ -49,7 +49,6 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
-
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
@@ -67,6 +66,13 @@ jest.mock('../../utils/relayFixedSpread', () => ({
 jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
   ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
   getMoneyAccountDepositIntent: jest.fn(),
+}));
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: jest.fn(() => ({
+    variant: { prefillEnabled: true },
+    variantName: 'treatment',
+    isActive: true,
+  })),
 }));
 
 jest.mock('../tokens/useTokenFiatRates');
