@@ -67,7 +67,6 @@ module.exports = {
     'tests/page-objects/Perps/PerpsView.ts',
     'tests/page-objects/Predict/PredictDetailsPage.ts',
     'tests/page-objects/Predict/PredictMarketList.ts',
-    'tests/page-objects/Predict/PredictModalView.ts',
     'tests/page-objects/Ramps/KYCScreen.ts',
     'tests/page-objects/Ramps/TokenSelectScreen.ts',
     'tests/page-objects/Send/RedesignedSendView.ts',

@@ -2445,7 +2445,7 @@
     "failed_to_load_market_data": "Failed to load market data",
     "data_updates_automatically": "Data updates automatically every few seconds",
     "tap_to_retry": "Tap to retry",
-    "search_by_token_symbol": "Search by token symbol",
+    "search_by_token_symbol": "Search",
     "no_favorites_found": "No markets in watchlist",
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
     "watchlist": {
@@ -2463,7 +2463,7 @@
     "market_count": "{{count}} market",
     "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found_description": "We couldn't find any markets with the name \"{{searchQuery}}\". Try a different search.",
     "no_markets_found": "No markets found",
     "no_markets_found_description": "No markets match your current filter. Try a different category.",
     "no_markets_search_description": "No markets match \"{{searchQuery}}\" in this category. Try a different search or clear the filter.",

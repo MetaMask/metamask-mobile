@@ -7,9 +7,6 @@ import {
   newWalletWithMetricsOptInExpectations,
   newWalletMetricsOptOutExpectations,
 } from '../../../helpers/analytics/expectations/new-wallet.analytics.js';
-import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import { Mockttp } from 'mockttp';
 import { E2E_WALLET_SETUP_ATTRIBUTION_FIELDS } from '../../../helpers/analytics/walletSetupAttributionE2eConstants.js';
 import { withStrictWalletSetupAttributionMatch } from '../../../helpers/analytics/withStrictWalletSetupAttributionMatch.js';
 
@@ -24,12 +21,6 @@ appiumTest.describe(
             fixture: new FixtureBuilder().withOnboardingFixture().build(),
             restartDevice: true,
             currentDeviceDetails,
-            testSpecificMock: async (mockServer: Mockttp) => {
-              await setupRemoteFeatureFlagsMock(
-                mockServer,
-                remoteFeaturePredictGtmOnboardingModalDisabled(),
-              );
-            },
             analyticsExpectations: newWalletWithMetricsOptInExpectations,
           },
           async () => {
@@ -52,12 +43,6 @@ appiumTest.describe(
               .build(),
             restartDevice: true,
             currentDeviceDetails,
-            testSpecificMock: async (mockServer: Mockttp) => {
-              await setupRemoteFeatureFlagsMock(
-                mockServer,
-                remoteFeaturePredictGtmOnboardingModalDisabled(),
-              );
-            },
             analyticsExpectations: withStrictWalletSetupAttributionMatch(
               newWalletWithMetricsOptInExpectations,
             ),
