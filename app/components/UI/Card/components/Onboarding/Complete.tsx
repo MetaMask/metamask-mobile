@@ -100,7 +100,9 @@ const Complete = () => {
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
         dispatch(resetOnboardingState());
-        navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+        navigation.dispatch(
+          StackActions.replace(Routes.CARD.HOME, { fromCardOnboarding: true }),
+        );
       } else {
         dispatch(resetOnboardingState());
         navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));

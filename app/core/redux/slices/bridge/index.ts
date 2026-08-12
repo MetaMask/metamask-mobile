@@ -774,10 +774,7 @@ export const selectControllerFields = createSelector(
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
   selectSelectedQuoteRequestId,
-  (
-    requiredControllerFields,
-    selectedQuoteRequestId,
-  ): ReturnType<typeof selectBridgeQuotesBase> => {
+  (requiredControllerFields, selectedQuoteRequestId) => {
     // First get all quotes
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
@@ -813,6 +810,7 @@ export const selectBatchSellQuotes = createSelector(
     selectBatchSellQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
       requestCount: requiredControllerFields.quoteRequest.length,
+      selectedQuote: null,
     }),
 );
 

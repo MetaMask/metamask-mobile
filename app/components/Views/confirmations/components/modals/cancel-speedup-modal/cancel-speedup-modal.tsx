@@ -46,8 +46,6 @@ import { GasSpeed } from '../../gas/gas-speed';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import InfoSection from '../../UI/info-row/info-section';
 import InfoRow from '../../UI/info-row/info-row';
-import styleSheet from './cancel-speedup-modal.styles';
-import { useStyles } from '../../../../../hooks/useStyles';
 
 const NetworkFeeRow = ({
   fiat,
@@ -165,7 +163,6 @@ export function CancelSpeedupModal({
 }: CancelSpeedupModalProps) {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
-  const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const [gasModalVisible, setGasModalVisible] = useState(false);
 
@@ -270,11 +267,7 @@ export function CancelSpeedupModal({
       onBackdropPress={onClose}
       onBackButtonPress={onClose}
     >
-      <BottomSheet
-        ref={bottomSheetRef}
-        onClose={onClose}
-        style={styles.bottomSheetDialogSheet}
-      >
+      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
         <BottomSheetHeader onClose={close}>{title}</BottomSheetHeader>
         <Box style={tw.style('px-3')}>
           <Box gap={4}>

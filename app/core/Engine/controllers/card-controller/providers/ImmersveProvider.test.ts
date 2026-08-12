@@ -958,6 +958,7 @@ describe('ImmersveProvider', () => {
         holderName: 'John Doe',
         isFreezable: true,
         regionCode: undefined,
+        hasPin: true,
       });
       expect(data.primaryFundingAsset).toStrictEqual({
         symbol: 'USDC',

@@ -182,6 +182,8 @@ export interface CardDetails {
   isFreezable?: boolean;
   /** ISO region code from Immersve LIST/detail (e.g. "GB"). */
   regionCode?: string;
+  /** False when the card is issued without a PIN, e.g. Baanx virtual cards outside the US. */
+  hasPin?: boolean;
 }
 
 export interface CardSecureViewParams {

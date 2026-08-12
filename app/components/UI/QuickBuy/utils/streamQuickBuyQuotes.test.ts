@@ -122,7 +122,7 @@ describe('streamQuickBuyQuotes', () => {
     jest.clearAllMocks();
     getBearerTokenMock.mockResolvedValue('jwt-token');
     getAccountByAddressMock.mockReturnValue({ id: 'account-1' });
-    appendFeesMock.mockImplementation(async (quotes) =>
+    appendFeesMock.mockImplementation(async (_, quotes) =>
       quotes.map((q: object) => ({ ...q, feesAppended: true })),
     );
   });
@@ -132,8 +132,14 @@ describe('streamQuickBuyQuotes', () => {
       const handlers = args[7] as {
         onValidQuoteReceived: (q: unknown) => Promise<void>;
       };
-      await handlers.onValidQuoteReceived({ quote: { requestId: 'r1' } });
-      await handlers.onValidQuoteReceived({ quote: { requestId: 'r2' } });
+      await handlers.onValidQuoteReceived({
+        quote: { requestId: 'r1' },
+        chainId: 'eip155:1',
+      });
+      await handlers.onValidQuoteReceived({
+        quote: { requestId: 'r2' },
+        chainId: 'eip155:1',
+      });
     });
 
     const onQuote = jest.fn();
@@ -150,7 +156,8 @@ describe('streamQuickBuyQuotes', () => {
       }),
     );
     expect(appendFeesMock).toHaveBeenCalledWith(
-      [{ quote: { requestId: 'r1' } }],
+      'eip155:1',
+      [{ quote: { requestId: 'r1' }, chainId: 'eip155:1' }],
       Engine.controllerMessenger,
       expect.any(Function),
       { id: 'account-1' },
