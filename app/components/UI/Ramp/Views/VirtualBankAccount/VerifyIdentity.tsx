@@ -28,6 +28,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   IDOS_PRIVACY_POLICY_URL,
@@ -104,8 +105,8 @@ const VbaVerifyIdentity = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleContinue = useCallback(() => {
-    // The next screen in the VBA KYC flow isn't built yet.
-  }, []);
+    navigation.navigate(Routes.RAMP.VBA_MOCK_KYC_EMAIL);
+  }, [navigation]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {

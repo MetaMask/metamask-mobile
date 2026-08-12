@@ -17,3 +17,8 @@ export const IDOS_PRIVACY_POLICY_URL =
 export const IDOS_TERMS_URL = 'https://www.idos.network/terms';
 export const SUMSUB_PRIVACY_POLICY_URL = 'https://sumsub.com/privacy-notice/';
 export const SUMSUB_TERMS_URL = 'https://sumsub.com/terms-and-conditions/';
+
+// Demo-only mock KYC flow (not production). Prefills so the teammate can
+// tap through without typing.
+export const MOCK_KYC_PREFILLED_EMAIL = 'demo@metamask.io';
+export const MOCK_KYC_PROGRESS_STEPS = 4;

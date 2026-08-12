@@ -1125,6 +1125,21 @@
       "sumsub_privacy_policy": "Sumsub Privacy Policy",
       "sumsub_terms": "Sumsub T&C",
       "button": "Continue"
+    },
+    "mock_kyc": {
+      "email": {
+        "navbar_title": "Step 1 of 2 • Mock KYC",
+        "title": "Placeholder KYC Flow",
+        "description": "Phasellus elementum tincidunt faucibus.",
+        "input_placeholder": "Prefill a fake email here",
+        "button": "Continue"
+      },
+      "success": {
+        "navbar_title": "Step 2 of 2 • Complete",
+        "title": "Successful KYC",
+        "description": "Phasellus elementum tincidunt faucibus. Pellentesque congue, felis eget euismod auctor.",
+        "button": "Finish"
+      }
     }
   },
   "social_leaderboard": {
