@@ -100,10 +100,23 @@ class RevealSecretRecoveryPhrase {
         description: 'Password input to reveal credential',
       },
     );
+
+    if (PlatformDetector.isIOS()) {
+      // Return submits onSubmitEditing → tryUnlock; hideKeyboard only tapOutside.
+      await Gestures.typeText(
+        this.passwordInputToRevealCredential,
+        `${password}\n`,
+        {
+          elemDescription: 'Password input to reveal credential',
+          hideKeyboard: false,
+        },
+      );
+      return;
+    }
+
     await Gestures.typeText(this.passwordInputToRevealCredential, password, {
       elemDescription: 'Password input to reveal credential',
       hideKeyboard: true,
-      clearFirst: true,
     });
   }
 
