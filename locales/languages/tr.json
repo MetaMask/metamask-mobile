@@ -1071,7 +1071,7 @@
       "error": "Webview hata aldı: {{code}}"
     },
     "notifications": {
-      "deposit_failed_title": "{{currency}} para yatırma işlemi başarısız oldu! Lütfen tekrar deneyin, verdiğimiz rahatsızlıktan dolayı özür dileriz!",
+      "deposit_failed_title": "Deposit of {{currency}} has failed. Please try again, sorry for the inconvenience.",
       "deposit_failed_description": "Ödeme yönteminizi ve kart desteğini doğrulayın",
       "deposit_cancelled_title": "Para yatırma işleminiz iptal edildi",
       "deposit_cancelled_description": "Para yatırma işleminizin iptalini talep ettiniz.",
@@ -1310,6 +1310,9 @@
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
+      "selection_title": "Choose how you trade",
+      "lite_description": "One-tap longs or shorts. Simple by design.",
+      "pro_description": "Order book, advanced order types, and leverage.",
       "lite_transition_title": "Lite Mod",
       "pro_transition_title": "Pro Mod",
       "active_pill_accessibility_label": "Şu anda {{mode}} mod",
@@ -1525,8 +1528,13 @@
       "isolated": "İzole",
       "choose_order_type": "Emir türü seçin",
       "size_usd": "Size (USD)",
+      "size_unit": "Size ({{unit}})",
+      "size_input_hint": "Enter order size in {{unit}}",
       "size_percentage": "Emir büyüklüğü yüzdesi",
+      "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "Büyüklük birimini değiştir",
+      "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
+      "available_balance": "{{amount}} kullanılabilir",
       "available_balance_unavailable": "-- kullanılabilir",
       "est_liquidation": "Tahmini Likidasyon",
       "tpsl": "KA / ZD",
@@ -1534,6 +1542,8 @@
       "close_keyboard": "Klavyeyi kapat"
     },
     "pro_positions_panel": {
+      "order_history": "Order history",
+      "close_count": "Close ({{count}})",
       "positions": "Pozisyonlar",
       "positions_with_count": "Pozisyonlar ({{count}})",
       "orders": "Emirler",
@@ -1545,6 +1555,9 @@
       "positions_empty_long": "Long pozisyon yok.",
       "positions_empty_short": "Short pozisyon yok.",
       "orders_empty": "Açık emirleriniz burada gösterilecek.",
+      "orders_empty_filtered": "No open {{ticker}} orders.",
+      "orders_empty_long": "No long orders.",
+      "orders_empty_short": "No short orders.",
       "side_filter": {
         "all_sides": "Tüm yönler",
         "long": "Uzun",
@@ -1554,7 +1567,12 @@
         "position_value": "Pozisyon değeri",
         "unrealized_pnl": "Gerçekleşmemiş K&Z",
         "funding_rate": "Fonlama oranı",
-        "settings_accessibility": "Pozisyonları sırala"
+        "order_value": "Emir değeri",
+        "size": "Boyut",
+        "price": "Fiyat",
+        "time": "Zaman",
+        "settings_accessibility": "Pozisyonları sırala",
+        "orders_settings_accessibility": "Sort orders"
       },
       "card": {
         "entry_price": "Giriş fiyatı",
@@ -1576,7 +1594,10 @@
         "reduce_only": "Yalnızca azalt",
         "tp_sl": "KA / ZD",
         "trigger_condition": "Tetikleme koşulu",
-        "cancel": "İptal"
+        "cancel": "İptal",
+        "edit": "Düzenle",
+        "edit_price": "Edit limit price",
+        "edit_size": "Edit size"
       }
     },
     "order": {
@@ -1625,7 +1646,10 @@
         "limit_price_must_be_set_before_configuring_tpsl": "KA/ZD yapılandırılmadan önce limit fiyat belirlenmelidir",
         "only_hyperliquid_usdc": "HyperLiquid’de ödeme için şu anda yalnızca USDC desteklenmektedir",
         "limit_price_far_warning": "Limit fiyat güncel piyasa fiyatından uzak",
-        "oi_cap_reached": "Açık pozisyon limiti doldu. Şu anda yeni pozisyonlar açılamıyor."
+        "oi_cap_reached": "Açık pozisyon limiti doldu. Şu anda yeni pozisyonlar açılamıyor.",
+        "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
+        "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
+        "reduce_only_too_large": "Reduce only order is larger than your open position"
       },
       "error": {
         "placement_failed": "Emir verme işlemi başarısız oldu",
@@ -1659,6 +1683,11 @@
         "off": "KAPALI",
         "take_profit_helper": "Fiyat bu seviyeye ulaştığında pozisyonu kapat",
         "stop_loss_helper": "Pozisyonu bu fiyatta kapatarak zararı sınırla"
+      },
+      "size_modal": {
+        "title": "Edit size",
+        "set": "Ayarla",
+        "order_value": "Order value: {{value}}"
       },
       "limit_price_modal": {
         "title": "Limit fiyatı belirle",
@@ -1740,7 +1769,11 @@
       "order_cancelled_success": "{{detailedOrderType}} emri iptal edildi",
       "pay_with_token_required": "Token seçimi gerekli",
       "select_token_to_pay_with": "Emrinizi vermeden önce lütfen ödeme yapılacak tokeni seçin",
-      "initializing": "Emir başlatılıyor..."
+      "initializing": "Emir başlatılıyor...",
+      "updating_your_order": "Updating your order",
+      "order_updated": "Order updated",
+      "order_update_failed": "Failed to update order",
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
     },
     "slippage": {
       "config_title": "Kaymayı ayarla",
@@ -1908,7 +1941,11 @@
       "order_not_found": "Emir bulunamadı",
       "clientNotInitialized": "HyperLiquid SDK istemcileri düzgün şekilde başlatılmadı",
       "exchangeClientNotAvailable": "ExchangeClient başlatıldıktan sonra kullanılamıyor",
+      "exchangeAccountNotFound": "Add funds to your account before placing an order",
+      "exchangeMultiSigRequired": "This account needs its multi-signature signers to trade",
+      "exchangeInvalidNonce": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
       "infoClientNotAvailable": "InfoClient başlatıldıktan sonra kullanılamıyor",
+      "subscriptionClientNotAvailable": "SubscriptionClient not available after initialization",
       "subscriptionClientNotInitialized": "SubscriptionClient başlatılmadı",
       "failedToSubscribePosition": "Pozisyon güncellemelerine abone olunamadı",
       "failedToUnsubscribePosition": "Pozisyon güncellemeleri aboneliği sonlandırılamadı",
@@ -1940,7 +1977,18 @@
         "sizePositive": "Boyut pozitif bir sayı olmalıdır",
         "pricePositive": "Girilen fiyat pozitif bir sayı olmalıdır",
         "unknownCoin": "Bilinmeyen coin: {{coin}}",
-        "limitPriceRequired": "Limit emirleri için fiyat gereklidir"
+        "limitPriceRequired": "Limit emirleri için fiyat gereklidir",
+        "triggerPriceRequired": "A trigger price is required for stop and take profit orders",
+        "triggerPricePositive": "Trigger price must be a positive number",
+        "triggerPriceNotSupported": "Market and limit orders can't have a trigger price",
+        "triggerTpslUnsupported": "Stop and take profit orders can't carry their own take profit or stop loss",
+        "tpslSizeInvalid": "Take profit and stop loss size must be positive and no larger than the order",
+        "tpslLinkageConflict": "Conflicting take profit and stop loss settings",
+        "tpslLinkageRequired": "Take profit and stop loss must be attached to the order or to the position",
+        "tpslPositionLinkageUnsupported": "Take profit and stop loss can only be attached to a position once the order has filled",
+        "timeInForceNotSupported": "Time in force can only be set on limit orders",
+        "editTriggerUnsupported": "Stop and take profit orders can't be edited. Cancel the order and place a new one.",
+        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again."
       },
       "networkToggleFailed": "Ağ değiştirilemedi: {{error}}",
       "accountBalanceFailed": "Hesap bakiyesi alınamadı: {{error}}",
@@ -2350,6 +2398,13 @@
       "error_title": "Emirler iptal edilemedi",
       "error_message": "{{count}} emir iptal edilemedi"
     },
+    "margin_mode": {
+      "title": "Choose margin mode",
+      "isolated_title": "İzole",
+      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "cross_title": "Çapraz",
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
     "crossMargin": {
       "title": "Çapraz marj desteklenmiyor",
       "message": "MetaMask Perps, yalnızca izole marj ile işlem yapılmasını destekler. MetaMask’te işlem yapabilmek için önce çapraz marj pozisyonunuzu kapatmanız gerekir.",
@@ -2375,7 +2430,8 @@
       "past_hour": "Son bir saat",
       "past_24_hours": "Son 24 saat",
       "time": "Zaman",
-      "apply": "Uygula"
+      "apply": "Uygula",
+      "clear": "Temizle"
     },
     "provider_selector": {
       "title": "Sağlayıcı seç"
@@ -2389,7 +2445,7 @@
     "failed_to_load_market_data": "Piyasa verileri yüklenemedi",
     "data_updates_automatically": "Veriler birkaç saniyede bir otomatik olarak güncellenir",
     "tap_to_retry": "Tekrar denemek için dokunun",
-    "search_by_token_symbol": "Token sembolüne göre ara",
+    "search_by_token_symbol": "Ara",
     "no_favorites_found": "İzleme listesinde piyasa yok",
     "no_favorites_description": "Herhangi bir piyasayı izleme listenize eklemek için piyasanın üzerindeki yıldız simgesine dokunun",
     "watchlist": {
@@ -2407,7 +2463,7 @@
     "market_count": "{{count}} piyasa",
     "market_count_plural": "{{count}} piyasa",
     "no_tokens_found": "Token bulunamadı",
-    "no_tokens_found_description": "\"{{searchQuery}}\" adında bir token bulamadık. Farklı bir arama yapmayı deneyin.",
+    "no_tokens_found_description": "We couldn't find any markets with the name \"{{searchQuery}}\". Try a different search.",
     "no_markets_found": "Piyasa bulunamadı",
     "no_markets_found_description": "Hiçbir piyasa mevcut filtrenizle eşleşmiyor. Farklı bir kategori deneyin.",
     "no_markets_search_description": "Bu kategoride hiçbir piyasa \"{{searchQuery}}\" ile eşleşmiyor. Farklı bir arama deneyin veya filtreyi temizleyin.",
@@ -2498,6 +2554,7 @@
       "size": "Boyut",
       "total": "Toplam",
       "spread": "Spread",
+      "spread_value": "Spread {{value}}",
       "loading": "Emir defteri yükleniyor...",
       "no_data": "Emir defteri verisi mevcut değil",
       "error": "Emir defteri verileri yüklenemedi",
@@ -2619,7 +2676,7 @@
       "hard_to_understand": "Anlaşılması zor",
       "harmful_or_offensive": "Zararlı veya rahatsız edici",
       "something_else": "Başka bir şey",
-      "additional_feedback_label": "Daha fazla geri bildirim (isteğe bağlı)",
+      "additional_feedback_label": "Additional feedback",
       "additional_feedback_placeholder": "Nasıl gelişebiliriz?",
       "characters_remaining": "{{count}} karakter kaldı",
       "submit": "Gönder"
@@ -3062,6 +3119,9 @@
       "prediction_in_progress": "Tahmin sürüyor",
       "prediction_in_progress_description": "Tahmininiz kısa süre içinde işleme alınacaktır",
       "prediction_failed": "Tahmin işleme alınamadı",
+      "prediction_not_placed": "Prediction not placed",
+      "post_deposit_order_failed": "{{amount}} was added to your Predict balance.",
+      "post_deposit_order_failed_fallback": "Your funds were added to your Predict balance.",
       "order_failed": "Emir başarısız oldu",
       "payments_made_in_usdc": "Tüm ödemeler USDC cinsinden yapılır",
       "prediction_insufficient_funds": "Yeterli fon yok. En fazla {{amount}} kullanabilirsiniz.",
@@ -3076,6 +3136,9 @@
       "market_busy_body_sell": "Piyasa hızlı hareket ediyor, bu nedenle {{price}} fiyatından satış gerçekleştiremedik. En iyi mevcut fiyatta tekrar denemek ister misiniz?",
       "order_failed_title": "Emir başarısız oldu",
       "order_failed_body": "Emriniz gerçekleştirilemedi. Tekrar denensin mi?",
+      "payment_failed_title": "Payment didn't go through",
+      "payment_failed_body": "We couldn't convert your {{token}}. Add funds to your Predict balance instead.",
+      "payment_failed_body_generic": "We couldn't convert your token. Add funds to your Predict balance instead.",
       "price_changed_title": "Fiyat değişti",
       "price_changed_body": "{{price}} fiyatından satın alınamadı. Piyasa fiyatından denensin mi?",
       "retry": "Tekrar Dene",
@@ -3146,7 +3209,9 @@
       "preview_not_available": "Önizleme yok",
       "market_pending_resolution": "Bu piyasa sonuçlanmayı bekliyor.",
       "market_not_accepting_bets": "Bu piyasa artık bahisleri kabul etmiyor.",
-      "market_bettable_check_failed": "Bu piyasanın bahisleri kabul ettiğini onaylayamadık. Tekrar deneyin."
+      "market_bettable_check_failed": "Bu piyasanın bahisleri kabul ettiğini onaylayamadık. Tekrar deneyin.",
+      "deposit_failed": "We couldn't add funds to your Predict balance. Try again.",
+      "withdraw_failed": "We couldn't complete your withdrawal. Try again."
     },
     "game_details_footer": {
       "pick_a_winner": "Bir kazanan seç",
@@ -3236,6 +3301,7 @@
   },
   "wallet": {
     "title": "Cüzdan",
+    "search_accessibility_label": "Ara",
     "tokens": "Token'lar",
     "view_all_nfts": "Tüm NFT'leri görüntüle",
     "view_all_tokens": "Tüm token'ları görüntüle",
@@ -3339,7 +3405,7 @@
     "refresh_metadata": "Meta verileri yenile",
     "token_removal_issue_title": "Token kaldırılırken sorun oldu.",
     "token_removal_issue_desc": "Token kaldırılırken bir problem oldu. Tekrar deneyin.",
-    "collectible_removed_title": "Koleksiyon kaldırıldı!",
+    "collectible_removed_title": "Koleksiyon kaldırıldı",
     "collectible_removed_desc": "Fikrinizi değiştirirseniz \"NFT'leri İçe Aktar\" düğmesine dokunarak geri ekleyebilirsiniz",
     "remove": "Gizle",
     "cancel": "İptal",
@@ -3425,8 +3491,8 @@
     "perps_filter": {
       "title": "Sürekli Vadeli",
       "trades": "İşlemler",
-      "order": "Emir",
-      "fundings": "Fonlamalar",
+      "order": "Emirler",
+      "fundings": "Fonlama ödemeleri",
       "deposits": "Yatırma İşlemleri"
     },
     "empty_state": {
@@ -3921,15 +3987,15 @@
       "deselect_all": "Tümünün seçimini kaldır",
       "select_accounts_title": "Hesaplar",
       "select_accounts_desc": "Hangi hesaplar için bildirim almak istediğinizi seçin.",
-      "wallet_activity_title": "Cüzdan Hareketleri",
-      "wallet_activity_desc": "Alış, satış, transfer, takas işlemleri ve ödülleri",
-      "perps_title": "İşlem Hareketleri",
+      "wallet_activity_title": "Wallet activity",
+      "wallet_activity_desc": "Buy, sells, transfers, swaps",
+      "perps_title": "Trading activity",
       "perps_desc": "Perps pozisyonundaki değişiklikler, likidasyonlar, fonlama oranları ve marj güncellemeleri",
       "agentic_cli_title": "Agentic CLI",
       "agentic_cli_desc": "Agentic için CLI bağlantı talepleri, onaylar ve oturum güncellemeleri",
-      "social_ai_title": "İşlem Sinyalleri",
-      "social_ai_desc": "Takip ettiğiniz yatırımcılardan ve varlıklardan güncellemeler ve ayrıca özel olarak seçilmiş piyasa haberleri",
-      "marketing_title": "Güncellemeler ve Ödüller",
+      "social_ai_title": "Trading signals",
+      "social_ai_desc": "Updates from traders and assets you follow, plus curated market news",
+      "marketing_title": "Updates and rewards",
       "marketing_desc": "Ürün güncellemeleri, özellik duyuruları ve yeni sürümler",
       "marketing_disclaimer": "Bunu açarak MetaMask'ten ürün haberlerini ve pazarlama güncellemelerini almayı kabul etmiş olursunuz.",
       "customize_session_title": "Bildirimlerinizi özelleştirin",
@@ -3946,7 +4012,7 @@
       "snaps_desc": "Yeni özellikler ve güncellemeler",
       "products_announcements_title": "Ürün duyuruları",
       "products_announcements_desc": "Yeni ürünler ve özellikler",
-      "price_alerts_title": "Fiyat Uyarıları",
+      "price_alerts_title": "Fiyat uyarıları",
       "price_alerts_desc": "Bir tokenın fiyatı için belirlediğiniz uyarılara göre bildirim alın"
     },
     "contacts_title": "Kişiler",
@@ -5734,7 +5800,7 @@
     "risks_1": "Kaybetmeniz",
     "risks_2": "Nereye koyduğunuzu unutmanız",
     "risks_3": "Bir başkasının onu bulması",
-    "other_options": "Diğer seçenekler: Kağıt olması gerekmez!",
+    "other_options": "Diğer seçenekler: Kağıt olması gerekmez.",
     "tips_title": "İpuçları:",
     "tips_1": "Banka kasasında saklayın",
     "tips_2": "Bir kasada saklayın",
@@ -5875,7 +5941,7 @@
     "proceed_anyway": "ilerleyebilirsiniz",
     "but_please_do_so_at_your_own_risk": "ancak bunu yapmanın riski yalnızca size aittir.",
     "report_detection_problem": "Bir algılama problemini bildir",
-    "share_on_twitter": "Bunu yararlı bulduysanız X üzerinde paylaşın!",
+    "share_on_twitter": "Bunu yararlı bulduysanız X üzerinde paylaşın.",
     "share_text": "MetaMask potansiyel olarak zararlı bir siteyi ziyaret etmemi önledi: {{url}}. Güvende kalın!"
   },
   "notifications": {
@@ -5948,11 +6014,11 @@
     "erc1155_received": "NFT gönderen: {{address}}",
     "received_nft": "NFT gönderen: {{address}}",
     "pending_title": "İşlem gönderildi",
-    "pending_deposit_title": "Para yatırma işlemi sürüyor!",
-    "pending_withdrawal_title": "Para çekme işlemi sürüyor!",
-    "cancelled_title": "İşlem iptal edildi!",
+    "pending_deposit_title": "Para yatırma işlemi devam ediyor",
+    "pending_withdrawal_title": "Para çekme işlemi sürüyor",
+    "cancelled_title": "İşlem iptal edildi",
     "success_title": "İşlem #{{nonce}} Tamamlandı!",
-    "speedup_title": "#{{nonce}} Hızlandırılıyor!",
+    "speedup_title": "#{{nonce}} Hızlandırılıyor",
     "success_deposit_title": "Para yatırma işlemi tamamlandı!",
     "success_withdrawal_title": "Çekme işlemi tamamlandı!",
     "error_title": "Hay aksi, bir şeyler ters gitti :/",
@@ -6446,8 +6512,8 @@
     "something_went_wrong": "Hay aksi, bir şeyler ters gitti",
     "report_this_issue": "Bu sorunu bildir",
     "no_providers_available": "Sağlayıcı mevcut değil",
-    "try_different_amount_to_buy_input": "Farklı bir ödeme yöntemi seçmeyi dene veya satın almak istediğin tutarı artırmayı veya azaltmayı dene!",
-    "try_different_amount_to_sell_input": "Farklı bir nakde çevirme varış yeri seçmeyi deneyin veya satmak istediğiniz tutarı artırın ya da azaltın!",
+    "try_different_amount_to_buy_input": "Farklı bir ödeme yöntemi seçmeyi dene veya satın almak istediğin tutarı artırmayı veya azaltmayı dene.",
+    "try_different_amount_to_sell_input": "Farklı bir nakde çevirme varış yeri seçmeyi deneyin veya satmak istediğiniz tutarı artırın ya da azaltın.",
     "webview_received_error": "WebView şu hata durum kodunu aldı: {{code}}",
     "no_tokens_available_title": "Token yok",
     "no_tokens_available": "Şu anda {{network}} üzerinde seçili ödeme yöntemi ile mevcut token bulunmamaktadır.",
@@ -6500,7 +6566,7 @@
     },
     "order_details": {
       "details_main": "Emir bilgileri",
-      "successful": "Emir başarılı!",
+      "successful": "Emir başarılı",
       "your": "Size ait",
       "available_in_account": "şu anda hesabında",
       "delayed_bank_transfer": "Nakdin banka hesabınıza yansıması birkaç gün sürebilir.",
@@ -6591,7 +6657,7 @@
     "notifications": {
       "purchase_pending_title": "{{cryptocurrency}} satın alma işleminiz gerçekleşiyor",
       "purchase_pending_description": "Bu işlem sadece birkaç dakika sürecektir...",
-      "purchase_completed_title": "{{amount}} {{cryptocurrency}} satın alma işleminiz başarılı oldu!",
+      "purchase_completed_title": "{{amount}} {{cryptocurrency}} satın alma işleminiz başarılı oldu",
       "purchase_completed_description": "{{cryptocurrency}} para biriminiz artık kullanılabilir",
       "purchase_failed_title": "{{cryptocurrency}} satın alma işlemi başarısız oldu",
       "purchase_failed_description": "Lütfen kısa bir süre sonra tekrar deneyin",
@@ -7355,7 +7421,7 @@
     "your_bonus_tooltip_lifetime_bonus_desc": "Başladığınızdan bu yana alınan toplam bonus.",
     "learn_more": "Daha fazla bilgi edin",
     "service_interruption_banner": {
-      "maintenance_message": "Bakım çalışması nedeniyle kapalıyız. Kısa sürede tekrar burada olacağız!"
+      "maintenance_message": "Bakım çalışması nedeniyle kapalıyız. Kısa sürede tekrar burada olacağız."
     },
     "supply": "Arz",
     "deposit": "Para Yatır",
@@ -7577,7 +7643,7 @@
     },
     "asset_overview": {
       "cta": {
-        "earn_apy": "%{{apy}} Yıllık Bileşik Getiri",
+        "earn_apy": "%{{apy}} APY kazan",
         "start_earning": "Kazanmaya başlayın",
         "current_apy_disclaimer": "Mevcut APY değişkendir ve garanti edilmez."
       },
@@ -7640,6 +7706,7 @@
       "link_pending_title": "Kartınız bağlanıyor",
       "link_success_title": "Kartınız kullanıma hazır",
       "link_error": "Kartınız bağlanırken bir şeyler ters gitti",
+      "link_error_different_card": "This wallet is already linked to a different MetaMask Card",
       "unlink_pending_title": "Kart bağlantınız kaldırılıyor",
       "unlink_success_title": "Kartınızın bağlantısı kaldırıldı",
       "unlink_error": "Kartınız bağlantısı kaldırılırken bir şeyler ters gitti",
@@ -8909,6 +8976,7 @@
       "description": "Kart bilgilerini görüntülemek için cüzdan şifrenizi girin.",
       "description_unfreeze": "Kartınızda harcama yapmaya devam edebilmek için cüzdan şifrenizi girin.",
       "description_view_pin": "Kartınızın PIN kodunu görüntülemek için cüzdan şifrenizi girin.",
+      "description_set_pin": "Enter your wallet password to set your card PIN.",
       "placeholder": "Şifre",
       "confirm": "Onayla",
       "cancel": "İptal et",
@@ -8917,6 +8985,23 @@
     },
     "view_pin_bottomsheet": {
       "title": "Kartınızın PIN kodu"
+    },
+    "set_pin": {
+      "set_title": "Set your card PIN",
+      "set_description": "You won't be able to view this PIN later. If you forget it, you can set a new one.",
+      "set_label": "PIN",
+      "continue": "Devam et",
+      "confirm_title": "Confirm your card PIN",
+      "confirm_description": "Enter your PIN again to confirm.",
+      "confirm_label": "Confirm PIN",
+      "submit": "Set PIN",
+      "mismatch_error": "PINs must match.",
+      "invalid_pin_error": "That PIN can't be used. Choose a different one.",
+      "repeating_pin_error": "That PIN can't be used. Choose a different one.",
+      "forbidden_error": "You can't set a PIN on this card right now.",
+      "network_error": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+      "success_title": "Your PIN is set",
+      "success_description": "Make sure you keep it safe. You won't be able to view it in the app."
     },
     "choose_your_card": {
       "title": "Kartınızı seçin",
@@ -8984,7 +9069,9 @@
       "sign_up": {
         "title": "Başlayalım",
         "description": "MetaMask Kart kurulumunuzu yapmak için Crypto Life (CL) ile bir hesap oluşturun. MetaMask, kişisel verileriniz görmez veya saklamaz.",
+        "description_immersve": "We need a few details to set up your card.",
         "i_already_have_an_account": "Zaten bir MetaMask Kart'ım var",
+        "i_already_have_an_account_immersve": "Zaten bir hesabım var",
         "email_label": "E-posta adresi",
         "password_label": "MetaMask Kart için yeni şifre",
         "password_description": "MetaMask uygulaması kilit açma şifresinden farklıdır. En az 15 karakter uzunluğunda olmalıdır.",
@@ -8995,8 +9082,14 @@
         "join_waitlist": "Bekleme listesine katılın",
         "country_not_available": "Kartla kaydolma henüz ülkenizde kullanılamıyor.",
         "account_label": "Hesap",
+        "account_label_immersve": "Card account",
         "account_description": "MetaMask Card'ınız bu hesapla ilişkilendirilecektir.",
-        "account_exists_toast": "Zaten bir kart hesabınız var."
+        "account_description_immersve": "Card purchases will be charged to this account.",
+        "account_exists_toast": "Zaten bir kart hesabınız var.",
+        "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
+        "clickwrap_and": " ve ",
+        "clickwrap_suffix": ".",
+        "legal_docs_error": "Unable to load legal documents."
       },
       "confirm_email": {
         "title": "E-postanızı onaylayın",
@@ -9291,6 +9384,8 @@
         "view_pin": "PIN kodunu görüntüle",
         "view_pin_description": "Kartınızın PIN kodunu gizli bir şekilde görüntüleyin",
         "view_pin_error": "PIN kodu yüklenemedi. Lütfen tekrar deneyin.",
+        "set_pin": "Set a 4-digit PIN",
+        "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Limiti yönet",
         "manage_spending_limit_description_restricted": "Sınırlı harcama açık",
         "manage_spending_limit_description_full": "Tam erişim açık",
@@ -9299,6 +9394,7 @@
         "travel_title": "MetaMask Travel",
         "travel_description": "%70'e varan indirimlerle otel rezervasyonu yapın",
         "card_tos_title": "Şart ve koşullar",
+        "legal_docs_error": "Unable to load legal documents.",
         "order_metal_card": "Metal Kart",
         "order_metal_card_description": "Hemen Fiziksel Metal Kart siparişinizi verin",
         "cashback": "%{{cashbackPercentage}} mUSD İadesi",
@@ -9466,7 +9562,8 @@
         "timeout_error": "İstek zaman aşımına uğradı. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.",
         "server_error": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
         "configuration_error": "Hizmet geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
-        "forbidden_error": "Bu işlem hesabınızda kullanılamıyor."
+        "forbidden_error": "Bu işlem hesabınızda kullanılamıyor.",
+        "money_account_linked_to_different_card": "This wallet is already linked to a different MetaMask Card. Unlink it from that card before linking it here."
       }
     },
     "card_forgot_password": {
@@ -10320,6 +10417,7 @@
     "convert_again": "Tekrar dönüştür",
     "wrap_again": "Tekrar sar",
     "unwrap_again": "Tekrar aç",
+    "lend_again": "Lend again",
     "transaction_pending": "İşlem bekliyor",
     "likely_to_confirm_in": "Tahmini onaylanma süresi",
     "confirm_time_estimate": "< 30 sn",
@@ -10343,26 +10441,26 @@
       "description": "Devam etmek için uygulamaya geri dönün."
     },
     "show_cli_link_success": {
-      "title": "MetaMask Agent CLI bağlantısı başarılı",
+      "title": "Agent CLI successfully linked",
       "description": "Devam etmek için CLI'ye geri dönün."
     },
     "push_nudge": {
-      "title": "Bildirimleri aç",
-      "description": "CLI oturumunuzdan yapılan işlemler için uyarı alın.",
-      "turn_on_button": "Aç",
-      "loading_title": "Bildirimler açılıyor",
-      "loading_description": "Biz ayarları yaparken bize biraz zaman verin.",
-      "enable_error": "Bildirimler açılamadı. Ayarlar bölümünden tekrar deneyin."
+      "title": "Never miss a transaction",
+      "description": "Get real-time alerts to review and approve transactions from your CLI session.",
+      "turn_on_button": "Bildirimleri etkinleştir",
+      "preview_title": "İşlem talebi",
+      "preview_message": "Your agent needs approval on a new limit.",
+      "preview_timestamp": "şimdi"
     },
     "show_otp": {
       "title": "Bu kodu girin",
       "description": "Bağlantıyı bitirmek için {{dappName}} içinde {{otp}} girin. Bu kodun süresinin dolmasına kalan süre {{seconds}} saniye.",
       "modal_title": "MetaMask Agent CLI'yi Bağla",
       "modal_description": "MetaMask Mobile uygulamasını MetaMask Agent CLI'ınız ile eşleştirin.",
-      "code_label": "BU KODU CLI'YE GİRİN",
+      "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Süresinin dolmasına kalan süre {{time}}",
       "expired": "Kodun süresi dolmuş",
-      "security_notice": "Önce bağlantı güvenliği sağlanıyor. Bir sonraki adımda erişim sağlamak için CLI'ye yetki vereceksiniz"
+      "security_notice": "Securing the connection"
     },
     "show_not_found": {
       "title": "Bağlantı Bulunamadı",
@@ -10541,6 +10639,7 @@
       "bluetooth_connection_failed": "Cihazınıza bağlanılamadı. Lütfen tekrar deneyin",
       "camera_permission_denied": "QR kodlarını taramak için kamera izni gereklidir. Lütfen cihaz ayarlarınızda etkinleştirin",
       "not_supported": "Bu işlem desteklenmiyor",
+      "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "{{device}} cihazınızda bu hesap için Gizli Kurtarma İfadesi veya parola kurulumunun yapıldığından emin olun"
     },
     "error": {
@@ -10564,6 +10663,7 @@
       "nearby_devices_permission_denied": "Yakındaki Cihazlar İzni Gerekli",
       "scan_failed": "Tarama Başarısız Oldu",
       "camera_permission_denied": "Kamera İzni Gerekli",
+      "unsupported_signature": "Signature not supported",
       "something_went_wrong": "Bir şeyler ters gitti"
     },
     "qr_scan_errors": {
