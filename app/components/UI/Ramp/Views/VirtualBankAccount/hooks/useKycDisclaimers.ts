@@ -54,6 +54,8 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
   const retry = useCallback(() => setRetryCount((count) => count + 1), []);
 
   useEffect(() => {
+    // TODO: Remove these debug console.logs before merging — added
+    // temporarily to trace the disclaimer fetch lifecycle during dev.
     // eslint-disable-next-line no-console
     console.log(
       '🚨🚨🚨 [VBA KYC] useKycDisclaimers CALLED — country:',
