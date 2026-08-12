@@ -1,13 +1,8 @@
 import {
+  Assertions,
   Gestures,
   Matchers,
   PlatformDetector,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-  PlaywrightMatchers,
-  asPlaywrightElement,
-  encapsulated,
-  encapsulatedAction,
   sleep,
   type EncapsulatedElementType,
 } from '../../framework';
@@ -19,64 +14,35 @@ const TOKEN_SEARCH_IOS_XPATH = `//*[@name='${selectTokenSelectors.TOKEN_SELECT_M
 
 class TokenSelectScreen {
   get tokenSearchInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
-            { exact: true },
-          ),
-        ios: () => PlaywrightMatchers.getElementByXPath(TOKEN_SEARCH_IOS_XPATH),
-      },
-    });
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(TOKEN_SEARCH_IOS_XPATH);
+    }
+    return Matchers.getElementByID(
+      selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
+    );
   }
 
   async tapTokenByName(token: string) {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.typeText(this.tokenSearchInput, token, {
-          elemDescription: 'Token Search Input',
-          hideKeyboard: true,
-        });
-        const tokenName = Matchers.getElementByText(token, 1);
-        await Gestures.waitAndTap(tokenName, {
-          elemDescription: `Token "${token}" in Token Select Screen`,
-        });
-      },
-      appium: async () => {
-        const searchField = await asPlaywrightElement(this.tokenSearchInput);
-        await PlaywrightAssertions.expectElementToBeVisible(searchField, {
-          timeout: 15000,
-          description: 'Token search field should be visible',
-        });
-        await searchField.fill(token);
-        await sleep(TOKEN_SEARCH_SETTLE_MS);
-        await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+    await Assertions.expectElementToBeVisible(this.tokenSearchInput, {
+      timeout: 15000,
+      description: 'Token search field should be visible',
+    });
+    await Gestures.typeText(this.tokenSearchInput, token, {
+      elemDescription: 'Token Search Input',
+      hideKeyboard: true,
+    });
+    await sleep(TOKEN_SEARCH_SETTLE_MS);
 
-        const isAndroid = await PlatformDetector.isAndroid();
-        const tokenElement = isAndroid
-          ? await PlaywrightMatchers.getElementByAndroidUIAutomator(
-              `.text("${token}")`,
-              { index: 1 },
-            )
-          : await PlaywrightMatchers.getElementByIOSPredicate(
-              `(label == "${token}" OR name == "${token}" OR label BEGINSWITH "${token} " OR name BEGINSWITH "${token} " OR label MATCHES ".*\\\\b${token}\\\\b.*" OR name MATCHES ".*\\\\b${token}\\\\b.*") AND NOT (name CONTAINS[c] "search") AND NOT (name CONTAINS[c] "textfield")`,
-            );
-
-        await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
-          timeout: 15000,
-          description: `Token "${token}" in Token Select Screen`,
-        });
-        await PlaywrightGestures.waitAndTap(tokenElement, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-          delay: 500,
-        });
-      },
+    const tokenElement = Matchers.getElementByText(token, 1);
+    await Assertions.expectElementToBeVisible(tokenElement, {
+      timeout: 15000,
+      description: `Token "${token}" in Token Select Screen`,
+    });
+    await Gestures.waitAndTap(tokenElement, {
+      elemDescription: `Token "${token}" in Token Select Screen`,
+      checkForDisplayed: true,
+      checkEnabled: true,
+      delay: 500,
     });
   }
 }

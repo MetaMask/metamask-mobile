@@ -1,135 +1,75 @@
-import {
-  asPlaywrightElement,
-  encapsulated,
-  encapsulatedAction,
-  EncapsulatedElementType,
-  PlaywrightGestures,
-  PlaywrightMatchers,
-} from '../../framework';
+import { EncapsulatedElementType, Gestures, Matchers } from '../../framework';
 
 class ChromeBrowserView {
   get chromeHomePageSearchBox(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          'com.android.chrome:id/search_box_text',
-        ),
-    });
+    return Matchers.getElementByID('com.android.chrome:id/search_box_text');
   }
 
   get chromeUrlBar(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById('com.android.chrome:id/url_bar'),
-    });
+    return Matchers.getElementByID('com.android.chrome:id/url_bar');
   }
 
   get onboardingChromeWithoutAccount(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          'com.android.chrome:id/signin_fre_dismiss_button',
-        ),
-    });
+    return Matchers.getElementByID(
+      'com.android.chrome:id/signin_fre_dismiss_button',
+    );
   }
 
   get chromeNoThanksButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          'com.android.chrome:id/no_thanks_button',
-        ),
-    });
+    return Matchers.getElementByID('com.android.chrome:id/no_thanks_button');
   }
 
   get chromeMenuButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById('com.android.chrome:id/menu_button'),
-    });
+    return Matchers.getElementByID('com.android.chrome:id/menu_button');
   }
 
   get chromeRefreshButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById('com.android.chrome:id/button_five'),
-    });
+    return Matchers.getElementByID('com.android.chrome:id/button_five');
   }
 
   get chromeUrlEntry(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById('com.android.chrome:id/line_2'),
-    });
+    return Matchers.getElementByID('com.android.chrome:id/line_2');
   }
 
   async tapSelectDappUrl() {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightGestures.tap(
-          await asPlaywrightElement(this.chromeUrlEntry),
-        );
-      },
+    await Gestures.tap(this.chromeUrlEntry, {
+      elemDescription: 'Chrome URL entry',
     });
   }
 
   async tapSearchBox() {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.chromeHomePageSearchBox),
-        );
-      },
+    await Gestures.waitAndTap(this.chromeHomePageSearchBox, {
+      elemDescription: 'Chrome home page search box',
     });
   }
 
   async tapUrlBar() {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.chromeUrlBar),
-        );
-      },
+    await Gestures.waitAndTap(this.chromeUrlBar, {
+      elemDescription: 'Chrome URL bar',
     });
   }
 
   async tapOnboardingChromeWithoutAccount() {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.onboardingChromeWithoutAccount),
-        );
-      },
+    await Gestures.waitAndTap(this.onboardingChromeWithoutAccount, {
+      elemDescription: 'Chrome onboarding dismiss button',
     });
   }
 
   async tapChromeNoThanksButton() {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.chromeNoThanksButton),
-        );
-      },
+    await Gestures.waitAndTap(this.chromeNoThanksButton, {
+      elemDescription: 'Chrome No Thanks button',
     });
   }
 
   async tapChromeMenuButton() {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.chromeMenuButton),
-        );
-      },
+    await Gestures.waitAndTap(this.chromeMenuButton, {
+      elemDescription: 'Chrome menu button',
     });
   }
 
   async tapChromeRefreshButton() {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.chromeRefreshButton),
-        );
-      },
+    await Gestures.waitAndTap(this.chromeRefreshButton, {
+      elemDescription: 'Chrome refresh button',
     });
   }
 }
