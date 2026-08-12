@@ -9,6 +9,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {
+  AvatarBaseShape,
+  AvatarIcon,
+  AvatarIconSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -53,9 +56,17 @@ const StepRow = ({
     alignItems={BoxAlignItems.Center}
     twClassName="gap-3"
   >
-    <Box twClassName="size-10 shrink-0 rounded-lg bg-default items-center justify-center">
-      <Icon name={icon} size={IconSize.Md} color={IconColor.IconAlternative} />
-    </Box>
+    {/* AvatarIcon (severity="neutral") is the design system's standard
+    icon-with-background treatment used for icon-led list rows elsewhere in
+    the app (e.g. activity list items). It defaults to `bg-muted`, so we
+    override to `bg-default` for contrast against this row's `bg-muted`
+    card. */}
+    <AvatarIcon
+      iconName={icon}
+      size={AvatarIconSize.Lg}
+      shape={AvatarBaseShape.Square}
+      twClassName="bg-default"
+    />
     <Text variant={TextVariant.BodyMd}>{children}</Text>
   </Box>
 );
