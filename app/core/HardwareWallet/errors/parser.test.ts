@@ -4,8 +4,9 @@ import {
   Severity,
   Category,
   HardwareWalletType,
+  DMK_MESSAGE_PATTERNS,
 } from '@metamask/hw-wallet-sdk';
-import { parseErrorByType } from './parser';
+import { LOCAL_MESSAGE_PATTERNS, parseErrorByType } from './parser';
 import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -507,6 +508,87 @@ describe('parseErrorByType', () => {
     });
   });
 
+  describe('DMK _tag-based error translation', () => {
+    it('parses DeviceSessionNotFound _tag as device disconnected', () => {
+      const error = {
+        _tag: 'DeviceSessionNotFound',
+        message: 'Session not found',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses ConnectionOpeningError _tag as bluetooth connection failed', () => {
+      const error = {
+        _tag: 'ConnectionOpeningError',
+        message: 'Failed to open connection',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.BluetoothConnectionFailed);
+    });
+
+    it('parses DeviceDisconnectedWhileSendingError _tag as device disconnected', () => {
+      const error = {
+        _tag: 'DeviceDisconnectedWhileSendingError',
+        message: 'Disconnected',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses DeviceLockedError _tag as device locked', () => {
+      const error = { _tag: 'DeviceLockedError', message: 'Device is locked' };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.AuthenticationDeviceLocked);
+    });
+
+    it('prefers name over _tag when both present', () => {
+      const error = {
+        name: 'TransportStatusError',
+        statusCode: 0x6985,
+        _tag: 'Ignored',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.UserRejected);
+    });
+  });
+
+  describe('DMK message-based error translation', () => {
+    it('parses "session not found" message as device disconnected', () => {
+      const error = new Error('Device session not found');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses "sessionId is not initialized" message as device disconnected', () => {
+      const error = new Error('Instance sessionId is not initialized.');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses "device action ended without completion" as device unresponsive', () => {
+      const error = new Error('Ledger device action ended without completion.');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUnresponsive);
+    });
+  });
+
   describe('when error is a non-Error object with known Ledger shape', () => {
     it('parses object with disconnect error name', () => {
       const result = parseErrorByType(
@@ -556,5 +638,40 @@ describe('parseErrorByType', () => {
 
       expect(result.metadata?.recoveryAction).toBe('acknowledge');
     });
+  });
+});
+
+describe('pattern collision invariant (LOCAL_MESSAGE_PATTERNS vs DMK_MESSAGE_PATTERNS)', () => {
+  // First-match-wins: DMK runs before LOCAL, so substring overlap would let
+  // DMK shadow LOCAL and misroute legacy/BLE errors. This pins disjointness across SDK bumps.
+
+  interface PatternEntry {
+    patterns: readonly string[];
+  }
+  const flatten = (set: readonly PatternEntry[]): string[] =>
+    set.flatMap((entry) => entry.patterns.map((p) => p.toLowerCase()));
+
+  it('LOCAL and DMK pattern substrings are disjoint', () => {
+    const localPatterns = flatten(LOCAL_MESSAGE_PATTERNS);
+    const dmkPatterns = flatten(DMK_MESSAGE_PATTERNS);
+
+    const violations: string[] = [];
+    for (const local of localPatterns) {
+      for (const dmk of dmkPatterns) {
+        if (dmk.includes(local)) {
+          violations.push(
+            `local "${local}" is a substring of DMK "${dmk}" — DMK runs first and would shadow local`,
+          );
+        }
+        if (local.includes(dmk)) {
+          violations.push(
+            `DMK "${dmk}" is a substring of local "${local}" — DMK runs first and would shadow local`,
+          );
+        }
+      }
+    }
+
+    // Empty array = no collisions = first-match-wins ordering is safe.
+    expect(violations).toEqual([]);
   });
 });

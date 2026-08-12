@@ -1,4 +1,4 @@
-import { ChainId } from '@metamask/bridge-controller';
+import { ChainId, formatChainIdToCaip } from '@metamask/bridge-controller';
 import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { act, renderHook } from '@testing-library/react-native';
@@ -53,6 +53,7 @@ import {
   beginQuickBuySubmission,
   endQuickBuySubmission,
 } from '../quickBuyTradeTracker';
+import { merge } from 'lodash';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { positionToQuickBuyTarget } from '../types';
 
@@ -345,27 +346,24 @@ const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
 const createActiveQuote = (
   overrides: Record<string, unknown> = {},
 ): EnrichedQuickBuyQuote =>
-  ({
-    ...overrides,
-    quote: {
-      srcTokenAmount: '10000000000000000',
-      ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
+  merge(
+    {},
+    {
+      ...overrides,
+      quote: {
+        // The full wallet deduction (routing amount + src-token fees), in decimal
+        // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
+        // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
+        // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
+        // quotes).
+        src: { amount: '10000000000000000', normalizedAmount: '0.01' },
+        feeData: {
+          network: [{ normalizedAmount: '0.0001' }],
+        },
+      },
     },
-    // The full wallet deduction (routing amount + src-token fees), in decimal
-    // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
-    // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
-    // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
-    // quotes).
-    sentAmount: {
-      amount: '0.01',
-      ...((overrides.sentAmount as Record<string, unknown> | undefined) ?? {}),
-    },
-    totalNetworkFee: {
-      amount: '0.0001',
-      ...((overrides.totalNetworkFee as Record<string, unknown> | undefined) ??
-        {}),
-    },
-  }) as EnrichedQuickBuyQuote;
+    overrides,
+  ) as EnrichedQuickBuyQuote;
 
 const setupDefaultMocks = () => {
   (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -1269,11 +1267,18 @@ describe('useQuickBuyController', () => {
 
     it('returns the insufficient-funds label when BTC network fee is unavailable', () => {
       const activeQuote = createActiveQuote({
+        chainId: formatChainIdToCaip(ChainId.BTC),
         quote: {
-          srcChainId: ChainId.BTC,
-        },
-        totalNetworkFee: {
-          amount: '0',
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0',
+                asset: {
+                  symbol: 'BTC',
+                },
+              },
+            ],
+          },
         },
       });
 
@@ -1774,8 +1779,8 @@ describe('useQuickBuyController', () => {
       quoteState.activeQuote = {
         ...createActiveQuote(),
         quote: {
-          srcTokenAmount: '10000000000000000',
-          priceData: { priceImpact: '0.30' },
+          src: { amount: '10000000000000000' },
+          priceData: { priceImpact: { amount: '0.30' } },
         },
       } as never;
       rerender(props);
@@ -3510,7 +3515,7 @@ describe('useQuickBuyController', () => {
         Engine.context.BridgeStatusController.submitTx,
       ).toHaveBeenCalledWith(
         '0xWALLET',
-        expect.objectContaining({ approval: undefined }),
+        expect.objectContaining({ approval: null }),
         true,
       );
     });
