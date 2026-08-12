@@ -5,7 +5,7 @@
  * `DefaultSwapDestTokens` list. Matching is case-insensitive so the source
  * token definitions are handled regardless of their symbol casing.
  */
-const STABLECOIN_SYMBOLS = new Set(['musd', 'usdc', 'usdt']);
+const STABLECOIN_SYMBOLS = new Set(['musd', 'usdc', 'usdt', 'usde']);
 
 export const isStablecoinSymbol = (symbol: string | undefined): boolean =>
   symbol !== undefined && STABLECOIN_SYMBOLS.has(symbol.toLowerCase());

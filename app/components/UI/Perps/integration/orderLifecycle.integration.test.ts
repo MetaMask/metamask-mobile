@@ -2,7 +2,7 @@
  * Integration tests — perps order lifecycle (open / open-limit / close).
  *
  * Phase 1 of the perps integration rollout. Each test covers one row of the
- * order-lifecycle section of `tests/integration/perps-use-cases.md`. Real
+ * order-lifecycle section of `tests/integration/harnesses/perps/perps-use-cases.md`. Real
  * `HyperLiquidProvider` runs; only the I/O boundary (SDK clients, wallet,
  * subscriptions) is mocked via the harness.
  *
@@ -11,7 +11,7 @@
 
 import { type Position } from '@metamask/perps-controller';
 
-import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps';
+import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps/perps';
 
 describe('Perps order lifecycle — integration', () => {
   describe('opening a position', () => {
