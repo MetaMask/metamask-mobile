@@ -1,20 +1,50 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { isValidHexAddress } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import {
-  selectAreAnyWalletsBlocked,
-  selectWalletComplianceStatusMap,
-} from '../../../../selectors/complianceController';
+import { selectAreAnyWalletsBlocked } from '../../../../selectors/complianceController';
 import { selectComplianceEnabled } from '../../../../selectors/featureFlagController/compliance';
 import { useAccessRestrictedModal } from '../contexts/AccessRestrictedContext';
 
 type AddressInput = string | string[];
 
 // OFAC status for a wallet doesn't change minute-to-minute, so a recent
-// result already in the store is trusted instead of re-checking on every
-// screen mount that gates on the same address.
+// result already in the query cache is trusted instead of re-checking on
+// every screen mount that gates on the same address.
 const COMPLIANCE_CACHE_FRESHNESS_MS = 10 * 60 * 1000;
+
+// The global query client defaults to `retry: 2` (reasonable for most data),
+// but that would make a real API outage take ~3s of backoff before gate()
+// can fail open. Compliance checks should fail open immediately on error,
+// matching the single-attempt behavior of a direct Engine call.
+const COMPLIANCE_QUERY_OPTIONS = {
+  staleTime: COMPLIANCE_CACHE_FRESHNESS_MS,
+  retry: false,
+} as const;
+
+// EVM addresses are case-insensitive (checksum casing carries no meaning),
+// matching how `getWalletComplianceStatus` inside `@metamask/compliance-controller`
+// already treats them for the Redux-backed `isBlocked` status. Non-hex
+// addresses (Solana, Bitcoin, ...) are left untouched since case is
+// significant for those.
+const normalizeAddressForCacheKey = (addr: string) =>
+  isValidHexAddress(addr, { allowNonPrefixed: false })
+    ? addr.toLowerCase()
+    : addr;
+
+// Builds the query cache key from a raw, comma-joined addressKey — collapsing
+// differently-cased references to the same wallet onto the same cache entry.
+const complianceQueryKey = (addressKey: string) =>
+  [
+    'complianceCheck',
+    addressKey
+      .split(',')
+      .filter(Boolean)
+      .map(normalizeAddressForCacheKey)
+      .join(','),
+  ] as const;
 
 /**
  * Guards an async action behind an OFAC compliance check.
@@ -60,9 +90,8 @@ export function useComplianceGate(address?: AddressInput) {
 
   const isComplianceEnabled = useSelector(selectComplianceEnabled);
   const rawIsBlocked = useSelector(selectAreAnyWalletsBlocked(addresses));
-  const complianceStatusMap =
-    useSelector(selectWalletComplianceStatusMap) ?? {};
   const { showAccessRestrictedModal } = useAccessRestrictedModal();
+  const queryClient = useQueryClient();
 
   const isBlocked = isComplianceEnabled && rawIsBlocked;
 
@@ -73,33 +102,6 @@ export function useComplianceGate(address?: AddressInput) {
     );
   }, [addresses, addressKey]);
 
-  // Latest-value refs so the prefetch effect can check freshness without
-  // depending on these — both update as a *result* of the effect's own
-  // fetch, so depending on them directly would cause the effect to re-run
-  // again right after every fetch completes.
-  const complianceStatusMapRef = useRef(complianceStatusMap);
-  complianceStatusMapRef.current = complianceStatusMap;
-  const rawIsBlockedRef = useRef(rawIsBlocked);
-  rawIsBlockedRef.current = rawIsBlocked;
-
-  // Holds the in-flight prefetch tagged with the address set it belongs to, so
-  // gate() can verify the cached prefetch belongs to the current wallet before
-  // trusting it.
-  const prefetchRef = useRef<{
-    addressKey: string;
-    promise: Promise<unknown>;
-  } | null>(null);
-
-  // Stores the resolved blocked status from the most recent prefetch.
-  // Default false = fail-open: assume not blocked until the API says otherwise.
-  // Reset to false at the start of each prefetch (while in-flight) so gate()
-  // never reads a stale result from a previous address.
-  const prefetchBlockedRef = useRef<boolean>(false);
-
-  // Guards against a slow in-flight prefetch for a previous address resolving
-  // late and overwriting prefetchBlockedRef for the current address.
-  const requestIdRef = useRef(0);
-
   // Latest-value ref assigned during render so it reflects the current wallet
   // the instant a switch causes a re-render — before the prefetch effect fires.
   // gate() reads this to detect a wallet switch that happens while a compliance
@@ -107,65 +109,19 @@ export function useComplianceGate(address?: AddressInput) {
   const currentAddressKeyRef = useRef(addressKey);
   currentAddressKeyRef.current = addressKey;
 
-  // Keep gate stable for consumers while allowing its fallback path to call the
-  // latest address-bound compliance check after a render-before-effect wallet switch.
-  const checkComplianceRef = useRef(checkCompliance);
-  checkComplianceRef.current = checkCompliance;
-
   // Prefetch compliance status on mount and whenever the address changes.
-  // `checkCompliance` is memoized on `addresses`, so its identity changes
-  // exactly when the address set changes — that (not `addresses.length`, which
-  // stays constant across an account switch) is the correct re-fetch signal.
+  // queryClient.prefetchQuery is keyed by address and respects staleTime, so
+  // it's a no-op (no network call) when a fresh result is already cached —
+  // whether that result came from this same prefetch or from a concurrent
+  // gate() call for the same address.
   useEffect(() => {
-    if (!isComplianceEnabled) {
-      prefetchBlockedRef.current = false;
-      prefetchRef.current = null;
-      return;
-    }
-
-    // Bump the request id unconditionally (even on the cache-hit path below)
-    // so a still-in-flight fetch for a previous address can never resolve
-    // later and overwrite the status we're about to set for this one.
-    const requestId = requestIdRef.current + 1;
-    requestIdRef.current = requestId;
-
-    // Skip the network round-trip when every address in this set already
-    // has a compliance result recorded within the freshness window — trust
-    // the Redux-cached status instead.
-    const now = Date.now();
-    const isFresh =
-      addresses.length > 0 &&
-      addresses.every((addr) => {
-        const status = complianceStatusMapRef.current[addr];
-        return (
-          !!status &&
-          now - new Date(status.checkedAt).getTime() <
-            COMPLIANCE_CACHE_FRESHNESS_MS
-        );
-      });
-    if (isFresh) {
-      prefetchBlockedRef.current = rawIsBlockedRef.current;
-      prefetchRef.current = { addressKey, promise: Promise.resolve() };
-      return;
-    }
-
-    prefetchBlockedRef.current = false; // reset while in-flight
-    const promise = checkCompliance()
-      .then((results) => {
-        if (requestIdRef.current === requestId) {
-          prefetchBlockedRef.current = results
-            ? results.some((r) => r.blocked)
-            : false;
-        }
-      })
-      .catch(() => {
-        if (requestIdRef.current === requestId) {
-          prefetchBlockedRef.current = false; // fail-open on error
-          DevLogger.log('[useComplianceGate] Prefetch compliance check failed');
-        }
-      });
-    prefetchRef.current = { addressKey, promise };
-  }, [addressKey, addresses, checkCompliance, isComplianceEnabled]);
+    if (!isComplianceEnabled || !addressKey) return;
+    queryClient.prefetchQuery({
+      queryKey: complianceQueryKey(addressKey),
+      queryFn: checkCompliance,
+      ...COMPLIANCE_QUERY_OPTIONS,
+    });
+  }, [addressKey, checkCompliance, isComplianceEnabled, queryClient]);
 
   const gate = useCallback(
     async <T>(action: () => Promise<T>): Promise<T | void> => {
@@ -179,25 +135,23 @@ export function useComplianceGate(address?: AddressInput) {
       // Capture the address at gate() entry — used after the await to detect
       // a wallet switch that happened while the check was in flight.
       const gateAddressKey = currentAddressKeyRef.current;
-      const prefetch = prefetchRef.current;
 
-      let blocked: boolean;
-      if (prefetch && prefetch.addressKey === gateAddressKey) {
-        // Common path: trust the prefetch for the current wallet. Await it in
-        // case the user tapped before it settled (instant if already resolved).
-        await prefetch.promise;
-        blocked = prefetchBlockedRef.current;
-      } else {
-        // Transient window after a wallet switch, before the effect fires —
-        // no prefetch exists yet for the current address. Do a one-off check,
-        // failing open on error.
-        let results: { blocked: boolean }[] | undefined;
+      let blocked = false;
+      if (gateAddressKey) {
         try {
-          results = await checkComplianceRef.current();
+          // fetchQuery shares the same cache entry (and in-flight promise, if
+          // any) as the mount-time prefetch above — a fresh cached result
+          // resolves instantly with no network call; a stale one triggers
+          // exactly one request, shared by every concurrent caller.
+          const results = await queryClient.fetchQuery({
+            queryKey: complianceQueryKey(gateAddressKey),
+            queryFn: checkCompliance,
+            ...COMPLIANCE_QUERY_OPTIONS,
+          });
+          blocked = results?.some((r) => r.blocked) ?? false;
         } catch {
-          results = undefined;
+          blocked = false; // fail-open on error
         }
-        blocked = results?.some((r) => r.blocked) ?? false;
       }
 
       // If the selected wallet changed while the check was in flight, abandon
@@ -219,7 +173,12 @@ export function useComplianceGate(address?: AddressInput) {
       DevLogger.log('[useComplianceGate] Wallet not blocked, proceeding');
       return action();
     },
-    [isComplianceEnabled, showAccessRestrictedModal],
+    [
+      isComplianceEnabled,
+      showAccessRestrictedModal,
+      queryClient,
+      checkCompliance,
+    ],
   );
 
   return useMemo(
