@@ -1,5 +1,6 @@
 import {
   isSupportedPooledStakingChain,
+  selectLendingMarkets,
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
 } from '@metamask/earn-controller';
@@ -74,6 +75,11 @@ const selectEarnControllerState = (state: RootState) =>
 
 const selectSelectedEvmAddress = (state: RootState) =>
   selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address;
+
+const selectAllLendingMarkets = createSelector(
+  selectEarnControllerState,
+  (earnControllerState) => selectLendingMarkets(earnControllerState),
+);
 
 const selectEarnTokenBaseData = createSelector(
   [
@@ -647,6 +653,7 @@ const selectPrimaryEarnExperienceTypeForAsset = createSelector(
 
 export const earnSelectors = {
   selectEarnControllerState,
+  selectAllLendingMarkets,
   selectEarnTokens,
   selectEarnToken,
   selectEarnOutputToken,

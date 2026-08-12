@@ -5,11 +5,8 @@ import React, {
   useRef,
 } from 'react';
 import { ScrollView, View } from 'react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  AvatarToken,
-  AvatarTokenSize,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
@@ -22,6 +19,7 @@ import {
   IconSize,
   SectionDivider,
   SectionHeader,
+  Skeleton,
   Tag,
   TagSeverity,
   Text,
@@ -29,11 +27,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { getAssetImageUrl } from '../../../Bridge/hooks/useAssetMetadata/utils';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import { strings } from '../../../../../../locales/i18n';
-import { MUSD_TOKEN_ADDRESS } from '../../constants/musd';
 import type { TokenI } from '../../../Tokens/types';
+import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import EarnSectionAssetCard from '../EarnSectionAssetCard';
 import EarnSectionCard from '../EarnSectionCard';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -45,146 +42,35 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { useNavigation } from '@react-navigation/native';
+import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { truncateNumber } from '../../utils';
 
 interface EarnSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
 }
 
-interface EarnAssetIcon {
-  name: string;
-  address?: string;
-}
+const renderEarnAssetIcon = (token: TokenI) => {
+  const networkImageSource = token.chainId
+    ? getNetworkImageSource({ chainId: token.chainId })
+    : undefined;
 
-interface EarnSectionAssetCardConfig {
-  key: string;
-  icon: EarnAssetIcon;
-  token: TokenI;
-  primaryTextKey: string;
-  secondaryTextKey: string;
-  tertiaryTextKey: string;
-}
-
-// TODO: Replace with actual held assets, lending markets, and staking assets (ETH and TRX).
-const EARN_ASSET_CHAIN_ID = CHAIN_IDS.MAINNET;
-const EARN_ASSET_NETWORK_NAME = 'Ethereum';
-const EARN_ASSET_NETWORK_IMAGE_SOURCE = getNetworkImageSource({
-  chainId: EARN_ASSET_CHAIN_ID,
-});
-
-const createTemporaryToken = (
-  symbol: string,
-  address: string,
-  decimals: number,
-): TokenI => ({
-  address,
-  decimals,
-  image: '',
-  name: symbol,
-  symbol,
-  balance: '0',
-  logo: undefined,
-  isETH: symbol === 'ETH',
-  chainId: EARN_ASSET_CHAIN_ID,
-});
-
-const MONEY_ACCOUNT_TOKEN = createTemporaryToken(
-  'USDC',
-  '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  6,
-);
-
-const TEMP_EARN_ASSET_CARD_CONFIGS: EarnSectionAssetCardConfig[] = [
-  {
-    key: 'usdc',
-    icon: {
-      name: 'USDC',
-      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    },
-    token: createTemporaryToken(
-      'USDC',
-      '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      6,
-    ),
-    primaryTextKey: 'earn_module.usdc',
-    secondaryTextKey: 'earn_module.usdc_balance',
-    tertiaryTextKey: 'earn_module.stablecoin_apy',
-  },
-  {
-    key: 'usdt',
-    icon: {
-      name: 'USDT',
-      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    },
-    token: createTemporaryToken(
-      'USDT',
-      '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      6,
-    ),
-    primaryTextKey: 'earn_module.usdt',
-    secondaryTextKey: 'earn_module.usdt_balance',
-    tertiaryTextKey: 'earn_module.stablecoin_apy',
-  },
-  {
-    key: 'musd',
-    icon: {
-      name: 'mUSD',
-      address: MUSD_TOKEN_ADDRESS,
-    },
-    token: createTemporaryToken('mUSD', MUSD_TOKEN_ADDRESS, 18),
-    primaryTextKey: 'earn_module.musd',
-    secondaryTextKey: 'earn_module.musd_balance',
-    tertiaryTextKey: 'earn_module.stablecoin_apy',
-  },
-  {
-    key: 'ausdc',
-    icon: {
-      name: 'aUSDC',
-      address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
-    },
-    token: createTemporaryToken(
-      'aUSDC',
-      '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
-      6,
-    ),
-    primaryTextKey: 'earn_module.ausdc',
-    secondaryTextKey: 'earn_module.ausdc_balance',
-    tertiaryTextKey: 'earn_module.stablecoin_apy',
-  },
-  {
-    key: 'eth',
-    icon: {
-      name: 'ETH',
-    },
-    token: createTemporaryToken('ETH', '', 18),
-    primaryTextKey: 'earn_module.eth',
-    secondaryTextKey: 'earn_module.eth_balance',
-    tertiaryTextKey: 'earn_module.eth_apr',
-  },
-];
-
-const renderEarnAssetIcon = (icon: EarnAssetIcon) => (
-  <BadgeWrapper
-    position={BadgeWrapperPosition.BottomRight}
-    badge={
-      <BadgeNetwork
-        name={EARN_ASSET_NETWORK_NAME}
-        src={EARN_ASSET_NETWORK_IMAGE_SOURCE}
-        twClassName="rounded-1"
-      />
-    }
-  >
-    <AvatarToken
-      name={icon.name}
-      src={
-        icon.address
-          ? { uri: getAssetImageUrl(icon.address, EARN_ASSET_CHAIN_ID) }
-          : EARN_ASSET_NETWORK_IMAGE_SOURCE
+  return (
+    <BadgeWrapper
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        <BadgeNetwork
+          name={token.chainId ?? ''}
+          src={networkImageSource}
+          twClassName="rounded-1"
+        />
       }
-      size={AvatarTokenSize.Lg}
-    />
-  </BadgeWrapper>
-);
+    >
+      <AssetLogo asset={token} />
+    </BadgeWrapper>
+  );
+};
 
 const renderNewTag = () => (
   <Tag
@@ -203,35 +89,66 @@ const renderNewTag = () => (
   </Tag>
 );
 
+const renderAssetCardSkeleton = (key: string) => (
+  <EarnSectionCard key={key} testID={key}>
+    <Skeleton height={40} width={40} twClassName="rounded-full" />
+    <Box twClassName="gap-2">
+      <Skeleton height={16} width={64} />
+      <Skeleton height={20} width={112} />
+      <Skeleton height={20} width={88} />
+    </Box>
+  </EarnSectionCard>
+);
+
+const renderUnavailableAssetCard = (key: string) => (
+  <EarnSectionAssetCard
+    key={key}
+    icon={
+      <Icon
+        name={IconName.Warning}
+        color={IconColor.IconAlternative}
+        size={IconSize.Lg}
+      />
+    }
+    primaryText={strings('earn_module.asset_unavailable')}
+    secondaryText={strings('earn_module.get_started')}
+    tertiaryText={strings('earn_module.rate_unavailable')}
+    testID={key}
+  />
+);
+
 const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
 
     const sectionViewRef = useRef<View>(null);
-
-    // TODO: Wire actual refresh logic.
-    const refresh = useCallback(async () => undefined, []);
+    const {
+      assetSlots,
+      moneyAccountToken,
+      moneyApyPercent,
+      isLoading,
+      refresh,
+    } = useEarnSectionAssets();
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-    // TODO: Update params when wiring up real data.
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
-      isLoading: false,
+      isLoading,
       sectionName: HomeSectionNames.EARN,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: false,
+      // TODO: Breakout 7 into constant.
       itemCount: 7,
     });
 
-    // TODO: Update params when wiring up real data.
     useSectionPerformance({
       sectionId: HomeSectionNames.EARN,
-      contentReady: true,
+      contentReady: !isLoading,
       isEmpty: false,
-      isLoading: false,
+      isLoading,
       enabled: true,
     });
 
@@ -277,30 +194,60 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
               tag={renderNewTag()}
               primaryText={strings('earn_module.money_account')}
               secondaryText={strings('earn_module.get_started')}
-              tertiaryText={strings('earn_module.money_apy')}
+              tertiaryText={
+                moneyApyPercent === undefined
+                  ? // TODO: Render Loading skeleton for card when rate is loading. Only show rate_unavailable when rate is missing and not actively fetching.
+                    strings('earn_module.rate_unavailable')
+                  : strings('earn_module.rate_apy', {
+                      percentage: truncateNumber(moneyApyPercent),
+                    })
+              }
               testID="earn-section-money-account-card"
-              onPress={() => handleAssetCardPress(MONEY_ACCOUNT_TOKEN)}
+              onPress={() => handleAssetCardPress(moneyAccountToken)}
             />
-            {TEMP_EARN_ASSET_CARD_CONFIGS.map(
-              ({
-                key,
-                icon,
-                token,
-                primaryTextKey,
-                secondaryTextKey,
-                tertiaryTextKey,
-              }) => (
-                <EarnSectionAssetCard
-                  key={key}
-                  icon={renderEarnAssetIcon(icon)}
-                  primaryText={strings(primaryTextKey)}
-                  secondaryText={strings(secondaryTextKey)}
-                  tertiaryText={strings(tertiaryTextKey)}
-                  testID={`earn-section-${key}-card`}
-                  onPress={() => handleAssetCardPress(token)}
-                />
-              ),
-            )}
+            {/* TODO: Bug isLoading is always true */}
+            {isLoading
+              ? assetSlots.map(({ key }) => renderAssetCardSkeleton(key))
+              : assetSlots.map((slot, index) => {
+                  if (slot.kind === 'unavailable') {
+                    return renderUnavailableAssetCard(slot.key);
+                  }
+
+                  const { asset } = slot;
+                  const isApr =
+                    asset.highestRateExperience?.type ===
+                    EARN_EXPERIENCES.STABLECOIN_LENDING;
+                  const rateText =
+                    asset.highestRatePercent === undefined
+                      ? strings('earn_module.rate_unavailable')
+                      : strings(
+                          isApr
+                            ? 'earn_module.rate_apr'
+                            : 'earn_module.rate_apy',
+                          {
+                            percentage: truncateNumber(
+                              asset.highestRatePercent,
+                            ),
+                          },
+                        );
+
+                  return (
+                    <EarnSectionAssetCard
+                      key={slot.key}
+                      icon={renderEarnAssetIcon(asset.token)}
+                      primaryText={asset.token.ticker ?? asset.token.symbol}
+                      secondaryText={
+                        asset.hasBalance
+                          ? (asset.balanceFiat ??
+                            strings('earn_module.balance_unavailable'))
+                          : strings('earn_module.get_started')
+                      }
+                      tertiaryText={rateText}
+                      testID={`earn-section-asset-${index}-card`}
+                      onPress={() => handleAssetCardPress(asset.token)}
+                    />
+                  );
+                })}
             <EarnSectionCard
               testID="earn-section-view-more-card"
               onPress={handleViewMoreCardPress}
