@@ -203,11 +203,7 @@ export const Confirm = ({
   }
 
   return (
-    <BottomSheet
-      onClose={() => onReject()}
-      style={styles.bottomSheetDialogSheet}
-      testID={ConfirmationUIType.MODAL}
-    >
+    <BottomSheet onClose={() => onReject()} testID={ConfirmationUIType.MODAL}>
       <View testID={approvalRequest?.type} style={styles.confirmContainer}>
         <ConfirmWrapped styles={styles} route={route} />
       </View>
