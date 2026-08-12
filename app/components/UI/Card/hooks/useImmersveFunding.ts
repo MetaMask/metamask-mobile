@@ -8,7 +8,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import { selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   awaitTransactionConfirmed,
@@ -46,7 +46,7 @@ export const useImmersveFunding = () => {
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
-  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
+  const immersveConfig = useSelector(selectCardImmersveConfig);
   const [state, setState] = useState<FundingState>({
     isLoading: false,
     error: null,
@@ -79,7 +79,7 @@ export const useImmersveFunding = () => {
         }
 
         const caipChainId = immersveNetworkToCaipChainId(
-          cardFeatureFlag?.immersve?.network,
+          immersveConfig?.network,
         );
         const networkClientId = await ensureNetworkExists(caipChainId);
         const writeToEncode = approveAmountBaseUnits
@@ -121,7 +121,7 @@ export const useImmersveFunding = () => {
     },
     [
       selectAccountByScope,
-      cardFeatureFlag?.immersve?.network,
+      immersveConfig?.network,
       ensureNetworkExists,
       TransactionController,
     ],
