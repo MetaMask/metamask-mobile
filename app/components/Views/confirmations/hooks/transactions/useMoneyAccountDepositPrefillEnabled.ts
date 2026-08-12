@@ -1,0 +1,36 @@
+import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { selectPrefilledAmountConfig } from '../../../../../selectors/featureFlagController/confirmations';
+import type { RootState } from '../../../../../reducers';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+} from './abTestConfig';
+import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
+
+/**
+ * Kill-switch + A/B assignment for Money Account deposit prefill.
+ * Experiment Viewed is emitted from MoneyAccountDepositInfo.
+ */
+export function useMoneyAccountDepositPrefillEnabled(): (
+  intent?: 'convert' | 'addMusd' | 'card',
+) => boolean {
+  const prefillConfig = useSelector((state: RootState) =>
+    selectPrefilledAmountConfig(state, 'moneyAccountDeposit'),
+  );
+  const { variant: depositPrefillVariant } = useABTest(
+    MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+    MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+  );
+
+  return useCallback(
+    (intent?: 'convert' | 'addMusd' | 'card') =>
+      isMoneyAccountDepositPrefillEnabled({
+        remotePrefillEnabled: prefillConfig.enabled,
+        abTestPrefillEnabled: depositPrefillVariant.prefillEnabled,
+        intent,
+      }),
+    [depositPrefillVariant.prefillEnabled, prefillConfig.enabled],
+  );
+}

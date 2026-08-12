@@ -24,14 +24,8 @@ import NavigationService from '../../../../core/NavigationService/NavigationServ
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import {
-  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
-  MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
-} from '../../../Views/confirmations/hooks/transactions/abTestConfig';
-import { selectPrefilledAmountConfig } from '../../../../selectors/featureFlagController/confirmations';
-import type { RootState } from '../../../../reducers';
+import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 import { ensureError } from '../../../../util/errorUtils';
-import { useABTest } from '../../../../hooks/useABTest';
 import { getErrorCode, getErrorMessage } from '../utils/errorUtils';
 import useMoneyToasts from './useMoneyToasts';
 
@@ -98,14 +92,7 @@ function isMoneyConfirmationActive(): boolean {
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const prefillConfig = useSelector((state: RootState) =>
-    selectPrefilledAmountConfig(state, 'moneyAccountDeposit'),
-  );
-  // Assignment only — Experiment Viewed is emitted from MoneyAccountDepositInfo.
-  const { variant: depositPrefillVariant } = useABTest(
-    MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
-    MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
-  );
+  const isDepositPrefillEnabled = useMoneyAccountDepositPrefillEnabled();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
@@ -169,13 +156,8 @@ export function useMoneyAccountDeposit() {
         depositIntentByBatchId.set(batchId.toLowerCase(), options.intent);
       }
 
-      const usePrefillLoader =
-        ((prefillConfig.enabled && depositPrefillVariant.prefillEnabled) ||
-          options?.intent === 'addMusd') &&
-        options?.intent !== 'card';
-
       const confirmationParams = {
-        loader: usePrefillLoader
+        loader: isDepositPrefillEnabled(options?.intent)
           ? ConfirmationLoader.PrefillCustomAmount
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
@@ -248,10 +230,9 @@ export function useMoneyAccountDeposit() {
     },
     [
       MoneyToastOptions.deposit,
-      depositPrefillVariant.prefillEnabled,
+      isDepositPrefillEnabled,
       navigateToConfirmation,
       navigation,
-      prefillConfig.enabled,
       primaryMoneyAccount,
       showToast,
       vaultConfig,

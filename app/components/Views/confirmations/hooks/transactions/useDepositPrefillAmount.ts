@@ -21,6 +21,7 @@ import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
   MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
 } from './abTestConfig';
+import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
@@ -79,13 +80,11 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
 
   const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
 
-  // Keep loader/prefill rules aligned with useMoneyAccountDeposit:
-  // - remote prefilledAmount kill-switch AND treatment → prefill
-  // - addMusd always prefills; card never does
-  const enabled =
-    depositIntent !== 'card' &&
-    ((prefilledAmountConfig.enabled && depositPrefillVariant.prefillEnabled) ||
-      depositIntent === 'addMusd');
+  const enabled = isMoneyAccountDepositPrefillEnabled({
+    remotePrefillEnabled: prefilledAmountConfig.enabled,
+    abTestPrefillEnabled: depositPrefillVariant.prefillEnabled,
+    intent: depositIntent,
+  });
 
   const transactionId = transactionMeta?.id ?? '';
   const accountOverride = useSelector((state: RootState) =>
