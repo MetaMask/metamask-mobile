@@ -5,6 +5,7 @@ import {
 import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import { EncapsulatedElementType } from '../../framework';
@@ -76,10 +77,14 @@ class NetworkListModal {
   }
 
   async confirmDeleteNetwork(): Promise<void> {
-    await Gestures.waitAndTap(
-      Matchers.getElementByText(NetworkListModalSelectorsText.DELETE_NETWORK),
-      { elemDescription: 'Confirm delete network' },
+    // Exact match — contains("Delete") can hit titles like "Delete network".
+    const deleteLabel = NetworkListModalSelectorsText.DELETE_NETWORK;
+    const exactDelete = new RegExp(
+      `^${deleteLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
     );
+    await Gestures.waitAndTap(Matchers.getElementByText(exactDelete), {
+      elemDescription: 'Confirm delete network',
+    });
   }
 
   async scrollToTopOfNetworkList(): Promise<void> {
@@ -180,6 +185,16 @@ class NetworkListModal {
   }
 
   async closeNetworkManager(): Promise<void> {
+    // After delete the sheet may already be gone — don't tap a stray button-icon.
+    try {
+      await Assertions.expectElementToBeVisible(this.popularNetworksContainer, {
+        timeout: 3_000,
+        description: 'Network manager sheet still open',
+      });
+    } catch {
+      return;
+    }
+
     await Gestures.waitAndTap(Matchers.getElementByID('button-icon'), {
       elemDescription: 'Close NetworkManager bottom sheet',
     });
