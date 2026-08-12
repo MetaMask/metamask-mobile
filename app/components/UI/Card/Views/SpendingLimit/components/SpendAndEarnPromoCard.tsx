@@ -72,7 +72,8 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
     strings('card.card_spending_limit.use_money_account_cta');
 
   useEffect(() => {
-    if (hasTrackedViewRef.current || !analytics) return;
+    // Wait for a known provider so we don't permanently lock provider: null.
+    if (hasTrackedViewRef.current || !analytics || !activeProviderId) return;
     hasTrackedViewRef.current = true;
 
     trackEvent(

@@ -36,7 +36,8 @@ export function useCardHomeAnalytics({
   const hasTracked = useRef(false);
 
   useEffect(() => {
-    if (hasTracked.current || isLoading) return;
+    // Wait for a known provider so we don't permanently lock provider: null.
+    if (hasTracked.current || isLoading || !activeProviderId) return;
 
     const hasValidBalance =
       balanceFormatted !== undefined &&

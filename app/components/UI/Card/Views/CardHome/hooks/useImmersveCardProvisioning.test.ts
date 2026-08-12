@@ -1,11 +1,13 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
 import Engine from '../../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   CardProviderError,
   CardProviderErrorCode,
   type CardHomeData,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+import { CardActions } from '../../../util/metrics';
 
 let mockProviderId: string | null = 'immersve';
 let mockReduxFundingSourceId: string | null = 'fs-1';
@@ -44,12 +46,18 @@ jest.mock('../../../hooks/useImmersveOnboardingRouter', () => ({
   useImmersveOnboardingRouter: () => mockRoute,
 }));
 
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
-    })),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -357,6 +365,37 @@ describe('useImmersveCardProvisioning', () => {
       await waitFor(() =>
         expect(controller.createCard).toHaveBeenCalledTimes(1),
       );
+    });
+
+    it('emits BUTTON_CLICKED (not Funding COMPLETED) on Conflict before createCard', async () => {
+      mockResolve.mockRejectedValue(
+        new CardProviderError(
+          CardProviderErrorCode.Conflict,
+          'Conflict on reconcile',
+          409,
+        ),
+      );
+
+      renderHook(() => useImmersveCardProvisioning(provisioningData));
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalled());
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_FUNDING_PROCESS_COMPLETED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'immersve',
+          action: CardActions.IMMERSVE_ONBOARDING_ROUTED,
+          step: 'provisioning_reconcile',
+          status: 'completed',
+          already_provisioned: true,
+        }),
+      );
+      expect(controller.createCard).not.toHaveBeenCalled();
     });
 
     it('does not reconcile when not provisioning', async () => {

@@ -198,12 +198,16 @@ export function useImmersveCardProvisioning(
           error.code === CardProviderErrorCode.Conflict
         ) {
           // Conflict before createCard (e.g. reconcile race) — terminal success.
+          // Use BUTTON (not Funding COMPLETED) so we don't orphan a completion
+          // without a matching CARD_FUNDING_PROCESS_STARTED.
           trackEventRef.current(
             createEventBuilderRef
-              .current(MetaMetricsEvents.CARD_FUNDING_PROCESS_COMPLETED)
+              .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
               .addProperties(
                 withCardProvider(CardProviderIds.Immersve, {
+                  action: CardActions.IMMERSVE_ONBOARDING_ROUTED,
                   step: 'provisioning_reconcile',
+                  status: 'completed',
                   already_provisioned: true,
                 }),
               )

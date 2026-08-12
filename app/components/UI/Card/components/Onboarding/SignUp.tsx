@@ -184,24 +184,27 @@ const SignUp = () => {
       immersveCountries.includes(selectedCountry.key),
   );
 
-  const hasTrackedSignUpView = useRef(false);
+  const lastTrackedSignUpView = useRef<string | null>(null);
   useEffect(() => {
     // Wait until country is known so Immersve (e.g. GB) is not stamped as Baanx.
-    if (!selectedCountry || hasTrackedSignUpView.current) {
+    // Re-fire when provider changes (e.g. geo auto-select then user switches country).
+    if (!selectedCountry) {
       return;
     }
-    hasTrackedSignUpView.current = true;
+    const provider = isImmersveCountry
+      ? CardProviderIds.Immersve
+      : CardProviderIds.Baanx;
+    const viewKey = `${CardScreens.SIGN_UP}:${provider}`;
+    if (lastTrackedSignUpView.current === viewKey) {
+      return;
+    }
+    lastTrackedSignUpView.current = viewKey;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties(
-          withCardProvider(
-            isImmersveCountry
-              ? CardProviderIds.Immersve
-              : CardProviderIds.Baanx,
-            {
-              screen: CardScreens.SIGN_UP,
-            },
-          ),
+          withCardProvider(provider, {
+            screen: CardScreens.SIGN_UP,
+          }),
         )
         .build(),
     );
