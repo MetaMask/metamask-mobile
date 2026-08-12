@@ -2,6 +2,7 @@ import { act } from '@testing-library/react-native';
 import {
   BatchSellMetricsEventName,
   BatchSellMetricsLocation,
+  formatAddressToAssetId,
 } from '@metamask/bridge-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 
@@ -39,42 +40,56 @@ const selectedDestinationToken = {
 const selectedTokenQuotes = [
   {
     quote: {
-      srcAsset: {
-        address: selectedTokens[0].address,
-        symbol: selectedTokens[0].symbol,
+      chainId: 'eip155:1',
+      src: {
+        usd: '1000',
+        asset: {
+          address: selectedTokens[0].address,
+          symbol: selectedTokens[0].symbol,
+          assetId: formatAddressToAssetId(
+            selectedTokens[0].address,
+            selectedTokens[0].chainId,
+          ),
+        },
       },
-      srcChainId: 1,
-      destAsset: {
-        address: selectedDestinationToken.address,
-        symbol: selectedDestinationToken.symbol,
+      dest: {
+        usd: '990',
+        asset: {
+          address: selectedDestinationToken.address,
+          symbol: selectedDestinationToken.symbol,
+          assetId: formatAddressToAssetId(
+            selectedDestinationToken.address,
+            selectedDestinationToken.chainId,
+          ),
+        },
       },
-      destChainId: 1,
-    },
-    sentAmount: {
-      usd: '1000',
-    },
-    toTokenAmount: {
-      usd: '990',
     },
   },
   {
+    chainId: 'eip155:1',
     quote: {
-      srcAsset: {
-        address: selectedTokens[1].address,
-        symbol: selectedTokens[1].symbol,
+      src: {
+        usd: '200',
+        asset: {
+          address: selectedTokens[1].address,
+          symbol: selectedTokens[1].symbol,
+          assetId: formatAddressToAssetId(
+            selectedTokens[1].address,
+            selectedTokens[1].chainId,
+          ),
+        },
       },
-      srcChainId: 1,
-      destAsset: {
-        address: selectedDestinationToken.address,
-        symbol: selectedDestinationToken.symbol,
+      dest: {
+        usd: '195',
+        asset: {
+          address: selectedDestinationToken.address,
+          symbol: selectedDestinationToken.symbol,
+          assetId: formatAddressToAssetId(
+            selectedDestinationToken.address,
+            selectedDestinationToken.chainId,
+          ),
+        },
       },
-      destChainId: 1,
-    },
-    sentAmount: {
-      usd: '200',
-    },
-    toTokenAmount: {
-      usd: '195',
     },
   },
 ];
