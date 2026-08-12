@@ -78,7 +78,7 @@ let mockApy: { apyPercent?: number; apyPercentFormatted?: string } = {
   apyPercent: 4,
   apyPercentFormatted: '4%',
 };
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: () => mockApy,
 }));

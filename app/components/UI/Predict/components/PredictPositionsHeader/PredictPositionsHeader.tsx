@@ -99,7 +99,9 @@ const PredictPositionsHeader = forwardRef<
   const wonPositions = useMemo(
     () =>
       claimablePositions.filter(
-        (position) => position.status === PredictPositionStatus.WON,
+        (position) =>
+          position.status === PredictPositionStatus.WON ||
+          position.status === PredictPositionStatus.REDEEMABLE,
       ),
     [claimablePositions],
   );

@@ -28,6 +28,7 @@ import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracki
 import { FilterButton } from '../../components/FilterBar/FilterBar';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { useTrendingChainIds } from '../../hooks/useTrendingChainIds/useTrendingChainIds';
 import type { Theme } from '../../../../../util/theme/models';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
@@ -35,7 +36,7 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../../../Views/TrendingView/search/abTestConfig';
-import type { QuickBuySheetSource } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import type { QuickBuySheetSource } from '../../../QuickBuy/analytics';
 import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { CaipChainId } from '@metamask/utils';
@@ -142,6 +143,13 @@ const TrendingTokensFullView = () => {
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
   );
+  const trendingChainIds = useTrendingChainIds();
+  const trendingNetworks = useMemo(() => {
+    const allowedChainIds = new Set(trendingChainIds);
+    return TRENDING_NETWORKS_LIST.filter((network) =>
+      allowedChainIds.has(network.caipChainId),
+    );
+  }, [trendingChainIds]);
   const { variant: quickBuyVariant } = useABTest(
     EXPLORE_QUICK_BUY_AB_KEY,
     EXPLORE_QUICK_BUY_VARIANTS,
@@ -303,7 +311,7 @@ const TrendingTokensFullView = () => {
       searchResults={searchResults}
       isLoading={isLoading}
       onRefresh={handleRefresh}
-      allowedNetworks={TRENDING_NETWORKS_LIST}
+      allowedNetworks={trendingNetworks}
       extraFilters={timeFilterButton}
       onLoadMore={loadMore}
       isLoadingMore={isLoadingMore}
