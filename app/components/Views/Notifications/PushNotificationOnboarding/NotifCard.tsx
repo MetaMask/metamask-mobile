@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
 import {
@@ -70,7 +71,7 @@ const NotifCard = ({
             <Image
               source={FoxImage}
               style={tw.style('h-6 w-6')}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </Box>
           <Box twClassName="min-w-0 flex-1">
