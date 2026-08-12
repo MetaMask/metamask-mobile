@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../../../core/Engine';
 import { KYC_API_BASE_URL } from '../constants';
 
@@ -12,7 +12,13 @@ interface UseKycDisclaimersResult {
   disclaimers: KycDisclaimer[];
   isLoading: boolean;
   error: string | null;
+  retry: () => void;
 }
+
+// Bounds how long we'll wait on the KYC API before treating the request as
+// failed, so a hung request can't leave the screen stuck on the loading
+// state (and the CTA disabled) forever.
+const FETCH_TIMEOUT_MS = 10_000;
 
 /**
  * Fetches the vendor-provided legal disclaimers (Privacy Policy / T&Cs) for
@@ -30,14 +36,22 @@ interface UseKycDisclaimersResult {
  * list. There's intentionally no static fallback copy — this MVP only
  * ships once the real KYC API is reachable in every environment it runs in.
  *
+ * Callers should treat a non-empty `error`, or an empty `disclaimers` list
+ * once `isLoading` is `false`, as "the user hasn't seen the terms" and keep
+ * the flow's continue action disabled until a `retry()` succeeds.
+ *
  * @param country - The ISO 3166-1 alpha-3 country code to scope the
  * disclaimers to (e.g. `'BRA'` for Brazil).
- * @returns The disclaimers, loading state, and any error encountered.
+ * @returns The disclaimers, loading state, any error encountered, and a
+ * `retry` function to re-run the fetch.
  */
 export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<KycDisclaimer[]>([]);
   const [isLoading, setIsLoading] = useState(Boolean(KYC_API_BASE_URL));
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const retry = useCallback(() => setRetryCount((count) => count + 1), []);
 
   useEffect(() => {
     // eslint-disable-next-line no-console
@@ -46,6 +60,8 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       country,
       'KYC_API_BASE_URL:',
       KYC_API_BASE_URL || '(empty — fetch will be SKIPPED)',
+      'attempt:',
+      retryCount + 1,
     );
 
     if (!KYC_API_BASE_URL) {
@@ -58,6 +74,14 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     }
 
     let isMounted = true;
+    setIsLoading(true);
+    setError(null);
+
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(
+      () => abortController.abort(),
+      FETCH_TIMEOUT_MS,
+    );
 
     const fetchDisclaimers = async () => {
       try {
@@ -74,6 +98,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
 
         const response = await fetch(url.toString(), {
           headers: { Authorization: `Bearer ${bearerToken}` },
+          signal: abortController.signal,
         });
 
         if (!response.ok) {
@@ -89,12 +114,28 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
           setDisclaimers(Array.isArray(data) ? data : []);
         }
       } catch (err) {
+        const isTimeout =
+          err instanceof Error &&
+          (err.name === 'AbortError' || err.name === 'TimeoutError');
         // eslint-disable-next-line no-console
-        console.log('🚨🚨🚨 [VBA KYC] Fetch FAILED:', err);
+        console.log(
+          isTimeout
+            ? '🚨🚨🚨 [VBA KYC] Fetch TIMED OUT'
+            : '🚨🚨🚨 [VBA KYC] Fetch FAILED:',
+          isTimeout ? undefined : err,
+        );
         if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Unknown error');
+          setDisclaimers([]);
+          setError(
+            isTimeout
+              ? 'Request timed out'
+              : err instanceof Error
+                ? err.message
+                : 'Unknown error',
+          );
         }
       } finally {
+        clearTimeout(timeoutId);
         if (isMounted) {
           setIsLoading(false);
         }
@@ -105,8 +146,10 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
+      abortController.abort();
     };
-  }, [country]);
+  }, [country, retryCount]);
 
-  return { disclaimers, isLoading, error };
+  return { disclaimers, isLoading, error, retry };
 };
