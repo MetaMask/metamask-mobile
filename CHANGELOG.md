@@ -20,6 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore(core): opt in useNavigation to AppNavigationProp (Phase 4) (#33666)
 - chore(assets): opt in useNavigation to AppNavigationProp (Phase 4) (#33628)
 
+### Fixed
+
+- Polished toast styling for consistency in the 8.6.0 release (#33773)
+- Polished toast styling for consistency in the 8.6.0 release (#33769)
+- Polished toast styling for consistency in the 8.6.0 release (#33766)
+- Polished toast styling for consistency in the 8.6.0 release (#33771)
+- Polished toast styling for consistency in the 8.6.0 release (#33767)
+- Polished toast styling for consistency in the 8.6.0 release (#33772)
+- Polished toast styling for consistency in the 8.6.0 release (#33774)
+- Polished toast styling for consistency in the 8.6.0 release (#33775)
+- Polished toast styling for consistency in the 8.6.0 release (#33770)
+
 ## [8.6.0]
 
 ### Added
