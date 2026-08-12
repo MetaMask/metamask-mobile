@@ -32,19 +32,16 @@ const createFill = (overrides: Partial<OrderFill> = {}): OrderFill => ({
 const setMarketFills = ({
   fills = [],
   isInitialLoading = false,
-  isHistoryLoading = false,
-  historyError = null,
+  restHistoryStatus = 'ready',
 }: {
   fills?: OrderFill[];
   isInitialLoading?: boolean;
-  isHistoryLoading?: boolean;
-  historyError?: string | null;
+  restHistoryStatus?: 'pending' | 'loading' | 'ready' | 'error';
 } = {}) => {
   mockUsePerpsMarketFills.mockReturnValue({
     fills,
     isInitialLoading,
-    isHistoryLoading,
-    historyError,
+    restHistoryStatus,
     refresh: jest.fn(),
     isRefreshing: false,
   });
@@ -114,7 +111,7 @@ describe('usePerpsRecordedOrderFees', () => {
     setMarketFills({
       fills: [createFill()],
       isInitialLoading: true,
-      isHistoryLoading: true,
+      restHistoryStatus: 'loading',
     });
 
     const { result } = renderHook(() =>
@@ -169,7 +166,7 @@ describe('usePerpsRecordedOrderFees', () => {
   it('withholds the total while fill history is loading', () => {
     setMarketFills({
       fills: [createFill()],
-      isHistoryLoading: true,
+      restHistoryStatus: 'loading',
     });
 
     const { result } = renderHook(() =>
@@ -186,7 +183,7 @@ describe('usePerpsRecordedOrderFees', () => {
   it('withholds the total when historical fill loading fails', () => {
     setMarketFills({
       fills: [createFill()],
-      historyError: 'API unavailable',
+      restHistoryStatus: 'error',
     });
 
     const { result } = renderHook(() =>
@@ -198,5 +195,35 @@ describe('usePerpsRecordedOrderFees', () => {
       isLoading: false,
       hasError: true,
     });
+  });
+
+  it('withholds zero for an in-window order without REST history', () => {
+    setMarketFills({
+      fills: [createFill({ orderId: 'other-order' })],
+      restHistoryStatus: 'pending',
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsRecordedOrderFees(
+        'order-1',
+        'BTC',
+        NOW - PERPS_CONSTANTS.FillsLookbackMs + 1,
+      ),
+    );
+
+    expect(result.current.totalFee).toBeUndefined();
+  });
+
+  it('returns the live fill fee before REST history completes', () => {
+    setMarketFills({
+      fills: [createFill({ fee: '2.5' })],
+      restHistoryStatus: 'pending',
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsRecordedOrderFees('order-1', 'BTC', NOW),
+    );
+
+    expect(result.current.totalFee).toBe(2.5);
   });
 });

@@ -6,7 +6,7 @@ import { usePerpsMarketFills } from './usePerpsMarketFills';
 interface UsePerpsRecordedOrderFeesResult {
   /** Sum of execution-time fees for fills matched to the order. */
   totalFee: number | undefined;
-  /** True until both live and historical fill sources finish initial loading. */
+  /** True while the live snapshot or historical REST request is loading. */
   isLoading: boolean;
   /** True when historical fills could not be loaded. */
   hasError: boolean;
@@ -30,11 +30,14 @@ export function usePerpsRecordedOrderFees(
   symbol: string,
   orderTimestamp: number | undefined,
 ): UsePerpsRecordedOrderFeesResult {
-  const { fills, isInitialLoading, isHistoryLoading, historyError } =
-    usePerpsMarketFills({ symbol });
+  const { fills, isInitialLoading, restHistoryStatus } = usePerpsMarketFills({
+    symbol,
+  });
 
-  const isLoading = Boolean(orderId && (isInitialLoading || isHistoryLoading));
-  const hasError = Boolean(orderId && historyError);
+  const isLoading = Boolean(
+    orderId && (isInitialLoading || restHistoryStatus === 'loading'),
+  );
+  const hasError = Boolean(orderId && restHistoryStatus === 'error');
 
   const totalFee = useMemo(() => {
     if (!orderId || isLoading || hasError) {
@@ -45,7 +48,11 @@ export function usePerpsRecordedOrderFees(
 
     if (matchingFills.length === 0) {
       const historyStartTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
-      if (orderTimestamp === undefined || orderTimestamp < historyStartTime) {
+      if (
+        restHistoryStatus !== 'ready' ||
+        orderTimestamp === undefined ||
+        orderTimestamp < historyStartTime
+      ) {
         return undefined;
       }
     }
@@ -56,7 +63,7 @@ export function usePerpsRecordedOrderFees(
         new BigNumber(0),
       )
       .toNumber();
-  }, [fills, hasError, isLoading, orderId, orderTimestamp]);
+  }, [fills, hasError, isLoading, orderId, orderTimestamp, restHistoryStatus]);
 
   return { totalFee, isLoading, hasError };
 }

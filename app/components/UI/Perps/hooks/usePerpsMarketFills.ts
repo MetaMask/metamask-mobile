@@ -21,6 +21,8 @@ interface UsePerpsMarketFillsParams {
   throttleMs?: number;
 }
 
+type RestHistoryStatus = 'pending' | 'loading' | 'ready' | 'error';
+
 interface UsePerpsMarketFillsReturn {
   /**
    * Array of fills for the specified market, sorted by timestamp descending
@@ -30,14 +32,8 @@ interface UsePerpsMarketFillsReturn {
    * True while waiting for initial WebSocket data
    */
   isInitialLoading: boolean;
-  /**
-   * True while the initial historical REST backfill is loading
-   */
-  isHistoryLoading: boolean;
-  /**
-   * Error from the historical REST backfill, if it failed
-   */
-  historyError: string | null;
+  /** Current state of the historical REST backfill. */
+  restHistoryStatus: RestHistoryStatus;
   /**
    * Refresh function to manually refetch REST data
    */
@@ -84,8 +80,8 @@ export const usePerpsMarketFills = ({
 
   // REST API fills state for complete history
   const [restFills, setRestFills] = useState<OrderFill[]>([]);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
-  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [restHistoryStatus, setRestHistoryStatus] =
+    useState<RestHistoryStatus>('pending');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Account switches and refresh can overlap in-flight REST fetches. Track the
@@ -105,8 +101,7 @@ export const usePerpsMarketFills = ({
       if (!isCurrentRequest()) {
         return;
       }
-      setIsHistoryLoading(false);
-      setHistoryError('Perps controller is unavailable');
+      setRestHistoryStatus('error');
       return;
     }
 
@@ -114,18 +109,15 @@ export const usePerpsMarketFills = ({
       if (!isCurrentRequest()) {
         return;
       }
-      setIsHistoryLoading(true);
+      setRestHistoryStatus('loading');
     }
-    if (!isCurrentRequest()) {
-      return;
-    }
-    setHistoryError(null);
 
     try {
       if (!controller.getActiveProviderOrNull()) {
         if (!isCurrentRequest()) {
           return;
         }
+        setRestHistoryStatus('pending');
         return;
       }
 
@@ -146,12 +138,13 @@ export const usePerpsMarketFills = ({
         return;
       }
       setRestFills(fills);
+      setRestHistoryStatus('ready');
     } catch (err) {
       if (!isCurrentRequest()) {
         return;
       }
       const error = ensureError(err, 'usePerpsMarketFills.fetchFills');
-      setHistoryError(error.message);
+      setRestHistoryStatus('error');
 
       // Get the current account for debugging context
       const accountAddress = addressRef.current ?? 'unknown';
@@ -167,10 +160,6 @@ export const usePerpsMarketFills = ({
           message: `[usePerpsMarketFills] Failed to fetch REST fills for account ${accountAddress}: ${err}`,
         },
       });
-    } finally {
-      if (isCurrentRequest()) {
-        setIsHistoryLoading(false);
-      }
     }
   }, []);
 
@@ -187,9 +176,11 @@ export const usePerpsMarketFills = ({
   // Clear stale fills and refetch when account changes to prevent data leakage.
   useEffect(() => {
     if (!isConnected || !isInitialized || isConnecting) {
+      // Invalidate any request from the previous connection context before
+      // clearing its data.
+      requestIdRef.current += 1;
       setRestFills([]);
-      setHistoryError(null);
-      setIsHistoryLoading(true);
+      setRestHistoryStatus('pending');
       return;
     }
 
@@ -226,8 +217,7 @@ export const usePerpsMarketFills = ({
   return {
     fills,
     isInitialLoading,
-    isHistoryLoading,
-    historyError,
+    restHistoryStatus,
     refresh,
     isRefreshing,
   };

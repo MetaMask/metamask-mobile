@@ -170,8 +170,7 @@ describe('usePerpsMarketFills', () => {
       // Assert
       expect(result.current.fills).toEqual([]);
       expect(result.current.isInitialLoading).toBe(false);
-      expect(result.current.isHistoryLoading).toBe(true);
-      expect(result.current.historyError).toBeNull();
+      expect(result.current.restHistoryStatus).toBe('loading');
       expect(result.current.isRefreshing).toBe(false);
     });
 
@@ -202,9 +201,8 @@ describe('usePerpsMarketFills', () => {
 
       // Assert
       await waitFor(() => {
-        expect(result.current.isHistoryLoading).toBe(false);
+        expect(result.current.restHistoryStatus).toBe('ready');
       });
-      expect(result.current.historyError).toBeNull();
     });
   });
 
@@ -520,8 +518,7 @@ describe('usePerpsMarketFills', () => {
         );
       });
       expect(result.current.fills).toHaveLength(1);
-      expect(result.current.isHistoryLoading).toBe(false);
-      expect(result.current.historyError).toBe('API Error');
+      expect(result.current.restHistoryStatus).toBe('error');
     });
 
     it('handles missing provider gracefully', async () => {
@@ -544,9 +541,27 @@ describe('usePerpsMarketFills', () => {
       // Assert - WebSocket fills still work and missing provider is not terminal
       expect(result.current.fills).toHaveLength(1);
       await waitFor(() => {
-        expect(result.current.isHistoryLoading).toBe(false);
+        expect(result.current.restHistoryStatus).toBe('pending');
       });
-      expect(result.current.historyError).toBeNull();
+    });
+
+    it('marks REST history complete after a successful backfill', async () => {
+      // Arrange
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+      mockProvider.getOrderFills.mockResolvedValue([mockBtcFill1]);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsMarketFills({ symbol: 'BTC' }),
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.restHistoryStatus).toBe('ready');
+      });
     });
   });
 
@@ -574,8 +589,7 @@ describe('usePerpsMarketFills', () => {
 
       // Assert
       expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
-      expect(result.current.isHistoryLoading).toBe(true);
-      expect(result.current.historyError).toBeNull();
+      expect(result.current.restHistoryStatus).toBe('pending');
       expect(result.current.fills).toHaveLength(1);
     });
 
@@ -602,7 +616,7 @@ describe('usePerpsMarketFills', () => {
       );
 
       expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
-      expect(result.current.historyError).toBeNull();
+      expect(result.current.restHistoryStatus).toBe('pending');
 
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
@@ -626,7 +640,46 @@ describe('usePerpsMarketFills', () => {
       await waitFor(() => {
         expect(result.current.fills).toHaveLength(1);
       });
-      expect(result.current.historyError).toBeNull();
+      expect(result.current.restHistoryStatus).toBe('ready');
+    });
+
+    it('discards an in-flight fetch when the connection becomes unavailable', async () => {
+      // Arrange
+      let resolveFetch: ((value: OrderFill[]) => void) | undefined;
+      mockProvider.getOrderFills.mockReturnValue(
+        new Promise<OrderFill[]>((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePerpsMarketFills({ symbol: 'BTC' }),
+      );
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+
+      // Act
+      rerender({ symbol: 'BTC' });
+      await act(async () => {
+        resolveFetch?.([mockBtcFill1]);
+        await Promise.resolve();
+      });
+
+      // Assert
+      expect(result.current.restHistoryStatus).toBe('pending');
+      expect(result.current.fills).toEqual([]);
     });
   });
 
@@ -728,11 +781,12 @@ describe('usePerpsMarketFills', () => {
 
       // Assert
       expect(result.current.isRefreshing).toBe(false);
+      expect(result.current.restHistoryStatus).toBe('error');
 
       consoleError.mockRestore();
     });
 
-    it('clears history loading when refresh supersedes initial fetch', async () => {
+    it('marks history ready when refresh supersedes initial fetch', async () => {
       // Arrange
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
@@ -756,7 +810,7 @@ describe('usePerpsMarketFills', () => {
         usePerpsMarketFills({ symbol: 'BTC' }),
       );
 
-      expect(result.current.isHistoryLoading).toBe(true);
+      expect(result.current.restHistoryStatus).toBe('loading');
 
       let refreshPromise: Promise<void> | undefined;
       await act(async () => {
@@ -768,8 +822,7 @@ describe('usePerpsMarketFills', () => {
         await refreshPromise;
       });
 
-      expect(result.current.isHistoryLoading).toBe(false);
-      expect(result.current.historyError).toBeNull();
+      expect(result.current.restHistoryStatus).toBe('ready');
       expect(result.current.fills).toHaveLength(1);
 
       await act(async () => {
@@ -779,7 +832,7 @@ describe('usePerpsMarketFills', () => {
         await Promise.resolve();
       });
 
-      expect(result.current.isHistoryLoading).toBe(false);
+      expect(result.current.restHistoryStatus).toBe('ready');
       expect(result.current.fills).toHaveLength(1);
       expect(result.current.fills[0].orderId).toBe('btc-1');
     });
@@ -860,14 +913,14 @@ describe('usePerpsMarketFills', () => {
       await waitFor(() => {
         expect(result.current.fills).toHaveLength(1);
       });
-      expect(result.current.historyError).toBeNull();
+      expect(result.current.restHistoryStatus).toBe('ready');
 
       await act(async () => {
         rejectFirstFetch?.(new Error('Stale error'));
         await Promise.resolve();
       });
 
-      expect(result.current.historyError).toBeNull();
+      expect(result.current.restHistoryStatus).toBe('ready');
       expect(result.current.fills[0].orderId).toBe('current-account-fill');
       expect(mockLoggerError).not.toHaveBeenCalled();
     });
@@ -944,21 +997,21 @@ describe('usePerpsMarketFills', () => {
       mockSelectedAccountByScope.mockReturnValue({ address: '0xAccount2' });
       rerender({ symbol: 'BTC' });
 
-      expect(result.current.isHistoryLoading).toBe(true);
+      expect(result.current.restHistoryStatus).toBe('loading');
 
       await act(async () => {
         resolveFirstFetch?.([]);
         await Promise.resolve();
       });
 
-      expect(result.current.isHistoryLoading).toBe(true);
+      expect(result.current.restHistoryStatus).toBe('loading');
 
       await act(async () => {
         resolveSecondFetch?.([mockBtcFill1]);
         await Promise.resolve();
       });
 
-      expect(result.current.isHistoryLoading).toBe(false);
+      expect(result.current.restHistoryStatus).toBe('ready');
       expect(result.current.fills).toHaveLength(1);
     });
   });
