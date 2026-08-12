@@ -42,6 +42,7 @@ describe('TokenRatesControllerInit', () => {
       state: { marketData: {} },
       interval: 1_800_000,
       tokenPricesService: expect.any(Function),
+      isDeprecated: expect.any(Function),
     });
   });
 });

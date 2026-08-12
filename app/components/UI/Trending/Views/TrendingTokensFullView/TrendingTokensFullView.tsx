@@ -36,7 +36,7 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../../../Views/TrendingView/search/abTestConfig';
-import type { QuickBuySheetSource } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import type { QuickBuySheetSource } from '../../../QuickBuy/analytics';
 import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { CaipChainId } from '@metamask/utils';
