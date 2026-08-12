@@ -73,7 +73,10 @@ import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
 import { useABTest } from '../../../../../hooks';
-import { ARC_NATIVE_ASSET_ID } from '../../../../hooks/useArcDefaultTokens';
+import {
+  ARC_NATIVE_ASSET_ID,
+  ARC_NATIVE_ASSET_ID_LEGACY,
+} from '../../../../hooks/useArcDefaultTokens';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -475,7 +478,11 @@ export const BridgeTokenSelector: React.FC = () => {
       .map((token) =>
         applyWatchlistBridgeTokenFiatDisplay(token, currentCurrency),
       )
-      .filter((token) => token.assetId !== ARC_NATIVE_ASSET_ID);
+      .filter(
+        (token) =>
+          token.assetId !== ARC_NATIVE_ASSET_ID &&
+          token.assetId !== ARC_NATIVE_ASSET_ID_LEGACY,
+      );
 
     return filterWatchlistBridgeTokens(mappedTokens, {
       selectedChainId,

@@ -14,6 +14,11 @@ export const ARC_USDC_ASSET_ID: CaipAssetType =
 
 export const ARC_NATIVE_ASSET_ID: CaipAssetType = 'eip155:5042/slip44:5042';
 
+// Pre-slip44 placeholder some accounts may still have cached; keep filtering
+// it out alongside ARC_NATIVE_ASSET_ID so upgraded users don't see a duplicate.
+export const ARC_NATIVE_ASSET_ID_LEGACY: CaipAssetType =
+  'eip155:5042/erc20:0x0000000000000000000000000000000000000000';
+
 /**
  * Adds ERC-20 USDC on Arc for all EVM accounts that don't already have it,
  * whenever the Arc network is present in the user's network list.
