@@ -31,6 +31,9 @@ name: CI (Namespace shadow)
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    # Stable sync PRs are release-only; do not dispatch advisory shadow CI.
+    branches-ignore:
+      - stable
     paths-ignore:
       - "docs/**"
       - "**/*.md"

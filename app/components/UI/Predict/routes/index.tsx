@@ -21,7 +21,6 @@ import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsM
 import PredictPositionsView from '../views/PredictPositionsView';
 import PredictMarketListRoute from './PredictMarketListRoute';
 import PredictFeedView from '../views/PredictFeedView';
-import PredictGTMModal from '../components/PredictGTMModal';
 import { useSelector } from 'react-redux';
 import { PredictPreviewSheetProvider } from '../contexts';
 import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
@@ -46,10 +45,6 @@ const PredictModalStack = () => {
       <ModalStack.Screen
         name={Routes.PREDICT.MODALS.UNAVAILABLE}
         component={PredictUnavailableModal}
-      />
-      <ModalStack.Screen
-        name={Routes.PREDICT.MODALS.GTM_MODAL}
-        component={PredictGTMModal}
       />
       <ModalStack.Screen
         name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -8,6 +8,8 @@ import {
 import PerpsModeToggle from './PerpsModeToggle';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { GLOW_TOTAL_MS } from './PerpsModeSwitchPill';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
 
 const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -36,23 +38,38 @@ jest.mock('@metamask/design-system-react-native', () => {
       children,
       testID,
       onPress,
+      disabled,
       accessibilityLabel,
       accessibilityHint,
     }: {
       children: React.ReactNode;
       testID?: string;
       onPress?: () => void;
+      disabled?: boolean;
       accessibilityLabel?: string;
       accessibilityHint?: string;
     }) => (
       <TouchableOpacity
         testID={testID}
         onPress={onPress}
+        disabled={disabled}
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
       >
         <Text>{children}</Text>
       </TouchableOpacity>
+    ),
+    Box: ({
+      children,
+      onLayout,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      onLayout?: () => void;
+    }) => (
+      <View onLayout={onLayout} {...props}>
+        {children}
+      </View>
     ),
     SegmentedControl: ({
       value,
@@ -97,9 +114,42 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: (...args: unknown[]) => args,
+  }),
+}));
+
+jest.mock('@react-native-masked-view/masked-view', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({
+    children,
+    maskElement,
+  }: {
+    children?: React.ReactNode;
+    maskElement?: React.ReactNode;
+  }) => (
+    <View>
+      {maskElement}
+      {children}
+    </View>
+  );
+});
+
+jest.mock('react-native-linear-gradient', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ children }: { children?: React.ReactNode }) => (
+    <View>{children}</View>
+  );
+});
+
 describe('PerpsModeToggle', () => {
   beforeEach(() => {
     mockTrack.mockClear();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders both Lite and Pro segments in the default toggle variant', () => {
@@ -121,19 +171,21 @@ describe('PerpsModeToggle', () => {
     expect(getAllByText('Pro').length).toBeGreaterThan(0);
   });
 
-  it('calls onChange with the newly selected mode', () => {
+  it('calls onChange with the newly selected mode', async () => {
     const onChange = jest.fn();
     const { getByTestId } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={onChange} />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
 
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(PerpsMode.Pro);
   });
 
-  it('tracks a Perps UI interaction event carrying the new mode on change', () => {
+  it('tracks a Perps UI interaction event carrying the new mode after onChange applies it', async () => {
     const { getByTestId } = render(
       <PerpsModeToggle
         mode={PerpsMode.Lite}
@@ -142,7 +194,9 @@ describe('PerpsModeToggle', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
 
     expect(mockTrack).toHaveBeenCalledTimes(1);
     expect(mockTrack).toHaveBeenCalledWith(
@@ -150,37 +204,59 @@ describe('PerpsModeToggle', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
       },
     );
   });
 
-  it('omits the source property when no source is provided', () => {
+  it('does not track when onChange reports the mode was not applied', async () => {
+    const onChange = jest.fn().mockResolvedValue(false);
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Lite}
+        onChange={onChange}
+        source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+      />,
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
+
+    expect(onChange).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('omits the source property when no source is provided', async () => {
     const { getByTestId } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={jest.fn()} />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
       },
     );
   });
 
-  it('does not call onChange or track when re-selecting the already active mode', () => {
+  it('does not call onChange or track when re-selecting the already active mode', async () => {
     const onChange = jest.fn();
     const { getByTestId } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={onChange} />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+    });
 
     expect(onChange).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalled();
@@ -199,11 +275,11 @@ describe('PerpsModeToggle', () => {
       getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
     ).toBeOnTheScreen();
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
-    // Gradient label renders the string twice (mask + sizing text).
     expect(getAllByText('Pro').length).toBeGreaterThan(0);
   });
 
-  it('flips to the opposite mode and tracks the change when the active pill is pressed', () => {
+  it('finishes the active-pill animation before changing mode', async () => {
+    jest.useFakeTimers();
     const onChange = jest.fn();
     const { getByTestId } = render(
       <PerpsModeToggle
@@ -216,6 +292,12 @@ describe('PerpsModeToggle', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
+    expect(onChange).not.toHaveBeenCalled();
+    expect(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT)).toBeDisabled();
+    await act(async () => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+    });
+
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(PerpsMode.Lite);
     expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -224,7 +306,7 @@ describe('PerpsModeToggle', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       },

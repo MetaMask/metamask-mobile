@@ -120,6 +120,8 @@ export enum TraceName {
   OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  SwapQuoteFetch = 'Swap Quote Fetch',
+  SwapTokenSearch = 'Swap Token Search',
   Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
@@ -268,6 +270,8 @@ export enum TraceName {
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
+  MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
+  MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
 }
 
 export enum TraceOperation {

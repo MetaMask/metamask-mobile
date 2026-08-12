@@ -74,6 +74,10 @@ const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 
 describe('PerpsProOrderForm', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('inputs', () => {
     it('passes raw size text to sizeInput.onChange', () => {
       const onChange = jest.fn();
@@ -231,7 +235,6 @@ describe('PerpsProOrderForm', () => {
       );
 
       expect(dismissSpy).toHaveBeenCalledTimes(1);
-      dismissSpy.mockRestore();
     });
   });
 
@@ -329,7 +332,7 @@ describe('PerpsProOrderForm', () => {
       );
       expect(screen.getByTestId(ids.REDUCE_ONLY)).toHaveProp(
         'accessibilityState',
-        { checked: true },
+        expect.objectContaining({ checked: true }),
       );
     });
 
@@ -342,13 +345,20 @@ describe('PerpsProOrderForm', () => {
       expect(onReduceOnlyChange).toHaveBeenCalledWith(true);
     });
 
-    it('exposes TP/SL as a button action', () => {
+    it('hides the TP/SL row when Reduce Only is on', () => {
+      renderForm({ reduceOnly: true, onTPSLPress: jest.fn() });
+
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
+    it('exposes TP/SL as a button action with a down arrow affordance', () => {
       renderForm({ onTPSLPress: jest.fn() });
 
       expect(screen.getByTestId(ids.TPSL)).toHaveProp(
         'accessibilityRole',
         'button',
       );
+      expect(screen.getByTestId(`${ids.TPSL}-arrow`)).toBeOnTheScreen();
     });
 
     it('calls onTPSLPress when TP/SL is pressed', () => {
@@ -507,11 +517,11 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CONTAINER)).toHaveStyle({ gap: 16 });
     });
 
-    it('left-aligns margin mode and leverage with 16-point spacing', () => {
+    it('left-aligns margin mode and leverage with 8-point spacing', () => {
       renderForm();
 
       expect(screen.getByTestId(ids.MARGIN_SETTINGS_ROW)).toHaveStyle({
-        gap: 16,
+        gap: 8,
       });
       expect(screen.getByTestId(ids.MARGIN_SETTINGS_ROW)).not.toHaveStyle({
         justifyContent: 'space-between',
@@ -538,6 +548,23 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
         paddingHorizontal: 0,
       });
+    });
+  });
+
+  describe('margin mode chip', () => {
+    it('calls onMarginModePress when Isolated chip is pressed', () => {
+      const onMarginModePress = jest.fn();
+      renderForm({ onMarginModePress });
+
+      fireEvent.press(screen.getByTestId(ids.MARGIN_MODE_BUTTON));
+
+      expect(onMarginModePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders the margin mode chip with the provided label', () => {
+      renderForm({ marginModeLabel: 'Isolated', onMarginModePress: jest.fn() });
+
+      expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeOnTheScreen();
     });
   });
 });
