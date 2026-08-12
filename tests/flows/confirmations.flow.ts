@@ -99,17 +99,21 @@ const isTestDappButtonReady = (state: TestDappButtonState | null): boolean =>
  * `?contract=`. A tap issued in that window clicks a real DOM node and reports
  * success, but no confirmation is ever requested.
  *
- * Contract binding only happens while initializing the provider, so a reload is
- * the only way to recover a page that came up without it.
+ * Contract binding only happens while initializing the provider, so re-running
+ * it is the only way to recover a page that came up without it: re-navigate
+ * when the query string was dropped (a reload would just re-fetch the stripped
+ * URL), otherwise reload.
  */
 const waitForTestDappButtonReady = async (
   pageUrl: string,
   buttonId: string,
+  expectedUrl?: string,
   timeoutMs = DAPP_BUTTON_READY_TIMEOUT_MS,
 ): Promise<TestDappButtonState | null> => {
   const startedAt = Date.now();
+  const expectedSearch = expectedUrl ? new URL(expectedUrl).search : undefined;
   let state: TestDappButtonState | null = null;
-  let reloaded = false;
+  let recovered = false;
 
   try {
     await Utilities.waitUntil(
@@ -119,16 +123,24 @@ const waitForTestDappButtonReady = async (
           return true;
         }
 
+        const queryDropped = Boolean(
+          expectedUrl &&
+            expectedSearch &&
+            state &&
+            !state.href.endsWith(expectedSearch),
+        );
+
         if (
-          !reloaded &&
-          state?.contractParam &&
-          !state.contractBound &&
+          !recovered &&
+          (queryDropped || (state?.contractParam && !state.contractBound)) &&
           Date.now() - startedAt >= DAPP_CONTRACT_RELOAD_AFTER_MS
         ) {
-          reloaded = true;
+          recovered = true;
           await ChromeCdpHelpers.evaluateInWebView(
             pageUrl,
-            'location.reload()',
+            queryDropped
+              ? `location.href = ${JSON.stringify(expectedUrl)}`
+              : 'location.reload()',
           );
         }
 
@@ -150,43 +162,12 @@ export {
 };
 
 /**
- * Navigating via the URL bar sometimes lands on the bare origin with the query
- * string dropped, so the dapp never sees `?contract=` and leaves its contract
- * buttons disabled for good. `location.reload()` cannot recover that (it reloads
- * the already-stripped URL), so re-navigate to the intended URL instead.
- */
-const ensureTestDappContractUrlLoaded = async (
-  expectedUrl: string,
-  buttonId: string,
-): Promise<void> => {
-  const pageUrl = getDappUrl(0);
-  const expectedSearch = new URL(expectedUrl).search;
-
-  await Utilities.waitUntil(
-    async () => {
-      const enabled = await ChromeCdpHelpers.evaluateInWebView<boolean>(
-        pageUrl,
-        `(() => {
-          const el = document.getElementById(${JSON.stringify(buttonId)});
-          if (el && !el.disabled) return true;
-          if (location.search !== ${JSON.stringify(expectedSearch)}) {
-            location.href = ${JSON.stringify(expectedUrl)};
-          }
-          return false;
-        })()`,
-      );
-      return Boolean(enabled);
-    },
-    { timeout: 30_000, interval: 500 },
-  );
-};
-
-/**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
   description: string,
+  expectedUrl?: string,
 ): Promise<void> => {
   const pageUrl = getDappUrl(0);
   const confirmTimeoutMs = 30_000;
@@ -197,7 +178,11 @@ const tapTestDappButtonAndWaitForConfirm = async (
     try {
       await Utilities.executeWithRetry(
         async () => {
-          lastState = await waitForTestDappButtonReady(pageUrl, buttonId);
+          lastState = await waitForTestDappButtonReady(
+            pageUrl,
+            buttonId,
+            expectedUrl,
+          );
           await WebView.tapById(buttonId, {
             pageUrl,
             description,
@@ -243,15 +228,13 @@ export const navigateToContractAndTap = async (
     scrollTo: buttonId,
   });
   await waitForTestDappToLoad();
-  if (PlatformDetector.isAndroidAppium()) {
-    const params = new URLSearchParams({ contract: contractAddress });
-    params.set('scrollTo', buttonId);
-    await ensureTestDappContractUrlLoaded(
-      `${getDappUrl(0)}/?${params.toString()}`,
-      buttonId,
-    );
-  }
-  await tapTestDappButtonAndWaitForConfirm(buttonId, description);
+  const params = new URLSearchParams({ contract: contractAddress });
+  params.set('scrollTo', buttonId);
+  await tapTestDappButtonAndWaitForConfirm(
+    buttonId,
+    description,
+    `${getDappUrl(0)}/?${params.toString()}`,
+  );
 };
 
 export const navigateToTestDappAndTap = async (
