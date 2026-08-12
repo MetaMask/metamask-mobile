@@ -1,0 +1,112 @@
+name: 'Compare Expo Fingerprints'
+description: >-
+  Generates the Expo fingerprint for two checkouts and reports whether they match.
+  Both directories must already contain an installed node_modules (fingerprint:generate
+  resolves @expo/fingerprint from the directory it runs in).
+
+inputs:
+  target-directory:
+    description: 'Directory holding the checkout being evaluated'
+    required: false
+    default: '.'
+  base-directory:
+    description: 'Directory holding the baseline checkout to compare against'
+    required: true
+  target-label:
+    description: 'Human-readable name for the target checkout, used in logs and the run summary'
+    required: false
+    default: 'target'
+  base-label:
+    description: 'Human-readable name for the baseline checkout, used in logs and the run summary'
+    required: false
+    default: 'base'
+  write-summary:
+    description: 'Append the comparison to $GITHUB_STEP_SUMMARY'
+    required: false
+    default: 'true'
+
+outputs:
+  target-fingerprint:
+    description: 'Expo fingerprint of the target checkout'
+    value: ${{ steps.target-fingerprint.outputs.fingerprint }}
+  base-fingerprint:
+    description: 'Expo fingerprint of the baseline checkout'
+    value: ${{ steps.base-fingerprint.outputs.fingerprint }}
+  equal:
+    description: 'true when both fingerprints match (no native changes between the two checkouts)'
+    value: ${{ steps.compare.outputs.equal }}
+
+runs:
+  using: 'composite'
+  steps:
+    # Labels reach the scripts through env rather than direct ${{ }} interpolation: callers derive
+    # them from things like workflow_dispatch inputs, which must not be pasted into a shell script.
+    - name: Generate fingerprint (${{ inputs.target-label }})
+      id: target-fingerprint
+      shell: bash
+      working-directory: ${{ inputs.target-directory }}
+      env:
+        LABEL: ${{ inputs.target-label }}
+      run: |
+        set -euo pipefail
+        echo "🧬 Generating fingerprint for ${LABEL}..."
+        FINGERPRINT=$(yarn fingerprint:generate)
+        echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+        echo "${LABEL} fingerprint: $FINGERPRINT"
+
+    - name: Generate fingerprint (${{ inputs.base-label }})
+      id: base-fingerprint
+      shell: bash
+      working-directory: ${{ inputs.base-directory }}
+      env:
+        LABEL: ${{ inputs.base-label }}
+      run: |
+        set -euo pipefail
+        echo "🧬 Generating fingerprint for ${LABEL}..."
+        FINGERPRINT=$(yarn fingerprint:generate)
+        echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+        echo "${LABEL} fingerprint: $FINGERPRINT"
+
+    - name: Compare fingerprints
+      id: compare
+      shell: bash
+      env:
+        TARGET_FP: ${{ steps.target-fingerprint.outputs.fingerprint }}
+        BASE_FP: ${{ steps.base-fingerprint.outputs.fingerprint }}
+        TARGET_LABEL: ${{ inputs.target-label }}
+        BASE_LABEL: ${{ inputs.base-label }}
+      run: |
+        set -euo pipefail
+        if [ -z "$TARGET_FP" ] || [ -z "$BASE_FP" ]; then
+          echo "❌ Fingerprint generation failed." >&2
+          exit 1
+        fi
+
+        if [ "$TARGET_FP" = "$BASE_FP" ]; then
+          echo "✅ Fingerprints match. No native changes detected."
+          echo "equal=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "⚠️ Fingerprints differ. Native changes detected."
+          echo "equal=false" >> "$GITHUB_OUTPUT"
+        fi
+
+        echo "${TARGET_LABEL} fingerprint: $TARGET_FP"
+        echo "${BASE_LABEL} fingerprint: $BASE_FP"
+
+    - name: Record fingerprint summary
+      if: ${{ inputs.write-summary == 'true' }}
+      shell: bash
+      env:
+        TARGET_FP: ${{ steps.target-fingerprint.outputs.fingerprint }}
+        BASE_FP: ${{ steps.base-fingerprint.outputs.fingerprint }}
+        TARGET_LABEL: ${{ inputs.target-label }}
+        BASE_LABEL: ${{ inputs.base-label }}
+        MATCHES: ${{ steps.compare.outputs.equal }}
+      run: |
+        {
+          echo "### Expo Fingerprint Comparison"
+          echo ""
+          echo "- ${TARGET_LABEL} fingerprint: \`$TARGET_FP\`"
+          echo "- ${BASE_LABEL} fingerprint: \`$BASE_FP\`"
+          echo "- Match: \`$MATCHES\`"
+        } >> "$GITHUB_STEP_SUMMARY"

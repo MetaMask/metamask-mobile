@@ -258,8 +258,8 @@ jobs:
       - setup-dependencies-base
     runs-on: ubuntu-latest
     outputs:
-      branch_fingerprint: ${{ steps.branch_fingerprint.outputs.fingerprint }}
-      main_fingerprint: ${{ steps.main_fingerprint.outputs.fingerprint }}
+      branch_fingerprint: ${{ steps.compare.outputs.target-fingerprint }}
+      main_fingerprint: ${{ steps.compare.outputs.base-fingerprint }}
       fingerprints_equal: ${{ steps.compare.outputs.equal }}
     env:
       PR_ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
@@ -311,14 +311,6 @@ jobs:
           fi
           echo "✅ Artifacts verified"
 
-      - name: Generate fingerprint (target commit)
-        id: branch_fingerprint
-        run: |
-          echo "🧬 Generating fingerprint for current branch..."
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Target PR fingerprint: $FINGERPRINT"
-
       - name: Validate artifact compatibility (base branch)
         uses: ./.github/actions/validate-artifact-compatibility
         with:
@@ -337,52 +329,14 @@ jobs:
         with:
           working-directory: main
 
-      - name: Generate fingerprint (base branch)
-        id: main_fingerprint
-        working-directory: main
-        run: |
-          echo "🧬 Generating fingerprint for base branch (${BASE_BRANCH_REF})..."
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Base branch fingerprint: $FINGERPRINT"
-
       - name: Compare fingerprints
         id: compare
-        env:
-          BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
-          MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
-        run: |
-          if [ -z "$BRANCH_FP" ] || [ -z "$MAIN_FP" ]; then
-            echo "❌ Fingerprint generation failed." >&2
-            exit 1
-          fi
-
-          if [ "$BRANCH_FP" = "$MAIN_FP" ]; then
-            echo "✅ Fingerprints match. No native changes detected."
-            echo "equal=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "⚠️ Fingerprints differ. Native changes detected."
-            echo "equal=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          echo "Target PR fingerprint: $BRANCH_FP"
-          echo "Base branch fingerprint: $MAIN_FP"
-
-      - name: Record fingerprint summary
-        env:
-          BRANCH_FP: ${{ steps.branch_fingerprint.outputs.fingerprint }}
-          MAIN_FP: ${{ steps.main_fingerprint.outputs.fingerprint }}
-          MATCHES: ${{ steps.compare.outputs.equal }}
-          TARGET_COMMIT_HASH: ${{ needs.validate-pr.outputs.commit_sha }}
-          BASE_BRANCH_REF: ${{ env.BASE_BRANCH_REF }}
-        run: |
-          {
-            echo "### Expo Fingerprint Comparison"
-            echo ""
-            echo "- Target commit (\`$TARGET_COMMIT_HASH\`) fingerprint: \`$BRANCH_FP\`"
-            echo "- Base branch (\`$BASE_BRANCH_REF\`) fingerprint: \`$MAIN_FP\`"
-            echo "- Match: \`$MATCHES\`"
-          } >> "$GITHUB_STEP_SUMMARY"
+        uses: ./.github/actions/compare-fingerprints
+        with:
+          target-directory: .
+          base-directory: main
+          target-label: Target commit (${{ needs.validate-pr.outputs.commit_sha }})
+          base-label: Base branch (${{ env.BASE_BRANCH_REF }})
 
   approval:
     name: Require OTA Update Approval
