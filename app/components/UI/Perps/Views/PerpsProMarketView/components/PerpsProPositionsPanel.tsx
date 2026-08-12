@@ -22,6 +22,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsProPositionsPreferences } from '../../../hooks/usePerpsProPositionsPreferences';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import {
   usePerpsLiveOrders,
@@ -48,18 +49,13 @@ import {
   getProOrderSideFilterEmptyDescriptionKey,
   getProPositionSideFilterButtonLabelKey,
   getProPositionSideFilterEmptyDescriptionKey,
-  type ProPositionSideFilter,
 } from '../utils/proPositionSideFilter';
 import {
   DEFAULT_PRO_ORDER_SORT,
   sortProOrders,
   type ProOrderSortConfig,
 } from '../utils/proOrderSort';
-import {
-  DEFAULT_PRO_POSITION_SORT,
-  sortProPositions,
-  type ProPositionSortConfig,
-} from '../utils/proPositionSort';
+import { sortProPositions } from '../utils/proPositionSort';
 
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
@@ -104,12 +100,8 @@ const PerpsProPositionsPanel = ({
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [isSideFilterSheetOpen, setIsSideFilterSheetOpen] = useState(false);
-  const [sideFilter, setSideFilter] = useState<ProPositionSideFilter>(
-    DEFAULT_PRO_POSITION_SIDE_FILTER,
-  );
-  const [sortConfig, setSortConfig] = useState<ProPositionSortConfig>(
-    DEFAULT_PRO_POSITION_SORT,
-  );
+  const { sideFilter, sortConfig, setSideFilter, setSortConfig } =
+    usePerpsProPositionsPreferences();
   const [orderSortConfig, setOrderSortConfig] = useState<ProOrderSortConfig>(
     DEFAULT_PRO_ORDER_SORT,
   );

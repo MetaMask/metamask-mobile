@@ -20,6 +20,8 @@ import {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
+  selectPerpsProPositionsSideFilter,
+  selectPerpsProPositionsSortConfig,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -1000,6 +1002,48 @@ describe('PerpsController Selectors', () => {
 
       expect(selectPerpsProChartExpanded(mockState)).toBe(
         DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
+      );
+    });
+  });
+
+  describe('selectPerpsProPositionsSideFilter', () => {
+    it('returns the persisted positions side filter', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { positionsSideFilter: 'long' },
+      });
+
+      expect(selectPerpsProPositionsSideFilter(mockState)).toBe('long');
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProPositionsSideFilter(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSideFilter,
+      );
+    });
+  });
+
+  describe('selectPerpsProPositionsSortConfig', () => {
+    it('returns the persisted positions sort config', () => {
+      const positionsSortConfig = {
+        field: 'fundingRate' as const,
+        direction: 'asc' as const,
+      };
+      const mockState = createMockState({
+        proLayoutPreferences: { positionsSortConfig },
+      });
+
+      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual(
+        positionsSortConfig,
+      );
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProPositionsSortConfig(mockState)).toEqual(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortConfig,
       );
     });
   });

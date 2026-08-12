@@ -1,21 +1,19 @@
-import type { Position } from '@metamask/perps-controller';
+import {
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
+  type Position,
+  type ProPositionsSortConfig,
+  type ProPositionsSortField,
+} from '@metamask/perps-controller';
 import { compareProSortValues, type ProSortDirection } from './proSortCompare';
 
-export type ProPositionSortField =
-  | 'positionValue'
-  | 'unrealizedPnl'
-  | 'fundingRate';
+export type ProPositionSortField = ProPositionsSortField;
 
 export type ProPositionSortDirection = ProSortDirection;
 
-export interface ProPositionSortConfig {
-  field: ProPositionSortField;
-  direction: ProPositionSortDirection;
-}
+export type ProPositionSortConfig = ProPositionsSortConfig;
 
 export const DEFAULT_PRO_POSITION_SORT: ProPositionSortConfig = {
-  field: 'positionValue',
-  direction: 'desc',
+  ...DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortConfig,
 };
 
 export const PRO_POSITION_SORT_OPTIONS: {

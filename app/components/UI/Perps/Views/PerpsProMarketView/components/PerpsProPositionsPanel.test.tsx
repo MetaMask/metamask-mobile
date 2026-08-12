@@ -32,6 +32,27 @@ jest.mock('../../../hooks/usePerpsProPositionsPanelActions', () => ({
   usePerpsProPositionsPanelActions: jest.fn(),
 }));
 
+jest.mock('../../../hooks/usePerpsProPositionsPreferences', () => {
+  // Use the existing React import via requireActual without shadowing the
+  // top-level React binding used by the test file JSX.
+  const { useState } = jest.requireActual('react') as typeof import('react');
+  const { DEFAULT_PRO_LAYOUT_PREFERENCES } = jest.requireActual(
+    '@metamask/perps-controller',
+  ) as typeof import('@metamask/perps-controller');
+
+  return {
+    usePerpsProPositionsPreferences: () => {
+      const [sideFilter, setSideFilter] = useState(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSideFilter,
+      );
+      const [sortConfig, setSortConfig] = useState(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortConfig,
+      );
+      return { sideFilter, sortConfig, setSideFilter, setSortConfig };
+    },
+  };
+});
+
 jest.mock('../../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));

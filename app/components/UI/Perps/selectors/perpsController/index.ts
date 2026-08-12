@@ -217,6 +217,25 @@ const selectPerpsProChartExpanded = createSelector(
   (proLayoutPreferences): boolean => proLayoutPreferences.chartExpanded,
 );
 
+/**
+ * Pro Positions/Orders panel side filter (all/long/short). Persisted globally
+ * across markets and app restarts via
+ * `PerpsController.proLayoutPreferences.positionsSideFilter`.
+ */
+const selectPerpsProPositionsSideFilter = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences) => proLayoutPreferences.positionsSideFilter,
+);
+
+/**
+ * Pro Positions list sort config. Persisted globally across markets and app
+ * restarts via `PerpsController.proLayoutPreferences.positionsSortConfig`.
+ */
+const selectPerpsProPositionsSortConfig = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences) => proLayoutPreferences.positionsSortConfig,
+);
+
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
   createSelector(selectPerpsControllerState, (perpsControllerState) => {
@@ -246,4 +265,6 @@ export {
   selectPerpsMode,
   selectPerpsProLayoutPreferences,
   selectPerpsProChartExpanded,
+  selectPerpsProPositionsSideFilter,
+  selectPerpsProPositionsSortConfig,
 };
