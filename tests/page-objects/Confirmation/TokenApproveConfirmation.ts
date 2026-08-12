@@ -61,7 +61,7 @@ class TokenApproveConfirmation {
         elemDescription: 'Edit Spending Cap Input (focus)',
         checkForDisplayed: false,
       });
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 12; i++) {
         await Gestures.tapIosKeyboardKey('Delete');
       }
       await Gestures.typeViaIosKeyboard(spendingCap, { numberPad: true });
