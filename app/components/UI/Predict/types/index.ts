@@ -19,6 +19,12 @@ export enum ActiveOrderState {
   SUCCESS = 'success',
 }
 
+/**
+ * Which leg of a PWAT buy failed. Defaults to `'order'` when omitted so
+ * existing failure UX (Retry-only) is preserved for non-payment failures.
+ */
+export type PredictOrderErrorStage = 'payment' | 'order';
+
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
   SIX_HOUR = '6h',
@@ -779,6 +785,20 @@ export interface PlaceOrderParams {
   transactionId?: string;
   activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: PredictTradeAnalyticsProperties;
+}
+
+/**
+ * Order context kept in memory between a pay-with-any-token deposit and the
+ * order leg that runs once the deposit confirms. `depositedAmount` is recorded
+ * at deposit confirmation because the amount is no longer available if the
+ * order leg later fails.
+ */
+export interface PendingOrderPreview {
+  preview: OrderPreview;
+  signerAddress: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+  depositedAmount?: number;
 }
 
 export interface PreviewOrderParams {

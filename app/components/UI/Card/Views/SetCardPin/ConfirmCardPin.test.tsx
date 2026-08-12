@@ -6,6 +6,9 @@ import {
   CardProviderError,
   CardProviderErrorCode,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { ToastContext } from '../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../locales/i18n';
 import { SetCardPinSelectors } from './SetCardPin.testIds';
 import { clearPinDraft, getPinDraft, setPinDraft } from './pinDraftStore';
 import { PIN_ERROR_RESET_DELAY_MS } from './constants';
@@ -13,6 +16,8 @@ import { PIN_ERROR_RESET_DELAY_MS } from './constants';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
+const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -20,6 +25,9 @@ const mockCreateEventBuilder = jest.fn(() => ({
 }));
 const mockSetCardPin = jest.fn();
 const mockLogout = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: mockCloseToast },
+};
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -202,6 +210,13 @@ const enterPin = (pressKey: (testID: string) => void, digits: string) => {
   }
 };
 
+const renderConfirmCardPin = () =>
+  renderWithProvider(
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <ConfirmCardPin />
+    </ToastContext.Provider>,
+  );
+
 describe('ConfirmCardPin', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -210,6 +225,10 @@ describe('ConfirmCardPin', () => {
     setPinDraft('1337');
     mockSetCardPin.mockResolvedValue(undefined);
     mockLogout.mockResolvedValue(undefined);
+    mockToastRef.current = {
+      showToast: mockShowToast,
+      closeToast: mockCloseToast,
+    };
   });
 
   afterEach(() => {
@@ -221,12 +240,12 @@ describe('ConfirmCardPin', () => {
 
   it('navigates back when draft PIN is missing', () => {
     clearPinDraft();
-    renderWithProvider(<ConfirmCardPin />);
+    renderConfirmCardPin();
     expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('shows mismatch error then returns to set PIN', async () => {
-    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    const { getByTestId } = renderConfirmCardPin();
     enterPin((id) => fireEvent.press(getByTestId(id)), '1338');
     fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
@@ -242,25 +261,57 @@ describe('ConfirmCardPin', () => {
     });
   });
 
-  it('submits matching PINs and resets stack to success', async () => {
-    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+  it('submits matching PINs, shows success toast, and resets to Card Home', async () => {
+    const { getByTestId } = renderConfirmCardPin();
     enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
     fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
     await waitFor(() => {
       expect(mockSetCardPin).toHaveBeenCalledWith('card-1', '1337');
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: strings('card.set_pin.success_title') }],
+          descriptionOptions: {
+            description: strings('card.set_pin.success_description'),
+          },
+          iconName: IconName.Confirmation,
+          hasNoTimeout: false,
+          closeButtonOptions: expect.objectContaining({
+            iconName: IconName.Close,
+          }),
+        }),
+      );
       expect(mockReset).toHaveBeenCalledWith({
-        index: 1,
-        routes: [
-          { name: Routes.CARD.HOME },
-          { name: Routes.CARD.SET_PIN_SUCCESS },
-        ],
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+    });
+
+    const toastOptions = mockShowToast.mock.calls[0][0] as {
+      closeButtonOptions: { onPress: () => void };
+    };
+    toastOptions.closeButtonOptions.onPress();
+    expect(mockCloseToast).toHaveBeenCalled();
+  });
+
+  it('still resets to Card Home when toast ref is unavailable', async () => {
+    mockToastRef.current = null as unknown as typeof mockToastRef.current;
+    const { getByTestId } = renderConfirmCardPin();
+    enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
+    fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
+
+    await waitFor(() => {
+      expect(mockSetCardPin).toHaveBeenCalledWith('card-1', '1337');
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
       });
     });
   });
 
   it('clears draft PIN when confirm header back is pressed', async () => {
-    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    const { getByTestId } = renderConfirmCardPin();
     expect(getPinDraft()).toBe('1337');
 
     fireEvent.press(getByTestId('confirm-back'));
@@ -278,7 +329,7 @@ describe('ConfirmCardPin', () => {
         'LIVENESS_MISMATCH',
       ),
     );
-    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    const { getByTestId } = renderConfirmCardPin();
     enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
     fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
@@ -298,7 +349,7 @@ describe('ConfirmCardPin', () => {
           resolveSetCardPin = resolve;
         }),
     );
-    const { getByTestId } = renderWithProvider(<ConfirmCardPin />);
+    const { getByTestId } = renderConfirmCardPin();
     enterPin((id) => fireEvent.press(getByTestId(id)), '1337');
     fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
@@ -314,12 +365,10 @@ describe('ConfirmCardPin', () => {
     });
 
     await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
-        index: 1,
-        routes: [
-          { name: Routes.CARD.HOME },
-          { name: Routes.CARD.SET_PIN_SUCCESS },
-        ],
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
       });
     });
   });
