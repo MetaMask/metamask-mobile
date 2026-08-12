@@ -85,7 +85,9 @@ interface ClaimPendingPositionRowProps {
 }
 
 const isActionableClaimPendingPosition = (position: PredictPosition) =>
-  position.status === PredictPositionStatus.WON && position.currentValue > 0;
+  (position.status === PredictPositionStatus.WON ||
+    position.status === PredictPositionStatus.REDEEMABLE) &&
+  position.currentValue > 0;
 
 const getClaimPendingPositionTitle = (
   status: PredictPositionStatus,

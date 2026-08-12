@@ -49,7 +49,6 @@ export type CardScreensStackParamList = {
   CardCreditRedeem: undefined;
   CardSetPin: { cardId: string };
   CardConfirmPin: { cardId: string };
-  CardSetPinSuccess: undefined;
   CardAuthentication:
     | {
         showAuthPrompt?: boolean;
