@@ -196,9 +196,10 @@ describe('MoneyAddMoneySheet', () => {
     expect(bankRow).toBeOnTheScreen();
     expect(getByText('New')).toBeOnTheScreen();
 
-    // The KYC flow is not wired up yet, so pressing must not start a deposit.
+    // It is a standalone VBA screen, not part of the crypto deposit flow.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('RampGetPixKey');
   });
 
   it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {

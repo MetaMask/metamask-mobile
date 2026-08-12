@@ -1095,6 +1095,38 @@
       "see_more": "See more"
     }
   },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "Bank account",
+      "title": "Get your Pix Key",
+      "description": "We've partnered with MoonPay so you can send funds directly to your Money account with Pix.",
+      "benefit_apy": "Earn up to {{percentage}}% APY on your balance",
+      "benefit_deposit_pix": "Deposit with",
+      "benefit_multi_currency": "Hold multi-currency accounts in BRL, USD, EUR",
+      "benefit_payments": "Send local and international payments",
+      "agreements_disclosures_title": "Agreements and disclosures",
+      "moonpay_privacy_policy": "MoonPay Privacy Policy",
+      "moonpay_terms": "MoonPay Terms and Conditions",
+      "trace_terms": "Trace Terms and Conditions",
+      "agreement_text": "By tapping \"Agree and continue\" you have read and agreed to the above Agreements and disclosures.",
+      "button": "Agree and continue"
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "Verification is quick and only needs to be done once. To verify, you'll need to:",
+      "step_upload_id": "Upload ID document",
+      "step_take_selfie": "Take a selfie",
+      "step_confirm_details": "Confirm personal details",
+      "data_and_privacy_title": "Data and privacy",
+      "metamask_privacy_policy": "MetaMask Privacy Policy",
+      "metamask_terms": "MetaMask T&C",
+      "idos_privacy_policy": "idOS Privacy Policy",
+      "idos_terms": "idOS T&C",
+      "sumsub_privacy_policy": "Sumsub Privacy Policy",
+      "sumsub_terms": "Sumsub T&C",
+      "button": "Continue"
+    }
+  },
   "social_leaderboard": {
     "top_traders_view": {
       "title": "Weekly top traders",

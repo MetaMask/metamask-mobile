@@ -38,6 +38,7 @@ import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDeposi
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import Routes from '../../../../../constants/navigation/Routes';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../MoneySheetOptionsList';
@@ -150,6 +151,19 @@ const MoneyAddMoneySheet: React.FC = () => {
     startDeposit({ intent: 'convert' });
   }, [startDeposit, trackSurfaceClicked]);
 
+  const handleBankAccount = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
+      redirect_target: SCREEN_NAMES.VBA_GET_PIX_KEY,
+    });
+
+    // Standalone screen, not part of the crypto deposit flow, so it pushes
+    // directly onto the stack instead of going through startDeposit.
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.GET_PIX_KEY);
+    });
+  }, [navigation, trackSurfaceClicked]);
+
   const handleDepositFunds = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS,
@@ -218,7 +232,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? {
         label: strings('money.add_money_sheet.bank_account'),
         icon: IconName.Bank,
-        // TODO: wire onPress to the VBA KYC flow entry point (follow-up PR #34703).
+        onPress: handleBankAccount,
         testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
         newBadge: true,
       }
