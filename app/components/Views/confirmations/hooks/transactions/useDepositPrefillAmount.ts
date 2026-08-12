@@ -14,7 +14,14 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
+import { useABTest } from '../../../../../hooks/useABTest';
 import { isRouteToken } from '../../utils/relayFixedSpread';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import {
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_EXPOSURE_OPTIONS,
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+} from './abTestConfig';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
@@ -65,7 +72,21 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     return undefined;
   }, [transactionMeta, depositLimits]);
 
-  const enabled = prefilledAmountConfig.enabled;
+  const { variant: depositPrefillVariant } = useABTest(
+    MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+    MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+    MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
+
+  // Keep loader/prefill rules aligned with useMoneyAccountDeposit:
+  // - remote prefilledAmount kill-switch AND treatment → prefill
+  // - addMusd always prefills; card never does
+  const enabled =
+    depositIntent !== 'card' &&
+    ((prefilledAmountConfig.enabled && depositPrefillVariant.prefillEnabled) ||
+      depositIntent === 'addMusd');
 
   const transactionId = transactionMeta?.id ?? '';
   const accountOverride = useSelector((state: RootState) =>

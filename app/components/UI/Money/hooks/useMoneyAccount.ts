@@ -24,9 +24,17 @@ import NavigationService from '../../../../core/NavigationService/NavigationServ
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import {
+  getMoneyAccountDepositPrefillTransactionActiveAbTests,
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_EXPOSURE_OPTIONS,
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+} from '../../../Views/confirmations/hooks/transactions/abTestConfig';
 import { selectPrefilledAmountConfig } from '../../../../selectors/featureFlagController/confirmations';
 import type { RootState } from '../../../../reducers';
 import { ensureError } from '../../../../util/errorUtils';
+import { useABTest } from '../../../../hooks/useABTest';
+import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { getErrorCode, getErrorMessage } from '../utils/errorUtils';
 import useMoneyToasts from './useMoneyToasts';
 
@@ -96,6 +104,15 @@ export function useMoneyAccountDeposit() {
   const prefillConfig = useSelector((state: RootState) =>
     selectPrefilledAmountConfig(state, 'moneyAccountDeposit'),
   );
+  const {
+    variant: depositPrefillVariant,
+    variantName: depositPrefillVariantName,
+    isActive: isDepositPrefillAbActive,
+  } = useABTest(
+    MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+    MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+    MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_EXPOSURE_OPTIONS,
+  );
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
@@ -160,7 +177,8 @@ export function useMoneyAccountDeposit() {
       }
 
       const usePrefillLoader =
-        (prefillConfig.enabled || options?.intent === 'addMusd') &&
+        ((prefillConfig.enabled && depositPrefillVariant.prefillEnabled) ||
+          options?.intent === 'addMusd') &&
         options?.intent !== 'card';
 
       const confirmationParams = {
@@ -193,31 +211,42 @@ export function useMoneyAccountDeposit() {
           initialiseWithoutData: true,
         });
 
+        const transactionActiveAbTests =
+          getMoneyAccountDepositPrefillTransactionActiveAbTests(
+            isDepositPrefillAbActive,
+            depositPrefillVariantName,
+          );
+
         // We only set the transaction from the money account perspective.
         // MM Pay selects the user's account and moves funds to the money account,
         // so `from` must be the money account and `networkClientId` its chain.
-        await addTransactionBatch({
-          batchId,
-          disableHook: true,
-          disableSequential: true,
-          disableUpgrade: true,
-          from: depositSetup.moneyAccountAddress as Hex,
-          isGasFeeSponsored: depositSetup.isGasFeeSponsored,
-          isInternal: true,
-          networkClientId: depositSetup.networkClientId,
-          origin: ORIGIN_METAMASK,
-          requiredAssets: [
-            {
-              address: getMoneyAccountDepositAssetAddress(
-                depositSetup.chainIdHex,
-              ),
-              amount: '0x0' as Hex,
-              standard: 'erc20',
-            },
-          ],
-          skipInitialGasEstimate: true,
-          transactions: [approveTx, depositTx],
-        });
+        await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          async () => {
+            await addTransactionBatch({
+              batchId,
+              disableHook: true,
+              disableSequential: true,
+              disableUpgrade: true,
+              from: depositSetup.moneyAccountAddress as Hex,
+              isGasFeeSponsored: depositSetup.isGasFeeSponsored,
+              isInternal: true,
+              networkClientId: depositSetup.networkClientId,
+              origin: ORIGIN_METAMASK,
+              requiredAssets: [
+                {
+                  address: getMoneyAccountDepositAssetAddress(
+                    depositSetup.chainIdHex,
+                  ),
+                  amount: '0x0' as Hex,
+                  standard: 'erc20',
+                },
+              ],
+              skipInitialGasEstimate: true,
+              transactions: [approveTx, depositTx],
+            });
+          },
+        );
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
         depositIntentByBatchId.delete(batchId.toLowerCase());
@@ -237,6 +266,9 @@ export function useMoneyAccountDeposit() {
     },
     [
       MoneyToastOptions.deposit,
+      depositPrefillVariant.prefillEnabled,
+      depositPrefillVariantName,
+      isDepositPrefillAbActive,
       navigateToConfirmation,
       navigation,
       prefillConfig.enabled,

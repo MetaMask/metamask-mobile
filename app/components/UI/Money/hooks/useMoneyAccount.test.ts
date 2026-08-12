@@ -28,6 +28,12 @@ import {
 } from './useMoneyAccount';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
 import useMoneyToasts from './useMoneyToasts';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+  MoneyAccountDepositPrefillVariant,
+} from '../../../Views/confirmations/hooks/transactions/abTestConfig';
+import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 jest.mock('react-redux');
 jest.mock('@react-navigation/native', () => ({
@@ -93,6 +99,19 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   }),
 }));
 
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+  () => ({
+    withPendingTransactionActiveAbTests: jest.fn(
+      async (_tests: unknown, fn: () => Promise<unknown>) => fn(),
+    ),
+  }),
+);
+
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
 >;
@@ -134,6 +153,21 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   .findNetworkClientIdByChainId as jest.MockedFunction<
   typeof Engine.context.NetworkController.findNetworkClientIdByChainId
 >;
+const mockUseABTest = jest.mocked(useABTest);
+const mockWithPendingTransactionActiveAbTests = jest.mocked(
+  withPendingTransactionActiveAbTests,
+);
+
+function mockDepositPrefillAbVariant(
+  variant: MoneyAccountDepositPrefillVariant = MoneyAccountDepositPrefillVariant.Treatment,
+  isActive = true,
+) {
+  mockUseABTest.mockReturnValue({
+    variant: MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[variant],
+    variantName: variant,
+    isActive,
+  });
+}
 
 const MOCK_VAULT_CONFIG = {
   chainId: '0xa4b1',
@@ -187,6 +221,7 @@ function setupSelectors(options: SelectorOptions = {}) {
 describe('useMoneyAccountDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Treatment);
     mockContainsUserRejectedError.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
     mockGetCurrentRoute.mockReturnValue({
@@ -384,6 +419,37 @@ describe('useMoneyAccountDeposit', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
       expect.objectContaining({
         loader: ConfirmationLoader.PrefillCustomAmount,
+      }),
+    );
+    expect(mockWithPendingTransactionActiveAbTests).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          key: 'confirmationsCONF1775AbtestMoneyAccountDepositPrefill',
+          value: 'treatment',
+        }),
+      ],
+      expect.any(Function),
+    );
+
+    selectPrefilledAmountConfig.mockReturnValue({ enabled: false });
+  });
+
+  it('uses AdvancedCustomAmount loader for control A/B variant even when flag enabled', async () => {
+    const { selectPrefilledAmountConfig } = jest.requireMock(
+      '../../../../selectors/featureFlagController/confirmations',
+    );
+    selectPrefilledAmountConfig.mockReturnValue({ enabled: true });
+    mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loader: ConfirmationLoader.AdvancedCustomAmount,
       }),
     );
 
