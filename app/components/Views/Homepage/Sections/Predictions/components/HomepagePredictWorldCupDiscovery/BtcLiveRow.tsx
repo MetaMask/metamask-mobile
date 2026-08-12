@@ -4,6 +4,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -59,6 +60,7 @@ const BtcLiveRow = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextDefault}
+          fontWeight={FontWeight.Medium}
           numberOfLines={1}
         >
           {strings('predict.homepage_discovery.btc_title', {
