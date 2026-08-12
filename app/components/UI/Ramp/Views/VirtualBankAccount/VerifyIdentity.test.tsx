@@ -51,31 +51,27 @@ describe('VbaVerifyIdentity', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('does not show the data and privacy links until toggled', () => {
-    const { queryByTestId, getByTestId } = renderWithProvider(
+  it('shows the data and privacy links expanded by default', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <VbaVerifyIdentity />,
-    );
-
-    expect(
-      queryByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
-    ).not.toBeOnTheScreen();
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
     );
 
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
     ).toBeOnTheScreen();
-  });
-
-  it('opens each legal link with the expected URL once expanded', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
     );
+
+    expect(
+      queryByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens each legal link with the expected URL', () => {
+    const spy = jest.spyOn(Linking, 'openURL');
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
