@@ -38,10 +38,11 @@ import {
   selectIsActivityRedesignEnabled,
   selectIsTransactionsRedesignEnabled,
 } from '../../../selectors/featureFlagController/activityRedesign';
+import { mapKeyringTransaction } from '@metamask/client-utils';
 import {
+  enrichKeyringActivityWithBridge,
   getGroupedActivityListItemKey,
   groupActivityListItems,
-  mapKeyringTransaction,
   type ActivityListItem,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
@@ -231,20 +232,32 @@ const MultichainTransactionsView = ({
                 (transaction) =>
                   !arrivalDestTxHashes.has(transaction.id?.toLowerCase()),
               )
-              .map((transaction) =>
-                mapKeyringTransaction({
-                  transaction: {
-                    ...transaction,
-                    chain: transaction.chain ?? chainId,
+              .map((transaction) => {
+                const keyringTx = {
+                  ...transaction,
+                  chain: transaction.chain ?? chainId,
+                };
+                const activity = {
+                  ...mapKeyringTransaction({
+                    transaction: keyringTx,
+                    subjectAddress: address,
+                  }),
+                  raw: {
+                    type: 'keyringTransaction' as const,
+                    data: keyringTx,
                   },
-                  bridgeHistory:
-                    bridgeHistoryItemsBySrcTxHash[transaction.id] ??
+                } as ActivityListItem;
+                return enrichKeyringActivityWithBridge(
+                  activity,
+                  bridgeHistoryItemsBySrcTxHash[transaction.id] ??
                     bridgeHistoryItemsByDestTxHash[transaction.id],
-                }),
-              ),
+                  address,
+                );
+              }),
           ])
         : visibleMultichainTransactions,
     [
+      address,
       arrivalDestTxHashes,
       bridgeArrivalItems,
       bridgeHistoryItemsByDestTxHash,
@@ -351,6 +364,7 @@ const MultichainTransactionsView = ({
           index={index}
           chainId={chainId}
           location={location}
+          subjectAddress={address}
         />
       );
     }

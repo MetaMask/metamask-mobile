@@ -3,7 +3,10 @@
  * Produces ActivityListItem[] from API EVM and non-EVM transaction sources.
  * Local EVM transactions are handled separately by useLocalActivityItems.
  */
-import { mapApiTransaction } from '@metamask/client-utils';
+import {
+  mapApiTransaction,
+  mapKeyringTransaction,
+} from '@metamask/client-utils';
 import {
   type V1TransactionByHashResponse,
   type V4MultiAccountTransactionsResponse,
@@ -12,7 +15,7 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
-  mapKeyringTransaction,
+  enrichKeyringActivityWithBridge,
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
@@ -179,13 +182,23 @@ export function selectApiEvmTransactions({
 export function mapNonEvmTransactions(
   transactions: NonEvmTransaction[],
   getBridgeHistoryItem?: (txId: string) => BridgeHistoryItem | undefined,
+  getSubjectAddress?: (
+    transaction: NonEvmTransaction,
+  ) => string | undefined,
 ): ActivityListItem[] {
-  return transactions.map((transaction) =>
-    mapKeyringTransaction({
-      transaction,
-      bridgeHistory: getBridgeHistoryItem?.(transaction.id),
-    }),
-  );
+  return transactions.map((transaction) => {
+    const subjectAddress = getSubjectAddress?.(transaction);
+    const activity = {
+      ...mapKeyringTransaction({ transaction, subjectAddress }),
+      raw: { type: 'keyringTransaction' as const, data: transaction },
+    } as ActivityListItem;
+
+    return enrichKeyringActivityWithBridge(
+      activity,
+      getBridgeHistoryItem?.(transaction.id),
+      subjectAddress,
+    );
+  });
 }
 
 /**

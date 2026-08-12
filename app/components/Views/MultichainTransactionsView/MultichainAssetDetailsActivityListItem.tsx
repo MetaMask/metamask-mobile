@@ -17,7 +17,11 @@ import {
 } from '../../UI/Bridge/utils/transaction-history';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../ActivityList/getActivityDetailsRoute';
-import { mapKeyringTransaction } from '../../../util/activity-adapters';
+import { mapKeyringTransaction } from '@metamask/client-utils';
+import {
+  enrichKeyringActivityWithBridge,
+  type ActivityListItem,
+} from '../../../util/activity-adapters';
 import {
   getMultichainTransactionDetailEventProperties,
   ACTIVITY_DETAIL_EVENTS,
@@ -30,6 +34,7 @@ interface MultichainAssetDetailsActivityListItemProps {
   navigation: AppNavigationProp;
   index: number;
   location?: TransactionDetailLocation;
+  subjectAddress?: string;
 }
 
 export const MultichainAssetDetailsActivityListItem = ({
@@ -39,20 +44,24 @@ export const MultichainAssetDetailsActivityListItem = ({
   navigation,
   index,
   location,
+  subjectAddress,
 }: MultichainAssetDetailsActivityListItemProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isTransactionsRedesignEnabled = useSelector(
     selectIsTransactionsRedesignEnabled,
   );
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
-  const activityItem = useMemo(
-    () =>
-      mapKeyringTransaction({
-        transaction,
-        bridgeHistory: bridgeHistoryItem,
-      }),
-    [transaction, bridgeHistoryItem],
-  );
+  const activityItem = useMemo(() => {
+    const activity = {
+      ...mapKeyringTransaction({ transaction, subjectAddress }),
+      raw: { type: 'keyringTransaction' as const, data: transaction },
+    } as ActivityListItem;
+    return enrichKeyringActivityWithBridge(
+      activity,
+      bridgeHistoryItem,
+      subjectAddress,
+    );
+  }, [transaction, bridgeHistoryItem, subjectAddress]);
 
   const handlePress = useCallback(() => {
     trackEvent(
