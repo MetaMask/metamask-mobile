@@ -231,6 +231,45 @@ describe('BaseNotification', () => {
     jest.useRealTimers();
   });
 
+  it('restarts auto-dismiss when content changes without a layout change', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId, rerender } = renderWithProvider(
+      <BaseNotification
+        status="pending"
+        data={{ title: 'Pending', description: 'Working' }}
+        dismissDuration={1000}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      // Finish entrance spring and start the auto-dismiss delay.
+      jest.advanceTimersByTime(500);
+    });
+
+    await act(async () => {
+      rerender(
+        <BaseNotification
+          status="success"
+          data={{ title: 'Pending', description: 'Working' }}
+          dismissDuration={1000}
+          onDismissComplete={onDismissComplete}
+        />,
+      );
+    });
+
+    // No second layout: same height content must still auto-dismiss.
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
   it('handles unmount and ignores duplicate layout after enter', async () => {
     jest.useFakeTimers();
     const onDismissComplete = jest.fn();

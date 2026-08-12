@@ -233,15 +233,6 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     }
   }, []);
 
-  useEffect(() => {
-    clearScheduledAutoDismiss();
-    setDescriptionLineCount(null);
-    setTitleLineCount(null);
-    hasEnteredRef.current = false;
-    dismissCompleteCalledRef.current = false;
-    visibleAtRef.current = null;
-  }, [clearScheduledAutoDismiss, status, title, description, isVisible]);
-
   const handleTitleTextLayout = (event: TextLayoutEvent) => {
     const lineCount = event.nativeEvent.lines.length;
 
@@ -304,6 +295,34 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     visibleAtRef.current = Date.now();
     scheduleAutoDismiss(dismissDurationMs);
   }, [dismissDurationMs, scheduleAutoDismiss]);
+
+  // Content/visibility changes clear the previous auto-dismiss timer. Restart it
+  // here when already on screen — onLayout often does not re-fire if height is
+  // unchanged, so waiting on layout would leave the notification stuck visible.
+  useEffect(() => {
+    const wasEntered = hasEnteredRef.current;
+
+    clearScheduledAutoDismiss();
+    setDescriptionLineCount(null);
+    setTitleLineCount(null);
+    dismissCompleteCalledRef.current = false;
+    visibleAtRef.current = null;
+
+    if (wasEntered && isVisible && !persistUntilDismiss) {
+      beginAutoDismiss();
+      return;
+    }
+
+    hasEnteredRef.current = false;
+  }, [
+    beginAutoDismiss,
+    clearScheduledAutoDismiss,
+    description,
+    isVisible,
+    persistUntilDismiss,
+    status,
+    title,
+  ]);
 
   const resumeAutoDismissAfterSwipe = useCallback(() => {
     if (persistUntilDismissRef.current) {
