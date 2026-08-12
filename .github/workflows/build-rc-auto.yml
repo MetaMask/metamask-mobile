@@ -27,7 +27,8 @@
 #     - Fingerprint changed (a cherry-pick touched native code/config)     -> native build.
 #     - Fingerprint unchanged                                             -> OTA update only.
 #   Native builds record the new baseline; OTA pushes bump a revision counter that produces the
-#   display-only 4th-decimal label (e.g. 8.0.1.2) shown in the PR comment, Slack, and in-app.
+#   display-only 4th-decimal label (e.g. 8.0.1.2) shown in the PR comment, Slack, and in-app,
+#   reported next to the short SHA of the commit the revision shipped.
 #   Without the label, behaviour is exactly as before: always native, OTA published manually via
 #   runway-ota-rc.yml. Removing the label is the rollback path and takes effect on the next push.
 #   See docs/auto-rc-ota.md.
@@ -264,6 +265,7 @@ jobs:
       release_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
       semver: ${{ needs.validate-and-find-pr.outputs.semver }}
       pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
+      commit_sha: ${{ github.sha }}
       # Compare against the native baseline itself: the invariant an RC OTA must hold is that the
       # JS bundle still matches the native binary testers already have installed.
       base_branch: ${{ needs.resolve-native-baseline.outputs.baseline_sha }}
@@ -325,6 +327,7 @@ jobs:
           # Set only on the OTA path; presence switches the comment to OTA-only rendering
           # (no TestFlight/APK links, since no new binaries were produced).
           OTA_UPDATE_LABEL: ${{ needs.trigger-auto-ota.outputs.ota_label }}
+          OTA_COMMIT_SHORT_SHA: ${{ needs.trigger-auto-ota.outputs.ota_commit_short_sha }}
           OTA_NATIVE_BUILD_NUMBER: ${{ needs.resolve-native-baseline.outputs.native_build_number }}
           OTA_BASELINE_SHORT_SHA: ${{ needs.resolve-native-baseline.outputs.baseline_short_sha }}
           # AI Provider keys for test plan generation
@@ -367,4 +370,5 @@ jobs:
       pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
       ota_label: ${{ needs.trigger-auto-ota.outputs.ota_label }}
       ota_native_build_number: ${{ needs.resolve-native-baseline.outputs.native_build_number }}
+      ota_commit_short_sha: ${{ needs.trigger-auto-ota.outputs.ota_commit_short_sha }}
     secrets: inherit
