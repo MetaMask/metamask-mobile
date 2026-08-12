@@ -36,7 +36,7 @@ const spotItem: FeedSpotItem = {
   traderId: 'trader-spot-1',
   username: 'dutchiono',
   traderAddress: '0x1111111111111111111111111111111111111111',
-  action: 'bought',
+  action: 'opened',
   timestamp: Date.now() - 21_000,
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
@@ -250,7 +250,7 @@ describe('FeedItemRow', () => {
   it('shows the "Holding" label on an empty open spot row', () => {
     const item: FeedSpotItem = {
       ...spotItem,
-      action: 'bought',
+      action: 'opened',
       valueLabel: '',
       pnlLabel: '',
       hasValueData: false,
@@ -270,7 +270,7 @@ describe('FeedItemRow', () => {
       screen.getByTestId(getFeedNewPositionTestId('spot-1')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.feed.new_position.bought'),
+      screen.getByText('social_leaderboard.feed.new_position.spot'),
     ).toBeOnTheScreen();
   });
 
@@ -294,7 +294,7 @@ describe('FeedItemRow', () => {
     );
 
     expect(
-      screen.getByText('social_leaderboard.feed.new_position.opened'),
+      screen.getByText('social_leaderboard.feed.new_position.perps'),
     ).toBeOnTheScreen();
   });
 

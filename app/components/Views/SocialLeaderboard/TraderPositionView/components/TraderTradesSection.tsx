@@ -27,13 +27,23 @@ import {
 import Animated, { type ScrollHandlerProcessed } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { formatTradeDayLabel, getTradeDayKey } from '../../utils/formatters';
+import type { TradeAction } from '../../utils/tradeAction';
 import { computeSectionStartOffsets } from '../utils/traderPositionScrollLayout';
 import TradeRow from './TradeRow';
+
+/**
+ * A fill paired with its lifecycle stage. Carried together through the day
+ * grouping so a row can never end up rendering someone else's verb.
+ */
+interface TradeListEntry {
+  trade: Trade;
+  action: TradeAction;
+}
 
 interface TradeDaySection {
   dayKey: string;
   dayLabel: string;
-  data: Trade[];
+  data: TradeListEntry[];
 }
 
 /**
@@ -48,7 +58,7 @@ export interface TraderTradesSectionGeometry {
 }
 
 const AnimatedSectionList = Animated.createAnimatedComponent(
-  SectionList<Trade, TradeDaySection>,
+  SectionList<TradeListEntry, TradeDaySection>,
 );
 
 const sectionHeaderStyles = StyleSheet.create({
@@ -65,6 +75,12 @@ export interface TraderTradesSectionHandle {
 
 export interface TraderTradesSectionProps {
   trades: Trade[];
+  /**
+   * Lifecycle stage per trade, in the same order as {@link trades}. Resolved by
+   * the parent because a fill's stage depends on the whole position (the fills
+   * before it, and the position's remaining size), not on the fill alone.
+   */
+  tradeActions: TradeAction[];
   traderImageUrl?: string;
   traderAddress?: string;
   /** When provided, each row is tappable (e.g. to slide the chart to the trade). */
@@ -116,6 +132,7 @@ const TraderTradesSection = forwardRef<
   (
     {
       trades,
+      tradeActions,
       traderImageUrl,
       traderAddress,
       onTradePress,
@@ -129,7 +146,7 @@ const TraderTradesSection = forwardRef<
     ref,
   ) => {
     const tw = useTailwind();
-    const listRef = useRef<SectionList<Trade, TradeDaySection>>(null);
+    const listRef = useRef<SectionList<TradeListEntry, TradeDaySection>>(null);
 
     // Stable ref so the geometry effect doesn't re-run when the parent passes a
     // new callback identity.
@@ -170,21 +187,25 @@ const TraderTradesSection = forwardRef<
     // sticky header reflects whatever day is currently at the top.
     const sections = useMemo<TradeDaySection[]>(() => {
       const result: TradeDaySection[] = [];
-      for (const trade of trades) {
+      trades.forEach((trade, index) => {
+        const entry: TradeListEntry = {
+          trade,
+          action: tradeActions[index],
+        };
         const dayKey = getTradeDayKey(trade.timestamp);
         const last = result[result.length - 1];
         if (last && last.dayKey === dayKey) {
-          last.data.push(trade);
+          last.data.push(entry);
         } else {
           result.push({
             dayKey,
             dayLabel: formatTradeDayLabel(trade.timestamp),
-            data: [trade],
+            data: [entry],
           });
         }
-      }
+      });
       return result;
-    }, [trades]);
+    }, [trades, tradeActions]);
 
     // Recompute the section geometry only when the sections or the measured
     // constants change (never per scroll frame) and hand it to the parent, which
@@ -226,7 +247,7 @@ const TraderTradesSection = forwardRef<
         scrollToTrade: (transactionHash: string) => {
           for (let s = 0; s < sections.length; s++) {
             const itemIndex = sections[s].data.findIndex(
-              (t) => t.transactionHash === transactionHash,
+              (entry) => entry.trade.transactionHash === transactionHash,
             );
             if (itemIndex >= 0) {
               scrollToLocation({ sectionIndex: s, itemIndex });
@@ -257,7 +278,11 @@ const TraderTradesSection = forwardRef<
     }, []);
 
     const renderSectionHeader = useCallback(
-      ({ section }: { section: SectionListData<Trade, TradeDaySection> }) => {
+      ({
+        section,
+      }: {
+        section: SectionListData<TradeListEntry, TradeDaySection>;
+      }) => {
         const isHiddenBySticky =
           stickyDayLabel != null && section.dayLabel === stickyDayLabel;
 
@@ -289,14 +314,15 @@ const TraderTradesSection = forwardRef<
     );
 
     const renderItem = useCallback(
-      ({ item }: { item: Trade }) => (
+      ({ item }: { item: TradeListEntry }) => (
         <View onLayout={handleRowLayout}>
           <TradeRow
-            trade={item}
+            trade={item.trade}
+            action={item.action}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
             onPress={onTradePress}
-            isEmphasized={item.transactionHash === emphasizedTradeId}
+            isEmphasized={item.trade.transactionHash === emphasizedTradeId}
           />
         </View>
       ),
@@ -309,7 +335,10 @@ const TraderTradesSection = forwardRef<
       ],
     );
 
-    const keyExtractor = useCallback((item: Trade) => item.transactionHash, []);
+    const keyExtractor = useCallback(
+      (item: TradeListEntry) => item.trade.transactionHash,
+      [],
+    );
 
     return (
       <AnimatedSectionList

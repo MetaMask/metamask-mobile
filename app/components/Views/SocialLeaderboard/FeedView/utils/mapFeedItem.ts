@@ -17,6 +17,7 @@ import {
   formatSignedUsd,
   formatUsd,
 } from '../../utils/formatters';
+import { resolveTradeAction } from '../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
 import type {
@@ -68,32 +69,24 @@ function findTriggeringTrade(
 }
 
 /**
- * Feed rows are keyed off a triggering trade when one exists, and the trade's
- * intent is authoritative in both directions: an `exit` fill reads as closed
- * (even when {@link isClosedPosition} misclassifies a perp that still carries
- * stale non-zero margin in the Clicker payload), and an `enter` fill reads as
- * open (even when the position snapshot looks closed). We only fall back to the
- * {@link isClosedPosition} snapshot heuristic when there is no triggering trade.
+ * Resolves the lifecycle stage a feed row announces from its triggering trade
+ * (see {@link resolveTradeAction}), which separates a partial exit from a full
+ * close — the row used to read "closed" for a 10% trim.
+ *
+ * Falls back to the {@link isClosedPosition} snapshot heuristic only when there
+ * is no triggering trade, and to `opened` when the position also has no trade
+ * history at all: an entry-shaped verb keeps the row's P&L column showing
+ * current value rather than fabricating a realized figure.
  */
-function isFeedItemClosed(
+function resolveAction(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
-): boolean {
-  if (trade) {
-    return trade.intent === 'exit';
+): FeedAction {
+  const action = trade ? resolveTradeAction(coreItem, trade) : undefined;
+  if (action) {
+    return action;
   }
-  return isClosedPosition(coreItem);
-}
-
-/**
- * Resolves the action verb for a feed row. Perp fills read as "opened"/"closed",
- * spot as "bought"/"sold" (mirrors `TradeRow`).
- */
-function resolveAction(isPerp: boolean, isClosed: boolean): FeedAction {
-  if (isPerp) {
-    return isClosed ? 'closed' : 'opened';
-  }
-  return isClosed ? 'sold' : 'bought';
+  return isClosedPosition(coreItem) ? 'closed' : 'opened';
 }
 
 /**
@@ -315,8 +308,11 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const timestampMs = tradeTimestampToMs(timestamp);
   const isPerp = isPerpPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
-  const isClosed = isFeedItemClosed(coreItem, trade);
-  const action = resolveAction(isPerp, isClosed);
+  const action = resolveAction(coreItem, trade);
+  // Only a full close realizes P&L. A reduce leaves the position open, so the
+  // right column keeps showing current value — the old `intent === 'exit'`
+  // test flipped it to a realized figure on every partial trim.
+  const isClosed = action === 'closed';
   const subHeader = buildSubHeader(trade, !isPerp);
   const presentation = buildFeedItemPresentation(coreItem, isClosed);
 

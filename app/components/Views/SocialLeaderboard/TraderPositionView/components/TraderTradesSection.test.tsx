@@ -5,6 +5,7 @@ import type { ReactTestInstance } from 'react-test-renderer';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { formatTradeDayLabel } from '../../utils/formatters';
+import type { TradeAction } from '../../utils/tradeAction';
 import TraderTradesSection from './TraderTradesSection';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -31,10 +32,23 @@ const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   ...overrides,
 });
 
+/**
+ * Lifecycle stage per fill, parallel to `trades` — the contract the real parent
+ * satisfies via `resolveTradeActions`. These fixtures are simple enough that
+ * intent alone determines the stage.
+ */
+const actionsFor = (trades: Trade[]): TradeAction[] =>
+  trades.map((trade) => (trade.intent === 'enter' ? 'opened' : 'closed'));
+
 describe('TraderTradesSection', () => {
   it('renders the day-grouped section header', () => {
     const trade = makeTrade();
-    renderWithProvider(<TraderTradesSection trades={[trade]} />);
+    renderWithProvider(
+      <TraderTradesSection
+        trades={[trade]}
+        tradeActions={actionsFor([trade])}
+      />,
+    );
 
     expect(
       screen.getByText(formatTradeDayLabel(trade.timestamp)),
@@ -43,7 +57,12 @@ describe('TraderTradesSection', () => {
 
   it('does not render a white underline below the title', () => {
     const trade = makeTrade();
-    renderWithProvider(<TraderTradesSection trades={[trade]} />);
+    renderWithProvider(
+      <TraderTradesSection
+        trades={[trade]}
+        tradeActions={actionsFor([trade])}
+      />,
+    );
 
     let node: ReactTestInstance | null = screen.getByText(
       formatTradeDayLabel(trade.timestamp),
@@ -58,12 +77,14 @@ describe('TraderTradesSection', () => {
   });
 
   it('renders a TradeRow for each trade', () => {
+    const tradePair = [
+      makeTrade({ transactionHash: '0x1', intent: 'enter' }),
+      makeTrade({ transactionHash: '0x2', intent: 'exit' }),
+    ];
     renderWithProvider(
       <TraderTradesSection
-        trades={[
-          makeTrade({ transactionHash: '0x1', intent: 'enter' }),
-          makeTrade({ transactionHash: '0x2', intent: 'exit' }),
-        ]}
+        trades={tradePair}
+        tradeActions={actionsFor(tradePair)}
       />,
     );
 
@@ -72,7 +93,7 @@ describe('TraderTradesSection', () => {
   });
 
   it('renders the empty state when there are no trades', () => {
-    renderWithProvider(<TraderTradesSection trades={[]} />);
+    renderWithProvider(<TraderTradesSection trades={[]} tradeActions={[]} />);
 
     expect(screen.queryByText('Bought')).toBeNull();
     expect(screen.queryByText('Sold')).toBeNull();
@@ -82,6 +103,7 @@ describe('TraderTradesSection', () => {
     renderWithProvider(
       <TraderTradesSection
         trades={[]}
+        tradeActions={[]}
         listHeaderComponent={<Text>PINNED HEADER</Text>}
       />,
     );
@@ -94,7 +116,11 @@ describe('TraderTradesSection', () => {
     const dayLabel = formatTradeDayLabel(trade.timestamp);
 
     renderWithProvider(
-      <TraderTradesSection trades={[trade]} stickyDayLabel={dayLabel} />,
+      <TraderTradesSection
+        trades={[trade]}
+        tradeActions={actionsFor([trade])}
+        stickyDayLabel={dayLabel}
+      />,
     );
 
     let node: ReactTestInstance | null = screen.getByText(dayLabel);
@@ -118,7 +144,11 @@ describe('TraderTradesSection', () => {
     const dayLabel = formatTradeDayLabel(trade.timestamp);
 
     renderWithProvider(
-      <TraderTradesSection trades={[trade]} stickyDayLabel={null} />,
+      <TraderTradesSection
+        trades={[trade]}
+        tradeActions={actionsFor([trade])}
+        stickyDayLabel={null}
+      />,
     );
 
     let node: ReactTestInstance | null = screen.getByText(dayLabel);
@@ -144,6 +174,7 @@ describe('TraderTradesSection', () => {
     renderWithProvider(
       <TraderTradesSection
         trades={[trade]}
+        tradeActions={actionsFor([trade])}
         stickyDayLabel="Some Other Day 2020"
       />,
     );
@@ -176,6 +207,7 @@ describe('TraderTradesSection', () => {
     renderWithProvider(
       <TraderTradesSection
         trades={trades}
+        tradeActions={actionsFor(trades)}
         onSectionGeometryChange={onSectionGeometryChange}
       />,
     );
@@ -203,6 +235,7 @@ describe('TraderTradesSection', () => {
     renderWithProvider(
       <TraderTradesSection
         trades={[trade]}
+        tradeActions={actionsFor([trade])}
         onSectionGeometryChange={onSectionGeometryChange}
       />,
     );

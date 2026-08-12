@@ -12,6 +12,8 @@ import type {
 /** Extra fields present on raw feed payloads but not yet on `CoreFeedItem`. */
 type CoreFeedItemOverrides = Partial<CoreFeedItem> & {
   marginUsd?: number | null;
+  /** The API's open/closed verdict; absent on older responses. */
+  isOpen?: boolean;
 };
 
 const buildTrade = (overrides: Partial<Trade> = {}): Trade => ({

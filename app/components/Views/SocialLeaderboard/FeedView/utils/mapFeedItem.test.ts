@@ -39,7 +39,7 @@ describe('mapFeedItem', () => {
         tokenImageUrl: null,
         tokenSymbol: 'PEPE',
       },
-      action: 'bought',
+      action: 'opened',
       tokenSymbol: 'PEPE',
       tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
       chain: 'eip155:1',
@@ -135,9 +135,11 @@ describe('mapFeedItem', () => {
     });
   });
 
-  it('derives "sold" for a spot exit trade', () => {
+  it('derives "closed" for a spot exit that empties the position', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
+        positionAmount: 0,
+        soldUsd: 90_000,
         trades: [
           {
             direction: 'sell',
@@ -152,13 +154,39 @@ describe('mapFeedItem', () => {
       }),
     );
 
-    expect(result?.action).toBe('sold');
+    expect(result?.action).toBe('closed');
+  });
+
+  // The bug this replaced: `intent === 'exit'` alone announced "closed" for a
+  // trader who had only trimmed part of their bag.
+  it('derives "reduced" for a spot exit that leaves the position open', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        positionAmount: 600,
+        soldUsd: 40_000,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: 400,
+            usdCost: 40000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('reduced');
   });
 
   it('falls back to the most recent trade when none matches the feed timestamp', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
         timestamp: 9_999_999_999,
+        positionAmount: 0,
+        soldUsd: 200,
         trades: [
           {
             direction: 'buy',
@@ -182,8 +210,9 @@ describe('mapFeedItem', () => {
       }),
     );
 
-    // Latest trade (timestamp 1_700_000_900) is an exit -> "sold".
-    expect(result?.action).toBe('sold');
+    // Latest trade (timestamp 1_700_000_900) is the exit that empties the
+    // position, so the row announces the close rather than the earlier buy.
+    expect(result?.action).toBe('closed');
   });
 
   it('keeps a perp enter fill as "opened" even when the snapshot looks closed', () => {
@@ -211,7 +240,7 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('opened');
   });
 
-  it('keeps a spot enter fill as "bought" even when the snapshot looks closed', () => {
+  it('keeps a spot enter fill as "opened" even when the snapshot looks closed', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
         // Closed-looking spot snapshot (fully sold out) must still defer to the
@@ -232,7 +261,7 @@ describe('mapFeedItem', () => {
       }),
     );
 
-    expect(result?.action).toBe('bought');
+    expect(result?.action).toBe('opened');
   });
 
   it('returns null for a spot trade on an unsupported chain', () => {
@@ -407,6 +436,9 @@ describe('mapFeedItem', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({
         tokenSymbol: 'BTC',
+        // Stale non-zero margin makes the snapshot look open; the API's own
+        // verdict settles it.
+        isOpen: false,
         currentValueUSD: undefined,
         pnlValueUsd: undefined,
         pnlPercent: undefined,
