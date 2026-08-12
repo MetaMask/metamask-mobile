@@ -9,22 +9,22 @@ export interface SubmitMoneyAccountVaultDepositRequest {
   vaultDisabled?: boolean;
 }
 
+export interface SubmitMoneyAccountVaultDepositResult {
+  skipped?: true;
+  transactionHash?: Hex;
+}
+
 export interface SubmitMoneyAccountVaultWithdrawRequest {
   amountInRaw: string;
-  autorampId: string;
-  chainId: Hex;
   moneyAccountAddress: Hex;
-  quoteId: string;
-  quoteValidUntil: string;
   recipient: Hex;
   requestId: string;
-  tokenAddress: Hex;
 }
 
 interface MoneyAccountVaultController {
   submitMoneyAccountVaultDeposit: (
     request: SubmitMoneyAccountVaultDepositRequest,
-  ) => Promise<{ transactionHash?: Hex }>;
+  ) => Promise<SubmitMoneyAccountVaultDepositResult>;
   submitMoneyAccountVaultWithdraw: (
     request: SubmitMoneyAccountVaultWithdrawRequest,
   ) => Promise<TransactionBatchResult>;
@@ -52,11 +52,12 @@ function getMoneyAccountVaultController(): MoneyAccountVaultController {
  * any Money surface can invoke the same controller action.
  *
  * @param request - Completed Iron payout transaction details.
- * @returns Hash of the confirmed vault transaction.
+ * @returns Hash of the confirmed vault transaction, or `{ skipped: true }` when
+ * vaulting is disabled.
  */
 export async function submitMoneyAccountVaultDeposit(
   request: SubmitMoneyAccountVaultDepositRequest,
-): Promise<{ transactionHash?: Hex }> {
+): Promise<SubmitMoneyAccountVaultDepositResult> {
   return await getMoneyAccountVaultController().submitMoneyAccountVaultDeposit(
     request,
   );
@@ -69,7 +70,10 @@ export async function submitMoneyAccountVaultDeposit(
  * this action. The controller creates an approval request and never broadcasts
  * the atomic withdraw/transfer batch without user confirmation.
  *
- * @param request - Backend-bound exact-out Pix intent.
+ * Quote / Pix identifiers belong in RampsController / NeoBankService; this
+ * wrapper only forwards the on-chain withdraw intent.
+ *
+ * @param request - On-chain withdraw intent.
  * @returns Pending transaction batch ID.
  */
 export async function submitMoneyAccountVaultWithdraw(
