@@ -50,7 +50,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         color: theme.colors.text.default,
         borderWidth: 1,
         borderColor: colors.transparent,
-        backgroundColor: theme.colors.background.elevated1,
+        backgroundColor: theme.colors.background.muted,
         ...stateObj,
         fontFamily: getFontFamily(textVariant),
         fontWeight: theme.typography[textVariant].fontWeight,
