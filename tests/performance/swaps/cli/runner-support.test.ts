@@ -1,6 +1,7 @@
 import { BridgeViewSelectorsIDs } from '../../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
 import {
   buildMmSessionProbeArgs,
+  containsTestId,
   extractInteractionText,
   formatMmSessionSetupCommand,
   parseMetroPort,
@@ -23,6 +24,14 @@ describe('Swaps performance runner support', () => {
     );
 
     expect(result).toBe('ETH');
+  });
+
+  it.each([
+    [{ observation: { testIds: [{ testId: 'login-password-input' }] } }, true],
+    ['identifier: login-password-input', true],
+    [{ observation: { testIds: [{ testId: 'wallet-screen' }] } }, false],
+  ])('detects whether screen output contains a test ID', (output, expected) => {
+    expect(containsTestId(output, 'login-password-input')).toBe(expected);
   });
 
   it.each([

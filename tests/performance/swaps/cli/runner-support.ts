@@ -59,6 +59,26 @@ export function extractInteractionText(
   return null;
 }
 
+export function containsTestId(output: unknown, testId: string): boolean {
+  if (typeof output === 'string') {
+    return output.includes(testId);
+  }
+
+  if (Array.isArray(output)) {
+    return output.some((value) => containsTestId(value, testId));
+  }
+
+  if (!isRecord(output)) {
+    return false;
+  }
+
+  if (output.testId === testId) {
+    return true;
+  }
+
+  return Object.values(output).some((value) => containsTestId(value, testId));
+}
+
 export function parseMetroPort(argv: string[]): number {
   const flagIndex = argv.indexOf('--metro-port');
   if (flagIndex === -1) {

@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { LoginViewSelectors } from '../../../../app/components/Views/Login/LoginView.testIds';
 import { SwapsPerformanceArtifact } from '../analysis/artifact';
 import { formatArtifactMarkdown } from '../analysis/markdown-report';
 import { summarizeCapture } from '../analysis/summarize';
@@ -23,6 +24,7 @@ import {
 import { resolveArtifactOutputPaths } from './artifact-paths';
 import {
   buildMmSessionProbeArgs,
+  containsTestId,
   extractInteractionText,
   formatMmSessionSetupCommand,
   parseMetroPort,
@@ -88,6 +90,26 @@ function parseCommandOutput(output: string): unknown {
 function runMm(args: string[], allowFailure = false): unknown {
   const result = runYarn(['mm', ...args], allowFailure);
   return result.ok ? parseCommandOutput(result.stdout) : null;
+}
+
+/**
+ * Sends a secret to mm without allowing the command output or its arguments to
+ * reach an error, terminal log, or performance artifact.
+ */
+function typeSecretWithMm(testId: string, secret: string): void {
+  const result = spawnSync(
+    'yarn',
+    ['mm', 'type', '--testid', testId, secret, '--timeout', '10000'],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      timeout: COMMAND_TIMEOUT_MS,
+    },
+  );
+
+  if (result.status !== 0 || result.error !== undefined) {
+    throw new Error('mm failed while entering the wallet password');
+  }
 }
 
 function evaluateRuntime(expression: string): unknown {
@@ -224,13 +246,42 @@ export async function runSwapsPerformanceScenario(
       'reusing the active mm session without launching or refreshing the app',
     );
 
-    runMm([
-      'wait-for',
-      '--testid',
-      scenario.startingTestId,
-      '--timeout',
-      '10000',
-    ]);
+    const initialScreen = parseCommandOutput(sessionProbe.stdout);
+    if (containsTestId(initialScreen, LoginViewSelectors.PASSWORD_INPUT)) {
+      const walletPassword = process.env.SWAPS_PERF_WALLET_PASSWORD;
+      if (!walletPassword) {
+        throw new Error(
+          "MetaMask is locked. Run export SWAPS_PERF_WALLET_PASSWORD='<wallet-password>', then rerun the scenario.",
+        );
+      }
+
+      log('unlocking MetaMask before performance measurement');
+      typeSecretWithMm(LoginViewSelectors.PASSWORD_INPUT, walletPassword);
+      runMm([
+        'click',
+        '--testid',
+        LoginViewSelectors.LOGIN_BUTTON_ID,
+        '--timeout',
+        '10000',
+      ]);
+      runMm([
+        'wait-for',
+        '--testid',
+        scenario.startingTestId,
+        '--timeout',
+        String(MM_COMMAND_TIMEOUT_MS),
+      ]);
+      log('wallet unlocked; starting the measured scenario');
+    } else {
+      runMm([
+        'wait-for',
+        '--testid',
+        scenario.startingTestId,
+        '--timeout',
+        '10000',
+      ]);
+    }
+
     preconditions = { walletUnlocked: true };
 
     const installResult = evaluateRuntime(buildInstallDiagnosticsExpression());

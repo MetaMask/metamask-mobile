@@ -14,7 +14,7 @@ The scenario uses the project-local `mm` CLI, real app state, and the real netwo
 ## Prerequisites
 
 - A booted iOS Simulator with a development build of MetaMask installed.
-- The installed wallet is unlocked and showing the Wallet view on Ethereum.
+- The installed wallet is on Login or unlocked and showing the Wallet view on Ethereum.
 - Metro is already running on port `8081` with the app attached.
 - `idb` and `idb_companion` pass `yarn mm:doctor`.
 
@@ -39,7 +39,16 @@ In another terminal, establish the simulator, accessibility, and Hermes session:
 yarn mm launch --metro-port 8081
 ```
 
-This setup launch may refresh the app if it is not already healthily attached to Metro. After it completes, manually unlock MetaMask and leave it on Wallet with Ethereum Mainnet selected. The scenario command requires and reuses this active session; it does not launch or refresh the app.
+This setup launch may refresh the app if it is not already healthily attached to Metro. The scenario command requires and reuses this active session; it does not launch or refresh the app.
+
+To let the scenario unlock a wallet that is on Login, enter the password silently in the same terminal that will run the scenario:
+
+```bash
+read -s "SWAPS_PERF_WALLET_PASSWORD?Wallet password: "
+export SWAPS_PERF_WALLET_PASSWORD
+```
+
+The runner uses the Login screen's stable test IDs, unlocks before installing diagnostics or measuring any phase, and does not print or store the password. Ethereum Mainnet must have been selected before the wallet was locked. If the variable is not set, manually unlock MetaMask and leave it on Wallet.
 
 The repo-local `mms-swaps-performance-analysis` skill owns the full preflight, prepare, run, analyze, and cleanup workflow. The underlying commands are shown here for direct use.
 
@@ -47,6 +56,12 @@ Run the deterministic scenario in another terminal:
 
 ```bash
 yarn performance:swaps run --scenario 001
+```
+
+Remove the password from the shell after the run:
+
+```bash
+unset SWAPS_PERF_WALLET_PASSWORD
 ```
 
 Use a different Metro port when needed:

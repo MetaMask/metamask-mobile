@@ -2,7 +2,7 @@
 
 Measures the work performed while opening Swaps, selecting Ethereum USDC, entering `1` ETH, and waiting for the first positive quote.
 
-The scenario requires an unlocked wallet on Ethereum Mainnet, an active `mm` and Hermes session, and the temporary Swaps performance instrumentation prepared before Metro starts.
+The scenario requires a wallet that is either on Login or unlocked on the Wallet view, with Ethereum Mainnet selected before locking or running. It also requires an active `mm` and Hermes session and the temporary Swaps performance instrumentation prepared before Metro starts. When starting on Login, set `SWAPS_PERF_WALLET_PASSWORD` using the silent-input instructions in the main Swaps performance README.
 
 Run it from the repository root:
 
