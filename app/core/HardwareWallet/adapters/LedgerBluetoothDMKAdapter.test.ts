@@ -22,6 +22,7 @@ const mockOpenEthereumAppOnLedger = jest.fn();
 const mockCloseRunningAppOnLedger = jest.fn();
 
 const mockConnectLedgerHardware = jest.fn();
+const mockGetLedgerDmkPublicKey = jest.fn();
 const mockConnectLedgerDmkDevice = jest.fn();
 const mockGetLedgerDmkSessionState = jest.fn();
 const mockDisconnectLedgerDmkSession = jest.fn();
@@ -73,6 +74,8 @@ jest.mock('../../Ledger/Ledger', () => ({
 jest.mock('../../Ledger/LedgerDmk', () => ({
   connectLedgerDmkHardware: (...args: unknown[]) =>
     mockConnectLedgerHardware(...args),
+  getLedgerDmkPublicKey: (...args: unknown[]) =>
+    mockGetLedgerDmkPublicKey(...args),
   connectLedgerDmkDevice: (...args: unknown[]) =>
     mockConnectLedgerDmkDevice(...args),
   getLedgerDmkSessionState: (...args: unknown[]) =>
@@ -117,6 +120,11 @@ describe('LedgerBluetoothDMKAdapter', () => {
     mockListenToLedgerDmkAvailableDevices.mockResolvedValue(
       scanSubject.asObservable(),
     );
+    mockGetLedgerDmkPublicKey.mockResolvedValue({
+      address: '0x123',
+      publicKey: 'public-key',
+      chainCode: 'chain-code',
+    });
     mockConnectLedgerDmkDevice.mockResolvedValue('session-1');
     mockDisconnectLedgerDmkSession.mockResolvedValue(undefined);
     mockGetLedgerDmkSessionState.mockReturnValue(
@@ -128,8 +136,7 @@ describe('LedgerBluetoothDMKAdapter', () => {
     adapter.destroy();
   });
 
-  const flushPromises = () =>
-    new Promise<void>((resolve) => setImmediate(resolve));
+  const flushPromises = () => Promise.resolve();
 
   const expectEmitted = (event: DeviceEvent) =>
     expect(onDeviceEvent).toHaveBeenCalledWith(
@@ -229,9 +236,12 @@ describe('LedgerBluetoothDMKAdapter', () => {
   });
 
   describe('#doConnect (no cached device / retries / failure)', () => {
-    it('emits ConnectionFailed (no throw) when the device is not cached', async () => {
-      await adapter.connect('unknown-device');
+    it('rejects when the device is not cached', async () => {
+      const deviceId = 'unknown-device';
 
+      await expect(adapter.connect(deviceId)).rejects.toThrow(
+        `No cached DiscoveredDevice for deviceId: ${deviceId}`,
+      );
       expectEmitted(DeviceEvent.ConnectionFailed);
     });
 
@@ -490,6 +500,7 @@ describe('LedgerBluetoothDMKAdapter', () => {
       const onError = jest.fn();
       adapter.startDeviceDiscovery(jest.fn(), onError);
       await flushPromises();
+      await flushPromises();
 
       expect(onError).toHaveBeenCalledWith(expect.any(Error));
     });
@@ -717,6 +728,38 @@ describe('LedgerBluetoothDMKAdapter', () => {
         );
       });
 
+      it('emits DeviceLocked when address verification reports a locked device', async () => {
+        const lockedError = new DeviceLockedError('device is locked');
+        mockConnectLedgerHardware.mockResolvedValueOnce('Ethereum');
+        mockGetLedgerDmkPublicKey.mockRejectedValueOnce(lockedError);
+
+        await expect(adapter.ensureDeviceReady(DEVICE_ID)).rejects.toBe(
+          lockedError,
+        );
+
+        expectEmitted(DeviceEvent.DeviceLocked);
+      });
+
+      it('times out and closes the session when address verification stalls', async () => {
+        jest.useFakeTimers();
+        try {
+          mockConnectLedgerHardware.mockResolvedValueOnce('Ethereum');
+          mockGetLedgerDmkPublicKey.mockReturnValue(new Promise(() => undefined));
+
+          const pending = adapter.ensureDeviceReady(DEVICE_ID);
+          pending.catch(() => undefined);
+          await jest.advanceTimersByTimeAsync(OPERATION_TIMEOUT_MS);
+
+          await expect(pending).rejects.toThrow(
+            'Device unresponsive during verification',
+          );
+          expect(adapter.isConnected()).toBe(false);
+          expect(mockDisconnectLedgerDmkSession).toHaveBeenCalled();
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
       it('opens the Ethereum app from the BOLOS screen and returns false', async () => {
         mockConnectLedgerHardware.mockResolvedValueOnce('BOLOS');
         mockOpenEthereumAppOnLedger.mockResolvedValueOnce(undefined);
@@ -735,11 +778,11 @@ describe('LedgerBluetoothDMKAdapter', () => {
         expectEmitted(DeviceEvent.AppNotOpen);
       });
 
-      it('returns false when connect leaves no session', async () => {
+      it('rejects when the requested device was not discovered', async () => {
         mockConnectLedgerHardware.mockResolvedValueOnce('Ethereum');
 
-        await expect(adapter.ensureDeviceReady('not-cached')).resolves.toBe(
-          false,
+        await expect(adapter.ensureDeviceReady('not-cached')).rejects.toThrow(
+          'No cached DiscoveredDevice for deviceId: not-cached',
         );
       });
     });
@@ -829,6 +872,8 @@ describe('LedgerBluetoothDMKAdapter', () => {
         await jest.advanceTimersByTimeAsync(OPERATION_TIMEOUT_MS);
 
         await expect(pending).resolves.toBe(false);
+        expect(adapter.isConnected()).toBe(false);
+        expect(mockDisconnectLedgerDmkSession).toHaveBeenCalled();
       } finally {
         jest.useRealTimers();
       }
