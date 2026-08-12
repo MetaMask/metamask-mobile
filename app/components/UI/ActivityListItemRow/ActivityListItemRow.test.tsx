@@ -1911,7 +1911,7 @@ describe('ActivityListItemRow — amount display', () => {
     const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
 
     expect(getByText('+1 mUSD')).toBeOnTheScreen();
-    expect(getByText('+$1')).toBeOnTheScreen();
+    expect(getByText('+$1.00')).toBeOnTheScreen();
   });
 
   it('renders ramp buy mUSD amounts as already-human values (no decimal re-scale)', () => {
@@ -2017,7 +2017,7 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
     const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
 
     expect(getByText('+1 USDC')).toBeOnTheScreen();
-    expect(getByText('+$1')).toBeOnTheScreen();
+    expect(getByText('+$1.00')).toBeOnTheScreen();
   });
 });
 

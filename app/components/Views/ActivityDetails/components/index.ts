@@ -44,4 +44,4 @@ export {
   ActivityDetailsDoItAgainButton,
   ActivityDetailsWebviewButton,
 } from './ActivityDetailsFooter';
-export { formatActivityTokenAmount } from './activityTokenFormat';
+export { useFormatActivityTokenAmount } from './activityTokenFormat';

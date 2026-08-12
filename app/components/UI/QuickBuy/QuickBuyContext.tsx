@@ -65,14 +65,21 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   const controller = useQuickBuyController(target, onClose, analyticsContext);
   // Open the keypad by default so the sheet matches the taller Figma layout
   // (footer + keypad visible together).
-  const [isKeypadOpen, setIsKeypadOpen] = useState(true);
+  const [isKeypadRequestedOpen, setIsKeypadOpen] = useState(true);
   const {
     currentCurrency,
     usdToCurrentCurrencyRate,
     isPriceImpactError,
     isPresetAddFundsMode,
+    hasNoPayWithFunds,
     handleConfirm,
   } = controller;
+
+  // With nothing to pay with there is no amount to enter and no quote to fetch,
+  // so the keypad is force-collapsed regardless of what any caller requested
+  // (TSA-984). Deriving it here rather than no-oping the setter keeps this the
+  // single gate — no screen can reopen the keypad into a dead state.
+  const isKeypadOpen = isKeypadRequestedOpen && !hasNoPayWithFunds;
 
   const {
     buyAmounts: buyQuickAmounts,

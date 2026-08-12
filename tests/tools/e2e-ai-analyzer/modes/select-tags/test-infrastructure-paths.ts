@@ -97,6 +97,20 @@ const SHARED_TEST_INFRA_PREFIXES = [
 ] as const;
 
 /**
+ * Non-test files that do not change the smoke-test dependency graph or app
+ * behavior. These may accompany a shared-test-infrastructure change without
+ * preventing targeted tag extraction.
+ */
+const IGNORABLE_SHARED_INFRA_COMPANION_PATTERNS = [
+  /^docs\//,
+  /\.(md|mdx|txt)$/,
+  /\.(svg|png)$/,
+  /^locales\/languages\/.*\.json$/,
+  /^\.github\/workflows\/performance-test-runner\.yml$/,
+  /^\.github\/workflows\/run-performance-.*\.yml$/,
+] as const;
+
+/**
  * Returns changed files that are shared test infrastructure (flows, page objects,
  * selectors, locators) — but not spec files themselves.
  */
@@ -108,6 +122,18 @@ export function getChangedSharedInfraFiles(changedFiles: string[]): string[] {
         SHARED_TEST_INFRA_PREFIXES.some((prefix) => f.startsWith(prefix)) &&
         !SPEC_FILE_PATTERN.test(f),
     );
+}
+
+/**
+ * Returns whether a non-test file can safely accompany a shared test
+ * infrastructure change without widening or invalidating targeted smoke-tag
+ * selection.
+ */
+export function isIgnorableSharedInfraCompanion(file: string): boolean {
+  const normalizedFile = normalizeChangedFilePath(file);
+  return IGNORABLE_SHARED_INFRA_COMPANION_PATTERNS.some((pattern) =>
+    pattern.test(normalizedFile),
+  );
 }
 
 /**
