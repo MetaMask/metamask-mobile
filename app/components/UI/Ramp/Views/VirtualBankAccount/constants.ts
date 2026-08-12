@@ -2,6 +2,12 @@
 // This MVP is Brazil-only.
 export const VBA_KYC_COUNTRY_CODE = 'BRA';
 
+// Pix's brand teal, used for the "pix" badge on the Get Pix Key screen. Pix
+// is a Brazilian instant-payment rail, not a MetaMask concept, so it has no
+// design-system color token — this matches Pix's own brand color.
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex -- Pix's brand color has no design-token equivalent
+export const PIX_BRAND_COLOR = '#2CBFB0';
+
 // Deployed hosts for the VBA KYC API (`va-mmcx-universal-kyc-api`), per its
 // ArgoCD workload repo (`va-mmcx-kyc-api-workload`, workload/<env>/main).
 // Production isn't deployed yet.
