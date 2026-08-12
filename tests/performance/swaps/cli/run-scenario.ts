@@ -226,7 +226,7 @@ export async function runSwapsPerformanceScenario(
     runMm([
       'wait-for',
       '--testid',
-      'homepage-action-buttons-grid-swap',
+      scenario.startingTestId,
       '--timeout',
       '10000',
     ]);

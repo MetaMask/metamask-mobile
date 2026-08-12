@@ -1,4 +1,5 @@
 import { ScenarioContext, ScenarioPhase } from '../types';
+import { SCENARIO_001_LOCATORS } from './locators';
 import { hasPositiveNumericValue, scenario001 } from './scenario';
 
 function createContext(): {
@@ -46,21 +47,22 @@ describe('Scenario 001', () => {
 
     const result = await scenario001.run(context);
 
+    expect(scenario001.startingTestId).toBe(SCENARIO_001_LOCATORS.openSwaps);
     expect(result.phases.map(({ name }) => name)).toEqual([
       'open-swaps',
       'select-destination',
       'fetch-first-quote',
     ]);
     expect(clicks).toEqual([
-      'homepage-action-buttons-grid-swap',
-      'dest-token-selector-button',
-      'asset-0x1-USDC',
-      'source-token-area-input',
-      'keypad-delete-button',
-      'keypad-key-1',
+      SCENARIO_001_LOCATORS.openSwaps,
+      SCENARIO_001_LOCATORS.destinationTokenSelector,
+      SCENARIO_001_LOCATORS.ethereumUsdc,
+      SCENARIO_001_LOCATORS.sourceAmountInput,
+      SCENARIO_001_LOCATORS.keypadDelete,
+      SCENARIO_001_LOCATORS.keypadDigitOne,
     ]);
     expect(waits).toContainEqual({
-      testId: 'asset-0x1-USDC',
+      testId: SCENARIO_001_LOCATORS.ethereumUsdc,
       timeoutMs: 20_000,
     });
     expect(result.preconditions).toEqual({

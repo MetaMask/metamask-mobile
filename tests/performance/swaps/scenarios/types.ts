@@ -43,5 +43,6 @@ export interface ScenarioRunResult {
 
 export interface SwapsPerformanceScenario {
   metadata: ScenarioMetadata;
+  startingTestId: string;
   run(context: ScenarioContext): Promise<ScenarioRunResult>;
 }

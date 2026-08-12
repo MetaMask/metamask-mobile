@@ -4,6 +4,7 @@ import {
   ScenarioRunResult,
   SwapsPerformanceScenario,
 } from '../types';
+import { SCENARIO_001_LOCATORS } from './locators';
 import { SCENARIO_001_METADATA } from './metadata';
 
 const QUOTE_TIMEOUT_MS = 30_000;
@@ -23,7 +24,10 @@ async function waitForPositiveQuote(context: ScenarioContext): Promise<void> {
   let lastText: string | null = null;
 
   while (context.now() < deadline) {
-    lastText = context.getVisibleText('dest-token-area-input', true);
+    lastText = context.getVisibleText(
+      SCENARIO_001_LOCATORS.destinationAmountInput,
+      true,
+    );
     if (hasPositiveNumericValue(lastText)) {
       return;
     }
@@ -45,13 +49,13 @@ async function runScenario001(
   context.log('opening Swaps');
   phases.push(
     await context.measurePhase('open-swaps', () => {
-      context.clickTestId('homepage-action-buttons-grid-swap');
-      context.waitForTestId('source-token-area-input', 15_000);
+      context.clickTestId(SCENARIO_001_LOCATORS.openSwaps);
+      context.waitForTestId(SCENARIO_001_LOCATORS.sourceAmountInput, 15_000);
     }),
   );
 
   const sourceTokenText = context.getExactScreenText(
-    'source-token-selector-button',
+    SCENARIO_001_LOCATORS.sourceTokenSelector,
   );
   if (!sourceTokenText?.toUpperCase().includes('ETH')) {
     throw new Error(
@@ -62,21 +66,24 @@ async function runScenario001(
   context.log('selecting Ethereum USDC as the destination');
   phases.push(
     await context.measurePhase('select-destination', () => {
-      context.clickTestId('dest-token-selector-button');
+      context.clickTestId(SCENARIO_001_LOCATORS.destinationTokenSelector);
       // USDC is a prioritized Ethereum asset and has a unique chain-scoped ID.
-      context.waitForTestId('asset-0x1-USDC', 20_000);
-      context.clickTestId('asset-0x1-USDC');
-      context.waitForTestId('dest-token-area-input', 10_000);
+      context.waitForTestId(SCENARIO_001_LOCATORS.ethereumUsdc, 20_000);
+      context.clickTestId(SCENARIO_001_LOCATORS.ethereumUsdc);
+      context.waitForTestId(
+        SCENARIO_001_LOCATORS.destinationAmountInput,
+        10_000,
+      );
     }),
   );
 
   context.log('entering 1 ETH and waiting for the first quote');
   phases.push(
     await context.measurePhase('fetch-first-quote', async () => {
-      context.clickTestId('source-token-area-input');
-      context.waitForTestId('keypad-delete-button', 10_000);
-      context.clickTestId('keypad-delete-button');
-      context.clickTestId('keypad-key-1');
+      context.clickTestId(SCENARIO_001_LOCATORS.sourceAmountInput);
+      context.waitForTestId(SCENARIO_001_LOCATORS.keypadDelete, 10_000);
+      context.clickTestId(SCENARIO_001_LOCATORS.keypadDelete);
+      context.clickTestId(SCENARIO_001_LOCATORS.keypadDigitOne);
       await waitForPositiveQuote(context);
     }),
   );
@@ -94,5 +101,6 @@ async function runScenario001(
 
 export const scenario001: SwapsPerformanceScenario = {
   metadata: SCENARIO_001_METADATA,
+  startingTestId: SCENARIO_001_LOCATORS.openSwaps,
   run: runScenario001,
 };

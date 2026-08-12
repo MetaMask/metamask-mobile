@@ -1,3 +1,4 @@
+import { BridgeViewSelectorsIDs } from '../../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
 import {
   buildMmSessionProbeArgs,
   extractInteractionText,
@@ -10,15 +11,15 @@ describe('Swaps performance runner support', () => {
     const output = {
       observation: {
         testIds: [
-          { testId: 'source-token-area-input', text: '0' },
-          { testId: 'source-token-selector-button', text: 'ETH' },
+          { testId: BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT, text: '0' },
+          { testId: BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA, text: 'ETH' },
         ],
       },
     };
 
     const result = extractInteractionText(
       output,
-      'source-token-selector-button',
+      BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,
     );
 
     expect(result).toBe('ETH');
