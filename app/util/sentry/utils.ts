@@ -261,13 +261,12 @@ export const captureSentryFeedback = ({
   sentryId,
   comments,
 }: CaptureSentryFeedbackOptions): void => {
-  const userFeedback = {
-    event_id: sentryId,
-    name: '',
-    email: '',
-    comments,
-  };
-  Sentry.captureUserFeedback(userFeedback);
+  // SDK 8.x: captureUserFeedback({ event_id, comments }) was removed in
+  // favor of captureFeedback({ associatedEventId, message }).
+  Sentry.captureFeedback({
+    message: comments,
+    associatedEventId: sentryId,
+  });
 };
 
 function getProtocolFromURL(url: string): string {
