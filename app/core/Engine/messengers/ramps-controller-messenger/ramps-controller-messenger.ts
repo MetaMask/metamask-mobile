@@ -1,4 +1,5 @@
 import {
+  RAMPS_CONTROLLER_AUTORAMP_SYNC_ACTIONS,
   RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
   RampsControllerMessenger,
   type RampsControllerOrderStatusChangedEvent,
@@ -44,8 +45,11 @@ export function getRampsControllerMessenger(
       // itself for quote widening.
       'RemoteFeatureFlagController:getState',
       // Spread the package-owned required list so new service actions
-      // (e.g. getDefaultRedirectCallbackUrl) cannot be forgotten at upgrade.
+      // (e.g. getDefaultRedirectCallbackUrl / NeoBankService) cannot be
+      // forgotten at upgrade.
       ...RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
+      // Autoramp Backup & Sync (User Storage + auth gate).
+      ...RAMPS_CONTROLLER_AUTORAMP_SYNC_ACTIONS,
     ],
     events: [],
   });

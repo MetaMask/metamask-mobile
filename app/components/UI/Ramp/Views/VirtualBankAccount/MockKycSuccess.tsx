@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -21,22 +22,71 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import MockKycProgressBar from './MockKycProgressBar';
 import { MockKycSuccessSelectorsIDs } from './MockKycSuccess.testIds';
+import {
+  DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
+  DEMO_AUTORAMP_DESTINATION_TOKEN,
+  DEMO_AUTORAMP_SOURCE_CURRENCY_CODE,
+} from './constants';
 
 /**
- * Demo-only KYC success placeholder. Finish is intentionally a no-op so a
- * teammate can hook post-KYC navigation here.
+ * Demo-only KYC success screen. Finishing creates the autoramp (the standing
+ * Pix -> crypto conversion rule) and hands off to the Virtual Bank Account
+ * screen, which then tracks its status over the neo-bank websocket.
+ *
+ * The MoonPay `customer_id` is not passed here on purpose: `createAutoramp`
+ * resolves it from the KYC controller's verified identity.
  */
 const MockKycSuccess = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const walletAddress = useSelector(selectSelectedInternalAccountAddress);
+
+  const [isCreating, setIsCreating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleFinish = useCallback(() => {
-    // TODO(vba-demo): teammate adds post-KYC navigation here.
-  }, []);
+  const handleFinish = useCallback(async () => {
+    setErrorMessage(null);
+
+    if (!walletAddress) {
+      setErrorMessage(strings('virtual_bank_account.missing_wallet'));
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      await Engine.context.RampsController.createAutoramp({
+        source_currencies: [
+          { type: 'fiat', code: DEMO_AUTORAMP_SOURCE_CURRENCY_CODE },
+        ],
+        destination_currency: {
+          type: 'crypto',
+          token: DEMO_AUTORAMP_DESTINATION_TOKEN,
+          blockchain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
+        },
+        recipient_account: {
+          type: 'crypto',
+          chain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
+          address: walletAddress,
+        },
+      });
+      navigation.navigate(Routes.RAMP.VBA_ACCOUNT);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : strings('virtual_bank_account.create_failed'),
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  }, [navigation, walletAddress]);
 
   return (
     <SafeAreaView
@@ -100,12 +150,19 @@ const MockKycSuccess = () => {
           {strings('virtual_bank_account.mock_kyc.success.description')}
         </Text>
       </Box>
-      <Box twClassName="p-4">
+      <Box twClassName="gap-3 p-4">
+        {errorMessage ? (
+          <Box twClassName="rounded-lg bg-error-muted p-3">
+            <Text variant={TextVariant.BodyMd}>{errorMessage}</Text>
+          </Box>
+        ) : null}
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
           onPress={handleFinish}
+          isDisabled={isCreating}
+          isLoading={isCreating}
           testID={MockKycSuccessSelectorsIDs.FINISH_BUTTON}
         >
           {strings('virtual_bank_account.mock_kyc.success.button')}
