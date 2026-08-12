@@ -61,7 +61,7 @@ Analyze the latest artifact:
 yarn performance:swaps analyze --latest
 ```
 
-The analyzer always writes the Markdown report beside the JSON artifact using the same basename, replacing any existing sibling report. For example, `swaps-perf-001-example.json` produces `swaps-perf-001-example.md` in the same directory.
+The analyzer searches across commit folders for `--latest` and always writes the Markdown report beside the JSON artifact using the same basename, replacing any existing sibling report. For example, `swaps-perf-001-example.json` produces `swaps-perf-001-example.md` in the same directory.
 
 Always remove the temporary render probes, including after a failed run:
 
@@ -78,7 +78,12 @@ Each run writes ignored JSON and Markdown artifacts under:
 
 ```text
 test-reports/swaps-performance/
+└── <date>-<commit>/
+    ├── swaps-perf-001-<scenario>-<timestamp>.json
+    └── swaps-perf-001-<scenario>-<timestamp>.md
 ```
+
+For example, `2026-08-12-abc1234/` combines the UTC date from the artifact's `createdAt` value with its short Git commit hash, keeping same-day runs for one revision together.
 
 The artifact includes a snapshot of the scenario identity and description, driver wall-clock phase durations, sanitized JS `fetch` metadata, targeted render counts, and sanitized console warnings/errors. URLs are reduced to host plus a normalized path; request bodies, response bodies, headers, query strings, wallet addresses, and API keys are not stored.
 

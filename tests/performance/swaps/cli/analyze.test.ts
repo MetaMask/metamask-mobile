@@ -1,8 +1,19 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { analyzeSwapsPerformance, resolveMarkdownReportPath } from './analyze';
+import {
+  analyzeSwapsPerformance,
+  findLatestArtifact,
+  resolveMarkdownReportPath,
+} from './analyze';
 
 function createArtifact() {
   return {
@@ -65,6 +76,23 @@ describe('Swaps performance analyzer', () => {
     expect(readFileSync(reportPath, 'utf8')).toContain(
       '# SWAPS-PERF-001 — Open Swaps and fetch a 1 ETH quote',
     );
+  });
+
+  it('finds the latest artifact across commit directories', () => {
+    const firstCommitDirectory = join(temporaryDirectory, 'abc1234');
+    const secondCommitDirectory = join(temporaryDirectory, 'def5678');
+    const olderArtifact = join(firstCommitDirectory, 'older.json');
+    const newerArtifact = join(secondCommitDirectory, 'newer.json');
+    mkdirSync(firstCommitDirectory);
+    mkdirSync(secondCommitDirectory);
+    writeFileSync(olderArtifact, '{}');
+    writeFileSync(newerArtifact, '{}');
+    utimesSync(olderArtifact, new Date(1_000), new Date(1_000));
+    utimesSync(newerArtifact, new Date(2_000), new Date(2_000));
+
+    const artifactPath = findLatestArtifact(temporaryDirectory);
+
+    expect(artifactPath).toBe(newerArtifact);
   });
 
   it('rejects custom output arguments', () => {

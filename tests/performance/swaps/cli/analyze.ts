@@ -10,17 +10,24 @@ const OUTPUT_DIRECTORY = resolve(
   'test-reports/swaps-performance',
 );
 
-function findLatestArtifact(): string {
-  const candidates = readdirSync(OUTPUT_DIRECTORY)
-    .filter((name) => name.endsWith('.json'))
-    .map((name) => resolve(OUTPUT_DIRECTORY, name))
-    .sort(
-      (first, second) => statSync(second).mtimeMs - statSync(first).mtimeMs,
-    );
+function findJsonArtifacts(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = resolve(directory, entry.name);
+    if (entry.isDirectory()) {
+      return findJsonArtifacts(entryPath);
+    }
+    return entry.isFile() && entry.name.endsWith('.json') ? [entryPath] : [];
+  });
+}
+
+export function findLatestArtifact(outputDirectory = OUTPUT_DIRECTORY): string {
+  const candidates = findJsonArtifacts(outputDirectory).sort(
+    (first, second) => statSync(second).mtimeMs - statSync(first).mtimeMs,
+  );
 
   const latest = candidates[0];
   if (!latest) {
-    throw new Error(`No JSON artifacts found in ${OUTPUT_DIRECTORY}`);
+    throw new Error(`No JSON artifacts found in ${outputDirectory}`);
   }
   return latest;
 }

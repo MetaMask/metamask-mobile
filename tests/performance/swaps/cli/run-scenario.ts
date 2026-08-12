@@ -20,6 +20,7 @@ import {
   ScenarioPhase,
   ScenarioPreconditionState,
 } from '../scenarios/types';
+import { resolveArtifactOutputPaths } from './artifact-paths';
 import {
   buildMmSessionProbeArgs,
   extractInteractionText,
@@ -130,9 +131,13 @@ function writeArtifact(artifact: SwapsPerformanceArtifact): {
   jsonPath: string;
   markdownPath: string;
 } {
-  mkdirSync(OUTPUT_DIRECTORY, { recursive: true });
-  const jsonPath = resolve(OUTPUT_DIRECTORY, `${artifact.run.id}.json`);
-  const markdownPath = resolve(OUTPUT_DIRECTORY, `${artifact.run.id}.md`);
+  const { directory, jsonPath, markdownPath } = resolveArtifactOutputPaths(
+    OUTPUT_DIRECTORY,
+    artifact.run.createdAt,
+    artifact.run.commit,
+    artifact.run.id,
+  );
+  mkdirSync(directory, { recursive: true });
   writeFileSync(jsonPath, `${JSON.stringify(artifact, null, 2)}\n`);
   writeFileSync(markdownPath, formatArtifactMarkdown(artifact));
   return { jsonPath, markdownPath };
@@ -179,6 +184,7 @@ export async function runSwapsPerformanceScenario(
   const scenario = resolveScenario(scenarioReference);
   const metroPort = parseMetroPort(scenarioArgs);
   const createdAt = new Date();
+  const commit = getCommit();
   const runId = `${scenario.metadata.id.toLowerCase()}-${
     scenario.metadata.slug
   }-${createdAt.toISOString().replace(/[:.]/gu, '-')}`;
@@ -270,7 +276,7 @@ export async function runSwapsPerformanceScenario(
         scenarioName: scenario.metadata.name,
         scenarioDescription: scenario.metadata.description,
         createdAt: createdAt.toISOString(),
-        commit: getCommit(),
+        commit,
         platform: scenario.metadata.platform,
         metroPort,
         status: failure ? 'failed' : 'passed',
