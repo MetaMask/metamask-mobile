@@ -55,6 +55,19 @@ class TokenApproveConfirmation {
   }
 
   async inputSpendingCap(spendingCap: string): Promise<void> {
+    if (PlatformDetector.isIOS()) {
+      // Number-pad fields reject sendKeys/hideKeyboard; tap keys instead.
+      await Gestures.waitAndTap(this.EditSpendingCapInput, {
+        elemDescription: 'Edit Spending Cap Input (focus)',
+        checkForDisplayed: false,
+      });
+      for (let i = 0; i < 3; i++) {
+        await Gestures.tapIosKeyboardKey('Delete');
+      }
+      await Gestures.typeViaIosKeyboard(spendingCap, { numberPad: true });
+      return;
+    }
+
     await Gestures.typeText(this.EditSpendingCapInput, spendingCap, {
       elemDescription:
         'Edit Spending Cap Input in Token Approve Confirmation',
