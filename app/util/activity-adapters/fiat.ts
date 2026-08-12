@@ -57,7 +57,17 @@ export function getDisplaySignPrefix(
 export function getHumanReadableTokenAmount(
   token: TokenAmount,
 ): string | undefined {
-  if (!token.amount) {
+  if (
+    token.amount === undefined ||
+    token.amount === null ||
+    token.amount === ''
+  ) {
+    // client-utils omits zero native `txParams.value` on STANDARD sends /
+    // contract calls but still provides symbol/asset metadata. Treat that as 0
+    // so Activity can render "-0 ETH" (same fix as extension after the 2.0 bump).
+    if (token.symbol || token.assetId) {
+      return '0';
+    }
     return undefined;
   }
 

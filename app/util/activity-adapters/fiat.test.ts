@@ -64,6 +64,21 @@ describe('activity adapter fiat helpers', () => {
     ).toBe('1');
   });
 
+  it('treats a missing amount with symbol/assetId as zero for client-utils natives', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        direction: 'out',
+        symbol: 'ETH',
+        assetId: 'eip155:1/slip44:60',
+      }),
+    ).toBe('0');
+    expect(
+      getHumanReadableTokenAmount({
+        direction: 'out',
+      }),
+    ).toBeUndefined();
+  });
+
   it('returns no prefix for incoming amounts when plus is disabled', () => {
     expect(getDisplaySignPrefix('in', { showPlus: false })).toBe('');
   });

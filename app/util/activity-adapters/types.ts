@@ -105,6 +105,11 @@ export interface TokenAmount {
   symbol?: string;
   // CAIP-19 asset id (from adapters)
   assetId?: string;
+  /**
+   * Optional asset class hint when `assetId` is absent so clients can still
+   * resolve icons (added in `@metamask/client-utils@1.3.0`).
+   */
+  assetType?: 'native' | 'erc20' | 'erc721' | 'erc1155';
   direction: 'in' | 'out';
 }
 
@@ -119,6 +124,7 @@ export interface ActivityFee {
   decimals?: number;
   symbol?: string;
   assetId?: string;
+  assetType?: 'native' | 'erc20' | 'erc721' | 'erc1155';
 }
 
 interface ActivityData<Type extends ActivityKind, Data> {
