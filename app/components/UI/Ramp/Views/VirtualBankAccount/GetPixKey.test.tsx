@@ -4,11 +4,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
-import {
-  MOONPAY_PRIVACY_POLICY_URL,
-  MOONPAY_TERMS_URL,
-  TRACE_TERMS_URL,
-} from './constants';
+import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { startIronKycFlow } from './ironKycFlow';
 
 const mockNavigate = jest.fn();
@@ -22,21 +18,41 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('./hooks/useKycDisclaimers');
 jest.mock('./ironKycFlow');
 
+const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
 const mockStartIronKycFlow = jest.mocked(startIronKycFlow);
+const mockRetry = jest.fn();
+
+const loadedDisclaimer = {
+  id: 'd-1',
+  url: 'https://iron.example/tc',
+  display_name: 'Iron T&C',
+};
 
 describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStartIronKycFlow.mockResolvedValue(undefined);
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [loadedDisclaimer],
+      isLoading: false,
+      error: null,
+      retry: mockRetry,
+    });
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
     const { getByText, getByTestId } = renderWithProvider(<GetPixKey />);
 
     expect(getByText('Get your Pix Key')).toBeOnTheScreen();
-    expect(getByText('Earn up to 4% APY on your balance')).toBeOnTheScreen();
+    expect(getByText('Deposit with')).toBeOnTheScreen();
+    expect(getByText('pix')).toBeOnTheScreen();
+    expect(
+      getByText('Send local and international payments'),
+    ).toBeOnTheScreen();
+    expect(getByText('Powered by MoonPay.')).toBeOnTheScreen();
     expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     ).toBeOnTheScreen();
@@ -50,7 +66,7 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('starts the Iron KYC flow and navigates to verify identity when agree and continue is pressed', async () => {
+  it('starts the Iron KYC flow and navigates to verify identity when agree and continue is pressed after disclaimers load', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     fireEvent.press(
@@ -81,32 +97,83 @@ describe('GetPixKey', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('opens the MoonPay privacy policy link', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
+  it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [],
+      isLoading: true,
+      error: null,
+      retry: mockRetry,
+    });
+
     const { getByTestId } = renderWithProvider(<GetPixKey />);
+
+    expect(
+      getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
+    ).toBeOnTheScreen();
 
     fireEvent.press(
-      getByTestId(GetPixKeySelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK),
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     );
-
-    expect(spy).toHaveBeenCalledWith(MOONPAY_PRIVACY_POLICY_URL);
+    expect(mockStartIronKycFlow).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('opens the MoonPay terms link', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+  it('renders no disclaimer links and disables the CTA when the fetch comes back empty and is not loading', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [],
+      isLoading: false,
+      error: null,
+      retry: mockRetry,
+    });
 
-    fireEvent.press(getByTestId(GetPixKeySelectorsIDs.MOONPAY_TERMS_LINK));
+    const { queryByTestId, getByTestId } = renderWithProvider(<GetPixKey />);
 
-    expect(spy).toHaveBeenCalledWith(MOONPAY_TERMS_URL);
+    expect(
+      queryByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-d-1`),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+    );
+    expect(mockStartIronKycFlow).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('opens the Trace terms link', () => {
+  it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
     const spy = jest.spyOn(Linking, 'openURL');
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+    const { getByText } = renderWithProvider(<GetPixKey />);
 
-    fireEvent.press(getByTestId(GetPixKeySelectorsIDs.TRACE_TERMS_LINK));
+    expect(getByText('Iron T&C')).toBeOnTheScreen();
 
-    expect(spy).toHaveBeenCalledWith(TRACE_TERMS_URL);
+    fireEvent.press(getByText('Iron T&C'));
+
+    expect(spy).toHaveBeenCalledWith('https://iron.example/tc');
+  });
+
+  it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [],
+      isLoading: false,
+      error: 'Request timed out',
+      retry: mockRetry,
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(<GetPixKey />);
+
+    expect(
+      getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_ERROR),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+    );
+    expect(mockStartIronKycFlow).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    fireEvent.press(getByText('Try again'));
+    expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 });
