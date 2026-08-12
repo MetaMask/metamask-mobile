@@ -25,12 +25,7 @@ const QuickBuyAmount: React.FC = () => {
     handleAmountChange,
     setIsKeypadOpen,
     isKeypadOpen,
-    features,
-    hasSellableBalance,
   } = useQuickBuyContext();
-
-  const showTradeModeToggle =
-    features.tradeModes.length > 1 && hasSellableBalance;
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.
   const handleHeadlinePress = useCallback(() => {
@@ -64,7 +59,6 @@ const QuickBuyAmount: React.FC = () => {
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
       showCursor={isKeypadOpen}
-      compactTop={!showTradeModeToggle}
       hiddenInputRef={hiddenInputRef}
       onAmountAreaPress={handleHeadlinePress}
       onAmountChange={handleAmountChange}

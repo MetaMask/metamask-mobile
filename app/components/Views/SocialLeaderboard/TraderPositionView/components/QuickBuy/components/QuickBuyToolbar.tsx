@@ -6,13 +6,8 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
-  FontWeight,
   IconName as DsIconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../../locales/i18n';
 import QuickBuyTradeModeToggle from './QuickBuyTradeModeToggle';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
@@ -30,9 +25,7 @@ const QuickBuyToolbar: React.FC = () => {
 
   return (
     <Box
-      // Buy-only drops the taller segmented control — tighten bottom padding
-      // so the amount sits closer to the title.
-      twClassName={showFullToggle ? 'px-4 pt-4 pb-3' : 'px-4 pt-4 pb-1'}
+      twClassName="px-4 pt-4 pb-3"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
@@ -46,24 +39,13 @@ const QuickBuyToolbar: React.FC = () => {
           testID="quick-buy-edit-amounts-button"
         />
       ) : (
-        // Keep the title/toggle optically centered when settings is hidden.
+        // Keep the toggle optically centered when settings is hidden.
         <Box twClassName="w-6 h-6" />
       )}
 
-      {/* Buy/Sell control only when both modes are available. Buy-only shows a
-          plain title so the header stays balanced without a redundant pill. */}
-      {showFullToggle ? (
-        <QuickBuyTradeModeToggle />
-      ) : (
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          testID="quick-buy-buy-only-title"
-        >
-          {strings('social_leaderboard.quick_buy.buy_label')}
-        </Text>
-      )}
+      {/* Hide the header control when Buy is the only option — a lone "Buy"
+          pill is redundant next to the primary Buy CTA. */}
+      {showFullToggle ? <QuickBuyTradeModeToggle /> : null}
 
       <ButtonIcon
         iconName={DsIconName.Close}
