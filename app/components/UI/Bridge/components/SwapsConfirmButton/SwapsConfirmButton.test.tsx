@@ -1,7 +1,8 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import renderWithProvider, {
+import renderWithProviderBase, {
   DeepPartial,
+  type ProviderValues,
 } from '../../../../../util/test/renderWithProvider';
 import { SwapsConfirmButton } from './index';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
@@ -41,6 +42,7 @@ import {
 } from './abTestConfig';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
+import { BridgeQuoteRequestProvider } from '../../hooks/useBridgeQuoteRequest/QuoteRequestContext';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -345,6 +347,20 @@ function createAbTestState(
       bridgeViewMode,
     },
   };
+}
+
+function renderWithProvider(
+  component: React.ReactElement,
+  providerValues?: ProviderValues,
+) {
+  return renderWithProviderBase(
+    <BridgeQuoteRequestProvider
+      latestSourceAtomicBalance={mockLatestSourceBalance?.atomicBalance}
+    >
+      {component}
+    </BridgeQuoteRequestProvider>,
+    providerValues,
+  );
 }
 
 describe('SwapsConfirmButton', () => {
@@ -1133,10 +1149,14 @@ describe('SwapsConfirmButton', () => {
         isLoading: true,
       };
       rerender(
-        <SwapsConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
+        <BridgeQuoteRequestProvider
+          latestSourceAtomicBalance={mockLatestSourceBalance?.atomicBalance}
+        >
+          <SwapsConfirmButton
+            latestSourceBalance={mockLatestSourceBalance}
+            location={MetaMetricsSwapsEventSource.MainView}
+          />
+        </BridgeQuoteRequestProvider>,
       );
       quoteData = {
         ...quoteData,
@@ -1145,10 +1165,14 @@ describe('SwapsConfirmButton', () => {
       };
 
       rerender(
-        <SwapsConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
+        <BridgeQuoteRequestProvider
+          latestSourceAtomicBalance={mockLatestSourceBalance?.atomicBalance}
+        >
+          <SwapsConfirmButton
+            latestSourceBalance={mockLatestSourceBalance}
+            location={MetaMetricsSwapsEventSource.MainView}
+          />
+        </BridgeQuoteRequestProvider>,
       );
 
       expect(

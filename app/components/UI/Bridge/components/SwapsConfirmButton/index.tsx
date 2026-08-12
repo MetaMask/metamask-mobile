@@ -23,7 +23,6 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -53,6 +52,7 @@ import {
 } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { useBridgeQuoteRequestContext } from '../../hooks/useBridgeQuoteRequest/QuoteRequestContext';
 
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
 
@@ -84,7 +84,7 @@ export const SwapsConfirmButton = ({
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
-  const updateQuoteParams = useBridgeQuoteRequest();
+  const updateQuoteParams = useBridgeQuoteRequestContext();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const slippage = useSelector(selectSlippage);

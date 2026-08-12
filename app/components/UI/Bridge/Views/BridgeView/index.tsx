@@ -74,7 +74,6 @@ import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
-import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import {
   BridgeQuoteDataProvider,
   useBridgeQuoteDataContext,
@@ -149,6 +148,10 @@ import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../utils/postTradeNotifications';
+import {
+  BridgeQuoteRequestProvider,
+  useBridgeQuoteRequestContext,
+} from '../../hooks/useBridgeQuoteRequest/QuoteRequestContext.tsx';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -299,9 +302,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
-  const updateQuoteParams = useBridgeQuoteRequest({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
+  const updateQuoteParams = useBridgeQuoteRequestContext();
 
   const {
     activeQuote,
@@ -922,11 +923,15 @@ const BridgeView = () => {
   });
 
   return (
-    <BridgeQuoteDataProvider
+    <BridgeQuoteRequestProvider
       latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
     >
-      <BridgeViewContent latestSourceBalance={latestSourceBalance} />
-    </BridgeQuoteDataProvider>
+      <BridgeQuoteDataProvider
+        latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+      >
+        <BridgeViewContent latestSourceBalance={latestSourceBalance} />
+      </BridgeQuoteDataProvider>
+    </BridgeQuoteRequestProvider>
   );
 };
 
