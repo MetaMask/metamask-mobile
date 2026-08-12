@@ -11,6 +11,7 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   CardActions,
@@ -64,6 +65,10 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
@@ -95,6 +100,7 @@ const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
 const mockUseMoneyAccountDeposit =
   useMoneyAccountDeposit as jest.MockedFunction<typeof useMoneyAccountDeposit>;
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountCardLinkage =
   useMoneyAccountCardLinkage as jest.MockedFunction<
     typeof useMoneyAccountCardLinkage
@@ -140,8 +146,10 @@ const setupDefaultMocks = ({
   mockUseMoneyAccountBalance.mockReturnValue({
     tokenTotal,
     isBalanceLoading,
-    apyPercent,
   } as ReturnType<typeof useMoneyAccountBalance>);
+  mockUseMoneyVaultApy.mockReturnValue({
+    apyPercent,
+  } as ReturnType<typeof useMoneyVaultApy>);
   (mockUseMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
     startLinkFlow: mockStartLinkFlow,
     isCardAuthenticated,

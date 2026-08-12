@@ -148,8 +148,8 @@ jest.mock('../../../../../selectors/featureFlagController/card', () => {
   );
   return {
     ...actual,
-    selectCardFeatureFlag: jest.fn(() => actual.defaultCardFeatureFlag),
-    selectImmersveOnboardingEnabled: jest.fn(() => false),
+    selectCardImmersveCountries: jest.fn(() => ['GB']),
+    selectCardImmersveEnabled: jest.fn(() => false),
   };
 });
 
@@ -349,15 +349,12 @@ describe('SignUp Component', () => {
     const cardFlagSelectors = jest.requireMock(
       '../../../../../selectors/featureFlagController/card',
     );
-    const actualCardFlagSelectors = jest.requireActual(
-      '../../../../../selectors/featureFlagController/card',
+    (cardFlagSelectors.selectCardImmersveEnabled as jest.Mock).mockReturnValue(
+      false,
     );
     (
-      cardFlagSelectors.selectImmersveOnboardingEnabled as jest.Mock
-    ).mockReturnValue(false);
-    (cardFlagSelectors.selectCardFeatureFlag as jest.Mock).mockReturnValue(
-      actualCardFlagSelectors.defaultCardFeatureFlag,
-    );
+      cardFlagSelectors.selectCardImmersveCountries as jest.Mock
+    ).mockReturnValue(['GB']);
     mockGetResumeCardInfo.mockResolvedValue(null);
     store = createTestStore();
   });
@@ -742,11 +739,11 @@ describe('SignUp Component', () => {
     });
 
     it('treats an Immersve country as supported (no waitlist) when onboarding is enabled', () => {
-      // Default card feature flag lists GB in immersveCountries; enable the gate.
-      const { selectImmersveOnboardingEnabled } = jest.requireMock(
+      // cardImmersveCountries defaults to ['GB']; enable the gate.
+      const { selectCardImmersveEnabled } = jest.requireMock(
         '../../../../../selectors/featureFlagController/card',
       );
-      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
 
       const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
 
@@ -771,10 +768,10 @@ describe('SignUp Component', () => {
     });
 
     const enableImmersve = () => {
-      const { selectImmersveOnboardingEnabled } = jest.requireMock(
+      const { selectCardImmersveEnabled } = jest.requireMock(
         '../../../../../selectors/featureFlagController/card',
       );
-      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
     };
 
     const fillImmersveForm = (getByTestId: (id: string) => unknown) => {
@@ -804,10 +801,10 @@ describe('SignUp Component', () => {
     });
 
     it('hides Immersve legal clickwrap for non-Immersve countries', () => {
-      const { selectImmersveOnboardingEnabled } = jest.requireMock(
+      const { selectCardImmersveEnabled } = jest.requireMock(
         '../../../../../selectors/featureFlagController/card',
       );
-      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(false);
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(false);
 
       const { queryByTestId } = render(
         <Provider store={store}>
