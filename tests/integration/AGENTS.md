@@ -28,6 +28,13 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 
 ## Per-domain harnesses
 
+### PredictNext — [`harnesses/predict-next.ts`](harnesses/predict-next.ts)
+
+- **Real:** `PredictNextController`, `PredictMarketDataService`, `KalshiRemoteAdapter`, `PredictApiReadClient`, and controller/service messengers
+- **Mocked:** HTTP fetch and app-shell base URL/client version configuration
+- **Factory:** `buildPredictNextIntegrationHarness(responder)`
+- **Returns:** `{ controller, messenger, fetchMock, destroy }`
+
 ### Perps — [`harnesses/perps.ts`](harnesses/perps.ts)
 
 - **Real:** `HyperLiquidProvider` (mobile), all of its order / close / validation logic, asset-map lookups, in-memory state transitions

@@ -48,13 +48,19 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
         const { backendWebSocketConnection } =
           remoteFeatureFlagState?.remoteFeatureFlags || {};
 
-        const result =
-          backendWebSocketConnection &&
+        // The flag can be a bare boolean or a legacy `{ value }` wrapper.
+        // Treat both shapes as enabled when the resolved value is truthy.
+        if (
           typeof backendWebSocketConnection === 'object' &&
-          'value' in backendWebSocketConnection &&
-          Boolean(backendWebSocketConnection.value);
+          backendWebSocketConnection !== null &&
+          'value' in backendWebSocketConnection
+        ) {
+          return Boolean(backendWebSocketConnection.value);
+        }
 
-        return Boolean(result);
+        return typeof backendWebSocketConnection === 'boolean'
+          ? backendWebSocketConnection
+          : false;
       } catch (error) {
         // If feature flag check fails, default to NOT connecting for safer startup
         Logger.log(

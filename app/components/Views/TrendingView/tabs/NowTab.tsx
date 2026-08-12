@@ -55,10 +55,7 @@ import PillScrollList from '../components/PillScrollList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
-import {
-  MAX_ITEMS_DISPLAYED,
-  WhatsHappeningSource,
-} from '../../../UI/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../UI/WhatsHappening/constants';
 import {
   isWhatsHappeningSectionVisible,
   useWhatsHappening,
@@ -226,7 +223,7 @@ const NowTabContent: React.FC<TabProps> = ({
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
-  const whatsHappening = useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const whatsHappening = useWhatsHappening();
   const refreshWhatsHappening = whatsHappening.refresh;
 
   useEffect(() => {

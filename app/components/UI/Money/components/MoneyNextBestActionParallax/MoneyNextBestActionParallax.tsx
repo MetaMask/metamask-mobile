@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -14,8 +14,11 @@ import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
+import { useRiveTiltWriter } from '../../hooks/useRiveTiltWriter';
 import {
   pitchToParallaxValue,
+  shapeParallaxTilt,
+  smoothParallaxTilt,
   tiltToParallaxValue,
 } from '../../utils/parallax';
 import NextBestActionParallaxAnimation from '../../../../../animations/next_best_action_module_v1.riv';
@@ -62,17 +65,40 @@ const MoneyNextBestActionParallax = ({
   // every value back to JS through setState, re-rendering at the accelerometer
   // sample rate for values this component never reads.
   const riveRef = useRef<RiveRef>(null);
+  // Last values written to the artboard, in tilt units (0 = at rest). Kept
+  // here rather than in state so smoothing costs no re-renders.
+  const smoothedTilt = useRef({ x: 0, y: 0 });
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
-  const applyTilt = useCallback((x: number, y: number) => {
-    const rive = riveRef.current;
-    // viewTag() is null while the native Rive view is detached; dispatching
-    // then throws "found null reactTag".
-    if (!rive || rive.viewTag() === null) return;
-    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(x));
-    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
-  }, []);
+  // The Rive view is remounted per artboard and whenever animation resumes,
+  // and a fresh one starts at the artboard's rest pose. Carrying the previous
+  // smoothed value across would jump it away from rest on the first sample.
+  useEffect(() => {
+    smoothedTilt.current = { x: 0, y: 0 };
+  }, [artboardName, animate]);
+
+  const writeTilt = useRiveTiltWriter({
+    riveRef,
+    xProperty: RIVE_PROPERTY_X,
+    yProperty: RIVE_PROPERTY_Y,
+    artboardName,
+    enabled: animate,
+  });
+
+  const applyTilt = useCallback(
+    (x: number, y: number, hz: number) => {
+      smoothedTilt.current = {
+        x: smoothParallaxTilt(smoothedTilt.current.x, shapeParallaxTilt(x), hz),
+        y: smoothParallaxTilt(smoothedTilt.current.y, shapeParallaxTilt(y), hz),
+      };
+      writeTilt(
+        tiltToParallaxValue(smoothedTilt.current.x),
+        pitchToParallaxValue(smoothedTilt.current.y),
+      );
+    },
+    [writeTilt],
+  );
 
   useDeviceOrientation(applyTilt, { enabled: animate });
 

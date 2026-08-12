@@ -2,6 +2,7 @@ import type { CaipChainId } from '@metamask/utils';
 import type { ImageSourcePropType } from 'react-native';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { getNetworkImageSource } from '../../../../util/networks';
+import { HYPERLIQUID_CHAIN_NAME } from './perp';
 
 const CHAIN_NAME_TO_ID: Record<string, CaipChainId> = {
   ethereum: 'eip155:1',
@@ -13,8 +14,6 @@ const CHAIN_NAME_TO_ID: Record<string, CaipChainId> = {
   bsc: 'eip155:56',
   solana: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 };
-
-export const HYPERLIQUID_CHAIN_NAME = 'hyperliquid';
 
 export const chainNameToId = (chainName: string): CaipChainId | undefined =>
   CHAIN_NAME_TO_ID[chainName.toLowerCase()];
