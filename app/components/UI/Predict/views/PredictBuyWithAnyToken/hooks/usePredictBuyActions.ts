@@ -15,7 +15,7 @@ import { useSelector } from 'react-redux';
 import { selectPredictWithAnyTokenEnabledFlag } from '../../../selectors/featureFlags';
 import {
   PredictDismissalMethod,
-  PredictTradeStatus,
+  PredictEventValues,
 } from '../../../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
@@ -53,6 +53,7 @@ function rejectPendingTransactions() {
 }
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
+  amountUsd: number;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   setIsConfirming: (value: boolean) => void;
   isSheetMode?: boolean;
@@ -62,6 +63,7 @@ interface UsePredictBuyActionsParams {
 
 export const usePredictBuyActions = ({
   preview,
+  amountUsd,
   analyticsProperties,
   setIsConfirming,
   isSheetMode = false,
@@ -103,12 +105,7 @@ export const usePredictBuyActions = ({
     predictBuyPreviewDismissedViaBackRef.current = false;
     predictBuyPreviewOrderInitiatedRef.current = false;
 
-    controller.trackPredictOrderEvent({
-      status: PredictTradeStatus.INITIATED,
-      analyticsProperties,
-      sharePrice: analyticsProperties?.sharePrice,
-      activeAbTests: transactionActiveAbTests,
-    });
+    controller.trackTradeConsidered();
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -168,12 +165,17 @@ export const usePredictBuyActions = ({
     if (isSheetMode) {
       return () => {
         resetSelectedPaymentToken();
+        PredictController.cancelRetryablePredictBuyAttempt();
         onRejectRef.current(undefined, true);
         clearActiveOrderTransactionIdRef.current();
       };
     }
 
     return navigation.addListener('beforeRemove', () => {
+      if (didInitiateOrderRef.current) {
+        PredictController.cancelRetryablePredictBuyAttempt();
+      }
+
       // Only fire dismiss if the user didn't confirm an order. StackActions.pop()
       // after success/deposit also triggers beforeRemove, which is not a dismissal.
       if (!didInitiateOrderRef.current) {
@@ -201,6 +203,7 @@ export const usePredictBuyActions = ({
     payWithAnyTokenEnabled,
     isSheetMode,
     analyticsProperties,
+    PredictController,
     transactionActiveAbTests,
     resetSelectedPaymentToken,
   ]);
@@ -208,7 +211,13 @@ export const usePredictBuyActions = ({
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       try {
-        const result = await placeOrder(orderParams);
+        const result = await placeOrder({
+          ...orderParams,
+          attempt:
+            orderParams.attempt ??
+            PredictController.getRetryablePredictBuyAttempt(),
+          activeAbTests: orderParams.activeAbTests ?? transactionActiveAbTests,
+        });
         return { status: 'success', result };
       } catch (error) {
         return {
@@ -220,7 +229,7 @@ export const usePredictBuyActions = ({
         };
       }
     },
-    [placeOrder],
+    [placeOrder, PredictController, transactionActiveAbTests],
   );
 
   const stopConfirming = useCallback(() => {
@@ -242,43 +251,6 @@ export const usePredictBuyActions = ({
     predictBuyPreviewOrderInitiatedRef.current = true;
     setIsConfirming(true);
 
-    if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
-      if (approvalRequest?.id) {
-        onApprovalConfirm({
-          deleteAfterResult: true,
-          waitForResult: true,
-          handleErrors: false,
-        })?.catch((err: unknown) => {
-          Logger.log(
-            'usePredictBuyActions: onApprovalConfirm rejected',
-            err instanceof Error ? err.message : String(err),
-          );
-        });
-      } else {
-        Logger.log(
-          'usePredictBuyActions: PAY_WITH_ANY_TOKEN approval missing — attempting re-init',
-        );
-        batchIdRef.current = undefined;
-        rejectPendingTransactions();
-        const result = await initPayWithAnyToken();
-        if (result?.success && result.response?.batchId) {
-          batchIdRef.current = result.response.batchId;
-        } else {
-          Logger.log(
-            'usePredictBuyActions: initPayWithAnyToken failed on confirm re-init',
-            result && 'error' in result ? result.error : 'unknown',
-          );
-        }
-        resetImmediateConfirmFailure();
-        return {
-          status: 'error',
-          error:
-            result && 'error' in result && result.error
-              ? result.error
-              : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
-        };
-      }
-    }
     if (!preview) {
       resetImmediateConfirmFailure();
       return {
@@ -287,9 +259,63 @@ export const usePredictBuyActions = ({
       };
     }
 
+    if (
+      currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN &&
+      !approvalRequest?.id
+    ) {
+      Logger.log(
+        'usePredictBuyActions: PAY_WITH_ANY_TOKEN approval missing — attempting re-init',
+      );
+      batchIdRef.current = undefined;
+      rejectPendingTransactions();
+      const result = await initPayWithAnyToken();
+      if (result?.success && result.response?.batchId) {
+        batchIdRef.current = result.response.batchId;
+      } else {
+        Logger.log(
+          'usePredictBuyActions: initPayWithAnyToken failed on confirm re-init',
+          result && 'error' in result ? result.error : 'unknown',
+        );
+      }
+      resetImmediateConfirmFailure();
+      return {
+        status: 'error',
+        error:
+          result && 'error' in result && result.error
+            ? result.error
+            : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+      };
+    }
+
+    const attempt = PredictController.startPredictBuyAttempt({
+      amountUsd,
+      paymentMethod:
+        currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
+          ? PredictEventValues.PAYMENT_METHOD.PAY_WITH_ANY_TOKEN
+          : PredictEventValues.PAYMENT_METHOD.PREDICT_BALANCE,
+      analyticsProperties,
+      sharePrice: preview.sharePrice,
+      orderType: preview.orderType,
+      activeAbTests: transactionActiveAbTests,
+    });
+
+    if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
+      onApprovalConfirm({
+        deleteAfterResult: true,
+        waitForResult: true,
+        handleErrors: false,
+      })?.catch((err: unknown) => {
+        Logger.log(
+          'usePredictBuyActions: onApprovalConfirm rejected',
+          err instanceof Error ? err.message : String(err),
+        );
+      });
+    }
+
     const outcome = await handlePlaceOrder({
       analyticsProperties,
       preview,
+      attempt,
       transactionId:
         currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
           ? approvalRequest?.id
@@ -306,6 +332,7 @@ export const usePredictBuyActions = ({
     return outcome;
   }, [
     setIsConfirming,
+    amountUsd,
     approvalRequest,
     currentState,
     handlePlaceOrder,
@@ -315,6 +342,8 @@ export const usePredictBuyActions = ({
     initPayWithAnyToken,
     resetImmediateConfirmFailure,
     stopConfirming,
+    PredictController,
+    transactionActiveAbTests,
   ]);
 
   useEffect(() => {

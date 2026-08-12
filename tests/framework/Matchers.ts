@@ -270,4 +270,12 @@ export default class Matchers {
     }
     return PlaywrightMatchers.getAllElementsByXPath(xpath);
   }
+
+  /** Native app XPath (not WebView). */
+  static getElementByNativeXPath(
+    xpath: string,
+    options?: Parameters<typeof PlaywrightMatchers.getElementByXPath>[1],
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByXPath(xpath, options);
+  }
 }

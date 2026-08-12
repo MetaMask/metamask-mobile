@@ -32,7 +32,7 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
-  selectCardFeatureFlag: () => ({ immersve: { network: 'base-sepolia' } }),
+  selectCardImmersveConfig: () => ({ network: 'base-sepolia' }),
 }));
 
 jest.mock('./useEnsureCardNetworkExists', () => ({

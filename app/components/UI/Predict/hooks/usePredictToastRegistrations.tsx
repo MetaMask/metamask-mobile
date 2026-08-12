@@ -156,8 +156,15 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, senderAddress, transactionId, amount, marketId } =
-        payload as PredictTransactionStatusChangedPayload;
+      const {
+        type,
+        status,
+        senderAddress,
+        transactionId,
+        amount,
+        marketId,
+        isPostDepositOrderFailure,
+      } = payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
 
@@ -400,6 +407,34 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
+          if (isPostDepositOrderFailure) {
+            const description =
+              typeof amount === 'number' && amount > 0
+                ? strings('predict.order.post_deposit_order_failed', {
+                    amount: formatPrice(amount, {
+                      minimumDecimals: 2,
+                      maximumDecimals: 2,
+                    }),
+                  })
+                : strings('predict.order.post_deposit_order_failed_fallback');
+
+            showToast({
+              variant: ToastVariants.Icon,
+              labelOptions: [
+                {
+                  label: strings('predict.order.prediction_not_placed'),
+                  isBold: true,
+                },
+                { label: '\n', isBold: false },
+                { label: description, isBold: false },
+              ],
+              iconName: IconName.Error,
+              iconColor: theme.colors.error.default,
+              hasNoTimeout: true,
+            });
+            return;
+          }
+
           // When the bottom-sheet flow is on and the provider is mounted,
           // the provider's state-based trigger (in PredictPreviewSheetContext)
           // surfaces a persistent Retry toast for the same error. Skip here

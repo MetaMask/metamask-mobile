@@ -55,6 +55,7 @@ import { formatPriceImpact } from '../../utils/formatPriceImpact';
 import KeyValueRowLabel from '../../../../../component-library/components-temp/KeyValueRow/KeyValueLabel/KeyValueLabel';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import AppConstants from '../../../../../core/AppConstants';
+import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 
 if (
   Platform.OS === 'android' &&
@@ -95,7 +96,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const priceImpactIsSafe =
     !activeQuote?.quote.priceData?.priceImpact ||
-    Number(activeQuote.quote.priceData.priceImpact) <=
+    parsePriceImpact(activeQuote.quote.priceData.priceImpact?.amount) <=
       (bridgeFeatureFlags?.priceImpactThreshold?.warning ??
         AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD);
 
@@ -143,14 +144,14 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   const isGasless = isGaslessQuote(activeQuote?.quote);
 
   const formattedMinToTokenAmount = formatMinimumReceived(
-    activeQuote?.minToTokenAmount?.amount || '0',
+    activeQuote?.quote.dest?.minAmountNormalized || '0',
   );
 
   const priceImpactViewData = usePriceImpactViewData(
-    activeQuote?.quote.priceData?.priceImpact,
+    activeQuote?.quote.priceData?.priceImpact?.amount,
   );
   const shouldShowPriceImpactRow =
-    activeQuote?.quote.priceData?.priceImpact != null;
+    activeQuote?.quote.priceData?.priceImpact?.amount != null;
 
   // Early return for invalid states
   if (
@@ -347,7 +348,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           }}
         />
 
-        {activeQuote?.minToTokenAmount && (
+        {activeQuote?.quote.dest?.minAmountNormalized && (
           <KeyValueRow
             field={{
               label: {

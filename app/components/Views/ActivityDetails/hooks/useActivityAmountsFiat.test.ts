@@ -90,16 +90,16 @@ describe('useActivityAmountsFiat', () => {
     expect(result.current.feeRows).toStrictEqual([
       {
         label: 'Network fee',
-        value: '$2',
+        value: '$2.00',
         fee: fees[0],
       },
       {
         label: 'Bridge fee',
-        value: '$1',
+        value: '$1.00',
         fee: fees[1],
       },
     ]);
-    expect(result.current.totalFiat).toBe('$9');
+    expect(result.current.totalFiat).toBe('$9.00');
   });
 
   it('excludes the un-sent token value from the total for a cancelled send', () => {
@@ -122,7 +122,7 @@ describe('useActivityAmountsFiat', () => {
     );
 
     // Total is fees only ($2 + $1); the never-sent $6 token value is excluded.
-    expect(result.current.totalFiat).toBe('$3');
+    expect(result.current.totalFiat).toBe('$3.00');
   });
 
   it('labels a non-native resource fee by its resource and excludes it from fiat/total', () => {
@@ -235,7 +235,7 @@ describe('useActivityAmountsFiat', () => {
         fee: sponsoredFee,
       },
     ]);
-    expect(result.current.totalFiat).toBe('$6');
+    expect(result.current.totalFiat).toBe('$6.00');
   });
 
   it('hides zero token and fee amounts instead of rendering fiat zeroes', () => {
@@ -308,7 +308,7 @@ describe('useActivityAmountsFiat', () => {
     );
 
     // 1 ETH * conversionRate 2 (native exchange rate = 1) -> $2
-    expect(result.current.totalFiat).toBe('$2');
+    expect(result.current.totalFiat).toBe('$2.00');
   });
 
   it('looks up market rates by lowercased address when the checksum misses', () => {
@@ -340,7 +340,7 @@ describe('useActivityAmountsFiat', () => {
     );
 
     // 1 USDC * conversionRate 2 * marketRate 3 -> $6
-    expect(result.current.totalFiat).toBe('$6');
+    expect(result.current.totalFiat).toBe('$6.00');
   });
 
   it('uses multichain asset rates when present (no conversion rate)', () => {
@@ -374,7 +374,7 @@ describe('useActivityAmountsFiat', () => {
     );
 
     // 2 SOL * multichain rate 4 -> $8
-    expect(result.current.totalFiat).toBe('$8');
+    expect(result.current.totalFiat).toBe('$8.00');
   });
 
   it('prices a gasToken fee via token market rates and includes it in the total', () => {
@@ -418,11 +418,11 @@ describe('useActivityAmountsFiat', () => {
     expect(result.current.feeRows).toStrictEqual([
       {
         label: 'Gas fee',
-        value: '$2',
+        value: '$2.00',
         fee: gasTokenFee,
       },
     ]);
     // Token $6 + gas-token fee $2
-    expect(result.current.totalFiat).toBe('$8');
+    expect(result.current.totalFiat).toBe('$8.00');
   });
 });
