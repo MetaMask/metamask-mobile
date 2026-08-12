@@ -5,11 +5,7 @@ import {
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import type { ScrollContainer } from '../../framework/index';
 
 class SettingsView {
@@ -65,17 +61,13 @@ class SettingsView {
   }
 
   get alertButton(): EncapsulatedElementType {
-    // Android Material AlertDialog applies textAllCaps ("YES") while locale is
-    // "Yes"; iOS shows sentence case. Match label/text case-insensitively on both.
+    // Case-insensitive: Android AlertDialog may show "YES" vs locale "Yes".
     const yes = CommonSelectorsText.YES_ALERT_BUTTON.replace(
       /[.*+?^${}()|[\]\\]/g,
       '\\$&',
     );
     const yesPattern = new RegExp(`^${yes}$`, 'i');
-    return encapsulated({
-      detox: () => Matchers.getElementByText(yesPattern),
-      appium: () => PlaywrightMatchers.getElementByText(yesPattern, false),
-    });
+    return Matchers.getElementByText(yesPattern);
   }
 
   get scrollViewIdentifier(): ScrollContainer {

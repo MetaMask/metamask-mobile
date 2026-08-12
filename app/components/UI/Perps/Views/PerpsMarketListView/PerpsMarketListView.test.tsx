@@ -862,9 +862,7 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByPlaceholderText('Search by token symbol'),
-      ).toBeOnTheScreen();
+      expect(screen.getByPlaceholderText('Search')).toBeOnTheScreen();
     });
 
     it('disables autocorrect and autocapitalize on the search input', () => {
@@ -1749,7 +1747,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Search-only (no category filter active)', () => {
-      it('shows the NO_RESULTS container with no-tokens description', () => {
+      it('shows the NO_RESULTS container with no-markets description', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ searchQuery: 'XYZ' }),
         );
@@ -1760,7 +1758,7 @@ describe('PerpsMarketListView', () => {
         ).toBeOnTheScreen();
         expect(
           screen.getByText(
-            'We couldn\'t find any tokens with the name "XYZ". Try a different search.',
+            'We couldn\'t find any markets with the name "XYZ". Try a different search.',
           ),
         ).toBeOnTheScreen();
       });
@@ -2833,7 +2831,7 @@ describe('PerpsMarketListView', () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Verify search input is visible
-      const searchInput = screen.getByPlaceholderText('Search by token symbol');
+      const searchInput = screen.getByPlaceholderText('Search');
       expect(searchInput).toBeOnTheScreen();
 
       // Verify all markets are still displayed (whitespace is trimmed)

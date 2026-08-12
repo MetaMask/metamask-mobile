@@ -1092,7 +1092,7 @@ describe('useSpendingLimit', () => {
       });
 
       expect(mockNavigation.dispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.CARD.HOME),
+        StackActions.replace(Routes.CARD.HOME, { fromCardOnboarding: true }),
       );
     });
 

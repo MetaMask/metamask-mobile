@@ -9,6 +9,8 @@ import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
 const mockSetNumber = jest.fn();
+const mockTrigger = jest.fn();
+const mockOnPlayRef: { current?: () => void } = {};
 const mockViewTag = jest.fn((): number | null => 1);
 const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
 const mockRiveProps: {
@@ -30,19 +32,23 @@ jest.mock('rive-react-native', () => {
           artboardName?: string;
           style?: StyleProp<ViewStyle>;
           onError?: (error: { message: string }) => void;
+          onPlay?: () => void;
         },
         ref: React.Ref<{
           setNumber: (path: string, value: number) => void;
+          trigger: (path: string) => void;
           viewTag: () => number | null;
         }>,
       ) => {
         mockOnErrorRef.current = props.onError;
+        mockOnPlayRef.current = props.onPlay;
         mockRiveProps.current = {
           artboardName: props.artboardName,
           style: props.style,
         };
         ReactActual.useImperativeHandle(ref, () => ({
           setNumber: mockSetNumber,
+          trigger: mockTrigger,
           viewTag: mockViewTag,
         }));
         ReactActual.useEffect(() => {
@@ -74,6 +80,7 @@ describe('MoneyCardTiltAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOnErrorRef.current = undefined;
+    mockOnPlayRef.current = undefined;
     mockRiveProps.current = undefined;
     mockMountCount.current = 0;
     mockViewTag.mockReturnValue(1);
@@ -305,6 +312,75 @@ describe('MoneyCardTiltAnimation', () => {
       expect(
         getByTestId(MoneyCardTiltAnimationTestIds.STATIC_IMAGE),
       ).toHaveStyle({ width: 111, height: 70, borderRadius: 6 });
+    });
+  });
+  describe('entry reveal', () => {
+    const fireOnPlay = () => act(() => mockOnPlayRef.current?.());
+
+    it('fires the authored reveal trigger once the Rive view starts playing', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />);
+
+      fireOnPlay();
+
+      expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+    });
+
+    it('fires the reveal only once when the Rive view reports playing again', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />);
+
+      fireOnPlay();
+      fireOnPlay();
+
+      expect(mockTrigger).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire the reveal when it was not requested', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} />);
+
+      fireOnPlay();
+
+      expect(mockTrigger).not.toHaveBeenCalled();
+    });
+
+    it('waits the requested delay before triggering the reveal', () => {
+      jest.useFakeTimers();
+
+      render(
+        <MoneyCardTiltAnimation
+          isMetalCard={false}
+          playRevealOnMount
+          revealDelayMs={60}
+        />,
+      );
+
+      fireOnPlay();
+      expect(mockTrigger).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(60);
+      });
+
+      expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+      jest.useRealTimers();
+    });
+
+    it('does not dispatch to a detached native view', () => {
+      mockViewTag.mockReturnValue(null);
+
+      render(<MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />);
+
+      fireOnPlay();
+
+      expect(mockTrigger).not.toHaveBeenCalled();
+    });
+
+    it('fills the parent width using the artboard aspect ratio', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} fillWidth />);
+
+      expect(mockRiveProps.current?.style).toEqual({
+        width: '100%',
+        aspectRatio: 620 / 400,
+      });
     });
   });
 });
