@@ -78,6 +78,19 @@ yarn performance:swaps analyze --latest
 
 The analyzer searches recursively across commit and scenario folders for `--latest` and always writes the Markdown report beside the JSON artifact using the same basename, replacing any existing sibling report. For example, `swaps-perf-001-example.json` produces `swaps-perf-001-example.md` in the same directory.
 
+After collecting repeated runs for one scenario on one commit, compare every direct JSON artifact in that scenario folder:
+
+```bash
+yarn performance:swaps compare \
+  test-reports/swaps-performance/<date>-<commit>/<scenario>
+```
+
+The command requires at least two successful runs and recommends at least three. It validates every direct JSON file with the current artifact schema, requires successful runs to have the same commit, scenario, platform, persisted preconditions, and ordered phase names, and sorts all runs by their persisted creation time. Failed runs appear in the report with their failure messages but do not contribute to performance ranges. Nested folders are not read.
+
+The command writes or replaces `comparison.md` in the supplied scenario folder. It reports minimum, median, maximum, and absolute range for phase durations, total measured phase time, render counts, request totals, failures, console errors, and per-phase request counts. It also groups sanitized network requests across runs and reports call-frequency ranges and duration distributions. Findings identify failures, missing probes, intermittent requests, requests over five seconds, and phase or render-count ranges greater than 20 percent of their medians. That variability threshold is diagnostic guidance, not a regression gate.
+
+Until artifacts record a working-tree fingerprint, the comparison assumes every run used a clean working tree at the recorded commit.
+
 Always remove the temporary render probes, including after a failed run:
 
 ```bash
@@ -96,7 +109,8 @@ test-reports/swaps-performance/
 └── <date>-<commit>/
     └── <scenario>/
         ├── swaps-perf-001-<scenario>-<timestamp>.json
-        └── swaps-perf-001-<scenario>-<timestamp>.md
+        ├── swaps-perf-001-<scenario>-<timestamp>.md
+        └── comparison.md
 ```
 
 For example, `2026-08-12-abc1234/open-swaps-fetch-one-eth-quote/` combines the UTC date from the artifact's `createdAt` value, its short Git commit hash, and its stable scenario slug. This keeps same-day runs for one revision grouped by scenario.

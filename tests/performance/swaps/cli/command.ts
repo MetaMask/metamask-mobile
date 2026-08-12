@@ -1,6 +1,7 @@
 export const SWAPS_PERFORMANCE_USAGE = `Usage:
   yarn performance:swaps run --scenario <number-or-id> [scenario options]
   yarn performance:swaps analyze [artifact path | --latest]
+  yarn performance:swaps compare <scenario folder>
   yarn performance:swaps prepare
   yarn performance:swaps status
   yarn performance:swaps cleanup`;
@@ -13,6 +14,10 @@ export type SwapsPerformanceCommand =
     }
   | {
       action: 'analyze';
+      args: string[];
+    }
+  | {
+      action: 'compare';
       args: string[];
     }
   | {
@@ -53,6 +58,9 @@ export function parseSwapsPerformanceCommand(
     return parseRunCommand(args);
   }
   if (action === 'analyze') {
+    return { action, args };
+  }
+  if (action === 'compare') {
     return { action, args };
   }
   if (action === 'prepare' || action === 'status' || action === 'cleanup') {

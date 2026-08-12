@@ -1,6 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { analyzeSwapsPerformance } from './analyze';
 import { parseSwapsPerformanceCommand } from './command';
+import { compareSwapsPerformanceRuns } from './compare';
 import { runInstrumentationCommand } from './instrumentation';
 import { runSwapsPerformanceScenario } from './run-scenario';
 
@@ -15,6 +16,10 @@ async function run(): Promise<void> {
   }
   if (command.action === 'analyze') {
     analyzeSwapsPerformance(command.args);
+    return;
+  }
+  if (command.action === 'compare') {
+    compareSwapsPerformanceRuns(command.args);
     return;
   }
   runInstrumentationCommand(command.action);

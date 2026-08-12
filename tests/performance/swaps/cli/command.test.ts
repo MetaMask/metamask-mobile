@@ -35,6 +35,18 @@ describe('Swaps performance command', () => {
     });
   });
 
+  it('passes the comparison folder through unchanged', () => {
+    const command = parseSwapsPerformanceCommand([
+      'compare',
+      'test-reports/swaps-performance/date-commit/scenario',
+    ]);
+
+    expect(command).toEqual({
+      action: 'compare',
+      args: ['test-reports/swaps-performance/date-commit/scenario'],
+    });
+  });
+
   it('rejects a run without a scenario option', () => {
     expect(() => parseSwapsPerformanceCommand(['run'])).toThrow(
       'Run requires exactly one --scenario option',
