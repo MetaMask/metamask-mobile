@@ -47,10 +47,14 @@ jest.mock(
 // Getters (rather than plain values) so individual tests can flip these without re-mocking:
 // the component reads both at render time.
 let mockOtaRcAutoLabel = '';
+let mockOtaRcAutoCommit = '';
 jest.mock('../../../../constants/ota', () => ({
   OTA_VERSION: 'v0',
   get OTA_RC_AUTO_LABEL() {
     return mockOtaRcAutoLabel;
+  },
+  get OTA_RC_AUTO_COMMIT() {
+    return mockOtaRcAutoCommit;
   },
 }));
 
@@ -106,6 +110,7 @@ describe('AppInformation', () => {
     mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
     mockGetFeatureFlagAppDistribution.mockReturnValue('main');
     mockOtaRcAutoLabel = '';
+    mockOtaRcAutoCommit = '';
     mockIsEmbeddedLaunch = true;
   });
 
@@ -709,6 +714,40 @@ describe('AppInformation', () => {
         expect(getByText('OTA Version: v0')).toBeOnTheScreen();
       });
       expect(queryByText(/Auto RC OTA revision:/)).not.toBeOnTheScreen();
+    });
+
+    it('displays the Auto RC OTA commit in the environment info panel', async () => {
+      // Given an Auto RC OTA update: the revision orders it, the commit identifies it
+      mockOtaRcAutoLabel = '8.0.1.2';
+      mockOtaRcAutoCommit = 'a1b2c3d';
+
+      const { getByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      longPressFox(UNSAFE_getAllByType(TouchableOpacity));
+
+      await waitFor(() => {
+        expect(getByText('Auto RC OTA commit: a1b2c3d')).toBeOnTheScreen();
+        expect(getByText('Auto RC OTA revision: 8.0.1.2')).toBeOnTheScreen();
+      });
+    });
+
+    it('omits the Auto RC OTA commit line when no commit is set', async () => {
+      const { getByText, queryByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      longPressFox(UNSAFE_getAllByType(TouchableOpacity));
+
+      await waitFor(() => {
+        expect(getByText('OTA Version: v0')).toBeOnTheScreen();
+      });
+      expect(queryByText(/Auto RC OTA commit:/)).not.toBeOnTheScreen();
     });
   });
 });

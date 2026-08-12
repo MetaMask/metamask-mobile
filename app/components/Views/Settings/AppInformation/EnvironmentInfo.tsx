@@ -8,7 +8,11 @@ import {
   updateId,
   checkAutomatically,
 } from 'expo-updates';
-import { OTA_RC_AUTO_LABEL, OTA_VERSION } from '../../../../constants/ota';
+import {
+  OTA_RC_AUTO_COMMIT,
+  OTA_RC_AUTO_LABEL,
+  OTA_VERSION,
+} from '../../../../constants/ota';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -72,6 +76,11 @@ export const EnvironmentInfo = ({
           {OTA_RC_AUTO_LABEL ? (
             <Text style={styles.branchInfo}>
               {`Auto RC OTA revision: ${OTA_RC_AUTO_LABEL}`}
+            </Text>
+          ) : null}
+          {OTA_RC_AUTO_COMMIT ? (
+            <Text style={styles.branchInfo}>
+              {`Auto RC OTA commit: ${OTA_RC_AUTO_COMMIT}`}
             </Text>
           ) : null}
         </>

@@ -27,6 +27,16 @@ export const OTA_VERSION: string = 'vX.XX.X';
  */
 export const OTA_RC_AUTO_LABEL: string = process.env.OTA_RC_AUTO_LABEL || '';
 
+/**
+ * Short commit SHA (7 chars) the Auto RC OTA revision above was published from.
+ *
+ * The revision counter resets on every new native baseline, so it orders revisions but does not
+ * identify a commit. This pairs it with the exact commit shipped, which is what an engineer needs
+ * to map a tester's report back to git history. Set and inlined by CI the same way as
+ * `OTA_RC_AUTO_LABEL`, and empty for every other flow.
+ */
+export const OTA_RC_AUTO_COMMIT: string = process.env.OTA_RC_AUTO_COMMIT || '';
+
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
 export const UPDATE_URL = otaConfig.UPDATE_URL;
