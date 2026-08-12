@@ -43,10 +43,14 @@ const renderComponent = (
   capabilities: CardProviderCapabilities,
   cardDetailsVisible = false,
   showUnlinkMoneyAccount = false,
+  overrides: {
+    card?: CardDetails;
+    isFrozen?: boolean;
+  } = {},
 ) =>
   render(
     <ManageCardOptions
-      card={CARD}
+      card={overrides.card ?? CARD}
       account={{ verificationStatus: 'VERIFIED' } as never}
       capabilities={capabilities}
       isMetalCardCheckoutEnabled={false}
@@ -56,7 +60,7 @@ const renderComponent = (
       hasAlertOnlyState={false}
       hasSetupAlerts={false}
       userLocation="gb"
-      isFrozen={false}
+      isFrozen={overrides.isFrozen ?? false}
       isFreezeLoading={false}
       isPinLoading={false}
       cardDetailsVisible={cardDetailsVisible}
@@ -169,6 +173,28 @@ describe('ManageCardOptions set PIN gating', () => {
     expect(getByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeOnTheScreen();
   });
 
+  it('shows set PIN when hasPin is true', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: true }),
+      false,
+      false,
+      { card: { ...CARD, hasPin: true } },
+    );
+
+    expect(getByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('hides set PIN when hasPin is false', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: true }),
+      false,
+      false,
+      { card: { ...CARD, hasPin: false } },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
+  });
+
   it('hides set PIN when supportsPinSet is false', () => {
     const { queryByTestId } = renderComponent(
       buildCapabilities({ supportsPinSet: false }),
@@ -179,38 +205,45 @@ describe('ManageCardOptions set PIN gating', () => {
 
   it('hides set PIN when the card is not ACTIVE', () => {
     const frozenCard = { ...CARD, status: CardStatus.FROZEN };
-    const { queryByTestId } = render(
-      <ManageCardOptions
-        card={frozenCard}
-        account={{ verificationStatus: 'VERIFIED' } as never}
-        capabilities={buildCapabilities({ supportsPinSet: true })}
-        isMetalCardCheckoutEnabled={false}
-        isAuthenticated
-        isLoading={false}
-        hasSetupActions={false}
-        hasAlertOnlyState={false}
-        hasSetupAlerts={false}
-        userLocation="gb"
-        isFrozen
-        isFreezeLoading={false}
-        isPinLoading={false}
-        cardDetailsVisible={false}
-        onViewCardDetails={jest.fn()}
-        onViewPin={jest.fn()}
-        onSetPin={jest.fn()}
-        onToggleFreeze={jest.fn()}
-        onManageSpendingLimit={jest.fn()}
-        showUnlinkMoneyAccount={false}
-        onUnlinkMoneyAccount={jest.fn()}
-        onOrderMetalCard={jest.fn()}
-        isSpendingLimitActive
-        onChangeAsset={jest.fn()}
-        hasPriorityTokenBalance
-        onCashback={jest.fn()}
-        onTravel={jest.fn()}
-      />,
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinSet: true }),
+      false,
+      false,
+      { card: frozenCard, isFrozen: true },
     );
 
     expect(queryByTestId(CardHomeSelectors.SET_PIN_BUTTON)).toBeNull();
+  });
+});
+
+describe('ManageCardOptions view PIN gating', () => {
+  it('hides view PIN when hasPin is false', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      false,
+      false,
+      { card: { ...CARD, hasPin: false } },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeNull();
+  });
+
+  it('shows view PIN when hasPin is true', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+      false,
+      false,
+      { card: { ...CARD, hasPin: true } },
+    );
+
+    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('shows view PIN when hasPin is absent', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({ supportsPinView: true }),
+    );
+
+    expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
   });
 });
