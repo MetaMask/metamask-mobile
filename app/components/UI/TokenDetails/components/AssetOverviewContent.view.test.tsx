@@ -27,6 +27,7 @@ import {
   initialStateMarketInsightsView,
 } from '../../../../../tests/component-view/presets/marketInsightsView';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
+import { QueryClientBoundary } from '../../../../../tests/component-view/render';
 import Routes from '../../../../constants/navigation/Routes';
 import MarketInsightsView from '../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { AccessRestrictedProvider } from '../../Compliance';
@@ -86,21 +87,23 @@ function renderAssetOverviewMarketInsightsStack(
     () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
   return renderWithProvider(
-    <AccessRestrictedProvider>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="AssetOverviewMI"
-          component={AssetOverviewContentHarness}
-        />
-        {extraRoutes.map(({ name, Component: Extra }) => (
+    <QueryClientBoundary>
+      <AccessRestrictedProvider>
+        <Stack.Navigator>
           <Stack.Screen
-            key={name}
-            name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            name="AssetOverviewMI"
+            component={AssetOverviewContentHarness}
           />
-        ))}
-      </Stack.Navigator>
-    </AccessRestrictedProvider>,
+          {extraRoutes.map(({ name, Component: Extra }) => (
+            <Stack.Screen
+              key={name}
+              name={name}
+              component={Extra ?? DefaultRouteProbe(name)}
+            />
+          ))}
+        </Stack.Navigator>
+      </AccessRestrictedProvider>
+    </QueryClientBoundary>,
     providerValues,
   );
 }
