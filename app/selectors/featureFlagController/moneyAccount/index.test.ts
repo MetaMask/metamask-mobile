@@ -104,17 +104,34 @@ describe('Money Account feature flag selectors', () => {
       );
     });
 
-    it('returns true when the flag serves {"enabled": true}', () => {
+    it('returns true when enabled and the minimum version passes', () => {
       const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: true },
+        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
       });
 
       expect(result).toBe(true);
     });
 
-    it('returns false when the flag serves {"enabled": false}', () => {
+    it('returns false when the flag serves enabled: false', () => {
       const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: false },
+        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the minimum version requirement fails', () => {
+      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '999.0.0',
+        },
       });
 
       expect(result).toBe(false);
@@ -127,6 +144,12 @@ describe('Money Account feature flag selectors', () => {
       expect(
         selectMoneyMovementBrazilNeobankEnabled.resultFunc({
           [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: 'not-an-object',
+        }),
+      ).toBe(false);
+      expect(
+        selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+          // Missing minimumVersion — no longer a valid version-gated shape.
+          [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: true },
         }),
       ).toBe(false);
     });

@@ -218,6 +218,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? {
         label: strings('money.add_money_sheet.bank_account'),
         icon: IconName.Bank,
+        // TODO: wire onPress to the VBA KYC flow entry point (follow-up PR #34703).
         testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
         newBadge: true,
       }

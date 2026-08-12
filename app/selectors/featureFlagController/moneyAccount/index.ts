@@ -28,17 +28,12 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
 export const MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY =
   'moneyMovementBrazilNeobank' as const;
 
-interface MoneyMovementBrazilNeobankFlag {
-  enabled?: boolean;
-}
-
 export const selectMoneyMovementBrazilNeobankEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    const flag = remoteFeatureFlags?.[
-      MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY
-    ] as unknown as MoneyMovementBrazilNeobankFlag | undefined;
-    return flag?.enabled === true;
+    const remoteFlag =
+      remoteFeatureFlags?.[MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY];
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 
