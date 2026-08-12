@@ -98,21 +98,9 @@ describe('Money Account feature flag selectors', () => {
   });
 
   describe('selectMoneyMovementBrazilNeobankEnabled', () => {
-    const originalLocalOverride =
-      process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED;
-
-    afterEach(() => {
-      if (originalLocalOverride === undefined) {
-        delete process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED;
-      } else {
-        process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED =
-          originalLocalOverride;
-      }
-    });
-
-    it('uses the LaunchDarkly kebab-case flag key', () => {
+    it('uses the camelCased key as served by client-config-api-mobile', () => {
       expect(MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY).toBe(
-        'money-movement-brazil-neobank',
+        'moneyMovementBrazilNeobank',
       );
     });
 
@@ -141,12 +129,6 @@ describe('Money Account feature flag selectors', () => {
           [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: 'not-an-object',
         }),
       ).toBe(false);
-    });
-
-    it('uses the local environment override when enabled', () => {
-      process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED = 'true';
-
-      expect(selectMoneyMovementBrazilNeobankEnabled.resultFunc({})).toBe(true);
     });
   });
 
