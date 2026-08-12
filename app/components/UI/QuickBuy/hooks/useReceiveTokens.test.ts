@@ -80,6 +80,13 @@ jest.mock('../../Bridge/utils/getAllChainDefaultDestTokens', () => ({
       decimals: 6,
       name: 'Tether USD',
     },
+    {
+      symbol: 'USDe',
+      address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+      chainId: '0x1237',
+      decimals: 18,
+      name: 'Ethena USDe',
+    },
   ]),
 }));
 
@@ -134,6 +141,15 @@ jest.mock('../../Bridge/utils/tokenUtils', () => ({
         chainId: 'bip122:000000000019d6689c085ae165831e93',
       };
     }
+    if (chainId === '0x1237') {
+      return {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        chainId: '0x1237',
+      };
+    }
     throw new Error(`unsupported chain ${chainId}`);
   }),
 }));
@@ -147,6 +163,7 @@ const mockSelectSelectedInternalAccountByScope =
 const SOLANA_CHAIN_ID = SolScope.Mainnet;
 const TRON_CHAIN_ID = TrxScope.Mainnet;
 const BITCOIN_CHAIN_ID = BtcScope.Mainnet;
+const ROBINHOOD_CHAIN_ID = '0x1237';
 
 const MOCK_STATE = {
   engine: {
@@ -214,9 +231,14 @@ describe('useReceiveTokens', () => {
     const { result } = renderHook(() => useReceiveTokens(undefined));
 
     const natives = result.current.filter(
-      (t) => t.symbol === 'ETH' || t.symbol === 'POL',
+      (t) =>
+        t.address === '0x0000000000000000000000000000000000000000' &&
+        (t.symbol === 'ETH' || t.symbol === 'POL'),
     );
-    expect(natives).toHaveLength(2);
+    expect(natives).toHaveLength(3);
+    expect(natives.map((t) => t.chainId)).toEqual(
+      expect.arrayContaining(['0x1', '0x89', ROBINHOOD_CHAIN_ID]),
+    );
     natives.forEach((token) => {
       expect(token.address).toBe('0x0000000000000000000000000000000000000000');
     });
@@ -333,6 +355,48 @@ describe('useReceiveTokens', () => {
         }),
         { includeZeroBalance: true },
       );
+    });
+  });
+
+  describe('Robinhood candidates', () => {
+    it('includes USDe and native ETH when Robinhood is enabled', () => {
+      mockUseNetworkEnabledPredicate.mockReturnValue(
+        (chainId: string | undefined) => chainId === ROBINHOOD_CHAIN_ID,
+      );
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const robinhoodTokens = result.current.filter(
+        (t) => t.chainId === ROBINHOOD_CHAIN_ID,
+      );
+      expect(robinhoodTokens.map((t) => t.symbol)).toEqual(['USDe', 'ETH']);
+      expect(robinhoodTokens[0].address).toBe(
+        '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+      );
+      expect(robinhoodTokens[1].address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
+    it('omits Robinhood candidates when Robinhood is not enabled', () => {
+      mockUseNetworkEnabledPredicate.mockReturnValue(
+        (chainId: string | undefined) => chainId !== ROBINHOOD_CHAIN_ID,
+      );
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const chainIds = result.current.map((t) => t.chainId);
+      expect(chainIds).not.toContain(ROBINHOOD_CHAIN_ID);
+      expect(chainIds).toContain('0x1');
+    });
+
+    it('sorts Robinhood USDe first when the preferred chain is Robinhood', () => {
+      mockUseNetworkEnabledPredicate.mockReturnValue(() => true);
+
+      const { result } = renderHook(() => useReceiveTokens(ROBINHOOD_CHAIN_ID));
+
+      expect(result.current[0].chainId).toBe(ROBINHOOD_CHAIN_ID);
+      expect(result.current[0].symbol).toBe('USDe');
     });
   });
 
