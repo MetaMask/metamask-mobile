@@ -159,6 +159,17 @@ export function usePerpsAdvancedChartAdapter({
       interval,
       duration: TimeDuration.OneWeek,
       callback: (candleData: CandleData) => {
+        if (candleData.symbol === '' && candleData.candles.length === 0) {
+          latestCandleDataRef.current = null;
+          prevLastBarRef.current = null;
+          hasReceivedFirstUpdateRef.current = false;
+          hasLoadedBarsRef.current = false;
+          setOhlcvData([]);
+          setRealtimeBar(undefined);
+          setIsLoading(true);
+          return;
+        }
+
         // Reject stale deliveries from a previous symbol/interval subscription.
         if (
           candleData.symbol !== symbol ||
