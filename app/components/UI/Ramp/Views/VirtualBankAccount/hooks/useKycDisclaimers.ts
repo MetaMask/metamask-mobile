@@ -25,9 +25,9 @@ interface UseKycDisclaimersResult {
  * published or wired into Engine yet. Swap this hook for the real
  * controller action once it lands.
  *
- * When {@link KYC_API_BASE_URL} isn't configured (the API isn't deployed
- * anywhere reachable yet), this skips the fetch entirely and returns an
- * empty list so callers can fall back to static copy.
+ * When {@link KYC_API_BASE_URL} isn't configured (e.g. production, which
+ * isn't deployed yet), this skips the fetch entirely and returns an empty
+ * list so callers can fall back to static copy.
  *
  * @param country - The ISO 3166-1 alpha-3 country code to scope the
  * disclaimers to (e.g. `'BRA'` for Brazil).
@@ -39,7 +39,19 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log(
+      '🚨🚨🚨 [VBA KYC] useKycDisclaimers CALLED — country:',
+      country,
+      'KYC_API_BASE_URL:',
+      KYC_API_BASE_URL || '(empty — fetch will be SKIPPED)',
+    );
+
     if (!KYC_API_BASE_URL) {
+      // eslint-disable-next-line no-console
+      console.log(
+        '🚨🚨🚨 [VBA KYC] Skipping fetch, KYC_API_BASE_URL is not configured',
+      );
       setIsLoading(false);
       return;
     }
@@ -53,6 +65,12 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         const url = new URL('/vendors/moonpay/disclaimers', KYC_API_BASE_URL);
         url.searchParams.set('country', country);
 
+        // eslint-disable-next-line no-console
+        console.log(
+          '🚨🚨🚨 [VBA KYC] Fetching disclaimers from:',
+          url.toString(),
+        );
+
         const response = await fetch(url.toString(), {
           headers: { Authorization: `Bearer ${bearerToken}` },
         });
@@ -64,10 +82,14 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         }
 
         const data: KycDisclaimer[] = await response.json();
+        // eslint-disable-next-line no-console
+        console.log('🚨🚨🚨 [VBA KYC] Fetch SUCCEEDED, disclaimers:', data);
         if (isMounted) {
           setDisclaimers(Array.isArray(data) ? data : []);
         }
       } catch (err) {
+        // eslint-disable-next-line no-console
+        console.log('🚨🚨🚨 [VBA KYC] Fetch FAILED:', err);
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Unknown error');
         }
