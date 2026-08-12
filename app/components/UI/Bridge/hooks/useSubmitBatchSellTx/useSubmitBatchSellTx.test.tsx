@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import type { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import type { QuoteResponse } from '@metamask/bridge-controller';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 
 import {
@@ -13,7 +13,7 @@ import {
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { useSubmitBatchSellTx } from '.';
 
-type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
+type BridgeQuoteResponse = QuoteResponse;
 
 let mockSubmitBatchSell: jest.Mock<
   Promise<TransactionMeta>,

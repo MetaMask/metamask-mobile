@@ -394,8 +394,9 @@ function rememberOnboardingAccountType(
 }
 
 /**
- * Resolve the attributes a span starts with, adding the journey's account type to
- * onboarding spans that do not already set one of their own.
+ * Resolve the attributes a span starts with. Tags are mirrored into attributes,
+ * with data taking precedence, and onboarding spans inherit the journey's account
+ * type when they do not set one of their own.
  *
  * @param request - The trace request being started.
  * @returns The attributes to open the span with.
@@ -403,17 +404,27 @@ function rememberOnboardingAccountType(
 function getSpanAttributes(
   request: TraceRequest,
 ): Record<string, TraceValue> | undefined {
-  const { data, op } = request;
+  const { data, op, tags } = request;
+  const attributes =
+    data || tags
+      ? {
+          ...tags,
+          ...data,
+        }
+      : undefined;
 
   if (
     !op?.startsWith(ONBOARDING_OP_PREFIX) ||
     onboardingAccountType === undefined ||
-    data?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
+    attributes?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
   ) {
-    return data;
+    return attributes;
   }
 
-  return { ...data, [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType };
+  return {
+    ...attributes,
+    [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType,
+  };
 }
 
 export interface PendingTrace {
