@@ -221,7 +221,6 @@ describe('useDepositPrefillAmount', () => {
       expect(useABTestMock).toHaveBeenCalledWith(
         MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
         MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
-        expect.any(Object),
       );
     });
 

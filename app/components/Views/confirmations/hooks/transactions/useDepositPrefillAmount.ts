@@ -19,7 +19,6 @@ import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
-  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_EXPOSURE_OPTIONS,
   MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
 } from './abTestConfig';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -72,10 +71,10 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     return undefined;
   }, [transactionMeta, depositLimits]);
 
+  // Assignment only — Experiment Viewed is emitted from MoneyAccountDepositInfo.
   const { variant: depositPrefillVariant } = useABTest(
     MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
     MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
-    MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_EXPOSURE_OPTIONS,
   );
 
   const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);

@@ -1,5 +1,5 @@
-import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
+import type { ABTestAnalyticsMapping } from '../../../../../util/analytics/abTestAnalytics.types';
 
 /**
  * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
@@ -44,21 +44,38 @@ export const MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_EXPOSURE_OPTIONS = {
   },
 } as const;
 
+/** Location property on Confirmation Screen Viewed for Money Account deposit Info. */
+export const MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION =
+  'money_account_deposit' as const;
+
 /**
- * Builds `active_ab_tests` entries for money account deposit Transaction Added
- * when the deposit-prefill experiment assignment is active.
+ * Auto-enrich Confirmation Screen Viewed from MoneyAccountDepositInfo with
+ * `active_ab_tests` for this experiment.
  */
-export function getMoneyAccountDepositPrefillTransactionActiveAbTests(
-  isAssignmentActive: boolean,
-  variantName: string,
-): TransactionActiveAbTestEntry[] | undefined {
-  if (!isAssignmentActive) {
-    return undefined;
-  }
-  return [
-    createActiveABTestAssignment(
-      MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
-      variantName,
-    ),
-  ];
-}
+export const MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+    validVariants: Object.values(MoneyAccountDepositPrefillVariant),
+    // Confirmation events live outside MetaMetrics EVENT_NAME; use the emitted name.
+    eventNames: ['Confirmation Screen Viewed'],
+    eventPropertyRequirements: {
+      'Confirmation Screen Viewed': {
+        location: MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION,
+      },
+    },
+  };
+
+// Keep RAMPS funnel events in sync when the amount Info is shown (same surface).
+export const MONEY_ACCOUNT_DEPOSIT_PREFILL_RAMPS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+    validVariants: Object.values(MoneyAccountDepositPrefillVariant),
+    eventNames: [
+      EVENT_NAME.RAMPS_SCREEN_VIEWED,
+      EVENT_NAME.RAMPS_ORDER_PROPOSED,
+      EVENT_NAME.RAMPS_CONTINUE_BUTTON_CLICKED,
+    ],
+    injectWhenPropertiesMatch: {
+      ramp_surface: 'money_account',
+    },
+  };

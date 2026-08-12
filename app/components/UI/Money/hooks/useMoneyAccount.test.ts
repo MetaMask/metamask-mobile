@@ -33,7 +33,6 @@ import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
   MoneyAccountDepositPrefillVariant,
 } from '../../../Views/confirmations/hooks/transactions/abTestConfig';
-import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 jest.mock('react-redux');
 jest.mock('@react-navigation/native', () => ({
@@ -103,15 +102,6 @@ jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../util/transactions/transaction-active-ab-test-attribution-registry',
-  () => ({
-    withPendingTransactionActiveAbTests: jest.fn(
-      async (_tests: unknown, fn: () => Promise<unknown>) => fn(),
-    ),
-  }),
-);
-
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
 >;
@@ -154,18 +144,14 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   typeof Engine.context.NetworkController.findNetworkClientIdByChainId
 >;
 const mockUseABTest = jest.mocked(useABTest);
-const mockWithPendingTransactionActiveAbTests = jest.mocked(
-  withPendingTransactionActiveAbTests,
-);
 
 function mockDepositPrefillAbVariant(
   variant: MoneyAccountDepositPrefillVariant = MoneyAccountDepositPrefillVariant.Treatment,
-  isActive = true,
 ) {
   mockUseABTest.mockReturnValue({
     variant: MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[variant],
     variantName: variant,
-    isActive,
+    isActive: true,
   });
 }
 
@@ -420,15 +406,6 @@ describe('useMoneyAccountDeposit', () => {
       expect.objectContaining({
         loader: ConfirmationLoader.PrefillCustomAmount,
       }),
-    );
-    expect(mockWithPendingTransactionActiveAbTests).toHaveBeenCalledWith(
-      [
-        expect.objectContaining({
-          key: 'confirmationsCONF1775AbtestMoneyAccountDepositPrefill',
-          value: 'treatment',
-        }),
-      ],
-      expect.any(Function),
     );
 
     selectPrefilledAmountConfig.mockReturnValue({ enabled: false });
