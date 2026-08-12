@@ -142,8 +142,7 @@ const mockUseMoneyAccountDepositPrefillEnabled = jest.mocked(
   useMoneyAccountDepositPrefillEnabled,
 );
 const mockIsDepositPrefillEnabled = jest.fn(
-  (intent?: 'convert' | 'addMusd' | 'card') =>
-    intent === 'addMusd',
+  (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
 );
 
 function mockDepositPrefillEnabled(

@@ -16,20 +16,16 @@ import { isRouteToken } from '../../utils/relayFixedSpread';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
-import { useABTest } from '../../../../../hooks/useABTest';
-import {
-  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
-  MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
-  MoneyAccountDepositPrefillVariant,
-} from './abTestConfig';
+import { resolveABTestAssignment } from '../../../../../util/abTest';
+import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
 
 jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
   ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
   getMoneyAccountDepositIntent: jest.fn(),
 }));
 
-jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: jest.fn(),
+jest.mock('../../../../../util/abTest', () => ({
+  resolveABTestAssignment: jest.fn(),
 }));
 
 jest.mock(
@@ -76,13 +72,12 @@ const selectAccountOverrideMock =
 const getMoneyAccountDepositIntentMock = jest.mocked(
   getMoneyAccountDepositIntent,
 );
-const useABTestMock = jest.mocked(useABTest);
+const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
 
 function mockDepositPrefillAbVariant(
   variant: MoneyAccountDepositPrefillVariant = MoneyAccountDepositPrefillVariant.Treatment,
 ) {
-  useABTestMock.mockReturnValue({
-    variant: MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[variant],
+  resolveABTestAssignmentMock.mockReturnValue({
     variantName: variant,
     isActive: true,
   });
@@ -219,11 +214,6 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.enabled).toBe(false);
       expect(result.current.hasPrefilled).toBe(false);
-      expect(useABTestMock).toHaveBeenCalledWith(
-        MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
-        MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
-        { trackExposure: false },
-      );
     });
 
     it('returns enabled when flag has override for moneyAccountDeposit', () => {
@@ -233,6 +223,24 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.hasPrefilled).toBe(true);
       expect(result.current.prefillAmount).toBeDefined();
+    });
+
+    it('does not apply the money-account A/B gate for non-deposit transaction types', () => {
+      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+      setupMocks({
+        transactionMeta: makeTransactionMeta({
+          type: TransactionType.perpsDeposit,
+        }),
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {
+          perpsDeposit: { enabled: true },
+        },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.enabled).toBe(true);
+      expect(result.current.hasPrefilled).toBe(true);
     });
   });
 
