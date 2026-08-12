@@ -11,12 +11,6 @@ export const NETWORKS_MGMT_ZKSYNC_RPC =
   'https://zksync-mainnet.infura.io/v3/test-key';
 export const NETWORKS_MGMT_LOCALHOST_RPC = 'http://localhost:8545';
 
-export const NETWORKS_MGMT_CUSTOM_CHAIN_CONTACT = {
-  name: 'Localhost Contact',
-  address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-  chainId: NETWORKS_MGMT_LOCALHOST_CHAIN_ID as `0x${string}`,
-};
-
 const ZKSYNC_NETWORK_CONFIG = {
   chainId: NETWORKS_MGMT_ZKSYNC_CHAIN_ID,
   name: 'zkSync Era',
@@ -43,22 +37,13 @@ const NETWORKS_MGMT_ENABLED_MAP = {
   },
 };
 
-interface InitialStateNetworksManagementOptions {
-  /** When false, omits localhost (simulates post-delete custom network). */
-  includeLocalhost?: boolean;
-}
-
 /**
  * Preset for NetworksManagement / NetworkDetails CV tests.
- * Seeds mainnet, Polygon, zkSync Era, and optional custom localhost.
+ * Seeds mainnet, Polygon, zkSync Era, and custom localhost.
  */
-export const initialStateNetworksManagement = (
-  options: InitialStateNetworksManagementOptions = {},
-) => {
-  const includeLocalhost = options.includeLocalhost ?? true;
-
-  const builder = initialStateNetworkManager({
-    includeCustomNetworks: includeLocalhost,
+export const initialStateNetworksManagement = () =>
+  initialStateNetworkManager({
+    includeCustomNetworks: true,
     enabledNetworks: NETWORKS_MGMT_ENABLED_MAP,
   }).withOverrides({
     engine: {
@@ -98,45 +83,21 @@ export const initialStateNetworksManagement = (
               defaultBlockExplorerUrlIndex: 0,
             },
             [NETWORKS_MGMT_ZKSYNC_CHAIN_ID]: ZKSYNC_NETWORK_CONFIG,
-            ...(includeLocalhost
-              ? {
-                  [NETWORKS_MGMT_LOCALHOST_CHAIN_ID]: {
-                    chainId: NETWORKS_MGMT_LOCALHOST_CHAIN_ID,
-                    name: 'Localhost 8545',
-                    nativeCurrency: 'ETH',
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'localhost',
-                        url: NETWORKS_MGMT_LOCALHOST_RPC,
-                        type: 'custom',
-                        name: 'Localhost 8545',
-                      },
-                    ],
-                    defaultRpcEndpointIndex: 0,
-                    blockExplorerUrls: [],
-                    defaultBlockExplorerUrlIndex: 0,
-                  },
-                }
-              : {}),
-          },
-        },
-      },
-    },
-  } as unknown as DeepPartial<RootState>);
-
-  return builder;
-};
-
-/** Post-delete fixture: localhost network removed, contact remains on 0x539. */
-export const initialStateAfterLocalhostNetworkDelete = () =>
-  initialStateNetworksManagement({ includeLocalhost: false }).withOverrides({
-    engine: {
-      backgroundState: {
-        AddressBookController: {
-          addressBook: {
             [NETWORKS_MGMT_LOCALHOST_CHAIN_ID]: {
-              [NETWORKS_MGMT_CUSTOM_CHAIN_CONTACT.address]:
-                NETWORKS_MGMT_CUSTOM_CHAIN_CONTACT,
+              chainId: NETWORKS_MGMT_LOCALHOST_CHAIN_ID,
+              name: 'Localhost 8545',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'localhost',
+                  url: NETWORKS_MGMT_LOCALHOST_RPC,
+                  type: 'custom',
+                  name: 'Localhost 8545',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              blockExplorerUrls: [],
+              defaultBlockExplorerUrlIndex: 0,
             },
           },
         },
