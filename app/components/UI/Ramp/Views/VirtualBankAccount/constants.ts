@@ -2,19 +2,53 @@
 // This MVP is Brazil-only.
 export const VBA_KYC_COUNTRY_CODE = 'BRA';
 
+// Deployed hosts for the VBA KYC API (`va-mmcx-universal-kyc-api`), per its
+// ArgoCD workload repo (`va-mmcx-kyc-api-workload`, workload/<env>/main).
+// Production isn't deployed yet.
+const KYC_API_DEV_BASE_URL = 'https://kyc-api.dev-api.cx.metamask.io';
+const KYC_API_UAT_BASE_URL = 'https://kyc-api.uat-api.cx.metamask.io';
+
 /**
- * Base URL of the VBA KYC API (`va-mmcx-universal-kyc-api`), used by
- * `useKycDisclaimers` to fetch the vendor's current Privacy Policy / T&C
- * links instead of hardcoding them. That service isn't deployed to a
- * reachable environment yet, so this is empty by default, in which case
- * `useKycDisclaimers` skips the fetch and callers fall back to the static
- * URLs below. Set `MM_VBA_KYC_API_BASE_URL` locally once a dev URL exists.
+ * Resolves the VBA KYC API base URL for the current MetaMask environment.
+ *
+ * `MM_VBA_KYC_API_BASE_URL` lets developers point the app at a custom
+ * deployment (e.g. a local server), bypassing the environment-based mapping.
+ *
+ * @returns the VBA KYC API base URL for the current MetaMask environment
+ */
+const getKycApiBaseUrlForMetaMaskEnv = (): string => {
+  if (process.env.MM_VBA_KYC_API_BASE_URL) {
+    return process.env.MM_VBA_KYC_API_BASE_URL;
+  }
+
+  switch (process.env.METAMASK_ENVIRONMENT) {
+    case 'exp':
+      return KYC_API_UAT_BASE_URL;
+    case 'dev':
+    case 'test':
+    case 'e2e':
+    case 'local':
+      return KYC_API_DEV_BASE_URL;
+    case 'production':
+    case 'beta':
+    case 'rc':
+    case 'pre-release':
+    default:
+      // Not deployed to production yet; `useKycDisclaimers` skips the fetch
+      // and callers fall back to the static URLs below.
+      return '';
+  }
+};
+
+/**
+ * Base URL of the VBA KYC API, used by `useKycDisclaimers` to fetch the
+ * vendor's current Privacy Policy / T&C links instead of hardcoding them.
  *
  * This whole fetch-it-ourselves setup is a stand-in for the real
  * `@metamask/kyc-controller` integration, which isn't published/wired into
  * Engine yet; swap it out once that package lands.
  */
-export const KYC_API_BASE_URL = process.env.MM_VBA_KYC_API_BASE_URL ?? '';
+export const KYC_API_BASE_URL = getKycApiBaseUrlForMetaMaskEnv();
 
 // Fallback legal URLs shown on the VBA "Get your Pix Key" screen when the
 // dynamic disclaimers fetch above is unavailable (not configured, loading,
