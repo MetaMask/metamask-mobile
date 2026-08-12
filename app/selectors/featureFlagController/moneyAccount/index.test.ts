@@ -3,9 +3,11 @@ import {
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
+  selectMoneyMovementBrazilNeobankEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
+  MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
 
@@ -92,6 +94,59 @@ describe('Money Account feature flag selectors', () => {
       });
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneyMovementBrazilNeobankEnabled', () => {
+    const originalLocalOverride =
+      process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED;
+
+    afterEach(() => {
+      if (originalLocalOverride === undefined) {
+        delete process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED;
+      } else {
+        process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED =
+          originalLocalOverride;
+      }
+    });
+
+    it('uses the LaunchDarkly kebab-case flag key', () => {
+      expect(MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY).toBe(
+        'money-movement-brazil-neobank',
+      );
+    });
+
+    it('returns true when the flag serves {"enabled": true}', () => {
+      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: true },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the flag serves {"enabled": false}', () => {
+      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: false },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is absent or malformed', () => {
+      expect(selectMoneyMovementBrazilNeobankEnabled.resultFunc({})).toBe(
+        false,
+      );
+      expect(
+        selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+          [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: 'not-an-object',
+        }),
+      ).toBe(false);
+    });
+
+    it('uses the local environment override when enabled', () => {
+      process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED = 'true';
+
+      expect(selectMoneyMovementBrazilNeobankEnabled.resultFunc({})).toBe(true);
     });
   });
 

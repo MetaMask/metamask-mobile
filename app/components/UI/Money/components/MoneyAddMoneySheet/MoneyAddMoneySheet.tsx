@@ -37,6 +37,7 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../MoneySheetOptionsList';
@@ -69,6 +70,9 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
+  const isVirtualBankAccountEnabled = useSelector(
+    selectMoneyMovementBrazilNeobankEnabled,
+  );
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();
@@ -210,7 +214,26 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
+  // Behind the money-movement-brazil-neobank flag the Bank account row is the
+  // live VBA entry (top of the list, "New" badge); without it, it stays the
+  // shipped coming-soon placeholder (disabled rows are reordered last).
+  const bankAccountOption: MoneySheetOption = isVirtualBankAccountEnabled
+    ? {
+        label: strings('money.add_money_sheet.bank_account'),
+        icon: IconName.Bank,
+        testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        newBadge: true,
+      }
+    : {
+        label: strings('money.add_money_sheet.bank_account'),
+        icon: IconName.Bank,
+        testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        disabled: true,
+        comingSoon: true,
+      };
+
   const baseOptions: MoneySheetOption[] = [
+    bankAccountOption,
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       icon: IconName.Refresh,
@@ -244,13 +267,6 @@ const MoneyAddMoneySheet: React.FC = () => {
       // Without mUSD the row falls back to the MM Pay fiat deposit, so it is
       // only actionable when that flow is available.
       disabled: !hasMusdBalance && !canDepositFiat,
-    },
-    {
-      label: strings('money.add_money_sheet.bank_account'),
-      icon: IconName.Bank,
-      testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-      disabled: true,
-      comingSoon: true,
     },
     {
       label: strings('money.add_money_sheet.receive_external'),
