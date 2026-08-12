@@ -549,7 +549,28 @@
     "cacheTimestamp": 0,
     "localOverrides": {},
     "rawRemoteFeatureFlags": {},
-    "remoteFeatureFlags": {}
+    "remoteFeatureFlags": {
+      "assetsDefiPositionsEnabled": true,
+      "tokenDetailsV2Buttons": false,
+      "tokenDetailsV2ButtonLayout": false,
+      "tronClaimUnstakedTrxButtonEnabled": false,
+      "googleLoginIosUnsupportedBlockingEnabled": false,
+      "addDeviceSyncEnabled": {
+        "enabled": false,
+        "minimumVersion": "8.6.0"
+      },
+      "ledgerDmk": {
+        "enabled": false,
+        "minimumVersion": null
+      },
+      "telegram_login_enabled": false,
+      "complianceEnabled": false,
+      "mobileMinimumVersions": {
+        "appMinimumBuild": 1243,
+        "appleMinimumOS": 6,
+        "androidMinimumAPIVersion": 21
+      }
+    }
   },
   "SeedlessOnboardingController": {
     "isSeedlessOnboardingUserAuthenticated": false,

@@ -1,4 +1,6 @@
-export const FEATURE_FLAG_NAME = 'mobileMinimumVersions';
+import { MOBILE_MINIMUM_VERSIONS_FLAG_NAME } from '../../../constants/featureFlags';
+
+export const FEATURE_FLAG_NAME = MOBILE_MINIMUM_VERSIONS_FLAG_NAME;
 
 // A type predicate's type must be assignable to its parameter's type
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

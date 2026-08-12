@@ -9,10 +9,7 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { selectDefiControllerV2Enabled } from '../../../../selectors/featureFlagController/defiControllerV2';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
-import {
-  DEFAULT_FEATURE_FLAG_VALUES,
-  FeatureFlagNames,
-} from '../../../../constants/featureFlags';
+import { FeatureFlagNames } from '../../../../constants/featureFlags';
 
 /**
  * Initialize the DeFiPositionsController (V1).
@@ -37,12 +34,12 @@ export const defiPositionsControllerInit: MessengerClientInitFunction<
         store.getState(),
       );
 
+      // Client-side defaults are seeded into RemoteFeatureFlagController state
+      // (see wallet-init), so getState() already reflects the default before
+      // the remote fetch resolves; no per-consumer fallback needed.
       const assetsDefiPositionsEnabled = Boolean(
         initMessenger.call('RemoteFeatureFlagController:getState')
-          ?.remoteFeatureFlags?.[FeatureFlagNames.assetsDefiPositionsEnabled] ??
-          DEFAULT_FEATURE_FLAG_VALUES[
-            FeatureFlagNames.assetsDefiPositionsEnabled
-          ],
+          ?.remoteFeatureFlags?.[FeatureFlagNames.assetsDefiPositionsEnabled],
       );
 
       const isV2Enabled = selectDefiControllerV2Enabled(store.getState());

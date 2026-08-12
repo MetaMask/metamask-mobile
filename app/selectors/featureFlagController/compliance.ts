@@ -1,13 +1,14 @@
 import { createSelector } from 'reselect';
 import { hasProperty } from '@metamask/utils';
 import { selectRemoteFeatureFlags } from './index';
-import { FeatureFlagNames } from '../../constants/featureFlags';
+import {
+  DEFAULT_COMPLIANCE_ENABLED,
+  FeatureFlagNames,
+} from '../../constants/featureFlags';
 import {
   validatedVersionGatedFeatureFlag,
   type VersionGatedFeatureFlag,
 } from '../../util/remoteFeatureFlag';
-
-const DEFAULT_COMPLIANCE_ENABLED = false;
 
 /**
  * Select whether OFAC compliance checking is enabled via feature flag.

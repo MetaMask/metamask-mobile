@@ -1,5 +1,7 @@
 import { Wallet, type WalletOptions } from '@metamask/wallet';
+import { type Json, isObject } from '@metamask/utils';
 import { RootMessenger } from '../types';
+import { getDefaultFeatureFlags } from '../../../constants/featureFlags';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
@@ -21,17 +23,41 @@ import { getTransactionControllerInitMessenger } from './messengers/transaction-
  * @param request - The wallet initialization request.
  * @param request.messenger - The root messenger.
  * @param request.state - The persisted controller state.
+ * @param request.id - Stable anonymous id, reserved for future
+ * ID-based A/B bucketing of default feature flags.
  * @returns The constructed `Wallet`.
  */
 export function initializeWallet({
   messenger,
   state,
+  id,
 }: {
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
+  id?: string;
 }) {
   const transactionControllerInitMessenger =
     getTransactionControllerInitMessenger(messenger);
+
+  // Seed client-side feature-flag defaults UNDER any persisted flags so
+  // persisted/fetched server values win. This covers the pre-fetch window;
+  // durability across fetches is handled by the ClientConfigApiService wrapper
+  // in `instance-options/remote-feature-flag-controller.ts`.
+  const persistedRemoteFeatureFlagState = state.RemoteFeatureFlagController;
+  const persistedRemoteFeatureFlags =
+    persistedRemoteFeatureFlagState?.remoteFeatureFlags;
+  const seededState: NonNullable<WalletOptions['state']> = {
+    ...state,
+    RemoteFeatureFlagController: {
+      ...persistedRemoteFeatureFlagState,
+      remoteFeatureFlags: {
+        ...getDefaultFeatureFlags({ id }),
+        ...(isObject(persistedRemoteFeatureFlags)
+          ? (persistedRemoteFeatureFlags as Record<string, Json>)
+          : {}),
+      },
+    },
+  };
 
   const wallet: Wallet = new Wallet({
     // Mobile's root messenger carries a superset action/event union (all app
@@ -40,7 +66,7 @@ export function initializeWallet({
     // isn't assignable to the wallet's type despite being the same runtime
     // 'Root' bus that already carries everything Wallet needs.
     messenger: messenger as NonNullable<WalletOptions['messenger']>,
-    state,
+    state: seededState,
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),

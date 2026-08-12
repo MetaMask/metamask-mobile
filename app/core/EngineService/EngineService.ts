@@ -163,12 +163,13 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      // Note on why Engine.init() requires analyticsId:
-      // `analyticsId` is not persisted in state to prevent losing it in case of corruption.
+      // Note on why Engine.init() requires canonicalId:
+      // `canonicalId` is not persisted in state to prevent losing it in case of corruption.
       // It is also used as a random source for other controllers like RemoteFeatureFlagController.
-      // Passing it to engine ensures all controllers are initialized with the same analyticsId.
-      const analyticsId = await getAnalyticsId();
-      Engine.init(analyticsId, state);
+      // Passing it to engine ensures all controllers are initialized with the same canonicalId.
+      // TODO - This will be replaced with a true canonical ID in the future.
+      const canonicalId = await getAnalyticsId();
+      Engine.init(canonicalId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
       this.initializeControllers(
@@ -369,8 +370,8 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const analyticsId = await getAnalyticsId();
-      const instance = Engine.init(analyticsId, state, newKeyringState);
+      const canonicalId = await getAnalyticsId();
+      const instance = Engine.init(canonicalId, state, newKeyringState);
       if (instance) {
         // Pass state to detect controllers that changed during init
         this.initializeControllers(instance, state as Record<string, unknown>);
