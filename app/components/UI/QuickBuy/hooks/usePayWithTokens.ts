@@ -23,7 +23,6 @@ import { getTokensControllerAllIgnoredTokens } from '../../../../selectors/asset
 import { EVM_SCOPE } from '../../Earn/constants/networks';
 import { enrichTokenBalance } from './enrichTokenBalance';
 import { isPayWithTokenHidden } from './isPayWithTokenHidden';
-import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
  * Returns the "Pay with" token options for QuickBuy Buy mode: every tradable
@@ -35,6 +34,14 @@ import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
  * eligible — not just a curated stablecoin/native allowlist. Each token is then
  * re-priced through `enrichTokenBalance` to attach the USD `currencyExchangeRate`
  * the controller relies on, and unpriceable holdings are filtered out.
+ *
+ * Deliberately does NOT filter by `NetworkEnablementController`'s enabled-map:
+ * that map is a wallet-list display preference that can be flipped to a single
+ * chain by any `enableNetwork` caller (Trending / Add Popular Network /
+ * network picker — all exclusive), which would otherwise strand QuickBuy with
+ * only the destination chain and produce an empty picker even when the user
+ * has plenty of cross-chain balance. Bridge/Swaps itself ignores this filter
+ * for the same reason (TSA-921 follow-up).
  */
 export const usePayWithTokens = (): {
   options: BridgeToken[];
@@ -42,7 +49,6 @@ export const usePayWithTokens = (): {
 } => {
   const sourceChainIds = useSelector(selectSelectedSourceChainIds);
   const heldTokens = useTokensWithBalance({ chainIds: sourceChainIds });
-  const isChainEnabled = useNetworkEnabledPredicate();
 
   const accountByScope = useSelector(selectSelectedInternalAccountByScope);
   const accountAddress = accountByScope(EVM_SCOPE)?.address;
@@ -94,8 +100,6 @@ export const usePayWithTokens = (): {
 
     const result: BridgeToken[] = [];
     for (const token of heldTokens) {
-      // Scope holdings to networks the user has enabled in wallet settings.
-      if (!isChainEnabled(token.chainId)) continue;
       // Exclude tokens the user has hidden (TSA-649).
       if (
         isPayWithTokenHidden(token, {
@@ -116,7 +120,6 @@ export const usePayWithTokens = (): {
     return result;
   }, [
     heldTokens,
-    isChainEnabled,
     accountByScope,
     accountAddress,
     accountsByChainId,
