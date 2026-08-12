@@ -9,6 +9,7 @@ import {
   MOONPAY_TERMS_URL,
   TRACE_TERMS_URL,
 } from './constants';
+import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -21,9 +22,17 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('./hooks/useKycDisclaimers');
+const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
+
 describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [],
+      isLoading: false,
+      error: null,
+    });
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
@@ -81,5 +90,24 @@ describe('GetPixKey', () => {
     fireEvent.press(getByTestId(GetPixKeySelectorsIDs.TRACE_TERMS_LINK));
 
     expect(spy).toHaveBeenCalledWith(TRACE_TERMS_URL);
+  });
+
+  it('renders disclaimers from the KYC API instead of the static links when available', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [
+        { id: 'd-1', url: 'https://iron.example/tc', display_name: 'Iron T&C' },
+      ],
+      isLoading: false,
+      error: null,
+    });
+    const spy = jest.spyOn(Linking, 'openURL');
+    const { getByText, queryByText } = renderWithProvider(<GetPixKey />);
+
+    expect(getByText('Iron T&C')).toBeOnTheScreen();
+    expect(queryByText('MoonPay Terms and Conditions')).not.toBeOnTheScreen();
+
+    fireEvent.press(getByText('Iron T&C'));
+
+    expect(spy).toHaveBeenCalledWith('https://iron.example/tc');
   });
 });
