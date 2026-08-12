@@ -10,7 +10,11 @@ import {
 } from './ToasterOverlay.constants';
 
 interface ToasterRef {
-  showToast: (options: { title?: string; hasNoTimeout?: boolean }) => void;
+  showToast: (options: {
+    title?: string;
+    hasNoTimeout?: boolean;
+    onClose?: () => void;
+  }) => void;
   closeToast: () => void;
 }
 
@@ -135,7 +139,9 @@ describe('ToasterOverlay', () => {
       ).toBeOnTheScreen();
     });
     expect(getByTestId('toaster')).toBeOnTheScreen();
-    expect(mockShowToast).toHaveBeenCalledWith({ title: 'Copied' });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Copied' }),
+    );
   });
 
   it('sets accessibilityViewIsModal to false on the overlay', async () => {
@@ -208,6 +214,68 @@ describe('ToasterOverlay', () => {
     await waitFor(() => {
       expect(queryByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID)).toBeNull();
     });
+  });
+
+  it('unmounts FullWindowOverlay when Toaster close control invokes onClose', async () => {
+    const { getByTestId, queryByTestId } = render(<ToasterOverlay />);
+
+    act(() => {
+      latestToasterRef?.current?.showToast({
+        title: 'Pinned',
+        hasNoTimeout: true,
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    const shownOptions = mockShowToast.mock.calls.at(-1)?.[0] as {
+      onClose?: () => void;
+    };
+    expect(shownOptions.onClose).toEqual(expect.any(Function));
+
+    // Simulate Toaster close button: internal dismiss + options.onClose.
+    act(() => {
+      shownOptions.onClose?.();
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(TOAST_OVERLAY_ANIMATION_BUFFER_MS);
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID)).toBeNull();
+    });
+  });
+
+  it('preserves caller onClose when wrapping Toaster close control', async () => {
+    const userOnClose = jest.fn();
+    render(<ToasterOverlay />);
+
+    act(() => {
+      latestToasterRef?.current?.showToast({
+        title: 'Pinned',
+        hasNoTimeout: true,
+        onClose: userOnClose,
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalled();
+    });
+
+    const shownOptions = mockShowToast.mock.calls.at(-1)?.[0] as {
+      onClose?: () => void;
+    };
+
+    act(() => {
+      shownOptions.onClose?.();
+    });
+
+    expect(userOnClose).toHaveBeenCalledTimes(1);
   });
 
   it('keeps overlay scheduling after Toaster re-renders a fresh handle', async () => {

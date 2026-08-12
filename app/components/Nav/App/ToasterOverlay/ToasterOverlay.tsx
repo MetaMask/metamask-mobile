@@ -28,6 +28,11 @@ import {
  * ref re-wraps `showToast` / `closeToast` whenever that handle is published so
  * overlay scheduling cannot be dropped after an independent Toaster re-render.
  *
+ * Close-button dismiss calls Toaster's internal `closeToast` (not the patched
+ * handle). We also wrap `options.onClose` so overlay teardown still runs after
+ * that path. Swipe-to-dismiss has the same internal gap; timed toasts already
+ * schedule teardown on show.
+ *
  * `unstable_accessibilityContainerViewIsModal={false}` retains the DSYS-931
  * fix so an active overlay does not hide the app AX tree.
  */
@@ -84,7 +89,17 @@ const ToasterOverlay = () => {
             return;
           }
 
-          originalsRef.current?.showToast(options);
+          const userOnClose = options.onClose;
+          // Toaster's close button invokes options.onClose after its internal
+          // dismiss — not the patched handle closeToast. Schedule overlay hide
+          // here so hasNoTimeout toasts still tear down FullWindowOverlay.
+          originalsRef.current?.showToast({
+            ...options,
+            onClose: () => {
+              userOnClose?.();
+              scheduleOverlayHide(TOAST_OVERLAY_ANIMATION_BUFFER_MS);
+            },
+          });
 
           if (!options.hasNoTimeout) {
             scheduleOverlayHide(TOAST_OVERLAY_AUTO_DISMISS_MS);
