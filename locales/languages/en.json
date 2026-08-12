@@ -4381,7 +4381,9 @@
         "reset_onboarding_button": "Reset Onboarding State",
         "unlink_money_account_description": "Revoke the USDC spending-limit allowance that authorises Card to spend from your Money Account. This submits an approve(0) transaction and marks the Money Account as not-delegated on the Card backend.",
         "unlink_money_account_button": "Unlink Money Account from Card",
-        "unlink_money_account_disabled_hint": "No active linkage to remove."
+        "unlink_money_account_disabled_hint": "No active linkage to remove.",
+        "reset_card_arrival_description": "Clear the card arrival animation state so the reveal plays again the next time you open the Card dashboard.",
+        "reset_card_arrival_button": "Reset arrival animation"
       },
       "identity": {
         "title": "Identity",
