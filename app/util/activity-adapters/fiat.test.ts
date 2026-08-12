@@ -65,6 +65,21 @@ describe('activity adapter fiat helpers', () => {
     ).toBe('1');
   });
 
+  it('treats a missing amount with symbol/assetId as zero for client-utils natives', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        direction: 'out',
+        symbol: 'ETH',
+        assetId: 'eip155:1/slip44:60',
+      }),
+    ).toBe('0');
+    expect(
+      getHumanReadableTokenAmount({
+        direction: 'out',
+      }),
+    ).toBeUndefined();
+  });
+
   it('formats token quantities for activity displays', () => {
     expect(formatTokenQuantity('1.714557')).toBe('1.7146');
     expect(formatTokenQuantity('0.000745596683158496')).toBe('0.0007456');
