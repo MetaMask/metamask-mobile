@@ -13,6 +13,24 @@ export interface BuildInfo {
   androidBuildNumber: string;
   pipelineUrl?: string;
   androidPublicUrl?: string;
+  /**
+   * Auto RC OTA details, set only when this RC shipped as an OTA update on top of an existing
+   * native build (no new binaries). Absent for normal native RC builds.
+   */
+  otaUpdate?: OtaUpdateInfo;
+}
+
+/**
+ * Details of an Auto RC OTA update.
+ *
+ * `label` is the display-only 4th-decimal revision (e.g. `8.0.1.2`). Because the revision counter
+ * restarts on every new native baseline, the label is only unambiguous when paired with the
+ * native build it layers on top of, so both are always rendered together.
+ */
+export interface OtaUpdateInfo {
+  label: string;
+  nativeBuildNumber: string;
+  baselineShortSha: string;
 }
 
 /**

@@ -36,6 +36,18 @@ on:
         required: false
         type: string
         default: ''
+      ota_label:
+        description: >-
+          Auto RC OTA revision label (e.g. 8.0.1.2). When set, the notification reports an
+          OTA-only update instead of new builds to download.
+        required: false
+        type: string
+        default: ''
+      ota_native_build_number:
+        description: 'Native build number the OTA update runs on top of (paired with ota_label)'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   actions: read
@@ -64,7 +76,11 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Read build metadata from repo
-        if: inputs.semver == '' || inputs.ios_build_number == '' || inputs.android_build_number == ''
+        # On the OTA path there are no new build numbers to report, so the repo fallback is
+        # pointless there — only semver is needed and the caller always provides it.
+        if: >
+          inputs.ota_label == '' &&
+          (inputs.semver == '' || inputs.ios_build_number == '' || inputs.android_build_number == '')
         id: build-meta
         run: ./scripts/get-build-metadata.sh --ci
       - name: Install dependencies
@@ -84,5 +100,7 @@ jobs:
           ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          OTA_LABEL: ${{ inputs.ota_label }}
+          OTA_NATIVE_BUILD_NUMBER: ${{ inputs.ota_native_build_number }}
           # Disable android check msg for now
           #ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: ${{ github.workspace }}/android-play-store-check-out/android-play-store-check-slack.md
