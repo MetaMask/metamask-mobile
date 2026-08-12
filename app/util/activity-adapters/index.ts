@@ -7,6 +7,7 @@ export type {
   ActivityFee,
   ActivityListItem,
   ActivityKind,
+  FiatAmount,
   PerpsOrderKind,
   Status,
   TokenAmount,
