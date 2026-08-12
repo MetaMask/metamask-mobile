@@ -1071,7 +1071,7 @@
       "error": "Webviewでエラー {{code}} が検出されました"
     },
     "notifications": {
-      "deposit_failed_title": "{{currency}}のデポジットに失敗しました。もう一度お試しください。ご不便をおかけし、申し訳ございません。",
+      "deposit_failed_title": "Deposit of {{currency}} has failed. Please try again, sorry for the inconvenience.",
       "deposit_failed_description": "支払方法とカードの対応状況を確認してください",
       "deposit_cancelled_title": "デポジットがキャンセルされました",
       "deposit_cancelled_description": "入金のキャンセルをリクエストしました。",
@@ -1111,9 +1111,9 @@
       "perps": "パーペチュアル"
     },
     "timeframe_filter": {
-      "title": "Time frame",
+      "title": "時間軸",
       "7d": "7日",
-      "30d": "30D"
+      "30d": "30日"
     },
     "sort_filter": {
       "title": "並べ替え基準",
@@ -1294,14 +1294,14 @@
       "toast_complete_sell": "{{amount}} {{symbol}}を{{counter}}で売却しました",
       "toast_failed_buy": "{{symbol}}を購入できませんでした",
       "toast_failed_sell": "{{symbol}}を売却できませんでした",
-      "edit_quick_amounts_title": "Edit default amounts",
-      "edit_quick_amounts_set_buy": "To buy",
-      "edit_quick_amounts_set_sell": "To sell",
+      "edit_quick_amounts_title": "デフォルトの金額を編集",
+      "edit_quick_amounts_set_buy": "購入額",
+      "edit_quick_amounts_set_sell": "売却額",
       "edit_quick_amounts_confirm": "保存",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above {{min}}",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below {{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "edit_quick_amounts_buy_above_zero": "購入額は{{min}}より大きくする必要があります",
+      "edit_quick_amounts_buy_below_max": "購入額は{{max}}より小さくする必要があります",
+      "edit_quick_amounts_sell_above_zero": "売却額は0%より大きくする必要があります",
+      "edit_quick_amounts_sell_below_max": "売却額は100%より小さくする必要があります"
     }
   },
   "perps": {
@@ -1310,6 +1310,9 @@
     "mode": {
       "lite": "ライト",
       "pro": "プロ",
+      "selection_title": "Choose how you trade",
+      "lite_description": "One-tap longs or shorts. Simple by design.",
+      "pro_description": "Order book, advanced order types, and leverage.",
       "lite_transition_title": "ライトモード",
       "pro_transition_title": "プロモード",
       "active_pill_accessibility_label": "現在{{mode}}モードです",
@@ -1372,7 +1375,7 @@
       "protect_losses_title": "損失が広がるのを回避しましょう",
       "set_stop_loss_subtitle": "{{price}} ({{percent}}) でストップロスを設定",
       "set_button": "設定",
-      "success_title": "Stop loss set"
+      "success_title": "ストップロスが設定されました"
     },
     "confirm": "確定",
     "deposit": {
@@ -1525,8 +1528,12 @@
       "isolated": "分離",
       "choose_order_type": "注文種別を選択してください",
       "size_usd": "Size (USD)",
+      "size_unit": "Size ({{unit}})",
+      "size_input_hint": "Enter order size in {{unit}}",
       "size_percentage": "注文サイズの割合",
+      "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "サイズ単位の切り替え",
+      "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
       "available_balance": "{{amount}}件利用可能",
       "available_balance_unavailable": "-- 使用可能",
       "est_liquidation": "推定清算価格",
@@ -1535,27 +1542,37 @@
       "close_keyboard": "キーボードを閉じる"
     },
     "pro_positions_panel": {
+      "order_history": "Order history",
+      "close_count": "Close ({{count}})",
       "positions": "ポジション",
-      "positions_with_count": "Positions ({{count}})",
+      "positions_with_count": "ポジション ({{count}})",
       "orders": "注文",
-      "orders_with_count": "Orders ({{count}})",
+      "orders_with_count": "注文 ({{count}})",
       "ticker_only": "{{ticker}}のみ",
       "view_market_accessibility": "Switch to the {{symbol}} market",
-      "positions_empty": "Your open positions will appear here.",
-      "positions_empty_filtered": "No open {{ticker}} positions.",
-      "positions_empty_long": "No long positions.",
-      "positions_empty_short": "No short positions.",
-      "orders_empty": "Your open orders will appear here.",
+      "positions_empty": "保有中のポジションがここに表示されます。",
+      "positions_empty_filtered": "保有中の{{ticker}}のポジションはありません。",
+      "positions_empty_long": "ロングポジションはありません。",
+      "positions_empty_short": "ショートポジションはありません。",
+      "orders_empty": "未決済の注文がここに表示されます。",
+      "orders_empty_filtered": "No open {{ticker}} orders.",
+      "orders_empty_long": "No long orders.",
+      "orders_empty_short": "No short orders.",
       "side_filter": {
-        "all_sides": "All sides",
+        "all_sides": "すべての方向",
         "long": "ロング",
         "short": "ショート"
       },
       "sort": {
-        "position_value": "Position value",
+        "position_value": "ポジション評価額",
         "unrealized_pnl": "含み損益",
         "funding_rate": "資金調達率",
-        "settings_accessibility": "Sort positions"
+        "order_value": "注文額",
+        "size": "サイズ",
+        "price": "価格",
+        "time": "時間",
+        "settings_accessibility": "ポジションの並べ替え",
+        "orders_settings_accessibility": "Sort orders"
       },
       "card": {
         "entry_price": "エントリー価格",
@@ -1565,7 +1582,7 @@
         "liq_price": "清算価格",
         "funding": "入金",
         "isolated": "分離",
-        "cross": "Cross",
+        "cross": "クロス",
         "close": "閉じる",
         "reverse": "反転",
         "share": "共有"
@@ -1577,7 +1594,10 @@
         "reduce_only": "リデュースオンリー",
         "tp_sl": "TP / SL",
         "trigger_condition": "トリガー条件",
-        "cancel": "キャンセル"
+        "cancel": "キャンセル",
+        "edit": "編集",
+        "edit_price": "Edit limit price",
+        "edit_size": "Edit size"
       }
     },
     "order": {
@@ -1626,7 +1646,10 @@
         "limit_price_must_be_set_before_configuring_tpsl": "リミット価格の設定はTP/SLの設定前に行う必要があります",
         "only_hyperliquid_usdc": "現在、HyperliquidのUSDCだけが支払いに使用できます",
         "limit_price_far_warning": "リミット価格が現在の市場価格から離れすぎています",
-        "oi_cap_reached": "未決済建玉の上限に達しました。現在、新規のポジションをオープンすることはできません。"
+        "oi_cap_reached": "未決済建玉の上限に達しました。現在、新規のポジションをオープンすることはできません。",
+        "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
+        "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
+        "reduce_only_too_large": "Reduce only order is larger than your open position"
       },
       "error": {
         "placement_failed": "注文に失敗しました",
@@ -1660,6 +1683,11 @@
         "off": "オフ",
         "take_profit_helper": "価格がこの水準に達したらポジションをクローズします",
         "stop_loss_helper": "この価格でポジションをクローズして損失を制限します"
+      },
+      "size_modal": {
+        "title": "Edit size",
+        "set": "設定",
+        "order_value": "Order value: {{value}}"
       },
       "limit_price_modal": {
         "title": "リミット価格の設定",
@@ -1741,7 +1769,11 @@
       "order_cancelled_success": "{{detailedOrderType}}の注文が取り消されました",
       "pay_with_token_required": "トークンの選択が必要です",
       "select_token_to_pay_with": "発注の前に決済に使用するトークンを選択してください",
-      "initializing": "注文を初期化しています..."
+      "initializing": "注文を初期化しています...",
+      "updating_your_order": "Updating your order",
+      "order_updated": "Order updated",
+      "order_update_failed": "Failed to update order",
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
     },
     "slippage": {
       "config_title": "スリッページの設定",
@@ -1909,7 +1941,11 @@
       "order_not_found": "注文が見つかりません",
       "clientNotInitialized": "HyperLiquid SDKクライアントが適切に初期化されていません",
       "exchangeClientNotAvailable": "ExchangeClientが初期化後に使用できません",
+      "exchangeAccountNotFound": "Add funds to your account before placing an order",
+      "exchangeMultiSigRequired": "This account needs its multi-signature signers to trade",
+      "exchangeInvalidNonce": "問題が発生しました。もう一度お試しください。",
       "infoClientNotAvailable": "InfoClientが初期化後に使用できません",
+      "subscriptionClientNotAvailable": "SubscriptionClient not available after initialization",
       "subscriptionClientNotInitialized": "SubscriptionClientが初期化されていません",
       "failedToSubscribePosition": "ポジション情報の配信登録ができませんでした",
       "failedToUnsubscribePosition": "ポジション情報の配信を解除できませんでした",
@@ -1941,7 +1977,18 @@
         "sizePositive": "サイズは正の数値でなければなりません",
         "pricePositive": "価格を指定する場合は正の数値でなければなりません",
         "unknownCoin": "不明なコイン: {{coin}}",
-        "limitPriceRequired": "リミット注文には価格が必要です"
+        "limitPriceRequired": "リミット注文には価格が必要です",
+        "triggerPriceRequired": "A trigger price is required for stop and take profit orders",
+        "triggerPricePositive": "Trigger price must be a positive number",
+        "triggerPriceNotSupported": "Market and limit orders can't have a trigger price",
+        "triggerTpslUnsupported": "Stop and take profit orders can't carry their own take profit or stop loss",
+        "tpslSizeInvalid": "Take profit and stop loss size must be positive and no larger than the order",
+        "tpslLinkageConflict": "Conflicting take profit and stop loss settings",
+        "tpslLinkageRequired": "Take profit and stop loss must be attached to the order or to the position",
+        "tpslPositionLinkageUnsupported": "Take profit and stop loss can only be attached to a position once the order has filled",
+        "timeInForceNotSupported": "Time in force can only be set on limit orders",
+        "editTriggerUnsupported": "Stop and take profit orders can't be edited. Cancel the order and place a new one.",
+        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again."
       },
       "networkToggleFailed": "ネットワークを切り替えられませんでした: {{error}}",
       "accountBalanceFailed": "アカウント残高を取得できませんでした: {{error}}",
@@ -2070,11 +2117,11 @@
       "about": "情報",
       "about_asset": "{{assetName}}について",
       "read_more": "続きを表示",
-      "read_more_about": "Read more about {{assetName}}",
+      "read_more_about": "{{assetName}}について詳細を読む",
       "24h_high": "24時間の最高値",
       "24h_low": "24時間の最安値",
       "24h_volume": "24時間の取引高",
-      "24h_vol": "24h vol",
+      "24h_vol": "24時間取引高",
       "open_interest": "取組高",
       "funding": "入金",
       "funding_rate": "資金調達率",
@@ -2351,6 +2398,13 @@
       "error_title": "注文のチャンセルに失敗しました",
       "error_message": "{{count}}件の注文のキャンセルに失敗しました"
     },
+    "margin_mode": {
+      "title": "Choose margin mode",
+      "isolated_title": "分離",
+      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "cross_title": "クロス",
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
     "crossMargin": {
       "title": "クロスマージンには対応していません",
       "message": "MetaMaskパーペチュアル取引では、分離マージンでの取引にのみ対応しています。MetaMaskで取引を行うには、最初にクロスマージンのポジションをクローズする必要があります。",
@@ -2376,7 +2430,8 @@
       "past_hour": "過去1時間",
       "past_24_hours": "過去24時間",
       "time": "時間",
-      "apply": "適用"
+      "apply": "適用",
+      "clear": "消去"
     },
     "provider_selector": {
       "title": "プロバイダーの選択"
@@ -2390,7 +2445,7 @@
     "failed_to_load_market_data": "市場データを読み込めませんでした",
     "data_updates_automatically": "データは数分ごとに自動的に更新されます",
     "tap_to_retry": "タップして再試行",
-    "search_by_token_symbol": "トークンシンボルで検索",
+    "search_by_token_symbol": "Search",
     "no_favorites_found": "ウォッチリストに市場がありません",
     "no_favorites_description": "市場の星アイコンをタップして、ウォッチリストに追加します",
     "watchlist": {
@@ -2408,7 +2463,7 @@
     "market_count": "{{count}}件の市場",
     "market_count_plural": "{{count}}件の市場",
     "no_tokens_found": "トークンが見つかりませんでした",
-    "no_tokens_found_description": "「{{searchQuery}}」という名前のトークンが見つかりませんでした。別の検索をお試しください。",
+    "no_tokens_found_description": "We couldn't find any markets with the name \"{{searchQuery}}\". Try a different search.",
     "no_markets_found": "市場が見つかりませんでした",
     "no_markets_found_description": "現在のフィルターに一致する市場がありません。別のカテゴリーをお試しください。",
     "no_markets_search_description": "このカテゴリーで「{{searchQuery}}」に一致する市場はありません。別の検索を試すか、フィルターを消去してください。",
@@ -2499,6 +2554,7 @@
       "size": "サイズ",
       "total": "合計",
       "spread": "スプレッド",
+      "spread_value": "Spread {{value}}",
       "loading": "オーダーブックを読み込んでいます...",
       "no_data": "オーダーブックデータが利用できません",
       "error": "オーダーブックの読み込みに失敗しました",
@@ -2580,14 +2636,14 @@
     },
     "market_details": {
       "fullscreen_chart": "チャートの全画面表示",
-      "collapse_chart": "Collapse chart",
-      "expand_chart": "Expand chart",
+      "collapse_chart": "チャートを折りたたむ",
+      "expand_chart": "チャートを展開",
       "market_list": "マーケットを閲覧",
       "perp_pair": "{{ticker}}-{{collateral}}パーペチュアル",
       "back": "戻る",
       "wallet": "パーペチュアル残高",
-      "add_to_watchlist": "Add to watchlist",
-      "remove_from_watchlist": "Remove from watchlist"
+      "add_to_watchlist": "ウォッチリストに追加",
+      "remove_from_watchlist": "ウォッチリストから削除"
     },
     "balance_bottom_sheet": {
       "close_button": "閉じる",
@@ -2620,7 +2676,7 @@
       "hard_to_understand": "わかりにくい",
       "harmful_or_offensive": "有害または不快",
       "something_else": "その他",
-      "additional_feedback_label": "その他のご意見 (任意)",
+      "additional_feedback_label": "Additional feedback",
       "additional_feedback_placeholder": "どのような改善が必要ですか？",
       "characters_remaining": "残り{{count}}文字",
       "submit": "送信"
@@ -2720,16 +2776,16 @@
     },
     "outcome_groups": {
       "game_lines": "ゲームライン",
-      "map_1": "Map 1",
-      "map_2": "Map 2",
-      "map_3": "Map 3",
-      "map_4": "Map 4",
-      "map_5": "Map 5",
-      "game_1": "Game 1",
-      "game_2": "Game 2",
-      "game_3": "Game 3",
-      "game_4": "Game 4",
-      "game_5": "Game 5",
+      "map_1": "マップ1",
+      "map_2": "マップ2",
+      "map_3": "マップ3",
+      "map_4": "マップ4",
+      "map_5": "マップ5",
+      "game_1": "ゲーム1",
+      "game_2": "ゲーム2",
+      "game_3": "ゲーム3",
+      "game_4": "ゲーム4",
+      "game_5": "ゲーム5",
       "halves": "前半・後半",
       "first_half": "前半",
       "first_set": "第1セット",
@@ -2796,25 +2852,25 @@
       "tennis_first_set_winner": "第1セットの勝者",
       "tennis_completed_match": "完了した試合",
       "child_moneyline": "勝者",
-      "map_handicap": "Handicap",
-      "round_handicap_game": "Rounds Handicap",
-      "round_over_under_game": "Total Rounds",
-      "first_blood_game": "First Blood",
-      "kill_over_under_game": "Total Kills",
-      "map_participant_win_total": "Maps Won",
-      "cs2_odd_even_total_kills": "Odd/Even Total Kills",
-      "cs2_odd_even_total_rounds": "Odd/Even Total Rounds",
-      "lol_both_teams_baron": "Both Teams Slay Baron Nashor",
-      "lol_both_teams_dragon": "Both Teams Slay a Dragon",
-      "lol_both_teams_inhibitors": "Both Teams Destroy Inhibitors",
-      "lol_odd_even_total_kills": "Odd/Even Total Kills",
-      "lol_penta_kill": "Any Player Penta Kill",
-      "lol_quadra_kill": "Any Player Quadra Kill",
-      "dota2_both_teams_barracks": "Both Teams Destroy Barracks",
-      "dota2_both_teams_roshan": "Both Teams Beat Roshan",
-      "dota2_game_ends_daytime": "Ends in Daytime",
-      "dota2_rampage": "Any Player Rampage",
-      "dota2_ultra_kill": "Any Player Ultra Kill"
+      "map_handicap": "ハンディキャップ",
+      "round_handicap_game": "ラウンド・ハンディキャップ",
+      "round_over_under_game": "総ラウンド数",
+      "first_blood_game": "ファーストブラッド",
+      "kill_over_under_game": "総キル数",
+      "map_participant_win_total": "勝利したマップ数",
+      "cs2_odd_even_total_kills": "総キル数の奇数・偶数予想",
+      "cs2_odd_even_total_rounds": "総ラウンド数の奇数・偶数予想 ",
+      "lol_both_teams_baron": "両チームがバロンナッシャーを倒す",
+      "lol_both_teams_dragon": "両チームがドラゴンを倒す",
+      "lol_both_teams_inhibitors": "両チームがインヒビターを破壊する",
+      "lol_odd_even_total_kills": "総キル数の奇数・偶数予想",
+      "lol_penta_kill": "いずれかのプレイヤーがペンタキルを達成する",
+      "lol_quadra_kill": "いずれかのプレイヤーがクアドラキルを達成する",
+      "dota2_both_teams_barracks": "両チームがバラックを破壊する",
+      "dota2_both_teams_roshan": "両チームがロシャンを撃破する",
+      "dota2_game_ends_daytime": "昼時間に終了する",
+      "dota2_rampage": "いずれかのプレイヤーがランページを達成する",
+      "dota2_ultra_kill": "いずれかのプレイヤーがウルトラキルを達成する"
     },
     "sell_position": "ポジションを売却",
     "odds": "オッズ",
@@ -2866,56 +2922,56 @@
         "soccer": "サッカー",
         "baseball": "野球",
         "football": "フットボール",
-        "esports": "Esports",
-        "cricket": "Cricket",
+        "esports": "eスポーツ",
+        "cricket": "クリケット",
         "golf": "ゴルフ",
-        "combat": "Combat",
-        "hockey": "Hockey"
+        "combat": "格闘技",
+        "hockey": "ホッケー"
       },
       "filters": {
         "all": "すべて",
         "live": "ライブ",
         "games": "試合",
-        "tournaments": "Tournaments",
-        "fights": "Fights",
+        "tournaments": "トーナメント",
+        "fights": "試合",
         "props": "プロップベット",
         "mls": "MLS",
-        "champions-league": "UCL",
-        "EPL": "EPL",
-        "uel": "Europa League",
-        "la-liga": "La Liga",
-        "serie-a": "Serie A",
-        "bundesliga": "Bundesliga",
-        "ligue-1": "Ligue 1",
-        "lib": "Copa Libertadores",
+        "champions-league": "UEFAチャンピオンズリーグ",
+        "EPL": "プレミアリーグ",
+        "uel": "ヨーロッパリーグ",
+        "la-liga": "ラ・リーガ",
+        "serie-a": "セリエＡ",
+        "bundesliga": "ブンデスリーガ",
+        "ligue-1": "リーグ・アン",
+        "lib": "コパ・リベルタドーレス",
         "mlb": "MLB",
-        "kbo": "KBO",
-        "npb": "NPB",
-        "cpbl": "CPBL",
-        "awards": "MLB Awards",
+        "kbo": "韓国プロ野球",
+        "npb": "日本プロ野球",
+        "cpbl": "台湾プロ野球",
+        "awards": "MLB各賞",
         "nfl": "NFL",
-        "nfl-team-futures": "NFL Futures",
-        "nfl-free-agency": "NFL Offseason",
-        "cfb": "College",
+        "nfl-team-futures": "NFL先物",
+        "nfl-free-agency": "NFLオフシーズン",
+        "cfb": "カレッジフットボール",
         "cfl": "CFL",
         "nba": "NBA",
-        "nba-free-agency": "NBA Offseason",
+        "nba-free-agency": "NBAオフシーズン",
         "wnba": "WNBA",
         "ncaa": "NCAA",
         "league-of-legends": "LoL",
         "counter-strike-2": "CS2",
         "valorant": "Valorant",
         "dota-2": "Dota 2",
-        "rainbow-six-siege": "R6 Siege",
+        "rainbow-six-siege": "レインボーシックス シージ",
         "atp": "ATP",
         "wta": "WTA",
         "itf": "ITF",
         "international-cricket": "外国",
-        "t20-blast": "T20 Blast",
-        "pga-tour": "PGA Tour",
+        "t20-blast": "T20ブラスト",
+        "pga-tour": "PGAツアー",
         "liv-golf": "LIV",
         "ufc": "UFC",
-        "boxing": "Boxing",
+        "boxing": "ボクシング",
         "nhl": "NHL"
       }
     },
@@ -3063,6 +3119,9 @@
       "prediction_in_progress": "予測中",
       "prediction_in_progress_description": "間もなく予測がプレースされます",
       "prediction_failed": "予測のプレースに失敗しました",
+      "prediction_not_placed": "Prediction not placed",
+      "post_deposit_order_failed": "{{amount}} was added to your Predict balance.",
+      "post_deposit_order_failed_fallback": "Your funds were added to your Predict balance.",
       "order_failed": "注文に失敗しました",
       "payments_made_in_usdc": "すべての支払いはUSDCで行われます",
       "prediction_insufficient_funds": "残高が不足しています。最大{{amount}}まで使用できます。",
@@ -3077,6 +3136,9 @@
       "market_busy_body_sell": "市場が急速に動いているため、{{price}}で売却できませんでした。取引可能な最も有利な価格でもう一度試しますか？",
       "order_failed_title": "注文に失敗しました",
       "order_failed_body": "注文が約定しませんでした。もう一度試しますか？",
+      "payment_failed_title": "Payment didn't go through",
+      "payment_failed_body": "We couldn't convert your {{token}}. Add funds to your Predict balance instead.",
+      "payment_failed_body_generic": "We couldn't convert your token. Add funds to your Predict balance instead.",
       "price_changed_title": "価格が変動しました",
       "price_changed_body": "{{price}}で買付できませんでした。市場価格で試しますか？",
       "retry": "再試行",
@@ -3147,7 +3209,9 @@
       "preview_not_available": "プレビューが利用できません",
       "market_pending_resolution": "このマーケットは解決待ちです。",
       "market_not_accepting_bets": "このマーケットは現在ベットを受け付けていません。",
-      "market_bettable_check_failed": "このマーケットがベットを受け付けていることを確認できませんでした。もう一度お試しください。"
+      "market_bettable_check_failed": "このマーケットがベットを受け付けていることを確認できませんでした。もう一度お試しください。",
+      "deposit_failed": "We couldn't add funds to your Predict balance. Try again.",
+      "withdraw_failed": "We couldn't complete your withdrawal. Try again."
     },
     "game_details_footer": {
       "pick_a_winner": "勝者を選択",
@@ -3237,6 +3301,7 @@
   },
   "wallet": {
     "title": "ウォレット",
+    "search_accessibility_label": "Search",
     "tokens": "トークン",
     "view_all_nfts": "すべてのNFTを表示",
     "view_all_tokens": "すべてのトークンを表示",
@@ -3340,7 +3405,7 @@
     "refresh_metadata": "メタデータを更新",
     "token_removal_issue_title": "トークンの削除中にエラーが発生しました。",
     "token_removal_issue_desc": "トークンの削除中にエラーが発生しました。もう一度お試しください。",
-    "collectible_removed_title": "コレクティブルが削除されました！",
+    "collectible_removed_title": "Collectible removed",
     "collectible_removed_desc": "気が変わったら、「NFT をインポート」をタップして再び追加できます",
     "remove": "非表示",
     "cancel": "キャンセル",
@@ -3384,7 +3449,7 @@
       "view_on_block": "ブロックエクスプローラーで表示",
       "token_details": "トークンの詳細",
       "remove_token": "トークンを削除",
-      "deactivate_asset": "Deactivate asset"
+      "deactivate_asset": "資産を無効化する"
     }
   },
   "nft_details": {
@@ -3427,7 +3492,7 @@
       "title": "パーペチュアル",
       "trades": "取引",
       "order": "注文",
-      "fundings": "入出金",
+      "fundings": "資金調達率の支払い",
       "deposits": "デポジット"
     },
     "empty_state": {
@@ -3922,15 +3987,15 @@
       "deselect_all": "すべて選択解除",
       "select_accounts_title": "アカウント",
       "select_accounts_desc": "どのアカウントの通知を受け取るか選択できます。",
-      "wallet_activity_title": "ウォレットアクティビティ",
-      "wallet_activity_desc": "購入、売却、送金、スワップ、リワード",
-      "perps_title": "取引アクティビティ",
+      "wallet_activity_title": "Wallet activity",
+      "wallet_activity_desc": "Buy, sells, transfers, swaps",
+      "perps_title": "Trading activity",
       "perps_desc": "パーペチュアルポジションの変更、清算、入金レート、証拠金の最新情報",
       "agentic_cli_title": "Agentic CLI",
       "agentic_cli_desc": "Agenticを対象としたCLIによる接続要求、承認、セッション更新情報",
-      "social_ai_title": "取引シグナル",
-      "social_ai_desc": "フォローしているトレーダーと資産の最新情報、キュレートされたマーケットニュース",
-      "marketing_title": "最新情報とRewards",
+      "social_ai_title": "Trading signals",
+      "social_ai_desc": "Updates from traders and assets you follow, plus curated market news",
+      "marketing_title": "Updates and rewards",
       "marketing_desc": "製品の最新情報、機能に関するお知らせ、新しいリリース",
       "marketing_disclaimer": "この機能をオンにすることで、MetaMaskからの製品ニュースとマーケティングの最新情報を受け取ることに同意したものとみなされます。",
       "customize_session_title": "通知のカスタマイズ",
@@ -5596,9 +5661,9 @@
     "enable_device_passcode_android": "デバイスの暗証番号でロックを解除しますか？"
   },
   "balance_breakdown": {
-    "allocation": "Allocation",
-    "hide_balance": "Hide total balance",
-    "show_balance": "Show total balance"
+    "allocation": "配分",
+    "hide_balance": "合計残高を非表示",
+    "show_balance": "合計残高を表示"
   },
   "authentication": {
     "auth_prompt_desc": "MetaMaskを使用するには認証してください",
@@ -5735,7 +5800,7 @@
     "risks_1": "紛失する",
     "risks_2": "保管場所を忘れてしまう",
     "risks_3": "誰かに見つけられてしまう",
-    "other_options": "他のオプション: 紙でなくても構いません！",
+    "other_options": "Other options: Doesn’t have to be paper.",
     "tips_title": "保管のコツ:",
     "tips_1": "銀行の金庫に保管する",
     "tips_2": "金庫に保管する",
@@ -5876,7 +5941,7 @@
     "proceed_anyway": "承知の上で続ける",
     "but_please_do_so_at_your_own_risk": "自己責任で行ってください。",
     "report_detection_problem": "検出に関する問題の報告",
-    "share_on_twitter": "役に立ったら、Xでシェアしてください！",
+    "share_on_twitter": "If you found this helpful, share on X.",
     "share_text": "MetaMaskは有害な可能性があるサイト ({{url}}) にアクセスしないように保護してくれました。気をつけましょう！"
   },
   "notifications": {
@@ -5949,11 +6014,11 @@
     "erc1155_received": "{{address}}からNFTを受け取りました",
     "received_nft": "{{address}}からNFTを受け取りました",
     "pending_title": "トランザクションが送信されました",
-    "pending_deposit_title": "入金が進行中です。",
-    "pending_withdrawal_title": "出金が進行中です。",
-    "cancelled_title": "トランザクションがキャンセルされました。",
+    "pending_deposit_title": "デポジット処理中",
+    "pending_withdrawal_title": "出金が進行中です",
+    "cancelled_title": "Transaction cancelled",
     "success_title": "トランザクション#{{nonce}}が完了しました。",
-    "speedup_title": "#{{nonce}}をスピードアップしています。",
+    "speedup_title": "Speeding up #{{nonce}}",
     "success_deposit_title": "デポジット完了！",
     "success_withdrawal_title": "出金完了！",
     "error_title": "問題が発生しました  :/",
@@ -6447,8 +6512,8 @@
     "something_went_wrong": "問題が発生しました",
     "report_this_issue": "この問題を報告する",
     "no_providers_available": "利用可能なプロバイダーがありません",
-    "try_different_amount_to_buy_input": "別の支払方法を選ぶか、購入希望額を増減させてみてください！",
-    "try_different_amount_to_sell_input": "別のキャッシュアウト先を選択するか、売却希望額を増減させてみてください！",
+    "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy.",
+    "try_different_amount_to_sell_input": "Try choosing a different cash out destination or try to increase or reduce the amount you want to sell.",
     "webview_received_error": "WebViewがエラーステータスコード {{code}} を受信しました",
     "no_tokens_available_title": "使用可能なトークンがありません",
     "no_tokens_available": "現在{{network}}に選択した支払方法で購入可能なトークンがありません。",
@@ -6501,7 +6566,7 @@
     },
     "order_details": {
       "details_main": "注文詳細",
-      "successful": "注文完了！",
+      "successful": "Order successful",
       "your": "お客様の",
       "available_in_account": "がアカウントで利用可能になりました",
       "delayed_bank_transfer": "銀行口座で現金を確認できるまでに数日かかる可能性があります。",
@@ -6592,7 +6657,7 @@
     "notifications": {
       "purchase_pending_title": "{{cryptocurrency}}の購入を処理中です",
       "purchase_pending_description": "この処理はほんの数分で完了する予定です...",
-      "purchase_completed_title": "{{amount}}{{cryptocurrency}}の購入が完了しました",
+      "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful",
       "purchase_completed_description": "{{cryptocurrency}}が利用可能になりました",
       "purchase_failed_title": "{{cryptocurrency}}の購入に失敗しました",
       "purchase_failed_description": "直ちに再試行してださい",
@@ -7356,7 +7421,7 @@
     "your_bonus_tooltip_lifetime_bonus_desc": "開始以降請求したボーナスの合計です。",
     "learn_more": "詳細",
     "service_interruption_banner": {
-      "maintenance_message": "メンテナンス中のためご利用いただけません。再開まで今しばらくお待ちください。"
+      "maintenance_message": "We're down for maintenance. We'll be back online soon."
     },
     "supply": "供給量",
     "deposit": "入金する",
@@ -7400,10 +7465,10 @@
       }
     },
     "withdraw": "出金",
-    "withdraw_from_aave": "Withdraw from Aave",
+    "withdraw_from_aave": "Aaveから引き出し",
     "deposit_more": "デポジットを続ける",
     "earning": "収益",
-    "lending_earnings": "Lending earnings",
+    "lending_earnings": "レンディング収益",
     "withdrawal_time": "出金時間",
     "withdrawing_to": "引き出し先",
     "network": "ネットワーク",
@@ -7578,23 +7643,23 @@
     },
     "asset_overview": {
       "cta": {
-        "earn_apy": "年換算利率 (APY) {{apy}}%",
+        "earn_apy": "{{apy}}%のAPYを獲得",
         "start_earning": "収益化を開始",
-        "current_apy_disclaimer": "Current APY, variable and not guaranteed."
+        "current_apy_disclaimer": "現在のAPY (変動制で、保証されたものではありません)。"
       },
       "balance_cta": {
-        "description_prefix": "Add your {{symbol}} to your Money account and earn up to ",
-        "description_suffix": " in one year.",
+        "description_prefix": "Money Accountに{{symbol}}を追加すると、1年間で最大",
+        "description_suffix": "の利回りが得られます。",
         "earn_apy": "年換算利率 (APY) {{apy}}%を獲得",
-        "earnings_tooltip_accessibility_label": "Learn about projected earnings"
+        "earnings_tooltip_accessibility_label": "予想収益について"
       }
     },
     "earnings": {
       "title": "収益",
       "estimated_monthly": "月次",
-      "estimated_lifetime": "Lifetime",
-      "monthly_info_label": "Monthly earnings info",
-      "lifetime_info_label": "Lifetime earnings info"
+      "estimated_lifetime": "全期間",
+      "monthly_info_label": "各月の収益情報",
+      "lifetime_info_label": "全期間の収益情報"
     },
     "how_it_works": {
       "title": "報酬獲得の仕組み",
@@ -7631,7 +7696,7 @@
       "virtual_card": "バーチャルカード",
       "metal_card": "メタルカード",
       "cashback": "{{percentage}}%のmUSDを還元",
-      "get_now": "Get",
+      "get_now": "入手する",
       "link_title": "カードをリンク",
       "link_subtitle": "残高を使えば、購入額に対し収益が得られます。",
       "link_subtitle_no_apy": "残高を使えば、購入額に対し収益が得られます。",
@@ -7641,6 +7706,7 @@
       "link_pending_title": "カードのリンク",
       "link_success_title": "カードの使用準備ができました",
       "link_error": "カードのリンク中に問題が発生しました",
+      "link_error_different_card": "This wallet is already linked to a different MetaMask Card",
       "unlink_pending_title": "カードのリンクを解除",
       "unlink_success_title": "カードのリンクが解除されました",
       "unlink_error": "カードのリンク解除中に問題が発生しました",
@@ -7741,19 +7807,19 @@
     },
     "earnings_tooltip": {
       "monthly": {
-        "title": "Monthly earnings",
-        "body": "The total you've earned on your Money account balance in the last 30 days."
+        "title": "各月の収益",
+        "body": "過去30日間にMoney Accountで発生した総収益額。"
       },
       "lifetime": {
         "title": "累積報酬額",
-        "body": "The total you've earned on your Money account balance over time."
+        "body": "これまでMoney Accountで発生した総収益額。"
       }
     },
     "earn_crypto_info_sheet": {
       "title": "仮想通貨を収益化",
       "deposit_title": "1年後の予想残高",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return.",
-      "go_to_money_account": "Go to Money account"
+      "body": "予想収益では、{{percentage}}%の年換算利率 (APY) が1年間変わらないと仮定されています。APYは変動制で、保証されたものではありません。利益は保証されていません。",
+      "go_to_money_account": "Money Accountに移動"
     },
     "activity": {
       "title": "アクティビティ",
@@ -7769,8 +7835,8 @@
       "filter_purchases": "購入"
     },
     "condensed_cards": {
-      "how_it_works_title": "How your money grows",
-      "musd_title": "Meet mUSD",
+      "how_it_works_title": "お金が増えていく仕組み",
+      "musd_title": "mUSDのご紹介",
       "what_you_get_title": "特典を確認"
     },
     "transaction": {
@@ -8399,8 +8465,8 @@
     "sort_balance": "残高",
     "next": "次へ",
     "explore_tokens": "トークンの閲覧",
-    "robinhood_banner_title": "Robinhood Chain is here",
-    "robinhood_banner_subtitle": "Explore trending tokens",
+    "robinhood_banner_title": "Robinhood Chainが利用可能になりました",
+    "robinhood_banner_subtitle": "人気のトークンをご覧ください",
     "no_tokens_found": "トークンが見つかりませんでした",
     "no_tokens_found_description": "この名前のトークンが見つかりませんでした。別の検索をお試しください。",
     "select_network": "ネットワークを選択",
@@ -8910,6 +8976,7 @@
       "description": "カード情報を表示するには、ウォレットのパスワードを入力してください。",
       "description_unfreeze": "カードでの支払いを再開するには、ウォレットのパスワードを入力してください。",
       "description_view_pin": "カードの暗証番号を表示するには、ウォレットのパスワードを入力してください。",
+      "description_set_pin": "Enter your wallet password to set your card PIN.",
       "placeholder": "パスワード",
       "confirm": "確定",
       "cancel": "キャンセル",
@@ -8918,6 +8985,23 @@
     },
     "view_pin_bottomsheet": {
       "title": "カードの暗証番号"
+    },
+    "set_pin": {
+      "set_title": "Set your card PIN",
+      "set_description": "You won't be able to view this PIN later. If you forget it, you can set a new one.",
+      "set_label": "PIN",
+      "continue": "続行",
+      "confirm_title": "Confirm your card PIN",
+      "confirm_description": "Enter your PIN again to confirm.",
+      "confirm_label": "Confirm PIN",
+      "submit": "Set PIN",
+      "mismatch_error": "PINs must match.",
+      "invalid_pin_error": "That PIN can't be used. Choose a different one.",
+      "repeating_pin_error": "That PIN can't be used. Choose a different one.",
+      "forbidden_error": "You can't set a PIN on this card right now.",
+      "network_error": "問題が発生しました。もう一度お試しください。",
+      "success_title": "Your PIN is set",
+      "success_description": "Make sure you keep it safe. You won't be able to view it in the app."
     },
     "choose_your_card": {
       "title": "カードの選択",
@@ -8985,7 +9069,9 @@
       "sign_up": {
         "title": "さあ、始めましょう",
         "description": "MetaMaskカードをセットアップするには、Crypto Life (CL) でアカウントを作成します。MetaMaskはお客様の個人情報を閲覧したり保管したりしません。",
+        "description_immersve": "We need a few details to set up your card.",
         "i_already_have_an_account": "すでにMetaMaskカードを持っています",
+        "i_already_have_an_account_immersve": "すでにアカウントをお持ちの場合",
         "email_label": "メールアドレス",
         "password_label": "MetaMaskカードの新しいパスワード",
         "password_description": "MetaMaskアプリのロック解除パスワードとは異なるもので、15文字以上必要です。",
@@ -8996,8 +9082,14 @@
         "join_waitlist": "待機リストに登録",
         "country_not_available": "お住いの国ではまだカードへのサインアップができません。",
         "account_label": "アカウント",
+        "account_label_immersve": "Card account",
         "account_description": "MetaMask Cardはこのアカウントと紐付けられます。",
-        "account_exists_toast": "すでにカード用のアカウントをお持ちです。"
+        "account_description_immersve": "Card purchases will be charged to this account.",
+        "account_exists_toast": "すでにカード用のアカウントをお持ちです。",
+        "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
+        "clickwrap_and": "と",
+        "clickwrap_suffix": ".",
+        "legal_docs_error": "Unable to load legal documents."
       },
       "confirm_email": {
         "title": "メールアドレスの確認",
@@ -9170,8 +9262,8 @@
         "title": "待機リストに登録",
         "load_error": "フォームの読み込み中に問題が発生しました。もう一度お試しください。",
         "try_again": "もう一度お試しください",
-        "success_toast": "You're on the waitlist!",
-        "success_toast_description": "We'll let you know when the card is available in your country."
+        "success_toast": "待機リストに登録されました！",
+        "success_toast_description": "お住まいの国でカードが利用可能になり次第お知らせします。"
       },
       "region_selector": {
         "title": "地域を選択してください"
@@ -9292,6 +9384,8 @@
         "view_pin": "暗証番号を表示",
         "view_pin_description": "カードの暗証番号を安全に表示",
         "view_pin_error": "暗証番号を読み込めませんでした。もう一度お試しください。",
+        "set_pin": "Set a 4-digit PIN",
+        "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "利用限度額の管理",
         "manage_spending_limit_description_restricted": "利用制限がオンになっています",
         "manage_spending_limit_description_full": "フルアクセスがオンになっています",
@@ -9300,6 +9394,7 @@
         "travel_title": "MetaMask Travel",
         "travel_description": "最大70%割引でホテルを予約",
         "card_tos_title": "利用規約",
+        "legal_docs_error": "Unable to load legal documents.",
         "order_metal_card": "メタルカード",
         "order_metal_card_description": "実物のメタルカードを今すぐ注文",
         "cashback": "{{cashbackPercentage}}%のmUSDを還元",
@@ -9467,7 +9562,8 @@
         "timeout_error": "タイムアウトしました。接続を確認して再試行してください。",
         "server_error": "サーバーエラーが発生しました。後ほど再試行してください。",
         "configuration_error": "現在サービスをご利用いただけません。後ほど再試行してください。",
-        "forbidden_error": "この操作はお客様のアカウントでは利用できません。"
+        "forbidden_error": "この操作はお客様のアカウントでは利用できません。",
+        "money_account_linked_to_different_card": "This wallet is already linked to a different MetaMask Card. Unlink it from that card before linking it here."
       }
     },
     "card_forgot_password": {
@@ -9662,8 +9758,8 @@
       "retry_button": "再試行",
       "tiers_title": "レベル",
       "tier_thresholds": "{{points}}ポイント",
-      "maintain_threshold_label": "Maintain threshold",
-      "maintain_this_tier": "{{points}} points to maintain this tier",
+      "maintain_threshold_label": "レベル維持条件",
+      "maintain_this_tier": "このレベルを維持するには{{points}}ポイント必要です",
       "bps_value": "{{bps}}bps",
       "referee_splash_continue": "続行",
       "referee_referred_by": "紹介元 {{code}}",
@@ -10172,7 +10268,7 @@
     "earn_rewards": {
       "title": "報酬を獲得しましょう",
       "musd_money_title": "最大{{percentage}}%APYを獲得",
-      "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
+      "musd_disclaimer_accessibility_label": "mUSDのAPYに関する免責事項",
       "musd_subtitle": "Money Accountが新登場",
       "card_title": "使用額の最大3%を還元",
       "card_subtitle": "今すぐMetaMaskカードを取得",
@@ -10321,6 +10417,7 @@
     "convert_again": "変換を再実行",
     "wrap_again": "ラップを再実行",
     "unwrap_again": "アンラップを再実行",
+    "lend_again": "Lend again",
     "transaction_pending": "トランザクション保留中",
     "likely_to_confirm_in": "確定までの推定時間",
     "confirm_time_estimate": "30秒未満",
@@ -10344,26 +10441,26 @@
       "description": "アプリに戻って続行します。"
     },
     "show_cli_link_success": {
-      "title": "MetaMaskエージェントCLIリンク成功",
+      "title": "Agent CLI successfully linked",
       "description": "CLIに戻って続行します。"
     },
     "push_nudge": {
-      "title": "通知をオンにする",
-      "description": "CLIセッションからのトランザクションについてアラートを受信します。",
-      "turn_on_button": "オンにする",
-      "loading_title": "通知をオンにしています",
-      "loading_description": "設定が完了するまで少しだけお待ちください。",
-      "enable_error": "通知をオンにできませんでした。「設定」からもう一度お試しください。"
+      "title": "Never miss a transaction",
+      "description": "Get real-time alerts to review and approve transactions from your CLI session.",
+      "turn_on_button": "通知を有効にする",
+      "preview_title": "トランザクション要求",
+      "preview_message": "Your agent needs approval on a new limit.",
+      "preview_timestamp": "現在"
     },
     "show_otp": {
       "title": "このコードを入力してください",
       "description": "{{dappName}}に{{otp}}と入力して接続を完了します。このコードは{{seconds}}秒で期限切れとなります。",
       "modal_title": "MetaMaskエージェントCLIをリンク",
       "modal_description": "MetaMask MobileをMetaMaskエージェントCLIとペアリングします。",
-      "code_label": "CLIにこのコードを入力してください",
+      "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "{{time}}で期限切れとなります",
       "expired": "コードが期限切れです",
-      "security_notice": "まず接続を確保します。次のステップでCLIへのアクセスを承認します"
+      "security_notice": "Securing the connection"
     },
     "show_not_found": {
       "title": "接続が見つかりません",
@@ -10542,6 +10639,7 @@
       "bluetooth_connection_failed": "デバイスへの接続に失敗しました。もう一度お試しください",
       "camera_permission_denied": "QRコードをスキャンするために、カメラへのアクセス許可が必要です。デバイスの設定でアクセス許可を有効にしてください。",
       "not_supported": "この操作はサポートされていません。",
+      "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "{{device}}がこのアカウント用のシークレットリカバリーフレーズまたはパスフレーズを使ってセットアップされていることを確認してください。"
     },
     "error": {
@@ -10565,6 +10663,7 @@
       "nearby_devices_permission_denied": "付近のデバイスへのアクセス許可が必要です",
       "scan_failed": "検索に失敗しました",
       "camera_permission_denied": "カメラへのアクセス許可が必要です",
+      "unsupported_signature": "Signature not supported",
       "something_went_wrong": "問題が発生しました"
     },
     "qr_scan_errors": {
@@ -10654,7 +10753,7 @@
   "whats_happening": {
     "title": "現在起きていること",
     "ai": "AI",
-    "ai_generated": "AI Generated",
+    "ai_generated": "AIによって生成されています",
     "outdated": "終了しました",
     "impact": {
       "bullish": "強気",
@@ -10687,17 +10786,17 @@
     "search_placeholder": "追加する資産を検索してください"
   },
   "asset_spendable_balance": {
-    "spendable": "Spendable",
-    "base_reserved": "Reserved (locked)",
+    "spendable": "支出可能額",
+    "base_reserved": "準備金 (ロック中)",
     "fiat_value": "価値",
     "total_balance": "合計残高"
   },
   "asset_activation": {
-    "activate": "Activate",
-    "activate_description": "Activate {{symbol}} on {{chainName}} to get started.",
-    "inactive": "Inactive",
-    "activate_error": "Something went wrong while adding this trustline. Try again.",
-    "deactivate_error": "Something went wrong while removing this trustline. Try again.",
-    "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
+    "activate": "有効化",
+    "activate_description": "始めるには、{{chainName}}で{{symbol}}を有効化してください。",
+    "inactive": "無効",
+    "activate_error": "このトラストラインの追加中に問題が発生しました。もう一度お試しください。",
+    "deactivate_error": "このトラストラインの削除中に問題が発生しました。もう一度お試しください。",
+    "deactivate_error_non_zero_balance_stellar": "このウォレットには、まだ{{balance}} {{symbol}}が残っています。Stellarでこの資産を無効化する前に、全額を送金するかスワップする必要があります。"
   }
 }
