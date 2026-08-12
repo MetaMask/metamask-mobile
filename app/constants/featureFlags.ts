@@ -23,7 +23,7 @@ export enum FeatureFlagNames {
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
-export const ADD_DEVICE_SYNC_MINIMUM_VERSION = '8.6.0';
+export const ADD_DEVICE_SYNC_MINIMUM_VERSION = '9.0.0';
 
 /** Minimum expected app version required for Ledger DMK (Device Management Key). */
 export const LEDGER_DMK_MINIMUM_VERSION = '8.2.0';
