@@ -215,8 +215,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     : isBuyable || !hasEligibleSwapTokens;
   const showMoneyEarnButton = isMoneyEarnCtaActive;
   const showBothButtons = showSwapButton && showBuyButton;
-  const showQuickBuyButton =
-    !isMoneyEarnCtaActive && Boolean(onQuickBuyPress) && hasEligibleSwapTokens;
+  const showQuickBuyButton = !isMoneyEarnCtaActive && Boolean(onQuickBuyPress);
 
   const tradingOpen = isTokenTradingOpen(token as BridgeToken);
   useEffect(() => {

@@ -15,6 +15,8 @@ import {
   ACTIVITY_CV_NFT_CONTRACT,
   ACTIVITY_CV_PREDICT_MARKET_TITLE,
   ACTIVITY_CV_RECIPIENT,
+  LINEA_ACTIVITY_HASH,
+  MAINNET_ACTIVITY_HASH,
   activityCvBridgeHistoryEntry,
   activityCvCrossChainSwapBridgeHistoryEntry,
   activityLineaNetworkOverride,
@@ -68,6 +70,9 @@ const optionTestId = (filter: ActivityTypeFilter) =>
 
 const perpsOptionTestId = (filter: PerpsActivityFilter) =>
   `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${filter}`;
+
+const networkOptionTestId = (caipChainId: string) =>
+  `${ActivityScreenSelectorsIDs.NETWORK_FILTER_OPTION_PREFIX}${caipChainId}`;
 
 // Chips now show plain value labels (no "Types:"/"Network:" prefix).
 const selectedTypeFilterLabel = (filter: ActivityTypeFilter) =>
@@ -219,6 +224,75 @@ describeForPlatforms('ActivityScreen', () => {
     await waitFor(() => {
       expect(getAllByText('Linea').length).toBeGreaterThan(0);
     });
+  });
+
+  it('filters activity rows when switching between Ethereum and Linea networks', async () => {
+    setupAccountsTransactionsApiMock([]);
+
+    try {
+      const mainnetTx = buildConfirmedLocalSendTransaction({
+        id: 'activity-cv-mainnet-filter-send',
+        hash: MAINNET_ACTIVITY_HASH,
+      });
+      const lineaTx = buildConfirmedLocalSendTransaction({
+        id: 'activity-cv-linea-filter-send',
+        hash: LINEA_ACTIVITY_HASH,
+        chainId: '0xe708',
+      });
+      const state = initialStateActivityWithLocalTransactions([
+        mainnetTx,
+        lineaTx,
+      ])
+        .withOverrides(activityLineaNetworkOverride)
+        .build();
+
+      const { getByTestId, findByTestId, queryByTestId } =
+        renderActivityScreenView({ state });
+
+      fireEvent.press(
+        getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      );
+      fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+        ).toBeOnTheScreen();
+        expect(
+          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+        ).not.toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      );
+      fireEvent.press(await findByTestId(networkOptionTestId('eip155:59144')));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+        ).toBeOnTheScreen();
+        expect(
+          queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+        ).not.toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      );
+      fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+        ).toBeOnTheScreen();
+        expect(
+          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+        ).not.toBeOnTheScreen();
+      });
+    } finally {
+      clearAccountsTransactionsApiMocks();
+    }
   });
 
   it('removes the network chip and shows the Perps sub-filter when Perps is selected', async () => {

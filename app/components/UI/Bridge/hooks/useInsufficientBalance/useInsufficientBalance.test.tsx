@@ -72,10 +72,12 @@ const createQuote = ({
       gasIncluded,
       gasIncluded7702,
       gasSponsored,
-    },
-    gasFee: {
-      total: {
-        amount: gasAmount,
+      feeData: {
+        network: [
+          {
+            normalizedAmount: gasAmount,
+          },
+        ],
       },
     },
   }) as QuoteWithGas;
@@ -147,10 +149,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            total: {
-              amount: '0.001', // 0.001 ETH gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.001', // 0.001 ETH gas
+                },
+              ],
             },
           },
         },
@@ -207,10 +211,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false, // Cross-chain, needs gas
-          },
-          gasFee: {
-            total: {
-              amount: '0.01', // 0.01 ETH gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.01', // 0.01 ETH gas
+                },
+              ],
             },
           },
         },
@@ -235,10 +241,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            total: {
-              amount: '0.02', // 0.02 ETH gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.02', // 0.02 ETH gas
+                },
+              ],
             },
           },
         },
@@ -263,10 +271,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            total: {
-              amount: '0.001',
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.001', // 0.001 ETH gas
+                },
+              ],
             },
           },
         },
@@ -290,10 +300,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            total: {
-              amount: '1.5e-3', // 0.0015 ETH in scientific notation
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '1.5e-3', // 0.0015 ETH in scientific notation
+                },
+              ],
             },
           },
         },
@@ -319,10 +331,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            total: {
-              amount: '5e-2', // 0.05 ETH in scientific notation
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '5e-2', // 0.05 ETH in scientific notation
+                },
+              ],
             },
           },
         },
@@ -356,10 +370,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            total: {
-              amount: '0.1', // 0.1 MATIC gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.1', // 0.1 MATIC gas
+                },
+              ],
             },
           },
         },
@@ -384,10 +400,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            total: {
-              amount: '1', // 1 MATIC gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '1', // 1 MATIC gas
+                },
+              ],
             },
           },
         },

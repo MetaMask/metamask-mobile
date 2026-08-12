@@ -25,7 +25,7 @@
  * USAGE — see also tests/integration/AGENTS.md
  *
  *     import { buildPerpsIntegrationHarness }
- *       from '../../../../../tests/integration/harnesses/perps';
+ *       from '../../../../../tests/integration/harnesses/perps/perps';
  *
  *     describe('Perps reverse position', () => {
  *       it('reproduces ORDER_PRICE_REQUIRED', async () => {
@@ -132,7 +132,7 @@ import { HyperLiquidSubscriptionService } from '@metamask/perps-controller/servi
 import {
   createMockInfrastructure,
   createMockMessenger,
-} from '../../../app/components/UI/Perps/__mocks__/serviceMocks';
+} from '../../../../app/components/UI/Perps/__mocks__/serviceMocks';
 
 const DEFAULT_CACHED_PRICES: Record<string, string> = {
   BTC: '50000',
