@@ -1140,6 +1140,11 @@
         "description": "Phasellus elementum tincidunt faucibus. Pellentesque congue, felis eget euismod auctor.",
         "button": "Finish"
       }
+    },
+    "kyc_error": {
+      "title": "Identity verification",
+      "start_failed": "We couldn't start identity verification. Try again.",
+      "verification_failed": "We couldn't verify your identity. Try again."
     }
   },
   "social_leaderboard": {

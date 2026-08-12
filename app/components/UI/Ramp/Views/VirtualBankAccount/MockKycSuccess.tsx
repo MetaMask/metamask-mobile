@@ -20,13 +20,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import MockKycProgressBar from './MockKycProgressBar';
 import { MockKycSuccessSelectorsIDs } from './MockKycSuccess.testIds';
 
 /**
- * Demo-only KYC success placeholder. Finish is intentionally a no-op so a
- * teammate can hook post-KYC navigation here.
+ * Demo-only KYC success screen shown after Iron → Sumsub completes.
+ * Finish returns to Money home.
  */
 const MockKycSuccess = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -35,8 +36,11 @@ const MockKycSuccess = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleFinish = useCallback(() => {
-    // TODO(vba-demo): teammate adds post-KYC navigation here.
-  }, []);
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView

@@ -101,4 +101,12 @@ describe('VbaVerifyIdentity', () => {
     );
     expect(spy).toHaveBeenCalledWith(SUMSUB_TERMS_URL);
   });
+
+  it('navigates to the mock KYC email screen when continue is pressed', () => {
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaMockKycEmail');
+  });
 });
