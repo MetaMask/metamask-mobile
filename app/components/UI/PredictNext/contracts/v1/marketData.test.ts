@@ -1,101 +1,188 @@
 import { PredictError, PredictErrorCode } from '../../errors';
-import { parsePredictEvent, parsePredictEventSummary } from './marketData';
+import {
+  parsePredictEvent,
+  parsePredictEventsPage,
+  parsePredictVenueStatus,
+} from './marketData';
 
 const venueId = 'kalshi';
 
-const createOutcome = (side: 'yes' | 'no') => ({
-  venueId,
+const createOutcome = (side: 'yes' | 'no', overrides = {}) => ({
   id: `market-1-${side}`,
-  marketId: 'market-1',
   side,
   label: side === 'yes' ? 'Yes' : 'No',
+  askPrice: side === 'yes' ? '0.42' : '0.61',
+  bidPrice: side === 'yes' ? '0.40' : '0.58',
+  ...overrides,
 });
 
 const createMarket = (overrides = {}) => ({
-  venueId,
   id: 'market-1',
-  eventId: 'event-1',
   question: 'Will the team win?',
   outcomes: [createOutcome('yes'), createOutcome('no')],
   status: 'open' as const,
   ...overrides,
 });
 
-describe('Predict API canonical response parsers', () => {
-  it('parses an event summary without venue-specific fields', () => {
-    const input = {
-      venueId,
-      id: 'event-1',
-      title: 'Game outcome',
-      startsAt: '2026-02-13T12:00:00Z',
-    };
+const createEvent = (overrides = {}) => ({
+  venueId,
+  id: 'event-1',
+  title: 'Game outcome',
+  markets: [createMarket()],
+  ...overrides,
+});
 
-    const result = parsePredictEventSummary(input);
+describe('Predict API canonical response parsers', () => {
+  it('parses an event containing prices for each binary outcome', () => {
+    const input = createEvent();
+
+    const result = parsePredictEvent(input);
 
     expect(result).toEqual(input);
   });
 
-  it('parses an event containing a binary market', () => {
+  it('parses an event containing an ask without a bid', () => {
+    const input = createEvent({
+      markets: [
+        createMarket({
+          outcomes: [
+            createOutcome('yes', { bidPrice: undefined }),
+            createOutcome('no'),
+          ],
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.markets[0].outcomes[0]).toEqual(
+      expect.objectContaining({ askPrice: '0.42' }),
+    );
+    expect(result.markets[0].outcomes[0].bidPrice).toBeUndefined();
+  });
+
+  it.each(['0', '0.0', '0.42', '1', '1.000'])(
+    'parses the price %s in the inclusive unit interval',
+    (price) => {
+      const input = createEvent({
+        markets: [
+          createMarket({
+            outcomes: [
+              createOutcome('yes', { askPrice: price }),
+              createOutcome('no'),
+            ],
+          }),
+        ],
+      });
+
+      const result = parsePredictEvent(input);
+
+      expect(result.markets[0].outcomes[0].askPrice).toBe(price);
+    },
+  );
+
+  it.each(['-0.1', '+0.5', '0.5 ', '1.01', '5e-1', ''])(
+    'rejects the price representation %s',
+    (price) => {
+      const input = createEvent({
+        markets: [
+          createMarket({
+            outcomes: [
+              createOutcome('yes', { askPrice: price }),
+              createOutcome('no'),
+            ],
+          }),
+        ],
+      });
+
+      expect(() => parsePredictEvent(input)).toThrow(
+        'Invalid Predict API response.',
+      );
+    },
+  );
+
+  it('discards unknown fields throughout an event', () => {
     const input = {
-      venueId,
-      id: 'event-1',
-      title: 'Game outcome',
-      markets: [createMarket()],
+      ...createEvent(),
+      venuePayload: 'discard',
+      markets: [
+        {
+          ...createMarket(),
+          venueMarketPayload: 'discard',
+          outcomes: [
+            { ...createOutcome('yes'), venueOutcomePayload: 'discard' },
+            createOutcome('no'),
+          ],
+        },
+      ],
     };
 
     const result = parsePredictEvent(input);
 
-    expect(result.markets[0].outcomes).toHaveLength(2);
-    expect(result.markets[0].outcomes.map(({ side }) => side)).toEqual([
-      'yes',
-      'no',
-    ]);
+    expect(result).not.toHaveProperty('venuePayload');
+    expect(result.markets[0]).not.toHaveProperty('venueMarketPayload');
+    expect(result.markets[0].outcomes[0]).not.toHaveProperty(
+      'venueOutcomePayload',
+    );
   });
 
   it('rejects an event without markets', () => {
-    const input = {
-      venueId,
-      id: 'event-1',
-      title: 'Game outcome',
-      markets: [],
-    };
+    const input = createEvent({ markets: [] });
 
     expect(() => parsePredictEvent(input)).toThrow(
-      'Invalid Predict API response',
+      'Invalid Predict API response.',
     );
   });
 
   it('rejects a market with two outcomes on the same side', () => {
-    const input = {
-      venueId,
-      id: 'event-1',
-      title: 'Game outcome',
+    const input = createEvent({
       markets: [
         createMarket({
           outcomes: [createOutcome('yes'), createOutcome('yes')],
         }),
       ],
-    };
+    });
 
     expect(() => parsePredictEvent(input)).toThrow(
-      'Invalid Predict API response',
+      'Invalid Predict API response.',
     );
   });
 
   it('rejects an event with a malformed timestamp', () => {
-    const input = {
-      venueId,
-      id: 'event-1',
-      title: 'Game outcome',
-      startsAt: 'not-a-timestamp',
-    };
+    const input = createEvent({ startsAt: 'not-a-timestamp' });
 
     try {
-      parsePredictEventSummary(input);
+      parsePredictEvent(input);
       throw new Error('Expected parser to throw');
     } catch (error) {
       expect(error).toBeInstanceOf(PredictError);
       expect((error as PredictError).code).toBe(PredictErrorCode.UNKNOWN);
     }
+  });
+
+  it('parses a paginated event response', () => {
+    const input = { items: [createEvent()], nextCursor: 'next-page' };
+
+    const result = parsePredictEventsPage(input);
+
+    expect(result.items).toHaveLength(1);
+    expect(result.nextCursor).toBe('next-page');
+  });
+
+  it('parses an available Venue Status observation', () => {
+    const input = {
+      venueId,
+      status: 'available',
+      checkedAt: '2026-08-07T12:00:00Z',
+      addition: 'discard',
+    };
+
+    const result = parsePredictVenueStatus(input);
+
+    expect(result).toEqual({
+      venueId,
+      status: 'available',
+      checkedAt: '2026-08-07T12:00:00Z',
+    });
   });
 });

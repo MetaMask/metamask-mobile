@@ -453,7 +453,7 @@ const HARD_RULES: HardRule[] = [
   {
     name: 'test-spec-tag-extraction',
     description:
-      'Spec files in tests/smoke/ or tests/smoke-appium/ changed — extract their tags and run directly',
+      'Spec files in tests/smoke-appium/ changed — extract their tags and run directly',
     check: (changedFiles, context) => {
       const specFiles = getChangedSpecFiles(changedFiles);
       if (specFiles.length === 0) return null;
