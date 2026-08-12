@@ -148,50 +148,56 @@ class BitcoinTestDapp {
   }
 
   /**
-   * Opens the wallet-selection modal, picks MetaMask, and approves connect.
-   * On Android CI the Bitcoin provider may register after the first Connect
-   * tap, so re-tap Connect until the wallet option appears (same pattern as
-   * waitForReconnect approving a late connect sheet).
+   * Reloads the Bitcoin test dapp and waits for the header. Does not approve a
+   * reconnect sheet — callers that need that should use {@link reload}.
    */
-  async connect(): Promise<void> {
-    const walletOptionSelector = `button${sel(walletSelectionModal.walletOption)}`;
-    const connectSelector = `button${sel(header.connect)}`;
-    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
-    let lastConnectAttemptAt = 0;
-    let walletOptionVisible = false;
+  private async reloadDapp(): Promise<void> {
+    // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
+    await this.evaluate('(() => { location.reload(); return true; })()');
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+    await this.waitForDappLoaded();
+  }
 
+  private async isElementPresent(
+    cssSelector: string,
+    timeoutMs = 10_000,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       const exists = await this.evaluate<boolean>(
-        `Boolean(document.querySelector(${JSON.stringify(walletOptionSelector)}))`,
+        `Boolean(document.querySelector(${JSON.stringify(cssSelector)}))`,
       ).catch(() => false);
-      if (exists) {
-        walletOptionVisible = true;
-        break;
-      }
-
-      if (Date.now() - lastConnectAttemptAt >= 3_000) {
-        lastConnectAttemptAt = Date.now();
-        // Best-effort Connect tap: provider may not be registered yet.
-        await this.evaluate<boolean>(
-          `(() => {
-            const el = document.querySelector(${JSON.stringify(connectSelector)});
-            if (!el) return false;
-            el.click();
-            return true;
-          })()`,
-        ).catch(() => false);
-      }
-
+      if (exists) return true;
       await wait(POLL_MS);
     }
+    return false;
+  }
 
-    if (!walletOptionVisible) {
-      throw new Error(
-        `Timed out waiting for "${walletOptionSelector}" to appear`,
-      );
+  /**
+   * Opens the wallet-selection modal. On Android CI the Bitcoin provider can
+   * register after test-dapp-bitcoin's one-shot mount effect, leaving
+   * wallets=[] ("No wallet available") until reload. One reload + reconnect
+   * recovers that race; re-tapping Connect alone cannot.
+   */
+  private async openWalletSelectionModal(): Promise<void> {
+    const walletOptionSelector = `button${sel(
+      walletSelectionModal.walletOption,
+    )}`;
+    const connectSelector = `button${sel(header.connect)}`;
+
+    await this.click(connectSelector);
+    if (await this.isElementPresent(walletOptionSelector, 10_000)) {
+      return;
     }
 
-    await this.click(walletOptionSelector);
+    await this.reloadDapp();
+    await this.click(connectSelector);
+    await this.waitForElement(walletOptionSelector, CONNECT_TIMEOUT_MS);
+  }
+
+  async connect(): Promise<void> {
+    await this.openWalletSelectionModal();
+    await this.click(`button${sel(walletSelectionModal.walletOption)}`);
     await this.click(`button${sel(walletSelectionModal.standardButton)}`);
     await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
     await this.verifyConnectionStatus('Connected', CONNECT_TIMEOUT_MS);
@@ -232,10 +238,7 @@ class BitcoinTestDapp {
   }
 
   async reload(): Promise<void> {
-    // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
-    await this.evaluate('(() => { location.reload(); return true; })()');
-    ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    await this.waitForDappLoaded();
+    await this.reloadDapp();
     await this.waitForReconnect();
   }
 }
