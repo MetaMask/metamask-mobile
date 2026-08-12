@@ -1503,6 +1503,92 @@ describe('PerpsConnectionManager', () => {
     });
   });
 
+  describe('state monitoring — isPreloading guard', () => {
+    let storeCallback: () => void;
+
+    beforeEach(() => {
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xabc123' }));
+      (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('mainnet');
+      (store.getState as jest.Mock).mockReturnValue({});
+    });
+
+    it('suppresses reconnectWithNewContext while preloadSubscriptions is in progress', async () => {
+      jest.useFakeTimers();
+
+      // Arrange: connect so isConnected=true and state monitoring is active
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+
+      storeCallback = storeCallbacks[storeCallbacks.length - 1];
+
+      // Directly set isPreloading=true to simulate preloadSubscriptions running
+      const m = PerpsConnectionManager as unknown as {
+        isPreloading: boolean;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      m.isPreloading = true;
+
+      const reconnectSpy = jest
+        .spyOn(m, 'reconnectWithNewContext')
+        .mockResolvedValue(undefined);
+
+      // Simulate an account change arriving while preload is in progress
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xnewaddress' }));
+      storeCallback();
+
+      // Flush the 50ms debounce timer
+      jest.runAllTimers();
+      await Promise.resolve();
+
+      // reconnectWithNewContext must NOT have been called because isPreloading=true
+      expect(reconnectSpy).not.toHaveBeenCalled();
+
+      reconnectSpy.mockRestore();
+      jest.useRealTimers();
+    });
+
+    it('triggers reconnectWithNewContext for the same state change after preload completes', async () => {
+      jest.useFakeTimers();
+
+      // Arrange: connect so isConnected=true
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+
+      storeCallback = storeCallbacks[storeCallbacks.length - 1];
+
+      // isPreloading=false (default after connect completes)
+      const m = PerpsConnectionManager as unknown as {
+        isPreloading: boolean;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      m.isPreloading = false;
+
+      const reconnectSpy = jest
+        .spyOn(m, 'reconnectWithNewContext')
+        .mockResolvedValue(undefined);
+
+      // Simulate account change with preload NOT in progress
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xnewaddress' }));
+      storeCallback();
+
+      jest.runAllTimers();
+      await Promise.resolve();
+
+      expect(reconnectSpy).toHaveBeenCalledTimes(1);
+
+      reconnectSpy.mockRestore();
+      jest.useRealTimers();
+    });
+  });
+
   describe('ensureConnected', () => {
     it('cancels grace period, disconnects, and reconnects when connected', async () => {
       // Establish connection first
@@ -1578,6 +1664,33 @@ describe('PerpsConnectionManager', () => {
       expect(Engine.context.PerpsController.init).toHaveBeenCalled();
       expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
         true,
+      );
+    });
+
+    it('does not call resubscribeActiveStreamChannels on cold start (no prior connection)', async () => {
+      // Manager starts disconnected (hadPriorConnection=false).
+      // resubscribeActiveStreamChannels is only needed to rebind stale WS handles
+      // after tearing down a live connection — on cold start there is nothing to rebind
+      // and an unconditional call would double every REST preload call.
+      mockStreamManagerInstance.clearAllChannels.mockClear();
+
+      await PerpsConnectionManager.ensureConnected({ preserveCaches: true });
+
+      expect(mockStreamManagerInstance.clearAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('calls resubscribeActiveStreamChannels after tearing down a prior connection (preserveCaches)', async () => {
+      // Establish a connection first so hadPriorConnection=true
+      await PerpsConnectionManager.connect();
+      mockStreamManagerInstance.clearAllChannels.mockClear();
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      // ensureConnected with preserveCaches=true tears down the existing
+      // connection and must rebind active channel handles afterwards.
+      await PerpsConnectionManager.ensureConnected({ preserveCaches: true });
+
+      expect(mockStreamManagerInstance.clearAllChannels).toHaveBeenCalledTimes(
+        1,
       );
     });
 
