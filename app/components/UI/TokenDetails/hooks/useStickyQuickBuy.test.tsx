@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useStickyQuickBuy } from './useStickyQuickBuy';
-import { SOCIAL_AI_QUICK_BUY_VARIANTS } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
+import { SOCIAL_AI_QUICK_BUY_VARIANTS } from '../../QuickBuy/abTestConfig';
 import type { AssetDetailsQuickBuyProps } from '../components/AssetDetailsQuickBuy';
 import { TokenDetailsSource } from '../constants/constants';
 

@@ -1096,6 +1096,68 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
+    it('shows a persistent balance message after a post-deposit order failure', () => {
+      mockBottomSheetEnabled = true;
+      mockProviderMounted = true;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+          amount: 25,
+          isPostDepositOrderFailure: true,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasNoTimeout: true,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.prediction_not_placed',
+            }),
+            expect.objectContaining({
+              label:
+                'predict.order.post_deposit_order_failed:{"amount":"$25.00"}',
+            }),
+          ]),
+        }),
+      );
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          closeButtonOptions: expect.anything(),
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('shows the funds fallback when the deposited amount is unavailable', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+          isPostDepositOrderFailure: true,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.post_deposit_order_failed_fallback',
+            }),
+          ]),
+        }),
+      );
+    });
+
     it('shows error toast without Try Again button when marketId is absent', () => {
       const handler = getHandler();
 
