@@ -5,11 +5,13 @@ describe('isStablecoinSymbol', () => {
     expect(isStablecoinSymbol('USDC')).toBe(true);
     expect(isStablecoinSymbol('USDT')).toBe(true);
     expect(isStablecoinSymbol('mUSD')).toBe(true);
+    expect(isStablecoinSymbol('USDe')).toBe(true);
   });
 
   it('matches case-insensitively', () => {
     expect(isStablecoinSymbol('usdc')).toBe(true);
     expect(isStablecoinSymbol('MUSD')).toBe(true);
+    expect(isStablecoinSymbol('usde')).toBe(true);
   });
 
   it('returns false for non-stablecoin symbols', () => {
