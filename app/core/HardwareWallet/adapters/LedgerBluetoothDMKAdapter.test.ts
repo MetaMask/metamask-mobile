@@ -744,7 +744,9 @@ describe('LedgerBluetoothDMKAdapter', () => {
         jest.useFakeTimers();
         try {
           mockConnectLedgerHardware.mockResolvedValueOnce('Ethereum');
-          mockGetLedgerDmkPublicKey.mockReturnValue(new Promise(() => undefined));
+          mockGetLedgerDmkPublicKey.mockReturnValue(
+            new Promise(() => undefined),
+          );
 
           const pending = adapter.ensureDeviceReady(DEVICE_ID);
           pending.catch(() => undefined);
