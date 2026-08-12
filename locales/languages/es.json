@@ -9087,7 +9087,7 @@
         "account_description_immersve": "Card purchases will be charged to this account.",
         "account_exists_toast": "Ya tienes una cuenta de tarjeta.",
         "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
-        "clickwrap_and": "y",
+        "clickwrap_and": " y ",
         "clickwrap_suffix": ".",
         "legal_docs_error": "Unable to load legal documents."
       },
