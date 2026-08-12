@@ -22,7 +22,9 @@ import Engine from '../../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
+import { selectSelectedInternalAccountAddress } from '../../../../../../../selectors/accountsController';
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
+import { useComplianceGate } from '../../../../../Compliance';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { bpsToPercent } from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
@@ -335,10 +337,18 @@ export const usePerpsProOrderForm = ({
   const { isAtCap } = usePerpsOICap(symbol);
   const vipTier = useVipTier();
 
-  const { handleAddFunds, isEligibilityModalVisible, closeEligibilityModal } =
-    usePerpsHomeActions({
-      buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
-    });
+  const {
+    handleAddFunds,
+    isEligible,
+    isEligibilityModalVisible,
+    closeEligibilityModal,
+    showEligibilityModal,
+  } = usePerpsHomeActions({
+    buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
+  });
+
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const { gate } = useComplianceGate(selectedAddress ?? '');
 
   const { marketData, isLoading: isMarketDataLoading } = usePerpsMarketData({
     asset: symbol,
@@ -1082,8 +1092,22 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
-    handlePlaceOrder();
-  }, [commitPendingSliderPreview, handlePlaceOrder]);
+    // Compliance first, then geographic eligibility — matches Lite trade entry
+    // and the canonical compliance gate ordering (docs/compliance.md).
+    return gate(async () => {
+      if (!isEligible) {
+        showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
+        return;
+      }
+      await handlePlaceOrder();
+    });
+  }, [
+    commitPendingSliderPreview,
+    gate,
+    handlePlaceOrder,
+    isEligible,
+    showEligibilityModal,
+  ]);
 
   const onReduceOnlyChange = useCallback(
     (value: boolean) => {

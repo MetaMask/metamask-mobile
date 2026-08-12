@@ -2,6 +2,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeature
 import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
@@ -34,6 +35,7 @@ describe('resolvePredictFeatureFlags', () => {
       enabledSportsMarketTypes: [],
       nonRegTimeSportsMarketTypes: DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+      hiddenMarketsFlag: DEFAULT_HIDDEN_MARKETS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
@@ -147,6 +149,103 @@ describe('resolvePredictFeatureFlags', () => {
     });
 
     expect(result.marketHighlightsFlag).toEqual(DEFAULT_MARKET_HIGHLIGHTS_FLAG);
+  });
+
+  describe('hiddenMarketsFlag', () => {
+    it('uses hidden markets flag when version-gated validation returns true', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+      const hiddenMarkets = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        hidden: [
+          {
+            category: 'ending-soon',
+            marketIds: ['event-1'],
+            slugs: ['guinea-bissau-election'],
+          },
+        ],
+      };
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: hiddenMarkets,
+        },
+      });
+
+      expect(result.hiddenMarketsFlag).toEqual(hiddenMarkets);
+    });
+
+    it('fills missing entry arrays with empty defaults', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            hidden: [{ category: 'ending-soon', slugs: ['stale-market'] }],
+          },
+        },
+      });
+
+      expect(result.hiddenMarketsFlag.hidden).toEqual([
+        { category: 'ending-soon', marketIds: [], slugs: ['stale-market'] },
+      ]);
+    });
+
+    it('falls back to default hidden markets flag when validation returns false', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            hidden: [{ category: 'ending-soon', marketIds: ['event-1'] }],
+          },
+        },
+      });
+
+      expect(result.hiddenMarketsFlag).toEqual(DEFAULT_HIDDEN_MARKETS_FLAG);
+    });
+
+    it('falls back to default hidden markets flag when schema parsing fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            hidden: [{ marketIds: 'not-an-array' }],
+          },
+        },
+      });
+
+      expect(result.hiddenMarketsFlag).toEqual(DEFAULT_HIDDEN_MARKETS_FLAG);
+    });
+
+    it('resolves hidden markets flag from wrapped progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+              hidden: [{ category: 'ending-soon', marketIds: ['event-1'] }],
+            },
+          },
+        },
+      });
+
+      expect(result.hiddenMarketsFlag.hidden).toEqual([
+        { category: 'ending-soon', marketIds: ['event-1'], slugs: [] },
+      ]);
+    });
   });
 
   it('parses feeCollection from wrapped progressive rollout shape', () => {

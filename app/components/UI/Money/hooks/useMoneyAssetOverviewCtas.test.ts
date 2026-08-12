@@ -10,7 +10,7 @@ import {
 } from '../constants/moneyEvents';
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import useMoneyAccountBalance from './useMoneyAccountBalance';
+import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
@@ -21,7 +21,7 @@ jest.mock('../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 jest.mock('./useMoneyAccount');
-jest.mock('./useMoneyAccountBalance');
+jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
 jest.mock('./useMoneyNavigation');
@@ -33,7 +33,7 @@ const mockShouldShowMoneyAssetOverviewBalanceCta = jest.fn();
 const mockShouldShowMoneyAssetOverviewFooterCta = jest.fn();
 
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
 const mockUseMoneyOnboardingNavigation = jest.mocked(
@@ -57,11 +57,11 @@ describe('useMoneyAssetOverviewCtas', () => {
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: 0.04,
       apyPercent: 4,
       vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyAnalytics.mockReturnValue({
       trackTokenButtonClicked: mockTrackTokenButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
@@ -179,11 +179,11 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('does not track or deposit when the footer APY label is unavailable', async () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: undefined,
       apyPercent: undefined,
       vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,
