@@ -109,6 +109,7 @@ export function usePerpsAdvancedChartAdapter({
     undefined,
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [cacheGeneration, setCacheGeneration] = useState(0);
 
   /** Always reflects the most recently received CandleData (unthrottled). */
   const latestCandleDataRef = useRef<CandleData | null>(null);
@@ -167,6 +168,7 @@ export function usePerpsAdvancedChartAdapter({
           setOhlcvData([]);
           setRealtimeBar(undefined);
           setIsLoading(true);
+          setCacheGeneration((generation) => generation + 1);
           return;
         }
 
@@ -232,8 +234,11 @@ export function usePerpsAdvancedChartAdapter({
   }, [symbol, interval, stream]);
 
   const ohlcvSeriesKey = useMemo(
-    () => `${symbol}|${interval}`,
-    [symbol, interval],
+    () =>
+      cacheGeneration === 0
+        ? `${symbol}|${interval}`
+        : `${symbol}|${interval}|${cacheGeneration}`,
+    [symbol, interval, cacheGeneration],
   );
 
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;

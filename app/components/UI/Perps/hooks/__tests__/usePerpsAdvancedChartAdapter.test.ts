@@ -272,12 +272,13 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
 
   it('replaces stale chart history after the candle cache is cleared', () => {
     const { result } = renderAdapter();
+    const initialSeriesKey = result.current.ohlcvSeriesKey;
 
     act(() => {
       subscribeParams().callback({
         symbol: SYMBOL,
         interval: INTERVAL,
-        candles: [candle(1000)],
+        candles: [candle(1000), candle(1500)],
       });
     });
     act(() => {
@@ -287,16 +288,20 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
         candles: [],
       });
     });
+
+    expect(result.current.ohlcvSeriesKey).not.toBe(initialSeriesKey);
+
     act(() => {
       subscribeParams().callback({
         symbol: SYMBOL,
         interval: INTERVAL,
-        candles: [candle(2000)],
+        candles: [candle(2000), candle(2500)],
       });
     });
 
     expect(result.current.ohlcvData).toEqual([
       { time: 2000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+      { time: 2500, open: 100, high: 110, low: 90, close: 105, volume: 500 },
     ]);
     expect(result.current.realtimeBar).toBeUndefined();
   });
