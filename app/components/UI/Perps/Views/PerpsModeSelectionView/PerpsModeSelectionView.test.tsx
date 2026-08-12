@@ -8,6 +8,11 @@ import React from 'react';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
+import {
+  PERPS_MODE_SELECTION_DISMISSED,
+  PERPS_MODE_SELECTION_SCREEN_TYPE,
+} from '../../utils/openPerpsModeSelection';
 import PerpsModeSelectionView from './PerpsModeSelectionView';
 
 const mockGoBack = jest.fn();
@@ -23,6 +28,17 @@ const mockGetParentGetState = jest.fn(() => ({
 }));
 const mockSetMode = jest.fn();
 const mockTrack = jest.fn();
+const mockNavigationListeners: Record<string, (() => void)[]> = {};
+const mockAddListener = jest.fn(
+  (event: string, cb: () => void): (() => void) => {
+    (mockNavigationListeners[event] ||= []).push(cb);
+    return jest.fn();
+  },
+);
+
+const fireNavigationEvent = (event: string) => {
+  (mockNavigationListeners[event] || []).forEach((cb) => cb());
+};
 
 let mockIsProModeEnabled = true;
 let mockIsFirstTimePerpsUser = true;
@@ -34,6 +50,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    addListener: mockAddListener,
     getParent: () => ({
       getState: mockGetParentGetState,
       reset: mockGetParentReset,
@@ -65,7 +82,16 @@ jest.mock('../../hooks/usePerpsMode', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: () => ({ track: mockTrack }),
+  usePerpsEventTracking: (options?: {
+    eventName?: unknown;
+    properties?: Record<string, unknown>;
+  }) => {
+    // Declarative mount tracking (impression) — mirror immediate-track behavior.
+    if (options?.eventName) {
+      mockTrack(options.eventName, options.properties ?? {});
+    }
+    return { track: mockTrack };
+  },
 }));
 
 const mockMarkPerpsModeSelectionCompleted = jest.fn(() => Promise.resolve());
@@ -108,6 +134,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 describe('PerpsModeSelectionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.keys(mockNavigationListeners).forEach((key) => {
+      delete mockNavigationListeners[key];
+    });
     mockIsProModeEnabled = true;
     mockIsFirstTimePerpsUser = true;
     mockPerpsMode = PerpsMode.Lite;
@@ -120,6 +149,38 @@ describe('PerpsModeSelectionView', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it('emits a chooser impression on mount with source and entry', () => {
+    mockRouteParams = {
+      entry: 'home',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    };
+
+    render(<PerpsModeSelectionView />);
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_MODE_SELECTION_SCREEN_TYPE,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        entry: 'home',
+      },
+    );
+  });
+
+  it('defaults impression entry/source when route params are omitted', () => {
+    render(<PerpsModeSelectionView />);
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_MODE_SELECTION_SCREEN_TYPE,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+        entry: 'trade',
+      },
+    );
   });
 
   it('pre-selects the current Perps mode', () => {
@@ -153,9 +214,10 @@ describe('PerpsModeSelectionView', () => {
       {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.SOURCE]:
           PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+        entry: 'trade',
       },
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
@@ -324,5 +386,62 @@ describe('PerpsModeSelectionView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGetParentReset).not.toHaveBeenCalled();
+  });
+
+  it('emits mode_selection_dismissed on beforeRemove without a selection', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(5_000);
+    mockRouteParams = {
+      entry: 'home',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    };
+
+    render(<PerpsModeSelectionView />);
+    mockTrack.mockClear();
+
+    jest.spyOn(Date, 'now').mockReturnValue(5_250);
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: PERPS_MODE_SELECTION_DISMISSED,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        [PERPS_EVENT_PROPERTY.TIME_ON_SCREEN_MS]: 250,
+        entry: 'home',
+      },
+    );
+  });
+
+  it('emits mode_selection_dismissed at most once across close and beforeRemove', () => {
+    render(<PerpsModeSelectionView />);
+    mockTrack.mockClear();
+
+    // Sheet goBack prop → handleClose (emit + navigation.goBack).
+    // In production beforeRemove also fires after goBack; both must not double-count.
+    fireNavigationEvent('beforeRemove');
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: PERPS_MODE_SELECTION_DISMISSED,
+      }),
+    );
+  });
+
+  it('does not emit dismiss after the user selects a mode', async () => {
+    render(<PerpsModeSelectionView />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION),
+    );
+    await Promise.resolve();
+
+    mockTrack.mockClear();
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 });
