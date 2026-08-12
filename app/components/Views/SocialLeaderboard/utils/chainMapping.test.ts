@@ -24,6 +24,7 @@ describe('chainNameToId', () => {
     ['linea', 'eip155:59144'],
     ['bsc', 'eip155:56'],
     ['solana', 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+    ['robinhood', 'eip155:4663'],
   ])('maps %s to %s', (chainName, expectedId) => {
     expect(chainNameToId(chainName)).toBe(expectedId);
   });
@@ -64,6 +65,7 @@ describe('isSupportedChain', () => {
       'linea',
       'bsc',
       'solana',
+      'robinhood',
     ];
     supported.forEach((chain) => {
       expect(isSupportedChain(chain)).toBe(true);
