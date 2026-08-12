@@ -31,8 +31,7 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
-// `scheduleOnRN` hands the callback back to the JS thread on a microtask, so
-// the dispatch lands a tick after the fade reports finished.
+// `scheduleOnRN` defers to a microtask, so the dispatch lands a tick later.
 const completeFade = async (finished: boolean) => {
   await act(async () => {
     mockFadeCallbacks.forEach((callback) => callback(finished));
@@ -47,9 +46,14 @@ jest.mock('react-redux', () => ({
 
 const mockArrivalFlag = jest.fn<boolean, []>();
 const mockTiltFlag = jest.fn<boolean, []>();
+jest.mock('../../../../../../selectors/featureFlagController/card', () => ({
+  ...jest.requireActual(
+    '../../../../../../selectors/featureFlagController/card',
+  ),
+  selectCardArrivalAnimationEnabledFlag: () => mockArrivalFlag(),
+}));
 jest.mock('../../../../Money/selectors/featureFlags', () => ({
   ...jest.requireActual('../../../../Money/selectors/featureFlags'),
-  selectMoneyCardArrivalAnimationEnabledFlag: () => mockArrivalFlag(),
   selectMoneyCardTiltAnimationEnabledFlag: () => mockTiltFlag(),
 }));
 
@@ -169,7 +173,6 @@ describe('useCardArrivalAnimation', () => {
       expect(result.current.usesRiveCard).toBe(false);
     });
 
-    // Skipped rather than fading in the static card and burning the one-shot.
     it('renders the static card when the tilt kill switch is off', () => {
       mockTiltFlag.mockReturnValue(false);
       const { result } = renderArrivalHook({ cardType: CardType.VIRTUAL });

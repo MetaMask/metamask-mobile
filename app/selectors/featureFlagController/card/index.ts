@@ -239,6 +239,18 @@ export const selectMetalCardCheckoutFeatureFlag = createSelector(
   },
 );
 
+/** Kill-switch for the card arrival reveal. Defaults to ON. */
+export const selectCardArrivalAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.cardArrivalAnimationEnabled as unknown as GateVersionedFeatureFlag;
+    const local = process.env.MM_CARD_ARRIVAL_ANIMATION_ENABLED !== 'false';
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
 export const selectGalileoAppleWalletProvisioningEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

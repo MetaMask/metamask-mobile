@@ -45,11 +45,9 @@ const RIVE_ARTBOARD_METAL = 'CardTiltMetal';
 const RIVE_PROPERTY_X = 'xValue';
 const RIVE_PROPERTY_Y = 'yValue';
 
-/** ViewModel trigger playing the authored entry reveal. */
 const RIVE_TRIGGER_START = 'startAnimation';
 /** Tilt does not need it, but a trigger needs a running state machine. */
 const RIVE_STATE_MACHINE = 'State Machine 1';
-/** Native size of both tilt artboards. */
 const RIVE_ARTBOARD_ASPECT_RATIO = 620 / 400;
 
 /** Thumbnail size used by the Money home card rows. */
@@ -66,11 +64,8 @@ interface MoneyCardTiltAnimationProps {
   width?: number;
   /** Rendered height in points. Defaults to the Money home thumbnail size. */
   height?: number;
-  /** Fill the parent's width, deriving height from the aspect ratio. */
   fillWidth?: boolean;
-  /** Fire the asset's authored entry reveal once the native view is ready. */
   playRevealOnMount?: boolean;
-  /** Beat before triggering, so a caller can line the reveal up with its own. */
   revealDelayMs?: number;
   testID?: string;
 }

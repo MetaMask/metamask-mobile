@@ -18,11 +18,7 @@ export interface CardSliceState {
   isDaimoDemo: boolean;
   pendingMoneyAccountCardLink: CardEntryPoint | null;
   cardArrivalAnimationSeen: boolean;
-  /**
-   * Armed by the developer-options reset to replay the arrival animation.
-   * Transient: the dashboard consumes it on arrival and it is stripped from
-   * persistence.
-   */
+  /** Armed by the developer-options reset; consumed on arrival, not persisted. */
   cardArrivalPreviewRequested: boolean;
 }
 
