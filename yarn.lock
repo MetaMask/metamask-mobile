@@ -8960,13 +8960,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/hw-wallet-sdk@npm:^0.11.0":
-  version: 0.11.0
-  resolution: "@metamask/hw-wallet-sdk@npm:0.11.0"
-  checksum: 10/3c12bb318b543e0f9a242cbfa5fb2427f543f95246c887c326aaef93c47ce087397c8ad89ce1c66c8650c88113bb7933d8e4ed9a04d029c58ed4fde8d389cd07
-  languageName: node
-  linkType: hard
-
 "@metamask/hw-wallet-sdk@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/hw-wallet-sdk@npm:1.0.0"
@@ -35774,7 +35767,7 @@ __metadata:
     "@metamask/gas-fee-controller": "npm:^26.3.0"
     "@metamask/gator-permissions-controller": "npm:^4.0.0"
     "@metamask/geolocation-controller": "npm:^1.0.0"
-    "@metamask/hw-wallet-sdk": "npm:^0.11.0"
+    "@metamask/hw-wallet-sdk": "npm:^1.0.0"
     "@metamask/json-rpc-engine": "npm:^10.5.0"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
