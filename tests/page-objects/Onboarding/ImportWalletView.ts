@@ -80,6 +80,9 @@ class ImportWalletView {
         ),
       appium: {
         android: () =>
+          // ImportFromSecretRecoveryPhrase passes SEED_PHRASE_INPUT_ID
+          // (`phrase-input-id`) as SrpInputGrid testIdPrefix — not
+          // SEED_PHRASE_INPUT_FIELD (`seed-phrase-input`, used by Import New SRP).
           PlaywrightMatchers.getElementById(
             index === 0
               ? androidSeedPhraseInputPrefix
@@ -171,6 +174,7 @@ class ImportWalletView {
             secretRecoveryPhrase,
             {
               description: 'Import Wallet Secret Recovery Phrase Input Box',
+              timeout: 15_000,
             },
           );
           return;

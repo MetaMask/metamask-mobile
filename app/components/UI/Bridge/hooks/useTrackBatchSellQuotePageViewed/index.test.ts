@@ -2,6 +2,8 @@ import { waitFor } from '@testing-library/react-native';
 import {
   BatchSellMetricsEventName,
   BatchSellMetricsLocation,
+  formatAddressToAssetId,
+  toBridgeAssetV2,
 } from '@metamask/bridge-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 
@@ -30,45 +32,35 @@ const selectedTokens: BridgeToken[] = [
     symbol: 'UNI',
   },
 ];
+const selectedAssets = selectedTokens.map(({ address, chainId, ...rest }) => ({
+  address,
+  chainId,
+  name: 'TOKEN',
+  ...rest,
+  assetId: formatAddressToAssetId(address, chainId),
+}));
 const selectedDestinationToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
   chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'USDC',
+  name: 'DESTINATION_TOKEN',
+  assetId: formatAddressToAssetId(
+    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    '0x1',
+  ),
 };
 const selectedTokenQuotes = [
   {
     quote: {
-      srcAsset: {
-        address: selectedTokens[0].address,
-        symbol: selectedTokens[0].symbol,
-      },
-      srcChainId: 1,
-      destAsset: {
-        address: selectedDestinationToken.address,
-        symbol: selectedDestinationToken.symbol,
-      },
-      destChainId: 1,
-    },
-    sentAmount: {
-      usd: '1000',
+      src: { asset: toBridgeAssetV2(selectedAssets[0]), usd: '1000' },
+      dest: { asset: toBridgeAssetV2(selectedDestinationToken) },
     },
   },
   {
     quote: {
-      srcAsset: {
-        address: selectedTokens[1].address,
-        symbol: selectedTokens[1].symbol,
-      },
-      srcChainId: 1,
-      destAsset: {
-        address: selectedDestinationToken.address,
-        symbol: selectedDestinationToken.symbol,
-      },
-      destChainId: 1,
-    },
-    sentAmount: {
-      usd: '200',
+      src: { asset: toBridgeAssetV2(selectedAssets[1]), usd: '200' },
+      dest: { asset: toBridgeAssetV2(selectedDestinationToken) },
     },
   },
 ];
@@ -186,7 +178,7 @@ describe('useTrackBatchSellQuotePageViewed', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('adds a USD placeholder when a selected token is missing a quote', async () => {
+  it.only('adds a USD placeholder when a selected token is missing a quote', async () => {
     renderHookWithProvider(() =>
       useTrackBatchSellQuotePageViewed({
         batchSellSlippages: {

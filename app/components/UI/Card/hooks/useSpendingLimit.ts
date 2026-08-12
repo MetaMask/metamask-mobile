@@ -607,8 +607,12 @@ const useSpendingLimit = ({
 
   // Navigation helpers
   const navigateToCardHome = useCallback(() => {
-    navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
-  }, [navigation]);
+    navigation.dispatch(
+      StackActions.replace(Routes.CARD.HOME, {
+        fromCardOnboarding: isOnboardingFlow,
+      }),
+    );
+  }, [navigation, isOnboardingFlow]);
 
   // Actions
   const submit = useCallback(async () => {

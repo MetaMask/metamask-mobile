@@ -526,6 +526,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
   ORDER_SIZE_EDIT: 'perps-pro-market-order-size-edit',
   ORDER_ROW: 'perps-pro-market-order-row',
+  ORDER_DIRECTION_TAG: 'perps-pro-market-order-direction-tag',
   ORDER_TYPE: 'perps-pro-market-order-type',
 };
 

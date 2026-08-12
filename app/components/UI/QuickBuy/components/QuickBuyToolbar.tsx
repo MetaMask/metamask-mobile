@@ -43,7 +43,9 @@ const QuickBuyToolbar: React.FC = () => {
         <Box twClassName="w-6 h-6" />
       )}
 
-      <QuickBuyTradeModeToggle buyOnly={!showFullToggle} />
+      {/* Hide the header control when Buy is the only option — a lone "Buy"
+          pill is redundant next to the primary Buy CTA. */}
+      {showFullToggle ? <QuickBuyTradeModeToggle /> : null}
 
       <ButtonIcon
         iconName={DsIconName.Close}
