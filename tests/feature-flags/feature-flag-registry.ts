@@ -3830,6 +3830,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyMovementBrazilNeobank: {
+    name: 'moneyMovementBrazilNeobank',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyAccountGeoBlockedCountries: {
     name: 'moneyAccountGeoBlockedCountries',
     type: FeatureFlagType.Remote,
