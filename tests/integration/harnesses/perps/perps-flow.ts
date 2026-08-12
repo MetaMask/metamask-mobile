@@ -45,7 +45,7 @@
  *
  * USAGE:
  *
- *     import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps-flow';
+ *     import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps/perps-flow';
  *     import { act } from '@testing-library/react-native';
  *     import { usePerpsTrading } from '../hooks/usePerpsTrading';
  *
@@ -167,14 +167,14 @@ import type {
   PerpsAnalyticsProperties,
   ServiceContext,
 } from '@metamask/perps-controller';
-import { createMockInfrastructure } from '../../../app/components/UI/Perps/__mocks__/serviceMocks';
+import { createMockInfrastructure } from '../../../../app/components/UI/Perps/__mocks__/serviceMocks';
 import {
   renderHookWithProvider,
   type DeepPartial,
-} from '../../../app/util/test/renderWithProvider';
-import type { RootState } from '../../../app/reducers';
-import { initialStatePerps } from '../../component-view/presets/perpsStatePreset';
-import Engine from '../../../app/core/Engine';
+} from '../../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../../app/reducers';
+import { initialStatePerps } from '../../../component-view/presets/perpsStatePreset';
+import Engine from '../../../../app/core/Engine';
 
 interface PerpsFlowRenderOptions {
   stateOverrides?: DeepPartial<RootState>;

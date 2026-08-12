@@ -4,6 +4,8 @@ What every perps user-facing flow looks like, and which test layer is responsibl
 
 Layer notation: **U** = Unit, **CV** = Component View, **I** = Integration, **E2E** = End-to-end. Primary layer is **bold**.
 
+Domain rollout phases and perps harness-shape detail: [`STRATEGY.md`](STRATEGY.md). Shared four-layer model: [`../../STRATEGY.md`](../../STRATEGY.md).
+
 ---
 
 ## Order lifecycle
