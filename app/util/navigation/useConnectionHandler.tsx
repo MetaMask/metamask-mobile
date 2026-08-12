@@ -26,7 +26,9 @@ export const useConnectionHandler = (navigation: any) => {
             createEventBuilder(MetaMetricsEvents.CONNECTION_DROPPED).build(),
           );
           timeoutRef.current = setTimeout(() => {
-            navigation.navigate('OfflineModeView');
+            navigation.navigate('OfflineModeView', {
+              autoDismissOnReconnect: true,
+            });
           }, 3000);
         } else {
           trackEvent(
