@@ -294,7 +294,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(onCurrentPriceChange).toHaveBeenCalledWith(-1);
   });
 
-  it('does not report placeholder current price while loading', () => {
+  it('clears the current price while loading without chart data', () => {
     const market = createMockMarket();
     const onCurrentPriceChange = jest.fn();
 
@@ -313,7 +313,7 @@ describe('PredictCryptoUpDownChart', () => {
       />,
     );
 
-    expect(onCurrentPriceChange).not.toHaveBeenCalled();
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(undefined);
   });
 
   it('reports current price while Liveline waits for renderable data', () => {
@@ -361,7 +361,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(onCurrentPriceChange).toHaveBeenCalledWith(51000);
   });
 
-  it('does not report placeholder current price without chart data', () => {
+  it('clears the current price without chart data', () => {
     const market = createMockMarket();
     const onCurrentPriceChange = jest.fn();
 
@@ -380,7 +380,7 @@ describe('PredictCryptoUpDownChart', () => {
       />,
     );
 
-    expect(onCurrentPriceChange).not.toHaveBeenCalled();
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(undefined);
   });
 
   describe('orderbook wiring', () => {

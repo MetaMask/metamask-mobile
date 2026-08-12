@@ -15,7 +15,7 @@ import type { LivelinePoint } from '../../Charts/LivelineChart/LivelineChart.typ
 const EMPTY_DATA: LivelinePoint[] = [];
 const LIVE_CHART_WINDOW_SECS = 30;
 const LIVE_CHART_RETENTION_SECS = LIVE_CHART_WINDOW_SECS * 2;
-const LIVE_CHART_MAX_POINTS = LIVE_CHART_RETENTION_SECS * 60;
+const LIVE_CHART_MAX_POINTS_PER_SEC = 60;
 const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
 const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
@@ -70,13 +70,15 @@ const mergeLivelinePoints = (
 const trimLivePoints = (
   points: LivelinePoint[],
   latestTime: number,
+  retentionSeconds = LIVE_CHART_RETENTION_SECS,
 ): LivelinePoint[] => {
-  const cutoff = latestTime - LIVE_CHART_RETENTION_SECS;
+  const cutoff = latestTime - retentionSeconds;
+  const maxPoints = retentionSeconds * LIVE_CHART_MAX_POINTS_PER_SEC;
 
   // Fast path: nothing to trim — return the same reference to avoid an O(n)
   // copy on every live tick.
   if (
-    points.length <= LIVE_CHART_MAX_POINTS &&
+    points.length <= maxPoints &&
     (points.length === 0 || points[0].time >= cutoff)
   ) {
     return points;
@@ -84,11 +86,11 @@ const trimLivePoints = (
 
   const retainedPoints = points.filter((point) => point.time >= cutoff);
 
-  if (retainedPoints.length <= LIVE_CHART_MAX_POINTS) {
+  if (retainedPoints.length <= maxPoints) {
     return retainedPoints;
   }
 
-  return retainedPoints.slice(-LIVE_CHART_MAX_POINTS);
+  return retainedPoints.slice(-maxPoints);
 };
 
 const getLivePointTime = (
@@ -154,6 +156,9 @@ export const useCryptoUpDownChartData = (
   const variant = getVariant(recurrence);
   const eventStartTime = getEventStartTime(market.endDate, recurrence);
   const durationSecs = RECURRENCE_TO_DURATION_SECS[recurrence] ?? 300;
+  const chartWindowSecs = twapWindowSeconds
+    ? durationSecs
+    : LIVE_CHART_WINDOW_SECS;
   const marketEndDateMs = market.endDate
     ? new Date(market.endDate).getTime()
     : undefined;
@@ -323,7 +328,7 @@ export const useCryptoUpDownChartData = (
           !lastPoint || timeSecs > lastPoint.time
             ? [...points, point]
             : mergeLivelinePoints(points, [point]);
-        return trimLivePoints(nextPoints, timeSecs);
+        return trimLivePoints(nextPoints, timeSecs, chartWindowSecs * 2);
       });
       if (liveLoadingRef.current) {
         liveLoadingRef.current = false;
@@ -335,7 +340,7 @@ export const useCryptoUpDownChartData = (
         setFrozenMarketId(currentMarketId);
       }
     },
-    [markLiveStreamFresh, twapWindowSeconds],
+    [chartWindowSecs, markLiveStreamFresh, twapWindowSeconds],
   );
 
   useEffect(
@@ -506,7 +511,7 @@ export const useCryptoUpDownChartData = (
   const newestLivePointTime = currentSourceLivePoints.at(-1)?.time;
   const liveWindowStartSecs =
     typeof newestLivePointTime === 'number'
-      ? newestLivePointTime - LIVE_CHART_WINDOW_SECS
+      ? newestLivePointTime - chartWindowSecs
       : undefined;
   const liveWindowPointCount =
     typeof liveWindowStartSecs === 'number' &&
@@ -545,10 +550,15 @@ export const useCryptoUpDownChartData = (
     }
     setConnectionError(false);
     consecutivePollFailuresRef.current = 0;
-  }, [market.id]);
+  }, [market.id, twapWindowSeconds]);
 
+  const hasLiveObservation = currentSourceLivePoints.length > 0;
   const isAwaitingLiveData =
-    enabled && isLive && (!hasRenderableLiveWindow || liveStreamStale);
+    enabled &&
+    isLive &&
+    (twapWindowSeconds
+      ? !hasLiveObservation
+      : !hasRenderableLiveWindow || liveStreamStale);
   useEffect(() => {
     if (!isAwaitingLiveData) {
       if (connectionErrorTimerRef.current) {
@@ -572,8 +582,8 @@ export const useCryptoUpDownChartData = (
         connectionErrorTimerRef.current = undefined;
       }
     };
-    // `market.id` restarts the grace window when switching markets.
-  }, [isAwaitingLiveData, market.id]);
+    // Market and source changes restart the grace window.
+  }, [isAwaitingLiveData, market.id, twapWindowSeconds]);
 
   if (!enabled) {
     return {
@@ -606,10 +616,15 @@ export const useCryptoUpDownChartData = (
       // scrolls out of the live window. Frozen/expired data only "loads" when
       // there is genuinely nothing renderable.
       loading: isLive
-        ? !symbol || !hasRenderableLiveWindow || liveStreamStale
-        : !hasRenderableChartData,
+        ? !symbol ||
+          (twapWindowSeconds
+            ? !hasLiveObservation
+            : !hasRenderableLiveWindow || liveStreamStale)
+        : twapWindowSeconds
+          ? !hasLiveObservation
+          : !hasRenderableChartData,
       isLive,
-      window: LIVE_CHART_WINDOW_SECS,
+      window: chartWindowSecs,
       connectionError: isLive ? connectionError : false,
     };
   }
