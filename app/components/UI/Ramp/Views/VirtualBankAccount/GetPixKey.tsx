@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator, Linking, ScrollView } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -21,6 +21,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -80,7 +81,12 @@ const LegalLink = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers, isLoading } = useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
+  const { disclaimers, isLoading, error, retry } =
+    useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
+
+  // The user must be able to see the disclaimers before agreeing to them, so
+  // the CTA stays disabled until they've successfully loaded.
+  const canAgreeAndContinue = !isLoading && !error && disclaimers.length > 0;
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -145,13 +151,51 @@ const GetPixKey = () => {
             'virtual_bank_account.get_pix_key.agreements_disclosures_title',
           )}
         </Text>
-        <Box twClassName="mt-2 gap-1">
+        <Box twClassName="mt-2 gap-2">
           {isLoading ? (
-            <ActivityIndicator
-              size="small"
+            <Box
               testID={GetPixKeySelectorsIDs.DISCLAIMERS_LOADING}
-              style={tw.style('self-start my-2')}
-            />
+              twClassName="gap-2 py-1"
+            >
+              <Skeleton height={16} width="70%" />
+              <Skeleton height={16} width="55%" />
+            </Box>
+          ) : error ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              twClassName="gap-2 py-1"
+              testID={GetPixKeySelectorsIDs.DISCLAIMERS_ERROR}
+            >
+              <Box twClassName="shrink-0 pt-0.5">
+                <Icon
+                  name={IconName.Danger}
+                  size={IconSize.Sm}
+                  color={IconColor.ErrorDefault}
+                />
+              </Box>
+              <Box twClassName="flex-1 gap-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
+                  {strings(
+                    'virtual_bank_account.get_pix_key.disclaimers_error',
+                  )}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.PrimaryDefault}
+                  twClassName="underline"
+                  onPress={retry}
+                  testID={GetPixKeySelectorsIDs.DISCLAIMERS_RETRY}
+                >
+                  {strings(
+                    'virtual_bank_account.get_pix_key.disclaimers_retry',
+                  )}
+                </Text>
+              </Box>
+            </Box>
           ) : (
             disclaimers.map((disclaimer) => (
               <LegalLink
@@ -181,6 +225,7 @@ const GetPixKey = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
+          isDisabled={!canAgreeAndContinue}
           onPress={handleAgreeAndContinue}
           testID={GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON}
         >

@@ -19,14 +19,22 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('./hooks/useKycDisclaimers');
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
+const mockRetry = jest.fn();
+
+const loadedDisclaimer = {
+  id: 'd-1',
+  url: 'https://iron.example/tc',
+  display_name: 'Iron T&C',
+};
 
 describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [],
+      disclaimers: [loadedDisclaimer],
       isLoading: false,
       error: null,
+      retry: mockRetry,
     });
   });
 
@@ -52,7 +60,7 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('navigates to the verify identity screen when agree and continue is pressed', () => {
+  it('navigates to the verify identity screen when agree and continue is pressed after disclaimers load', () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     fireEvent.press(
@@ -62,11 +70,12 @@ describe('GetPixKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
   });
 
-  it('shows a loading indicator instead of any disclaimer links while the fetch is in flight', () => {
+  it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: [],
       isLoading: true,
       error: null,
+      retry: mockRetry,
     });
 
     const { getByTestId } = renderWithProvider(<GetPixKey />);
@@ -74,10 +83,22 @@ describe('GetPixKey', () => {
     expect(
       getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
     ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('renders no disclaimer links when the fetch comes back empty and is not loading', () => {
-    const { queryByTestId } = renderWithProvider(<GetPixKey />);
+  it('renders no disclaimer links and disables the CTA when the fetch comes back empty and is not loading', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [],
+      isLoading: false,
+      error: null,
+      retry: mockRetry,
+    });
+
+    const { queryByTestId, getByTestId } = renderWithProvider(<GetPixKey />);
 
     expect(
       queryByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
@@ -85,16 +106,14 @@ describe('GetPixKey', () => {
     expect(
       queryByTestId(`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-d-1`),
     ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
-    mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [
-        { id: 'd-1', url: 'https://iron.example/tc', display_name: 'Iron T&C' },
-      ],
-      isLoading: false,
-      error: null,
-    });
     const spy = jest.spyOn(Linking, 'openURL');
     const { getByText } = renderWithProvider(<GetPixKey />);
 
@@ -103,5 +122,28 @@ describe('GetPixKey', () => {
     fireEvent.press(getByText('Iron T&C'));
 
     expect(spy).toHaveBeenCalledWith('https://iron.example/tc');
+  });
+
+  it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [],
+      isLoading: false,
+      error: 'Request timed out',
+      retry: mockRetry,
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(<GetPixKey />);
+
+    expect(
+      getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_ERROR),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    fireEvent.press(getByText('Try again'));
+    expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 });
