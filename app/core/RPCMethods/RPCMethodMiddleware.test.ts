@@ -1771,6 +1771,115 @@ describe('getRpcMethodMiddleware', () => {
     });
   });
 
+  describe('PPOM origin sanitization for transaction requests', () => {
+    const mockAddress = '0x0000000000000000000000000000000000000001';
+    const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
+    const mockChannelId = '70a863a4-a756-4660-8c72-dc367d02f625';
+
+    async function sendTransactionRequest(
+      middlewareOptions: Partial<Parameters<typeof getRpcMethodMiddleware>[0]>,
+      permittedOrigin: string,
+    ) {
+      setupGlobalState({
+        addTransactionResult: Promise.resolve('fake-hash'),
+        permittedAccounts: { [permittedOrigin]: [mockAddress] },
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurationsByChainId: {
+          '0x1': {
+            blockExplorerUrls: ['https://etherscan.com'],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 0,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'Custom',
+                url: 'https://mainnet.infura.io/v3',
+              },
+            ],
+          },
+        },
+      });
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+        ...middlewareOptions,
+      });
+
+      // `origin` is normally stamped on the request by the bridge's origin
+      // middleware; simulate it explicitly here. ppom-util's own sanitization
+      // cannot recognize this value as unverifiable (no transport prefix, not
+      // a UUID), which is exactly the case the middleware-level drop covers:
+      // SDK v1 channel ids arrive via deeplink params unvalidated, so a
+      // malicious sender can make the request origin look like a domain.
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'eth_sendTransaction',
+        params: [mockTransactionParameters],
+        origin: 'https://self-reported.example',
+      };
+
+      return await callMiddleware({
+        middleware,
+        request: request as unknown as JsonRpcRequest<JsonRpcParams>,
+      });
+    }
+
+    // Security invariant: for remote transports the request origin is
+    // self-reported by the dapp (or attacker-chosen, for SDK v1 channel ids)
+    // and unverifiable, so it must never reach the security scan, where
+    // Blockaid treats the URL as a core heuristic that can flip a verdict
+    // between malicious and benign.
+    it.each([
+      ['WalletConnect', { isWalletConnect: true }, 'example.metamask.io'],
+      [
+        'SDK v1',
+        {
+          isMMSDK: true,
+          channelId: mockChannelId,
+          analytics: { isRemoteConn: true },
+        },
+        mockChannelId,
+      ],
+      [
+        'MetaMask Connect (MWP)',
+        {
+          isMMSDK: true,
+          channelId: mockChannelId,
+          analytics: { isRemoteConn: true, transport: 'mwp' },
+        },
+        mockChannelId,
+      ],
+    ])(
+      'drops the self-reported origin from PPOM validation for %s transactions',
+      async (_label, middlewareOptions, permittedOrigin) => {
+        const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+        const response = await sendTransactionRequest(
+          middlewareOptions,
+          permittedOrigin,
+        );
+
+        expect((response as JsonRpcFailure).error).toBeUndefined();
+        expect(spy).toBeCalledTimes(1);
+        expect(spy.mock.calls[0][0].origin).toBeUndefined();
+      },
+    );
+
+    it('keeps the origin on PPOM validation for in-app browser transactions', async () => {
+      const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+      const response = await sendTransactionRequest({}, 'example.metamask.io');
+
+      expect((response as JsonRpcFailure).error).toBeUndefined();
+      expect(spy).toBeCalledTimes(1);
+      expect(spy.mock.calls[0][0].origin).toBe('https://self-reported.example');
+    });
+  });
+
   describe.each([
     ['eth_signTypedData_v3', 'V3'],
     ['eth_signTypedData_v4', 'V4'],

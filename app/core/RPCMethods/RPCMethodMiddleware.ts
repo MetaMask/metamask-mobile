@@ -441,23 +441,30 @@ export const getRpcMethodMiddleware = ({
   };
 
   /**
-   * Validate a request with PPOM, dropping `req.origin` when the request
-   * arrived over a remote transport (WalletConnect / SDK v1 / MetaMask
-   * Connect). On those paths the origin is self-reported by the dapp and
-   * unverifiable, so it must never influence the security scan: Blockaid
-   * treats the URL as a core heuristic that can flip a verdict between
-   * malicious and benign. In-app browser requests keep their origin, which
-   * the wallet itself verified by loading the page.
+   * Drop `req.origin` when the request arrived over a remote transport
+   * (WalletConnect / SDK v1 / MetaMask Connect), so it never influences the
+   * PPOM security scan. On those paths the origin is self-reported by the
+   * dapp and unverifiable, and Blockaid treats the URL as a core heuristic
+   * that can flip a verdict between malicious and benign. In-app browser
+   * requests keep their origin, which the wallet itself verified by loading
+   * the page.
    */
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const validateRequestWithPPOM = (req: any) => {
+  const sanitizeRequestForPPOM = (req: any) => {
     const isVerifiableOrigin =
       getSource() === AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
-    return PPOMUtil.validateRequest(
-      isVerifiableOrigin ? req : { ...req, origin: undefined },
-    );
+    return isVerifiableOrigin ? req : { ...req, origin: undefined };
   };
+
+  /**
+   * Validate a request with PPOM, dropping `req.origin` for remote
+   * transports (see {@link sanitizeRequestForPPOM}).
+   */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const validateRequestWithPPOM = (req: any) =>
+    PPOMUtil.validateRequest(sanitizeRequestForPPOM(req));
 
   const hooks = getRpcMethodMiddlewareHooks({
     origin,
@@ -722,7 +729,17 @@ export const getRpcMethodMiddleware = ({
         };
         return RPCMethods.eth_sendTransaction({
           hostname,
-          req,
+          // eth_sendTransaction forwards this request to the PPOM security
+          // scan. ppom-util already drops origins it can recognize as
+          // unverifiable (transport prefixes, bare connection UUIDs,
+          // deeplink/qr-code placeholders), but that net has a hole: SDK v1
+          // channel ids arrive via deeplink params unvalidated, so a
+          // malicious sender could pick a domain-looking channel id that
+          // slips through and reaches Blockaid as a plausible origin. The
+          // transport is known here, so drop the origin at the source for
+          // anything that is not the in-app browser, mirroring the signature
+          // handlers (validateRequestWithPPOM).
+          req: sanitizeRequestForPPOM(req),
           res,
           sendTransaction: addTransaction,
           validateAccountAndChainId: async ({
