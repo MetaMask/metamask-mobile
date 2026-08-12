@@ -10,10 +10,14 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Text as DSText,
+  TextColor as DSTextColor,
+  TextVariant as DSTextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '@react-navigation/native';
 import { addTransactionBatch } from '../../../../../../util/transaction-controller';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { StyleSheet, Switch, View } from 'react-native';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../confirm/confirm-component';
@@ -29,12 +33,23 @@ import {
   selectMoneyAccountWithdrawEnabledFlag,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import { usePerpsWithdrawConfirmation } from '../../../../../../components/UI/Perps/hooks/usePerpsWithdrawConfirmation';
+import { selectMmPayDebugEnabled } from '../../../../../../reducers/experimentalSettings/selectors';
+import { setMmPayDebugEnabled } from '../../../../../../actions/experimental';
+import { isRc, isTestEnvironment } from '../../../../../../util/test/utils';
 
 const POLYGON_USDCE_ADDRESS =
   '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
 
 // Update as needed.
 const PROXY_ADDRESS = '0x13032833b30f3388208cda38971fdc839936b042' as Hex;
+
+const localStyles = StyleSheet.create({
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+});
 
 export function ConfirmationsDeveloperOptions() {
   const isMoneyAccountDepositEnabled = useSelector(
@@ -43,6 +58,10 @@ export function ConfirmationsDeveloperOptions() {
   const isMoneyAccountWithdrawEnabled = useSelector(
     selectMoneyAccountWithdrawEnabledFlag,
   );
+  const isMmPayDebugEnabled = useSelector(selectMmPayDebugEnabled);
+  const dispatch = useDispatch();
+
+  const showMmPayDebugToggle = isRc || isTestEnvironment;
 
   return (
     <>
@@ -50,6 +69,14 @@ export function ConfirmationsDeveloperOptions() {
       <PredictClaim />
       <PredictWithdraw />
       <PerpsWithdraw />
+      {showMmPayDebugToggle && (
+        <MmPayDebugToggle
+          value={isMmPayDebugEnabled}
+          onValueChange={(value: boolean) =>
+            dispatch(setMmPayDebugEnabled(value))
+          }
+        />
+      )}
       {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
       {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
     </>
@@ -241,6 +268,50 @@ function useAddTransactionBatch() {
   return {
     addTransactionBatchAndNavigate,
   };
+}
+
+function MmPayDebugToggle({
+  value,
+  onValueChange,
+}: {
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+}) {
+  const navigationTheme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme: navigationTheme });
+
+  return (
+    <>
+      <View style={styles.heading}>
+        <View style={localStyles.toggleRow}>
+          <DSText
+            color={DSTextColor.TextDefault}
+            variant={DSTextVariant.HeadingLg}
+          >
+            {'MMPay Debug Modal'}
+          </DSText>
+          <Switch
+            value={value}
+            onValueChange={onValueChange}
+            testID="mm-pay-debug-toggle"
+            trackColor={{
+              true: navigationTheme.colors.primary,
+              false: navigationTheme.colors.border,
+            }}
+            thumbColor={navigationTheme.colors.card}
+            ios_backgroundColor={navigationTheme.colors.border}
+          />
+        </View>
+      </View>
+      <DSText
+        color={DSTextColor.TextAlternative}
+        variant={DSTextVariant.BodyMd}
+        style={styles.desc}
+      >
+        {'Show a debug button on MMPay confirmations (dev/RC)'}
+      </DSText>
+    </>
+  );
 }
 
 function DeveloperButton({

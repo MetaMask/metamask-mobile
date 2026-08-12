@@ -6,7 +6,7 @@ import {
 enum EVENT_NAME {
   SCAM_QUESTIONNAIRE_VIEWED = 'Scam Questionnaire Viewed',
   SCAM_QUESTIONNAIRE_COMPLETED = 'Scam Questionnaire Completed',
-  SCAM_QUESTIONNAIRE_CONTACT_SUPPORT = 'Scam Questionnaire Contact Support',
+  SCAM_QUESTIONNAIRE_SUPPORT_CONTACTED = 'Scam Questionnaire Support Contacted',
 }
 
 // This function helps prevent repeat of type conversions
@@ -18,7 +18,7 @@ export const PRODUCT_SAFETY_EVENTS = {
   SCAM_QUESTIONNAIRE_COMPLETED: createEvent(
     EVENT_NAME.SCAM_QUESTIONNAIRE_COMPLETED,
   ),
-  SCAM_QUESTIONNAIRE_CONTACT_SUPPORT: createEvent(
-    EVENT_NAME.SCAM_QUESTIONNAIRE_CONTACT_SUPPORT,
+  SCAM_QUESTIONNAIRE_SUPPORT_CONTACTED: createEvent(
+    EVENT_NAME.SCAM_QUESTIONNAIRE_SUPPORT_CONTACTED,
   ),
 };
