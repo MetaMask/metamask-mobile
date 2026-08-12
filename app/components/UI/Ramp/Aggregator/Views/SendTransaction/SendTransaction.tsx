@@ -10,7 +10,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { toHex } from '@metamask/controller-utils';
-import { isCaipChainId, toCaipChainId } from '@metamask/utils';
+import { CaipAssetType, isCaipChainId, toCaipChainId } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 import Row from '../../components/Row';
@@ -60,6 +60,8 @@ import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
+import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
+import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
 
 import { RAMPS_SEND } from '../../constants';
 
@@ -85,6 +87,23 @@ function SendTransaction() {
   const { colors, themeAppearance } = theme;
 
   const orderData = order?.data as SellOrder;
+
+  // Non-EVM (e.g. Solana) assets carry a CAIP-2 chain id (e.g. "solana:...").
+  // Legacy EVM orders use a numeric chain id ("1"), so isCaipChainId is false.
+  const assetChainId = orderData?.cryptoCurrency?.network?.chainId;
+  const isNonEvm = useMemo(
+    () =>
+      Boolean(assetChainId) &&
+      isCaipChainId(assetChainId) &&
+      !assetChainId.startsWith('eip155:'),
+    [assetChainId],
+  );
+
+  const fromAccount = useSelector((state: RootState) =>
+    orderData?.walletAddress
+      ? getMemoizedInternalAccountByAddress(state, orderData.walletAddress)
+      : undefined,
+  );
 
   const networkClientId = useMemo(() => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
@@ -136,6 +155,77 @@ function SendTransaction() {
   const handleSend = useCallback(async () => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
     if (!chainId) return;
+
+    // Non-EVM: delegate the transfer to the account's Snap via `confirmSend`.
+    // The Snap builds the transaction, shows its own confirmation, signs, and
+    // broadcasts, returning the transaction id we store as the sell tx hash.
+    if (isNonEvm) {
+      const assetReference = orderData?.cryptoCurrency?.assetId;
+      if (!fromAccount?.metadata?.snap?.id || !assetReference) {
+        trackEvent(
+          'OFFRAMP_SEND_TRANSACTION_REJECTED',
+          //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+          // transactionAnalyticsPayload expecting chain_id_source to be a string
+          // but RampTransaction type / interface expecting it to be a number
+          transactionAnalyticsPayload,
+        );
+        return;
+      }
+
+      try {
+        setIsConfirming(true);
+        trackEvent(
+          'OFFRAMP_SEND_TRANSACTION_INVOKED',
+          //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+          // transactionAnalyticsPayload expecting chain_id_source to be a string
+          // but RampTransaction type / interface expecting it to be a number
+          transactionAnalyticsPayload,
+        );
+
+        // The Ramps API splits the CAIP-19 asset id into network.chainId (CAIP-2)
+        // and assetId (the asset reference); recombine them with a slash.
+        const assetId = `${chainId}/${assetReference}` as CaipAssetType;
+        const result = (await sendMultichainTransactionForReview(fromAccount, {
+          fromAccountId: fromAccount.id,
+          toAddress: orderData.depositWallet,
+          assetId,
+          // `confirmSend` expects a human-readable decimal amount (the Snap
+          // applies decimals), unlike the EVM path which uses minimal units.
+          amount: String(orderData.cryptoAmount ?? '0'),
+        })) as { transactionId?: string; valid?: boolean } | undefined;
+
+        if (result?.transactionId && order?.id) {
+          dispatch(setFiatSellTxHash(order.id, result.transactionId));
+          navigation.goBack();
+          trackEvent(
+            'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+            //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+            // transactionAnalyticsPayload expecting chain_id_source to be a string
+            // but RampTransaction type / interface expecting it to be a number
+            transactionAnalyticsPayload,
+          );
+        } else {
+          trackEvent(
+            'OFFRAMP_SEND_TRANSACTION_REJECTED',
+            //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+            // transactionAnalyticsPayload expecting chain_id_source to be a string
+            // but RampTransaction type / interface expecting it to be a number
+            transactionAnalyticsPayload,
+          );
+        }
+      } catch {
+        trackEvent(
+          'OFFRAMP_SEND_TRANSACTION_REJECTED',
+          //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+          // transactionAnalyticsPayload expecting chain_id_source to be a string
+          // but RampTransaction type / interface expecting it to be a number
+          transactionAnalyticsPayload,
+        );
+      } finally {
+        setIsConfirming(false);
+      }
+      return;
+    }
 
     let chainIdAsHex: `0x${string}`;
     try {
@@ -225,6 +315,8 @@ function SendTransaction() {
     trackEvent,
     transactionAnalyticsPayload,
     networkClientId,
+    isNonEvm,
+    fromAccount,
   ]);
 
   if (!order || !orderData?.cryptoCurrency) {
@@ -365,7 +457,7 @@ function SendTransaction() {
               onPress={handleSend}
               accessibilityRole="button"
               accessible
-              isDisabled={isConfirming || !networkClientId}
+              isDisabled={isConfirming || (!isNonEvm && !networkClientId)}
               label={
                 <Text
                   variant={TextVariant.BodyLGMedium}

@@ -335,6 +335,8 @@ describe('useBalance', () => {
 
     expect(result.current.balance).toBe('5.5 SOL');
     expect(result.current.balanceFiat).toBe(undefined);
-    expect(result.current.balanceBN).toBe(undefined);
+    // 5.5 * 10^8 (decimals) in minimal units, so it can be compared against the
+    // entered amount which is also converted via toTokenMinimalUnit.
+    expect(result.current.balanceBN?.toString()).toBe('550000000');
   });
 });

@@ -15,6 +15,7 @@ import {
   hexToBN,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  toTokenMinimalUnit,
   weiToFiat,
 } from '../../../../../util/number';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -91,6 +92,19 @@ export default function useBalance(asset?: Asset) {
     balance = `${assetBalance?.amount ?? ''} ${
       assetBalance?.unit ?? ''
     }`.trim();
+
+    // Non-EVM balances arrive as a decimal string. Convert to minimal units so
+    // the entered amount (also in minimal units, via toTokenMinimalUnit) can be
+    // compared against it. EVM tokens are not tracked here (assetBalance is
+    // undefined) and fall through to the EVM logic below.
+    if (assetBalance?.amount != null && assetBalance.amount !== '') {
+      try {
+        balanceBN = toTokenMinimalUnit(assetBalance.amount, asset.decimals ?? 0);
+      } catch {
+        balanceBN = null;
+      }
+      return { balance, balanceFiat, balanceBN };
+    }
   }
 
   ///: END:ONLY_INCLUDE_IF

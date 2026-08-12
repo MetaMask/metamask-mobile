@@ -26,6 +26,7 @@ import useRegions from '../../hooks/useRegions';
 import useAnalytics from '../../../hooks/useAnalytics';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
+import useOffRampNonEvmEnabled from '../../hooks/useOffRampNonEvmEnabled';
 import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
@@ -164,6 +165,10 @@ const BuildQuote = () => {
     isSell,
     setIntent,
   } = useRampSDK();
+
+  // Non-EVM off-ramp gate: when enabled, allow selecting a non-EVM (e.g. Solana)
+  // account for sell. Buy already supports non-EVM accounts.
+  const isOffRampNonEvmEnabled = useOffRampNonEvmEnabled();
 
   useEffect(() => {
     if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
@@ -940,7 +945,9 @@ const BuildQuote = () => {
         >
           <ScreenLayout.Content>
             <Row style={styles.selectors}>
-              <AccountSelector isEvmOnly={isSell} />
+              <AccountSelector
+                isEvmOnly={isSell && !isOffRampNonEvmEnabled}
+              />
               <View style={styles.spacer} />
               {isFetchingRegions ? (
                 <SkeletonText thick />
