@@ -56,6 +56,7 @@ describe('createSnapCaller', () => {
       {
         connectedAddresses: ['tron:728126428:TAddr'],
         origin: 'channel-id-1',
+        originMetadata: MOCK_ORIGIN_METADATA,
         scope: 'tron:728126428',
         request: {
           jsonrpc: '2.0',
