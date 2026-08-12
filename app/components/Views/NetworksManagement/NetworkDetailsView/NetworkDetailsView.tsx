@@ -35,7 +35,6 @@ import {
 } from '../../../../util/networks';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectIsRpcFailoverEnabled } from '../../../../selectors/featureFlagController/walletFramework';
-import { selectEvmChainId } from '../../../../selectors/networkController';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Icon, {
@@ -84,7 +83,6 @@ const NetworkDetailsView = () => {
   const { styles } = useStyles(createStyles);
 
   const isRpcFailoverEnabled = useSelector(selectIsRpcFailoverEnabled);
-  const selectedChainId = useSelector(selectEvmChainId);
   const { disableNetwork } = useNetworkEnablement();
   const deleteModalRef = useRef<BottomSheetRef>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -251,15 +249,6 @@ const NetworkDetailsView = () => {
     ? strings('app_settings.add_network_title')
     : formHook.form.nickname || strings('app_settings.network_name_label');
 
-  const canShowRemoveNetwork = useMemo(() => {
-    const chainId = formHook.form.chainId ?? '';
-    return (
-      Boolean(chainId) &&
-      canDeleteNetwork(chainId) &&
-      chainId !== selectedChainId
-    );
-  }, [formHook.form.chainId, selectedChainId]);
-
   const networkImageSource = useMemo(() => {
     if (!formHook.form.chainId) return undefined;
     return getNetworkImageSource({
@@ -278,7 +267,8 @@ const NetworkDetailsView = () => {
       <HeaderStandard
         onBack={handleBack}
         endAccessory={
-          !formHook.form.addMode && canShowRemoveNetwork ? (
+          !formHook.form.addMode &&
+          canDeleteNetwork(formHook.form.chainId ?? '') ? (
             <Pressable
               onPress={handleDelete}
               testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}

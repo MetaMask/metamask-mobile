@@ -46,23 +46,13 @@ describeForPlatforms('NetworksManagementView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not show remove when viewing the currently selected network', async () => {
-    const { findByTestId, queryByTestId } = renderNetworksManagementView({
-      overrides: {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              selectedNetworkClientId: 'localhost',
-            },
-          },
-        },
-      },
-    });
+  it('does not show remove for Polygon (canDeleteNetwork is false)', async () => {
+    const { findByTestId, queryByTestId } = renderNetworksManagementView();
 
     fireEvent.press(
       await findByTestId(
         NetworksManagementViewSelectorsIDs.NETWORK_ITEM(
-          NETWORKS_MGMT_LOCALHOST_CHAIN_ID,
+          NETWORKS_MGMT_POLYGON_CHAIN_ID,
         ),
       ),
     );
