@@ -27,7 +27,8 @@ interface UseKycDisclaimersResult {
  *
  * When {@link KYC_API_BASE_URL} isn't configured (e.g. production, which
  * isn't deployed yet), this skips the fetch entirely and returns an empty
- * list so callers can fall back to static copy.
+ * list. There's intentionally no static fallback copy — this MVP only
+ * ships once the real KYC API is reachable in every environment it runs in.
  *
  * @param country - The ISO 3166-1 alpha-3 country code to scope the
  * disclaimers to (e.g. `'BRA'` for Brazil).

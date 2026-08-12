@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import { ActivityIndicator, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -24,17 +24,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  MOONPAY_PRIVACY_POLICY_URL,
-  MOONPAY_TERMS_URL,
-  TRACE_TERMS_URL,
-  VBA_KYC_COUNTRY_CODE,
-} from './constants';
+import { VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
-
-// Placeholder until the real vault/config APY feed is wired into this screen.
-const PIX_APY_PERCENTAGE = 4;
 
 const BenefitRow = ({
   icon,
@@ -88,26 +80,13 @@ const LegalLink = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers } = useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
+  const { disclaimers, isLoading } = useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(() => {
     navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
   }, [navigation]);
-
-  const openMoonPayPrivacyPolicy = useCallback(
-    () => Linking.openURL(MOONPAY_PRIVACY_POLICY_URL),
-    [],
-  );
-  const openMoonPayTerms = useCallback(
-    () => Linking.openURL(MOONPAY_TERMS_URL),
-    [],
-  );
-  const openTraceTerms = useCallback(
-    () => Linking.openURL(TRACE_TERMS_URL),
-    [],
-  );
 
   return (
     <SafeAreaView
@@ -136,13 +115,6 @@ const GetPixKey = () => {
         </Text>
 
         <Box twClassName="mt-4 p-4 gap-4 rounded-xl bg-muted">
-          <BenefitRow icon={IconName.AttachMoney}>
-            <Text variant={TextVariant.BodyMd}>
-              {strings('virtual_bank_account.get_pix_key.benefit_apy', {
-                percentage: PIX_APY_PERCENTAGE,
-              })}
-            </Text>
-          </BenefitRow>
           <BenefitRow icon={IconName.Receive}>
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -156,13 +128,6 @@ const GetPixKey = () => {
               </Text>
               <Tag severity={TagSeverity.Info}>Pix</Tag>
             </Box>
-          </BenefitRow>
-          <BenefitRow icon={IconName.Bank}>
-            <Text variant={TextVariant.BodyMd}>
-              {strings(
-                'virtual_bank_account.get_pix_key.benefit_multi_currency',
-              )}
-            </Text>
           </BenefitRow>
           <BenefitRow icon={IconName.Global}>
             <Text variant={TextVariant.BodyMd}>
@@ -181,39 +146,22 @@ const GetPixKey = () => {
           )}
         </Text>
         <Box twClassName="mt-2 gap-1">
-          {disclaimers.length > 0 ? (
+          {isLoading ? (
+            <ActivityIndicator
+              size="small"
+              testID={GetPixKeySelectorsIDs.DISCLAIMERS_LOADING}
+              style={tw.style('self-start my-2')}
+            />
+          ) : (
             disclaimers.map((disclaimer) => (
               <LegalLink
                 key={disclaimer.id}
                 onPress={() => Linking.openURL(disclaimer.url)}
-                testID={`${GetPixKeySelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK}-${disclaimer.id}`}
+                testID={`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
               >
                 {disclaimer.display_name}
               </LegalLink>
             ))
-          ) : (
-            <>
-              <LegalLink
-                onPress={openMoonPayPrivacyPolicy}
-                testID={GetPixKeySelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK}
-              >
-                {strings(
-                  'virtual_bank_account.get_pix_key.moonpay_privacy_policy',
-                )}
-              </LegalLink>
-              <LegalLink
-                onPress={openMoonPayTerms}
-                testID={GetPixKeySelectorsIDs.MOONPAY_TERMS_LINK}
-              >
-                {strings('virtual_bank_account.get_pix_key.moonpay_terms')}
-              </LegalLink>
-              <LegalLink
-                onPress={openTraceTerms}
-                testID={GetPixKeySelectorsIDs.TRACE_TERMS_LINK}
-              >
-                {strings('virtual_bank_account.get_pix_key.trace_terms')}
-              </LegalLink>
-            </>
           )}
         </Box>
       </ScrollView>
@@ -221,6 +169,13 @@ const GetPixKey = () => {
       <Box twClassName="p-4 gap-3">
         <Text variant={TextVariant.BodyXs} color={TextColor.TextMuted}>
           {strings('virtual_bank_account.get_pix_key.agreement_text')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextMuted}
+          twClassName="text-center"
+        >
+          {strings('virtual_bank_account.get_pix_key.powered_by_moonpay')}
         </Text>
         <Button
           variant={ButtonVariant.Primary}

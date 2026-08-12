@@ -4,11 +4,6 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
-import {
-  MOONPAY_PRIVACY_POLICY_URL,
-  MOONPAY_TERMS_URL,
-  TRACE_TERMS_URL,
-} from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 
 const mockNavigate = jest.fn();
@@ -39,7 +34,11 @@ describe('GetPixKey', () => {
     const { getByText, getByTestId } = renderWithProvider(<GetPixKey />);
 
     expect(getByText('Get your Pix Key')).toBeOnTheScreen();
-    expect(getByText('Earn up to 4% APY on your balance')).toBeOnTheScreen();
+    expect(getByText('Deposit with')).toBeOnTheScreen();
+    expect(
+      getByText('Send local and international payments'),
+    ).toBeOnTheScreen();
+    expect(getByText('Powered by MoonPay.')).toBeOnTheScreen();
     expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     ).toBeOnTheScreen();
@@ -63,36 +62,32 @@ describe('GetPixKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
   });
 
-  it('opens the MoonPay privacy policy link', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
+  it('shows a loading indicator instead of any disclaimer links while the fetch is in flight', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [],
+      isLoading: true,
+      error: null,
+    });
+
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
-    fireEvent.press(
-      getByTestId(GetPixKeySelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK),
-    );
-
-    expect(spy).toHaveBeenCalledWith(MOONPAY_PRIVACY_POLICY_URL);
+    expect(
+      getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
+    ).toBeOnTheScreen();
   });
 
-  it('opens the MoonPay terms link', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+  it('renders no disclaimer links when the fetch comes back empty and is not loading', () => {
+    const { queryByTestId } = renderWithProvider(<GetPixKey />);
 
-    fireEvent.press(getByTestId(GetPixKeySelectorsIDs.MOONPAY_TERMS_LINK));
-
-    expect(spy).toHaveBeenCalledWith(MOONPAY_TERMS_URL);
+    expect(
+      queryByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-d-1`),
+    ).not.toBeOnTheScreen();
   });
 
-  it('opens the Trace terms link', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
-
-    fireEvent.press(getByTestId(GetPixKeySelectorsIDs.TRACE_TERMS_LINK));
-
-    expect(spy).toHaveBeenCalledWith(TRACE_TERMS_URL);
-  });
-
-  it('renders disclaimers from the KYC API instead of the static links when available', () => {
+  it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: [
         { id: 'd-1', url: 'https://iron.example/tc', display_name: 'Iron T&C' },
@@ -101,10 +96,9 @@ describe('GetPixKey', () => {
       error: null,
     });
     const spy = jest.spyOn(Linking, 'openURL');
-    const { getByText, queryByText } = renderWithProvider(<GetPixKey />);
+    const { getByText } = renderWithProvider(<GetPixKey />);
 
     expect(getByText('Iron T&C')).toBeOnTheScreen();
-    expect(queryByText('MoonPay Terms and Conditions')).not.toBeOnTheScreen();
 
     fireEvent.press(getByText('Iron T&C'));
 

@@ -1099,16 +1099,12 @@
     "get_pix_key": {
       "navbar_title": "Bank account",
       "title": "Get your Pix Key",
-      "description": "We've partnered with MoonPay so you can send funds directly to your Money account with Pix.",
-      "benefit_apy": "Earn up to {{percentage}}% APY on your balance",
+      "description": "Send funds directly to your Money account from any bank account.",
       "benefit_deposit_pix": "Deposit with",
-      "benefit_multi_currency": "Hold multi-currency accounts in BRL, USD, EUR",
       "benefit_payments": "Send local and international payments",
       "agreements_disclosures_title": "Agreements and disclosures",
-      "moonpay_privacy_policy": "MoonPay Privacy Policy",
-      "moonpay_terms": "MoonPay Terms and Conditions",
-      "trace_terms": "Trace Terms and Conditions",
-      "agreement_text": "By tapping \"Agree and continue\" you have read and agreed to the above Agreements and disclosures.",
+      "agreement_text": "By continuing, you agree to the terms and conditions above.",
+      "powered_by_moonpay": "Powered by MoonPay.",
       "button": "Agree and continue"
     },
     "verify_identity": {
