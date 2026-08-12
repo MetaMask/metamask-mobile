@@ -25,8 +25,12 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
   },
 );
 
+// The LaunchDarkly flag key is the kebab-case `money-movement-brazil-neobank`,
+// but client-config-api-mobile camelCases every flag key in the served feed
+// (matching every other flag here, e.g. `moneyHomeScreenEnabled`) — this is
+// the key as it actually appears in `remoteFeatureFlags`.
 export const MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY =
-  'money-movement-brazil-neobank' as const;
+  'moneyMovementBrazilNeobank' as const;
 
 interface MoneyMovementBrazilNeobankFlag {
   enabled?: boolean;
@@ -35,18 +39,15 @@ interface MoneyMovementBrazilNeobankFlag {
 /**
  * Gates the Virtual Bank Account (Brazil-first neobank) flow: the Bank
  * account entry in the Add funds sheet and the KYC flow behind it.
- * LaunchDarkly variations are `{"enabled": true|false}`; the local env
- * override supports development while the flag is off in every environment.
+ * LaunchDarkly variations are `{"enabled": true|false}`.
  */
 export const selectMoneyMovementBrazilNeobankEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    const localOverrideEnabled =
-      process.env.MM_MONEY_MOVEMENT_BRAZIL_NEOBANK_ENABLED === 'true';
     const flag = remoteFeatureFlags?.[
       MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY
     ] as unknown as MoneyMovementBrazilNeobankFlag | undefined;
-    return localOverrideEnabled || flag?.enabled === true;
+    return flag?.enabled === true;
   },
 );
 
