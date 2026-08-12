@@ -28,6 +28,7 @@ const SECONDARY_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
 export interface PredictPortfolioSummaryProps {
   availableBalance: number;
+  hasBalanceError?: boolean;
   isHidden?: boolean;
   isLoading?: boolean;
   hasError?: boolean;
@@ -39,6 +40,7 @@ export interface PredictPortfolioSummaryProps {
 
 const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
   availableBalance,
+  hasBalanceError = false,
   isHidden = false,
   isLoading = false,
   hasError = false,
@@ -54,7 +56,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
         minimumDecimals: 2,
         maximumDecimals: 2,
       });
-  const availableBalanceDisplay = hasError
+  const availableBalanceDisplay = hasBalanceError
     ? '—'
     : formatPrice(availableBalance, {
         minimumDecimals: 2,

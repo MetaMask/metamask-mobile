@@ -185,6 +185,36 @@ describe('PredictPortfolioModule', () => {
     expect(screen.getByText('3')).toBeOnTheScreen();
   });
 
+  it('keeps the available balance visible when positions fail to load', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        availableBalance: 250,
+        error: new Error('Positions failed'),
+      }),
+    );
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getByText('$250.00 available')).toBeOnTheScreen();
+  });
+
+  it('hides the available balance when it fails to load', () => {
+    const balanceError = new Error('Balance failed');
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        availableBalance: 250,
+        balanceError,
+        error: balanceError,
+      }),
+    );
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    expect(screen.queryByText('$250.00 available')).toBeNull();
+    expect(screen.getByText('— available')).toBeOnTheScreen();
+  });
+
   it('renders claim CTA when claimable winnings exist', () => {
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({

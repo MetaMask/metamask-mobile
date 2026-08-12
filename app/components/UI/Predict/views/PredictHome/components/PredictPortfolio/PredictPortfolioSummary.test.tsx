@@ -109,13 +109,22 @@ describe('PredictPortfolioSummary', () => {
     );
   });
 
-  it('renders dashes instead of zero values when portfolio loading fails', () => {
+  it('keeps a successful available balance visible when positions loading fails', () => {
     renderSummary({ hasError: true });
 
     expect(screen.queryByText('$0.00')).toBeNull();
     expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getByText('$0.00 available')).toBeOnTheScreen();
     expect(
       screen.getByLabelText('Portfolio value unavailable'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the available balance as unavailable when balance loading fails', () => {
+    renderSummary({ hasBalanceError: true, hasError: true });
+
+    expect(screen.queryByText('$0.00')).toBeNull();
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getByText('— available')).toBeOnTheScreen();
   });
 });
