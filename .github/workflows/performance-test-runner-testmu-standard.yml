@@ -259,6 +259,7 @@ jobs:
             echo "E2E_PERFORMANCE_CLOUD_PROVIDER=testmu"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
             echo "DISABLE_NETWORK_LOGS=true"
+            echo "TESTMU_NETWORK_LOGS=false"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests

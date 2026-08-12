@@ -97,7 +97,7 @@ export class TestMuAIConfigBuilder {
       queueTimeout: 600,
       video: true,
       devicelog: true,
-      network: false,
+      network: process.env.TESTMU_NETWORK_LOGS !== 'false',
       appProfiling: true,
       smartHeal: true,
       'appium:settings[actionAcknowledgmentTimeout]': 3000,
