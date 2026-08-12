@@ -236,6 +236,7 @@ const MultichainTransactionsView = ({
                 const keyringTx = {
                   ...transaction,
                   chain: transaction.chain ?? chainId,
+                  fees: transaction.fees ?? [],
                 };
                 const activity = {
                   ...mapKeyringTransaction({

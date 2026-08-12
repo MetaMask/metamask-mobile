@@ -128,6 +128,7 @@ describe('MultichainTransactionsView', () => {
       type: TransactionType.Send,
       status: TransactionStatus.Confirmed,
       timestamp: 1742313600,
+      fees: [],
     },
     {
       id: 'tx-456',
@@ -138,6 +139,7 @@ describe('MultichainTransactionsView', () => {
       type: TransactionType.Receive,
       status: TransactionStatus.Confirmed,
       timestamp: 1742400000,
+      fees: [],
     },
   ];
 

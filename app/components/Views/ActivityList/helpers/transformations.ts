@@ -188,14 +188,18 @@ export function selectApiEvmTransactions({
 export function mapNonEvmTransactions(
   transactions: NonEvmTransaction[],
   getBridgeHistoryItem?: (txId: string) => BridgeHistoryItem | undefined,
-  getSubjectAddress?: (
-    transaction: NonEvmTransaction,
-  ) => string | undefined,
+  getSubjectAddress?: (transaction: NonEvmTransaction) => string | undefined,
 ): ActivityListItem[] {
   return transactions.map((transaction) => {
     const subjectAddress = getSubjectAddress?.(transaction);
     const activity = {
-      ...mapKeyringTransaction({ transaction, subjectAddress }),
+      ...mapKeyringTransaction({
+        transaction: {
+          ...transaction,
+          fees: transaction.fees ?? [],
+        },
+        subjectAddress,
+      }),
       raw: { type: 'keyringTransaction' as const, data: transaction },
     } as ActivityListItem;
 

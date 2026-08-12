@@ -53,7 +53,13 @@ export const MultichainAssetDetailsActivityListItem = ({
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
   const activityItem = useMemo(() => {
     const activity = {
-      ...mapKeyringTransaction({ transaction, subjectAddress }),
+      ...mapKeyringTransaction({
+        transaction: {
+          ...transaction,
+          fees: transaction.fees ?? [],
+        },
+        subjectAddress,
+      }),
       raw: { type: 'keyringTransaction' as const, data: transaction },
     } as ActivityListItem;
     return enrichKeyringActivityWithBridge(

@@ -177,6 +177,7 @@ export type ActivityListItem =
   | ActivityData<
       'bridge',
       {
+        from?: string;
         sourceToken?: TokenAmount;
         destinationToken?: TokenAmount;
         fees?: ActivityFee[];

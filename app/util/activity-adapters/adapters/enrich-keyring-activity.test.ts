@@ -13,9 +13,7 @@ const solanaChainId =
   'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ' as Transaction['chain'];
 
 describe('enrichKeyringActivityWithBridge', () => {
-  const makeKeyringTx = (
-    overrides: Partial<Transaction> = {},
-  ): Transaction =>
+  const makeKeyringTx = (overrides: Partial<Transaction> = {}): Transaction =>
     ({
       id: 'bridge-id',
       chain: solanaChainId,
