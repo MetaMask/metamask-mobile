@@ -350,6 +350,7 @@ jest.mock('../../app/core/Engine', () => {
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
+      PredictNextController: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],
@@ -514,13 +515,9 @@ jest.mock('../../app/core/Engine', () => {
       },
     },
     controllerMessenger: {
-      subscribe() {
-        return undefined;
-      },
-      unsubscribe() {
-        return undefined;
-      },
-      call(action: string, ...args: unknown[]) {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+      call: jest.fn((action: string, ...args: unknown[]) => {
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
         if (
@@ -530,7 +527,7 @@ jest.mock('../../app/core/Engine', () => {
           return Promise.resolve({ valid: true, errors: [] });
         }
         return Promise.resolve(undefined);
-      },
+      }),
     },
     getTotalEvmFiatAccountBalance() {
       return { balance: '0', fiatBalance: '0' };
