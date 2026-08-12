@@ -41,13 +41,15 @@ import type {
  * the native build they already have and receive the update on next launch.
  */
 function buildOtaUpdateSection(otaUpdate: OtaUpdateInfo): string {
-  const { label, nativeBuildNumber, baselineShortSha } = otaUpdate;
+  const { label, nativeBuildNumber, baselineShortSha, commitShortSha } =
+    otaUpdate;
 
   return `An OTA update was pushed to the \`rc\` channel — **no new builds to install**.
 
 | Field | Value |
 | :--- | :--- |
 | **OTA revision** | \`${label}\` |
+| **Commit** | \`${commitShortSha}\` |
 | **Runs on native build** | \`${nativeBuildNumber}\` (\`${baselineShortSha}\`) |
 
 Relaunch the app twice on the \`rc\` channel to pick it up. Verify you are on \`${label}\` under **Settings → About MetaMask**.`;
@@ -97,6 +99,7 @@ function buildMoreInfoSection(buildInfo: BuildInfo): string {
 
   const buildNumberLines = otaUpdate
     ? `*   **OTA Revision**: \`${otaUpdate.label}\`
+*   **Commit**: \`${otaUpdate.commitShortSha}\`
 *   **Native Build Number**: \`${otaUpdate.nativeBuildNumber}\``
     : `*   **iOS Build Number**: \`${iosBuildNumber}\`
 *   **Android Build Number**: \`${androidBuildNumber}\``;
@@ -254,6 +257,7 @@ async function main(): Promise<void> {
   console.log(`Version: ${buildInfo.semver}`);
   if (buildInfo.otaUpdate) {
     console.log(`OTA Revision: ${buildInfo.otaUpdate.label}`);
+    console.log(`OTA Commit: ${buildInfo.otaUpdate.commitShortSha}`);
     console.log(`Native Build: ${buildInfo.otaUpdate.nativeBuildNumber}`);
   } else {
     console.log(`iOS Build: ${buildInfo.iosBuildNumber}`);

@@ -188,6 +188,7 @@ export function parseBuildInfo(): BuildInfo {
     OTA_UPDATE_LABEL,
     OTA_NATIVE_BUILD_NUMBER,
     OTA_BASELINE_SHORT_SHA,
+    OTA_COMMIT_SHORT_SHA,
   } = process.env;
 
   // Only the Auto RC OTA path sets OTA_UPDATE_LABEL, so its presence is what distinguishes an
@@ -205,6 +206,7 @@ export function parseBuildInfo(): BuildInfo {
           label: otaLabel,
           nativeBuildNumber: OTA_NATIVE_BUILD_NUMBER?.trim() || 'Unknown',
           baselineShortSha: OTA_BASELINE_SHORT_SHA?.trim() || 'Unknown',
+          commitShortSha: OTA_COMMIT_SHORT_SHA?.trim() || 'Unknown',
         }
       : undefined,
   };

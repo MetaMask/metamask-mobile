@@ -48,6 +48,11 @@ on:
         required: false
         type: string
         default: ''
+      ota_commit_short_sha:
+        description: 'Short SHA of the commit the OTA revision was published from (paired with ota_label)'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   actions: read
@@ -102,5 +107,6 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
           OTA_LABEL: ${{ inputs.ota_label }}
           OTA_NATIVE_BUILD_NUMBER: ${{ inputs.ota_native_build_number }}
+          OTA_COMMIT_SHORT_SHA: ${{ inputs.ota_commit_short_sha }}
           # Disable android check msg for now
           #ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: ${{ github.workspace }}/android-play-store-check-out/android-play-store-check-slack.md

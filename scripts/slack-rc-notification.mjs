@@ -10,9 +10,10 @@
  *               SLACK_RC_NOTIFICATION_DRY_RUN,
  *               ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE (PLAY_STORE_CHECK_STATUS=pass|fail)
  *
- * OTA-only RCs (Auto RC OTA path, see .github/workflows/build-rc-auto.yml) set OTA_LABEL and
- * OTA_NATIVE_BUILD_NUMBER instead of new build numbers: no binaries were produced, so the message
- * drops the download links and reports the OTA revision plus the native build it runs on.
+ * OTA-only RCs (Auto RC OTA path, see .github/workflows/build-rc-auto.yml) set OTA_LABEL,
+ * OTA_NATIVE_BUILD_NUMBER and OTA_COMMIT_SHORT_SHA instead of new build numbers: no binaries were
+ * produced, so the message drops the download links and reports the OTA revision, the commit it
+ * shipped, and the native build it runs on.
  */
 
 import fs from 'fs';
@@ -81,6 +82,7 @@ function buildSlackMessage(options) {
     playStoreCheckMrkdwn,
     otaLabel,
     otaNativeBuildNumber,
+    otaCommitShortSha,
     anchorDiscriminator,
   } = options;
 
@@ -104,6 +106,10 @@ function buildSlackMessage(options) {
             {
               type: 'mrkdwn',
               text: `*Runs on native build:*\n${otaNativeBuildNumber}`,
+            },
+            {
+              type: 'mrkdwn',
+              text: `*Commit:*\n${otaCommitShortSha}`,
             },
           ],
         },
@@ -335,6 +341,7 @@ async function main() {
   // discriminates the PR-comment anchors, matching scripts/build-announce/index.ts).
   const otaLabel = process.env.OTA_LABEL?.trim() || '';
   const otaNativeBuildNumber = process.env.OTA_NATIVE_BUILD_NUMBER?.trim() || 'Unknown';
+  const otaCommitShortSha = process.env.OTA_COMMIT_SHORT_SHA?.trim() || 'Unknown';
   const anchorDiscriminator =
     otaLabel ||
     (androidBuildNumber && androidBuildNumber !== 'N/A' && androidBuildNumber !== 'Unknown'
@@ -343,7 +350,7 @@ async function main() {
 
   if (otaLabel) {
     console.log(
-      `\n📣 Preparing Slack notification for RC OTA ${otaLabel} (native build ${otaNativeBuildNumber})`,
+      `\n📣 Preparing Slack notification for RC OTA ${otaLabel} from ${otaCommitShortSha} (native build ${otaNativeBuildNumber})`,
     );
   } else {
     console.log(`\n📣 Preparing Slack notification for RC v${version} (${buildNumber})`);
@@ -371,6 +378,7 @@ async function main() {
     playStoreCheckMrkdwn,
     otaLabel,
     otaNativeBuildNumber,
+    otaCommitShortSha,
     anchorDiscriminator,
   });
 

@@ -26,11 +26,15 @@ export interface BuildInfo {
  * `label` is the display-only 4th-decimal revision (e.g. `8.0.1.2`). Because the revision counter
  * restarts on every new native baseline, the label is only unambiguous when paired with the
  * native build it layers on top of, so both are always rendered together.
+ *
+ * `commitShortSha` is the commit this revision shipped, `baselineShortSha` the commit the native
+ * build underneath it was made from.
  */
 export interface OtaUpdateInfo {
   label: string;
   nativeBuildNumber: string;
   baselineShortSha: string;
+  commitShortSha: string;
 }
 
 /**
