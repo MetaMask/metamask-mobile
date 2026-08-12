@@ -171,7 +171,12 @@ describe('MultichainTransactionsView', () => {
     };
   };
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     jest.clearAllTimers();
 
