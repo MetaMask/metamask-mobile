@@ -986,7 +986,6 @@ export type RootStackParamList = {
   PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
-  PredictGTMModal: undefined;
 
   // Social Leaderboard routes
   TopTradersView:
@@ -1116,7 +1115,6 @@ export type RootStackParamList = {
   CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
-  CardSetPinSuccess: CardScreensStackParamList['CardSetPinSuccess'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
   OrderCompleted: CardScreensStackParamList['OrderCompleted'];
   CardOnboarding: CardScreensStackParamList['CardOnboarding'];

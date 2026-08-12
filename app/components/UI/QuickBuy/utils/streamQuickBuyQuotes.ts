@@ -5,8 +5,6 @@ import {
   type BridgeControllerMessenger,
   type FeatureId,
   type GenericQuoteRequest,
-  type L1GasFees,
-  type NonEvmFees,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import semver from 'semver';
@@ -20,7 +18,7 @@ import { getBaseSemVerVersion } from '../../../../util/version';
  * `BridgeController.fetchQuotes` path returns so the two paths feed the same
  * `selectBridgeQuotes` enrichment in `useQuickBuyQuotes`.
  */
-export type StreamedQuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
+export type StreamedQuickBuyQuote = QuoteResponse;
 
 type BridgeStreamingFlags =
   | { sse?: { enabled: boolean; minimumVersion: string } }
@@ -94,7 +92,7 @@ export async function streamQuickBuyQuotes(
   const messenger =
     Engine.controllerMessenger as unknown as BridgeControllerMessenger;
 
-  const getLayer1GasFee: Parameters<typeof appendFeesToQuotes>[2] = (request) =>
+  const getLayer1GasFee: Parameters<typeof appendFeesToQuotes>[3] = (request) =>
     Engine.context.TransactionController.getLayer1GasFee(
       request as Parameters<
         typeof Engine.context.TransactionController.getLayer1GasFee
@@ -113,13 +111,14 @@ export async function streamQuickBuyQuotes(
       onQuoteValidationFailure: () => undefined,
       onValidQuoteReceived: async (rawQuote) => {
         const [enriched] = await appendFeesToQuotes(
+          rawQuote.chainId,
           [rawQuote],
           messenger,
           getLayer1GasFee,
           selectedAccount,
         );
         if (enriched) {
-          onQuote(enriched as StreamedQuickBuyQuote);
+          onQuote(enriched);
         }
       },
       onTokenWarning: () => undefined,

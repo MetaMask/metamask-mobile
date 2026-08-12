@@ -9,25 +9,16 @@ import {
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { EncapsulatedElementType } from '../../../framework';
-import UnifiedGestures from '../../../framework/UnifiedGestures';
-import { FrameworkDetector } from '../../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
-import type { UnifiedGestureOptions } from '../../../framework/GestureStrategy';
+import type { TapOptions } from '../../../framework/types';
 
-/**
- * Appium iOS: XCTest often reports `isDisplayed() === false` on native-stack
- * card screens (e.g. RevealPrivateCredential after #33670) even when the
- * element exists. Skip displayed checks and tap by testID (same pattern as
- * AccountDetails.tapBackButton / AddressList.tapBackButton).
- */
-const iosAppiumTapOptions = (description: string): UnifiedGestureOptions => {
-  const skipDisplayedChecks =
-    FrameworkDetector.isAppium() && PlatformDetector.isIOS();
+/** Appium iOS: skip displayed/enabled checks when XCTest falsely reports hidden. */
+const iosAppiumTapOptions = (elemDescription: string): TapOptions => {
+  const skipDisplayedChecks = PlatformDetector.isIOSAppium();
   return {
-    description,
+    elemDescription,
     checkForDisplayed: !skipDisplayedChecks,
-    // When XCTest lies about displayed, enabled checks can also stall the tap.
-    checkForEnabled: !skipDisplayedChecks,
+    checkEnabled: !skipDisplayedChecks,
   };
 };
 
@@ -133,7 +124,7 @@ class SrpQuizModal {
   }
 
   async tapGetStartedButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(
+    await Gestures.waitAndTap(
       this.getStartedButton,
       iosAppiumTapOptions('Srp Quiz - Get Started Button'),
     );
@@ -163,14 +154,14 @@ class SrpQuizModal {
   }
 
   async tapQuestionRightAnswerButton(questionNumber: number): Promise<void> {
-    await UnifiedGestures.waitAndTap(
+    await Gestures.waitAndTap(
       this.getQuestionRightAnswerButton(questionNumber),
       iosAppiumTapOptions(`Srp Quiz - Question ${questionNumber} Right Answer`),
     );
   }
 
   async tapQuestionContinueButton(questionNumber: number): Promise<void> {
-    await UnifiedGestures.waitAndTap(
+    await Gestures.waitAndTap(
       this.getQuestionRightContinueButton(questionNumber),
       iosAppiumTapOptions(
         `Srp Quiz - Question ${questionNumber} Right Continue`,

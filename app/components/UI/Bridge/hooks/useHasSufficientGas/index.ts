@@ -1,19 +1,19 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isBitcoinChainId,
   isNonEvmChainId,
+  QuoteResponse,
+  sumAmounts,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
 import { ethers } from 'ethers';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { BigNumber } from 'bignumber.js';
 import { isNumberValue } from '../../../../../util/number';
 
 interface Props {
-  quote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+  quote?: QuoteResponse | null;
 }
 
 /**
@@ -25,7 +25,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   const gasIncluded7702 = quote?.quote.gasIncluded7702;
   const isGasless = gasIncluded7702 || gasIncluded;
 
-  const sourceChainId = quote?.quote.srcChainId;
+  const sourceChainId = quote?.chainId;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
   if (sourceChainId && !isGasless && !gasSponsored) {
@@ -50,13 +50,12 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     return true;
   }
 
-  // quote.gasFee.effective.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
-  const gasAmount =
-    sourceChainId && isBitcoinChainId(sourceChainId)
-      ? (quote?.totalNetworkFee?.amount ?? quote?.gasFee?.total?.amount)
-      : quote?.gasFee?.total?.amount;
+  const gasAmount = sumAmounts(
+    quote?.quote?.feeData?.network,
+    quote?.quote?.feeData?.relayer,
+  )?.normalizedAmount;
   const effectiveGasFee =
-    isNumberValue(gasAmount) && gasAmount != null
+    isNumberValue(gasAmount) && gasAmount != null && gasAmount !== undefined
       ? new BigNumber(gasAmount).toFixed()
       : null;
 

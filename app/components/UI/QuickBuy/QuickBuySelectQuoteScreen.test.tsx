@@ -82,13 +82,26 @@ jest.mock('../Bridge/components/QuoteSelectorView/QuoteRow', () => {
 const makeQuote = (id: string) => ({
   quote: {
     requestId: id,
-    bridges: ['lifi'],
-    destTokenAmount: '1000000000000000000',
+    protocols: ['lifi'],
+    dest: {
+      amount: '1000000000000000000',
+    },
+    src: {
+      valueInCurrency: '100',
+    },
+    feeData: {
+      network: [
+        {
+          valueInCurrency: '1.5',
+        },
+      ],
+      txFee: [
+        {
+          valueInCurrency: '0',
+        },
+      ],
+    },
   },
-  sentAmount: { valueInCurrency: '100' },
-  totalNetworkFee: { valueInCurrency: '1.5' },
-  includedTxFees: { valueInCurrency: '0' },
-  gasFee: undefined,
 });
 
 const buildContext = (overrides = {}) => ({
@@ -181,7 +194,10 @@ describe('QuickBuySelectQuoteScreen', () => {
             ...makeQuote('q1'),
             quote: {
               ...makeQuote('q1').quote,
-              destTokenAmount: '1500000',
+              dest: {
+                ...makeQuote('q1').quote.dest,
+                amount: '1500000',
+              },
             },
           },
         ],

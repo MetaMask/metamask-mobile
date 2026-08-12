@@ -92,6 +92,21 @@ describe('checkHardRules', () => {
     expect(result?.selectedTags).toContain('SmokeAccounts');
   });
 
+  it('keeps targeted smoke tags when a page object changes with a performance workflow', () => {
+    const changedFiles = [
+      '.github/workflows/performance-test-runner.yml',
+      'tests/page-objects/Onboarding/ImportWalletView.ts',
+      'tests/performance/onboarding/helpers/seedlessOnboardingTimers.ts',
+      'tests/performance/onboarding/seedless-apple-onboarding.spec.ts',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    expect(result).not.toBeNull();
+    expect(result?.selectedTags).toContain('SmokeWalletPlatform');
+    expect(result?.reasoning).toContain('ImportWalletView.ts');
+  });
+
   it('runs all E2E tags when locales/languages/en.json changes', () => {
     const changedFiles = ['locales/languages/en.json'];
 
@@ -114,5 +129,30 @@ describe('checkHardRules', () => {
     expect(result).not.toBeNull();
     expect(result?.reasoning).toContain('en-locale-change');
     expect(result?.selectedTags.length).toBeGreaterThan(1);
+  });
+
+  it('applies shared infra rule when page-object changes alongside .github/ files', () => {
+    const changedFiles = [
+      '.github/workflows/performance-test-runner.yml',
+      'tests/page-objects/wallet/AccountListBottomSheet.ts',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    // Should NOT bail to AI — .github/ is ignorable, shared infra rule should apply
+    expect(result).not.toBeNull();
+    expect(result?.selectedTags).toContain('SmokeAccounts');
+  });
+
+  it('bails to AI when page-object changes alongside actual app code', () => {
+    const changedFiles = [
+      'app/components/Views/Wallet/index.tsx',
+      'tests/page-objects/wallet/AccountListBottomSheet.ts',
+    ];
+
+    const result = checkHardRules(changedFiles, context);
+
+    // Should bail to AI — app code changes require AI analysis
+    expect(result).toBeNull();
   });
 });
