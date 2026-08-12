@@ -233,6 +233,23 @@ describe('MetaMaskMobileSessionManager', () => {
     );
   });
 
+  it('completes the launch even when session metadata persistence fails', async () => {
+    mockWriteSessionMetadata.mockRejectedValueOnce(new Error('disk full'));
+
+    const result = await sessionManager.launch(
+      createLaunchInput({ goal: 'test goal' }),
+    );
+
+    expect(result.extensionId).toBe('io.metamask.MetaMask');
+    expect(sessionManager.hasActiveSession()).toBe(true);
+    expect(sessionManager.getSessionMetadata()).toEqual(
+      expect.objectContaining({ sessionId: 'mm-test-session-id' }),
+    );
+    expect(stderrSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('disk full'),
+    );
+  });
+
   it('passes the core deviceId to iOS simulator prerequisite selection', async () => {
     await sessionManager.launch(createLaunchInput({ deviceId: 'INPUT-SIM' }));
 

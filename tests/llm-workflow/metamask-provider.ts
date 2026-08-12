@@ -319,7 +319,12 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
         },
       };
 
-      await knowledgeStore.writeSessionMetadata(this.sessionMetadata);
+      try {
+        await knowledgeStore.writeSessionMetadata(this.sessionMetadata);
+      } catch {
+        // Pass through: this is a non blocking behavior if it fails
+        // we can silently bypass it.
+      }
 
       return {
         sessionId,
