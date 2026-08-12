@@ -522,6 +522,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       const nonEvmItems = mapNonEvmTransactions(
         filteredNonEvmForMalicious,
         getBridgeHistoryItemByHash,
+        (transaction) =>
+          selectedAccountGroupInternalAccounts.find(
+            (account) => account.id === transaction.account,
+          )?.address,
       );
 
       // Drop confirmed copies whose local copy won above, so the winning local
@@ -550,6 +554,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       relatedChainIdsByTransactionId,
       maliciousTokenKeys,
       isPerpsEnabled,
+      selectedAccountGroupInternalAccounts,
     ]);
 
     const data = useMemo<ActivityListItem[]>(() => {

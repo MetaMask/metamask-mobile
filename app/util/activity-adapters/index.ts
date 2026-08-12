@@ -17,7 +17,7 @@ export {
   isNftTransferType,
   isUnlimitedApprovalAmount,
 } from './adapters/helpers';
-export { mapKeyringTransaction } from './adapters/keyring-transaction';
+export { enrichKeyringActivityWithBridge } from './adapters/enrich-keyring-activity';
 export { mapLocalTransaction } from './adapters/local-transaction';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';

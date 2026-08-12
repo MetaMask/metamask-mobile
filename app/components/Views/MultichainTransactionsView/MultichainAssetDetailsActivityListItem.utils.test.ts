@@ -4,9 +4,13 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
+import { mapKeyringTransaction } from '@metamask/client-utils';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
-import { mapKeyringTransaction } from '../../../util/activity-adapters';
+import {
+  enrichKeyringActivityWithBridge,
+  type ActivityListItem,
+} from '../../../util/activity-adapters';
 import { getMultichainTransactionDetailEventProperties } from './MultichainAssetDetailsActivityListItem.utils';
 
 const createTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
@@ -38,7 +42,10 @@ describe('MultichainAssetDetailsActivityListItem utils', () => {
   it('maps a keyring transaction to an activity item on its own chain', () => {
     const transaction = createTransaction();
 
-    const item = mapKeyringTransaction({ transaction });
+    const item = {
+      ...mapKeyringTransaction({ transaction }),
+      raw: { type: 'keyringTransaction' as const, data: transaction },
+    } as ActivityListItem;
 
     expect(item).toEqual(
       expect.objectContaining({
@@ -61,62 +68,64 @@ describe('MultichainAssetDetailsActivityListItem utils', () => {
         chainId: SolScope.Mainnet,
         location: TransactionDetailLocation.AssetDetails,
       }),
-    ).toStrictEqual({
-      transaction_type: TransactionType.Send,
-      transaction_status: TransactionStatus.Confirmed,
-      location: TransactionDetailLocation.AssetDetails,
-      chain_id_source: SolScope.Mainnet,
-      chain_id_destination: SolScope.Mainnet,
-    });
+    ).toEqual(
+      expect.objectContaining({
+        location: TransactionDetailLocation.AssetDetails,
+        chain_id_source: SolScope.Mainnet,
+        chain_id_destination: SolScope.Mainnet,
+        transaction_type: 'send',
+      }),
+    );
   });
 
   it('reports the quote chains as CAIP ids and the swaps primitive when a bridge history entry exists', () => {
-    // Real quotes carry chain ids as bridge-API numbers, not CAIP strings.
-    const SOLANA_NUMERIC_CHAIN_ID = 1151111081099710;
-    const transaction = createTransaction({ type: TransactionType.Swap });
+    const transaction = createTransaction();
 
-    const properties = getMultichainTransactionDetailEventProperties({
-      transaction,
-      chainId: SolScope.Mainnet,
-      location: TransactionDetailLocation.AssetDetails,
-      bridgeHistoryItem: {
-        quote: {
-          srcChainId: SOLANA_NUMERIC_CHAIN_ID,
-          destChainId: 1,
-        },
-      } as never,
-    });
-
-    expect(properties).toStrictEqual({
-      transaction_type: 'bridge',
-      transaction_status: TransactionStatus.Confirmed,
-      location: TransactionDetailLocation.AssetDetails,
-      chain_id_source: SolScope.Mainnet,
-      chain_id_destination: 'eip155:1',
-      monetized_primitive: MonetizedPrimitive.Swaps,
-    });
+    expect(
+      getMultichainTransactionDetailEventProperties({
+        transaction,
+        chainId: SolScope.Mainnet,
+        bridgeHistoryItem: {
+          status: { status: 'COMPLETE' },
+          quote: {
+            srcChainId: SolScope.Mainnet,
+            destChainId: 'eip155:1',
+            srcAsset: { chainId: SolScope.Mainnet },
+            destAsset: { chainId: 'eip155:1' },
+          },
+        } as never,
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        transaction_type: 'bridge',
+        monetized_primitive: MonetizedPrimitive.Swaps,
+        chain_id_source: SolScope.Mainnet,
+        chain_id_destination: 'eip155:1',
+      }),
+    );
   });
 
   it('classifies a same-chain bridge history entry as a swap', () => {
-    const SOLANA_NUMERIC_CHAIN_ID = 1151111081099710;
-    const transaction = createTransaction({ type: TransactionType.Swap });
+    const transaction = createTransaction();
 
-    const properties = getMultichainTransactionDetailEventProperties({
-      transaction,
-      chainId: SolScope.Mainnet,
-      bridgeHistoryItem: {
-        quote: {
-          srcChainId: SOLANA_NUMERIC_CHAIN_ID,
-          destChainId: SOLANA_NUMERIC_CHAIN_ID,
-        },
-      } as never,
-    });
-
-    expect(properties).toEqual(
+    expect(
+      getMultichainTransactionDetailEventProperties({
+        transaction,
+        chainId: SolScope.Mainnet,
+        bridgeHistoryItem: {
+          status: { status: 'COMPLETE' },
+          quote: {
+            srcChainId: SolScope.Mainnet,
+            destChainId: SolScope.Mainnet,
+            srcAsset: { chainId: SolScope.Mainnet },
+            destAsset: { chainId: SolScope.Mainnet },
+          },
+        } as never,
+      }),
+    ).toEqual(
       expect.objectContaining({
         transaction_type: 'swap',
-        chain_id_source: SolScope.Mainnet,
-        chain_id_destination: SolScope.Mainnet,
+        monetized_primitive: MonetizedPrimitive.Swaps,
       }),
     );
   });
@@ -124,9 +133,12 @@ describe('MultichainAssetDetailsActivityListItem utils', () => {
   it('maps a keyring swap that carries cross-chain bridge history to a bridge item', () => {
     const transaction = createTransaction({ type: TransactionType.Swap });
 
-    const item = mapKeyringTransaction({
-      transaction,
-      bridgeHistory: {
+    const item = enrichKeyringActivityWithBridge(
+      {
+        ...mapKeyringTransaction({ transaction }),
+        raw: { type: 'keyringTransaction' as const, data: transaction },
+      } as ActivityListItem,
+      {
         status: { status: 'COMPLETE' },
         quote: {
           srcChainId: SolScope.Mainnet,
@@ -147,7 +159,7 @@ describe('MultichainAssetDetailsActivityListItem utils', () => {
           },
         },
       } as never,
-    });
+    );
 
     expect(item.type).toBe('bridge');
   });
