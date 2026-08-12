@@ -8,6 +8,9 @@ import type { RootState } from '../../../../../../reducers';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { selectAccountGroupNamesByAddress } from '../../../../../../components/hooks/DisplayName/useAccountNames';
+import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
+import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
+import { renderShortAddress } from '../../../../../../util/address';
 import {
   selectTransactionPayIsMaxAmountByTransactionId,
   selectTransactionPayQuotesByTransactionId,
@@ -27,6 +30,7 @@ export interface MmPayQuoteDebugRow {
   value: string;
   boolValue?: boolean;
   infoValue?: string;
+  hideRawValue?: boolean;
 }
 
 export interface MmPayQuoteDebug {
@@ -43,6 +47,10 @@ function formatValue(value: unknown): string {
     return value ? 'true' : 'false';
   }
   return String(value);
+}
+
+function formatAddressValue(address: string | undefined): string {
+  return address ? renderShortAddress(address) : formatValue(address);
 }
 
 function isSubsidized(original: RelayQuoteOriginalShape): boolean {
@@ -74,6 +82,38 @@ export function useMmPayQuoteDebug(): MmPayQuoteDebug {
     selectPaymentOverrideByTransactionId(state, txId),
   );
   const accountGroupNames = useSelector(selectAccountGroupNamesByAddress);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+
+  const moneyAccountAddress = primaryMoneyAccount?.address?.toLowerCase();
+  const moneyAccountLabel = strings(
+    'confirm.pay_with_bottom_sheet.money_account',
+  );
+
+  const resolveAddressLabel = (
+    state: RootState,
+    address: string | undefined,
+  ): string | undefined => {
+    if (!address) {
+      return undefined;
+    }
+
+    const lower = address.toLowerCase();
+    if (moneyAccountAddress && lower === moneyAccountAddress) {
+      return moneyAccountLabel;
+    }
+
+    return (
+      accountGroupNames[lower] ??
+      getMemoizedInternalAccountByAddress(state, address)?.metadata?.name
+    );
+  };
+
+  const accountOverrideGroupName = useSelector((state: RootState) =>
+    resolveAddressLabel(state, accountOverride),
+  );
+  const refundToLabel = useSelector((state: RootState) =>
+    resolveAddressLabel(state, transactionPay?.refundTo),
+  );
 
   const currentQuote = quotes?.[0];
   const isRelay = currentQuote?.strategy === TransactionPayStrategy.Relay;
@@ -89,26 +129,24 @@ export function useMmPayQuoteDebug(): MmPayQuoteDebug {
   const is7702 = original?.metamask?.is7702;
   const maxAmount = Boolean(isMaxAmount);
 
-  const accountOverrideGroupName = accountOverride
-    ? accountGroupNames[accountOverride.toLowerCase()]
-    : undefined;
-
   const paymentOverrideLabel =
     paymentOverride === PaymentOverride.MoneyAccount
-      ? strings('confirm.pay_with_bottom_sheet.money_account')
+      ? moneyAccountLabel
       : undefined;
 
   const rows: MmPayQuoteDebugRow[] = [
     { label: 'tradeType', value: formatValue(original?.request?.tradeType) },
     {
       label: 'accountOverride',
-      value: formatValue(accountOverride),
+      value: formatAddressValue(accountOverride),
       infoValue: accountOverrideGroupName,
+      hideRawValue: true,
     },
     {
       label: 'paymentOverride',
       value: formatValue(paymentOverride),
       infoValue: paymentOverrideLabel,
+      hideRawValue: true,
     },
     {
       label: 'isExecute',
@@ -130,7 +168,12 @@ export function useMmPayQuoteDebug(): MmPayQuoteDebug {
       value: formatValue(maxAmount),
       boolValue: maxAmount,
     },
-    { label: 'refundTo', value: formatValue(transactionPay?.refundTo) },
+    {
+      label: 'refundTo',
+      value: formatAddressValue(transactionPay?.refundTo),
+      infoValue: refundToLabel,
+      hideRawValue: true,
+    },
   ];
 
   return { isRelay: true, rows, rawQuote: currentQuote };

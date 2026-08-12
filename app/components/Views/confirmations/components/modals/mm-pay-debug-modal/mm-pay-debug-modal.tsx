@@ -133,7 +133,9 @@ export function MmPayDebugModal({ onClose }: { onClose?: () => void }) {
                     <Text variant={TextVariant.BodySm}>{row.label}</Text>
                     {row.infoValue !== undefined ? (
                       <Box style={styles.quoteValueGroup}>
-                        <Text variant={TextVariant.BodySm}>{row.value}</Text>
+                        {!row.hideRawValue && (
+                          <Text variant={TextVariant.BodySm}>{row.value}</Text>
+                        )}
                         <Tag severity={TagSeverity.Info}>{row.infoValue}</Tag>
                       </Box>
                     ) : row.boolValue !== undefined ? (
