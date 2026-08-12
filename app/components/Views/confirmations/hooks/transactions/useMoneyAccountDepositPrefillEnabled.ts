@@ -30,6 +30,9 @@ export function useMoneyAccountDepositPrefillEnabled(): (
         remotePrefillEnabled: prefillConfig.enabled,
         abTestPrefillEnabled: depositPrefillVariant.prefillEnabled,
         intent,
+        // Loader should show PrefillCustomAmount for addMusd; amount autofill
+        // for that intent is handled separately at 100% in useTransactionCustomAmount.
+        forceAddMusd: true,
       }),
     [depositPrefillVariant.prefillEnabled, prefillConfig.enabled],
   );

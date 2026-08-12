@@ -49,6 +49,8 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { useABTest } from '../../../../../hooks/useABTest';
+
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
@@ -68,11 +70,7 @@ jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
 }));
 jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: jest.fn(() => ({
-    variant: { prefillEnabled: true },
-    variantName: 'treatment',
-    isActive: true,
-  })),
+  useABTest: jest.fn(),
 }));
 
 jest.mock('../tokens/useTokenFiatRates');
@@ -182,6 +180,7 @@ describe('useTransactionCustomAmount', () => {
   );
   const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
   const useRampsBuyLimitsMock = jest.mocked(useRampsBuyLimits);
+  const useABTestMock = jest.mocked(useABTest);
 
   const updateTransactionPayAmountMock = jest.fn(
     (_amountHuman: string): Promise<boolean | undefined> =>
@@ -192,6 +191,12 @@ describe('useTransactionCustomAmount', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useABTestMock.mockReturnValue({
+      variant: { prefillEnabled: true },
+      variantName: 'treatment',
+      isActive: true,
+    });
 
     updateTransactionPayAmountMock.mockResolvedValue(true);
     useTokenFiatRateMock.mockReturnValue(2);

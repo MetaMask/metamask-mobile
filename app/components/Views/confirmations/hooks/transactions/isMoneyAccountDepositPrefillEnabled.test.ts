@@ -28,12 +28,23 @@ describe('isMoneyAccountDepositPrefillEnabled', () => {
     ).toBe(false);
   });
 
-  it('returns true for addMusd even when kill-switch or A/B would disable', () => {
+  it('does not force-enable addMusd by default (amount path)', () => {
     expect(
       isMoneyAccountDepositPrefillEnabled({
         remotePrefillEnabled: false,
         abTestPrefillEnabled: false,
         intent: 'addMusd',
+      }),
+    ).toBe(false);
+  });
+
+  it('force-enables addMusd when forceAddMusd is true (loader path)', () => {
+    expect(
+      isMoneyAccountDepositPrefillEnabled({
+        remotePrefillEnabled: false,
+        abTestPrefillEnabled: false,
+        intent: 'addMusd',
+        forceAddMusd: true,
       }),
     ).toBe(true);
   });

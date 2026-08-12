@@ -187,7 +187,7 @@ describe('useDepositPrefillAmount', () => {
       });
     });
 
-    it('returns enabled when intent is addMusd', () => {
+    it('does not enable amount prefill for addMusd when kill-switch/A/B are off', () => {
       mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
       setupMocks({
         depositIntent: 'addMusd',
@@ -197,8 +197,9 @@ describe('useDepositPrefillAmount', () => {
 
       const { result } = runHook();
 
-      expect(result.current.enabled).toBe(true);
-      expect(result.current.hasPrefilled).toBe(true);
+      // addMusd amount autofill is owned by useTransactionCustomAmount at 100%.
+      expect(result.current.enabled).toBe(false);
+      expect(result.current.hasPrefilled).toBe(false);
     });
 
     it('returns disabled for card intent even when treatment and flag enabled', () => {
