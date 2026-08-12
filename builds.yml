@@ -35,6 +35,7 @@ _public_envs: &public_envs # Servers (production)
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   CARD_API_URL: 'https://card.api.cx.metamask.io'
+  KYC_API_URL: 'https://kyc-api.api.cx.metamask.io'
   # Build flags (production defaults)
   RAMPS_ENVIRONMENT: 'production'
   RAMP_DEV_BUILD: 'false'
@@ -439,6 +440,7 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
       RAMPS_ENVIRONMENT: 'development'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
