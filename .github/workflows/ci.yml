@@ -1250,6 +1250,9 @@ jobs:
       # leave this false so the build workflow can use fingerprint reuse.
       reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
+      # Performance execution is TestMu HyperExecute-only by default.
+      enable_browserstack: false
+      enable_testmu_benchmark: true
     secrets: inherit
     permissions:
       contents: write

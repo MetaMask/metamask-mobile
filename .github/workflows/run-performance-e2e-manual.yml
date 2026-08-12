@@ -50,6 +50,11 @@ on:
         required: false
         type: boolean
         default: false
+      enable_browserstack:
+        description: 'Also run BrowserStack performance lanes (off by default; TestMu HyperExecute is primary)'
+        required: false
+        type: boolean
+        default: false
       source_fingerprint:
         description: 'Optional @expo/fingerprint hash for Android app reuse'
         required: false
@@ -87,6 +92,7 @@ jobs:
       branch_name: main
       build_variant: e2e
       enable_testmu_benchmark: true
+      enable_browserstack: false
       sentry_target: test
     secrets: inherit
 
@@ -98,6 +104,7 @@ jobs:
       branch_name: ${{ github.ref_name }}
       build_variant: ${{ inputs.build_variant }}
       enable_testmu_benchmark: true
+      enable_browserstack: ${{ inputs.enable_browserstack }}
       sentry_target: ${{ inputs.sentry_target }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
       browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}

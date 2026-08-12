@@ -63,8 +63,13 @@ on:
         required: false
         type: string
         default: ''
+      enable_browserstack:
+        description: 'Run BrowserStack performance lanes (disabled by default; TestMu HyperExecute is the primary provider)'
+        required: false
+        type: boolean
+        default: false
       enable_testmu_benchmark:
-        description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
+        description: 'Run TestMu AI HyperExecute performance lanes (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
         required: false
         type: boolean
         default: true
@@ -146,11 +151,16 @@ on:
         required: false
         type: string
         default: ''
-      enable_testmu_benchmark:
-        description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
+      enable_browserstack:
+        description: 'Run BrowserStack performance lanes (disabled by default; TestMu HyperExecute is the primary provider)'
         required: false
         type: boolean
         default: false
+      enable_testmu_benchmark:
+        description: 'Run TestMu AI HyperExecute performance lanes (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
+        required: false
+        type: boolean
+        default: true
       enable_testmu_standard:
         description: 'Run the direct TestMu Standard lane alongside HyperExecute'
         required: false
@@ -687,6 +697,7 @@ jobs:
       ]
     if: >-
       always() && !failure() && !cancelled() &&
+      inputs.enable_browserstack == true &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -718,7 +729,7 @@ jobs:
     secrets: inherit
 
   # =============================================================================
-  # TESTMU AI BENCHMARK (parallel to BrowserStack — same tests, different provider)
+  # TESTMU AI HYPEREXECUTE (primary performance provider)
   # =============================================================================
 
   run-android-onboarding-tests-testmu:
@@ -810,7 +821,7 @@ jobs:
         determine-branch-name,
         compute-test-selection,
       ]
-    if: always() && !failure() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: always() && !failure() && !cancelled() && inputs.enable_browserstack == true && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: onboarding
@@ -860,6 +871,7 @@ jobs:
       ]
     if: >-
       always() && !cancelled() &&
+      inputs.enable_browserstack == true &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -899,7 +911,7 @@ jobs:
         determine-branch-name,
         compute-test-selection,
       ]
-    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && inputs.enable_browserstack == true && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: imported-wallet
