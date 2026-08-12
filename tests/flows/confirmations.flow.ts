@@ -99,10 +99,9 @@ const isTestDappButtonReady = (state: TestDappButtonState | null): boolean =>
  * `?contract=`. A tap issued in that window clicks a real DOM node and reports
  * success, but no confirmation is ever requested.
  *
- * Contract binding only happens while initializing the provider, so re-running
- * it is the only way to recover a page that came up without it: re-navigate
- * when the query string was dropped (a reload would just re-fetch the stripped
- * URL), otherwise reload.
+ * Recovers from both ways the page can come up unusable: a dropped query string
+ * (re-navigate at once, since a reload only re-fetches the stripped URL) and an
+ * unbound contract (reload once after a grace period).
  */
 const waitForTestDappButtonReady = async (
   pageUrl: string,
@@ -113,7 +112,7 @@ const waitForTestDappButtonReady = async (
   const startedAt = Date.now();
   const expectedSearch = expectedUrl ? new URL(expectedUrl).search : undefined;
   let state: TestDappButtonState | null = null;
-  let recovered = false;
+  let reloaded = false;
 
   try {
     await Utilities.waitUntil(
@@ -123,24 +122,23 @@ const waitForTestDappButtonReady = async (
           return true;
         }
 
-        const queryDropped = Boolean(
-          expectedUrl &&
-            expectedSearch &&
-            state &&
-            !state.href.endsWith(expectedSearch),
-        );
-
-        if (
-          !recovered &&
-          (queryDropped || (state?.contractParam && !state.contractBound)) &&
-          Date.now() - startedAt >= DAPP_CONTRACT_RELOAD_AFTER_MS
-        ) {
-          recovered = true;
+        if (expectedSearch && state && !state.href.endsWith(expectedSearch)) {
           await ChromeCdpHelpers.evaluateInWebView(
             pageUrl,
-            queryDropped
-              ? `location.href = ${JSON.stringify(expectedUrl)}`
-              : 'location.reload()',
+            `location.href = ${JSON.stringify(expectedUrl)}`,
+          );
+          return false;
+        }
+        if (
+          !reloaded &&
+          state?.contractParam &&
+          !state.contractBound &&
+          Date.now() - startedAt >= DAPP_CONTRACT_RELOAD_AFTER_MS
+        ) {
+          reloaded = true;
+          await ChromeCdpHelpers.evaluateInWebView(
+            pageUrl,
+            'location.reload()',
           );
         }
 
