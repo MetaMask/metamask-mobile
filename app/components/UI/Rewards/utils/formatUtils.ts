@@ -150,6 +150,21 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
 };
 
 /**
+ * Resolves the date used for a benefit countdown, preferring a valid `validTo`
+ * value and falling back to a valid `actionDate` value.
+ */
+export const resolveBenefitEndDate = (
+  validTo: string | null | undefined,
+  actionDate: string | null | undefined,
+): string | null =>
+  [validTo, actionDate].find(
+    (date): date is string =>
+      typeof date === 'string' &&
+      date.trim().length > 0 &&
+      !Number.isNaN(Date.parse(date)),
+  ) ?? null;
+
+/**
  * Formats remaining time until `endDate` (UTC, calendar months).
  * - Under 1 hour: minutes only (e.g. `45min`).
  * - Otherwise exactly two units: `y`+`mo`, `mo`+`d`, `d`+`h`, or `h`+`min`.

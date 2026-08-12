@@ -33,7 +33,7 @@ let mockErrorMessageSource:
   | 'order_error'
   | undefined;
 let mockBuyErrorBanner: {
-  variant: 'price_changed' | 'order_failed';
+  variant: 'price_changed' | 'order_failed' | 'payment_failed';
   title: string;
   description: string;
 } | null = null;
@@ -85,7 +85,16 @@ jest.mock('../../utils/format', () => ({
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     isPlacingOrder: mockIsPlacingOrder,
+    activeOrder: null,
   }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackPredictOrderEvent: jest.fn(),
+    },
+  },
 }));
 
 const mockDeposit = jest.fn();
@@ -261,16 +270,22 @@ jest.mock('./components/PredictBuyError', () => {
 });
 
 jest.mock('./components/PredictBuyErrorBanner', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
   return function MockPredictBuyErrorBanner({
     variant,
     title,
     description,
+    actionLabel,
+    onActionPress,
+    actionTestID,
     testID,
   }: {
     variant: string;
     title: string;
     description: string;
+    actionLabel?: string;
+    onActionPress?: () => void;
+    actionTestID?: string;
     testID?: string;
   }) {
     return (
@@ -278,6 +293,14 @@ jest.mock('./components/PredictBuyErrorBanner', () => {
         <Text testID={`${testID ?? 'banner'}-variant`}>{variant}</Text>
         <Text testID={`${testID ?? 'banner'}-title`}>{title}</Text>
         <Text testID={`${testID ?? 'banner'}-description`}>{description}</Text>
+        {actionLabel && onActionPress ? (
+          <Pressable
+            testID={actionTestID ?? `${testID ?? 'banner'}-action`}
+            onPress={onActionPress}
+          >
+            <Text>{actionLabel}</Text>
+          </Pressable>
+        ) : null}
       </View>
     );
   };
@@ -634,6 +657,37 @@ describe('PredictBuyWithAnyToken', () => {
       expect(
         screen.getByTestId('predict-buy-preview-order-failed-banner'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders payment_failed banner with Add funds action and keeps Retry as main CTA', () => {
+      mockBuyErrorBanner = {
+        variant: 'payment_failed',
+        title: "Payment didn't go through",
+        description: "We couldn't convert your USDC.",
+      };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(
+        screen.getByTestId('predict-buy-preview-payment-failed-banner'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-payment-failed-add-funds'),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
+        /mode-retry/,
+      );
+
+      fireEvent.press(
+        screen.getByTestId('predict-buy-preview-payment-failed-add-funds'),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          params: { autoDeposit: true },
+        }),
+      );
     });
 
     it('routes the action button to handleRetryWithBestPrice when banner is active', () => {
