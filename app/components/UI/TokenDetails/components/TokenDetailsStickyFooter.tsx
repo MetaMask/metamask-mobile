@@ -24,6 +24,7 @@ import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions'
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeolocationLocation';
+import { useABTest } from '../../../../hooks/useABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -31,6 +32,10 @@ import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
+import {
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
+} from './abTestConfig';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -195,7 +200,13 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const trackStickyFooterTapped = useStickyFooterTracking();
 
-  const isMoneyEarnCtaActive = Boolean(moneyEarnCta);
+  const { variant: moneyEarnCtaVisibilityVariant } = useABTest(
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
+  );
+  const isMoneyEarnCtaActive =
+    Boolean(moneyEarnCta) &&
+    moneyEarnCtaVisibilityVariant.showMoneyDepositFooterCta;
   const showSwapButton = isMoneyEarnCtaActive
     ? hasTokenBalance && hasEligibleSwapTokens
     : hasEligibleSwapTokens;

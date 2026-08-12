@@ -101,7 +101,11 @@ describe('PerpsMarketListView', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(strings('perps.no_tokens_found')),
+          screen.getByText(
+            strings('perps.no_tokens_found_description', {
+              searchQuery: 'ZZZ-NOT-FOUND',
+            }),
+          ),
         ).toBeOnTheScreen();
         expect(
           screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),

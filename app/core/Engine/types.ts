@@ -358,6 +358,11 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import { PredictNextController } from '../../components/UI/PredictNext/controller/PredictNextController';
+import type {
+  PredictMarketDataServiceActions,
+  PredictMarketDataServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictMarketDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -660,6 +665,7 @@ export type GlobalActions =
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
+  | PredictMarketDataServiceActions
   | CardControllerActions
   | QrSyncControllerActions
   | QrSyncProvisioningServiceActions
@@ -772,6 +778,7 @@ export type GlobalEvents =
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | PredictMarketDataServiceEvents
   | CardControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
@@ -924,6 +931,7 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  PredictNextController: PredictNextController;
   CardController: CardController;
   QrSyncController: QrSyncController;
   QrSyncProvisioningService: QrSyncProvisioningService;
@@ -1125,6 +1133,7 @@ export type MessengerClientsToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
+  | 'PredictNextController'
   | 'CardController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'

@@ -9,7 +9,7 @@ import {
   type OrderEditField,
 } from '../../../utils/orderEditUtils';
 import { getOrderPositionDirection } from '../../../utils/orderUtils';
-import PerpsProPositionsModalPortal from './PerpsProPositionsModalPortal';
+import PerpsProModalPortal from './PerpsProModalPortal';
 
 interface PerpsProOrderEditSheetsProps {
   editingOrder: Order | null;
@@ -41,7 +41,7 @@ const PerpsProOrderEditSheets = ({
 
   if (editingOrderSheet === 'price') {
     return (
-      <PerpsProPositionsModalPortal onRequestClose={onClose}>
+      <PerpsProModalPortal onRequestClose={onClose}>
         <PerpsLimitPriceBottomSheet
           isVisible
           asset={editingOrder.symbol}
@@ -55,12 +55,12 @@ const PerpsProOrderEditSheets = ({
           onClose={onClose}
           onConfirm={onConfirmPrice}
         />
-      </PerpsProPositionsModalPortal>
+      </PerpsProModalPortal>
     );
   }
 
   return (
-    <PerpsProPositionsModalPortal onRequestClose={onClose}>
+    <PerpsProModalPortal onRequestClose={onClose}>
       <PerpsOrderSizeBottomSheet
         isVisible
         asset={editingOrder.symbol}
@@ -73,7 +73,7 @@ const PerpsProOrderEditSheets = ({
         onClose={onClose}
         onConfirm={onConfirmSize}
       />
-    </PerpsProPositionsModalPortal>
+    </PerpsProModalPortal>
   );
 };
 

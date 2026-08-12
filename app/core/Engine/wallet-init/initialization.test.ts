@@ -3,7 +3,6 @@ import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { initializeWallet } from './initialization';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
-import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
@@ -55,6 +54,9 @@ jest.mock('./instance-options/shield-api-service', () => ({
 jest.mock('./instance-options/claims-service', () => ({
   getClaimsServiceInstanceOptions: jest.fn(() => 'claims-service-options'),
 }));
+jest.mock('./instance-options/network-controller', () => ({
+  getNetworkControllerInstanceOptions: jest.fn(() => 'network-options'),
+}));
 jest.mock('./instance-options/transaction-controller', () => ({
   getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
   setupTransactionControllerListeners: jest.fn(),
@@ -87,7 +89,7 @@ describe('initializeWallet', () => {
         subscriptionService: 'subscription-service-options',
         shieldApiService: 'shield-api-service-options',
         claimsService: 'claims-service-options',
-        networkController: getNetworkControllerInstanceOptions(),
+        networkController: 'network-options',
         transactionController: 'transaction-options',
       },
     });

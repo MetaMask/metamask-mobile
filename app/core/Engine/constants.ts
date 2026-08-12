@@ -34,6 +34,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ConfigRegistryApiService',
   'ChompApiService',
   'SentinelApiService',
+  'PredictNextController',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [

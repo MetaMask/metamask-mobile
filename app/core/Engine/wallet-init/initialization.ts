@@ -10,10 +10,7 @@ import { getStorageServiceInstanceOptions } from './instance-options/storage-ser
 import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
 import { getShieldApiServiceInstanceOptions } from './instance-options/shield-api-service';
 import { getClaimsServiceInstanceOptions } from './instance-options/claims-service';
-import {
-  getNetworkControllerInstanceOptions,
-  setupRpcEndpointMetrics,
-} from './instance-options/network-controller';
+import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
@@ -70,7 +67,6 @@ export function initializeWallet({
     },
   });
 
-  setupRpcEndpointMetrics(messenger);
   setupTransactionControllerListeners({
     messenger: transactionControllerInitMessenger,
   });
