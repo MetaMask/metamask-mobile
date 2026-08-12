@@ -266,7 +266,7 @@ describe('PerpsModeToggle', () => {
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
-  it('plays a selection haptic when enableHaptics is true and mode changes', () => {
+  it('plays a selection haptic when enableHaptics is true and mode changes', async () => {
     const { getByTestId } = render(
       <PerpsModeToggle
         mode={PerpsMode.Lite}
@@ -275,22 +275,26 @@ describe('PerpsModeToggle', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
 
     expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
-  it('does not play a haptic when enableHaptics is omitted', () => {
+  it('does not play a haptic when enableHaptics is omitted', async () => {
     const { getByTestId } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={jest.fn()} />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
 
     expect(playSelection).not.toHaveBeenCalled();
   });
 
-  it('does not play a haptic when re-selecting the already active mode with enableHaptics', () => {
+  it('does not play a haptic when re-selecting the already active mode with enableHaptics', async () => {
     const { getByTestId } = render(
       <PerpsModeToggle
         mode={PerpsMode.Lite}
@@ -299,7 +303,9 @@ describe('PerpsModeToggle', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+    });
 
     expect(playSelection).not.toHaveBeenCalled();
   });
