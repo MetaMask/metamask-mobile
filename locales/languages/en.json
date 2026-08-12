@@ -1145,6 +1145,9 @@
       "title": "Identity verification",
       "start_failed": "We couldn't start identity verification. Try again.",
       "verification_failed": "We couldn't verify your identity. Try again."
+    },
+    "deposit_demo": {
+      "success_toast": "Deposit successful"
     }
   },
   "social_leaderboard": {
