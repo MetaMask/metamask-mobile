@@ -25,6 +25,7 @@ const QuickBuyAmount: React.FC = () => {
     handleAmountChange,
     setIsKeypadOpen,
     isKeypadOpen,
+    hasNoPayWithFunds,
   } = useQuickBuyContext();
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.
@@ -60,7 +61,10 @@ const QuickBuyAmount: React.FC = () => {
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
       showCursor={isKeypadOpen}
       hiddenInputRef={hiddenInputRef}
-      onAmountAreaPress={handleHeadlinePress}
+      // Omitting the handler drops the surrounding pressable entirely, so with
+      // no funds the headline can neither reopen the keypad nor focus the
+      // hidden input — there is no amount to type against (TSA-984).
+      onAmountAreaPress={hasNoPayWithFunds ? undefined : handleHeadlinePress}
       onAmountChange={handleAmountChange}
     />
   );

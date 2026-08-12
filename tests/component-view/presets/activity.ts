@@ -16,13 +16,26 @@ export const ACTIVITY_CV_RECIPIENT =
 /** Mainnet USDC — used for ERC-20 send/receive Activity CV fixtures. */
 export const ACTIVITY_CV_USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
-export const buildConfirmedLocalSendTransaction = (): TransactionMeta =>
+/** Hashes for Activity Mainnet↔Linea network-filter CV (Core UX Test 1). */
+export const MAINNET_ACTIVITY_HASH = '0xactivitycvmainnettx';
+export const LINEA_ACTIVITY_HASH = '0xactivitycvlineatx';
+
+interface LocalSendOverrides {
+  id?: string;
+  hash?: string;
+  chainId?: string;
+  time?: number;
+}
+
+export const buildConfirmedLocalSendTransaction = (
+  overrides: LocalSendOverrides = {},
+): TransactionMeta =>
   ({
-    id: 'activity-cv-confirmed-send',
-    hash: '0xactivitycvconfirmedsend',
-    chainId: '0x1',
+    id: overrides.id ?? 'activity-cv-confirmed-send',
+    hash: overrides.hash ?? '0xactivitycvconfirmedsend',
+    chainId: overrides.chainId ?? '0x1',
     status: TransactionStatus.confirmed,
-    time: 1_716_367_781_000,
+    time: overrides.time ?? 1_716_367_781_000,
     type: TransactionType.simpleSend,
     txParams: {
       from: ACTIVITY_CV_ACCOUNT,

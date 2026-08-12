@@ -1,10 +1,8 @@
 import { useSelector } from 'react-redux';
 import type {
   MetaMetricsSwapsEventSource,
-  QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
-import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 
 import Engine from '../../../../../core/Engine';
 import {
@@ -29,7 +27,7 @@ export function useSubmitBatchSellTx() {
     quoteResponses,
     location,
   }: {
-    quoteResponses: ((QuoteResponse & QuoteMetadata) | null)[];
+    quoteResponses: (QuoteResponse | null)[];
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
   }) => {
@@ -38,23 +36,9 @@ export function useSubmitBatchSellTx() {
     }
 
     const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
-    const normalizedQuoteResponses = quoteResponses.map((quoteResponse) =>
-      quoteResponse
-        ? {
-            ...quoteResponse,
-            approval: quoteResponse.approval ?? undefined,
-          }
-        : quoteResponse,
-    );
 
-    // Type assertion needed: QuoteResponse/QuoteMetadata are imported from
-    // @metamask/bridge-controller v74 but submitBatchSell expects types from
-    // the v75 copy nested in @metamask/bridge-status-controller (FeatureId
-    // enum is structurally identical but nominally incompatible).
     return await Engine.context.BridgeStatusController.submitBatchSell({
-      quoteResponses: normalizedQuoteResponses as Parameters<
-        BridgeStatusController['submitBatchSell']
-      >[0]['quoteResponses'],
+      quoteResponses,
       accountAddress: walletAddress,
       location,
       isStxEnabled: smartTransactionsEnabled,

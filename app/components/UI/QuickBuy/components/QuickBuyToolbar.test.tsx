@@ -36,18 +36,27 @@ describe('QuickBuyToolbar', () => {
     });
   });
 
-  it('renders buy-only toggle styling when only buy mode is enabled', () => {
+  it('hides the trade mode toggle when only buy mode is enabled', () => {
     render(<QuickBuyToolbar />);
-    expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-trade-mode-toggle')).toBeNull();
     expect(
-      screen.getByText('social_leaderboard.quick_buy.buy_label'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('quick-buy-trade-mode-buy'),
-    ).not.toBeOnTheScreen();
+      screen.queryByText('social_leaderboard.quick_buy.buy_label'),
+    ).toBeNull();
   });
 
-  it('renders the Buy/Sell toggle when both modes are enabled', () => {
+  it('hides the trade mode toggle when sell is unavailable due to zero balance', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      setActiveScreen,
+      onClose,
+      features: { tradeModes: ['buy', 'sell'], quickAmountPills: true },
+      hasSellableBalance: false,
+    });
+    render(<QuickBuyToolbar />);
+    expect(screen.queryByTestId('quick-buy-trade-mode-toggle')).toBeNull();
+  });
+
+  it('renders the Buy/Sell toggle when both modes are enabled and sellable', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
