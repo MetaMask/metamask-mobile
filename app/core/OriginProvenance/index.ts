@@ -59,11 +59,13 @@ function exhaustiveCheck(transport: never): never {
  * (Blockaid, SIWS) or be presented as a verified origin.
  *
  * This is the mobile-internal shape for the provenance contract agreed in
- * the origin-spoofing thread (MCWP-771). Once the Snaps platform releases
- * the `OriginMetadata` keyring/snap request field (WPC-1194 / WPC-1195,
- * threaded through mobile in PR #34460), `selfReported.url` is what maps to
- * `originMetadata.selfReportedOrigin` at the Snap boundary, while
- * `connectionId` stays the request `origin`.
+ * the origin-spoofing thread (MCWP-771). At the Snap boundary the same
+ * split is expressed with the snaps-sdk `OriginMetadata` field
+ * (WPC-1194 / WPC-1195, threaded through mobile in PR #34460):
+ * `connectionId` stays the request `origin`, and `selfReported.url` is what
+ * `originMetadata.selfReportedOrigin` carries (see
+ * `WalletConnect2Session.handleRequest`, which builds it from the same
+ * session peer metadata this stamp records).
  */
 export interface OriginProvenance {
   /**
