@@ -3,6 +3,7 @@
  * Produces ActivityListItem[] from API EVM and non-EVM transaction sources.
  * Local EVM transactions are handled separately by useLocalActivityItems.
  */
+import { mapApiTransaction } from '@metamask/client-utils';
 import {
   type V1TransactionByHashResponse,
   type V4MultiAccountTransactionsResponse,
@@ -11,10 +12,8 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
-  mapApiEvmTransactions,
   mapKeyringTransaction,
   type ActivityListItem,
-  type ActivityAdapterEnvironment,
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
@@ -144,7 +143,6 @@ function transformApiTransactions(
   address: string,
   transactions: V1TransactionByHashResponse[],
   excludedTxHashes?: Set<string>,
-  environment?: ActivityAdapterEnvironment,
 ): ActivityListItem[] {
   const items: ActivityListItem[] = [];
   const subjectAddress = address.toLowerCase();
@@ -153,9 +151,10 @@ function transformApiTransactions(
     if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
-    items.push(
-      mapApiEvmTransactions({ subjectAddress, transaction: tx, environment }),
-    );
+    items.push({
+      ...mapApiTransaction({ subjectAddress, transaction: tx }),
+      raw: { type: 'apiEvmTransaction', data: tx },
+    } as ActivityListItem);
   }
 
   return items;
@@ -164,22 +163,15 @@ function transformApiTransactions(
 export function selectApiEvmTransactions({
   address,
   excludedTxHashes,
-  environment,
 }: {
   address: string;
   excludedTxHashes?: Set<string>;
-  environment?: ActivityAdapterEnvironment;
 }) {
   return (data: InfiniteData<V4MultiAccountTransactionsResponse>) => ({
     ...data,
     pages: data.pages.map((page) => ({
       ...page,
-      data: transformApiTransactions(
-        address,
-        page.data,
-        excludedTxHashes,
-        environment,
-      ),
+      data: transformApiTransactions(address, page.data, excludedTxHashes),
     })),
   });
 }
