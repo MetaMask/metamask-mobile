@@ -73,9 +73,11 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   }, [transactionMeta, depositLimits]);
 
   // Assignment only — Experiment Viewed is emitted from MoneyAccountDepositInfo.
+  // Must not track exposure here: this hook runs for all CustomAmountInfo flows.
   const { variant: depositPrefillVariant } = useABTest(
     MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
     MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+    { trackExposure: false },
   );
 
   const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);

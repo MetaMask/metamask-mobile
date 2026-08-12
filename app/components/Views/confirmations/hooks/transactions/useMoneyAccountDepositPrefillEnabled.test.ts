@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useABTest } from '../../../../../hooks/useABTest';
 import { useMoneyAccountDepositPrefillEnabled } from './useMoneyAccountDepositPrefillEnabled';
 import {
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
   MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
   MoneyAccountDepositPrefillVariant,
 } from './abTestConfig';
@@ -35,6 +36,16 @@ describe('useMoneyAccountDepositPrefillEnabled', () => {
   it('returns true for treatment when remote kill-switch is enabled', () => {
     const { result } = renderHook(() => useMoneyAccountDepositPrefillEnabled());
     expect(result.current()).toBe(true);
+  });
+
+  it('resolves assignment without tracking experiment exposure', () => {
+    renderHook(() => useMoneyAccountDepositPrefillEnabled());
+
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+      { trackExposure: false },
+    );
   });
 
   it('returns false for control even when remote kill-switch is enabled', () => {

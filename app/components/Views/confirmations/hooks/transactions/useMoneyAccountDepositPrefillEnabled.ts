@@ -10,7 +10,8 @@ import {
 import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
 
 /**
- * Kill-switch + A/B assignment for Money Account deposit prefill.
+ * Kill-switch + A/B assignment for Money Account deposit prefill loader.
+ * Uses trackExposure: false so Money home does not count as experiment exposure;
  * Experiment Viewed is emitted from MoneyAccountDepositInfo.
  */
 export function useMoneyAccountDepositPrefillEnabled(): (
@@ -19,9 +20,11 @@ export function useMoneyAccountDepositPrefillEnabled(): (
   const prefillConfig = useSelector((state: RootState) =>
     selectPrefilledAmountConfig(state, 'moneyAccountDeposit'),
   );
+  // Assignment only — Experiment Viewed is emitted from MoneyAccountDepositInfo.
   const { variant: depositPrefillVariant } = useABTest(
     MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
     MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+    { trackExposure: false },
   );
 
   return useCallback(
