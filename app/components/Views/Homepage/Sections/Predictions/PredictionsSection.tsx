@@ -18,7 +18,7 @@ import useHomeViewedEvent, {
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import HomepagePredictWorldCupDiscovery from './components/HomepagePredictWorldCupDiscovery';
+import HomepagePredictDiscovery from './components/HomepagePredictDiscovery';
 import HomepagePredictTrendingMarkets from './components/HomepagePredictTrendingMarkets';
 import HomepagePredictPositions from './components/HomepagePredictPositions';
 import {
@@ -507,7 +507,7 @@ const PredictionsSectionSportsOnly = forwardRef<
         totalSectionsLoaded={totalSectionsLoaded}
       >
         <Box paddingBottom={3}>
-          <HomepagePredictWorldCupDiscovery
+          <HomepagePredictDiscovery
             title={title}
             onViewAll={handleViewAllPredictions}
             headerTestIdKey="predictions"
