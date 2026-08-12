@@ -36,6 +36,7 @@ import {
   formatProOrderCardTimestamp,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
+import { isClosingOrder } from '../../../utils/orderDirection';
 import {
   formatOrderTypeLabel,
   getOrderPositionDirection,
@@ -146,8 +147,21 @@ const PerpsProOrderCard = ({
 }: PerpsProOrderCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-  const direction = getOrderPositionDirection(order);
-  const isLong = direction === 'long';
+  const isClosing = isClosingOrder(order);
+  const positionDirection = getOrderPositionDirection(order);
+  const isBuySide = order.side === 'buy';
+  const isLongPosition = positionDirection === 'long';
+  let directionLabel = isLongPosition
+    ? strings('perps.market.long')
+    : strings('perps.market.short');
+  if (isClosing) {
+    directionLabel = isLongPosition
+      ? strings('perps.market.close_long')
+      : strings('perps.market.close_short');
+  }
+  const directionSeverity = isBuySide
+    ? TagSeverity.Success
+    : TagSeverity.Danger;
   const size = formatPositionSize(order.originalSize);
   const { priceValue } = resolveOrderDisplayPriceAndLabel(order);
   const validTriggerPrice = getValidTriggerPrice(order);
@@ -247,11 +261,10 @@ const PerpsProOrderCard = ({
                     {displaySymbol}
                   </Text>
                   <Tag
-                    severity={isLong ? TagSeverity.Success : TagSeverity.Danger}
+                    testID={PerpsProMarketViewSelectorsIDs.ORDER_DIRECTION_TAG}
+                    severity={directionSeverity}
                   >
-                    {isLong
-                      ? strings('perps.market.long')
-                      : strings('perps.market.short')}
+                    {directionLabel}
                   </Tag>
                 </Box>
                 <Text

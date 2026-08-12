@@ -2,7 +2,10 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useFormattedNetworkFee } from './index';
 import { formatNetworkFee } from '../../utils/formatNetworkFee';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import {
+  toQuoteMetadataV2,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 
 jest.mock('../../utils/formatNetworkFee');
 jest.mock('../../../../../selectors/currencyRateController');
@@ -60,12 +63,12 @@ describe('useFormattedNetworkFee', () => {
   describe('when quote has valid totalNetworkFee', () => {
     it('returns formatted network fee with USD currency', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.01',
           valueInCurrency: '10.50',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('USD');
       mockFormatNetworkFee.mockReturnValue('$10.50');
@@ -83,12 +86,12 @@ describe('useFormattedNetworkFee', () => {
 
     it('returns formatted network fee with EUR currency', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.02',
           valueInCurrency: '25.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('EUR');
       mockFormatNetworkFee.mockReturnValue('€25.00');
@@ -106,12 +109,12 @@ describe('useFormattedNetworkFee', () => {
 
     it('returns formatted network fee with GBP currency', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.005',
           valueInCurrency: '5.25',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('GBP');
       mockFormatNetworkFee.mockReturnValue('£5.25');
@@ -129,12 +132,12 @@ describe('useFormattedNetworkFee', () => {
 
     it('returns formatted network fee with JPY currency', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.1',
           valueInCurrency: '1500',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('JPY');
       mockFormatNetworkFee.mockReturnValue('¥1,500');
@@ -154,12 +157,12 @@ describe('useFormattedNetworkFee', () => {
   describe('when network fee is small', () => {
     it('returns formatted small network fee', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.000001',
           valueInCurrency: '0.005',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('USD');
       mockFormatNetworkFee.mockReturnValue('<$0.01');
@@ -179,12 +182,12 @@ describe('useFormattedNetworkFee', () => {
   describe('when network fee is large', () => {
     it('returns formatted large network fee', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '1.5',
           valueInCurrency: '1234.56',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('USD');
       mockFormatNetworkFee.mockReturnValue('$1,234.56');
@@ -204,12 +207,12 @@ describe('useFormattedNetworkFee', () => {
   describe('when network fee is zero', () => {
     it('returns formatted zero network fee', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0',
           valueInCurrency: '0',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('USD');
       mockFormatNetworkFee.mockReturnValue('$0');
@@ -229,12 +232,12 @@ describe('useFormattedNetworkFee', () => {
   describe('when quote changes', () => {
     it('recalculates formatted network fee when quote changes', () => {
       // Arrange
-      const initialQuote = {
+      const initialQuote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.01',
           valueInCurrency: '10.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('USD');
       mockFormatNetworkFee.mockReturnValue('$10.00');
@@ -250,12 +253,12 @@ describe('useFormattedNetworkFee', () => {
       expect(formatNetworkFee).toHaveBeenCalledWith('USD', initialQuote);
 
       // Arrange - update mock for different quote
-      const updatedQuote = {
+      const updatedQuote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.02',
           valueInCurrency: '20.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockFormatNetworkFee.mockReturnValue('$20.00');
 
@@ -274,12 +277,12 @@ describe('useFormattedNetworkFee', () => {
   describe('when currency changes', () => {
     it('recalculates formatted network fee when currency changes', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.01',
           valueInCurrency: '10.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       // Act - initial render with USD
       mockSelectCurrentCurrency.mockReturnValue('USD');
@@ -313,12 +316,12 @@ describe('useFormattedNetworkFee', () => {
   describe('memoization', () => {
     it('memoizes result when quote and currency remain unchanged', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.01',
           valueInCurrency: '10.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('USD');
       mockFormatNetworkFee.mockReturnValue('$10.00');
@@ -336,19 +339,19 @@ describe('useFormattedNetworkFee', () => {
 
     it('does not memoize result when quote changes', () => {
       // Arrange
-      const initialQuote = {
+      const initialQuote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.01',
           valueInCurrency: '10.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
-      const updatedQuote = {
+      const updatedQuote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.02',
           valueInCurrency: '20.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockReturnValue('USD');
 
@@ -376,7 +379,7 @@ describe('useFormattedNetworkFee', () => {
   describe('edge cases', () => {
     it('handles missing totalNetworkFee in quote', () => {
       // Arrange
-      const quote = {} as QuoteResponse & QuoteMetadata;
+      const quote = {} as never;
 
       mockSelectCurrentCurrency.mockReturnValue('USD');
       mockFormatNetworkFee.mockClear();
@@ -395,12 +398,12 @@ describe('useFormattedNetworkFee', () => {
 
     it('handles unknown currency code', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.01',
           valueInCurrency: '10.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockClear();
       mockSelectCurrentCurrency.mockReturnValue('XYZ');
@@ -420,12 +423,12 @@ describe('useFormattedNetworkFee', () => {
 
     it('handles empty string currency', () => {
       // Arrange
-      const quote = {
+      const quote = toQuoteMetadataV2({
         totalNetworkFee: {
           amount: '0.01',
           valueInCurrency: '10.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockClear();
       mockSelectCurrentCurrency.mockReturnValue('');

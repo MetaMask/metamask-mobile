@@ -18,7 +18,7 @@ import useHomeViewedEvent, {
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import HomepagePredictWorldCupDiscovery from './components/HomepagePredictWorldCupDiscovery';
+import HomepagePredictDiscovery from './components/HomepagePredictDiscovery';
 import HomepagePredictTrendingMarkets from './components/HomepagePredictTrendingMarkets';
 import HomepagePredictPositions from './components/HomepagePredictPositions';
 import {
@@ -287,14 +287,6 @@ const PredictionsSectionDefault = forwardRef<
       hasPositions,
       predictHomepageUnrealizedPnl,
     } = usePredictPositionsSectionData(isPredictEnabled);
-    const {
-      markets,
-      isLoading: isLoadingMarkets,
-      error: marketsError,
-      refetch: refetchMarkets,
-    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
-      enabled: isPredictEnabled,
-    });
 
     const {
       discoveryLayout,
@@ -303,6 +295,15 @@ const PredictionsSectionDefault = forwardRef<
       predictEmptyStateVariantName,
       isPredictEmptyStateAssignmentActive,
     } = usePredictHomepageDiscoveryExperiment();
+
+    const {
+      markets,
+      isLoading: isLoadingMarkets,
+      error: marketsError,
+      refetch: refetchMarkets,
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
+      enabled: isPredictEnabled && !isTreatmentDiscovery,
+    });
 
     const homepageMarketSlots = useHomepagePredictMarketSlots({
       enabled: isPredictEnabled && isTreatmentDiscovery,
@@ -506,7 +507,7 @@ const PredictionsSectionSportsOnly = forwardRef<
         totalSectionsLoaded={totalSectionsLoaded}
       >
         <Box paddingBottom={3}>
-          <HomepagePredictWorldCupDiscovery
+          <HomepagePredictDiscovery
             title={title}
             onViewAll={handleViewAllPredictions}
             headerTestIdKey="predictions"

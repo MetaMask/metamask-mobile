@@ -17,7 +17,9 @@ import React, {
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
@@ -54,6 +56,7 @@ import {
   PredictNavigationParamList,
 } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PredictTradeStatus } from '../../constants/eventNames';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
 import { getDisplayBuyPrice } from '../../utils/prices';
@@ -131,7 +134,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
 
-  const { isPlacingOrder } = usePredictActiveOrder();
+  const { isPlacingOrder, activeOrder } = usePredictActiveOrder();
   const { deposit } = usePredictDeposit();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
@@ -293,9 +296,54 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
   }, [deposit, isSheetMode, navigation]);
 
+  const handlePaymentFailureAddFunds = useCallback(() => {
+    Engine.context.PredictController.trackPredictOrderEvent({
+      status: PredictTradeStatus.ADD_FUNDS_SUBMITTED,
+      analyticsProperties,
+      sharePrice: preview?.sharePrice,
+      paymentTokenAddress: activeOrder?.paymentTokenAddress,
+      paymentTokenSymbol: activeOrder?.paymentTokenSymbol,
+    });
+    handleAddFunds();
+    onClose?.();
+  }, [
+    analyticsProperties,
+    preview?.sharePrice,
+    activeOrder?.paymentTokenAddress,
+    activeOrder?.paymentTokenSymbol,
+    handleAddFunds,
+    onClose,
+  ]);
+
+  const paymentFailurePromptedRef = useRef(false);
+  useEffect(() => {
+    if (buyErrorBanner?.variant !== 'payment_failed') {
+      paymentFailurePromptedRef.current = false;
+      return;
+    }
+    if (paymentFailurePromptedRef.current) {
+      return;
+    }
+    paymentFailurePromptedRef.current = true;
+    Engine.context.PredictController.trackPredictOrderEvent({
+      status: PredictTradeStatus.PAYMENT_FAILURE_PROMPTED,
+      analyticsProperties,
+      sharePrice: preview?.sharePrice,
+      paymentTokenAddress: activeOrder?.paymentTokenAddress,
+      paymentTokenSymbol: activeOrder?.paymentTokenSymbol,
+    });
+  }, [
+    buyErrorBanner?.variant,
+    analyticsProperties,
+    preview?.sharePrice,
+    activeOrder?.paymentTokenAddress,
+    activeOrder?.paymentTokenSymbol,
+  ]);
+
   const { handleConfirm, placeOrder } = usePredictBuyActions({
     analyticsProperties,
     preview,
+    amountUsd: currentValue,
     setIsConfirming,
     isSheetMode,
     onClose,
@@ -328,16 +376,33 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isOrderNotFilled,
     resetOrderNotFilled,
     isSheetMode,
+    attempt: Engine.context.PredictController.getRetryablePredictBuyAttempt(),
   });
+
+  const handleRetryDismiss = useCallback(() => {
+    if (isOrderNotFilled) {
+      Engine.context.PredictController.cancelRetryablePredictBuyAttempt();
+    }
+    resetOrderNotFilled();
+  }, [isOrderNotFilled, resetOrderNotFilled]);
 
   const isBannerActive = !!buyErrorBanner;
   const previousValueRef = useRef(currentValue);
   useEffect(() => {
     if (previousValueRef.current !== currentValue && isUserInputChange) {
+      if (isOrderNotFilled) {
+        handleRetryDismiss();
+      }
       clearBuyErrorBanner();
     }
     previousValueRef.current = currentValue;
-  }, [currentValue, isUserInputChange, clearBuyErrorBanner]);
+  }, [
+    currentValue,
+    isUserInputChange,
+    isOrderNotFilled,
+    handleRetryDismiss,
+    clearBuyErrorBanner,
+  ]);
 
   // When the banner appears in sheet mode, close the keypad so the Retry CTA
   // + banner are immediately visible without the user having to dismiss the
@@ -529,10 +594,25 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               variant={buyErrorBanner.variant}
               title={buyErrorBanner.title}
               description={buyErrorBanner.description}
+              actionLabel={
+                buyErrorBanner.variant === 'payment_failed'
+                  ? strings('predict.deposit.add_funds')
+                  : undefined
+              }
+              onActionPress={
+                buyErrorBanner.variant === 'payment_failed'
+                  ? handlePaymentFailureAddFunds
+                  : undefined
+              }
+              actionTestID={
+                PredictBuyPreviewSelectorsIDs.PAYMENT_FAILED_ADD_FUNDS_BUTTON
+              }
               testID={
                 buyErrorBanner.variant === 'price_changed'
                   ? PredictBuyPreviewSelectorsIDs.PRICE_CHANGED_BANNER
-                  : PredictBuyPreviewSelectorsIDs.ORDER_FAILED_BANNER
+                  : buyErrorBanner.variant === 'payment_failed'
+                    ? PredictBuyPreviewSelectorsIDs.PAYMENT_FAILED_BANNER
+                    : PredictBuyPreviewSelectorsIDs.ORDER_FAILED_BANNER
               }
             />
           )}
@@ -589,7 +669,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         }
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
-        onDismiss={resetOrderNotFilled}
+        onDismiss={handleRetryDismiss}
         isRetrying={isRetrying}
       />
       <PredictPayWithAnyTokenInfo

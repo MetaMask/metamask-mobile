@@ -897,12 +897,16 @@ const AddBookmarkView = () => (
   </NativeStack.Navigator>
 );
 
-const OfflineModeView = () => (
+const OfflineModeView = (props) => (
   <NativeStack.Navigator>
     <NativeStack.Screen
       name="OfflineMode"
       component={OfflineMode}
       options={OfflineMode.navigationOptions}
+      initialParams={{
+        autoDismissOnReconnect:
+          props.route.params?.autoDismissOnReconnect === true,
+      }}
     />
   </NativeStack.Navigator>
 );
