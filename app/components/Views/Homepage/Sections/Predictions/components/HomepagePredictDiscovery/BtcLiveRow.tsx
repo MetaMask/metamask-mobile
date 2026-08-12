@@ -6,6 +6,8 @@ import React, {
   useRef,
 } from 'react';
 import { Pressable } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -21,6 +23,7 @@ import {
 import { strings } from '../../../../../../../../locales/i18n';
 import { formatPrice } from '../../../../../../UI/Predict/utils/format';
 import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData';
+import { selectPredictEnabledFlag } from '../../../../../../UI/Predict/selectors/featureFlags';
 import type { PredictMarket } from '../../../../../../UI/Predict/types';
 import { HOMEPAGE_PREDICT_SERIES_SLOT } from '../../constants/homepagePredictMarketSlots';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
@@ -91,9 +94,12 @@ const BtcMarketValues = memo(
 );
 
 const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
+  const isFocused = useIsFocused();
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { marketId, market, currentPrice, priceToBeat, countdown } =
     useCurrentCryptoUpDownMarketData({
       series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
+      enabled: isPredictEnabled && isFocused,
     });
 
   useImperativeHandle(ref, () => ({ marketId, market }), [market, marketId]);
