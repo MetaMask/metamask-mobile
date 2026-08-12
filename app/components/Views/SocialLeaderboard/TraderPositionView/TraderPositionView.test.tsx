@@ -9,6 +9,8 @@ import {
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { CandlePeriod } from '@metamask/perps-controller';
+import { PerpsCandlePeriodBottomSheetSelectorsIDs } from '../../../UI/Perps/Perps.testIds';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
@@ -171,11 +173,29 @@ jest.mock('../../../UI/WhatsHappening/hooks', () => ({
   useTradablePerpsMarketSymbols: () => mockUseTradablePerpsMarketSymbols(),
 }));
 
-// PerpsTradeButton wraps itself in PerpsStreamProvider; stub it to a passthrough
-// so the real stream-manager singleton isn't pulled into this minimal-store test.
+// PerpsStreamProvider is mounted at TraderPositionView for perp positions; stub
+// the stream manager so this minimal-store test does not boot the real singleton.
 jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+  usePerpsStream: jest.fn(() => ({})),
+}));
+
+const mockUsePerpsAdvancedChartAdapter = jest.fn();
+jest.mock('../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter', () => ({
+  ...jest.requireActual('../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter'),
+  usePerpsAdvancedChartAdapter: (...args: unknown[]) =>
+    mockUsePerpsAdvancedChartAdapter(...args),
+}));
+
+const mockSetPerpsChartPreferredCandlePeriod = jest.fn((period: string) => ({
+  type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
+  payload: period,
+}));
+jest.mock('../../../../actions/settings', () => ({
+  ...jest.requireActual('../../../../actions/settings'),
+  setPerpsChartPreferredCandlePeriod: (period: string) =>
+    mockSetPerpsChartPreferredCandlePeriod(period),
 }));
 
 jest.mock('../../../../util/haptics', () => {
@@ -301,9 +321,34 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
     `${chainId}/erc20:${address}`,
 }));
 
+const makePerpAdapterBars = () =>
+  Array.from({ length: 20 }, (_, i) => ({
+    time: 1_700_000_000_000 + i * 60_000,
+    open: 100,
+    high: 101,
+    low: 99,
+    close: 100,
+    volume: 10,
+  }));
+
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ohlcvData: makePerpAdapterBars(),
+      realtimeBar: undefined,
+      latestBar: makePerpAdapterBars().at(-1),
+      ohlcvSeriesKey: 'ETH|15m',
+      visibleFromMs: undefined,
+      visibleToMs: undefined,
+      isLoading: false,
+      handleFetchOlderBarsRequest: jest.fn().mockResolvedValue({
+        requestId: 'test',
+        seriesGeneration: 0,
+        bars: [],
+        noData: true,
+      }),
+    });
     mockRefetchPosition.mockResolvedValue(undefined);
     mockRefreshProfile.mockResolvedValue(undefined);
     mockHandleFetch.mockResolvedValue({});
@@ -349,6 +394,15 @@ describe('TraderPositionView', () => {
       ).getByText('trader1'),
     ).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders the spot time period selector and chart type toggle', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(screen.getByText('1H')).toBeOnTheScreen();
+    expect(screen.queryByText('1min')).not.toBeOnTheScreen();
+    expect(screen.getByLabelText('Line chart')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Candlestick chart')).toBeOnTheScreen();
   });
 
   it('does not render the floating sticky day header at rest', () => {
@@ -679,6 +733,53 @@ describe('TraderPositionView', () => {
 
       expect(headerPerpBadges.getByText('10x')).toBeOnTheScreen();
       expect(headerPerpBadges.getByText('SHORT')).toBeOnTheScreen();
+    });
+
+    it('renders the perp candle period selector instead of the spot time period selector', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.getByText('1min')).toBeOnTheScreen();
+      expect(screen.getByText('15min')).toBeOnTheScreen();
+      expect(screen.queryByText('1H')).not.toBeOnTheScreen();
+      expect(screen.queryByText('1W')).not.toBeOnTheScreen();
+    });
+
+    it('renders the chart type toggle for perp positions', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.getByLabelText('Line chart')).toBeOnTheScreen();
+      expect(screen.getByLabelText('Candlestick chart')).toBeOnTheScreen();
+    });
+
+    it('opens the candle period bottom sheet when More is pressed', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(
+          PerpsCandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByText('More'));
+
+      expect(
+        screen.getByTestId(
+          PerpsCandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('updates the local candle period without persisting to Redux settings', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(screen.getByText('5min'));
+
+      expect(mockUsePerpsAdvancedChartAdapter).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interval: CandlePeriod.FiveMinutes,
+        }),
+      );
+      expect(mockSetPerpsChartPreferredCandlePeriod).not.toHaveBeenCalled();
     });
 
     it('does not render the copy token address button for a perp position', () => {

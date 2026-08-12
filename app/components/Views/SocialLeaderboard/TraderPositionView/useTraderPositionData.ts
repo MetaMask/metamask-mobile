@@ -6,7 +6,6 @@ import { chainNameToId } from '../utils/chainMapping';
 import { isPerpPosition, isClosedPosition } from '../utils/perp';
 import { tradeTimestampToMs } from '../utils/tradeTimestamp';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { usePerpsTraderPositionPrices } from './usePerpsTraderPositionPrices';
 import { useSpotTraderPositionPrices } from './useSpotTraderPositionPrices';
 import {
   derivePercentChange,
@@ -19,13 +18,6 @@ export type { TimePeriod };
 export { TIME_PERIODS };
 
 const PERIODS_BY_SPAN: readonly TimePeriod[] = ['1H', '1D', '1W', '1M', 'All'];
-
-function hasPeriodPrices(
-  pricesByPeriod: Partial<Record<TimePeriod, TokenPrice[]>>,
-  period: TimePeriod,
-): boolean {
-  return Object.prototype.hasOwnProperty.call(pricesByPeriod, period);
-}
 
 function getTradeTimestampRange(
   trades: readonly { timestamp: number }[] | undefined,
@@ -45,62 +37,6 @@ function getTradeTimestampRange(
   if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
 
   return { min, max };
-}
-
-function getPriceTimestampRange(prices: TokenPrice[]): {
-  min: number;
-  max: number;
-} | null {
-  if (!prices.length) return null;
-
-  let min = Infinity;
-  let max = -Infinity;
-
-  for (const [timestamp] of prices) {
-    const timestampMs = Number(timestamp);
-    if (!Number.isFinite(timestampMs)) continue;
-    min = Math.min(min, timestampMs);
-    max = Math.max(max, timestampMs);
-  }
-
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
-
-  return { min, max };
-}
-
-function pricesCoverTrades(
-  prices: TokenPrice[] | undefined,
-  tradeRange: { min: number; max: number },
-): boolean {
-  const priceRange = prices ? getPriceTimestampRange(prices) : null;
-  return Boolean(
-    priceRange &&
-      tradeRange.min >= priceRange.min &&
-      tradeRange.max <= priceRange.max,
-  );
-}
-
-function getFirstLoadedPeriodCoveringTrades(
-  trades: readonly { timestamp: number }[] | undefined,
-  pricesByPeriod: Partial<Record<TimePeriod, TokenPrice[]>>,
-  minimumPeriod: TimePeriod,
-): TimePeriod | null {
-  const tradeRange = getTradeTimestampRange(trades);
-  if (!tradeRange) return minimumPeriod;
-
-  const startIndex = PERIODS_BY_SPAN.indexOf(minimumPeriod);
-  if (startIndex < 0) return null;
-
-  for (const period of PERIODS_BY_SPAN.slice(startIndex)) {
-    if (!hasPeriodPrices(pricesByPeriod, period)) {
-      return null;
-    }
-    if (pricesCoverTrades(pricesByPeriod[period], tradeRange)) {
-      return period;
-    }
-  }
-
-  return null;
 }
 
 /**
@@ -228,65 +164,24 @@ export function useTraderPositionData(
     [positionParam],
   );
 
-  const earliestTradeMs = useMemo(() => {
-    const trades = positionParam?.trades;
-    if (!trades?.length) return undefined;
-    let min = Infinity;
-    for (const trade of trades) {
-      const ms = tradeTimestampToMs(trade.timestamp);
-      if (Number.isFinite(ms) && ms < min) min = ms;
-    }
-    return Number.isFinite(min) ? min : undefined;
-  }, [positionParam?.trades]);
-
   const spotPrices = useSpotTraderPositionPrices(
     { positionParam, caipChainId },
     { enabled: !isPerp },
   );
-  const perpPrices = usePerpsTraderPositionPrices(
-    { positionParam, activeTimePeriod, earliestTradeMs },
-    { enabled: isPerp },
-  );
 
-  const resolvedPrices = isPerp
-    ? perpPrices.pricesByPeriod
-    : spotPrices.pricesByPeriod;
-  const isPricesLoading = isPerp ? perpPrices.isLoading : spotPrices.isLoading;
+  const resolvedPrices = spotPrices.pricesByPeriod;
+  const isPricesLoading = isPerp ? false : spotPrices.isLoading;
   const marketCap = spotPrices.marketCap;
 
-  // While the period is still auto-selected (user hasn't tapped one), widen to
-  // the first loaded period whose data actually covers the whole trade range, so
-  // the chart can frame all trades once that period's data arrives.
-  //
-  // PERP ONLY: perps render the price-line arrays (`resolvedPrices`), so their
-  // coverage is the right signal here. Spot renders OHLCV candles and is widened
-  // by `TraderAdvancedChart` against its own OHLCV coverage (which also keeps the
-  // tap-to-focus request in sync). Running both for spot let the two disagree —
-  // price arrays span further back than the OHLCV first page — and fight over
-  // `activeTimePeriod` (period flicker + off-screen trades), so spot is left to
-  // the chart as the single source of truth.
-  useEffect(() => {
-    if (!isPerp) return;
-    if (userSelectedTimePeriodRef.current) return;
-
-    const coveredPeriod = getFirstLoadedPeriodCoveringTrades(
-      positionParam?.trades,
-      resolvedPrices,
-      recommendedTradeSpanPeriod,
-    );
-
-    if (coveredPeriod && coveredPeriod !== activeTimePeriod) {
-      setActiveTimePeriodState(coveredPeriod);
-    }
-  }, [
-    activeTimePeriod,
-    isPerp,
-    positionParam?.trades,
-    recommendedTradeSpanPeriod,
-    resolvedPrices,
-  ]);
-
   const { historicalPrices, priceDiff, pricePercentChange } = useMemo(() => {
+    if (isPerp) {
+      return {
+        historicalPrices: [] as TokenPrice[],
+        priceDiff: 0,
+        pricePercentChange: undefined,
+      };
+    }
+
     const now = Date.now();
     let prices = resolvedPrices[activeTimePeriod] ?? [];
 
@@ -312,9 +207,11 @@ export function useTraderPositionData(
       priceDiff: diff,
       pricePercentChange: derivePercentChange(prices, activeTimePeriod, now),
     };
-  }, [resolvedPrices, activeTimePeriod]);
+  }, [isPerp, resolvedPrices, activeTimePeriod]);
 
   const currentPrice = useMemo(() => {
+    if (isPerp) return undefined;
+
     const source =
       resolvedPrices['1H'] ??
       resolvedPrices['1D'] ??
@@ -323,7 +220,7 @@ export function useTraderPositionData(
       resolvedPrices.All;
     if (!source?.length) return undefined;
     return source.at(-1)?.[1];
-  }, [resolvedPrices]);
+  }, [isPerp, resolvedPrices]);
 
   const symbol = getPerpsDisplaySymbol(
     positionParam?.tokenSymbol ?? tokenSymbol ?? '',

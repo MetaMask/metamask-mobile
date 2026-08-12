@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
+import { ChartType } from '../../../../UI/Charts/AdvancedChart/AdvancedChart.types';
 import TraderPositionChartSection from './TraderPositionChartSection';
 
 const mockAdvancedChart = jest.fn();
@@ -39,6 +40,7 @@ const defaultProps = {
   onChartIndexChange: jest.fn(),
   trades: [],
   activeTimePeriod: '1M' as const,
+  chartType: ChartType.Line,
 };
 
 describe('TraderPositionChartSection', () => {
@@ -63,6 +65,26 @@ describe('TraderPositionChartSection', () => {
     );
 
     expect(getByTestId('price-chart-mock')).toBeOnTheScreen();
+  });
+
+  it('renders the advanced chart for a perp position without an asset id', () => {
+    const { getByTestId } = render(
+      <TraderPositionChartSection
+        {...defaultProps}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod="15m"
+      />,
+    );
+
+    expect(getByTestId('advanced-chart-mock')).toBeOnTheScreen();
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isPerp: true,
+        perpSymbol: 'BTC',
+        selectedCandlePeriod: '15m',
+      }),
+    );
   });
 
   it('forwards scrollPassthrough to the advanced chart', () => {

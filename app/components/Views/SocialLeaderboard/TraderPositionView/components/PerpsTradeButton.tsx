@@ -6,8 +6,6 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- shared Perps stream provider (UI layer, not a route)
-import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { useTradablePerpsMarketSymbols } from '../../../../UI/WhatsHappening/hooks';
 import { getSupportedXyzPerpMarketSymbol } from '../../utils/perp';
 
@@ -78,17 +76,11 @@ const PerpsTradeButtonInner: React.FC<PerpsTradeButtonProps> = ({
  * HIP-3 market we support and either links to it or disables itself as an
  * unsupported asset.
  *
- * Wrapped in its own {@link PerpsStreamProvider} so the market-data
- * subscription that backs the existence check is scoped to perp positions
- * only — spot positions never mount it. The provider merely shares the
- * app-wide stream singleton (no connection side effects of its own); the only
- * effect is subscribing to the public market-data channel, which the homepage
- * already warms.
+ * Expects a parent {@link PerpsStreamProvider} (TraderPositionView hoists one
+ * for perp positions) so the market-data subscription is shared with the chart.
  */
 const PerpsTradeButton: React.FC<PerpsTradeButtonProps> = (props) => (
-  <PerpsStreamProvider>
-    <PerpsTradeButtonInner {...props} />
-  </PerpsStreamProvider>
+  <PerpsTradeButtonInner {...props} />
 );
 
 export default PerpsTradeButton;
