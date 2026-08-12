@@ -41,7 +41,7 @@ import { isPayWithTokenHidden } from './isPayWithTokenHidden';
  * network picker — all exclusive), which would otherwise strand QuickBuy with
  * only the destination chain and produce an empty picker even when the user
  * has plenty of cross-chain balance. Bridge/Swaps itself ignores this filter
- * for the same reason (TSA-921 follow-up).
+ * for the same reason.
  */
 export const usePayWithTokens = (): {
   options: BridgeToken[];
