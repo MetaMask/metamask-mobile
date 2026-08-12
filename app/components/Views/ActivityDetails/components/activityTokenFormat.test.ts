@@ -17,13 +17,13 @@ describe('formatActivityTokenAmount', () => {
     ).toBe(strings('confirm.unlimited'));
   });
 
-  it('falls back to the symbol when there is no amount', () => {
+  it('treats a missing amount with symbol as zero', () => {
     expect(
       formatActivityTokenAmount({
         symbol: 'ETH',
         direction: 'out',
       } as TokenAmount),
-    ).toBe('ETH');
+    ).toBe('-0 ETH');
   });
 
   it('prefixes outgoing amounts with a minus sign', () => {
