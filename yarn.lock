@@ -7622,7 +7622,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^7.2.0, @metamask/account-tree-controller@npm:^7.5.0, @metamask/account-tree-controller@npm:^7.5.5, @metamask/account-tree-controller@npm:^7.6.0, @metamask/account-tree-controller@npm:^7.6.1":
+"@metamask/account-tree-controller@npm:^7.2.0, @metamask/account-tree-controller@npm:^7.5.0, @metamask/account-tree-controller@npm:^7.6.0, @metamask/account-tree-controller@npm:^7.6.1":
   version: 7.6.1
   resolution: "@metamask/account-tree-controller@npm:7.6.1"
   dependencies:
