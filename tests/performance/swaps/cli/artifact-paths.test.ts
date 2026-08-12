@@ -10,21 +10,29 @@ describe('Swaps performance artifact paths', () => {
       outputDirectory,
       '2026-08-12T14:30:00.000Z',
       'abc1234',
+      'open-swaps-fetch-one-eth-quote',
       'swaps-perf-001-run',
     );
 
     expect(paths).toEqual({
-      directory: join(process.cwd(), outputDirectory, '2026-08-12-abc1234'),
+      directory: join(
+        process.cwd(),
+        outputDirectory,
+        '2026-08-12-abc1234',
+        'open-swaps-fetch-one-eth-quote',
+      ),
       jsonPath: join(
         process.cwd(),
         outputDirectory,
         '2026-08-12-abc1234',
+        'open-swaps-fetch-one-eth-quote',
         'swaps-perf-001-run.json',
       ),
       markdownPath: join(
         process.cwd(),
         outputDirectory,
         '2026-08-12-abc1234',
+        'open-swaps-fetch-one-eth-quote',
         'swaps-perf-001-run.md',
       ),
     });

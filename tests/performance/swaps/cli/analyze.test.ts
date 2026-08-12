@@ -78,13 +78,21 @@ describe('Swaps performance analyzer', () => {
     );
   });
 
-  it('finds the latest artifact across commit directories', () => {
-    const firstCommitDirectory = join(temporaryDirectory, 'abc1234');
-    const secondCommitDirectory = join(temporaryDirectory, 'def5678');
-    const olderArtifact = join(firstCommitDirectory, 'older.json');
-    const newerArtifact = join(secondCommitDirectory, 'newer.json');
-    mkdirSync(firstCommitDirectory);
-    mkdirSync(secondCommitDirectory);
+  it('finds the latest artifact across commit and scenario directories', () => {
+    const firstScenarioDirectory = join(
+      temporaryDirectory,
+      '2026-08-11-abc1234',
+      'scenario-one',
+    );
+    const secondScenarioDirectory = join(
+      temporaryDirectory,
+      '2026-08-12-def5678',
+      'scenario-two',
+    );
+    const olderArtifact = join(firstScenarioDirectory, 'older.json');
+    const newerArtifact = join(secondScenarioDirectory, 'newer.json');
+    mkdirSync(firstScenarioDirectory, { recursive: true });
+    mkdirSync(secondScenarioDirectory, { recursive: true });
     writeFileSync(olderArtifact, '{}');
     writeFileSync(newerArtifact, '{}');
     utimesSync(olderArtifact, new Date(1_000), new Date(1_000));

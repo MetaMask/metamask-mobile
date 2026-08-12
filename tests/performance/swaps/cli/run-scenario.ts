@@ -135,6 +135,7 @@ function writeArtifact(artifact: SwapsPerformanceArtifact): {
     OUTPUT_DIRECTORY,
     artifact.run.createdAt,
     artifact.run.commit,
+    artifact.run.scenario,
     artifact.run.id,
   );
   mkdirSync(directory, { recursive: true });
