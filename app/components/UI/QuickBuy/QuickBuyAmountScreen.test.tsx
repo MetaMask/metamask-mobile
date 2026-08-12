@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, within } from '@testing-library/react-native';
 import { ScrollView } from 'react-native';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import { useQuickBuyContext } from './useQuickBuyContext';
@@ -66,5 +66,41 @@ describe('QuickBuyAmountScreen', () => {
       screen.getByText('social_leaderboard.quick_buy.unsupported_chain'),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('quick-buy-amount-container')).toBeNull();
+  });
+
+  it('leaves the amount area interactive when the user has funds to pay with', () => {
+    render(<QuickBuyAmountScreen />);
+
+    expect(screen.queryByTestId('quick-buy-disabled-section')).toBeNull();
+  });
+
+  // TSA-984: with nothing to pay with no quote can be fetched, so the amount
+  // area is dimmed and inert instead of silently swallowing taps.
+  it('makes the amount area inert when the user has nothing to pay with', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      isUnsupportedChain: false,
+      hasNoPayWithFunds: true,
+    });
+
+    render(<QuickBuyAmountScreen />);
+
+    const disabled = screen.getByTestId('quick-buy-disabled-section');
+    expect(disabled.props.pointerEvents).toBe('none');
+    expect(screen.getByTestId('quick-buy-amount-container')).toBeOnTheScreen();
+  });
+
+  it('keeps the toolbar outside the inert region so the sheet can still be closed', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      isUnsupportedChain: false,
+      hasNoPayWithFunds: true,
+    });
+
+    render(<QuickBuyAmountScreen />);
+
+    // The toolbar owns the close button — trapping the user in an inert sheet
+    // would be a worse failure than the bug being fixed.
+    const disabled = screen.getByTestId('quick-buy-disabled-section');
+    expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
+    expect(within(disabled).queryByTestId('mock-toolbar')).toBeNull();
   });
 });
