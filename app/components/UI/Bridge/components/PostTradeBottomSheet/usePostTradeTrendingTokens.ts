@@ -88,15 +88,7 @@ export const usePostTradeTrendingTokens = ({
     staleTime: STALE_TIME_MS,
     cacheTime: STALE_TIME_MS,
   });
-  const isLoading =
-    isQueryEnabled &&
-    (destinationQuery.isLoading ||
-      (shouldFillWithFallback && fallbackQuery.isLoading));
   const tokens = useMemo(() => {
-    if (isLoading) {
-      return [];
-    }
-
     if (!shouldFillWithFallback || !fallbackQuery.data?.length) {
       return destinationTokens;
     }
@@ -108,16 +100,14 @@ export const usePostTradeTrendingTokens = ({
         POST_TRADE_TRENDING_TOKENS_LIMIT - destinationTokens.length,
       ),
     ];
-  }, [
-    destinationTokens,
-    fallbackQuery.data,
-    isLoading,
-    shouldFillWithFallback,
-  ]);
+  }, [destinationTokens, fallbackQuery.data, shouldFillWithFallback]);
 
   return {
     tokens,
-    isLoading,
+    isLoading:
+      isQueryEnabled &&
+      (destinationQuery.isLoading ||
+        (shouldFillWithFallback && fallbackQuery.isLoading)),
     error: destinationQuery.error,
     refetch: destinationQuery.refetch,
   };
