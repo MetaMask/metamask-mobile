@@ -5,7 +5,10 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
-import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
+import SearchFeedRow, {
+  SearchFeedSkeleton,
+  PERPS_ROW_WRAPPER_TEST_ID,
+} from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 
@@ -223,6 +226,55 @@ describe('SearchFeedRow', () => {
       expect.objectContaining({ search_query: 'second' }),
     );
   });
+});
+
+describe('perps row alignment', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('cancels the list container padding so perps rows align with other feeds', () => {
+    const perpsMarket = { symbol: 'ETH' } as PerpsMarketData;
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="perps"
+        item={perpsMarket}
+        index={0}
+        searchQuery="q"
+        tabName="perps"
+      />,
+    );
+
+    expect(getByTestId(PERPS_ROW_WRAPPER_TEST_ID)).toHaveStyle({
+      marginLeft: -16,
+      marginRight: -16,
+    });
+  });
+
+  it.each(['tokens', 'stocks', 'predictions', 'sites'] as const)(
+    'does not wrap %s rows, which rely on the container padding',
+    (feedId) => {
+      const itemByFeed = {
+        tokens: { assetId: 'asset-1' } as TrendingAsset,
+        stocks: { assetId: 'asset-2' } as TrendingAsset,
+        predictions: { id: 'pred-9' } as PredictMarketType,
+        sites: { url: 'https://example.com' } as SiteData,
+      }[feedId];
+
+      const { queryByTestId } = render(
+        <SearchFeedRow
+          feedId={feedId}
+          item={itemByFeed}
+          index={0}
+          searchQuery="q"
+          tabName={feedId}
+        />,
+      );
+
+      expect(queryByTestId(PERPS_ROW_WRAPPER_TEST_ID)).toBeNull();
+    },
+  );
 });
 
 describe('onQuickTrade prop', () => {
