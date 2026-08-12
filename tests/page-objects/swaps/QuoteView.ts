@@ -545,23 +545,24 @@ class QuoteView {
   }
 
   /**
-   * Asserts the quote is displayed by verifying the destination token input
-   * contains a numeric value (meaning a quote result has populated the field).
+   * Waits until a quote is ready without relying on "Network fee" text visibility.
+   * Destination amount sits above the keypad BottomSheet, so this works while the
+   * keypad is open (Network fee / QuoteDetailsCard can exist but report not displayed).
    */
-  async isQuoteDisplayed(): Promise<void> {
+  async waitForQuoteReady(options?: { timeout?: number }): Promise<void> {
+    const timeout = options?.timeout ?? 60_000;
     await encapsulatedAction({
       detox: async () => {
         await Assertions.expectElementToBeVisible(
           asDetoxElement(this.feeDisclaimerLabel),
           {
             description: 'Fee disclaimer label is visible (quote displayed)',
-            timeout: TIMEOUT.QUOTE_DISPLAYED,
+            timeout,
           },
         );
       },
       appium: async () => {
         const el = await asPlaywrightElement(this.destinationTokenInput);
-        const timeout = TIMEOUT.QUOTE_DISPLAYED;
         const interval = 300;
         const start = Date.now();
         while (Date.now() - start < timeout) {
@@ -569,7 +570,7 @@ class QuoteView {
           if (text && /\d/.test(text) && parseFloat(text) > 0) {
             return;
           }
-          await new Promise((r) => setTimeout(r, interval));
+          await sleep(interval);
         }
         const finalText = await el.textContent();
         throw new Error(
@@ -577,6 +578,14 @@ class QuoteView {
         );
       },
     });
+  }
+
+  /**
+   * Asserts the quote is displayed by verifying the destination token input
+   * contains a numeric value (meaning a quote result has populated the field).
+   */
+  async isQuoteDisplayed(): Promise<void> {
+    await this.waitForQuoteReady({ timeout: TIMEOUT.QUOTE_DISPLAYED });
   }
 
   /**

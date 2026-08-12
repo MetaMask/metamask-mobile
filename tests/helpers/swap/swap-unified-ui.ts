@@ -61,9 +61,9 @@ export async function submitSwapUnifiedUI(
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
   const getQuoteStarted = Date.now();
-  await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
-    timeout: 60000,
-  });
+  // Prefer destination-amount readiness over "Network fee" text — the fee row
+  // can exist while the keypad BottomSheet reports it as not displayed.
+  await QuoteView.waitForQuoteReady({ timeout: 60000 });
   logger.debug(`⏳ Quote visible after ${Date.now() - getQuoteStarted}ms`);
 
   // Dismiss the keypad so quote details (slippage, confirm) are not obscured
