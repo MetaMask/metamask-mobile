@@ -14,6 +14,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
+import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
@@ -335,6 +336,17 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onLeverageConfirm).toHaveBeenCalledWith(10);
+  });
+
+  it('renders the leverage sheet inside the Android modal gesture root', () => {
+    mockHookResult.isLeverageVisible = true;
+
+    renderPanel();
+
+    expect(
+      screen.getByTestId(PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('mock-leverage-confirm')).toBeOnTheScreen();
   });
 
   it('saves slippage from the slippage sheet when visible', () => {
