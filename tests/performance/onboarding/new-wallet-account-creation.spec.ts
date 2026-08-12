@@ -19,15 +19,11 @@ import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWall
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import {
   dismissOnboardingInterestQuestionnaire,
-  dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
-import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-
-const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
 /* Scenario 2: Account creation after fresh install */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
@@ -61,22 +57,6 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
       await dismissPushNotificationExistingUserSheet();
-      const productionFeatureFlags = await fetchProductionFeatureFlags(
-        'main',
-        testEnvironment,
-      );
-
-      const predictGtmOnboardingModalEnabled = (
-        productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
-          enabled?: boolean;
-        }
-      )?.enabled;
-      if (
-        predictGtmOnboardingModalEnabled &&
-        predictGtmOnboardingModalEnabled === true
-      ) {
-        await dismisspredictionsModalPlaywright();
-      }
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
