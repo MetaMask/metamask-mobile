@@ -1,6 +1,7 @@
 import {
   isNonEvmChainId,
   formatChainIdToCaip,
+  getNativeAssetForChainId,
 } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
 import {
@@ -213,6 +214,13 @@ export interface UseQuickBuyControllerResult {
   isPriceImpactError: boolean;
   /** True when a buy pill amount exceeds balance and the CTA routes to Ramp. */
   isPresetAddFundsMode: boolean;
+  /**
+   * True when the account holds nothing tradable to pay with, so no quote can
+   * ever be requested (TSA-984). Amount entry is meaningless in this state —
+   * consumers render the sheet's trading surface dimmed and inert, leaving the
+   * "Add funds" CTA as the only live control.
+   */
+  hasNoPayWithFunds: boolean;
   // button state (priority-encoded; the Buy button surfaces at most one)
   buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
@@ -381,6 +389,49 @@ export function useQuickBuyController(
         : heldTokenOptions,
     [heldTokenOptions, destLookupKey],
   );
+
+  // True when the user holds nothing tradable to pay with on any bridge-enabled
+  // chain (TSA-984). In this state `sourceToken` never resolves — the
+  // auto-select effect below intentionally no-ops on an empty option list — so
+  // every quote/balance-derived control (quick-amount pills, Buy CTA) would
+  // otherwise sit silently disabled forever with no affordance to get unstuck.
+  // Routed to an "Add funds" CTA instead, same as the existing over-balance
+  // preset-pill path.
+  //
+  // Deliberately NOT gated on `isSetupLoading`: `heldTokenOptions` is derived
+  // synchronously from persisted balance state, so emptiness is known on the
+  // first render, whereas `isSetupLoading` stays true for a network round-trip
+  // on ERC-20 targets. Gating on it made this flip false→true mid-mount, which
+  // let the keypad open and then collapse — the sheet visibly grew and shrank
+  // (an empty list also stays empty through the dest-token filter below, so
+  // waiting for the normalised dest address cannot change this verdict).
+  const hasNoPayWithFunds =
+    tradeMode === 'buy' && sourceTokenOptions.length === 0;
+
+  // Ramp target for the "Add funds" flow when there is no held pay-with token to
+  // derive one from: the destination chain's native asset (ETH on Base, SOL on
+  // Solana, …). Native is the right default over a stablecoin because the user
+  // needs gas on that chain to swap afterwards, so it unblocks both halves of
+  // the flow.
+  //
+  // `assetId` is read straight off the bridge-controller native asset because it
+  // is already the slip44 CAIP-19 for EVM *and* non-EVM. Deriving it instead via
+  // `toAssetId(token.address)` would be wrong for EVM: `getNativeSourceToken`
+  // keeps the zero address for EVM natives, and `toAssetId` stamps any hex
+  // address as `erc20:`, yielding `eip155:N/erc20:0x000…000`. Ramps resolves
+  // natives by looking for `/slip44:` (see `resolveRampControllerAssetId`), so
+  // that id matches no listed token and the buy screen opens with no asset.
+  //
+  // Throws for chains absent from the default-token map (same guard as
+  // `useQuickBuySetup`) — leave the CTA disabled rather than crash the sheet.
+  const noFundsAddAssetId = useMemo(() => {
+    if (!hasNoPayWithFunds || !destChainId) return undefined;
+    try {
+      return getNativeAssetForChainId(destChainId).assetId;
+    } catch {
+      return undefined;
+    }
+  }, [hasNoPayWithFunds, destChainId]);
 
   // Auto-select default source token using smart priority rules (see
   // `selectDefaultSourceToken`). `destLookupKey` is passed so the destination
@@ -1377,11 +1428,16 @@ export function useQuickBuyController(
   }, [fiatAmount, maxSpendFiat, hasSourcePrice, tradeMode]);
 
   const handleConfirm = useCallback(async () => {
-    if (isPresetAddFundsMode && tradeMode === 'buy' && sourceToken) {
-      const assetId = toAssetId(
-        sourceToken.address,
-        formatChainIdToCaip(sourceToken.chainId),
-      );
+    if ((isPresetAddFundsMode || hasNoPayWithFunds) && tradeMode === 'buy') {
+      // With funds held, top up the very token the user came up short on. With
+      // none, `sourceToken` never resolves, so fall back to the destination
+      // chain's native asset (see `noFundsAddAssetId`).
+      const assetId = sourceToken
+        ? toAssetId(
+            sourceToken.address,
+            formatChainIdToCaip(sourceToken.chainId),
+          )
+        : noFundsAddAssetId;
       if (!assetId) {
         return;
       }
@@ -1561,6 +1617,8 @@ export function useQuickBuyController(
     }
   }, [
     isPresetAddFundsMode,
+    hasNoPayWithFunds,
+    noFundsAddAssetId,
     goToBuy,
     handleClose,
     activeQuote,
@@ -1714,26 +1772,31 @@ export function useQuickBuyController(
   // receive estimate are not blanked every refresh tick.
   const isBlockingQuoteLoad = isQuoteLoading && !hasUsableQuoteOnScreen;
 
-  const isConfirmDisabled = isPresetAddFundsMode
-    ? !hasValidAmount || isSetupLoading || !sourceToken || isSubmittingTx
-    : !hasValidAmount ||
-      isAmountUncommitted ||
-      isSetupLoading ||
-      !sourceToken ||
-      !destToken ||
-      isDestinationAddressMissing ||
-      !activeQuote ||
-      hasQuoteMismatch ||
-      isPendingQuoteRefresh ||
-      isQuoteRequestStale ||
-      isBlockingQuoteLoad ||
-      hasInsufficientBalance ||
-      isNetworkFeeUnavailable ||
-      hasInsufficientGas ||
-      isSubmittingTx ||
-      hasError ||
-      isHardwareSolanaBlocked ||
-      !walletAddress;
+  const isConfirmDisabled = hasNoPayWithFunds
+    ? // Not gated on `isSetupLoading`: routing to Ramp only needs the dest
+      // chain's native asset, which resolves synchronously — so the CTA is
+      // actionable on first paint instead of flickering disabled→enabled.
+      isSubmittingTx || !noFundsAddAssetId
+    : isPresetAddFundsMode
+      ? !hasValidAmount || isSetupLoading || !sourceToken || isSubmittingTx
+      : !hasValidAmount ||
+        isAmountUncommitted ||
+        isSetupLoading ||
+        !sourceToken ||
+        !destToken ||
+        isDestinationAddressMissing ||
+        !activeQuote ||
+        hasQuoteMismatch ||
+        isPendingQuoteRefresh ||
+        isQuoteRequestStale ||
+        isBlockingQuoteLoad ||
+        hasInsufficientBalance ||
+        isNetworkFeeUnavailable ||
+        hasInsufficientGas ||
+        isSubmittingTx ||
+        hasError ||
+        isHardwareSolanaBlocked ||
+        !walletAddress;
 
   const isTotalLoading =
     hasValidAmount &&
@@ -1742,7 +1805,7 @@ export function useQuickBuyController(
   const isConfirmLoading = isSubmittingTx;
 
   let buttonError: QuickBuyButtonError | null = null;
-  if (!isPresetAddFundsMode) {
+  if (!isPresetAddFundsMode && !hasNoPayWithFunds) {
     if (hasInsufficientBalance || isNetworkFeeUnavailable) {
       buttonError = 'insufficient_balance';
     } else if (hasInsufficientGas) {
@@ -1756,12 +1819,16 @@ export function useQuickBuyController(
   // In add-funds mode the CTA routes to Ramp and never needs a quote, so a rare
   // mid-flight fetch (tapping an over-balance pill while a prior valid-amount
   // fetch is still settling) must not spin the Add funds button.
-  if (!isPresetAddFundsMode && (isConfirmLoading || isBlockingQuoteLoad)) {
+  if (
+    !isPresetAddFundsMode &&
+    !hasNoPayWithFunds &&
+    (isConfirmLoading || isBlockingQuoteLoad)
+  ) {
     confirmButtonState = 'loading';
   }
 
   const getButtonLabel = useCallback(() => {
-    if (isPresetAddFundsMode) {
+    if (isPresetAddFundsMode || hasNoPayWithFunds) {
       return strings('social_leaderboard.quick_buy.add_funds');
     }
     if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
@@ -1769,7 +1836,13 @@ export function useQuickBuyController(
     return tradeMode === 'sell'
       ? strings('social_leaderboard.trader_position.sell')
       : strings('social_leaderboard.trader_position.buy');
-  }, [buttonError, isPresetAddFundsMode, isSubmittingTx, tradeMode]);
+  }, [
+    buttonError,
+    isPresetAddFundsMode,
+    hasNoPayWithFunds,
+    isSubmittingTx,
+    tradeMode,
+  ]);
 
   return {
     hiddenInputRef,
@@ -1829,6 +1902,7 @@ export function useQuickBuyController(
     priceImpactViewData,
     isPriceImpactError,
     isPresetAddFundsMode,
+    hasNoPayWithFunds,
     buttonError,
     hasValidAmount,
     isConfirmDisabled,

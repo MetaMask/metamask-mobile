@@ -229,6 +229,7 @@ const buildHookResult = (
   },
   isPriceImpactError: false,
   isPresetAddFundsMode: false,
+  hasNoPayWithFunds: false,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: true,
