@@ -149,6 +149,7 @@ describe('TokenDetailsStickyFooter', () => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsStockToken.mockReturnValue(false);
     mockHasEligibleSwapTokens = true;
     setupSelectorMock();
     mockUseABTest.mockReturnValue({
