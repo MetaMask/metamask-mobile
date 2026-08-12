@@ -132,7 +132,10 @@ export function MmPayDebugModal({ onClose }: { onClose?: () => void }) {
                   <Box key={row.label} style={styles.quoteRow}>
                     <Text variant={TextVariant.BodySm}>{row.label}</Text>
                     {row.infoValue !== undefined ? (
-                      <Tag severity={TagSeverity.Info}>{row.infoValue}</Tag>
+                      <Box style={styles.quoteValueGroup}>
+                        <Text variant={TextVariant.BodySm}>{row.value}</Text>
+                        <Tag severity={TagSeverity.Info}>{row.infoValue}</Tag>
+                      </Box>
                     ) : row.boolValue !== undefined ? (
                       <Tag
                         severity={
@@ -157,22 +160,22 @@ export function MmPayDebugModal({ onClose }: { onClose?: () => void }) {
             const isExpanded = expandedSection === section.key;
             return (
               <Box key={section.key} style={styles.sectionContainer}>
-                <TouchableOpacity
-                  style={styles.sectionHeader}
-                  testID={MmPayDebugModalTestIds.sectionHeader(section.key)}
-                  onPress={() =>
-                    setExpandedSection(isExpanded ? null : section.key)
-                  }
-                  activeOpacity={0.7}
-                >
-                  <Box style={styles.sectionTitleContainer}>
+                <Box style={styles.sectionHeader}>
+                  <TouchableOpacity
+                    style={styles.sectionTitleContainer}
+                    testID={MmPayDebugModalTestIds.sectionHeader(section.key)}
+                    onPress={() =>
+                      setExpandedSection(isExpanded ? null : section.key)
+                    }
+                    activeOpacity={0.7}
+                  >
                     <Text
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Bold}
                     >
                       {section.title}
                     </Text>
-                  </Box>
+                  </TouchableOpacity>
                   <Button
                     size={ButtonSize.Sm}
                     variant="secondary"
@@ -181,7 +184,7 @@ export function MmPayDebugModal({ onClose }: { onClose?: () => void }) {
                   >
                     Copy
                   </Button>
-                </TouchableOpacity>
+                </Box>
                 {isExpanded && (
                   <Box style={styles.sectionContent}>
                     {section.key === 'transactionMetrics' && (

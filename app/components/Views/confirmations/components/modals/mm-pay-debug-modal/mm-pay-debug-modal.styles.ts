@@ -70,6 +70,12 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingVertical: 4,
     },
+    quoteValueGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexShrink: 1,
+      gap: 6,
+    },
   });
 };
 

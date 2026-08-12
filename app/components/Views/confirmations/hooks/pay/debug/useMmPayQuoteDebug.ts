@@ -85,8 +85,8 @@ export function useMmPayQuoteDebug(): MmPayQuoteDebug {
   const original = currentQuote.original as RelayQuoteOriginalShape;
 
   const subsidized = isSubsidized(original);
-  const isExecute = Boolean(original?.metamask?.isExecute);
-  const is7702 = Boolean(original?.metamask?.is7702);
+  const isExecute = original?.metamask?.isExecute;
+  const is7702 = original?.metamask?.is7702;
   const maxAmount = Boolean(isMaxAmount);
 
   const accountOverrideGroupName = accountOverride
@@ -110,13 +110,21 @@ export function useMmPayQuoteDebug(): MmPayQuoteDebug {
       value: formatValue(paymentOverride),
       infoValue: paymentOverrideLabel,
     },
-    { label: 'isExecute', value: formatValue(isExecute), boolValue: isExecute },
+    {
+      label: 'isExecute',
+      value: formatValue(isExecute),
+      boolValue: typeof isExecute === 'boolean' ? isExecute : undefined,
+    },
     {
       label: 'isSubsidized',
       value: formatValue(subsidized),
       boolValue: subsidized,
     },
-    { label: 'is7702', value: formatValue(is7702), boolValue: is7702 },
+    {
+      label: 'is7702',
+      value: formatValue(is7702),
+      boolValue: typeof is7702 === 'boolean' ? is7702 : undefined,
+    },
     {
       label: 'isMaxAmount',
       value: formatValue(maxAmount),

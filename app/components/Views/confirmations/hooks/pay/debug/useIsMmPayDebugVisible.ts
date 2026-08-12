@@ -7,12 +7,15 @@ import {
 import { selectMmPayDebugEnabled } from '../../../../../../reducers/experimentalSettings/selectors';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { MM_PAY_TRANSACTION_TYPES } from '../../../constants/confirmations';
+import { isRc, isTestEnvironment } from '../../../../../../util/test/utils';
 
 export function useIsMmPayDebugVisible(): boolean {
   const isDebugEnabled = useSelector(selectMmPayDebugEnabled);
   const transactionMeta = useTransactionMetadataRequest();
 
-  if (!isDebugEnabled || !transactionMeta) {
+  const isDebugBuild = isRc || isTestEnvironment;
+
+  if (!isDebugBuild || !isDebugEnabled || !transactionMeta) {
     return false;
   }
 
