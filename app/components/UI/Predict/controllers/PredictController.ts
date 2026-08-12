@@ -103,6 +103,7 @@ import {
   PredictMarket,
   PredictMarketListParams,
   PredictMarketListResponse,
+  PredictOrderErrorStage,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -119,7 +120,7 @@ import {
   Side,
   UnrealizedPnL,
 } from '../types';
-import { PredictFeatureFlags } from '../types/flags';
+import { PredictFeatureFlags, PredictHiddenMarketsFlag } from '../types/flags';
 
 import { mapClaimFailureReason } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
@@ -171,6 +172,11 @@ export type PredictControllerState = {
       transactionId?: string;
       state: ActiveOrderState;
       error?: string;
+      /**
+       * Which buy leg failed. `'payment'` = swap/deposit before order placement.
+       * `'order'` (default when omitted) = order placement / fill failure.
+       */
+      errorStage?: PredictOrderErrorStage;
       paymentTokenAddress?: string;
       paymentTokenSymbol?: string;
     };
@@ -773,8 +779,44 @@ export class PredictController extends BaseController<
           }
         }
 
+        markets = this.filterHiddenMarkets(
+          markets,
+          featureFlags.hiddenMarketsFlag,
+          params.category,
+        );
+
         return { markets, nextCursor };
       },
+    );
+  }
+
+  /**
+   * Removes remotely hidden markets (by id or slug) from category feed
+   * results. Used to pull broken markets (e.g. stale end dates polluting the
+   * Ending Soon tab) without an app release.
+   */
+  private filterHiddenMarkets(
+    markets: PredictMarket[],
+    hiddenMarketsFlag: PredictHiddenMarketsFlag,
+    category?: string,
+  ): PredictMarket[] {
+    if (!category) {
+      return markets;
+    }
+
+    const entry = hiddenMarketsFlag.hidden.find(
+      (hidden) => hidden.category === category,
+    );
+    if (!entry || (entry.marketIds.length === 0 && entry.slugs.length === 0)) {
+      return markets;
+    }
+
+    const hiddenMarketIds = new Set(entry.marketIds);
+    const hiddenSlugs = new Set(entry.slugs);
+
+    return markets.filter(
+      (market) =>
+        !hiddenMarketIds.has(market.id) && !hiddenSlugs.has(market.slug),
     );
   }
 
@@ -1616,6 +1658,7 @@ export class PredictController extends BaseController<
           state.activeBuyOrders[activeOrderAddress].state =
             ActiveOrderState.PREVIEW;
           state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+          state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
         }
       });
 
@@ -1927,6 +1970,7 @@ export class PredictController extends BaseController<
           state.activeBuyOrders[activeOrderAddress].state =
             ActiveOrderState.PREVIEW;
           state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+          state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
         }
         if (isBuyWithAnyToken) {
           state.selectedPaymentToken = null;
@@ -2651,6 +2695,7 @@ export class PredictController extends BaseController<
     this.update((state) => {
       if (state.activeBuyOrders[address]) {
         delete state.activeBuyOrders[address].error;
+        delete state.activeBuyOrders[address].errorStage;
       }
     });
   }
@@ -2994,9 +3039,15 @@ export class PredictController extends BaseController<
       });
       submittedBatchId = batchId;
 
+      // Keep payment-stage errors sticky so reopen still shows the Add funds
+      // banner after a depositAndOrder failure + successful re-init (PRED-1026).
       this.update((state) => {
-        if (state.activeBuyOrders[address]) {
+        if (
+          state.activeBuyOrders[address] &&
+          state.activeBuyOrders[address].errorStage !== 'payment'
+        ) {
           delete state.activeBuyOrders[address].error;
+          delete state.activeBuyOrders[address].errorStage;
         }
       });
 
@@ -3019,10 +3070,17 @@ export class PredictController extends BaseController<
         };
       }
 
-      this.trackFlowSubmissionFailureMetric({
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
         transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
         error,
       });
+
+      if (isUserCancelled) {
+        return {
+          success: true,
+          response: { batchId: 'NA' },
+        };
+      }
 
       Logger.error(
         e,
@@ -3031,9 +3089,17 @@ export class PredictController extends BaseController<
         }),
       );
 
+      const errorMessage = e.message || PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      this.update((state) => {
+        if (state.activeBuyOrders[address]) {
+          state.activeBuyOrders[address].error = errorMessage;
+          state.activeBuyOrders[address].errorStage = 'payment';
+        }
+      });
+
       return {
         success: false,
-        error: e.message,
+        error: errorMessage,
       };
     }
   }
@@ -3352,6 +3418,7 @@ export class PredictController extends BaseController<
             state.activeBuyOrders[address].state =
               ActiveOrderState.PAY_WITH_ANY_TOKEN;
             state.activeBuyOrders[address].error = errorMessage;
+            state.activeBuyOrders[address].errorStage = 'payment';
             state.activeBuyOrders[address].transactionId = undefined;
           }
         });
@@ -3476,7 +3543,8 @@ export class PredictController extends BaseController<
 
     return this.state.claimablePositions[matchedAddress].reduce(
       (sum, position) =>
-        position.status === PredictPositionStatus.WON
+        position.status === PredictPositionStatus.WON ||
+        position.status === PredictPositionStatus.REDEEMABLE
           ? sum + position.currentValue
           : sum,
       0,

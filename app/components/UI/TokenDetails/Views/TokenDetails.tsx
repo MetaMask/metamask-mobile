@@ -620,7 +620,7 @@ const TokenDetails: React.FC<{
           onClose={() => setIsShareSheetVisible(false)}
         />
       )}
-      {!isMoneyFooterCtaActive && quickBuySheet}
+      {quickBuySheet}
     </View>
   );
 };

@@ -1,9 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useMemo, useCallback } from 'react';
-import {
-  type CanonicalMoneyAccountBalanceResponse,
-  type NormalizedVaultApyResponse,
-} from '@metamask/money-account-balance-service';
+import { type CanonicalMoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import { useQuery } from '@metamask/react-data-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
@@ -20,10 +17,8 @@ import {
   setLastKnownMoneyBalance,
   setMoneyAccountRedeemableRaw,
 } from '../../../../core/redux/slices/moneyBalance';
-import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 /**
  * Fetches the live exchange rate for the mUSD token.
@@ -37,7 +32,6 @@ export const getLiveVedaVaultExchangeRate = async () =>
 
 interface UseMoneyAccountBalanceResult {
   moneyBalanceQuery: UseQueryResult<CanonicalMoneyAccountBalanceResponse>;
-  vaultApyQuery: UseQueryResult<NormalizedVaultApyResponse>;
   isBalanceLoading: boolean;
   isBalanceFetchError: boolean;
   isBalanceUnavailable: boolean;
@@ -58,9 +52,6 @@ interface UseMoneyAccountBalanceResult {
   withdrawableFiatFormatted: string | undefined;
   withdrawableFiatRaw: string | undefined;
   withdrawableMusd: BigNumber | undefined;
-  apyDecimal: number | undefined;
-  apyPercent: number | undefined;
-  apyPercentFormatted: string | undefined;
 }
 
 interface UseMoneyAccountBalanceOptions {
@@ -78,9 +69,6 @@ const useMoneyAccountBalance = ({
 
   const currentCurrency = useSelector(selectCurrentCurrency);
   const lastKnownBalance = useSelector(selectLastKnownMoneyBalance);
-  const { vaultApyFallback, vaultApyOverride } = useSelector(
-    selectMoneyVaultApyRemoteConfig,
-  );
 
   const moneyBalanceQuery = useQuery({
     queryKey: [
@@ -90,12 +78,6 @@ const useMoneyAccountBalance = ({
     enabled: enabled && Boolean(moneyAccountAddress),
     refetchInterval,
   }) as UseQueryResult<CanonicalMoneyAccountBalanceResponse>;
-
-  const vaultApyQuery = useQuery({
-    queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
-    enabled,
-    refetchInterval: FIVE_MINUTES_MS,
-  }) as UseQueryResult<NormalizedVaultApyResponse>;
 
   /**
    * True while the balance query is loading with no cached data (even if stale).
@@ -223,36 +205,8 @@ const useMoneyAccountBalance = ({
     ? lastKnownBalance.value
     : undefined;
 
-  const serviceApy = vaultApyQuery.data?.apy;
-
-  // During first load with no cache, do not show fallback to avoid flicker.
-  // Show fallback on explicit APY query errors (service outage path) or when
-  // a settled query still yields no APY value.
-  const shouldUseFallback =
-    !vaultApyQuery.isLoading &&
-    (vaultApyQuery.isError || serviceApy === undefined);
-
-  // Override always wins when set; otherwise use live service value; then use
-  // fallback only when the APY query is settled/error and no live APY exists.
-  const apyDecimal =
-    vaultApyOverride !== undefined
-      ? vaultApyOverride
-      : (serviceApy ?? (shouldUseFallback ? vaultApyFallback : undefined));
-
-  const apyPercent =
-    apyDecimal !== undefined
-      ? new BigNumber(apyDecimal)
-          .multipliedBy(100)
-          .dp(1, BigNumber.ROUND_HALF_UP)
-          .toNumber()
-      : undefined;
-
-  const apyPercentFormatted =
-    apyPercent !== undefined ? `${apyPercent}%` : undefined;
-
   return {
     moneyBalanceQuery,
-    vaultApyQuery,
     isBalanceLoading,
     isBalanceFetchError,
     isBalanceUnavailable,
@@ -267,9 +221,6 @@ const useMoneyAccountBalance = ({
     withdrawableFiatFormatted,
     withdrawableFiatRaw,
     withdrawableMusd,
-    apyDecimal,
-    apyPercent,
-    apyPercentFormatted,
   };
 };
 

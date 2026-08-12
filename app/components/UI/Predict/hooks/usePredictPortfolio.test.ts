@@ -203,7 +203,7 @@ describe('usePredictPortfolio', () => {
     });
   });
 
-  it('counts only actionable won claimable positions in value, claim amount, and badge', () => {
+  it('counts actionable won and redeemable positions in value, claim amount, and badge', () => {
     const openPosition = createPosition('open', { currentValue: 100 });
     const wonClaimablePosition = createPosition('won', {
       claimable: true,
@@ -215,24 +215,34 @@ describe('usePredictPortfolio', () => {
       currentValue: 10,
       status: PredictPositionStatus.LOST,
     });
+    const pushedClaimablePosition = createPosition('push', {
+      claimable: true,
+      currentValue: 20,
+      cashPnl: 0,
+      status: PredictPositionStatus.REDEEMABLE,
+    });
 
     mockUsePredictPositions.mockImplementation(
       ({ claimable }: { claimable?: boolean }) =>
         createQuery<PredictPosition[]>({
           data: claimable
-            ? [wonClaimablePosition, lostClaimablePosition]
+            ? [
+                wonClaimablePosition,
+                pushedClaimablePosition,
+                lostClaimablePosition,
+              ]
             : [openPosition],
         }),
     );
 
     const { result } = renderHook(() => usePredictPortfolio());
 
-    expect(result.current.claimableAmount).toBe(46.35);
+    expect(result.current.claimableAmount).toBe(66.35);
     expect(result.current.hasClaimableWinnings).toBe(true);
-    expect(result.current.portfolioValue).toBe(146.35);
+    expect(result.current.portfolioValue).toBe(166.35);
     expect(result.current.openPositionCount).toBe(1);
-    expect(result.current.claimablePositionCount).toBe(1);
-    expect(result.current.positionsBadgeCount).toBe(2);
+    expect(result.current.claimablePositionCount).toBe(2);
+    expect(result.current.positionsBadgeCount).toBe(3);
   });
 
   it('returns no claimable winnings for lost-only claimable positions', () => {
