@@ -46,6 +46,7 @@ import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
@@ -132,13 +133,11 @@ const MoneyHomeView = () => {
   const {
     totalFiatFormatted,
     totalFiatRaw,
-    vaultApyQuery,
     isBalanceLoading,
     lastKnownTotalFiatFormatted,
     refetchBalance,
-    apyPercent,
-    apyDecimal,
   } = useMoneyAccountBalance();
+  const { vaultApyQuery, apyPercent, apyDecimal } = useMoneyVaultApy();
   const { last30DaysQuery, sinceInceptionQuery, refetchInterest } =
     useMoneyAccountInterest();
 

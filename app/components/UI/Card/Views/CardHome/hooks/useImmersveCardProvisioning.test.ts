@@ -27,8 +27,8 @@ jest.mock('../../../../../../selectors/cardController', () => ({
   selectCardSelectedCountry: () => mockSelectedCountry,
 }));
 jest.mock('../../../../../../selectors/featureFlagController/card', () => ({
-  selectCardFeatureFlag: () => ({
-    immersve: { fundingChannelId: mockFundingChannelId },
+  selectCardImmersveConfig: () => ({
+    fundingChannelId: mockFundingChannelId,
   }),
 }));
 jest.mock('../../../../../../core/redux/slices/card', () => ({

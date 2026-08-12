@@ -1865,6 +1865,9 @@ export const getPredictPositionStatus = ({
   if (cashPnl > 0) {
     return PredictPositionStatus.WON;
   }
+  if (cashPnl === 0) {
+    return PredictPositionStatus.REDEEMABLE;
+  }
   return PredictPositionStatus.LOST;
 };
 

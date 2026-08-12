@@ -14,7 +14,7 @@ import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../utils/projections';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import useMoneyAccountBalance from './useMoneyAccountBalance';
+import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
@@ -44,7 +44,7 @@ export const useMoneyAssetOverviewCtas = ({
   } = useMoneyCtaVisibility();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
-  const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyAccountBalance();
+  const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy();
   const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ASSET_DETAIL,
   });

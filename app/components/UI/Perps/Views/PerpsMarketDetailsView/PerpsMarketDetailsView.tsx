@@ -365,7 +365,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const handlePerpsModeChange = useCallback(
-    async (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode): Promise<boolean> => {
       // PerpsModeSwitchPill runs the shimmer before invoking this callback. The
       // one-time chooser gates every header toggle, so show it here when the
       // user has not completed it and let the sheet own the switch.
@@ -374,13 +374,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       });
       if (openedChooser) {
-        return;
+        return false;
       }
 
       setPerpsMode(nextMode);
       if (nextMode === PerpsMode.Pro) {
         dropPerpsHomeFromStackHistory();
       }
+      return true;
     },
     [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );

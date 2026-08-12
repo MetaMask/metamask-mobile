@@ -62,6 +62,12 @@
       ],
       "@metamask/delegation-controller/types": [
         "node_modules/@metamask/delegation-controller/dist/types.d.cts"
+      ],
+      "@ledgerhq/device-management-kit": [
+        "node_modules/@ledgerhq/device-management-kit/lib/types/index.d.ts"
+      ],
+      "@ledgerhq/device-transport-kit-react-native-ble": [
+        "node_modules/@ledgerhq/device-transport-kit-react-native-ble/lib/types/index.d.ts"
       ]
     },
     "allowSyntheticDefaultImports": true,

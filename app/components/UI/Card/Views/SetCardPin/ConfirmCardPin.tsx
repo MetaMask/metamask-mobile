@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -10,6 +10,13 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import {
+  ButtonIconVariant,
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { useTheme } from '../../../../../util/theme';
 import CardScreenshotDeterrent from '../../components/CardScreenshotDeterrent/CardScreenshotDeterrent';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { SetCardPinSelectors } from './SetCardPin.testIds';
@@ -25,6 +32,8 @@ const ConfirmCardPin: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { cardId } = useParams<{ cardId: string }>();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { toastRef } = useContext(ToastContext);
+  const theme = useTheme();
   const [isPending, setIsPending] = React.useState(false);
   const [isTerminalForbidden, setIsTerminalForbidden] = React.useState(false);
   const submittingRef = React.useRef(false);
@@ -145,13 +154,24 @@ const ConfirmCardPin: React.FC = () => {
           })
           .build(),
       );
-      // Replace the set/confirm stack so system back cannot return to Confirm.
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [{ label: strings('card.set_pin.success_title') }],
+        descriptionOptions: {
+          description: strings('card.set_pin.success_description'),
+        },
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: () => toastRef?.current?.closeToast(),
+        },
+      });
       navigation.reset({
-        index: 1,
-        routes: [
-          { name: Routes.CARD.HOME },
-          { name: Routes.CARD.SET_PIN_SUCCESS },
-        ],
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
       });
     } catch (error) {
       const kind = classifySetCardPinError(error);
@@ -221,6 +241,8 @@ const ConfirmCardPin: React.FC = () => {
     trackEvent,
     createEventBuilder,
     handleAuthFailure,
+    toastRef,
+    theme,
   ]);
 
   const canSubmit =

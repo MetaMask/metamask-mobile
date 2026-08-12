@@ -16,6 +16,8 @@ import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -846,5 +848,28 @@ export default class Gestures {
     timeout = 10000,
   ): Promise<void> {
     return this.replaceText(elem, text, { timeout });
+  }
+
+  /**
+   * Tap a single iOS soft-keyboard key (Appium iOS only).
+   */
+  static async tapIosKeyboardKey(keyName: string): Promise<void> {
+    if (!PlatformDetector.isIOSAppium()) {
+      throw new Error('Gestures.tapIosKeyboardKey is Appium iOS only');
+    }
+    await PlaywrightGestures.tapIosKeyboardKey(keyName);
+  }
+
+  /**
+   * Type via the focused iOS soft keyboard by tapping keys (Appium iOS only).
+   */
+  static async typeViaIosKeyboard(
+    text: string,
+    options?: { numberPad?: boolean },
+  ): Promise<void> {
+    if (!PlatformDetector.isIOSAppium()) {
+      throw new Error('Gestures.typeViaIosKeyboard is Appium iOS only');
+    }
+    await PlaywrightGestures.typeViaIosKeyboard(text, options);
   }
 }
