@@ -1,5 +1,10 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import QuickBuyActionFooter from './QuickBuyActionFooter';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
@@ -159,5 +164,67 @@ describe('QuickBuyActionFooter', () => {
     expect(screen.getByTestId('quick-buy-pay-with-button')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
+  });
+
+  describe('when the user has nothing to pay with (TSA-984)', () => {
+    const noFundsContext = {
+      ...baseContext,
+      hasNoPayWithFunds: true,
+      isConfirmDisabled: false,
+      getButtonLabel: () => 'social_leaderboard.quick_buy.add_funds',
+      features: {
+        payWithSheet: true,
+        quickAmountPills: true,
+        quoteDetails: true,
+      },
+    };
+
+    it('makes the quote-dependent rows inert', () => {
+      (useQuickBuyContext as jest.Mock).mockReturnValue(noFundsContext);
+
+      render(<QuickBuyActionFooter />);
+
+      const disabled = screen.getByTestId('quick-buy-disabled-section');
+      expect(disabled.props.pointerEvents).toBe('none');
+      expect(
+        within(disabled).getByTestId('quick-buy-quick-amounts'),
+      ).toBeOnTheScreen();
+      expect(
+        within(disabled).getByTestId('quick-buy-pay-with-button'),
+      ).toBeOnTheScreen();
+      expect(
+        within(disabled).getByTestId('quick-buy-rate-tag-pressable'),
+      ).toBeOnTheScreen();
+    });
+
+    it('disables the Pay with picker and the total row individually', () => {
+      const setActiveScreen = jest.fn();
+      (useQuickBuyContext as jest.Mock).mockReturnValue({
+        ...noFundsContext,
+        setActiveScreen,
+      });
+
+      render(<QuickBuyActionFooter />);
+
+      // pointerEvents blocks real touches, but the controls also opt out on
+      // their own so assistive tech announces them as unavailable rather than
+      // offering buttons that cannot respond.
+      fireEvent.press(screen.getByTestId('quick-buy-pay-with-button'));
+      fireEvent.press(screen.getByTestId('quick-buy-rate-tag-pressable'));
+      expect(setActiveScreen).not.toHaveBeenCalled();
+    });
+
+    it('leaves the Add funds CTA outside the inert region', () => {
+      (useQuickBuyContext as jest.Mock).mockReturnValue(noFundsContext);
+
+      render(<QuickBuyActionFooter />);
+
+      const disabled = screen.getByTestId('quick-buy-disabled-section');
+      // The CTA is the one live control — it must not inherit pointerEvents:none.
+      expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
+      expect(
+        within(disabled).queryByTestId('quick-buy-confirm-button'),
+      ).toBeNull();
+    });
   });
 });
