@@ -59,6 +59,7 @@ import styleSheet from './Toast.styles';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
 import {
   TOAST_DISMISS_DISTANCE_THRESHOLD,
+  TOAST_DISMISS_MINIMUM_PX,
   TOAST_DISMISS_VELOCITY_THRESHOLD,
   TOAST_SPRING_CONFIG,
   TOAST_SWIPE_ACTIVE_OFFSET_Y,
@@ -417,32 +418,24 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     startDismissAnimation();
   };
 
-  const closeToastRef = useRef(closeToast);
-  const ensureAutoDismissAfterIncompleteSwipeRef = useRef(
+  // Single stable ref so the memoized pan gesture always calls the latest
+  // JS callbacks without recreating the gesture each render.
+  const swipeCallbacks = useRef({
+    closeToast,
     ensureAutoDismissAfterIncompleteSwipe,
-  );
-  const resumeAutoDismissAfterSwipeRef = useRef(resumeAutoDismissAfterSwipe);
-  const clearScheduledAutoDismissRef = useRef(clearScheduledAutoDismiss);
-  closeToastRef.current = closeToast;
-  ensureAutoDismissAfterIncompleteSwipeRef.current =
-    ensureAutoDismissAfterIncompleteSwipe;
-  resumeAutoDismissAfterSwipeRef.current = resumeAutoDismissAfterSwipe;
-  clearScheduledAutoDismissRef.current = clearScheduledAutoDismiss;
-
-  const dismissToastFromSwipe = () => {
-    closeToastRef.current();
+    resumeAutoDismissAfterSwipe,
+    clearScheduledAutoDismiss,
+  });
+  swipeCallbacks.current = {
+    closeToast,
+    ensureAutoDismissAfterIncompleteSwipe,
+    resumeAutoDismissAfterSwipe,
+    clearScheduledAutoDismiss,
   };
 
-  const ensureAutoDismissFromSwipe = () => {
-    ensureAutoDismissAfterIncompleteSwipeRef.current();
-  };
-
-  const resumeAutoDismissFromSwipe = () => {
-    resumeAutoDismissAfterSwipeRef.current();
-  };
-
-  const clearScheduledAutoDismissFromSwipe = () => {
-    clearScheduledAutoDismissRef.current();
+  // Stable JS-thread entry point for runOnJS (inline worklet arrows are unsafe).
+  const invokeSwipeCallback = (name: keyof typeof swipeCallbacks.current) => {
+    swipeCallbacks.current[name]();
   };
 
   const swipeGesture = useMemo(() => {
@@ -450,7 +443,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       'worklet';
       // Start (or keep) auto-dismiss before spring-back so a later toast
       // replace cannot be dismissed by a stale spring completion.
-      runOnJS(ensureAutoDismissFromSwipe)();
+      runOnJS(invokeSwipeCallback)('ensureAutoDismissAfterIncompleteSwipe');
 
       translateYProgress.value = withSpring(
         visibleTranslateY.value,
@@ -459,7 +452,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           // A new pan cancels this spring via cancelAnimation; only resume
           // auto-dismiss when the spring-back completed naturally.
           if (finished) {
-            runOnJS(resumeAutoDismissFromSwipe)();
+            runOnJS(invokeSwipeCallback)('resumeAutoDismissAfterSwipe');
           }
         },
       );
@@ -474,7 +467,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           return;
         }
         isSwipeActive.value = true;
-        runOnJS(clearScheduledAutoDismissFromSwipe)();
+        runOnJS(invokeSwipeCallback)('clearScheduledAutoDismiss');
         cancelAnimation(translateYProgress);
         gestureStartY.value = translateYProgress.value;
       })
@@ -502,7 +495,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         const { translationY, velocityY } = event;
         const dismissDistance = Math.max(
           toastHeight.value * TOAST_DISMISS_DISTANCE_THRESHOLD,
-          24,
+          TOAST_DISMISS_MINIMUM_PX,
         );
         const hasReachedDismissOffset = translationY <= -dismissDistance;
         const hasReachedSwipeThreshold =
@@ -514,7 +507,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           (hasReachedSwipeThreshold && isQuickDismissing);
 
         if (shouldDismiss) {
-          runOnJS(dismissToastFromSwipe)();
+          runOnJS(invokeSwipeCallback)('closeToast');
           return;
         }
 
@@ -533,7 +526,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         }
         springBackAfterSwipe();
       });
-    // Shared values and swipe JS wrappers are stable for the component lifetime.
+    // Shared values and invokeSwipeCallback (via swipeCallbacks ref) are stable
+    // for the component lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

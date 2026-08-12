@@ -354,7 +354,7 @@ describe('PerpsSection', () => {
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
+    expect(screen.getByText('Perps')).toBeOnTheScreen();
   });
 
   it('renders live positions with leverage info', () => {
@@ -440,7 +440,7 @@ describe('PerpsSection', () => {
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByText('Perpetuals'));
+    fireEvent.press(screen.getByText('Perps'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
@@ -467,7 +467,7 @@ describe('PerpsSection', () => {
       mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook,
     ).toHaveBeenCalledWith(false);
 
-    fireEvent.press(screen.getByText('Perpetuals'));
+    fireEvent.press(screen.getByText('Perps'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
@@ -972,7 +972,7 @@ describe('PerpsSection', () => {
         />,
       );
 
-      expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
       expect(screen.queryByText('Perps movers')).toBeNull();
       expect(usePerpsMarkets).toHaveBeenCalledWith(
         expect.objectContaining({ skipInitialFetch: false }),
@@ -1204,7 +1204,7 @@ describe('PerpsSection', () => {
         />,
       );
 
-      expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
       expect(screen.queryByText('Perps movers')).toBeNull();
       expect(screen.getByTestId('homepage-perps-positions')).toBeOnTheScreen();
     });
@@ -1579,8 +1579,8 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
       );
 
-      expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
-      expect(screen.getByText('Unable to load perpetuals')).toBeOnTheScreen();
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
+      expect(screen.getByText('Unable to load perps')).toBeOnTheScreen();
       expect(screen.getByText('Retry')).toBeOnTheScreen();
     });
 
@@ -1684,7 +1684,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
       );
 
-      fireEvent.press(screen.getByText('Perpetuals'));
+      fireEvent.press(screen.getByText('Perps'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
         source: 'home_section',

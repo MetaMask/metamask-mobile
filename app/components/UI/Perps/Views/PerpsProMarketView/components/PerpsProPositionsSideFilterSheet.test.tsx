@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import { DEFAULT_PRO_POSITION_SIDE_FILTER } from '../utils/proPositionSideFilter';
+import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 
 jest.mock('./ProPositionSideFilterIcon', () => 'ProPositionSideFilterIcon');
 
@@ -56,7 +57,22 @@ describe('PerpsProPositionsSideFilterSheet', () => {
     expect(screen.getByText('Short')).toBeOnTheScreen();
   });
 
-  it('applies the selected side filter on save', () => {
+  it('renders side filters inside the Android modal gesture root', () => {
+    render(
+      <PerpsProPositionsSideFilterSheet
+        isVisible
+        sideFilter={DEFAULT_PRO_POSITION_SIDE_FILTER}
+        onClose={mockOnClose}
+        onApply={mockOnApply}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
+  it('applies the selected side filter immediately on selection', () => {
     render(
       <PerpsProPositionsSideFilterSheet
         isVisible
@@ -70,7 +86,6 @@ describe('PerpsProPositionsSideFilterSheet', () => {
     fireEvent.press(
       screen.getByTestId('positions-side-filter-sheet-option-long'),
     );
-    fireEvent.press(screen.getByTestId('positions-side-filter-sheet-apply'));
 
     expect(mockOnApply).toHaveBeenCalledWith('long');
     expect(mockOnClose).toHaveBeenCalled();

@@ -56,7 +56,9 @@ describe('PerpsCloseAllPositionsView', () => {
     );
 
     await waitFor(() => {
-      expect(closePositions).toHaveBeenCalledWith({ closeAll: true });
+      expect(closePositions).toHaveBeenCalledWith({
+        symbols: positions.map((p) => p.symbol),
+      });
     });
   });
 

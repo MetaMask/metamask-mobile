@@ -3,16 +3,18 @@ import {
   BottomSheetFooter,
   BottomSheetHeader,
   BottomSheetRef,
+  ButtonsAlignment,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Modal, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import PerpsProModalPortal from './PerpsProModalPortal';
 
 export interface PerpsProPositionsOptionSheetProps {
   isVisible: boolean;
   title: string;
   onClose: () => void;
   onApply: () => void;
+  onClear?: () => void;
   onOpen?: () => void;
   testID?: string;
   children: React.ReactNode;
@@ -26,6 +28,7 @@ const PerpsProPositionsOptionSheet = ({
   title,
   onClose,
   onApply,
+  onClear,
   onOpen,
   testID = 'perps-pro-positions-option-sheet',
   children,
@@ -63,36 +66,47 @@ const PerpsProPositionsOptionSheet = ({
     [handleApply, testID],
   );
 
+  const secondaryButtonProps = useMemo(
+    () =>
+      onClear
+        ? {
+            children: strings('perps.sort.clear'),
+            onPress: () => {
+              onClear();
+              handleClose();
+            },
+            testID: `${testID}-clear`,
+          }
+        : undefined,
+    [handleClose, onClear, testID],
+  );
+
   if (!isVisible) {
     return null;
   }
 
   return (
-    <View>
-      <Modal
-        visible
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={handleClose}
-      >
-        <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
-          <BottomSheetHeader
-            onClose={handleClose}
-            closeButtonProps={{ testID: `${testID}-close` }}
-          >
-            {title}
-          </BottomSheetHeader>
+    <PerpsProModalPortal onRequestClose={handleClose}>
+      <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{ testID: `${testID}-close` }}
+        >
+          {title}
+        </BottomSheetHeader>
 
-          {children}
+        {children}
 
-          <BottomSheetFooter
-            primaryButtonProps={primaryButtonProps}
-            twClassName="pt-4"
-          />
-        </BottomSheet>
-      </Modal>
-    </View>
+        <BottomSheetFooter
+          primaryButtonProps={primaryButtonProps}
+          secondaryButtonProps={secondaryButtonProps}
+          buttonsAlignment={
+            secondaryButtonProps ? ButtonsAlignment.Horizontal : undefined
+          }
+          twClassName="pt-4"
+        />
+      </BottomSheet>
+    </PerpsProModalPortal>
   );
 };
 

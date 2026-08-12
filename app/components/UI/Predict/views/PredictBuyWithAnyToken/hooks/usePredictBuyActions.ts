@@ -121,11 +121,19 @@ export const usePredictBuyActions = ({
     const doInit = async () => {
       batchIdRef.current = undefined;
       rejectPendingTransactions();
-      resetSelectedPaymentToken();
+      // Reset payment token on dismiss instead, so default auto-select is not
+      // overwritten when leftover PREVIEW lets that effect run before doInit.
       const result = await initPayWithAnyToken();
       if (result?.success && result.response?.batchId) {
         batchIdRef.current = result.response.batchId;
+        return;
       }
+      // Failure sets payment-stage error on the active order in the controller
+      // so the buy sheet can show a visible banner instead of an inert Confirm.
+      Logger.log(
+        'usePredictBuyActions: initPayWithAnyToken failed on mount',
+        result && 'error' in result ? result.error : 'unknown',
+      );
     };
 
     if (isSheetMode) {
@@ -149,7 +157,6 @@ export const usePredictBuyActions = ({
     initPayWithAnyToken,
     payWithAnyTokenEnabled,
     PredictController,
-    resetSelectedPaymentToken,
     isSheetMode,
   ]);
 
@@ -160,6 +167,7 @@ export const usePredictBuyActions = ({
 
     if (isSheetMode) {
       return () => {
+        resetSelectedPaymentToken();
         onRejectRef.current(undefined, true);
         clearActiveOrderTransactionIdRef.current();
       };
@@ -184,6 +192,7 @@ export const usePredictBuyActions = ({
           activeAbTests: transactionActiveAbTests,
         });
       }
+      resetSelectedPaymentToken();
       onRejectRef.current(undefined, true);
       clearActiveOrderTransactionIdRef.current();
     });
@@ -193,6 +202,7 @@ export const usePredictBuyActions = ({
     isSheetMode,
     analyticsProperties,
     transactionActiveAbTests,
+    resetSelectedPaymentToken,
   ]);
 
   const handlePlaceOrder = useCallback(
@@ -253,11 +263,19 @@ export const usePredictBuyActions = ({
         const result = await initPayWithAnyToken();
         if (result?.success && result.response?.batchId) {
           batchIdRef.current = result.response.batchId;
+        } else {
+          Logger.log(
+            'usePredictBuyActions: initPayWithAnyToken failed on confirm re-init',
+            result && 'error' in result ? result.error : 'unknown',
+          );
         }
         resetImmediateConfirmFailure();
         return {
           status: 'error',
-          error: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+          error:
+            result && 'error' in result && result.error
+              ? result.error
+              : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
         };
       }
     }

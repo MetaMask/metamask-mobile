@@ -17,7 +17,6 @@ import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWall
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PushNotificationOnboardingView from '../../page-objects/Notifications/PushNotificationOnboardingView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import {
   Performance,
   PerformanceOnboarding,
@@ -30,7 +29,6 @@ import {
 const POST_ONBOARDING_DESTINATIONS = [
   'interest-questionnaire',
   'push-notification',
-  'predict-modal',
   'wallet',
 ] as const;
 
@@ -45,19 +43,12 @@ const POST_ONBOARDING_THRESHOLD: PlatformThreshold = {
   android: 5_000,
 };
 
-/** Predict "Not now" → usable wallet tends to sit just above the shared 5s base. */
-const PREDICT_TO_WALLET_THRESHOLD: PlatformThreshold = {
-  ios: 5_500,
-  android: 5_500,
-};
-
 const POST_ONBOARDING_DESTINATION_LABELS: Record<
   PostOnboardingDestination,
   string
 > = {
   'interest-questionnaire': 'onboarding interest questionnaire',
   'push-notification': 'push notification sheet',
-  'predict-modal': 'Predict onboarding sheet',
   wallet: 'usable wallet',
 };
 
@@ -65,10 +56,10 @@ const POST_ONBOARDING_SOURCE_LABELS: Record<PostOnboardingSource, string> = {
   metametrics: '"Agree" on MetaMetrics',
   'interest-questionnaire': '"Skip" on the onboarding interest questionnaire',
   'push-notification': '"Not now" on the push notification sheet',
-  'predict-modal': '"Not now" on the Predict onboarding sheet',
 };
 
 const DESTINATION_PROBE_IMPLICIT_WAIT_MS = 300;
+const INTEREST_QUESTIONNAIRE_PROBE_TIMEOUT_MS = 1_000;
 
 const isCandidateVisible = async (
   getElement: () => ReturnType<typeof asPlaywrightElement>,
@@ -102,10 +93,6 @@ const waitForPostOnboardingDestination = async (
         asPlaywrightElement(PushNotificationOnboardingView.title),
     },
     {
-      destination: 'predict-modal',
-      getElement: () => asPlaywrightElement(PredictModalView.notNowButton),
-    },
-    {
       // Tab-bar Wallet button (matches import-wallet.spec.ts): usable home,
       // not just wallet shell mount.
       destination: 'wallet',
@@ -116,12 +103,14 @@ const waitForPostOnboardingDestination = async (
   const remaining = candidates.filter(
     (candidate) => !dismissedDestinations.has(candidate.destination),
   );
+  const interestQuestionnaireProbeDeadline =
+    Date.now() + INTEREST_QUESTIONNAIRE_PROBE_TIMEOUT_MS;
 
   if (remaining.length === 0) {
     throw new Error('No post-onboarding destinations remain to wait for');
   }
 
-  // Last hop (typically Predict → wallet): skip multi-candidate polling and
+  // Last hop to wallet: skip multi-candidate polling and
   // wait on the single remaining element. Avoids expensive getPageSource dumps
   // that inflate cloud performance timers while the UI is already ready.
   if (remaining.length === 1) {
@@ -135,13 +124,19 @@ const waitForPostOnboardingDestination = async (
   let visibleCandidate: (typeof candidates)[number] | undefined;
 
   // Probe concrete elements instead of getPageSource(): full hierarchy dumps
-  // are multi-second Appium RTTs on BrowserStack/TestMu and were not fully
-  // subtracted from TimerHelper (only the final probe is).
+  // are multi-second Appium RTTs on BrowserStack/TestMu and are not tracked as
+  // capped poll overhead the way expectElementToBeVisible is.
   await withImplicitWait(DESTINATION_PROBE_IMPLICIT_WAIT_MS, async () => {
     await appDriver.waitUntil(
       async () => {
         // Prefer any visible sheet over wallet — tab bar often stays mounted.
         for (const candidate of remaining) {
+          if (
+            candidate.destination === 'interest-questionnaire' &&
+            Date.now() >= interestQuestionnaireProbeDeadline
+          ) {
+            continue;
+          }
           if (candidate.destination === 'wallet') {
             continue;
           }
@@ -234,16 +229,13 @@ const dismissPostOnboardingDestination = async (
     case 'push-notification':
       await PushNotificationOnboardingView.tapNotNowButton();
       break;
-    case 'predict-modal':
-      await PredictModalView.tapNotNowButton();
-      break;
   }
 };
 
 /**
  * Once a later prompt appears, earlier ones in POST_ONBOARDING_DESTINATIONS
  * will not show. Mark them dismissed so later hops do not keep probing them
- * (failed isExisting with implicit wait was inflating Predict → wallet).
+ * (failed isExisting with implicit wait was inflating the final wallet wait).
  */
 const markSkippedDestinationsBefore = (
   dismissedDestinations: Set<PostOnboardingDestination>,
@@ -365,9 +357,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       ) {
         const transitionTimer = new TimerHelper(
           `Fresh SRP post-onboarding transition ${hop}`,
-          source === 'predict-modal'
-            ? PREDICT_TO_WALLET_THRESHOLD
-            : POST_ONBOARDING_THRESHOLD,
+          POST_ONBOARDING_THRESHOLD,
           currentDeviceDetails.platform,
         );
         destination = await measurePostOnboardingDestination(
@@ -387,7 +377,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
         // Interest/push may never appear; once we land on a later sheet,
         // mark prior destinations skipped so the next hop short-circuits to
-        // a single-element wait (Predict → wallet) instead of probing ghosts.
+        // a single-element wallet wait instead of probing ghosts.
         markSkippedDestinationsBefore(dismissedDestinations, destination);
         await dismissPostOnboardingDestination(destination);
         dismissedDestinations.add(destination);
