@@ -36,27 +36,12 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
-import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
-import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
-import AddressCopy from '../../UI/AddressCopy';
-import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createAccountSelectorNavDetails } from '../AccountSelector';
-import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import WalletHeader from './components/WalletHeader/WalletHeader';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
-  BadgeStatus,
-  BadgeStatusStatus,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-  BadgeWrapperPositionAnchorShape,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor as MMDSIconColor,
-  IconName as MMDSIconName,
   Text as CustomText,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -324,7 +309,6 @@ const Wallet = ({
 }: WalletProps) => {
   const appNavigation = useNavigation<AppNavigationProp>();
   const { navigate } = appNavigation;
-  const walletRef = useRef(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
@@ -1096,112 +1080,22 @@ const Wallet = ({
         >
           {selectedInternalAccount ? (
             <>
-              <View>
-                <HeaderRoot
-                  testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-                  style={undefined}
-                  endAccessory={
-                    <View
-                      style={styles.headerActionButtonsContainer}
-                      accessible={false}
-                    >
-                      <ButtonIcon
-                        iconProps={{
-                          color: MMDSIconColor.IconDefault,
-                        }}
-                        onPress={handleSearchPress}
-                        iconName={MMDSIconName.Search}
-                        size={ButtonIconSize.Md}
-                        testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
-                        accessibilityLabel={strings(
-                          'wallet.search_accessibility_label',
-                        )}
-                        hitSlop={touchAreaSlop}
-                      />
-                      {isMoneyAccountVisible && (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={handleActivityPress}
-                          iconName={MMDSIconName.Clock}
-                          size={ButtonIconSize.Md}
-                          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
-                      <AddressCopy
-                        testID={
-                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
-                        }
-                        hitSlop={touchAreaSlop}
-                      />
-                      {!isMoneyAccountVisible && (
-                        <CardButton
-                          onPress={handleCardPress}
-                          touchAreaSlop={touchAreaSlop}
-                        />
-                      )}
-                      {isNotificationsFeatureEnabled() ? (
-                        <BadgeWrapper
-                          position={BadgeWrapperPosition.TopRight}
-                          positionAnchorShape={
-                            BadgeWrapperPositionAnchorShape.Circular
-                          }
-                          badge={
-                            isNotificationEnabled &&
-                            unreadNotificationCount > 0 ? (
-                              <BadgeStatus
-                                status={BadgeStatusStatus.Attention}
-                              />
-                            ) : null
-                          }
-                        >
-                          <ButtonIcon
-                            iconProps={{
-                              color: MMDSIconColor.IconDefault,
-                            }}
-                            onPress={handleHamburgerPress}
-                            iconName={MMDSIconName.Menu}
-                            size={ButtonIconSize.Md}
-                            testID={
-                              WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                            }
-                            hitSlop={touchAreaSlop}
-                          />
-                        </BadgeWrapper>
-                      ) : (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={handleHamburgerPress}
-                          iconName={MMDSIconName.Menu}
-                          size={ButtonIconSize.Md}
-                          testID={
-                            WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                          }
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
-                    </View>
-                  }
-                  twClassName="pl-1 pr-3"
-                >
-                  <PickerAccount
-                    ref={walletRef}
-                    accountName={displayName}
-                    onPress={() =>
-                      navigation.navigate(
-                        ...createAccountSelectorNavDetails({}),
-                      )
-                    }
-                    testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-                    hitSlop={touchAreaSlop}
-                    style={styles.headerAccountPickerStyle}
-                  />
-                </HeaderRoot>
-              </View>
+              <WalletHeader
+                displayName={displayName}
+                navigation={navigation}
+                isMoneyAccountVisible={isMoneyAccountVisible}
+                isNotificationEnabled={isNotificationEnabled}
+                unreadNotificationCount={unreadNotificationCount}
+                handleSearchPress={handleSearchPress}
+                handleActivityPress={handleActivityPress}
+                handleCardPress={handleCardPress}
+                handleHamburgerPress={handleHamburgerPress}
+                touchAreaSlop={touchAreaSlop}
+                headerActionButtonsContainerStyle={
+                  styles.headerActionButtonsContainer
+                }
+                headerAccountPickerStyle={styles.headerAccountPickerStyle}
+              />
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}
