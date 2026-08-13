@@ -79,6 +79,39 @@ export function containsTestId(output: unknown, testId: string): boolean {
   return Object.values(output).some((value) => containsTestId(value, testId));
 }
 
+export interface PostMeasurementCleanupResult<T> {
+  capture: T;
+  restorationError: unknown | null;
+}
+
+/**
+ * Freezes and reads the measured diagnostics before allowing navigation-based
+ * app-state cleanup to produce additional renders or network activity.
+ */
+export async function stopDiagnosticsThenRestoreAppState<T>(
+  stopAndReadDiagnostics: () => T,
+  restoreAppState: () => Promise<void>,
+): Promise<PostMeasurementCleanupResult<T>> {
+  const capture = stopAndReadDiagnostics();
+
+  try {
+    await restoreAppState();
+    return { capture, restorationError: null };
+  } catch (error) {
+    return { capture, restorationError: error };
+  }
+}
+
+export function appendAppStateRestorationFailure(
+  currentFailure: string | null,
+  restorationDetail: string,
+): string {
+  const restorationFailure = `App-state restoration failed: ${restorationDetail} The next run may not start from clean Swaps state.`;
+  return currentFailure
+    ? `${currentFailure} ${restorationFailure}`
+    : restorationFailure;
+}
+
 export function parseMetroPort(argv: string[]): number {
   const flagIndex = argv.indexOf('--metro-port');
   if (flagIndex === -1) {

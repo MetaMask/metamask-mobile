@@ -54,6 +54,17 @@ async function runScenario001(
     }),
   );
 
+  const initialSourceAmountText = context.getVisibleText(
+    SCENARIO_001_LOCATORS.sourceAmountInput,
+  );
+  if (hasPositiveNumericValue(initialSourceAmountText)) {
+    throw new Error(
+      `Expected an empty source amount before measurement, but found ${JSON.stringify(
+        initialSourceAmountText,
+      )}. Leave Swaps through its back button before retrying.`,
+    );
+  }
+
   const sourceTokenText = context.getExactScreenText(
     SCENARIO_001_LOCATORS.sourceTokenSelector,
   );
@@ -92,6 +103,7 @@ async function runScenario001(
     phases,
     preconditions: {
       walletUnlocked: true,
+      sourceAmountInitiallyEmpty: true,
       sourceTokenText,
       destinationToken: 'USDC',
       sourceAmount: '1',
@@ -99,8 +111,33 @@ async function runScenario001(
   };
 }
 
+async function restoreScenario001AppState(
+  context: ScenarioContext,
+): Promise<void> {
+  if (context.hasTestId(SCENARIO_001_LOCATORS.openSwaps)) {
+    return;
+  }
+
+  if (context.hasTestId(SCENARIO_001_LOCATORS.tokenSelectorBack)) {
+    context.log('leaving the destination token selector after measurement');
+    context.clickTestId(SCENARIO_001_LOCATORS.tokenSelectorBack);
+    context.waitForTestId(SCENARIO_001_LOCATORS.swapsBack, 10_000);
+  }
+
+  if (!context.hasTestId(SCENARIO_001_LOCATORS.swapsBack)) {
+    throw new Error(
+      'Could not identify the Swaps or Wallet screen while restoring app state.',
+    );
+  }
+
+  context.log('returning to Wallet after performance measurement');
+  context.clickTestId(SCENARIO_001_LOCATORS.swapsBack);
+  context.waitForTestId(SCENARIO_001_LOCATORS.openSwaps, 15_000);
+}
+
 export const scenario001: SwapsPerformanceScenario = {
   metadata: SCENARIO_001_METADATA,
   startingTestId: SCENARIO_001_LOCATORS.openSwaps,
   run: runScenario001,
+  restoreAppState: restoreScenario001AppState,
 };

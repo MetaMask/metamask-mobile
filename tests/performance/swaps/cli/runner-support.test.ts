@@ -1,10 +1,12 @@
 import { BridgeViewSelectorsIDs } from '../../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
 import {
+  appendAppStateRestorationFailure,
   buildMmSessionProbeArgs,
   containsTestId,
   extractInteractionText,
   formatMmSessionSetupCommand,
   parseMetroPort,
+  stopDiagnosticsThenRestoreAppState,
 } from './runner-support';
 
 describe('Swaps performance runner support', () => {
@@ -60,5 +62,55 @@ describe('Swaps performance runner support', () => {
     const command = formatMmSessionSetupCommand(8082);
 
     expect(command).toBe('yarn mm launch --metro-port 8082');
+  });
+
+  it('stops diagnostics before restoring app state', async () => {
+    const calls: string[] = [];
+
+    const result = await stopDiagnosticsThenRestoreAppState(
+      () => {
+        calls.push('stop-diagnostics');
+        return { renders: 3 };
+      },
+      async () => {
+        calls.push('restore-app-state');
+      },
+    );
+
+    expect(calls).toEqual(['stop-diagnostics', 'restore-app-state']);
+    expect(result).toEqual({
+      capture: { renders: 3 },
+      restorationError: null,
+    });
+  });
+
+  it('preserves the capture when app-state restoration fails', async () => {
+    const restorationError = new Error('back navigation failed');
+
+    const result = await stopDiagnosticsThenRestoreAppState(
+      () => ({ renders: 3 }),
+      async () => {
+        throw restorationError;
+      },
+    );
+
+    expect(result).toEqual({
+      capture: { renders: 3 },
+      restorationError,
+    });
+  });
+
+  it('turns a restoration error into a scenario failure', () => {
+    expect(
+      appendAppStateRestorationFailure(null, 'back navigation failed'),
+    ).toBe(
+      'App-state restoration failed: back navigation failed The next run may not start from clean Swaps state.',
+    );
+    expect(
+      appendAppStateRestorationFailure(
+        'Quote timed out.',
+        'back navigation failed',
+      ),
+    ).toContain('Quote timed out. App-state restoration failed');
   });
 });

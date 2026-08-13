@@ -23,11 +23,13 @@ import {
 } from '../scenarios/types';
 import { resolveArtifactOutputPaths } from './artifact-paths';
 import {
+  appendAppStateRestorationFailure,
   buildMmSessionProbeArgs,
   containsTestId,
   extractInteractionText,
   formatMmSessionSetupCommand,
   parseMetroPort,
+  stopDiagnosticsThenRestoreAppState,
 } from './runner-support';
 
 const LOG_PREFIX = '[SWAPS_PERF_ANALYSIS]';
@@ -127,7 +129,7 @@ function markRuntime(name: string): void {
   evaluateRuntime(buildMarkerExpression(name));
 }
 
-function readRuntimeCapture(): RuntimeCapture | null {
+function stopAndReadDiagnostics(): RuntimeCapture | null {
   const serialized = evaluateRuntime(buildDrainDiagnosticsExpression());
   if (typeof serialized !== 'string') {
     return null;
@@ -184,6 +186,7 @@ function createScenarioContext(): ScenarioContext {
     },
     getExactScreenText: (testId) =>
       extractInteractionText(runMm(['describe-screen']), testId),
+    hasTestId: (testId) => containsTestId(runMm(['describe-screen']), testId),
     delay: (durationMs) =>
       new Promise((resolveDelay) => {
         setTimeout(resolveDelay, durationMs);
@@ -217,6 +220,8 @@ export async function runSwapsPerformanceScenario(
   let failure: string | null = null;
   let diagnosticsInstalled = false;
   let sessionAvailable = false;
+  let scenarioAttempted = false;
+  const scenarioContext = createScenarioContext();
 
   log(`starting ${runId}`);
   log(`using Metro port ${metroPort}`);
@@ -290,7 +295,8 @@ export async function runSwapsPerformanceScenario(
     }
     diagnosticsInstalled = true;
 
-    const result = await scenario.run(createScenarioContext());
+    scenarioAttempted = true;
+    const result = await scenario.run(scenarioContext);
     phases = result.phases;
     preconditions = result.preconditions;
 
@@ -311,7 +317,27 @@ export async function runSwapsPerformanceScenario(
     }
   } finally {
     if (diagnosticsInstalled) {
-      capture = readRuntimeCapture();
+      if (scenarioAttempted) {
+        const cleanupResult = await stopDiagnosticsThenRestoreAppState(
+          stopAndReadDiagnostics,
+          () => scenario.restoreAppState(scenarioContext),
+        );
+        capture = cleanupResult.capture;
+        if (cleanupResult.restorationError) {
+          const restorationDetail = sanitizeFailure(
+            cleanupResult.restorationError instanceof Error
+              ? cleanupResult.restorationError.message
+              : String(cleanupResult.restorationError),
+          );
+          failure = appendAppStateRestorationFailure(
+            failure,
+            restorationDetail,
+          );
+          log(`app-state restoration failed: ${restorationDetail}`);
+        }
+      } else {
+        capture = stopAndReadDiagnostics();
+      }
     }
 
     if (!failure && (!capture || Object.keys(capture.renders).length === 0)) {

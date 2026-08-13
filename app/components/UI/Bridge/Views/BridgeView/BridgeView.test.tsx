@@ -431,6 +431,7 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+    expect(getByTestId(BridgeViewSelectorsIDs.BACK_BUTTON)).toBeTruthy();
   });
 
   it('renders the slippage settings button without an active quote', () => {

@@ -5,9 +5,11 @@
 Runs one non-transactional iOS Simulator scenario against the installed wallet:
 
 1. Open Swaps from the unlocked Wallet on Ethereum.
-2. Select Ethereum USDC as the destination token.
-3. Enter `1` ETH.
-4. Wait until the first positive destination amount is visible.
+2. Verify the source amount starts empty or at zero.
+3. Select Ethereum USDC as the destination token.
+4. Enter `1` ETH.
+5. Wait until the first positive destination amount is visible.
+6. Stop and read diagnostics, then return to Wallet before ending the `mm` session.
 
 The scenario uses the project-local `mm` CLI, real app state, and the real network. It preserves wallet data and always cleans up the `mm` session.
 
@@ -49,6 +51,10 @@ export SWAPS_PERF_WALLET_PASSWORD
 ```
 
 The runner uses the Login screen's stable test IDs, unlocks before installing diagnostics or measuring any phase, and does not print or store the password. Ethereum Mainnet must have been selected before the wallet was locked. If the variable is not set, manually unlock MetaMask and leave it on Wallet.
+
+Every run must start from Wallet. After the quote evidence is captured, the runner disables and reads the diagnostics collector before navigating back from Swaps. This lets the existing Bridge unmount cleanup clear the source amount without adding those cleanup renders or requests to the measurement. It then waits for the Wallet Swaps action before `mm cleanup` terminates the app. If navigation-based restoration fails, the artifact is marked failed and warns that the next run may not be clean.
+
+Scenario 001 also checks the source amount immediately after opening Swaps. A positive prepopulated amount fails the run before destination selection, preventing stale Swaps state from being treated as a clean measurement.
 
 The repo-local `mms-swaps-performance-analysis` skill owns the full preflight, prepare, run, analyze, and cleanup workflow. The underlying commands are shown here for direct use.
 

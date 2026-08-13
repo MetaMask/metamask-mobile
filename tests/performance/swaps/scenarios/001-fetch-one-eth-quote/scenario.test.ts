@@ -15,8 +15,12 @@ function createContext(): {
     log: jest.fn(),
     clickTestId: (testId) => clicks.push(testId),
     waitForTestId: (testId, timeoutMs) => waits.push({ testId, timeoutMs }),
-    getVisibleText: () => '1.25 USDC',
+    getVisibleText: (testId) =>
+      testId === SCENARIO_001_LOCATORS.sourceAmountInput
+        ? '0 ETH'
+        : '1.25 USDC',
     getExactScreenText: () => 'ETH',
+    hasTestId: () => false,
     delay: async () => undefined,
     now: () => timestamp,
     measurePhase: async (name, action): Promise<ScenarioPhase> => {
@@ -67,10 +71,21 @@ describe('Scenario 001', () => {
     });
     expect(result.preconditions).toEqual({
       walletUnlocked: true,
+      sourceAmountInitiallyEmpty: true,
       sourceTokenText: 'ETH',
       destinationToken: 'USDC',
       sourceAmount: '1',
     });
+  });
+
+  it('rejects a prepopulated source amount before selecting a destination', async () => {
+    const { context, clicks } = createContext();
+    context.getVisibleText = () => '1 ETH';
+
+    await expect(scenario001.run(context)).rejects.toThrow(
+      'Expected an empty source amount before measurement',
+    );
+    expect(clicks).toEqual([SCENARIO_001_LOCATORS.openSwaps]);
   });
 
   it('rejects a non-ETH source token', async () => {
@@ -93,6 +108,72 @@ describe('Scenario 001', () => {
 
     await expect(scenario001.run(context)).rejects.toThrow(
       'First quote did not become visible within 30000ms',
+    );
+  });
+
+  it('returns from Swaps to Wallet after measurement', async () => {
+    const { context, clicks, waits } = createContext();
+    const visibleTestIds = new Set([SCENARIO_001_LOCATORS.swapsBack]);
+    context.hasTestId = (testId) => visibleTestIds.has(testId);
+    context.clickTestId = (testId) => {
+      clicks.push(testId);
+      if (testId === SCENARIO_001_LOCATORS.swapsBack) {
+        visibleTestIds.delete(SCENARIO_001_LOCATORS.swapsBack);
+        visibleTestIds.add(SCENARIO_001_LOCATORS.openSwaps);
+      }
+    };
+
+    await scenario001.restoreAppState(context);
+
+    expect(clicks).toEqual([SCENARIO_001_LOCATORS.swapsBack]);
+    expect(waits).toContainEqual({
+      testId: SCENARIO_001_LOCATORS.openSwaps,
+      timeoutMs: 15_000,
+    });
+  });
+
+  it('backs out of the token selector before returning to Wallet', async () => {
+    const { context, clicks, waits } = createContext();
+    const visibleTestIds = new Set([SCENARIO_001_LOCATORS.tokenSelectorBack]);
+    context.hasTestId = (testId) => visibleTestIds.has(testId);
+    context.clickTestId = (testId) => {
+      clicks.push(testId);
+      if (testId === SCENARIO_001_LOCATORS.tokenSelectorBack) {
+        visibleTestIds.delete(SCENARIO_001_LOCATORS.tokenSelectorBack);
+        visibleTestIds.add(SCENARIO_001_LOCATORS.swapsBack);
+      } else if (testId === SCENARIO_001_LOCATORS.swapsBack) {
+        visibleTestIds.delete(SCENARIO_001_LOCATORS.swapsBack);
+        visibleTestIds.add(SCENARIO_001_LOCATORS.openSwaps);
+      }
+    };
+
+    await scenario001.restoreAppState(context);
+
+    expect(clicks).toEqual([
+      SCENARIO_001_LOCATORS.tokenSelectorBack,
+      SCENARIO_001_LOCATORS.swapsBack,
+    ]);
+    expect(waits).toEqual([
+      { testId: SCENARIO_001_LOCATORS.swapsBack, timeoutMs: 10_000 },
+      { testId: SCENARIO_001_LOCATORS.openSwaps, timeoutMs: 15_000 },
+    ]);
+  });
+
+  it('does not navigate when Wallet is already visible', async () => {
+    const { context, clicks, waits } = createContext();
+    context.hasTestId = (testId) => testId === SCENARIO_001_LOCATORS.openSwaps;
+
+    await scenario001.restoreAppState(context);
+
+    expect(clicks).toEqual([]);
+    expect(waits).toEqual([]);
+  });
+
+  it('fails restoration when neither Wallet nor a known Swaps screen is visible', async () => {
+    const { context } = createContext();
+
+    await expect(scenario001.restoreAppState(context)).rejects.toThrow(
+      'Could not identify the Swaps or Wallet screen',
     );
   });
 });

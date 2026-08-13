@@ -1,4 +1,5 @@
 export const BridgeViewSelectorsIDs = {
+  BACK_BUTTON: 'bridge-back-button',
   SOURCE_TOKEN_AREA: 'source-token-selector-button',
   DESTINATION_TOKEN_AREA: 'dest-token-selector-button',
   SOURCE_TOKEN_INPUT: 'source-token-area-input',

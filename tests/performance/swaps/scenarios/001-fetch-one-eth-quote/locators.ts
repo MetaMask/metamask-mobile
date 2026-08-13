@@ -1,10 +1,13 @@
 import { KeypadTestIds } from '../../../../../app/components/Base/Keypad/Keypad.testIds';
 import { BridgeViewSelectorsIDs } from '../../../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
+import { BridgeTokenSelectorSelectorsIDs } from '../../../../../app/components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector.testIds';
 import { getTokenSelectorItemTestId } from '../../../../../app/components/UI/Bridge/components/TokenSelectorItem.testIds';
 import { HomepageActionButtonsGridTestIds } from '../../../../../app/components/Views/Homepage/components/HomepageActionButtonsGrid/HomepageActionButtonsGrid.testIds';
 
 export const SCENARIO_001_LOCATORS = {
   openSwaps: HomepageActionButtonsGridTestIds.SWAP_BUTTON,
+  swapsBack: BridgeViewSelectorsIDs.BACK_BUTTON,
+  tokenSelectorBack: BridgeTokenSelectorSelectorsIDs.BACK_BUTTON,
   sourceTokenSelector: BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,
   sourceAmountInput: BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT,
   destinationTokenSelector: BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA,

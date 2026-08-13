@@ -93,6 +93,7 @@ import {
   TokenSelectorBalanceLayoutConfig,
   TokenSelectorBalanceLayoutVariant,
 } from '../TokenSelectorItem.abTestConfig';
+import { BridgeTokenSelectorSelectorsIDs } from './BridgeTokenSelector.testIds';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -893,6 +894,9 @@ export const BridgeTokenSelector: React.FC = () => {
       <HeaderStandard
         title={strings('bridge.select_token')}
         onBack={() => navigation.goBack()}
+        backButtonProps={{
+          testID: BridgeTokenSelectorSelectorsIDs.BACK_BUTTON,
+        }}
         includesTopInset
       />
       <Box twClassName="px-4 pb-3">

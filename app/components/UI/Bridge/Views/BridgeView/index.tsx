@@ -583,6 +583,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
       <HeaderStandard
         title={headerTitle}
         onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: BridgeViewSelectorsIDs.BACK_BUTTON }}
         endButtonIconProps={[
           {
             iconName: IconName.Setting,

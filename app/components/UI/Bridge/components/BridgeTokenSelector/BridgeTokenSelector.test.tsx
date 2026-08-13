@@ -18,6 +18,7 @@ import {
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ARC_NATIVE_ASSET_ID } from '../../../../hooks/useArcDefaultTokens';
+import { BridgeTokenSelectorSelectorsIDs } from './BridgeTokenSelector.testIds';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
@@ -420,9 +421,11 @@ jest.mock('@metamask/design-system-react-native', () => {
     HeaderStandard: ({
       title,
       onBack,
+      backButtonProps,
     }: {
       title?: string;
       onBack?: () => void;
+      backButtonProps?: { testID?: string };
     }) =>
       createElement(
         View,
@@ -436,7 +439,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         onBack
           ? createElement(TouchableOpacity, {
               onPress: onBack,
-              testID: 'button-icon-arrowleft',
+              testID: backButtonProps?.testID ?? 'button-icon-arrowleft',
             })
           : null,
       ),
@@ -811,6 +814,9 @@ describe('BridgeTokenSelector', () => {
         <BridgeTokenSelector />,
       );
       expect(getByTestId('bridge-token-search-input')).toBeTruthy();
+      expect(
+        getByTestId(BridgeTokenSelectorSelectorsIDs.BACK_BUTTON),
+      ).toBeTruthy();
       // Header is now inlined inside the screen instead of being set via
       // navigation.setOptions, so assert on the rendered title instead.
       // strings() is mocked to return the key.
@@ -1283,7 +1289,7 @@ describe('BridgeTokenSelector', () => {
     it('navigates back when header back button is pressed', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
 
-      fireEvent.press(getByTestId('button-icon-arrowleft'));
+      fireEvent.press(getByTestId(BridgeTokenSelectorSelectorsIDs.BACK_BUTTON));
 
       expect(mockGoBack).toHaveBeenCalled();
     });

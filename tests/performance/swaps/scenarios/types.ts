@@ -28,6 +28,7 @@ export interface ScenarioContext {
   waitForTestId(testId: string, timeoutMs: number): void;
   getVisibleText(testId: string, allowFailure?: boolean): string | null;
   getExactScreenText(testId: string): string | null;
+  hasTestId(testId: string): boolean;
   delay(durationMs: number): Promise<void>;
   now(): number;
   measurePhase(
@@ -45,4 +46,5 @@ export interface SwapsPerformanceScenario {
   metadata: ScenarioMetadata;
   startingTestId: string;
   run(context: ScenarioContext): Promise<ScenarioRunResult>;
+  restoreAppState(context: ScenarioContext): Promise<void>;
 }

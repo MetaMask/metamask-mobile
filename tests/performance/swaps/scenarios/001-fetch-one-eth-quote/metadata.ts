@@ -11,6 +11,7 @@ export const SCENARIO_001_METADATA: ScenarioMetadata = {
   preconditions: [
     'A booted iOS Simulator with a development build installed.',
     'A wallet on Login or unlocked on the Wallet view, with Ethereum Mainnet selected before locking or running.',
+    'The Swaps source amount is empty or zero when the screen opens.',
     'An active mm and Hermes session connected to Metro.',
     'The temporary Swaps performance instrumentation is prepared before Metro starts.',
   ],
