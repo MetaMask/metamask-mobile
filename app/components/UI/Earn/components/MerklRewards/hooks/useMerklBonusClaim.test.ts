@@ -45,13 +45,8 @@ jest.mock('../../../selectors/featureFlags', () => ({
 }));
 
 let mockIsGeoEligible = true;
-jest.mock('../../../hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => ({
-    isEligible: mockIsGeoEligible,
-    isLoading: false,
-    geolocation: 'US',
-    blockedCountries: [],
-  }),
+jest.mock('../../../selectors/eligibility', () => ({
+  selectIsMusdConversionGeoEligible: () => mockIsGeoEligible,
 }));
 
 jest.mock('react-redux', () => ({

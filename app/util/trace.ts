@@ -255,10 +255,6 @@ export enum TraceName {
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
   PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
-  // mUSD Conversion
-  MusdConversionNavigation = 'mUSD Conversion Navigation',
-  MusdConversionQuote = 'mUSD Conversion Quote',
-  MusdConversionConfirm = 'mUSD Conversion Confirm',
   // Market Insights
   MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
   MarketInsightsViewLoad = 'Market Insights View Load',
@@ -326,9 +322,6 @@ export enum TraceOperation {
   PredictOperation = 'predict.operation',
   PredictOrderSubmission = 'predict.order_submission',
   PredictDataFetch = 'predict.data_fetch',
-  // mUSD Conversion
-  MusdConversionOperation = 'musd.conversion.operation',
-  MusdConversionDataFetch = 'musd.conversion.data_fetch',
   // Market Insights
   MarketInsightsLoad = 'market_insights.load',
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',

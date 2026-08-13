@@ -209,8 +209,6 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.predict_withdraw.transaction_fee',
   [TransactionType.predictDeposit]:
     'confirm.tooltip.predict_deposit.transaction_fee',
-  [TransactionType.musdConversion]:
-    'confirm.tooltip.musd_conversion.transaction_fee',
   [TransactionType.moneyAccountWithdraw]:
     'confirm.tooltip.money_account_withdraw.transaction_fee',
   [TransactionType.moneyAccountDeposit]:

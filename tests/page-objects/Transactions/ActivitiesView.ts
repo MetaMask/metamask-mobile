@@ -301,18 +301,6 @@ class ActivitiesView {
   }
 
   /**
-   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
-   * Delegates to verifyActivityItemWithStatus.
-   */
-  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
-    await this.verifyActivityItemWithStatus(
-      ActivitiesViewSelectorsText.MUSD_CONVERSION,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      rowIndex,
-    );
-  }
-
-  /**
    * Wait for a transaction to show "Confirmed" status in the activity list.
    * Works in both Detox and Playwright/Appium contexts.
    * For real on-chain transactions, polls with a longer timeout.

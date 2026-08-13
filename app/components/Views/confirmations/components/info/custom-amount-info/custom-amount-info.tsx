@@ -15,7 +15,6 @@ import {
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
-import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
@@ -456,7 +455,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   stage={stage}
                 />
               )}
-              <PercentageRow />
             </View>
           )}
           {footerText && (

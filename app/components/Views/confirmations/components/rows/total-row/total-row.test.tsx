@@ -64,13 +64,4 @@ describe('TotalRow', () => {
 
     expect(getByTestId('total-row-skeleton')).toBeDefined();
   });
-
-  it('renders nothing for musd conversion transactions', () => {
-    const { queryByTestId, queryByText } = render({
-      type: TransactionType.musdConversion,
-    });
-
-    expect(queryByTestId('total-row')).toBeNull();
-    expect(queryByText(TOTAL_FIAT_MOCK)).toBeNull();
-  });
 });

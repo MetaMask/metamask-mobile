@@ -184,10 +184,6 @@ jest.mock('../../hooks/useMoneyHomePerformance', () => ({
   useMoneyHomePerformance: jest.fn(),
 }));
 
-jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: jest.fn(),
-}));
-
 jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(),
 }));

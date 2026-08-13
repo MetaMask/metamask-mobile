@@ -42,8 +42,6 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
@@ -130,13 +128,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       }
     }, [selectedAccountId]);
 
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
-    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const shouldExcludeMusd =
-      isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
+    const shouldExcludeMusd = useSelector(selectMoneyHubEnabledFlag);
 
     const title = strings('homepage.sections.tokens');
     // Exclude mUSD while it is surfaced in the Money hub; otherwise include all tokens.

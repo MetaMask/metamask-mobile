@@ -10,7 +10,7 @@ import {
 import { usePendingMerklClaim } from './usePendingMerklClaim';
 import { useMerklClaimTransaction } from './useMerklClaimTransaction';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../../selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../../hooks/useMusdConversionEligibility';
+import { selectIsMusdConversionGeoEligible } from '../../../selectors/eligibility';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { RootState } from '../../../../../../reducers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -69,7 +69,7 @@ export const useMerklBonusClaim = (
   const isMerklCampaignClaimingEnabled = useSelector(
     selectMerklCampaignClaimingEnabledFlag,
   );
-  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+  const isGeoEligible = useSelector(selectIsMusdConversionGeoEligible);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const network = useSelector((state: RootState) =>

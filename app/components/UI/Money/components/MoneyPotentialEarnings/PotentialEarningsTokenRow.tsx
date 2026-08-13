@@ -32,7 +32,7 @@ import {
   calculateProjectedEarnings,
   PROJECTION_YEARS,
 } from '../../utils/projections';
-import { tokenFiatValue } from '../../../Earn/hooks/useMusdConversionTokens';
+import { tokenFiatValue } from '../../../Earn/utils/token';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';

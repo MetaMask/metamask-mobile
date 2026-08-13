@@ -28,8 +28,6 @@ export const userInitialState: UserState = {
   existingUser: false,
   isConnectionRemoved: false,
   multichainAccountsIntroModalSeen: false,
-  musdConversionEducationSeen: false,
-  musdConversionAssetDetailCtasSeen: {},
   moneyOnboardingSeen: false,
   moneyEarnBannerDismissedTokens: {},
   tokenOverviewChartType: ChartType.Line,
@@ -143,24 +141,6 @@ const userReducer = (
       return {
         ...state,
         multichainAccountsIntroModalSeen: action.payload.seen,
-      };
-    case UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN:
-      return {
-        ...state,
-        musdConversionEducationSeen: action.payload.seen,
-      };
-    case UserActionType.SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN:
-      return {
-        ...state,
-        musdConversionAssetDetailCtasSeen: {
-          ...state.musdConversionAssetDetailCtasSeen,
-          [action.payload.key]: true,
-        },
-      };
-    case UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN:
-      return {
-        ...state,
-        musdConversionAssetDetailCtasSeen: {},
       };
     case UserActionType.SET_MONEY_ONBOARDING_SEEN:
       return {

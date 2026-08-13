@@ -1,9 +1,5 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import {
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
+import { hasTransactionType } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,20 +7,13 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
-import {
-  isHardwareAccount,
-  isQRHardwareAccount,
-} from '../../../../../util/address';
-import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { isHardwareAccount } from '../../../../../util/address';
 import { PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
   const accountOverride = useTransactionAccountOverride();
   const fiatPayment = useTransactionPayFiatPayment();
-  const { enabled: isHardwarePayEnabled } = useSelector(
-    selectMetaMaskPayHardwareFlags,
-  );
 
   const {
     txParams: { from },
@@ -35,10 +24,6 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
     PAY_TRANSACTION_TYPES,
   );
 
-  const isMusdConversion = hasTransactionType(transactionMeta, [
-    TransactionType.musdConversion,
-  ]);
-
   // When set, accountOverride is the account paying for the transaction,
   // except in withdraw (post-quote) flows where it is only the recipient
   // and never signs.
@@ -47,7 +32,6 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
     : (accountOverride ?? from);
 
   const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
-  const isQRWallet = isQRHardwareAccount(payingAccount ?? '');
 
   // Fiat payments are bought directly to the destination, so the paying
   // account never signs.
@@ -55,10 +39,6 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
 
   return useMemo(() => {
     if (!isPayTransaction || !isHardwareWallet || isFiatPayment) {
-      return [];
-    }
-
-    if (isMusdConversion && isHardwarePayEnabled && !isQRWallet) {
       return [];
     }
 
@@ -71,12 +51,5 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
         isBlocking: true,
       },
     ];
-  }, [
-    isFiatPayment,
-    isHardwareWallet,
-    isHardwarePayEnabled,
-    isMusdConversion,
-    isPayTransaction,
-    isQRWallet,
-  ]);
+  }, [isFiatPayment, isHardwareWallet, isPayTransaction]);
 }

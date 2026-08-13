@@ -13,16 +13,10 @@ import {
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
-import {
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
-
-const HIDE_TYPES = [TransactionType.musdConversion];
 
 export function BridgeTimeRow() {
   const isLoading = useIsTransactionPayLoading();
@@ -37,7 +31,6 @@ export function BridgeTimeRow() {
   const isSameChain = payToken?.chainId != null && payToken.chainId === chainId;
 
   const showEstimate =
-    !hasTransactionType(transactionMetadata, HIDE_TYPES) &&
     (isLoading || Boolean(quotes?.length) || isSameChain) &&
     !selectedFiatPaymentMethod;
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { tokenFiatValue } from '../../Earn/hooks/useMusdConversionTokens';
+import { tokenFiatValue } from '../../Earn/utils/token';
 import { moneySafeTokenFiatCurrency } from '../utils/moneyFormatFiat';
 import {
   calculateProjectedEarnings,

@@ -1926,13 +1926,12 @@ describe('CustomAmountInfo', () => {
     });
 
     // Money-account deposit is the only wired surface; perps / prediction /
-    // withdraw / mUSD render this shared screen but resolve to an undefined
+    // withdraw render this shared screen but resolve to an undefined
     // surface, so the funnel stays inert (reverts FIX 1).
     it.each([
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.moneyAccountWithdraw,
-      TransactionType.musdConversion,
     ])('fires no RAMPS funnel events for %s on Done', async (type) => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',

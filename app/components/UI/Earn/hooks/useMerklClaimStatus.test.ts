@@ -119,11 +119,6 @@ describe('useMerklClaimStatus', () => {
     labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
   };
   const mockEarnToastOptions: EarnToastOptionsConfig = {
-    mUsdConversion: {
-      inProgress: jest.fn(),
-      success: mockSuccessToast,
-      failed: mockFailedToast,
-    },
     bonusClaim: {
       inProgress: mockInProgressToast,
       success: mockSuccessToast,

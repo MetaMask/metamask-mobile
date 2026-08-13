@@ -21,8 +21,6 @@ export interface UserState {
   existingUser: boolean;
   isConnectionRemoved: boolean;
   multichainAccountsIntroModalSeen: boolean;
-  musdConversionEducationSeen: boolean;
-  musdConversionAssetDetailCtasSeen: Record<string, boolean>;
   moneyOnboardingSeen: boolean;
   moneyEarnBannerDismissedTokens: Record<string, boolean>;
   tokenOverviewChartType: ChartType;
