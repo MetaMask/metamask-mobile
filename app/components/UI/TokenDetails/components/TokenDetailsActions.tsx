@@ -57,7 +57,7 @@ export interface TokenDetailsActionsProps {
  * Displays 4 skeleton buttons (maximum button count) to prevent layout shift during loading.
  */
 export const TokenDetailsActionsSkeleton: React.FC = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet);
 
   return (
     <View style={styles.activitiesButton}>
@@ -73,7 +73,7 @@ export const TokenDetailsActionsSkeleton: React.FC = () => {
   );
 };
 
-export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
+const TokenDetailsActionsComponent: React.FC<TokenDetailsActionsProps> = ({
   hasPerpsMarket,
   hasBalance,
   isBuyable,
@@ -88,7 +88,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   resetNavigationLockRef,
   onActionTapped,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet);
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
@@ -318,5 +318,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     </View>
   );
 };
+
+export const TokenDetailsActions = React.memo(TokenDetailsActionsComponent);
 
 export default TokenDetailsActions;

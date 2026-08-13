@@ -3,21 +3,27 @@ import { useSelector } from 'react-redux';
 import type { TokenI } from '../../Tokens/types';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
 import {
   selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
   selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokenAddresses,
+  selectMoneyDepositMinBalance,
 } from '../selectors/featureFlags';
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
-import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
+import {
+  useMoneyAssetOverviewCtaVisibility,
+  useMoneyCtaVisibility,
+} from './useMoneyCtaVisibility';
 
 jest.mock('react-redux');
 jest.mock('../../../../selectors/featureFlagController/moneyAccount');
 jest.mock('../../../../selectors/moneyAccountController');
+jest.mock('../../../../selectors/featureFlagController/confirmations');
 jest.mock('../../../../reducers/user/selectors');
 jest.mock('../selectors/featureFlags');
 jest.mock('../selectors/eligibility');
@@ -45,6 +51,14 @@ interface SelectorState {
   primaryMoneyAccount: { address?: string } | undefined;
   earnBannerEnabled: boolean;
   earnBannerDismissedTokens: Record<string, boolean>;
+  blockedTokens: {
+    default: {
+      chainIds?: string[];
+      tokens?: { address: string; chainId: string }[];
+    };
+    overrides: Record<string, unknown>;
+  };
+  minDepositBalanceUsd: number;
 }
 
 const setupSelectors = ({
@@ -55,6 +69,8 @@ const setupSelectors = ({
   geoEligible = true,
   earnBannerEnabled = true,
   earnBannerDismissedTokens = {},
+  blockedTokens = { default: { chainIds: [], tokens: [] }, overrides: {} },
+  minDepositBalanceUsd = 0.01,
   ...options
 }: Partial<SelectorState> = {}) => {
   const vaultConfig = 'vaultConfig' in options ? options.vaultConfig : {};
@@ -90,6 +106,12 @@ const setupSelectors = ({
     }
     if (selector === selectMoneyEarnBannerDismissedTokens) {
       return earnBannerDismissedTokens;
+    }
+    if (selector === selectMetaMaskPayTokensFlags) {
+      return { blockedTokens };
+    }
+    if (selector === selectMoneyDepositMinBalance) {
+      return minDepositBalanceUsd;
     }
     return undefined;
   });
@@ -255,6 +277,96 @@ describe('useMoneyCtaVisibility', () => {
       expect(
         result.current.shouldShowMoneyAssetOverviewBalanceCta(ctaToken),
       ).toBe(false);
+    });
+  });
+
+  describe('useMoneyAssetOverviewCtaVisibility', () => {
+    it('does not subscribe to deposit tokens for a single-asset overview', () => {
+      renderHook(() => useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100));
+
+      expect(mockUseMoneyDepositTokens).not.toHaveBeenCalled();
+    });
+
+    it('marks footer CTA eligible for an allowlisted token that is not held', () => {
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, false, undefined),
+      );
+
+      expect(result.current.isFooterCtaEligible).toBe(true);
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+    });
+
+    it('marks balance CTA eligible only when the allowlisted token has a balance above the deposit minimum', () => {
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isBalanceCtaEligible).toBe(true);
+      expect(result.current.isFooterCtaEligible).toBe(true);
+    });
+
+    it('hides balance CTA when the fiat balance is below the money deposit minimum', () => {
+      setupSelectors({ minDepositBalanceUsd: 5 });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 1),
+      );
+
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+      // Footer CTA does not depend on the deposit minimum.
+      expect(result.current.isFooterCtaEligible).toBe(true);
+    });
+
+    it('hides balance CTA when the token is blocked for money account deposits', () => {
+      setupSelectors({
+        blockedTokens: {
+          default: {
+            tokens: [{ address: ctaToken.address, chainId: ctaToken.chainId }],
+          },
+          overrides: {},
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+      // Footer CTA does not depend on the deposit blocklist.
+      expect(result.current.isFooterCtaEligible).toBe(true);
+    });
+
+    it('hides footer CTA when its feature flag is disabled', () => {
+      setupSelectors({ assetOverviewFooterCtaEnabled: false });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isFooterCtaEligible).toBe(false);
+    });
+
+    it('hides balance CTA when its feature flag is disabled', () => {
+      setupSelectors({ assetOverviewBalanceCtaEnabled: false });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+    });
+
+    it('hides both CTAs when the token is not allowlisted', () => {
+      const customUsdc = createToken({
+        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(customUsdc, true, 100),
+      );
+
+      expect(result.current.isFooterCtaEligible).toBe(false);
+      expect(result.current.isBalanceCtaEligible).toBe(false);
     });
   });
 

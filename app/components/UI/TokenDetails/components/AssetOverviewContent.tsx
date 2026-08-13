@@ -260,7 +260,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isPricePositive,
   onPerpsMarketResolved,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet);
   const navigation = useNavigation<AppNavigationProp>();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen } = useRWAToken();
@@ -789,4 +789,4 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 };
 
-export default AssetOverviewContent;
+export default React.memo(AssetOverviewContent);

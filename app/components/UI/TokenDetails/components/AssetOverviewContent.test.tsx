@@ -834,9 +834,15 @@ describe('AssetOverviewContent', () => {
         hasFundsInPerps: false,
         isLoading: false,
       });
+      // TokenDetailsActions is wrapped in React.memo, so the named export
+      // itself isn't a spy-able function — spy on the underlying render
+      // function via `.type` instead, which React still invokes with the
+      // same props on every render.
       tokenDetailsActionsSpy = jest.spyOn(
-        TokenDetailsActionsModule,
-        'TokenDetailsActions',
+        TokenDetailsActionsModule.TokenDetailsActions as unknown as {
+          type: typeof TokenDetailsActionsModule.TokenDetailsActions;
+        },
+        'type',
       );
     });
 
