@@ -116,6 +116,8 @@ jest.mock('../../app/core/Engine', () => {
           supportsCredit: true,
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
+          supportsTransactionHistory: false,
+          supportsMoneyAccountLinking: false,
         }),
       },
       PhishingController: {
