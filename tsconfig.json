@@ -60,6 +60,9 @@
       "@metamask/design-system-react-native/spinner": [
         "node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
       ],
+      "agent-device/android-snapshot-helper": [
+        "node_modules/agent-device/dist/src/android-snapshot-helper.d.ts"
+      ],
       "@metamask/delegation-controller/types": [
         "node_modules/@metamask/delegation-controller/dist/types.d.cts"
       ]

@@ -74,6 +74,7 @@ interface AndroidPlatformAdapterDependencies {
   readonly isAdbBackend?: (backend: DeviceBackend) => boolean;
   readonly wrapBackend?: (
     backend: DeviceBackend,
+    serial: string,
     options?: SnapshotBackendOptions,
   ) => DeviceBackend;
   readonly runDeviceAdb?: typeof runDeviceAdb;
@@ -159,7 +160,7 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
       });
     }
 
-    const backend = this.dependencies.wrapBackend(rawBackend);
+    const backend = this.dependencies.wrapBackend(rawBackend, android.serial);
     this.backend = backend;
     const mobileDriver = this.dependencies.createDriver(backend, ANDROID_APP_ID);
 

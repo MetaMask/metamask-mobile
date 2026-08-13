@@ -40,6 +40,9 @@ jest.mock('../android/metro-watch-attach', () => ({
   openAndroidMetroDeepLink: jest.fn(),
   cleanupAndroidMetro: jest.fn(),
 }));
+jest.mock('../android/snapshot-backend', () => ({
+  wrapAndroidSnapshotBackend: jest.fn((backend: DeviceBackend) => backend),
+}));
 
 const mockValidate = jest.mocked(validateAndroidPrerequisites);
 const resumedActivity =
@@ -174,7 +177,7 @@ describe('AndroidPlatformAdapter', () => {
     await adapter.launch(resolved);
     await adapter.cleanup();
 
-    expect(wrapBackend).toHaveBeenCalledWith(backend);
+    expect(wrapBackend).toHaveBeenCalledWith(backend, 'emulator-5554');
     expect(createDriver).toHaveBeenCalledWith(wrappedBackend, 'io.metamask');
     expect(wrappedBackend.closeApp).toHaveBeenCalledWith('io.metamask');
   });
