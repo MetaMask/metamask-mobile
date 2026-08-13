@@ -37,10 +37,10 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 
 ### PredictNext — [`harnesses/predict-next.ts`](harnesses/predict-next.ts)
 
-- **Real:** `PredictNextController`, `PredictMarketDataService`, `KalshiRemoteAdapter`, `PredictApiReadClient`, and controller/service messengers
-- **Mocked:** HTTP fetch and app-shell base URL/client version configuration
+- **Real:** `PredictNextController`, `PredictMarketDataService`, `PredictSessionService`, `KalshiRemoteAdapter`, Predict API clients, and controller/service messengers
+- **Mocked:** HTTP fetch, required-auth token retrieval, and app-shell base URL/client version configuration
 - **Factory:** `buildPredictNextIntegrationHarness(responder)`
-- **Returns:** `{ controller, messenger, fetchMock, destroy }`
+- **Returns:** `{ controller, messenger, sessionService, sessionMessenger, fetchMock, destroy }`
 
 ---
 

@@ -142,6 +142,13 @@ describe('logs :: generateStateLogs', () => {
           DeFiPositionsController: { positions: [] },
           DeFiPositionsControllerV2: { positions: [] },
           PredictController: { predictions: [] },
+          PredictSessionService: {
+            accountReadiness: {
+              venueId: 'kalshi',
+              status: 'ready',
+            },
+            requestStatus: 'success',
+          },
           KeyringController: {
             vault: 'vault mock',
           },
@@ -160,6 +167,7 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('DeFiPositionsController')).toBe(false);
     expect(logs.includes('DeFiPositionsControllerV2')).toBe(false);
     expect(logs.includes('PredictController')).toBe(false);
+    expect(logs.includes('PredictSessionService')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
 

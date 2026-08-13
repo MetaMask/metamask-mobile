@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
   Button,
+  ButtonSize,
   ButtonVariant,
   Text,
   TextVariant,
@@ -15,6 +16,8 @@ import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
 import { EventCardContent } from '../../components/EventCard/EventCardContent';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { usePredictGuard } from '../../hooks/usePredictGuard';
+import { PredictHomeTestIds } from './PredictHome.testIds';
 
 const PAGE_SIZE = 20;
 
@@ -23,6 +26,7 @@ export const PredictHome = () => {
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const statusQuery = useVenueStatus(KALSHI_VENUE_ID);
   const eventsQuery = useEventList(KALSHI_VENUE_ID, { limit: PAGE_SIZE });
+  const { canSetup } = usePredictGuard(KALSHI_VENUE_ID);
   const endReached = useRef(false);
   const [paginationError, setPaginationError] = useState(false);
   const events = useMemo(
@@ -101,6 +105,19 @@ export const PredictHome = () => {
       <Box twClassName="px-4 pb-2">
         <Text variant={TextVariant.HeadingLg}>Predictions</Text>
       </Box>
+      {canSetup ? (
+        <Box twClassName="px-4 pb-4">
+          <Button
+            testID={PredictHomeTestIds.SETUP_ACCOUNT}
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled
+          >
+            Set up your account
+          </Button>
+        </Box>
+      ) : null}
       {blockingContent ?? (
         <FlashList
           testID="predict-next-event-feed"

@@ -3,9 +3,11 @@ import {
   parsePredictEventsPage,
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
+import { parsePredictAccountReadiness } from '../../contracts/v1/account';
 import { PredictError, PredictErrorCode } from '../../errors';
 import { KALSHI_VENUE_ID } from '../../types';
-import type { VenueMarketDataAdapter } from '../types';
+import type { VenueAccountAdapter, VenueMarketDataAdapter } from '../types';
+import type { PredictApiAccountTransport } from './PredictApiAccountClient';
 import {
   type PredictApiReadTransport,
   PredictHttpError,
@@ -40,9 +42,32 @@ const mapError = (error: unknown): never => {
 
 export class KalshiRemoteAdapter {
   readonly venueId = KALSHI_VENUE_ID;
+  readonly account?: VenueAccountAdapter;
   readonly marketData: VenueMarketDataAdapter;
 
-  constructor(client: PredictApiReadTransport) {
+  constructor(
+    client: PredictApiReadTransport,
+    accountClient?: PredictApiAccountTransport,
+  ) {
+    if (accountClient) {
+      this.account = {
+        fetchAccountReadiness: async (options) => {
+          try {
+            const value = await accountClient.fetchAccountReadiness(
+              this.venueId,
+              options,
+            );
+            const result = parsePredictAccountReadiness(value);
+            if (result.venueId !== this.venueId) {
+              throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+            }
+            return result;
+          } catch (error) {
+            return mapError(error);
+          }
+        },
+      };
+    }
     this.marketData = {
       fetchVenueStatus: async (options) => {
         try {

@@ -135,6 +135,7 @@ import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
 import { predictNextControllerInit } from './controllers/predict-next-controller-init';
+import { predictSessionServiceInit } from './controllers/predict-session-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
@@ -383,6 +384,7 @@ export class Engine {
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         PredictNextController: predictNextControllerInit,
+        PredictSessionService: predictSessionServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -439,6 +441,7 @@ export class Engine {
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
     const predictNextController = messengerClientsByName.PredictNextController;
+    const predictSessionService = messengerClientsByName.PredictSessionService;
     const rewardsController = messengerClientsByName.RewardsController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
@@ -655,6 +658,7 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       PredictNextController: predictNextController,
+      PredictSessionService: predictSessionService,
       RewardsController: rewardsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
@@ -1291,6 +1295,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
       MoneyAccountController,
+      PredictSessionService,
     } = this.context;
 
     // Remove all permissions.
@@ -1321,6 +1326,7 @@ export class Engine {
     }));
 
     LoggingController.clear();
+    PredictSessionService.clearAccountReadiness();
 
     // Accounts:
     MoneyAccountController.clearState();
@@ -1494,6 +1500,7 @@ export default {
       PerpsController,
       PhishingController,
       PredictController,
+      PredictSessionService,
       PreferencesController,
       RemoteFeatureFlagController,
       RewardsController,
@@ -1569,6 +1576,7 @@ export default {
       PerpsController: PerpsController.state,
       PhishingController: PhishingController.state,
       PredictController: PredictController.state,
+      PredictSessionService: PredictSessionService.state,
       PreferencesController: PreferencesController.state,
       RemoteFeatureFlagController: RemoteFeatureFlagController.state,
       RewardsController: RewardsController.state,

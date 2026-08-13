@@ -74,6 +74,78 @@ describe('PredictHome', () => {
     expect(within(card).getByText('Election 2028')).toBeOnTheScreen();
     expect(within(card).getByText('Yes 42¢')).toBeOnTheScreen();
     expect(within(card).getByText('No 58¢')).toBeOnTheScreen();
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictSessionService:refreshAccountReadiness',
+      'kalshi',
+      expect.objectContaining({ signal: expect.any(Object) }),
+    );
+  });
+
+  it('shows account setup only when Account Readiness requires it', async () => {
+    const view = renderPredictNext({
+      engine: {
+        backgroundState: {
+          PredictSessionService: {
+            accountReadiness: {
+              venueId: 'kalshi',
+              status: 'setup_required',
+            },
+            requestStatus: 'success',
+          },
+        },
+      },
+    });
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.SETUP_ACCOUNT),
+    ).toHaveTextContent('Set up your account');
+    expect(view.getByTestId(PredictHomeTestIds.SETUP_ACCOUNT)).toBeDisabled();
+  });
+
+  it('hides account setup when the Predict User can trade', async () => {
+    const view = renderPredictNext({
+      engine: {
+        backgroundState: {
+          PredictSessionService: {
+            accountReadiness: { venueId: 'kalshi', status: 'ready' },
+            requestStatus: 'success',
+          },
+        },
+      },
+    });
+
+    await view.findByTestId(PredictHomeTestIds.FEED);
+    expect(
+      view.queryByTestId(PredictHomeTestIds.SETUP_ACCOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('fails closed while Account Readiness is unavailable', async () => {
+    const view = renderPredictNext();
+
+    await view.findByTestId(PredictHomeTestIds.FEED);
+    expect(
+      view.queryByTestId(PredictHomeTestIds.SETUP_ACCOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('cancels the Account Readiness request when the view unmounts', async () => {
+    const view = renderPredictNext();
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictSessionService:refreshAccountReadiness',
+        'kalshi',
+        expect.objectContaining({ signal: expect.any(Object) }),
+      ),
+    );
+    const readinessCall = messengerCall.mock.calls.find(
+      ([action]) => action === 'PredictSessionService:refreshAccountReadiness',
+    );
+    const signal = readinessCall?.[2]?.signal as AbortSignal;
+
+    view.unmount();
+
+    expect(signal.aborted).toBe(true);
   });
 
   it('opens detail and returns without fetching Event detail', async () => {

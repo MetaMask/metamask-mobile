@@ -60,6 +60,7 @@ jest.mock('../Engine/constants', () => ({
     'KeyringController:stateChange',
     'PreferencesController:stateChange',
     'NetworkController:stateChange',
+    'PredictSessionService:stateChange',
   ],
 }));
 
@@ -165,6 +166,7 @@ jest.mock('../Engine', () => {
           SignatureController: { subscribe: jest.fn() },
           MultichainBalancesController: { subscribe: jest.fn() },
           RatesController: { subscribe: jest.fn() },
+          PredictSessionService: { subscribe: jest.fn() },
         },
       };
       return mockInstance;
@@ -559,6 +561,28 @@ describe('EngineService', () => {
       );
     });
 
+    it('flushes Account Readiness updates immediately', async () => {
+      await engineService.start();
+      const mockSubscribe = (
+        Engine as unknown as {
+          controllerMessenger: MockControllerMessenger;
+        }
+      ).controllerMessenger.subscribe;
+      const readinessSubscription = mockSubscribe.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === 'PredictSessionService:stateChange' && call.length === 2,
+      );
+      expect(readinessSubscription).toBeDefined();
+
+      const callback = readinessSubscription?.[1] as () => void;
+      callback();
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: UPDATE_BG_STATE_KEY,
+        payload: { key: 'PredictSessionService' },
+      });
+    });
+
     it('skips CronjobController events', async () => {
       // Types for Engine mock
       interface MockEngineType {
@@ -732,7 +756,7 @@ describe('EngineService', () => {
       // Should subscribe to controllers that have persistent state
       // Based on the mock setup: KeyringController, PreferencesController, NetworkController
       // (KeyringController appears twice due to test setup)
-      expect(mockSubscribe).toHaveBeenCalledTimes(4);
+      expect(mockSubscribe).toHaveBeenCalledTimes(5);
 
       // Should NOT subscribe to CronjobController
       const subscribedEvents = (mockSubscribe as jest.Mock).mock.calls.map(
@@ -771,7 +795,7 @@ describe('EngineService', () => {
       );
 
       // Should only subscribe to controllers with persistent state
-      expect(mockSubscribe).toHaveBeenCalledTimes(4); // KeyringController (2x), PreferencesController, NetworkController
+      expect(mockSubscribe).toHaveBeenCalledTimes(5); // KeyringController (2x), PreferencesController, NetworkController, PredictSessionService
     });
 
     it('persists controller state changes to filesystem', async () => {

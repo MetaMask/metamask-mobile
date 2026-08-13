@@ -5,6 +5,16 @@ export const initialStatePredictNext = () =>
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
     .withMinimalKeyringController()
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          PredictSessionService: {
+            accountReadiness: null,
+            requestStatus: 'idle',
+          },
+        },
+      },
+    })
     .withRemoteFeatureFlags({
       predictTradingEnabled: {
         enabled: true,

@@ -172,6 +172,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('DeFiPositionsControllerV2');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
+    expect(engine.context).toHaveProperty('PredictSessionService');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
@@ -1131,6 +1132,18 @@ describe('Engine', () => {
       await engine.resetState();
 
       expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('clears Predict Account Readiness', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearReadinessSpy = jest.spyOn(
+        engine.context.PredictSessionService,
+        'clearAccountReadiness',
+      );
+
+      await engine.resetState();
+
+      expect(clearReadinessSpy).toHaveBeenCalled();
     });
   });
 });

@@ -221,3 +221,30 @@ describe('PredictNext public market data', () => {
     ).toThrow();
   });
 });
+
+describe('PredictNext Account Readiness', () => {
+  it('reads readiness through required-auth transport without client identity', async () => {
+    const harness = createPredictNextIntegrationHarness(() => ({
+      body: { venueId: 'kalshi', status: 'setup_required' },
+    }));
+
+    const result = await harness.sessionMessenger.call(
+      'PredictSessionService:refreshAccountReadiness',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toEqual({ venueId: 'kalshi', status: 'setup_required' });
+    expect(harness.sessionService.state.accountReadiness).toEqual(result);
+    expect(harness.fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/predict/v1/venues/kalshi/account/readiness',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer integration-token',
+        }),
+      }),
+    );
+    expect(String(harness.fetchMock.mock.calls[0][0])).not.toContain('user');
+    expect(String(harness.fetchMock.mock.calls[0][0])).not.toContain('wallet');
+    harness.destroy();
+  });
+});

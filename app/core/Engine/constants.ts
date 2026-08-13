@@ -100,6 +100,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: END:ONLY_INCLUDE_IF
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
+  'PredictSessionService:stateChange',
   'CardController:stateChange',
   'ClientController:stateChange',
   'DelegationController:stateChange',
