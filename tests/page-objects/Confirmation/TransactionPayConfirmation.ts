@@ -31,13 +31,7 @@ class TransactionPayConfirmation {
   }
 
   get keypad(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TransactionPayComponentIDs.KEYPAD),
-      appium: () =>
-        PlaywrightMatchers.getElementById(TransactionPayComponentIDs.KEYPAD, {
-          exact: true,
-        }),
-    });
+    return Matchers.getElementByID(TransactionPayComponentIDs.KEYPAD);
   }
 
   async expectKeyboardLoaded(): Promise<void> {
@@ -58,23 +52,10 @@ class TransactionPayConfirmation {
     await Assertions.expectElementToBeVisible(this.keypad, {
       description: 'Deposit keyboard is visible before typing amount',
     });
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.keypad), {
-          elemDescription: 'Focus amount via deposit keyboard container',
-          checkEnabled: false,
-          checkVisibility: false,
-        });
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.keypad),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: false,
-          },
-        );
-      },
+    await Gestures.waitAndTap(this.keypad, {
+      elemDescription: 'Focus amount via deposit keyboard container',
+      checkEnabled: false,
+      checkVisibility: false,
     });
   }
 
@@ -216,22 +197,14 @@ class TransactionPayConfirmation {
   }
 
   get preferredPayTokenRow(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
+    );
   }
 
   async tapPreferredPayToken(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.preferredPayTokenRow, {
-      description: 'Preferred pay token row',
+    await Gestures.waitAndTap(this.preferredPayTokenRow, {
+      elemDescription: 'Preferred pay token row',
     });
   }
 
