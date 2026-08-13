@@ -1202,6 +1202,7 @@ const BASE_STX_FLAGS = [
         '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
         '0x724dc807b04555b71ed48a6896b6f41593b8c637',
       ],
+      '0x89': ['0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb'],
       '0xe708': ['0xaca92e438df0b2401ff60da7e4337b687a2435da'],
       rc: true,
       '0x1': [
