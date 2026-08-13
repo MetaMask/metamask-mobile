@@ -1,16 +1,19 @@
 import type { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
+import {
+  ensureMoneyAccountAutorampCreated,
+  ensureMoneyAccountWalletRegistered,
+} from './moneyAccountProvisioning';
 
 /**
  * Payload published by `KycController:statusChanged`.
  */
-type KycStatusChangedPayload = {
+interface KycStatusChangedPayload {
   status: string;
   sumsubSessionId: string | null;
   errorCode: string | null;
-};
+}
 
 const asError = (value: unknown): Error =>
   value instanceof Error ? value : new Error(String(value));
@@ -27,9 +30,10 @@ const asError = (value: unknown): Error =>
  * signing webhook that would do this server-side is not ready yet.
  *
  * The subscriber is:
- * - Idempotent: a given address is registered at most once per session, and
- *   overlapping `completed` events are collapsed so registration never runs
- *   twice concurrently. A rejected registration is retried on a later event.
+ * - Idempotent: registration and autoramp creation go through the shared
+ *   `moneyAccountProvisioning` entry points, which each run at most once per
+ *   address whether the trigger was this event or the success screen's status
+ *   read. A rejected run is retried on a later event.
  * - Soft-failing: verification already succeeded, so neither a registration nor
  *   an autoramp error is surfaced to the user — they are logged, and the manual
  *   "Create my account" button on the success screen stays as the fallback.
@@ -39,9 +43,6 @@ const asError = (value: unknown): Error =>
 export function createRegisterMoneyAccountOnKycCompletion(): (
   payload: KycStatusChangedPayload,
 ) => Promise<void> {
-  const registeredAddresses = new Set<string>();
-  const inFlightAddresses = new Set<string>();
-
   return async function handleKycStatusChanged({
     status,
   }: KycStatusChangedPayload): Promise<void> {
@@ -59,33 +60,17 @@ export function createRegisterMoneyAccountOnKycCompletion(): (
       return;
     }
 
-    const addressKey = address.toLowerCase();
-    if (
-      registeredAddresses.has(addressKey) ||
-      inFlightAddresses.has(addressKey)
-    ) {
-      return;
-    }
-    inFlightAddresses.add(addressKey);
-
     try {
-      await Engine.context.RampsController.registerMoneyAccountWallet({
-        address,
-      });
-      registeredAddresses.add(addressKey);
+      await ensureMoneyAccountWalletRegistered(address);
     } catch (error) {
       Logger.error(asError(error), {
         message: 'Money Account wallet registration failed after KYC completed',
       });
       return;
-    } finally {
-      inFlightAddresses.delete(addressKey);
     }
 
     try {
-      await Engine.context.RampsController.createAutoramp(
-        buildMoneyAccountAutorampParams(address),
-      );
+      await ensureMoneyAccountAutorampCreated(address);
     } catch (error) {
       Logger.error(asError(error), {
         message:
