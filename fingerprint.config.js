@@ -246,6 +246,9 @@ const config = {
     '.github/workflows/update-e2e-fixtures.yml',
     '.github/workflows/upload-to-testflight.yml',
     '.github/workflows/runway-ota-resolve-context.yml',
+    // RC fingerprint reuse orchestrator — does not change compiled native source.
+    // Native compilation still goes through build.yml / scripts/build.sh (tracked).
+    '.github/workflows/build-rc-fingerprint.yml',
 
     // Note: `.github/workflows/get-requirements.yml` is intentionally NOT ignored, since
     // it gates whether native build jobs run at all.

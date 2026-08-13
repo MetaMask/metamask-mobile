@@ -1,0 +1,1138 @@
+##############################################################################################
+#
+# Build RC with fingerprint reuse
+#
+# Builds iOS + Android using Auto RC's main-rc JS/env/secrets. When reuse_run_id is set,
+# the Expo OTA fingerprint of the current tree is compared to the fingerprint of the
+# source that produced that run's native binaries. Match → JS-repack those binaries.
+# Mismatch, empty reuse_run_id, or force_native_build → full native build.yml.
+#
+# iOS is signed with PROFILE=development (development-metamask / Apple Development) because
+# @expo/repack-app cannot re-sign App Store IPAs. Do not upload these IPAs to TestFlight.
+# Android uses the same RC keystore as Auto RC.
+#
+# Auto RC is not wired to this workflow yet — workflow_call outputs match build.yml so it
+# can be adopted later.
+#
+##############################################################################################
+name: Build RC (fingerprint reuse)
+
+on:
+  # TEMPORARY: registers this workflow on the PR so it can be dispatched from
+  # this branch before merge. Real jobs skip this event; remove with the
+  # register-workflow job after GitHub lists it in Actions.
+  pull_request:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+      platform:
+        description: 'android, ios, or both'
+        required: false
+        type: string
+        default: both
+      force_native_build:
+        description: 'Skip reuse and compile native binaries'
+        required: false
+        type: boolean
+        default: false
+      reuse_run_id:
+        description: >-
+          GitHub Actions run ID whose native IPA/APK artifacts are reuse
+          candidates. Current source is fingerprinted against that run's
+          binary source; match → JS-repack, mismatch → full native build.
+        required: false
+        type: string
+        default: ''
+      upload_to_sentry:
+        description: 'Upload JS source maps and native debug symbols during a full native build'
+        required: false
+        type: boolean
+        default: true
+      build_number:
+        description: 'Optional local build number stamp (no git commit). Applied after fingerprinting.'
+        required: false
+        type: string
+        default: ''
+      runner_provider:
+        description: 'Runner provider forwarded from the caller'
+        required: false
+        type: string
+        default: current
+    outputs:
+      build_name:
+        description: 'Android build_name (main-rc). iOS uses main-rc-development.'
+        value: main-rc
+      platform:
+        description: 'platform input (android, ios, or both)'
+        value: ${{ inputs.platform }}
+      source_branch_input:
+        description: 'Resolved source branch'
+        value: ${{ jobs.prepare.outputs.source_branch }}
+      checkout_ref:
+        description: 'Git ref used for checkout'
+        value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
+      built_commit_sha:
+        description: 'Resolved commit SHA at checkout_ref'
+        value: ${{ jobs.emit-build-metadata.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.android_version_code }}
+      ios_version_code:
+        description: 'ios CURRENT_PROJECT_VERSION at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.ios_version_code }}
+      ios_reused:
+        description: 'Whether iOS reused a prior native IPA and JS-repacked'
+        value: ${{ jobs.prepare.outputs.ios_reuse }}
+      android_reused:
+        description: 'Whether Android reused a prior native APK and JS-repacked'
+        value: ${{ jobs.prepare.outputs.android_reuse }}
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build (empty = current workflow ref)'
+        required: false
+        type: string
+        default: ''
+      platform:
+        description: 'Platform to build'
+        required: true
+        type: choice
+        options: [both, ios, android]
+        default: both
+      force_native_build:
+        description: 'Skip reuse and compile native binaries'
+        required: false
+        type: boolean
+        default: false
+      reuse_run_id:
+        description: >-
+          GitHub Actions run ID whose native IPA/APK artifacts are reuse
+          candidates. Current source is fingerprinted against that run's
+          binary source; match → JS-repack, mismatch → full native build.
+        required: false
+        type: string
+        default: ''
+      upload_to_sentry:
+        description: 'Upload JS source maps and native debug symbols during a full native build'
+        required: false
+        type: boolean
+        default: true
+      build_number:
+        description: 'Optional local build number stamp (no git commit). Applied after fingerprinting.'
+        required: false
+        type: string
+        default: ''
+      runner_provider:
+        description: 'Runner provider for this manual trial run'
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
+
+permissions:
+  contents: read
+  statuses: write
+  actions: read
+  id-token: write
+
+env:
+  IOS_BUILD_NAME: main-rc-development
+  ANDROID_BUILD_NAME: main-rc
+  IOS_IPA_ARTIFACT: ios-ipa-main-rc-development
+  ANDROID_APK_ARTIFACT: android-apk-main-rc
+  IOS_METADATA_ARTIFACT: rc-fingerprint-ios-build-metadata
+  ANDROID_METADATA_ARTIFACT: rc-fingerprint-android-build-metadata
+  STATUS_CONTEXT: rc-fingerprint-build-source-hash
+
+jobs:
+  register-workflow:
+    name: Register workflow for dispatch
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Registered Build RC (fingerprint reuse) for later workflow_dispatch."
+
+  prepare:
+    name: Fingerprint and resolve reuse
+    if: github.event_name != 'pull_request'
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    outputs:
+      fingerprint: ${{ steps.publish.outputs.fingerprint }}
+      binary_fingerprint: ${{ steps.compare.outputs.binary_fingerprint }}
+      fingerprints_match: ${{ steps.compare.outputs.match }}
+      source_branch: ${{ steps.refs.outputs.source_branch }}
+      checkout_sha: ${{ steps.sha.outputs.checkout_sha }}
+      should_ios: ${{ steps.refs.outputs.should_ios }}
+      should_android: ${{ steps.refs.outputs.should_android }}
+      ios_reuse: ${{ steps.compare.outputs.ios_reuse }}
+      android_reuse: ${{ steps.compare.outputs.android_reuse }}
+      ios_run_id: ${{ steps.inspect.outputs.run_id }}
+      android_run_id: ${{ steps.inspect.outputs.run_id }}
+    steps:
+      - name: Resolve refs and platforms
+        id: refs
+        env:
+          SOURCE_BRANCH_INPUT: ${{ inputs.source_branch }}
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          set -euo pipefail
+          SOURCE_BRANCH="${SOURCE_BRANCH_INPUT:-${{ github.ref_name }}}"
+          echo "source_branch=$SOURCE_BRANCH" >> "$GITHUB_OUTPUT"
+          case "$PLATFORM" in
+            ios)
+              echo "should_ios=true" >> "$GITHUB_OUTPUT"
+              echo "should_android=false" >> "$GITHUB_OUTPUT"
+              ;;
+            android)
+              echo "should_ios=false" >> "$GITHUB_OUTPUT"
+              echo "should_android=true" >> "$GITHUB_OUTPUT"
+              ;;
+            both|'')
+              echo "should_ios=true" >> "$GITHUB_OUTPUT"
+              echo "should_android=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::Invalid platform '$PLATFORM'. Expected ios, android, or both."
+              exit 1
+              ;;
+          esac
+          echo "Resolved source_branch=$SOURCE_BRANCH platform=$PLATFORM"
+
+      - name: Inspect reuse_run_id binaries
+        id: inspect
+        if: ${{ inputs.force_native_build != true && inputs.reuse_run_id != '' }}
+        uses: actions/github-script@v7
+        env:
+          REUSE_RUN_ID: ${{ inputs.reuse_run_id }}
+          SHOULD_IOS: ${{ steps.refs.outputs.should_ios }}
+          SHOULD_ANDROID: ${{ steps.refs.outputs.should_android }}
+          IOS_IPA_ARTIFACT: ${{ env.IOS_IPA_ARTIFACT }}
+          ANDROID_APK_ARTIFACT: ${{ env.ANDROID_APK_ARTIFACT }}
+          IOS_METADATA_ARTIFACT: ${{ env.IOS_METADATA_ARTIFACT }}
+          ANDROID_METADATA_ARTIFACT: ${{ env.ANDROID_METADATA_ARTIFACT }}
+          STATUS_CONTEXT: ${{ env.STATUS_CONTEXT }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const runIdRaw = String(process.env.REUSE_RUN_ID || '').trim();
+            const shouldIos = process.env.SHOULD_IOS === 'true';
+            const shouldAndroid = process.env.SHOULD_ANDROID === 'true';
+            const iosArtifact = process.env.IOS_IPA_ARTIFACT;
+            const androidArtifact = process.env.ANDROID_APK_ARTIFACT;
+            const iosMeta = process.env.IOS_METADATA_ARTIFACT;
+            const androidMeta = process.env.ANDROID_METADATA_ARTIFACT;
+            const statusContext = process.env.STATUS_CONTEXT;
+
+            core.setOutput('run_id', '');
+            core.setOutput('head_sha', '');
+            core.setOutput('status_fingerprint', '');
+            core.setOutput('has_ios_metadata', 'false');
+            core.setOutput('has_android_metadata', 'false');
+
+            const runId = Number(runIdRaw);
+            if (!Number.isInteger(runId) || runId <= 0) {
+              core.setFailed(`reuse_run_id must be a positive integer, got: ${runIdRaw}`);
+              return;
+            }
+            core.setOutput('run_id', String(runId));
+
+            let run;
+            try {
+              ({ data: run } = await github.rest.actions.getWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: runId,
+              }));
+            } catch (err) {
+              core.setFailed(`Could not load workflow run ${runId}: ${err.message}`);
+              return;
+            }
+
+            const headSha = run.head_sha || '';
+            core.setOutput('head_sha', headSha);
+            core.info(`reuse_run_id=${runId} head_sha=${headSha} html_url=${run.html_url}`);
+
+            let artifacts;
+            try {
+              artifacts = await github.paginate(
+                github.rest.actions.listWorkflowRunArtifacts,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: runId,
+                  per_page: 100,
+                },
+              );
+            } catch (err) {
+              core.setFailed(`Could not list artifacts for run ${runId}: ${err.message}`);
+              return;
+            }
+
+            const available = new Set(
+              artifacts.filter((a) => !a.expired).map((a) => a.name),
+            );
+            core.info(`Run ${runId} artifacts: ${[...available].join(', ') || '(none)'}`);
+
+            const missing = [];
+            if (shouldIos && !available.has(iosArtifact)) missing.push(iosArtifact);
+            if (shouldAndroid && !available.has(androidArtifact)) missing.push(androidArtifact);
+            if (missing.length > 0) {
+              core.setFailed(
+                `Run ${runId} is missing required artifact(s): ${missing.join(', ')}. ` +
+                  `Available: ${[...available].join(', ') || '(none)'}`,
+              );
+              return;
+            }
+
+            core.setOutput('has_ios_metadata', available.has(iosMeta) ? 'true' : 'false');
+            core.setOutput('has_android_metadata', available.has(androidMeta) ? 'true' : 'false');
+
+            if (headSha) {
+              try {
+                const runPathPattern = new RegExp(`/actions/runs/${runId}(?:$|[/?#])`);
+                const statuses = await github.paginate(
+                  github.rest.repos.listCommitStatusesForRef,
+                  {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: headSha,
+                    per_page: 100,
+                  },
+                );
+                const match = statuses.find(
+                  (s) =>
+                    s.context === statusContext &&
+                    s.state === 'success' &&
+                    s.description &&
+                    runPathPattern.test(String(s.target_url || '')),
+                );
+                if (match) {
+                  core.setOutput('status_fingerprint', match.description);
+                  core.info(`Binary fingerprint from commit status: ${match.description}`);
+                }
+              } catch (err) {
+                core.warning(`Could not read commit statuses for ${headSha}: ${err.message}`);
+              }
+            }
+
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          fetch-depth: 1
+          ref: ${{ steps.refs.outputs.source_branch }}
+      - uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          fetch-depth: 1
+          ref: ${{ steps.refs.outputs.source_branch }}
+
+      - name: Record checkout SHA
+        run: |
+          SHA=$(git rev-parse HEAD)
+          echo "checkout_sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Checked out $SHA"
+        id: sha
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies
+        run: yarn install --immutable
+
+      - name: Compute Expo OTA fingerprint and post status
+        id: publish
+        uses: ./.github/actions/post-build-source-hash
+        with:
+          github-token: ${{ github.token }}
+          target-sha: ${{ steps.sha.outputs.checkout_sha }}
+          status-context: ${{ env.STATUS_CONTEXT }}
+
+      - name: Download iOS metadata from reuse run
+        id: download-ios-meta
+        if: ${{ steps.inspect.outputs.has_ios_metadata == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.IOS_METADATA_ARTIFACT }}
+          path: .rc-binary-metadata/ios
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.inspect.outputs.run_id }}
+
+      - name: Download Android metadata from reuse run
+        id: download-android-meta
+        if: ${{ steps.inspect.outputs.has_android_metadata == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ANDROID_METADATA_ARTIFACT }}
+          path: .rc-binary-metadata/android
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.inspect.outputs.run_id }}
+
+      - name: Resolve binary fingerprint from metadata or status
+        id: binary-fp-known
+        if: ${{ steps.inspect.outputs.run_id != '' }}
+        env:
+          STATUS_FINGERPRINT: ${{ steps.inspect.outputs.status_fingerprint }}
+          RUN_ID: ${{ steps.inspect.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          echo "fingerprint=" >> "$GITHUB_OUTPUT"
+          echo "source=" >> "$GITHUB_OUTPUT"
+
+          ios_fp=""
+          android_fp=""
+          if [[ -d .rc-binary-metadata/ios ]]; then
+            ios_file="$(find .rc-binary-metadata/ios -name '*.json' -type f | head -1 || true)"
+            if [[ -n "$ios_file" ]]; then
+              ios_fp="$(jq -r '.fingerprint // empty' "$ios_file")"
+              echo "iOS metadata fingerprint from $ios_file: ${ios_fp:-<empty>}"
+            fi
+          fi
+          if [[ -d .rc-binary-metadata/android ]]; then
+            android_file="$(find .rc-binary-metadata/android -name '*.json' -type f | head -1 || true)"
+            if [[ -n "$android_file" ]]; then
+              android_fp="$(jq -r '.fingerprint // empty' "$android_file")"
+              echo "Android metadata fingerprint from $android_file: ${android_fp:-<empty>}"
+            fi
+          fi
+
+          if [[ -n "$ios_fp" && -n "$android_fp" && "$ios_fp" != "$android_fp" ]]; then
+            echo "::warning::iOS and Android metadata fingerprints differ on run ${RUN_ID}; treating as mismatch."
+            echo "source=metadata-conflict" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ -n "$ios_fp" || -n "$android_fp" ]]; then
+            fp="${ios_fp:-$android_fp}"
+            echo "fingerprint=$fp" >> "$GITHUB_OUTPUT"
+            echo "source=metadata" >> "$GITHUB_OUTPUT"
+            echo "Binary fingerprint from metadata: $fp"
+            exit 0
+          fi
+
+          if [[ -n "${STATUS_FINGERPRINT:-}" ]]; then
+            echo "fingerprint=$STATUS_FINGERPRINT" >> "$GITHUB_OUTPUT"
+            echo "source=status" >> "$GITHUB_OUTPUT"
+            echo "Binary fingerprint from commit status: $STATUS_FINGERPRINT"
+            exit 0
+          fi
+
+          echo "No metadata or commit-status fingerprint for run ${RUN_ID}"
+
+      - name: Checkout binary source for fingerprint
+        id: checkout-binary
+        if: >-
+          steps.inspect.outputs.run_id != '' &&
+          steps.binary-fp-known.outputs.fingerprint == '' &&
+          steps.binary-fp-known.outputs.source != 'metadata-conflict' &&
+          steps.inspect.outputs.head_sha != '' &&
+          steps.inspect.outputs.head_sha != steps.sha.outputs.checkout_sha
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.inspect.outputs.head_sha }}
+          path: binary-src
+          fetch-depth: 1
+
+      - name: Fingerprint binary source tree
+        id: binary-fp-compute
+        if: ${{ steps.checkout-binary.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [[ -f yarn.lock && -f binary-src/yarn.lock ]] && cmp -s yarn.lock binary-src/yarn.lock; then
+            ln -sfn "$PWD/node_modules" binary-src/node_modules
+          else
+            (
+              cd binary-src
+              yarn install --immutable
+            )
+          fi
+          FINGERPRINT="$(cd binary-src && yarn fingerprint:generate)"
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Binary fingerprint from head_sha checkout: $FINGERPRINT"
+
+      - name: Compare fingerprints and decide reuse
+        id: compare
+        env:
+          CURRENT_FP: ${{ steps.publish.outputs.fingerprint }}
+          KNOWN_FP: ${{ steps.binary-fp-known.outputs.fingerprint }}
+          KNOWN_SOURCE: ${{ steps.binary-fp-known.outputs.source }}
+          COMPUTED_FP: ${{ steps.binary-fp-compute.outputs.fingerprint }}
+          HEAD_SHA: ${{ steps.inspect.outputs.head_sha }}
+          CHECKOUT_SHA: ${{ steps.sha.outputs.checkout_sha }}
+          RUN_ID: ${{ steps.inspect.outputs.run_id }}
+          FORCE_NATIVE: ${{ inputs.force_native_build }}
+          SHOULD_IOS: ${{ steps.refs.outputs.should_ios }}
+          SHOULD_ANDROID: ${{ steps.refs.outputs.should_android }}
+        run: |
+          set -euo pipefail
+          echo "ios_reuse=false" >> "$GITHUB_OUTPUT"
+          echo "android_reuse=false" >> "$GITHUB_OUTPUT"
+          echo "match=false" >> "$GITHUB_OUTPUT"
+          echo "binary_fingerprint=" >> "$GITHUB_OUTPUT"
+          echo "binary_fp_source=" >> "$GITHUB_OUTPUT"
+
+          if [[ "$FORCE_NATIVE" == "true" ]]; then
+            echo "force_native_build=true — full native build."
+            exit 0
+          fi
+          if [[ -z "${RUN_ID:-}" ]]; then
+            echo "reuse_run_id is empty — full native build."
+            exit 0
+          fi
+
+          BINARY_FP=""
+          SOURCE=""
+          if [[ -n "${KNOWN_FP:-}" ]]; then
+            BINARY_FP="$KNOWN_FP"
+            SOURCE="${KNOWN_SOURCE:-known}"
+          elif [[ -n "${COMPUTED_FP:-}" ]]; then
+            BINARY_FP="$COMPUTED_FP"
+            SOURCE="checkout"
+          elif [[ -n "${HEAD_SHA:-}" && "$HEAD_SHA" == "$CHECKOUT_SHA" && -n "${CURRENT_FP:-}" ]]; then
+            BINARY_FP="$CURRENT_FP"
+            SOURCE="same-sha"
+          fi
+
+          echo "binary_fingerprint=$BINARY_FP" >> "$GITHUB_OUTPUT"
+          echo "binary_fp_source=$SOURCE" >> "$GITHUB_OUTPUT"
+
+          if [[ -z "$BINARY_FP" || -z "${CURRENT_FP:-}" ]]; then
+            echo "Could not resolve a fingerprint for run ${RUN_ID} binaries — full native build."
+            exit 0
+          fi
+
+          if [[ "$CURRENT_FP" != "$BINARY_FP" ]]; then
+            echo "Fingerprint mismatch (current=${CURRENT_FP} binary=${BINARY_FP} source=${SOURCE}) — full native build."
+            exit 0
+          fi
+
+          echo "match=true" >> "$GITHUB_OUTPUT"
+          echo "Fingerprints match (${CURRENT_FP}) via ${SOURCE} — JS-repack from run ${RUN_ID}."
+          if [[ "$SHOULD_IOS" == "true" ]]; then
+            echo "ios_reuse=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ "$SHOULD_ANDROID" == "true" ]]; then
+            echo "android_reuse=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write reuse summary
+        if: always()
+        env:
+          FINGERPRINT: ${{ steps.publish.outputs.fingerprint }}
+          BINARY_FINGERPRINT: ${{ steps.compare.outputs.binary_fingerprint }}
+          BINARY_FP_SOURCE: ${{ steps.compare.outputs.binary_fp_source }}
+          FINGERPRINTS_MATCH: ${{ steps.compare.outputs.match }}
+          REUSE_RUN_ID: ${{ steps.inspect.outputs.run_id }}
+          BINARY_HEAD_SHA: ${{ steps.inspect.outputs.head_sha }}
+          IOS_REUSE: ${{ steps.compare.outputs.ios_reuse }}
+          ANDROID_REUSE: ${{ steps.compare.outputs.android_reuse }}
+        run: |
+          {
+            echo "### RC fingerprint reuse"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Current Expo OTA fingerprint | \`${FINGERPRINT}\` |"
+            echo "| Binary-source fingerprint | \`${BINARY_FINGERPRINT:-none}\` |"
+            echo "| Binary fingerprint source | \`${BINARY_FP_SOURCE:-none}\` |"
+            echo "| Fingerprints match | ${FINGERPRINTS_MATCH:-false} |"
+            echo "| reuse_run_id | \`${REUSE_RUN_ID:-none}\` |"
+            echo "| Binary run head SHA | \`${BINARY_HEAD_SHA:-none}\` |"
+            echo "| iOS reuse | ${IOS_REUSE:-false} (should_ios=${{ steps.refs.outputs.should_ios }}) |"
+            echo "| Android reuse | ${ANDROID_REUSE:-false} (should_android=${{ steps.refs.outputs.should_android }}) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  native-ios:
+    name: Full native iOS (main-rc-development)
+    needs: [prepare]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.prepare.result == 'success' &&
+      needs.prepare.outputs.should_ios == 'true' &&
+      (inputs.force_native_build == true || needs.prepare.outputs.ios_reuse != 'true')
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-rc-development
+      platform: ios
+      source_branch: ${{ needs.prepare.outputs.source_branch }}
+      build_number: ${{ inputs.build_number }}
+      upload_to_sentry: ${{ inputs.upload_to_sentry }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  native-android:
+    name: Full native Android (main-rc)
+    needs: [prepare]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.prepare.result == 'success' &&
+      needs.prepare.outputs.should_android == 'true' &&
+      (inputs.force_native_build == true || needs.prepare.outputs.android_reuse != 'true')
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-rc
+      platform: android
+      source_branch: ${{ needs.prepare.outputs.source_branch }}
+      build_number: ${{ inputs.build_number }}
+      upload_to_sentry: ${{ inputs.upload_to_sentry }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  publish-native-metadata:
+    name: Publish native-build metadata for future reuse
+    needs: [prepare, native-ios, native-android]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.prepare.result == 'success' &&
+      (needs.native-ios.result == 'success' || needs.native-android.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write and upload iOS metadata
+        if: needs.native-ios.result == 'success'
+        env:
+          SOURCE_FINGERPRINT: ${{ needs.prepare.outputs.fingerprint }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECKOUT_SHA: ${{ needs.prepare.outputs.checkout_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .rc-build-metadata
+          jq -n \
+            --arg fingerprint "$SOURCE_FINGERPRINT" \
+            --arg workflowRunId "${{ github.run_id }}" \
+            --arg headSha "$HEAD_SHA" \
+            --arg checkoutSha "$CHECKOUT_SHA" \
+            --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson artifactNames '["ios-ipa-main-rc-development"]' \
+            '{
+              schemaVersion: 1,
+              fingerprint: $fingerprint,
+              platform: "ios",
+              buildName: "main-rc-development",
+              metamaskEnvironment: "rc",
+              workflowRunId: $workflowRunId,
+              headSha: $headSha,
+              checkoutSha: $checkoutSha,
+              artifactNames: $artifactNames,
+              createdAt: $createdAt
+            }' > .rc-build-metadata/ios.json
+          cat .rc-build-metadata/ios.json
+      - name: Upload iOS metadata
+        if: needs.native-ios.result == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IOS_METADATA_ARTIFACT }}
+          path: .rc-build-metadata/ios.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Write Android metadata
+        if: needs.native-android.result == 'success'
+        env:
+          SOURCE_FINGERPRINT: ${{ needs.prepare.outputs.fingerprint }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECKOUT_SHA: ${{ needs.prepare.outputs.checkout_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .rc-build-metadata
+          jq -n \
+            --arg fingerprint "$SOURCE_FINGERPRINT" \
+            --arg workflowRunId "${{ github.run_id }}" \
+            --arg headSha "$HEAD_SHA" \
+            --arg checkoutSha "$CHECKOUT_SHA" \
+            --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson artifactNames '["android-apk-main-rc"]' \
+            '{
+              schemaVersion: 1,
+              fingerprint: $fingerprint,
+              platform: "android",
+              buildName: "main-rc",
+              metamaskEnvironment: "rc",
+              workflowRunId: $workflowRunId,
+              headSha: $headSha,
+              checkoutSha: $checkoutSha,
+              artifactNames: $artifactNames,
+              createdAt: $createdAt
+            }' > .rc-build-metadata/android.json
+          cat .rc-build-metadata/android.json
+      - name: Upload Android metadata
+        if: needs.native-android.result == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ANDROID_METADATA_ARTIFACT }}
+          path: .rc-build-metadata/android.json
+          if-no-files-found: error
+          retention-days: 14
+
+  repack-ios:
+    name: Repack iOS IPA
+    needs: [prepare]
+    if: >-
+      needs.prepare.result == 'success' &&
+      needs.prepare.outputs.should_ios == 'true' &&
+      inputs.force_native_build != true &&
+      needs.prepare.outputs.ios_reuse == 'true'
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' }}
+    environment: build-rc
+    env:
+      PLATFORM: ios
+      CI: 'true'
+      GITHUB_CI: 'true'
+      NODE_OPTIONS: '--max-old-space-size=8192'
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          ref: ${{ needs.prepare.outputs.source_branch }}
+          submodules: recursive
+      - uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          ref: ${{ needs.prepare.outputs.source_branch }}
+          submodules: recursive
+
+      - name: Apply build number locally
+        if: ${{ inputs.build_number != '' }}
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: ./scripts/set-build-version.sh "$BUILD_NUMBER"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Load iOS build config
+        id: config
+        run: |
+          node -e "
+          const yaml = require('js-yaml');
+          const fs = require('fs');
+          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
+          const build = config.builds['main-rc-development'];
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const signing = build.signing;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
+          "
+          node scripts/apply-build-config.js main-rc-development --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js main-rc-development --write-build-env || true
+
+      - name: Set secrets
+        env:
+          CONFIG_SECRETS: ${{ steps.config.outputs.secrets_json }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: node scripts/set-secrets-from-config.js
+
+      - name: Lightweight project setup
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios --no-build-android
+
+      - name: Configure signing certificates
+        uses: ./.github/actions/configure-signing
+        with:
+          aws-role-to-assume: ${{ steps.config.outputs.signing_aws_role }}
+          aws-region: 'us-east-2'
+          platform: ios
+          aws-secret-name: ${{ steps.config.outputs.signing_aws_secret }}
+
+      - name: Download reusable iOS IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.IOS_IPA_ARTIFACT }}
+          path: artifacts/ios-ipa
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ needs.prepare.outputs.ios_run_id }}
+
+      - name: Resolve Apple Development identity
+        id: identity
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          PROFILE_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | sed -n 's/.*"\(Apple Development:[^"]*\)".*/\1/p' | head -1)
+          if [[ -z "$IDENTITY" ]]; then
+            echo "::error::No Apple Development identity found in signing keychain"
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH" || true
+            exit 1
+          fi
+          echo "identity=$IDENTITY" >> "$GITHUB_OUTPUT"
+          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+          echo "profile_path=$PROFILE_PATH" >> "$GITHUB_OUTPUT"
+          echo "Using identity: $IDENTITY"
+
+      - name: Repack iOS IPA with current JS
+        env:
+          REPACK_IOS_SIGNING_IDENTITY: ${{ steps.identity.outputs.identity }}
+          REPACK_IOS_PROVISIONING_PROFILE: ${{ steps.identity.outputs.profile_path }}
+          REPACK_IOS_KEYCHAIN_PATH: ${{ steps.identity.outputs.keychain_path }}
+          METRO_MAX_WORKERS: '4'
+        run: |
+          set -euo pipefail
+          SRC_IPA="$(find artifacts/ios-ipa -name '*.ipa' -type f | head -1)"
+          if [[ -z "$SRC_IPA" ]]; then
+            echo "::error::No IPA found in downloaded artifact"
+            find artifacts/ios-ipa -type f || true
+            exit 1
+          fi
+          mkdir -p ios/build/output sourcemaps/ios
+          export REPACK_SOURCE_APP="$SRC_IPA"
+          export REPACK_OUTPUT_APP="ios/build/output/MetaMask-repack.ipa"
+          export REPACK_FINAL_APP="ios/build/output/MetaMask.ipa"
+          export REPACK_WORKING_DIR="ios/build/repack-working-main"
+          export REPACK_SOURCEMAP_PATH="sourcemaps/ios/index.js.map"
+          echo "Repacking $SRC_IPA"
+          yarn build:repack:ios
+
+      - name: Rename iOS artifacts
+        id: rename
+        run: node scripts/rename-artifacts.js ios
+
+      - name: Upload iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IOS_IPA_ARTIFACT }}
+          path: ${{ steps.rename.outputs.ios_ipa_path }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload iOS sourcemap
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sourcemaps-${{ env.IOS_BUILD_NAME }}
+          path: sourcemaps/ios/index.js.map
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload build environment JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-env-${{ env.IOS_BUILD_NAME }}-ios
+          path: build-env.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Write iOS reuse metadata
+        env:
+          SOURCE_FINGERPRINT: ${{ needs.prepare.outputs.fingerprint }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECKOUT_SHA: ${{ needs.prepare.outputs.checkout_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .rc-build-metadata
+          jq -n \
+            --arg fingerprint "$SOURCE_FINGERPRINT" \
+            --arg workflowRunId "${{ github.run_id }}" \
+            --arg headSha "$HEAD_SHA" \
+            --arg checkoutSha "$CHECKOUT_SHA" \
+            --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson artifactNames '["ios-ipa-main-rc-development"]' \
+            '{
+              schemaVersion: 1,
+              fingerprint: $fingerprint,
+              platform: "ios",
+              buildName: "main-rc-development",
+              metamaskEnvironment: "rc",
+              workflowRunId: $workflowRunId,
+              headSha: $headSha,
+              checkoutSha: $checkoutSha,
+              artifactNames: $artifactNames,
+              createdAt: $createdAt
+            }' > .rc-build-metadata/ios.json
+          cat .rc-build-metadata/ios.json
+
+      - name: Upload iOS metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IOS_METADATA_ARTIFACT }}
+          path: .rc-build-metadata/ios.json
+          if-no-files-found: error
+          retention-days: 14
+
+  repack-android:
+    name: Repack Android APK
+    needs: [prepare]
+    if: >-
+      needs.prepare.result == 'success' &&
+      needs.prepare.outputs.should_android == 'true' &&
+      inputs.force_native_build != true &&
+      needs.prepare.outputs.android_reuse == 'true'
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    environment: build-rc
+    env:
+      PLATFORM: android
+      CI: 'true'
+      GITHUB_CI: 'true'
+      NODE_OPTIONS: '--max-old-space-size=8192'
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          ref: ${{ needs.prepare.outputs.source_branch }}
+          submodules: recursive
+      - uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          ref: ${{ needs.prepare.outputs.source_branch }}
+          submodules: recursive
+
+      - name: Apply build number locally
+        if: ${{ inputs.build_number != '' }}
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: ./scripts/set-build-version.sh "$BUILD_NUMBER"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Load Android build config
+        id: config
+        run: |
+          node -e "
+          const yaml = require('js-yaml');
+          const fs = require('fs');
+          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
+          const build = config.builds['main-rc'];
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const signing = build.signing;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
+          "
+          node scripts/apply-build-config.js main-rc --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js main-rc --write-build-env || true
+
+      - name: Set secrets
+        env:
+          CONFIG_SECRETS: ${{ steps.config.outputs.secrets_json }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: node scripts/set-secrets-from-config.js
+
+      - name: Lightweight project setup
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios --no-build-android
+
+      - name: Set Android environment variables
+        run: |
+          {
+            echo "ANDROID_HOME=/opt/android-sdk"
+            echo "ANDROID_SDK_ROOT=/opt/android-sdk"
+          } >> "$GITHUB_ENV"
+          BUILD_TOOLS="$(ls -1 /opt/android-sdk/build-tools 2>/dev/null | sort -V | tail -1 || true)"
+          if [[ -n "$BUILD_TOOLS" ]]; then
+            echo "/opt/android-sdk/build-tools/${BUILD_TOOLS}" >> "$GITHUB_PATH"
+            echo "Using Android build-tools $BUILD_TOOLS"
+          fi
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Configure signing certificates
+        uses: ./.github/actions/configure-signing
+        with:
+          aws-role-to-assume: ${{ steps.config.outputs.signing_aws_role }}
+          aws-region: 'us-east-2'
+          platform: android
+          aws-secret-name: ${{ steps.config.outputs.signing_aws_secret }}
+          android-keystore-path: ${{ steps.config.outputs.signing_android_keystore_path }}
+
+      - name: Download reusable Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ANDROID_APK_ARTIFACT }}
+          path: artifacts/android-apk
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ needs.prepare.outputs.android_run_id }}
+
+      - name: Repack Android APK with current JS
+        env:
+          METRO_MAX_WORKERS: '4'
+        run: |
+          set -euo pipefail
+          SRC_APK="$(find artifacts/android-apk -name '*.apk' -type f | head -1)"
+          if [[ -z "$SRC_APK" ]]; then
+            echo "::error::No APK found in downloaded artifact"
+            find artifacts/android-apk -type f || true
+            exit 1
+          fi
+          mkdir -p android/app/build/outputs/apk/prod/release sourcemaps/android
+          export REPACK_SOURCE_APK="$SRC_APK"
+          export REPACK_OUTPUT_APK="android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk"
+          export REPACK_FINAL_APK="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
+          export REPACK_WORKING_DIR="android/app/build/repack-working-main"
+          export REPACK_SOURCEMAP_PATH="sourcemaps/android/index.android.bundle.map"
+          echo "Repacking $SRC_APK"
+          yarn build:repack:android
+
+      - name: Rename Android artifacts
+        id: rename
+        run: node scripts/rename-artifacts.js android
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ANDROID_APK_ARTIFACT }}
+          path: ${{ steps.rename.outputs.android_apk_path }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Android sourcemaps
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-sourcemaps-${{ env.ANDROID_BUILD_NAME }}
+          path: sourcemaps/android
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload build environment JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-env-${{ env.ANDROID_BUILD_NAME }}-android
+          path: build-env.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Write Android reuse metadata
+        env:
+          SOURCE_FINGERPRINT: ${{ needs.prepare.outputs.fingerprint }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECKOUT_SHA: ${{ needs.prepare.outputs.checkout_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .rc-build-metadata
+          jq -n \
+            --arg fingerprint "$SOURCE_FINGERPRINT" \
+            --arg workflowRunId "${{ github.run_id }}" \
+            --arg headSha "$HEAD_SHA" \
+            --arg checkoutSha "$CHECKOUT_SHA" \
+            --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson artifactNames '["android-apk-main-rc"]' \
+            '{
+              schemaVersion: 1,
+              fingerprint: $fingerprint,
+              platform: "android",
+              buildName: "main-rc",
+              metamaskEnvironment: "rc",
+              workflowRunId: $workflowRunId,
+              headSha: $headSha,
+              checkoutSha: $checkoutSha,
+              artifactNames: $artifactNames,
+              createdAt: $createdAt
+            }' > .rc-build-metadata/android.json
+          cat .rc-build-metadata/android.json
+
+      - name: Upload Android metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ANDROID_METADATA_ARTIFACT }}
+          path: .rc-build-metadata/android.json
+          if-no-files-found: error
+          retention-days: 14
+
+  emit-build-metadata:
+    name: Emit build metadata
+    needs: [prepare, native-ios, native-android, repack-ios, repack-android]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.prepare.result == 'success' &&
+      needs.native-ios.result != 'failure' &&
+      needs.native-android.result != 'failure' &&
+      needs.repack-ios.result != 'failure' &&
+      needs.repack-android.result != 'failure' &&
+      (
+        needs.native-ios.result == 'success' ||
+        needs.native-android.result == 'success' ||
+        needs.repack-ios.result == 'success' ||
+        needs.repack-android.result == 'success'
+      )
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    outputs:
+      checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
+      built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
+      semantic_version: ${{ steps.meta.outputs.semantic_version }}
+      android_version_code: ${{ steps.meta.outputs.android_version_code }}
+      ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          fetch-depth: 1
+          ref: ${{ needs.prepare.outputs.source_branch }}
+      - uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          fetch-depth: 1
+          ref: ${{ needs.prepare.outputs.source_branch }}
+
+      - name: Apply build number locally
+        if: ${{ inputs.build_number != '' }}
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: ./scripts/set-build-version.sh "$BUILD_NUMBER"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Read metadata from tree at built ref
+        id: meta
+        run: |
+          REF="${{ needs.prepare.outputs.source_branch }}"
+          {
+            echo "checkout_ref=$REF"
+            echo "built_commit_sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
+          ./scripts/get-build-metadata.sh --ci

@@ -36,15 +36,29 @@ const logger = {
 
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
-  const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
-  const keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-  const keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-  const keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  const useRc =
+    process.env.METAMASK_ENVIRONMENT === 'rc' ||
+    !!process.env.BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD;
+
+  const keystorePath =
+    process.env.ANDROID_KEYSTORE_PATH ||
+    (useRc ? 'android/keystores/rc.keystore' : undefined);
+  const keystorePassword = useRc
+    ? process.env.BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD
+    : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+  const keyAlias = useRc
+    ? process.env.BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS
+    : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+  const keyPassword = useRc
+    ? process.env.BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD
+    : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
     logger.error(
       'Missing required Android keystore environment variables in CI. ' +
-      'Please check that setup-e2e-env action has configure-keystores: true'
+      (useRc
+        ? 'Expected BITRISEIO_ANDROID_RC_KEYSTORE_* from configure-signing (RC signer).'
+        : 'Please check that setup-e2e-env action has configure-keystores: true')
     );
     process.exit(1);
   }
@@ -60,6 +74,38 @@ function getKeystoreConfig() {
   logger.info(`Using keystore: ${config.keyStorePath}`);
   logger.info(`Using key alias: ${config.keyAlias}`);
   return config;
+}
+
+/**
+ * Optional iOS codesign options for device IPA repacks.
+ * Simulator .app callers omit these env vars and skip signing.
+ *
+ *   REPACK_IOS_SIGNING_IDENTITY
+ *   REPACK_IOS_PROVISIONING_PROFILE
+ *   REPACK_IOS_KEYCHAIN_PATH (optional)
+ */
+function getIosSigningOptions() {
+  const signingIdentity = process.env.REPACK_IOS_SIGNING_IDENTITY;
+  const provisioningProfile = process.env.REPACK_IOS_PROVISIONING_PROFILE;
+  const keychainPath = process.env.REPACK_IOS_KEYCHAIN_PATH;
+
+  if (!signingIdentity && !provisioningProfile && !keychainPath) {
+    return undefined;
+  }
+
+  if (!signingIdentity || !provisioningProfile) {
+    throw new Error(
+      'iOS device repack requires both REPACK_IOS_SIGNING_IDENTITY and REPACK_IOS_PROVISIONING_PROFILE'
+    );
+  }
+
+  const options = { signingIdentity, provisioningProfile };
+  if (keychainPath) {
+    options.keychainPath = keychainPath;
+  }
+  logger.info(`Using iOS signing identity: ${signingIdentity}`);
+  logger.info(`Using iOS provisioning profile: ${provisioningProfile}`);
+  return options;
 }
 
 /**
@@ -87,7 +133,7 @@ async function repackAndroid() {
     process.env.REPACK_WORKING_DIR || 'android/app/build/repack-working-main';
 
   try {
-    logger.info('🚀 Starting Android E2E APK repack process...');
+    logger.info('🚀 Starting Android APK repack process...');
     logger.info(`Source APK: ${sourceApk}`);
     logger.info(`Output APK: ${finalApk}`);
     logger.info(`Working dir: ${workingDir}`);
@@ -189,42 +235,67 @@ function generateExpoPlistIfNeeded(appPath) {
 }
 
 /**
- * Repack iOS App
+ * Repack iOS App or IPA
+ *
+ * Optional path overrides (used by RC fingerprint reuse for device IPAs):
+ *   REPACK_SOURCE_APP, REPACK_OUTPUT_APP, REPACK_FINAL_APP, REPACK_WORKING_DIR,
+ *   REPACK_SOURCEMAP_PATH
+ *
+ * Device IPA signing (omit for simulator .app):
+ *   REPACK_IOS_SIGNING_IDENTITY, REPACK_IOS_PROVISIONING_PROFILE,
+ *   REPACK_IOS_KEYCHAIN_PATH
  */
 async function repackIos() {
   const startTime = Date.now();
-  const sourceApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
-  const repackedApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-repack.app';
-  const finalApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
-  const sourcemapPath = 'sourcemaps/ios/index.js.map';
-  const workingDir = 'ios/build/repack-working-main';
+  const sourceApp =
+    process.env.REPACK_SOURCE_APP ||
+    'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
+  const isIpaSource = sourceApp.toLowerCase().endsWith('.ipa');
+  const repackedApp =
+    process.env.REPACK_OUTPUT_APP ||
+    (isIpaSource
+      ? 'ios/build/output/MetaMask-repack.ipa'
+      : 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-repack.app');
+  const finalApp =
+    process.env.REPACK_FINAL_APP ||
+    (isIpaSource
+      ? 'ios/build/output/MetaMask.ipa'
+      : 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app');
+  const sourcemapPath =
+    process.env.REPACK_SOURCEMAP_PATH || 'sourcemaps/ios/index.js.map';
+  const workingDir =
+    process.env.REPACK_WORKING_DIR || 'ios/build/repack-working-main';
 
   try {
-    logger.info('🚀 Starting iOS E2E App repack process...');
+    logger.info('🚀 Starting iOS app repack process...');
     logger.info(`Source App: ${sourceApp}`);
+    logger.info(`Output App: ${finalApp}`);
+    logger.info(`Working dir: ${workingDir}`);
 
-    // Verify source app exists and has a bundle executable
     if (!fs.existsSync(sourceApp)) {
       throw new Error(`App not found: ${sourceApp}`);
     }
-    const sourceInfoPlist = path.join(sourceApp, 'Info.plist');
-    if (!fs.existsSync(sourceInfoPlist)) {
-      throw new Error(`Source app is missing Info.plist: ${sourceApp}`);
-    }
 
-    // Generate Expo.plist if it doesn't exist (fallback for builds that don't auto-generate it)
-    generateExpoPlistIfNeeded(sourceApp);
+    if (!isIpaSource) {
+      const sourceInfoPlist = path.join(sourceApp, 'Info.plist');
+      if (!fs.existsSync(sourceInfoPlist)) {
+        throw new Error(`Source app is missing Info.plist: ${sourceApp}`);
+      }
+      // Generate Expo.plist if it doesn't exist (fallback for builds that don't auto-generate it)
+      generateExpoPlistIfNeeded(sourceApp);
+    }
 
     // Ensure directories exist
     fs.mkdirSync(path.dirname(sourcemapPath), { recursive: true });
     fs.mkdirSync(workingDir, { recursive: true });
+    fs.mkdirSync(path.dirname(repackedApp), { recursive: true });
+    fs.mkdirSync(path.dirname(finalApp), { recursive: true });
 
-    // Dynamic import for ES module compatibility
     const { repackAppIosAsync } = await import('@expo/repack-app');
+    const iosSigningOptions = getIosSigningOptions();
 
-    // Repack iOS App
     logger.info('⏱️  Repacking iOS app with updated JavaScript...');
-    await repackAppIosAsync({
+    const repackOptions = {
       platform: 'ios',
       projectRoot: process.cwd(),
       sourceAppPath: sourceApp,
@@ -235,34 +306,45 @@ async function repackIos() {
         sourcemapOutput: sourcemapPath,
       },
       env: process.env,
-    });
+    };
+    if (iosSigningOptions) {
+      repackOptions.iosSigningOptions = iosSigningOptions;
+    }
+    await repackAppIosAsync(repackOptions);
 
-    // Verify repacked app exists and contains a bundle executable
     if (!fs.existsSync(repackedApp)) {
       throw new Error(`Repacked app not found: ${repackedApp}`);
     }
-    // Verify the bundle executable is present.
-    // Info.plist is in binary format after repack, so we derive the executable name
-    // from the source app directory name (e.g. MetaMask.app -> MetaMask).
-    const sourceAppName = path.basename(sourceApp, '.app');
-    const executablePath = path.join(repackedApp, sourceAppName);
-    if (!fs.existsSync(executablePath)) {
-      throw new Error(
-        `Repacked app is missing its bundle executable at "${executablePath}". ` +
-        `@expo/repack-app may have dropped the binary (possible symlink handling issue). ` +
-        `Aborting to prevent uploading a broken artifact — add the \`force-builds\` ` +
-        `label (or a \`[force-builds]\` token in the commit message) to the PR to ` +
-        `bypass cross-run artifact reuse and force a full native rebuild.`
-      );
-    }
-    logger.success(`Bundle executable verified: ${sourceAppName}`);
-    // Restore execute permissions (may have been lost if the binary came from a cached artifact)
-    fs.chmodSync(executablePath, 0o755);
-    logger.success(`Execute permissions set on: ${sourceAppName}`);
 
-    // Remove old app and move repacked app to final location
-    fs.rmSync(finalApp, { recursive: true, force: true });
-    fs.renameSync(repackedApp, finalApp);
+    if (!isIpaSource) {
+      // Verify the bundle executable is present.
+      // Info.plist is in binary format after repack, so we derive the executable name
+      // from the source app directory name (e.g. MetaMask.app -> MetaMask).
+      const sourceAppName = path.basename(sourceApp, '.app');
+      const executablePath = path.join(repackedApp, sourceAppName);
+      if (!fs.existsSync(executablePath)) {
+        throw new Error(
+          `Repacked app is missing its bundle executable at "${executablePath}". ` +
+          `@expo/repack-app may have dropped the binary (possible symlink handling issue). ` +
+          `Aborting to prevent uploading a broken artifact — add the \`force-builds\` ` +
+          `label (or a \`[force-builds]\` token in the commit message) to the PR to ` +
+          `bypass cross-run artifact reuse and force a full native rebuild.`
+        );
+      }
+      logger.success(`Bundle executable verified: ${sourceAppName}`);
+      fs.chmodSync(executablePath, 0o755);
+      logger.success(`Execute permissions set on: ${sourceAppName}`);
+
+      fs.rmSync(finalApp, { recursive: true, force: true });
+      fs.renameSync(repackedApp, finalApp);
+    } else {
+      fs.copyFileSync(repackedApp, finalApp);
+      if (repackedApp !== finalApp) {
+        try { fs.unlinkSync(repackedApp); } catch (e) {
+          // Ignore errors when cleaning up intermediate file
+        }
+      }
+    }
     fs.rmSync(workingDir, { recursive: true, force: true });
 
     const duration = Math.round((Date.now() - startTime) / 1000);
@@ -315,4 +397,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, repackAndroid, repackIos };
+module.exports = { main, repackAndroid, repackIos, getKeystoreConfig, getIosSigningOptions };

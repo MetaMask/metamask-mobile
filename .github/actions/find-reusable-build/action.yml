@@ -62,6 +62,13 @@ inputs:
       native artifacts.
     required: false
     default: 'false'
+  head-branch:
+    description: >-
+      Branch name used for the same-branch lookup tier. Defaults to the PR head
+      branch or github.ref_name. Pass source_branch for workflow_dispatch so
+      lookup matches the ref being built rather than "Use workflow from".
+    required: false
+    default: ''
 
 outputs:
   found:
@@ -94,7 +101,7 @@ runs:
         MAX_CANDIDATES: ${{ inputs.max-candidates-per-branch }}
         MAX_CANDIDATES_CROSS_PR: ${{ inputs.max-candidates-cross-pr }}
         MAIN_BRANCH_ONLY: ${{ inputs.main-branch-only }}
-        HEAD_BRANCH: ${{ github.head_ref || github.ref_name }}
+        HEAD_BRANCH: ${{ inputs.head-branch != '' && inputs.head-branch || github.head_ref || github.ref_name }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         CURRENT_RUN_ID: ${{ github.run_id }}
       with:
