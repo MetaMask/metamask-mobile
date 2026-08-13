@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import ToastService from '../../../../core/ToastService/ToastService';
+import { DEMO_NEOBANK_CUSTOMER_ID } from '../utils/neobankEvents';
 import { useNeobankSandboxDepositEvents } from './useNeobankSandboxDepositEvents';
 
 jest.mock('react-redux', () => ({
@@ -41,20 +42,23 @@ class MockWebSocket {
   }
 }
 
+function mockSelectors(kycState: {
+  activeVendor?: string;
+  moonpayCustomerId?: string | null;
+}) {
+  useSelectorMock.mockReturnValueOnce(true).mockReturnValueOnce(kycState);
+}
+
 describe('useNeobankSandboxDepositEvents', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     MockWebSocket.instances = [];
     global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
-    useSelectorMock
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce({
-        activeVendor: 'iron',
-        moonpayCustomerId: 'customer-1',
-      });
+    delete process.env.NEOBANK_DEMO_CUSTOMER_ID;
   });
 
   it('shows success for Completed without calling a vault action', () => {
+    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: 'customer-1' });
     renderHook(() => useNeobankSandboxDepositEvents());
 
     const socket = MockWebSocket.instances[0];
@@ -88,7 +92,26 @@ describe('useNeobankSandboxDepositEvents', () => {
     );
   });
 
+  it('falls back to the demo customer id when moonpayCustomerId is null', () => {
+    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: null });
+    renderHook(() => useNeobankSandboxDepositEvents());
+
+    const socket = MockWebSocket.instances[0];
+    expect(socket).toBeDefined();
+    expect(socket.url).toContain(`userId=${DEMO_NEOBANK_CUSTOMER_ID}`);
+  });
+
+  it('prefers the real moonpayCustomerId over the demo fallback', () => {
+    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: 'real-customer' });
+    renderHook(() => useNeobankSandboxDepositEvents());
+
+    const socket = MockWebSocket.instances[0];
+    expect(socket.url).toContain('userId=real-customer');
+    expect(socket.url).not.toContain(DEMO_NEOBANK_CUSTOMER_ID);
+  });
+
   it('ignores duplicate Completed events', () => {
+    mockSelectors({ activeVendor: 'iron', moonpayCustomerId: 'customer-1' });
     renderHook(() => useNeobankSandboxDepositEvents());
     const socket = MockWebSocket.instances[0];
     const data = JSON.stringify({

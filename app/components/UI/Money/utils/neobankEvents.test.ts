@@ -1,7 +1,9 @@
 import {
+  DEMO_NEOBANK_CUSTOMER_ID,
   getNeobankEventsUrl,
   isCompletedNeobankDeposit,
   parseNeobankEvent,
+  resolveNeobankDemoCustomerId,
 } from './neobankEvents';
 
 describe('neobankEvents', () => {
@@ -62,6 +64,27 @@ describe('neobankEvents', () => {
         }),
       ).toBe(false);
     });
+  });
+
+  describe('resolveNeobankDemoCustomerId', () => {
+    it('prefers the persisted moonpay customer id', () => {
+      expect(resolveNeobankDemoCustomerId('real-customer')).toBe(
+        'real-customer',
+      );
+    });
+
+    // The `NEOBANK_DEMO_CUSTOMER_ID` env override is inlined by Babel's
+    // `transform-inline-environment-variables` at transform time, so a runtime
+    // override cannot be exercised here. When it is unset (the common case,
+    // including George's demo build), the resolver returns the hardcoded id.
+    it.each([null, undefined, ''])(
+      'falls back to the demo id when moonpayCustomerId is %p',
+      (value) => {
+        expect(resolveNeobankDemoCustomerId(value)).toBe(
+          DEMO_NEOBANK_CUSTOMER_ID,
+        );
+      },
+    );
   });
 
   describe('getNeobankEventsUrl', () => {

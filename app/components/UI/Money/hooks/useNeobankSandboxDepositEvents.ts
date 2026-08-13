@@ -11,6 +11,7 @@ import {
   getNeobankEventsUrl,
   isCompletedNeobankDeposit,
   parseNeobankEvent,
+  resolveNeobankDemoCustomerId,
 } from '../utils/neobankEvents';
 
 const RECONNECT_DELAY_MS = 3_000;
@@ -29,8 +30,14 @@ export function useNeobankSandboxDepositEvents(): void {
   const kycState = useSelector(selectKycControllerState);
   const handledEventIds = useRef(new Set<string>());
 
+  // Only the Iron vendor path drives the sandbox demo. When the Iron customer
+  // id was never persisted, fall back to the demo id so the socket still opens.
+  // The Iron gate here plus the `neobankEnabled` gate below keep this from
+  // opening sockets for real users on a normal build.
   const customerId =
-    kycState.activeVendor === 'iron' ? kycState.moonpayCustomerId : null;
+    kycState.activeVendor === 'iron'
+      ? resolveNeobankDemoCustomerId(kycState.moonpayCustomerId)
+      : null;
 
   useEffect(() => {
     if (!neobankEnabled || !customerId) {
