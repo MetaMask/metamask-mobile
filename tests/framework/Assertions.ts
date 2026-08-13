@@ -399,14 +399,9 @@ export default class Assertions {
   }
 
   /**
-   * Returns whether a Switch/toggle is currently on (Appium-safe).
+   * Returns whether a Switch/toggle is currently on.
    */
   static async isToggleOn(elem: EncapsulatedElementType): Promise<boolean> {
-    if (!FrameworkDetector.isAppium()) {
-      throw new Error(
-        'Assertions.isToggleOn is only supported for Appium sessions',
-      );
-    }
     return this.readAppiumToggleOn(elem);
   }
 
@@ -422,37 +417,10 @@ export default class Assertions {
       description = 'element should be enabled',
     } = options;
 
-    if (FrameworkDetector.isAppium()) {
-      return Utilities.executeWithRetry(
-        async () => {
-          const isOn = await this.readAppiumToggleOn(elem);
-          if (!isOn) {
-            throw new Error(
-              [
-                '🔄 Toggle state mismatch detected',
-                `   Expected: on`,
-                `   Actual:   off`,
-              ].join('\n'),
-            );
-          }
-        },
-        {
-          timeout,
-          description: `Assert ${description}`,
-        },
-      );
-    }
-
     return Utilities.executeWithRetry(
       async () => {
-        try {
-          const el = (await Utilities.waitForReadyState(
-            elem,
-          )) as Detox.IndexableNativeElement;
-          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-          await (expect(el) as any).toHaveToggleValue(true);
-        } catch (error) {
-          // Log attributes for debugging
+        const isOn = await this.readAppiumToggleOn(elem);
+        if (!isOn) {
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',
@@ -481,36 +449,10 @@ export default class Assertions {
       description = 'element should be disabled',
     } = options;
 
-    if (FrameworkDetector.isAppium()) {
-      return Utilities.executeWithRetry(
-        async () => {
-          const isOn = await this.readAppiumToggleOn(elem);
-          if (isOn) {
-            throw new Error(
-              [
-                '🔄 Toggle state mismatch detected',
-                `   Expected: off`,
-                `   Actual:   on`,
-              ].join('\n'),
-            );
-          }
-        },
-        {
-          timeout,
-          description: `Assert ${description}`,
-        },
-      );
-    }
-
     return Utilities.executeWithRetry(
       async () => {
-        try {
-          const el = (await Utilities.waitForReadyState(
-            elem,
-          )) as Detox.IndexableNativeElement;
-          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-          await (expect(el) as any).toHaveToggleValue(false);
-        } catch (error) {
+        const isOn = await this.readAppiumToggleOn(elem);
+        if (isOn) {
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',
