@@ -108,7 +108,7 @@ export const useQrSyncImportNavigation = ({
 
       hasHandledImportNavigationRef.current = true;
 
-      if (!pendingPayload?.data.wallets.length) {
+      if (!pendingPayload?.wallets.length) {
         Logger.log(
           'QR sync existing-user import: no pending payload in sync data',
         );

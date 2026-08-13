@@ -224,7 +224,7 @@ export class QrSyncController extends BaseController<
       );
     }
 
-    const pendingPayload: VersionedState<AccountTreePayload> = {
+    const pendingPayload: AccountTreePayload = {
       version: 1,
       data: {
         wallets: [

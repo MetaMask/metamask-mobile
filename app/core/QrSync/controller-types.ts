@@ -7,7 +7,6 @@ import type { Messenger } from '@metamask/messenger';
 import type {
   AccountTreeControllerImportStateAction,
   AccountTreePayload,
-  VersionedState,
 } from '@metamask/account-tree-controller';
 
 import type {
@@ -28,7 +27,7 @@ export type QrSyncControllerState = {
   connectionStatus: QrSyncConnectionStatus;
   syncFlow: QrSyncSyncFlow | null;
   /** Ephemeral account tree payload (secrets + metadata). Never persisted. */
-  pendingPayload: VersionedState<AccountTreePayload> | null;
+  pendingPayload: AccountTreePayload | null;
   provisioningStatus: QrSyncProvisioningStatus | null;
   otp: QrSyncOtpDisplay | null;
   error: QrSyncError | null;

@@ -17,7 +17,7 @@ import { parseQrSyncSyncReadyMessage } from './qr-sync-validation';
 export interface QrSyncRoutedMessageResult {
   handled: boolean;
   event: QrSyncServiceEvent;
-  pendingPayload?: VersionedState<AccountTreePayload>;
+  pendingPayload?: AccountTreePayload;
 }
 
 const isRecord = (data: unknown): data is Record<string, unknown> =>

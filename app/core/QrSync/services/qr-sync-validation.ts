@@ -1,7 +1,6 @@
 import type {
   AccountTreePayload,
   AccountWalletMnemonicPayload,
-  VersionedState,
 } from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
@@ -170,19 +169,17 @@ export function parseQrSyncConnectionRequest(
 
 // --- Sync-ready payload parsing ---
 
-const isAccountTreePayload = (
-  data: unknown,
-): data is VersionedState<AccountTreePayload> => {
+const isAccountTreePayload = (data: unknown): data is AccountTreePayload => {
   if (!isRecord(data)) {
     return false;
   }
 
-  const candidate = data as Partial<VersionedState<AccountTreePayload>>;
+  const candidate = data as Partial<AccountTreePayload>;
 
   return Boolean(
     candidate.version === 1 &&
-      candidate.data &&
-      Array.isArray(candidate.data.wallets),
+      candidate.wallets &&
+      Array.isArray(candidate.wallets),
   );
 };
 
@@ -218,7 +215,7 @@ function validateSyncReadyMessage(
     );
   }
 
-  if (payload.data.wallets.length === 0) {
+  if (payload.wallets.length === 0) {
     return buildValidationError(
       'INVALID_PAYLOAD',
       'QR sync payload must include at least one wallet.',
@@ -235,12 +232,12 @@ function validateSyncReadyMessage(
  * @param payload - The `AccountTreePayload` received from the extension.
  */
 export function validateQrSyncPayloadForOnboarding(
-  payload: VersionedState<AccountTreePayload> | undefined,
+  payload: AccountTreePayload | undefined,
 ): {
   valid: boolean;
   error?: QrSyncError;
 } {
-  const primaryMnemonic = payload?.data.wallets.find(
+  const primaryMnemonic = payload?.wallets.find(
     (w): w is AccountWalletMnemonicPayload => w.type === 'mnemonic',
   );
 
@@ -263,7 +260,7 @@ export function parseQrSyncSyncReadyMessage(
 ): {
   valid: boolean;
   error?: QrSyncError;
-  pendingPayload?: VersionedState<AccountTreePayload>;
+  pendingPayload?: AccountTreePayload;
 } {
   if (!isRecord(data)) {
     return buildValidationError(
@@ -299,7 +296,6 @@ export function parseQrSyncSyncReadyMessage(
 
   return {
     valid: true,
-    pendingPayload:
-      message.data as unknown as VersionedState<AccountTreePayload>,
+    pendingPayload: message.data,
   };
 }
