@@ -45,10 +45,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.title': 'Order Type',
       'perps.order.type.market.title': 'Market Order',
       'perps.order.type.market.description':
-        'Execute immediately at current market price',
+        'Execute instantly at best available price',
       'perps.order.type.limit.title': 'Limit Order',
       'perps.order.type.limit.description':
-        'Execute only at your specified price or better',
+        'Execute at your specified price or better',
       'perps.order.type.basic': 'Basic',
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.stop_limit.title': 'Stop limit',
@@ -121,10 +121,10 @@ describe('PerpsOrderTypeBottomSheet', () => {
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
 
       expect(
-        screen.getByText('Execute immediately at current market price'),
+        screen.getByText('Execute instantly at best available price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Execute only at your specified price or better'),
+        screen.getByText('Execute at your specified price or better'),
       ).toBeOnTheScreen();
     });
 

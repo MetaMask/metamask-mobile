@@ -31,6 +31,10 @@ interface OrderTypeOption {
   testID: string;
 }
 
+const DESCRIPTION_PROPS = {
+  fontWeight: FontWeight.Regular,
+} as const;
+
 const BASIC_ORDER_TYPES: readonly OrderTypeOption[] = [
   {
     type: 'market',
@@ -144,6 +148,8 @@ const PerpsOrderTypeBottomSheetView = ({
         key={orderType.type}
         title={strings(orderType.titleKey)}
         description={strings(orderType.descriptionKey)}
+        descriptionProps={DESCRIPTION_PROPS}
+        accessoryGap={2}
         startAccessory={
           <Box
             alignItems={BoxAlignItems.Center}
