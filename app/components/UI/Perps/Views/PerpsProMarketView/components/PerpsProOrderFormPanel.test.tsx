@@ -16,6 +16,17 @@ import {
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 
+const mockUseSelector = jest.fn();
+const mockUseIsPerpsProModeActive = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+jest.mock('../../../utils/perpsModeSwitch', () => ({
+  useIsPerpsProModeActive: () => mockUseIsPerpsProModeActive(),
+}));
+
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
 
@@ -112,14 +123,17 @@ jest.mock(
       default: ({
         isVisible,
         onSelect,
+        showTriggeredTypes,
       }: {
         isVisible: boolean;
         onSelect: (type: string) => void;
+        showTriggeredTypes: boolean;
       }) =>
         isVisible
           ? ReactActual.createElement(P, {
               testID: 'mock-order-type-select',
               onPress: () => onSelect('limit'),
+              accessibilityState: { checked: showTriggeredTypes },
             })
           : null,
     };
@@ -187,6 +201,8 @@ const renderPanel = (
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue(true);
+    mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
     Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);
@@ -371,6 +387,41 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onOrderTypeSelect).toHaveBeenCalledWith('limit');
+  });
+
+  it('shows triggered types when Pro mode and its remote flag are enabled', () => {
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(screen.getByTestId('mock-order-type-select')).toHaveProp(
+      'accessibilityState',
+      { checked: true },
+    );
+  });
+
+  it('hides triggered types when Pro mode is inactive', () => {
+    mockUseIsPerpsProModeActive.mockReturnValue(false);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(screen.getByTestId('mock-order-type-select')).toHaveProp(
+      'accessibilityState',
+      { checked: false },
+    );
+  });
+
+  it('hides triggered types when the remote flag is disabled', () => {
+    mockUseSelector.mockReturnValue(false);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(screen.getByTestId('mock-order-type-select')).toHaveProp(
+      'accessibilityState',
+      { checked: false },
+    );
   });
 
   it('renders the fees tooltip when a tooltip is selected', () => {

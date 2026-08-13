@@ -1718,6 +1718,8 @@
       },
       "type": {
         "title": "Order type",
+        "basic": "Basic",
+        "triggered": "Triggered",
         "market": {
           "title": "Market",
           "description": "Execute immediately at current market price"
@@ -1725,6 +1727,22 @@
         "limit": {
           "title": "Limit",
           "description": "Execute only at your specified price or better"
+        },
+        "stop_limit": {
+          "title": "Stop limit",
+          "description": "Limit fills at trigger price"
+        },
+        "stop_market": {
+          "title": "Stop market",
+          "description": "Market fills at trigger price"
+        },
+        "take_profit_limit": {
+          "title": "Take limit",
+          "description": "Limit take-profit at trigger price"
+        },
+        "take_profit_market": {
+          "title": "Take market",
+          "description": "Market take-profit at trigger price"
         }
       },
       "payment_token": "Payment token",

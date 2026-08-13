@@ -10,6 +10,15 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import PerpsOrderTypeBottomSheetView from './PerpsOrderTypeBottomSheetView';
 
+const ORDER_TYPE_EVENT_VALUES = {
+  market: PERPS_EVENT_VALUE.ORDER_TYPE.MARKET,
+  limit: PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
+  stop_market: PERPS_EVENT_VALUE.ORDER_TYPE.STOP_MARKET,
+  stop_limit: PERPS_EVENT_VALUE.ORDER_TYPE.STOP_LIMIT,
+  take_profit_market: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_MARKET,
+  take_profit_limit: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_LIMIT,
+} satisfies Record<OrderType, string>;
+
 interface PerpsOrderTypeBottomSheetProps {
   isVisible?: boolean;
   onClose: () => void;
@@ -17,6 +26,7 @@ interface PerpsOrderTypeBottomSheetProps {
   currentOrderType?: OrderType;
   asset?: string;
   direction?: 'long' | 'short';
+  showTriggeredTypes?: boolean;
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
@@ -27,6 +37,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   currentOrderType,
   asset = 'BTC',
   direction = 'long',
+  showTriggeredTypes = false,
   sheetRef: externalSheetRef,
 }) => {
   const { track } = usePerpsEventTracking();
@@ -42,10 +53,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
             direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
-            type === 'market'
-              ? PERPS_EVENT_VALUE.ORDER_TYPE.MARKET
-              : PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: ORDER_TYPE_EVENT_VALUES[type],
         });
       }
 
@@ -60,6 +68,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       onClose={onClose}
       onSelect={handleSelect}
       currentOrderType={currentOrderType}
+      showTriggeredTypes={showTriggeredTypes}
       sheetRef={externalSheetRef}
     />
   );
@@ -71,5 +80,6 @@ export default memo(
   PerpsOrderTypeBottomSheet,
   (prevProps, nextProps) =>
     prevProps.isVisible === nextProps.isVisible &&
-    prevProps.currentOrderType === nextProps.currentOrderType,
+    prevProps.currentOrderType === nextProps.currentOrderType &&
+    prevProps.showTriggeredTypes === nextProps.showTriggeredTypes,
 );
