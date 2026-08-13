@@ -16,16 +16,52 @@ import {
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet.js';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView.js';
 import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView.js';
+import ProtectYourWalletModal from '../../page-objects/Onboarding/ProtectYourWalletModal.js';
+import SkipAccountSecurityModal from '../../page-objects/Onboarding/SkipAccountSecurityModal.js';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import {
   closePredictModal,
-  dismissProtectYourWalletModal,
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow.js';
+import { withImplicitWait } from '../../framework/PlaywrightUtilities.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+
+const dismissProtectWalletModalIfPresent = async (): Promise<void> => {
+  let backupAlertVisible = false;
+  try {
+    backupAlertVisible = await withImplicitWait(0, async () =>
+      (
+        await asPlaywrightElement(ProtectYourWalletModal.collapseWalletModal)
+      ).isVisible(),
+    );
+  } catch {
+    return;
+  }
+
+  if (!backupAlertVisible) {
+    return;
+  }
+
+  await ProtectYourWalletModal.tapRemindMeLaterButton();
+
+  let skipAccountSecurityVisible = false;
+  try {
+    skipAccountSecurityVisible = await withImplicitWait(0, async () =>
+      (
+        await asPlaywrightElement(SkipAccountSecurityModal.container)
+      ).isVisible(),
+    );
+  } catch {
+    return;
+  }
+
+  if (skipAccountSecurityVisible) {
+    await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+  }
+};
 
 /* Scenario 2: Account creation after fresh install */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
@@ -60,7 +96,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await dismissOnboardingInterestQuestionnaire();
       await dismissPushNotificationExistingUserSheet();
       await closePredictModal();
-      await dismissProtectYourWalletModal();
+      await dismissProtectWalletModalIfPresent();
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
@@ -95,7 +131,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
 
       await AccountListBottomSheet.tapCreateAccount(0);
-      await dismissProtectYourWalletModal();
+      await dismissProtectWalletModalIfPresent();
       await screen2Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
