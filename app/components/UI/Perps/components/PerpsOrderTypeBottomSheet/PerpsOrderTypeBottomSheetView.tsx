@@ -27,7 +27,7 @@ interface OrderTypeOption {
   type: OrderType;
   titleKey: string;
   descriptionKey: string;
-  IconComponent: React.ComponentType<SvgProps>;
+  IconComponent: React.FC<SvgProps & { name: string }>;
   testID: string;
 }
 
@@ -150,7 +150,11 @@ const PerpsOrderTypeBottomSheetView = ({
             justifyContent={BoxJustifyContent.Center}
             twClassName="h-10 w-10"
           >
-            <IconComponent width={32} height={32} />
+            <IconComponent
+              name={`perps-order-type-${orderType.type}`}
+              width={32}
+              height={32}
+            />
           </Box>
         }
         isSelected={currentOrderType === orderType.type}
