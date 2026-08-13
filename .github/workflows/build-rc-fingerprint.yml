@@ -715,6 +715,16 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
 
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Put Fastlane on PATH
+        run: dirname "$(cd ios && bundle exec which fastlane)" >> "$GITHUB_PATH"
+
       - name: Load iOS build config
         id: config
         run: |
