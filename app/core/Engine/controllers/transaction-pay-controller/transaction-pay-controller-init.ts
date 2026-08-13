@@ -9,7 +9,7 @@ import { getAmountData } from './amount-data-callback';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 import { getPaymentOverrideData } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
-import { resolveSourceAmount } from './resolve-source-amount-callback';
+import { getBalance } from './get-balance-callback';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
@@ -27,9 +27,9 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
       fiatOptions: getTransactionPayFiatTestOptions(),
       getPaymentOverrideData: (paymentOverrideRequest) =>
         getPaymentOverrideData(paymentOverrideRequest, initMessenger),
+      getBalance,
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
-      resolveSourceAmount,
       state: persistedState.TransactionPayController,
     });
 
