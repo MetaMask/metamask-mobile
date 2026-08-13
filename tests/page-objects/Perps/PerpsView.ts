@@ -603,7 +603,7 @@ class PerpsView {
           lastElement: false,
         }),
         {
-          checkForEnabled: false,
+          checkEnabled: false,
           timeout: 10000,
           elemDescription: 'iOS header back button',
         },
