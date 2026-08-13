@@ -52,14 +52,14 @@ class ActivitiesView {
   }
 
   async tapTypeFilterChip(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.typeFilterChip, {
-      description: 'Activity Type Filter Chip',
+    await Gestures.waitAndTap(this.typeFilterChip, {
+      elemDescription: 'Activity Type Filter Chip',
     });
   }
 
   async tapTypeFilterOption(option: string): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.typeFilterOption(option), {
-      description: `Activity Type Filter Option: ${option}`,
+    await Gestures.waitAndTap(this.typeFilterOption(option), {
+      elemDescription: `Activity Type Filter Option: ${option}`,
       checkForDisplayed: false,
       delay: 2000,
       timeout: 8000,
@@ -67,14 +67,14 @@ class ActivitiesView {
   }
 
   async tapPerpsFilterChip(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.perpsFilterChip, {
-      description: 'Activity Perps Filter Chip',
+    await Gestures.waitAndTap(this.perpsFilterChip, {
+      elemDescription: 'Activity Perps Filter Chip',
     });
   }
 
   async tapPerpsFilterOption(option: string): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.perpsFilterOption(option), {
-      description: `Activity Perps Filter Option: ${option}`,
+    await Gestures.waitAndTap(this.perpsFilterOption(option), {
+      elemDescription: `Activity Perps Filter Option: ${option}`,
       checkForDisplayed: false,
       delay: 2000,
       timeout: 8000,
@@ -99,14 +99,14 @@ class ActivitiesView {
         }
 
         if (!sheetOpen) {
-          await UnifiedGestures.waitAndTap(this.perpsFilterChip, {
-            description: 'Activity Perps Filter Chip',
+          await Gestures.waitAndTap(this.perpsFilterChip, {
+            elemDescription: 'Activity Perps Filter Chip',
             timeout: 3000,
           });
         }
 
-        await UnifiedGestures.waitAndTap(this.perpsFilterOption(option), {
-          description: `Activity Perps Filter Option: ${option}`,
+        await Gestures.waitAndTap(this.perpsFilterOption(option), {
+          elemDescription: `Activity Perps Filter Option: ${option}`,
           checkForDisplayed: false,
           delay: 2000,
           timeout: 8000,
@@ -314,8 +314,8 @@ class ActivitiesView {
   async tapOnActivityItemByLabel(label: string): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(Matchers.getElementByText(label), {
-          description: `Tap Activity Item By Label: ${label}`,
+        await Gestures.waitAndTap(Matchers.getElementByText(label), {
+          elemDescription: `Tap Activity Item By Label: ${label}`,
           timeout: 10000,
         });
       },
