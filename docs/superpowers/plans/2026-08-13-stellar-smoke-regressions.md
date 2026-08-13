@@ -20,10 +20,12 @@
 ### Task 1: Restore Existing Provider Behavior
 
 **Files:**
+
 - Modify: `app/core/Engine/controllers/multichain-account-service/multichain-account-service-init.test.ts`
 - Modify: `app/core/Engine/controllers/multichain-account-service/multichain-account-service-init.ts`
 
 **Interfaces:**
+
 - Consumes: `MultichainAccountService` constructor provider configuration.
 - Produces: unchanged shared provider configuration plus one Stellar custom provider.
 
@@ -50,11 +52,13 @@ Expected: PASS.
 ### Task 2: Make Stellar Fixture State Opt-In
 
 **Files:**
+
 - Modify: `tests/framework/fixtures/json/default-fixture.json`
 - Modify: `tests/framework/fixtures/FixtureBuilder.ts`
 - Modify: `tests/feature-flags/feature-flag-registry.ts`
 
 **Interfaces:**
+
 - Consumes: `FixtureBuilder.withStellarEnabled()`.
 - Produces: Stellar feature flag and network enablement only for Stellar tests.
 
@@ -75,9 +79,11 @@ Expected: PASS.
 ### Task 3: Fix Stellar Page Object Lint
 
 **Files:**
+
 - Modify: `tests/page-objects/Browser/StellarTestDapp.ts`
 
 **Interfaces:**
+
 - Consumes: `Matchers.getElementByXPath`.
 - Produces: the same page-object selectors without importing restricted `PlaywrightAdapter`.
 
@@ -100,9 +106,11 @@ Expected: PASS with zero errors.
 ### Task 4: Final Verification and Delivery
 
 **Files:**
+
 - Verify all modified files.
 
 **Interfaces:**
+
 - Produces: committed branch and draft PR targeting `e2e-stellar`.
 
 - [ ] **Step 1: Run focused tests**
