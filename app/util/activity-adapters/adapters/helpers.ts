@@ -577,6 +577,14 @@ export function parseValueTransfers(
   };
 }
 
+/**
+ * Maps an API value transfer to a token amount. `amount` is raw base units and
+ * `decimal` is backend enrichment that can be missing, so absent decimals are
+ * resolved from host token entries / static metadata (native falls back to 18);
+ * when still unknown, the amount is omitted rather than rendered unscaled.
+ * Decimals resolution is a mobile delta — upstream with the shared adapters
+ * package.
+ */
 export function getTokenAmountFromTransfer(
   transfer: ValueTransfer | undefined,
   direction: TokenAmount['direction'],
@@ -612,10 +620,29 @@ export function getTokenAmountFromTransfer(
   const hasTransferAmount =
     !isNftTransfer && transfer.amount !== null && transfer.amount !== undefined;
 
+  let decimals = transfer.decimal;
+  if (decimals === undefined && hasTransferAmount) {
+    if (isNativeTransferType(transfer.transferType)) {
+      decimals =
+        environment.getNativeAssetForChainId(chainId)?.decimals ??
+        NATIVE_FEE_DECIMALS;
+    } else if (transfer.contractAddress) {
+      decimals =
+        environment.getKnownTokenDecimals?.(
+          chainId,
+          transfer.contractAddress,
+        ) ??
+        getKnownTokenMetadata(chainId, transfer.contractAddress, environment)
+          ?.decimals;
+    }
+  }
+
+  const canRenderAmount = hasTransferAmount && decimals !== undefined;
+
   return {
     direction,
-    ...(hasTransferAmount ? { amount: String(transfer.amount) } : {}),
-    ...(transfer.decimal === undefined ? {} : { decimals: transfer.decimal }),
+    ...(canRenderAmount ? { amount: String(transfer.amount) } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
     ...(symbol ? { symbol } : {}),
     ...(assetId ? { assetId } : {}),
   };
