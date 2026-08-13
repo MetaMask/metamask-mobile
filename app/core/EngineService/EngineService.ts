@@ -91,7 +91,10 @@ export class EngineService {
       }
       this.updateBatcher.add(controllerName);
 
-      if (controllerName === 'ApprovalController') {
+      if (
+        controllerName === 'ApprovalController' ||
+        controllerName === 'PredictSessionService'
+      ) {
         this.updateBatcher.flush();
       }
     };

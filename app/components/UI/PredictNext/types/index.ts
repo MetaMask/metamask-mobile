@@ -64,6 +64,15 @@ export interface PredictVenueStatus {
   checkedAt: PredictTimestamp;
 }
 
+export type PredictAccountReadinessStatus = 'setup_required' | 'ready';
+
+// A type alias keeps the canonical model compatible with controller JSON state.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictAccountReadiness = {
+  venueId: PredictVenueId;
+  status: PredictAccountReadinessStatus;
+};
+
 export interface PredictReadOptions {
   signal?: AbortSignal;
 }

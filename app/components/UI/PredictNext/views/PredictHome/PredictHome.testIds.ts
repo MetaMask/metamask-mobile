@@ -6,6 +6,7 @@ export const PredictHomeTestIds = {
   FEED: 'predict-next-event-feed',
   FOOTER_LOADING: 'predict-next-footer-loading',
   FOOTER_RETRY: 'predict-next-footer-retry',
+  SETUP_ACCOUNT: 'predict-next-setup-account',
   event: (venueId: string, eventId: string) =>
     `predict-next-event-${venueId}-${eventId}`,
   eventContent: (venueId: string, eventId: string) =>

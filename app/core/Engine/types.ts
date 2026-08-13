@@ -363,6 +363,12 @@ import type {
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictMarketDataService';
+import {
+  PredictSessionService,
+  type PredictSessionServiceActions,
+  type PredictSessionServiceEvents,
+  type PredictSessionServiceState,
+} from '../../components/UI/PredictNext/services/PredictSessionService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -633,6 +639,7 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | PredictMarketDataServiceActions
+  | PredictSessionServiceActions
   | CardControllerActions
   | QrSyncControllerActions
   | QrSyncProvisioningServiceActions
@@ -734,6 +741,7 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
+  | PredictSessionServiceEvents
   | CardControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
@@ -881,6 +889,7 @@ export type MessengerClients = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   PredictNextController: PredictNextController;
+  PredictSessionService: PredictSessionService;
   CardController: CardController;
   QrSyncController: QrSyncController;
   QrSyncProvisioningService: QrSyncProvisioningService;
@@ -975,6 +984,7 @@ export type EngineState = {
   GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
+  PredictSessionService: PredictSessionServiceState;
   CardController: CardControllerState;
   QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
@@ -1080,6 +1090,7 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'PredictNextController'
+  | 'PredictSessionService'
   | 'CardController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'

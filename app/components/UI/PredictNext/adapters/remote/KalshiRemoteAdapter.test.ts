@@ -5,6 +5,7 @@ import {
   type PredictApiReadTransport,
   PredictHttpError,
 } from './PredictApiReadClient';
+import type { PredictApiAccountTransport } from './PredictApiAccountClient';
 
 const eventId = 'event-1' as PredictEntityId;
 
@@ -44,13 +45,19 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchEvent: jest.fn(),
 });
 
+const createAccountClient = (): jest.Mocked<PredictApiAccountTransport> => ({
+  fetchAccountReadiness: jest.fn(),
+});
+
 describe('KalshiRemoteAdapter', () => {
   let client: jest.Mocked<PredictApiReadTransport>;
+  let accountClient: jest.Mocked<PredictApiAccountTransport>;
   let adapter: KalshiRemoteAdapter;
 
   beforeEach(() => {
     client = createClient();
-    adapter = new KalshiRemoteAdapter(client);
+    accountClient = createAccountClient();
+    adapter = new KalshiRemoteAdapter(client, accountClient);
   });
 
   it('parses canonical Events from the Predict API', async () => {
@@ -120,6 +127,32 @@ describe('KalshiRemoteAdapter', () => {
     });
 
     await expect(adapter.marketData.fetchVenueStatus()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('parses account-scoped Account Readiness', async () => {
+    accountClient.fetchAccountReadiness.mockResolvedValue({
+      venueId: 'kalshi',
+      status: 'setup_required',
+      externalUserId: 'discard',
+    });
+
+    const result = await adapter.account?.fetchAccountReadiness();
+
+    expect(result).toEqual({
+      venueId: 'kalshi',
+      status: 'setup_required',
+    });
+  });
+
+  it('rejects Account Readiness for another Venue', async () => {
+    accountClient.fetchAccountReadiness.mockResolvedValue({
+      venueId: 'other',
+      status: 'ready',
+    });
+
+    await expect(adapter.account?.fetchAccountReadiness()).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });

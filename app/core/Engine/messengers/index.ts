@@ -48,6 +48,7 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import { getPredictNextControllerMessenger } from './predict-next-controller-messenger';
+import { getPredictSessionServiceMessenger } from './predict-session-service-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -356,6 +357,10 @@ export const MESSENGER_FACTORIES = {
   },
   PredictNextController: {
     getMessenger: getPredictNextControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PredictSessionService: {
+    getMessenger: getPredictSessionServiceMessenger,
     getInitMessenger: noop,
   },
   BridgeController: {
