@@ -19,6 +19,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring as LedgerKeyringV2 } from '@metamask/eth-ledger-bridge-keyring/v2';
+import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
 import { MoneyKeyring } from '@metamask/eth-money-keyring';

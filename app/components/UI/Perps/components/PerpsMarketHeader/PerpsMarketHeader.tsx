@@ -258,7 +258,7 @@ const PerpsMarketHeader = ({
     <Box
       testID={testIDs.container}
       style={styles.container}
-      twClassName="border-b border-muted bg-default px-4"
+      twClassName="bg-default px-4"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
