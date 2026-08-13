@@ -546,6 +546,7 @@ export function transformOrdersToTransactions(
       timestamp,
       asset: symbol,
       order: {
+        orderId,
         text: statusText,
         statusType: orderStatusType,
         type: orderTypeSlug.includes('limit') ? 'limit' : 'market',
