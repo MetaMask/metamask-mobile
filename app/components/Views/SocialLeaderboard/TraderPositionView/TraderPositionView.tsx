@@ -360,6 +360,7 @@ const TraderPositionView = () => {
       ? ChartType.Candles
       : ChartType.Line,
   );
+  const chartTypeInitializedRef = useRef(hasRoutePositionSnapshot);
   const [perpMetrics, setPerpMetrics] = useState<PerpMetrics>({
     percentChange: undefined,
     currentPrice: undefined,
@@ -368,9 +369,10 @@ const TraderPositionView = () => {
   const isPerp = displayPosition ? isPerpPosition(displayPosition) : false;
 
   useEffect(() => {
-    if (!displayPosition || hasRoutePositionSnapshot) return;
+    if (!displayPosition || chartTypeInitializedRef.current) return;
+    chartTypeInitializedRef.current = true;
     setChartType(isPerp ? ChartType.Candles : ChartType.Line);
-  }, [displayPosition, hasRoutePositionSnapshot, isPerp]);
+  }, [displayPosition, isPerp]);
 
   // Reset the scrub override whenever the chart interval changes so a stale
   // percent from a previous range never lingers in the header.
