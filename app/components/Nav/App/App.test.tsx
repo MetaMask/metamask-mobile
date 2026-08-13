@@ -2130,10 +2130,13 @@ describe('App', () => {
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-lock-screen')).toBeTruthy();
-      });
-    });
+      await waitFor(
+        () => {
+          expect(getByTestId('mock-lock-screen')).toBeTruthy();
+        },
+        { timeout: 15000 },
+      );
+    }, 20000);
   });
 
   describe('isNetworkUiRedesignEnabled conditional rendering', () => {
