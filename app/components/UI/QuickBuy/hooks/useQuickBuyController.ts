@@ -112,7 +112,7 @@ import {
 } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
-import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../../../../constants/bridge';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'

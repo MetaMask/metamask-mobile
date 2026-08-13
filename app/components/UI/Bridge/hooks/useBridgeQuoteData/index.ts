@@ -38,7 +38,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import { parseCaipAssetType } from '@metamask/utils';
-import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
