@@ -28,6 +28,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'baanx'),
+}));
+
 const MOCK_TILT_ANIMATION_TEST_ID = 'mock-money-card-tilt-animation';
 interface MockTiltAnimationProps {
   isMetalCard: boolean;
@@ -779,6 +783,7 @@ describe('MoneyMetaMaskCard', () => {
         ),
       ).toHaveLength(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
         mode: 'upsell',
@@ -833,6 +838,7 @@ describe('MoneyMetaMaskCard', () => {
       );
       expect(cardViewedCalls).toHaveLength(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
         mode: 'manage',
@@ -882,6 +888,7 @@ describe('MoneyMetaMaskCard', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
         mode: 'upsell',
@@ -908,6 +915,7 @@ describe('MoneyMetaMaskCard', () => {
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON));
 
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
         mode: 'link',
@@ -935,6 +943,7 @@ describe('MoneyMetaMaskCard', () => {
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
 
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
         mode: 'manage',
