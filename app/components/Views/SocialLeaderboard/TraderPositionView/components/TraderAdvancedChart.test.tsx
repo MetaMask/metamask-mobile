@@ -796,6 +796,8 @@ describe('TraderAdvancedChart', () => {
       />,
     );
 
+    expect(mockFocusTime).not.toHaveBeenCalled();
+
     const lastChartProps = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
       onChartLayoutSettled?: () => void;
     };

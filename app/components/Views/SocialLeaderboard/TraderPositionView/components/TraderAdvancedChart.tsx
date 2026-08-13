@@ -396,6 +396,7 @@ const TraderPerpAdvancedChart = ({
   const chartRef = useRef<AdvancedChartRef>(null);
   const handledFocusNonceRef = useRef<number | null>(null);
   const paginationInFlightRef = useRef(false);
+  const historyLayoutPendingRef = useRef(false);
   const focusRequestRef = useRef(focusRequest);
   focusRequestRef.current = focusRequest;
   const [paginationEpoch, setPaginationEpoch] = useState(0);
@@ -505,6 +506,7 @@ const TraderPerpAdvancedChart = ({
   );
 
   const handleChartLayoutSettled = useCallback(() => {
+    historyLayoutPendingRef.current = false;
     const pending = pendingFocusAfterSettleRef.current;
     if (!pending) return;
     if (focusRequest?.nonce !== pending.request.nonce) {
@@ -538,6 +540,13 @@ const TraderPerpAdvancedChart = ({
       ) {
         return;
       }
+      if (historyLayoutPendingRef.current) {
+        pendingFocusAfterSettleRef.current = {
+          tradeTime,
+          request: focusRequest,
+        };
+        return;
+      }
       focusTradeOnChart(tradeTime, focusRequest);
       return;
     }
@@ -558,6 +567,9 @@ const TraderPerpAdvancedChart = ({
         }),
       )
         .then((response) => {
+          if (!response.noData) {
+            historyLayoutPendingRef.current = true;
+          }
           if (focusRequestRef.current?.nonce !== requestedNonce) {
             return;
           }
