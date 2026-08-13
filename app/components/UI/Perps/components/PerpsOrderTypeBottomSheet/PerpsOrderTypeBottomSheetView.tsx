@@ -151,17 +151,20 @@ const PerpsOrderTypeBottomSheetView = ({
         descriptionProps={DESCRIPTION_PROPS}
         accessoryGap={2}
         startAccessory={
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="h-10 w-10"
-          >
-            <IconComponent
-              name={`perps-order-type-${orderType.type}`}
-              width={32}
-              height={32}
-            />
-          </Box>
+          shouldShowSelectedIcon ? (
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="h-10 w-10"
+              testID={`${orderType.testID}-icon`}
+            >
+              <IconComponent
+                name={`perps-order-type-${orderType.type}`}
+                width={32}
+                height={32}
+              />
+            </Box>
+          ) : undefined
         }
         isSelected={currentOrderType === orderType.type}
         showSelectedIcon={shouldShowSelectedIcon}
@@ -194,7 +197,10 @@ const PerpsOrderTypeBottomSheetView = ({
         {title}
       </BottomSheetHeader>
       {showTriggeredTypes &&
-        renderSectionHeader(strings('perps.order.type.basic'))}
+        renderSectionHeader(
+          strings('perps.order.type.basic'),
+          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
+        )}
       {BASIC_ORDER_TYPES.map(renderOrderType)}
       {showTriggeredTypes &&
         renderSectionHeader(

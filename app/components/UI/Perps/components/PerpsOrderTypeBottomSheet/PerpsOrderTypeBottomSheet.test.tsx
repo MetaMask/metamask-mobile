@@ -140,6 +140,11 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       expect(
         screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
           PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
         ),
       ).not.toBeOnTheScreen();
@@ -153,7 +158,11 @@ describe('PerpsOrderTypeBottomSheet', () => {
         <PerpsOrderTypeBottomSheet {...defaultProps} showTriggeredTypes />,
       );
 
-      expect(screen.getByText('Basic')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
+        ),
+      ).toHaveTextContent('Basic');
       expect(
         screen.getByTestId(
           PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
@@ -173,6 +182,40 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(
         screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
       ).toBeOnTheScreen();
+    });
+
+    it('shows order type icons only in the Pro presentation', () => {
+      const marketIconTestID = `${PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION}-icon`;
+      const { rerender } = render(
+        <PerpsOrderTypeBottomSheet {...defaultProps} />,
+      );
+
+      expect(screen.queryByTestId(marketIconTestID)).not.toBeOnTheScreen();
+
+      rerender(
+        <PerpsOrderTypeBottomSheet {...defaultProps} showSelectedIcon />,
+      );
+
+      expect(screen.getByTestId(marketIconTestID)).toBeOnTheScreen();
+    });
+
+    it('forwards the Pro title and selected-icon presentation', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          title="Choose order type"
+          showSelectedIcon
+        />,
+      );
+
+      expect(screen.getByText('Choose order type')).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(
+            PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+          ),
+        ).UNSAFE_getByType(Icon).props.name,
+      ).toBe(IconName.Check);
     });
   });
 

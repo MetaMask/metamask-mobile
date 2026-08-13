@@ -26,6 +26,8 @@ interface PerpsOrderTypeBottomSheetProps {
   currentOrderType?: OrderType;
   asset?: string;
   direction?: 'long' | 'short';
+  title?: string;
+  showSelectedIcon?: boolean;
   showTriggeredTypes?: boolean;
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
@@ -37,6 +39,8 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   currentOrderType,
   asset = 'BTC',
   direction = 'long',
+  title,
+  showSelectedIcon = false,
   showTriggeredTypes = false,
   sheetRef: externalSheetRef,
 }) => {
@@ -68,6 +72,8 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       onClose={onClose}
       onSelect={handleSelect}
       currentOrderType={currentOrderType}
+      title={title}
+      showSelectedIcon={showSelectedIcon}
       showTriggeredTypes={showTriggeredTypes}
       sheetRef={externalSheetRef}
     />
@@ -76,10 +82,4 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
 
 PerpsOrderTypeBottomSheet.displayName = 'PerpsOrderTypeBottomSheet';
 
-export default memo(
-  PerpsOrderTypeBottomSheet,
-  (prevProps, nextProps) =>
-    prevProps.isVisible === nextProps.isVisible &&
-    prevProps.currentOrderType === nextProps.currentOrderType &&
-    prevProps.showTriggeredTypes === nextProps.showTriggeredTypes,
-);
+export default memo(PerpsOrderTypeBottomSheet);

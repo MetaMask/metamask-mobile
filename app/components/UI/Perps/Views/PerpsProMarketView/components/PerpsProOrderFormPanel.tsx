@@ -9,7 +9,7 @@ import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
-import PerpsOrderTypeBottomSheetView from '../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
+import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
@@ -145,11 +145,13 @@ const PerpsProOrderFormPanel = ({
           animationType="fade"
           onRequestClose={closeOrderType}
         >
-          <PerpsOrderTypeBottomSheetView
+          <PerpsOrderTypeBottomSheet
             isVisible
             onClose={closeOrderType}
             onSelect={onOrderTypeSelect}
             currentOrderType={orderType}
+            asset={market.symbol}
+            direction={direction}
             title={strings('perps.pro_order_form.choose_order_type')}
             showSelectedIcon
             showTriggeredTypes={showTriggeredTypes}
