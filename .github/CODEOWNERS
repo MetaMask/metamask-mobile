@@ -184,8 +184,8 @@ app/messengers/route-with-messenger.test.tsx              @MetaMask/core-platfor
 app/messengers/route-with-messenger.tsx                   @MetaMask/core-platform
 app/messengers/ui-messenger.test.ts                       @MetaMask/core-platform
 app/messengers/ui-messenger.ts                            @MetaMask/core-platform
-app/util/test/mock-route-messenger.tsx                    @MetaMask/core-platform
-app/util/test/mock-ui-messenger.tsx                       @MetaMask/core-platform
+app/util/test/mock-route-messenger.ts                     @MetaMask/core-platform
+app/util/test/mock-ui-messenger.ts                        @MetaMask/core-platform
 
 # Co-owned by Confirmations team and Core Platform team
 app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/core-platform
