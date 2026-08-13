@@ -21,7 +21,9 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
- Text, TextVariant } from '@metamask/design-system-react-native';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 
