@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Platform, Pressable, Share } from 'react-native';
+import { Platform, Pressable, Share, StyleSheet } from 'react-native';
 import { getBundleId, getVersion } from 'react-native-device-info';
 import ShakeDetector from './ShakeDetector';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -18,10 +18,21 @@ const shouldEnableProfiler = (() => {
       return true;
     case 'exp':
       return true;
+    case 'e2e':
+      return true;
     default:
       return false;
   }
 })();
+
+const styles = StyleSheet.create({
+  e2eToggle: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
+});
 
 interface ProfilerManagerProps {
   enabled?: boolean;
@@ -112,6 +123,14 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
   return (
     <>
       <ShakeDetector onShake={handleShake} sensibility={3} />
+      {process.env.METAMASK_ENVIRONMENT === 'e2e' && (
+        <Pressable
+          testID="e2e-profiler-toggle"
+          accessibilityLabel="e2e-profiler-toggle"
+          onPress={handleShake}
+          style={styles.e2eToggle}
+        />
+      )}
       {isVisible && (
         <Box twClassName="absolute top-20 right-4 z-50 shadow-lg min-w-48">
           <Box twClassName="bg-default rounded-xl p-3 border border-muted">
@@ -150,6 +169,9 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
                   isRecording ? 'bg-error-default' : 'bg-primary-default',
                 )}
                 onPress={toggleProfiling}
+                testID={
+                  isRecording ? 'profiler-stop-button' : 'profiler-start-button'
+                }
               >
                 <Text twClassName="text-white" variant={TextVariant.BodySm}>
                   {isRecording ? 'Stop' : 'Start'}
