@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { CandlePeriod } from '@metamask/perps-controller';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { ChartType } from '../../../../UI/Charts/AdvancedChart/AdvancedChart.types';
 import TraderPositionChartSection from './TraderPositionChartSection';
@@ -73,7 +74,7 @@ describe('TraderPositionChartSection', () => {
         {...defaultProps}
         isPerp
         perpSymbol="BTC"
-        selectedCandlePeriod="15m"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
       />,
     );
 
@@ -82,7 +83,7 @@ describe('TraderPositionChartSection', () => {
       expect.objectContaining({
         isPerp: true,
         perpSymbol: 'BTC',
-        selectedCandlePeriod: '15m',
+        selectedCandlePeriod: CandlePeriod.FifteenMinutes,
       }),
     );
   });
