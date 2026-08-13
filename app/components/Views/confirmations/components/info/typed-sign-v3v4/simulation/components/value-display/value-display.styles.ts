@@ -1,16 +1,9 @@
 import { StyleSheet } from 'react-native';
-import {
-  AppThemeKey,
-  Theme,
-} from '../../../../../../../../../util/theme/models';
+import { Theme } from '../../../../../../../../../util/theme/models';
 import {
   fontStyles,
   colors as importedColors,
 } from '../../../../../../../../../styles/common';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../../../../../../util/theme/themeUtils';
 
 const styleSheet = (theme: Theme) => {
   const { colors } = theme;
@@ -70,13 +63,9 @@ const styleSheet = (theme: Theme) => {
       color: colors.error.default,
     },
     valueModal: {
-      backgroundColor: getElevatedSurfaceColor(theme),
-      ...(isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-        ? {
-            borderWidth: 1,
-            borderColor: colors.border.muted,
-          }
-        : null),
+      backgroundColor: theme.colors.background.elevated1,
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
       paddingTop: 24,
       paddingBottom: 34,
       paddingHorizontal: 16,
