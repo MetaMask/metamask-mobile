@@ -1712,6 +1712,60 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         asset: getPerpsDisplaySymbol(orderForm.asset),
       });
 
+  // [PR-TAT-3742] BUG_MARKER: fires when a still-resolving pay token balance is
+  // treated as a real zero, which disables the slider, relabels the action
+  // button and stacks several funding errors at once.
+  useEffect(() => {
+    if (!hasCustomTokenSelected || spendableBalance !== 0) {
+      return;
+    }
+    DevLogger.log(
+      '[PR-TAT-3742] BUG_MARKER: unresolved pay token balance treated as zero',
+      JSON.stringify({
+        hasCustomTokenSelected,
+        payTokenSymbol: payToken?.symbol,
+        payTokenBalanceUsd: payToken?.balanceUsd,
+        spendableBalance,
+        maxPossibleAmount,
+        minimumOrderAmount,
+        amountTimesLeverage,
+        isAmountDisabled,
+        isInsufficientFunds,
+        isLoadingAccount,
+        marginRequired,
+        hasInsufficientPayTokenBalance,
+        hasBlockingPayAlerts,
+        blockingPayAlertMessage,
+        filteredErrors,
+        orderValidationIsValid: orderValidation.isValid,
+        isAtOICap,
+        isPayTotalsLoading,
+        isPayAmountStale,
+        isPayStateNotReady,
+      }),
+    );
+  }, [
+    isPayTotalsLoading,
+    isPayAmountStale,
+    isPayStateNotReady,
+    hasCustomTokenSelected,
+    payToken,
+    spendableBalance,
+    maxPossibleAmount,
+    minimumOrderAmount,
+    amountTimesLeverage,
+    isAmountDisabled,
+    isInsufficientFunds,
+    isLoadingAccount,
+    marginRequired,
+    hasInsufficientPayTokenBalance,
+    hasBlockingPayAlerts,
+    blockingPayAlertMessage,
+    filteredErrors,
+    orderValidation.isValid,
+    isAtOICap,
+  ]);
+
   const {
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
