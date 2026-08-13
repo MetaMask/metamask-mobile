@@ -139,7 +139,15 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         );
         expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '');
       });
+
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 50);
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 50);
+
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', ''),
+      );
     },
   );
 
@@ -165,7 +173,15 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         );
         expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '');
       });
+
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 50);
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 50);
+
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', ''),
+      );
     },
   );
 
@@ -192,6 +208,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         );
         expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+        expect(sizeInput).toHaveProp('value', '3000');
       });
     },
   );

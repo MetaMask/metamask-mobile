@@ -972,7 +972,8 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockSetTakeProfitPrice).toHaveBeenCalledWith(undefined);
       expect(mockSetStopLossPrice).toHaveBeenCalledWith(undefined);
-      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(0);
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(null);
+      expect(mockSetAmount).toHaveBeenCalledWith('0');
       expect(result.current.reduceOnly).toBe(true);
     });
 
@@ -993,14 +994,49 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(90000);
     });
 
-    it('sets the size slider max to 0 when Reduce Only is on with no position', () => {
+    it('keeps the margin-based slider max and empty size when Reduce Only is on with no position', () => {
       const { result } = renderProForm();
 
       act(() => {
         result.current.onReduceOnlyChange(true);
       });
 
-      expect(result.current.sizeSlider.maximumValue).toBe(0);
+      expect(result.current.sizeSlider.maximumValue).toBe(1000);
+      expect(result.current.sizeInput.value).toBe('');
+    });
+
+    it('keeps the margin-based slider max and empty size when Reduce Only is on with the wrong direction', () => {
+      mockExistingPosition = {
+        size: '1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.sizeSlider.maximumValue).toBe(1000);
+      expect(result.current.sizeInput.value).toBe('');
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(null);
+    });
+
+    it('does not commit slider amount when Reduce Only has a position error', () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      mockSetAmount.mockClear();
+
+      act(() => {
+        result.current.sizeSlider.onValueChange(250);
+        result.current.sizeSlider.onDragEnd(250);
+      });
+
+      expect(result.current.sizeInput.value).toBe('');
+      expect(result.current.sizeSlider.value).toBe(250);
+      expect(mockSetAmount).not.toHaveBeenCalled();
     });
 
     it('uses the limit price for the Reduce Only slider max', () => {

@@ -26,6 +26,11 @@ export interface UsePerpsProSizeInputParams {
   szDecimals: number;
   maxPossibleAmount: number;
   maxDigits?: number;
+  /**
+   * When true, the size field stays empty and slider drags are visual-only
+   * (used for reduce-only `no_position` / `wrong_side`).
+   */
+  keepSizeEmpty?: boolean;
 }
 
 export interface UsePerpsProSizeInputResult {
@@ -118,6 +123,7 @@ export const usePerpsProSizeInput = ({
   szDecimals,
   maxPossibleAmount,
   maxDigits,
+  keepSizeEmpty = false,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const canToggleDenomination =
     Number.isFinite(effectivePrice) && effectivePrice > 0;
@@ -146,6 +152,14 @@ export const usePerpsProSizeInput = ({
     sliderPreviewRef.current = null;
     setSliderPreview(null);
   }, []);
+
+  const wasKeepSizeEmptyRef = useRef(keepSizeEmpty);
+  useEffect(() => {
+    if (wasKeepSizeEmptyRef.current && !keepSizeEmpty) {
+      clearSliderPreview();
+    }
+    wasKeepSizeEmptyRef.current = keepSizeEmpty;
+  }, [clearSliderPreview, keepSizeEmpty]);
 
   const commitUsdAmount = useCallback(
     (nextUsdAmount: string) => {
@@ -232,6 +246,10 @@ export const usePerpsProSizeInput = ({
 
   const onChange = useCallback(
     (text: string) => {
+      if (keepSizeEmpty) {
+        return;
+      }
+
       const previousValue = denominationUnit === 'usd' ? usdDraft : assetDraft;
       const result = normalizeNumericTextInput(
         text,
@@ -267,6 +285,7 @@ export const usePerpsProSizeInput = ({
       denominationUnit,
       effectivePrice,
       inputOptions,
+      keepSizeEmpty,
       usdDraft,
     ],
   );
@@ -363,6 +382,10 @@ export const usePerpsProSizeInput = ({
   ]);
 
   const effectiveUsdAmount = useMemo(() => {
+    if (keepSizeEmpty) {
+      return '0';
+    }
+
     if (sliderPreview !== null) {
       return sliderPreview;
     }
@@ -389,6 +412,7 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     denominationUnit,
     effectivePrice,
+    keepSizeEmpty,
     sliderPreview,
     usdAmount,
     usdDraft,
@@ -427,28 +451,48 @@ export const usePerpsProSizeInput = ({
 
   const onSliderDragEnd = useCallback(
     (value: number) => {
-      commitSliderUsdAmount(clampSliderUsdAmount(value, maxPossibleAmount));
+      const nextUsdAmount = clampSliderUsdAmount(value, maxPossibleAmount);
+      if (keepSizeEmpty) {
+        sliderPreviewRef.current = nextUsdAmount;
+        setSliderPreview(nextUsdAmount);
+        return;
+      }
+
+      commitSliderUsdAmount(nextUsdAmount);
     },
-    [commitSliderUsdAmount, maxPossibleAmount],
+    [commitSliderUsdAmount, keepSizeEmpty, maxPossibleAmount],
   );
 
   const onSliderDragCancel = useCallback(() => {
+    if (keepSizeEmpty) {
+      clearSliderPreview();
+      return;
+    }
+
     const nextUsdAmount = sliderPreviewRef.current;
     if (nextUsdAmount !== null) {
       commitSliderUsdAmount(nextUsdAmount);
     }
-  }, [commitSliderUsdAmount]);
+  }, [clearSliderPreview, commitSliderUsdAmount, keepSizeEmpty]);
 
   const commitPendingSliderPreview = useCallback((): boolean => {
+    if (keepSizeEmpty) {
+      return false;
+    }
+
     const nextUsdAmount = sliderPreviewRef.current;
     if (nextUsdAmount === null) {
       return false;
     }
 
     return commitSliderUsdAmount(nextUsdAmount);
-  }, [commitSliderUsdAmount]);
+  }, [commitSliderUsdAmount, keepSizeEmpty]);
 
   const value = useMemo(() => {
+    if (keepSizeEmpty) {
+      return '';
+    }
+
     if (sliderPreview === null) {
       return denominationUnit === 'usd' ? usdDraft : assetDraft;
     }
@@ -464,6 +508,7 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     denominationUnit,
     effectivePrice,
+    keepSizeEmpty,
     sliderPreview,
     szDecimals,
     usdDraft,
@@ -500,7 +545,10 @@ export const usePerpsProSizeInput = ({
 
   const sizeSlider = useMemo<PerpsProSizeSliderModel>(
     () => ({
-      value: getSliderDisplayValue(effectiveUsdAmount, maxPossibleAmount),
+      value: getSliderDisplayValue(
+        keepSizeEmpty ? (sliderPreview ?? '0') : effectiveUsdAmount,
+        maxPossibleAmount,
+      ),
       maximumValue: Math.max(0, maxPossibleAmount),
       onValueChange: onSliderValueChange,
       onDragEnd: onSliderDragEnd,
@@ -508,10 +556,12 @@ export const usePerpsProSizeInput = ({
     }),
     [
       effectiveUsdAmount,
+      keepSizeEmpty,
       maxPossibleAmount,
       onSliderDragCancel,
       onSliderDragEnd,
       onSliderValueChange,
+      sliderPreview,
     ],
   );
 

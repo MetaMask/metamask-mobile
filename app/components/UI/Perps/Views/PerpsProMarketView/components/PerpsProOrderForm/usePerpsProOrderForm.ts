@@ -67,6 +67,7 @@ import {
 import { willFlipPosition } from '../../../../utils/orderUtils';
 import {
   validateReduceOnlyOrder,
+  getReduceOnlyPositionError,
   type ReduceOnlyValidationCode,
 } from '../../../../utils/reduceOnlyValidation';
 import {
@@ -398,10 +399,22 @@ export const usePerpsProOrderForm = ({
     return parsedLimitPrice > 0 ? parsedLimitPrice : assetData.price;
   }, [assetData.price, orderForm.limitPrice, orderForm.type]);
 
+  const reduceOnlyPositionError = useMemo(
+    () =>
+      getReduceOnlyPositionError({
+        reduceOnly,
+        direction: orderForm.direction,
+        position: currentMarketPosition,
+      }),
+    [currentMarketPosition, orderForm.direction, reduceOnly],
+  );
+  const keepReduceOnlySizeEmpty = Boolean(reduceOnlyPositionError);
+
   // Reduce-only orders close existing size; slider 100% is the open position,
-  // not available-margin × leverage.
+  // not available-margin × leverage. Position errors keep the margin-based
+  // range so the slider stays movable while the size field stays empty.
   const sizeSliderMaxAmount = useMemo(() => {
-    if (!reduceOnly) {
+    if (!reduceOnly || keepReduceOnlySizeEmpty) {
       return maxPossibleAmount;
     }
 
@@ -412,6 +425,7 @@ export const usePerpsProOrderForm = ({
   }, [
     currentMarketPosition?.size,
     effectiveInputPrice,
+    keepReduceOnlySizeEmpty,
     maxPossibleAmount,
     reduceOnly,
   ]);
@@ -429,6 +443,7 @@ export const usePerpsProOrderForm = ({
     szDecimals,
     maxPossibleAmount: sizeSliderMaxAmount,
     maxDigits: MAX_PERPS_INPUT_DIGITS,
+    keepSizeEmpty: keepReduceOnlySizeEmpty,
   });
 
   const feeResults = usePerpsOrderFees({
@@ -1135,23 +1150,37 @@ export const usePerpsProOrderForm = ({
   const onReduceOnlyChange = useCallback(
     (value: boolean) => {
       setReduceOnly(value);
-      if (value) {
-        setTakeProfitPrice(undefined);
-        setStopLossPrice(undefined);
-        setMaxPossibleAmountOverride(
-          getReduceOnlyMaxUsdAmount({
-            positionSize: currentMarketPosition?.size,
-            price: effectiveInputPrice,
-          }),
-        );
+      if (!value) {
+        setMaxPossibleAmountOverride(null);
         return;
       }
 
-      setMaxPossibleAmountOverride(null);
+      setTakeProfitPrice(undefined);
+      setStopLossPrice(undefined);
+
+      const positionError = getReduceOnlyPositionError({
+        reduceOnly: true,
+        direction: orderForm.direction,
+        position: currentMarketPosition,
+      });
+      if (positionError) {
+        setMaxPossibleAmountOverride(null);
+        setAmount('0');
+        return;
+      }
+
+      setMaxPossibleAmountOverride(
+        getReduceOnlyMaxUsdAmount({
+          positionSize: currentMarketPosition?.size,
+          price: effectiveInputPrice,
+        }),
+      );
     },
     [
-      currentMarketPosition?.size,
+      currentMarketPosition,
       effectiveInputPrice,
+      orderForm.direction,
+      setAmount,
       setMaxPossibleAmountOverride,
       setTakeProfitPrice,
       setStopLossPrice,
@@ -1160,6 +1189,14 @@ export const usePerpsProOrderForm = ({
 
   useEffect(() => {
     if (!reduceOnly) {
+      return;
+    }
+
+    if (keepReduceOnlySizeEmpty) {
+      setMaxPossibleAmountOverride(null);
+      if (orderForm.amount !== '0' && orderForm.amount !== '') {
+        setAmount('0');
+      }
       return;
     }
 
@@ -1172,7 +1209,10 @@ export const usePerpsProOrderForm = ({
   }, [
     currentMarketPosition?.size,
     effectiveInputPrice,
+    keepReduceOnlySizeEmpty,
+    orderForm.amount,
     reduceOnly,
+    setAmount,
     setMaxPossibleAmountOverride,
   ]);
 
