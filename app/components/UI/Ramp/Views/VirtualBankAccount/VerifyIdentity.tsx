@@ -161,8 +161,8 @@ const VbaVerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
-    useState(true);
-  const chevronRotation = useSharedValue(180);
+    useState(false);
+  const chevronRotation = useSharedValue(0);
 
   const animatedChevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${chevronRotation.value}deg` }],
