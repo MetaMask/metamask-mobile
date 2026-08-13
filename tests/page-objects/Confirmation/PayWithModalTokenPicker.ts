@@ -4,6 +4,7 @@ import {
   Gestures,
   Matchers,
   type EncapsulatedElementType,
+  type ScrollContainer,
 } from '../../framework';
 
 /**
@@ -14,8 +15,8 @@ import {
  * tapAsset with an index for symbol-only selection.
  */
 class PayWithModalTokenPicker {
-  get tokenListScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(
+  get tokenListScrollViewIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
       TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
     );
   }
