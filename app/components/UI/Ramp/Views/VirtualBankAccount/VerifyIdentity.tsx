@@ -54,9 +54,9 @@ const StepRow = ({
     alignItems={BoxAlignItems.Center}
     twClassName="gap-3"
   >
-    <Box twClassName="size-10 shrink-0 rounded-lg bg-default items-center justify-center">
-      <Icon name={icon} size={IconSize.Md} color={IconColor.IconAlternative} />
-    </Box>
+    {/* Plain icon, no background chip — matches the benefit rows on the
+    Get Pix Key screen for a consistent look across both VBA KYC screens. */}
+    <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
     <Text variant={TextVariant.BodyMd}>{children}</Text>
   </Box>
 );
