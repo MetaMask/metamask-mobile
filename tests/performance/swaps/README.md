@@ -43,31 +43,24 @@ yarn mm launch --metro-port 8081
 
 This setup launch may refresh the app if it is not already healthily attached to Metro. The scenario command requires and reuses this active session; it does not launch or refresh the app.
 
-To let the scenario unlock a wallet that is on Login, enter the password silently in the same terminal that will run the scenario:
+To let the scenario unlock a wallet that is on Login, set the password in the same terminal that will run the scenario:
 
 ```bash
-read -s "SWAPS_PERF_WALLET_PASSWORD?Wallet password: "
-export SWAPS_PERF_WALLET_PASSWORD
+export SWAPS_PERF_WALLET_PASSWORD='your-wallet-password'
 ```
 
-The runner uses the Login screen's stable test IDs, unlocks before installing diagnostics or measuring any phase, and does not print or store the password. Ethereum Mainnet must have been selected before the wallet was locked. If the variable is not set, manually unlock MetaMask and leave it on Wallet.
+The runner reads that environment variable, unlocks before installing diagnostics or measuring any phase, and does not print or store the password. Ethereum Mainnet must have been selected before the wallet was locked. If Login is visible and the variable is not set, the runner fails with that same export example. Unlock MetaMask manually and leave it on Wallet if you prefer not to set it.
 
 Every run must start from Wallet. After the quote evidence is captured, the runner disables and reads the diagnostics collector before navigating back from Swaps. This lets the existing Bridge unmount cleanup clear the source amount without adding those cleanup renders or requests to the measurement. It then waits for the Wallet Swaps action before `mm cleanup` terminates the app. If navigation-based restoration fails, the artifact is marked failed and warns that the next run may not be clean.
 
 Scenario 001 also checks the source amount immediately after opening Swaps. A positive prepopulated amount fails the run before destination selection, preventing stale Swaps state from being treated as a clean measurement.
 
-The repo-local `mms-swaps-performance-analysis` skill owns the full preflight, prepare, run, analyze, and cleanup workflow. The underlying commands are shown here for direct use.
+The repo-local `mms-swaps-render-network-performance-analysis` skill owns the full preflight, prepare, run, analyze, and cleanup workflow. The underlying commands are shown here for direct use.
 
 Run the deterministic scenario in another terminal:
 
 ```bash
 yarn performance:swaps run --scenario 001
-```
-
-Remove the password from the shell after the run:
-
-```bash
-unset SWAPS_PERF_WALLET_PASSWORD
 ```
 
 Use a different Metro port when needed:
