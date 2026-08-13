@@ -92,7 +92,7 @@ describe('useScamQuestionnaireMetrics', () => {
       metrics.trackContactSupport(ANSWERS);
 
       expect(firedEvent(trackEvent)).toMatchObject({
-        name: 'Scam Questionnaire Contact Support',
+        name: 'Scam Questionnaire Support Contacted',
         properties: {
           q1_answer: 'q1_yes',
           q2_answer: null,
