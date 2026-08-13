@@ -53,6 +53,7 @@ describe('enrichWithABTests', () => {
     [MetaMetricsEvents.PERPS_SCREEN_VIEWED, 'source'],
     [MetaMetricsEvents.PREDICT_FEED_VIEWED, 'entry_point'],
     [MetaMetricsEvents.PREDICT_HOME_VIEWED, 'entry_point'],
+    [MetaMetricsEvents.POSITION_SCREEN_VIEWED, 'source'],
   ])(
     'enriches %s when opened from the homepage breakdown',
     (eventName, propertyName) => {

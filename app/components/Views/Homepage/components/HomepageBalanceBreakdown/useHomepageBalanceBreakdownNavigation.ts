@@ -47,7 +47,9 @@ export function useHomepageBalanceBreakdownNavigation() {
           navigateToMoneyHome(HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT);
           break;
         case 'tokens':
-          navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+          navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, {
+            source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+          });
           break;
         case 'perps':
           handleViewAllPerps();
@@ -61,7 +63,9 @@ export function useHomepageBalanceBreakdownNavigation() {
           });
           break;
         case 'defi':
-          navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW);
+          navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW, {
+            source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+          });
           break;
       }
     },

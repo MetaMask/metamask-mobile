@@ -529,6 +529,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigate).toHaveBeenNthCalledWith(
       1,
       Routes.WALLET.TOKENS_FULL_VIEW,
+      { source: 'homescreen_balance_breakdown' },
     );
     expect(mockUsePerpsNavigationHandlers).toHaveBeenCalledWith({
       source: 'homescreen_balance_breakdown',
@@ -543,6 +544,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigate).toHaveBeenNthCalledWith(
       3,
       Routes.WALLET.DEFI_FULL_VIEW,
+      { source: 'homescreen_balance_breakdown' },
     );
     expect(mockCreateEventBuilder).toHaveBeenCalledTimes(5);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
