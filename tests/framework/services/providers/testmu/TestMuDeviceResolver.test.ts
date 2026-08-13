@@ -88,6 +88,19 @@ describe('TestMuDeviceResolver', () => {
       });
     });
 
+    it('preserves an explicit Pixel 7 Pro OS range', () => {
+      delete process.env['TESTMU_DEVICE_EXACT'];
+      expect(
+        resolveTestMuDeviceCapabilities(
+          'Pixel 7 Pro',
+          '13.*|14.*|16.*',
+        ),
+      ).toEqual({
+        deviceName: 'Pixel 7 Pro.*',
+        platformVersion: '13.*|14.*|16.*',
+      });
+    });
+
     it('maps Samsung Galaxy S25 Ultra from BrowserStack naming with availability regex', () => {
       delete process.env['TESTMU_DEVICE_EXACT'];
       expect(

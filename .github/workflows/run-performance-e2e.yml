@@ -344,9 +344,9 @@ jobs:
           ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name == "Google Pixel 7 Pro" or .name == "Google Pixel 8 Pro")]' "$FILE")
           # TestMu receives one logical matrix entry restricted to phone models.
           # Do not use Pixel.* because it can allocate Pixel Tablet.
-          TESTMU_ANDROID_MATRIX='[{"name":"Pixel 7|Pixel 7 Pro","os_version":"","category":"low","description":"TestMu Pixel 7 phone availability pool"}]'
+          TESTMU_ANDROID_MATRIX='[{"name":"Pixel 7 Pro","os_version":"13.*|14.*|16.*","category":"low","description":"TestMu Pixel 7 Pro phone pool on Android 13, 14, or 16"}]'
           IOS_MATRIX='[]'
-          echo "PoC mode: BrowserStack Pixel 7/8 matrix; TestMu Pixel 7 phone regex pool with OS unspecified (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
+          echo "PoC mode: BrowserStack Pixel 7/8 matrix; TestMu Pixel 7 Pro phone pool on Android 13, 14, or 16 (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
 
           {
             echo "android_matrix<<EOF"

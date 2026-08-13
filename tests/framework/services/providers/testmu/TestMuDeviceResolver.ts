@@ -33,6 +33,14 @@ export function normalizeTestMuPlatformVersion(osVersion: string): string {
     return trimmed;
   }
 
+  if (
+    trimmed.includes('.*') ||
+    trimmed.includes('|') ||
+    trimmed.includes('[')
+  ) {
+    return trimmed;
+  }
+
   const parsed = Number.parseFloat(trimmed);
   if (!Number.isFinite(parsed)) {
     return trimmed;
@@ -105,8 +113,9 @@ export function resolveTestMuDeviceCapabilities(
 ): TestMuDeviceCapabilities {
   const mapped = BROWSERSTACK_TO_TESTMU_DEVICE[deviceName];
   const resolvedName = resolveTestMuCatalogDeviceName(deviceName);
-  const resolvedOs =
-    mapped?.osVersion ?? normalizeTestMuPlatformVersion(osVersion);
+  const resolvedOs = osVersion.trim()
+    ? normalizeTestMuPlatformVersion(osVersion)
+    : (mapped?.osVersion ?? '');
 
   return applyTestMuAvailabilityRegex(resolvedName, resolvedOs);
 }
