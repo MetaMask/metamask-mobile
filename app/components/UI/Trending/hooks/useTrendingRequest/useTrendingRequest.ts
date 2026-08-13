@@ -96,6 +96,11 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minLiquidity: 100000, // Minimum filter
     minVolume24h: 25000, // Minimum filter
   },
+
+  [NetworkToCaipChainId.STELLAR]: {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
 };
 
 /**

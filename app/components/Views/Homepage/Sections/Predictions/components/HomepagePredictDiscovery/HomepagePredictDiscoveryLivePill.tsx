@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -15,6 +16,12 @@ import { strings } from '../../../../../../../../locales/i18n';
 interface HomepagePredictDiscoveryLivePillProps {
   value?: string | null;
 }
+
+const styles = StyleSheet.create({
+  countdown: {
+    fontVariant: ['tabular-nums'],
+  },
+});
 
 const formatLivePillValue = (value: string): string =>
   value.replace(/^([0-9]):([0-9]{2})$/, '0$1:$2');
@@ -52,7 +59,7 @@ const HomepagePredictDiscoveryLivePill = ({
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.SuccessDefault}
-          style={tw.style('ml-2 font-medium')}
+          style={[tw.style('ml-2 font-medium'), styles.countdown]}
         >
           {displayValue}
         </Text>

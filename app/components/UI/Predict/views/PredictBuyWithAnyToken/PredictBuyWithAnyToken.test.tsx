@@ -19,6 +19,25 @@ const mockSetIsKeypadOpen = jest.fn();
 const mockSetIsUserInputChange = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockHandleRetryWithBestPrice = jest.fn();
+const mockCancelRetryablePredictBuyAttempt = jest.fn();
+let mockRetryableAttempt:
+  | {
+      attemptId: string;
+      amountUsd: number;
+      paymentMethod: 'pay_with_any_token' | 'predict_balance';
+    }
+  | undefined;
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      getRetryablePredictBuyAttempt: () => mockRetryableAttempt,
+      cancelRetryablePredictBuyAttempt: (...args: unknown[]) =>
+        mockCancelRetryablePredictBuyAttempt(...args),
+      trackPredictOrderEvent: jest.fn(),
+    },
+  },
+}));
 
 let mockPayWithAnyTokenEnabled = true;
 let mockFakOrdersEnabled = false;
@@ -89,14 +108,6 @@ jest.mock('../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      trackPredictOrderEvent: jest.fn(),
-    },
-  },
-}));
-
 const mockDeposit = jest.fn();
 
 jest.mock('../../hooks/usePredictDeposit', () => ({
@@ -120,13 +131,16 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   }),
 }));
 
+const mockUsePredictOrderRetry = jest.fn((..._args: unknown[]) => ({
+  retrySheetRef: { current: null },
+  retrySheetVariant: 'busy',
+  isRetrying: false,
+  handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
+}));
+
 jest.mock('../../hooks/usePredictOrderRetry', () => ({
-  usePredictOrderRetry: () => ({
-    retrySheetRef: { current: null },
-    retrySheetVariant: 'busy',
-    isRetrying: false,
-    handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
-  }),
+  usePredictOrderRetry: (...args: unknown[]) =>
+    mockUsePredictOrderRetry(...args),
 }));
 
 jest.mock('../../hooks/usePredictPlaceOrder', () => ({
@@ -143,8 +157,11 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   }),
 }));
 
+let mockCurrentValue = 20;
+let mockIsOrderNotFilled = false;
+
 const mockUsePredictBuyInputState = jest.fn((..._args: unknown[]) => ({
-  currentValue: 20,
+  currentValue: mockCurrentValue,
   setCurrentValue: mockSetCurrentValue,
   currentValueUSDString: '$20.00',
   setCurrentValueUSDString: mockSetCurrentValueUSDString,
@@ -204,7 +221,7 @@ const mockUsePredictBuyError = jest.fn((..._args: unknown[]) => ({
   errorMessage: mockErrorMessage,
   errorMessageSource: mockErrorMessageSource,
   buyErrorBanner: mockBuyErrorBanner,
-  isOrderNotFilled: false,
+  isOrderNotFilled: mockIsOrderNotFilled,
   resetOrderNotFilled: mockResetOrderNotFilled,
   clearBuyErrorBanner: mockClearBuyErrorBanner,
 }));
@@ -472,6 +489,9 @@ describe('PredictBuyWithAnyToken', () => {
     mockIsPaymentSelectorNavigationLocked = false;
     mockBlockingPayAlertMessage = null;
     mockHasBlockingPayAlerts = false;
+    mockCurrentValue = 20;
+    mockIsOrderNotFilled = false;
+    mockRetryableAttempt = undefined;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -511,6 +531,35 @@ describe('PredictBuyWithAnyToken', () => {
     expect(
       screen.queryByTestId('predict-fee-breakdown-sheet'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('cancels a retryable attempt when the user changes the amount', () => {
+    mockIsOrderNotFilled = true;
+    mockRetryableAttempt = {
+      attemptId: 'attempt-1',
+      amountUsd: 20,
+      paymentMethod: 'pay_with_any_token',
+    };
+    const { rerender } = renderWithProvider(<PredictBuyWithAnyToken />);
+
+    mockCurrentValue = 21;
+    rerender(<PredictBuyWithAnyToken />);
+
+    expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes the controller retryable attempt to the retry hook', () => {
+    mockRetryableAttempt = {
+      attemptId: 'attempt-1',
+      amountUsd: 20,
+      paymentMethod: 'pay_with_any_token',
+    };
+
+    renderWithProvider(<PredictBuyWithAnyToken />);
+
+    expect(mockUsePredictOrderRetry).toHaveBeenCalledWith(
+      expect.objectContaining({ attempt: mockRetryableAttempt }),
+    );
   });
 
   it('hides the pay with row when the feature flag is disabled', () => {

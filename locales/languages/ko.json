@@ -1071,7 +1071,7 @@
       "error": "웹뷰 오류 발생: {{code}}"
     },
     "notifications": {
-      "deposit_failed_title": "{{currency}} 예치에 실패했습니다! 불편을 드려 죄송합니다. 다시 시도해 주세요!",
+      "deposit_failed_title": "Deposit of {{currency}} has failed. Please try again, sorry for the inconvenience.",
       "deposit_failed_description": "회원님의 결제 수단 및 카드를 지원하는지 확인하세요",
       "deposit_cancelled_title": "예치가 취소되었습니다",
       "deposit_cancelled_description": "입금 취소를 요청했습니다.",
@@ -1310,6 +1310,9 @@
     "mode": {
       "lite": "라이트",
       "pro": "프로",
+      "selection_title": "Choose how you trade",
+      "lite_description": "One-tap longs or shorts. Simple by design.",
+      "pro_description": "Order book, advanced order types, and leverage.",
       "lite_transition_title": "라이트 모드",
       "pro_transition_title": "프로 모드",
       "active_pill_accessibility_label": "현재 {{mode}} 모드",
@@ -1525,8 +1528,12 @@
       "isolated": "격리",
       "choose_order_type": "주문 유형 선택",
       "size_usd": "Size (USD)",
+      "size_unit": "Size ({{unit}})",
+      "size_input_hint": "Enter order size in {{unit}}",
       "size_percentage": "주문 규모 비율",
+      "size_percentage_unit": "Order size percentage ({{unit}})",
       "toggle_size_unit": "규모 표시 단위 전환",
+      "toggle_size_unit_hint": "Switch from {{unit}} to the other size unit",
       "available_balance": "{{amount}}개 사용 가능",
       "available_balance_unavailable": "-- 사용 가능",
       "est_liquidation": "예상 강제 청산가",
@@ -1535,6 +1542,8 @@
       "close_keyboard": "키보드 닫기"
     },
     "pro_positions_panel": {
+      "order_history": "Order history",
+      "close_count": "Close ({{count}})",
       "positions": "포지션",
       "positions_with_count": "포지션({{count}})",
       "orders": "주문",
@@ -1546,6 +1555,9 @@
       "positions_empty_long": "롱 포지션이 없습니다.",
       "positions_empty_short": "숏 포지션이 없습니다.",
       "orders_empty": "미체결 주문이 여기에 표시됩니다.",
+      "orders_empty_filtered": "No open {{ticker}} orders.",
+      "orders_empty_long": "No long orders.",
+      "orders_empty_short": "No short orders.",
       "side_filter": {
         "all_sides": "전체 포지션 방향",
         "long": "롱",
@@ -1555,7 +1567,12 @@
         "position_value": "포지션 가치",
         "unrealized_pnl": "미실현 손익",
         "funding_rate": "펀딩 비율",
-        "settings_accessibility": "포지션 정렬"
+        "order_value": "주문 금액",
+        "size": "규모",
+        "price": "가격",
+        "time": "시간",
+        "settings_accessibility": "포지션 정렬",
+        "orders_settings_accessibility": "Sort orders"
       },
       "card": {
         "entry_price": "진입 가격",
@@ -1577,7 +1594,10 @@
         "reduce_only": "청산 전용",
         "tp_sl": "익절/손절",
         "trigger_condition": "트리거 조건",
-        "cancel": "취소"
+        "cancel": "취소",
+        "edit": "편집",
+        "edit_price": "Edit limit price",
+        "edit_size": "Edit size"
       }
     },
     "order": {
@@ -1626,7 +1646,10 @@
         "limit_price_must_be_set_before_configuring_tpsl": "익절/손절 구성 전에 지정가를 설정해야 합니다",
         "only_hyperliquid_usdc": "현재 Hyperliquid 결제는 USDC만 지원됩니다",
         "limit_price_far_warning": "지정가가 현재 시장 가격과 거리가 멉니다",
-        "oi_cap_reached": "미결제 약정 한도에 도달했습니다. 현재 신규 포지션에 진입할 수 없습니다."
+        "oi_cap_reached": "미결제 약정 한도에 도달했습니다. 현재 신규 포지션에 진입할 수 없습니다.",
+        "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
+        "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
+        "reduce_only_too_large": "Reduce only order is larger than your open position"
       },
       "error": {
         "placement_failed": "주문 실패",
@@ -1660,6 +1683,11 @@
         "off": "비활성화",
         "take_profit_helper": "가격이 설정값에 도달하면 포지션을 종료합니다",
         "stop_loss_helper": "이 가격에서 포지션을 종료해 손실을 제한합니다"
+      },
+      "size_modal": {
+        "title": "Edit size",
+        "set": "설정",
+        "order_value": "Order value: {{value}}"
       },
       "limit_price_modal": {
         "title": "지정가 설정",
@@ -1741,7 +1769,11 @@
       "order_cancelled_success": "{{detailedOrderType}} 주문 취소 완료",
       "pay_with_token_required": "토큰 선택 필요",
       "select_token_to_pay_with": "주문하기 전에 결제에 사용할 토큰을 선택하세요",
-      "initializing": "주문 초기화 중..."
+      "initializing": "주문 초기화 중...",
+      "updating_your_order": "Updating your order",
+      "order_updated": "Order updated",
+      "order_update_failed": "Failed to update order",
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
     },
     "slippage": {
       "config_title": "슬리피지 설정",
@@ -1909,7 +1941,11 @@
       "order_not_found": "주문을 찾을 수 없음",
       "clientNotInitialized": "HyperLiquid SDK 클라이언트가 제대로 초기화되지 않았습니다",
       "exchangeClientNotAvailable": "초기화 후에는 교환 클라이언트를 사용할 수 없습니다",
+      "exchangeAccountNotFound": "Add funds to your account before placing an order",
+      "exchangeMultiSigRequired": "This account needs its multi-signature signers to trade",
+      "exchangeInvalidNonce": "오류가 발생했습니다. 다시 시도해 주세요.",
       "infoClientNotAvailable": "초기화 후에는 정보 클라이언트를 사용할 수 없습니다",
+      "subscriptionClientNotAvailable": "SubscriptionClient not available after initialization",
       "subscriptionClientNotInitialized": "구독 클라이언트가 초기화되지 않았습니다",
       "failedToSubscribePosition": "포지션 업데이트 구독에 실패했습니다",
       "failedToUnsubscribePosition": "포지션 업데이트 구독 해제에 실패했습니다",
@@ -1941,7 +1977,18 @@
         "sizePositive": "규모는 0보다 커야 합니다",
         "pricePositive": "가격을 입력할 때는 0보다 커야 합니다",
         "unknownCoin": "알 수 없는 코인: {{coin}}",
-        "limitPriceRequired": "지정가 주문에는 가격이 필요합니다"
+        "limitPriceRequired": "지정가 주문에는 가격이 필요합니다",
+        "triggerPriceRequired": "A trigger price is required for stop and take profit orders",
+        "triggerPricePositive": "Trigger price must be a positive number",
+        "triggerPriceNotSupported": "Market and limit orders can't have a trigger price",
+        "triggerTpslUnsupported": "Stop and take profit orders can't carry their own take profit or stop loss",
+        "tpslSizeInvalid": "Take profit and stop loss size must be positive and no larger than the order",
+        "tpslLinkageConflict": "Conflicting take profit and stop loss settings",
+        "tpslLinkageRequired": "Take profit and stop loss must be attached to the order or to the position",
+        "tpslPositionLinkageUnsupported": "Take profit and stop loss can only be attached to a position once the order has filled",
+        "timeInForceNotSupported": "Time in force can only be set on limit orders",
+        "editTriggerUnsupported": "Stop and take profit orders can't be edited. Cancel the order and place a new one.",
+        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again."
       },
       "networkToggleFailed": "네트워크 전환에 실패했습니다: {{error}}",
       "accountBalanceFailed": "계정 잔액을 가져오는 데 실패했습니다: {{error}}",
@@ -2351,6 +2398,13 @@
       "error_title": "주문 취소 실패",
       "error_message": "{{count}}개 주문 취소 실패"
     },
+    "margin_mode": {
+      "title": "Choose margin mode",
+      "isolated_title": "격리",
+      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "cross_title": "교차",
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
     "crossMargin": {
       "title": "교차 마진 미지원",
       "message": "MetaMask 무기한 거래는 격리 마진 거래만 지원합니다. MetaMask에서 거래하려면 먼저 교차 마진 포지션을 청산해야 합니다.",
@@ -2376,7 +2430,8 @@
       "past_hour": "지난 1시간",
       "past_24_hours": "지난 24시간",
       "time": "시간",
-      "apply": "적용"
+      "apply": "적용",
+      "clear": "지우기"
     },
     "provider_selector": {
       "title": "제공자 선택"
@@ -2390,7 +2445,7 @@
     "failed_to_load_market_data": "마켓 데이터 불러오기에 실패했습니다",
     "data_updates_automatically": "데이터가 몇 초마다 자동으로 업데이트됩니다",
     "tap_to_retry": "탭하여 다시 시도",
-    "search_by_token_symbol": "토큰 심볼별 검색",
+    "search_by_token_symbol": "Search",
     "no_favorites_found": "관심 목록에 시장이 없습니다",
     "no_favorites_description": "시장의 별 아이콘을 탭하면 관심 목록에 추가됩니다",
     "watchlist": {
@@ -2408,7 +2463,7 @@
     "market_count": "마켓 {{count}}개",
     "market_count_plural": "마켓 {{count}}개",
     "no_tokens_found": "확인된 토큰이 없습니다",
-    "no_tokens_found_description": "\"{{searchQuery}}\"라는 이름의 토큰을 찾을 수 없습니다. 다른 검색어를 입력해 보세요.",
+    "no_tokens_found_description": "We couldn't find any markets with the name \"{{searchQuery}}\". Try a different search.",
     "no_markets_found": "마켓을 찾을 수 없습니다",
     "no_markets_found_description": "현재 필터와 일치하는 마켓이 없습니다. 다른 카테고리를 시도해 보세요.",
     "no_markets_search_description": "이 카테고리에서 \"{{searchQuery}}\"와(과) 일치하는 마켓이 없습니다. 다른 검색어를 시도하거나 필터를 지우세요.",
@@ -2499,6 +2554,7 @@
       "size": "규모",
       "total": "총액",
       "spread": "스프레드",
+      "spread_value": "Spread {{value}}",
       "loading": "오더북 불러오는 중...",
       "no_data": "오더북 데이터를 사용할 수 없습니다",
       "error": "오더북을 불러올 수 없습니다",
@@ -2620,7 +2676,7 @@
       "hard_to_understand": "이해하기 어려움",
       "harmful_or_offensive": "유해하거나 모욕적임",
       "something_else": "기타",
-      "additional_feedback_label": "추가 피드백(선택 사항)",
+      "additional_feedback_label": "Additional feedback",
       "additional_feedback_placeholder": "개선을 위한 의견을 남겨 주세요.",
       "characters_remaining": "{{count}}자 남음",
       "submit": "제출"
@@ -3063,6 +3119,9 @@
       "prediction_in_progress": "예측 진행 중",
       "prediction_in_progress_description": "예측이 곧 제출됩니다",
       "prediction_failed": "예측 제출 실패",
+      "prediction_not_placed": "Prediction not placed",
+      "post_deposit_order_failed": "{{amount}} was added to your Predict balance.",
+      "post_deposit_order_failed_fallback": "Your funds were added to your Predict balance.",
       "order_failed": "주문 실패",
       "payments_made_in_usdc": "모든 결제는 USDC로 이루어집니다",
       "prediction_insufficient_funds": "자금이 부족합니다. 최대 {{amount}}까지 사용할 수 있습니다.",
@@ -3077,6 +3136,9 @@
       "market_busy_body_sell": "시장이 빠르게 움직이고 있어 {{price}}에 매도할 수 없습니다. 현재 가능한 최적 가격으로 다시 주문하시겠습니까?",
       "order_failed_title": "주문 실패",
       "order_failed_body": "주문이 체결되지 않았습니다. 다시 시도하시겠습니까?",
+      "payment_failed_title": "Payment didn't go through",
+      "payment_failed_body": "We couldn't convert your {{token}}. Add funds to your Predict balance instead.",
+      "payment_failed_body_generic": "We couldn't convert your token. Add funds to your Predict balance instead.",
       "price_changed_title": "가격 변경됨",
       "price_changed_body": "{{price}}에 매수할 수 없습니다. 시장가로 매수해 보시겠습니까?",
       "retry": "다시 시도",
@@ -3147,7 +3209,9 @@
       "preview_not_available": "미리보기를 사용할 수 없습니다",
       "market_pending_resolution": "이 시장은 결과 확정을 기다리고 있습니다.",
       "market_not_accepting_bets": "이 시장에는 더 이상 베팅할 수 없습니다.",
-      "market_bettable_check_failed": "이 시장에 베팅할 수 있는지 확인할 수 없습니다. 다시 시도하세요."
+      "market_bettable_check_failed": "이 시장에 베팅할 수 있는지 확인할 수 없습니다. 다시 시도하세요.",
+      "deposit_failed": "We couldn't add funds to your Predict balance. Try again.",
+      "withdraw_failed": "We couldn't complete your withdrawal. Try again."
     },
     "game_details_footer": {
       "pick_a_winner": "승자 선택",
@@ -3237,6 +3301,7 @@
   },
   "wallet": {
     "title": "지갑",
+    "search_accessibility_label": "Search",
     "tokens": "토큰",
     "view_all_nfts": "모든 NFT 보기",
     "view_all_tokens": "모든 토큰 보기",
@@ -3340,7 +3405,7 @@
     "refresh_metadata": "메타데이터 새로고침",
     "token_removal_issue_title": "토큰 제거 과정에서 문제가 발생했습니다.",
     "token_removal_issue_desc": "토큰을 제거하는 동안 문제가 발생했습니다. 다시 시도하세요.",
-    "collectible_removed_title": "콜렉티블이 제거되었습니다!",
+    "collectible_removed_title": "콜렉티블이 제거되었습니다",
     "collectible_removed_desc": "생각이 바뀌면, \"NFT 불러오기\"를 눌러 다시 추가할 수 있습니다",
     "remove": "숨기기",
     "cancel": "취소",
@@ -3427,7 +3492,7 @@
       "title": "무기한 선물",
       "trades": "거래하기",
       "order": "주문",
-      "fundings": "펀딩",
+      "fundings": "펀딩비",
       "deposits": "예치"
     },
     "empty_state": {
@@ -3922,15 +3987,15 @@
       "deselect_all": "전체 선택 해제",
       "select_accounts_title": "계정",
       "select_accounts_desc": "어느 계정에 대한 알림을 받을지 선택하세요.",
-      "wallet_activity_title": "지갑 활동",
-      "wallet_activity_desc": "구매, 판매, 이체, 스왑, 보상",
-      "perps_title": "거래 활동",
+      "wallet_activity_title": "Wallet activity",
+      "wallet_activity_desc": "Buy, sells, transfers, swaps",
+      "perps_title": "Trading activity",
       "perps_desc": "포지션 변동, 청산, 펀딩비, 마진 관련 업데이트",
       "agentic_cli_title": "에이전틱 CLI",
       "agentic_cli_desc": "에이전틱 기능의 CLI 연결 요청, 승인 및 세션 업데이트",
-      "social_ai_title": "트레이딩 신호",
-      "social_ai_desc": "팔로우하는 트레이더와 자산에 관한 최신 정보, 그리고 엄선된 시장 뉴스",
-      "marketing_title": "업데이트 및 보상",
+      "social_ai_title": "Trading signals",
+      "social_ai_desc": "Updates from traders and assets you follow, plus curated market news",
+      "marketing_title": "Updates and rewards",
       "marketing_desc": "상품 업데이트, 기능 안내, 신규 출시 소식",
       "marketing_disclaimer": "이 설정을 켜면 MetaMask로부터 상품 뉴스 및 마케팅 소식을 수신하는 데 동의하는 것입니다.",
       "customize_session_title": "알림 맞춤 설정",
@@ -5735,7 +5800,7 @@
     "risks_1": "이를 잃어버렸을 때",
     "risks_2": "어디에 두었는지 잊어버렸을 때",
     "risks_3": "다른 사람이 찾았을 때",
-    "other_options": "기타 옵션: 종이에 기록해 놓을 필요는 없습니다!",
+    "other_options": "기타 옵션: 종이에 기록해 놓을 필요는 없습니다.",
     "tips_title": "팁:",
     "tips_1": "은행 금고에 보관하세요",
     "tips_2": "안전한 곳에 보관하세요",
@@ -5876,7 +5941,7 @@
     "proceed_anyway": "계속 진행",
     "but_please_do_so_at_your_own_risk": "하지만 위험은 직접 감수하셔야 합니다.",
     "report_detection_problem": "감지 문제 보고",
-    "share_on_twitter": "이 정보가 유용했다면, X를 통해 공유해 주세요!",
+    "share_on_twitter": "이 정보가 유용했다면, X를 통해 공유해 주세요.",
     "share_text": "MetaMask가 잠재적으로 위험한 사이트({{url}})로부터 저를 보호해줬어요. 모두 안전하게 이용하세요!"
   },
   "notifications": {
@@ -5949,11 +6014,11 @@
     "erc1155_received": "{{address}}에서 NFT를 받음",
     "received_nft": "{{address}}에서 NFT를 받음",
     "pending_title": "제출된 거래",
-    "pending_deposit_title": "입금이 진행 중입니다!",
-    "pending_withdrawal_title": "인출이 진행 중입니다!",
-    "cancelled_title": "거래가 취소되었습니다!",
+    "pending_deposit_title": "예치 진행 중",
+    "pending_withdrawal_title": "인출이 진행 중입니다",
+    "cancelled_title": "트랜잭션이 취소되었습니다",
     "success_title": "거래 #{{nonce}} 완료!",
-    "speedup_title": "#{{nonce}} 속도 향상 중!",
+    "speedup_title": "#{{nonce}} 속도 향상 중",
     "success_deposit_title": "예치 완료!",
     "success_withdrawal_title": "출금 완료!",
     "error_title": "앗, 문제가 발생했습니다 :/",
@@ -6447,8 +6512,8 @@
     "something_went_wrong": "앗, 문제가 발생했습니다",
     "report_this_issue": "이 문제 보고",
     "no_providers_available": "공급업체가 없습니다.",
-    "try_different_amount_to_buy_input": "다른 결제 방법을 선택하시거나 원하는 구매량을 늘리거나 줄이세요!",
-    "try_different_amount_to_sell_input": "다른 현금 송금처를 선택하거나 매도 금액을 변경하세요!",
+    "try_different_amount_to_buy_input": "다른 결제 방법을 선택하시거나 원하는 구매량을 늘리거나 줄이세요.",
+    "try_different_amount_to_sell_input": "다른 현금 송금처를 선택하거나 매도 금액을 변경하세요.",
     "webview_received_error": "웹뷰 오류 상태 코드: {{code}}",
     "no_tokens_available_title": "사용 가능한 토큰 없음",
     "no_tokens_available": "현재 {{network}}에서 선택한 결제 방식으로 구매할 수 있는 토큰이 없습니다.",
@@ -6501,7 +6566,7 @@
     },
     "order_details": {
       "details_main": "주문 세부 정보",
-      "successful": "주문 성공!",
+      "successful": "주문 성공",
       "your": "내",
       "available_in_account": "(을)를 계정에서 확인할 수 있습니다",
       "delayed_bank_transfer": "은행 계좌로 현금이 입금되는 데는 며칠이 소요됩니다.",
@@ -6592,7 +6657,7 @@
     "notifications": {
       "purchase_pending_title": "{{cryptocurrency}} 매수 처리 중",
       "purchase_pending_description": "몇 분 정도 소요됩니다...",
-      "purchase_completed_title": "{{amount}} {{cryptocurrency}} 매수에 성공했습니다!",
+      "purchase_completed_title": "{{amount}} {{cryptocurrency}} 매수에 성공했습니다",
       "purchase_completed_description": "{{cryptocurrency}}을(를) 사용할 수 있습니다",
       "purchase_failed_title": "{{cryptocurrency}} 구매 실패",
       "purchase_failed_description": "잠시 후 다시 시도하세요",
@@ -7356,7 +7421,7 @@
     "your_bonus_tooltip_lifetime_bonus_desc": "시작한 이후 지금까지 수령한 총 보너스입니다.",
     "learn_more": "더 보기",
     "service_interruption_banner": {
-      "maintenance_message": "현재 점검 중입니다. 빠른 시일 내에 서비스를 재개하겠습니다!"
+      "maintenance_message": "현재 점검 중입니다. 빠른 시일 내에 서비스를 재개하겠습니다."
     },
     "supply": "공급",
     "deposit": "예치",
@@ -7578,7 +7643,7 @@
     },
     "asset_overview": {
       "cta": {
-        "earn_apy": "{{apy}}% APY",
+        "earn_apy": "{{apy}}% APY 받기",
         "start_earning": "수익화 시작",
         "current_apy_disclaimer": "현재 APY로, 변동될 수 있으며 보장되지 않습니다."
       },
@@ -7641,6 +7706,7 @@
       "link_pending_title": "카드 연결 중",
       "link_success_title": "이제 카드를 사용할 수 있습니다",
       "link_error": "카드를 연결하는 동안 오류가 발생했습니다",
+      "link_error_different_card": "This wallet is already linked to a different MetaMask Card",
       "unlink_pending_title": "카드 연결 해제 중",
       "unlink_success_title": "카드 연결이 해제되었습니다",
       "unlink_error": "카드 연결을 해제하는 중 문제가 발생했습니다",
@@ -8910,6 +8976,7 @@
       "description": "카드 상세 정보를 보려면 지갑 비밀번호를 입력하세요.",
       "description_unfreeze": "카드 사용을 재개하려면 지갑 비밀번호를 입력하세요.",
       "description_view_pin": "카드 PIN을 확인하려면 지갑 비밀번호를 입력하세요.",
+      "description_set_pin": "Enter your wallet password to set your card PIN.",
       "placeholder": "비밀번호",
       "confirm": "컨펌",
       "cancel": "취소",
@@ -8918,6 +8985,23 @@
     },
     "view_pin_bottomsheet": {
       "title": "내 카드 PIN"
+    },
+    "set_pin": {
+      "set_title": "Set your card PIN",
+      "set_description": "You won't be able to view this PIN later. If you forget it, you can set a new one.",
+      "set_label": "PIN",
+      "continue": "계속",
+      "confirm_title": "Confirm your card PIN",
+      "confirm_description": "Enter your PIN again to confirm.",
+      "confirm_label": "Confirm PIN",
+      "submit": "Set PIN",
+      "mismatch_error": "PINs must match.",
+      "invalid_pin_error": "That PIN can't be used. Choose a different one.",
+      "repeating_pin_error": "That PIN can't be used. Choose a different one.",
+      "forbidden_error": "You can't set a PIN on this card right now.",
+      "network_error": "오류가 발생했습니다. 다시 시도해 주세요.",
+      "success_title": "Your PIN is set",
+      "success_description": "Make sure you keep it safe. You won't be able to view it in the app."
     },
     "choose_your_card": {
       "title": "카드 선택",
@@ -8985,7 +9069,9 @@
       "sign_up": {
         "title": "지금 시작하세요",
         "description": "MetaMask 카드를 설정하려면 Crypto Life(CL) 계정을 생성하세요. MetaMask는 사용자의 개인 정보를 조회하거나 저장하지 않습니다.",
+        "description_immersve": "We need a few details to set up your card.",
         "i_already_have_an_account": "이미 MetaMask 카드를 보유하고 있습니다",
+        "i_already_have_an_account_immersve": "이미 계정이 있습니다",
         "email_label": "이메일 주소",
         "password_label": "MetaMask Card의 새로운 비밀번호",
         "password_description": "MetaMask 앱의 잠금해제 비밀번호와 일치하지 않습니다. 15자 이상이어야 합니다.",
@@ -8996,8 +9082,14 @@
         "join_waitlist": "대기자 명단 등록",
         "country_not_available": "현재 거주 국가에서는 아직 카드 가입이 지원되지 않습니다.",
         "account_label": "계정",
+        "account_label_immersve": "Card account",
         "account_description": "MetaMask 카드가 이 계정과 연결됩니다.",
-        "account_exists_toast": "이미 카드 계정이 있습니다."
+        "account_description_immersve": "Card purchases will be charged to this account.",
+        "account_exists_toast": "이미 카드 계정이 있습니다.",
+        "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
+        "clickwrap_and": " 및 ",
+        "clickwrap_suffix": ".",
+        "legal_docs_error": "Unable to load legal documents."
       },
       "confirm_email": {
         "title": "이메일 확인",
@@ -9292,6 +9384,8 @@
         "view_pin": "PIN 보기",
         "view_pin_description": "카드 PIN을 안전하게 확인하세요",
         "view_pin_error": "PIN을 불러오지 못했습니다. 다시 시도해 주세요.",
+        "set_pin": "Set a 4-digit PIN",
+        "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "한도 관리",
         "manage_spending_limit_description_restricted": "사용 한도가 설정되어 있습니다",
         "manage_spending_limit_description_full": "제한 없이 사용할 수 있습니다",
@@ -9300,6 +9394,7 @@
         "travel_title": "MetaMask Travel",
         "travel_description": "최대 70% 할인된 가격으로 호텔을 예약하세요",
         "card_tos_title": "이용약관",
+        "legal_docs_error": "Unable to load legal documents.",
         "order_metal_card": "메탈 카드",
         "order_metal_card_description": "실물 메탈 카드를 지금 주문하세요",
         "cashback": "{{cashbackPercentage}}% mUSD 캐시백",
@@ -9467,7 +9562,8 @@
         "timeout_error": "요청 시간이 초과되었습니다. 연결을 확인하고 다시 시도하세요.",
         "server_error": "서버 오류입니다. 나중에 다시 시도하세요.",
         "configuration_error": "서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요.",
-        "forbidden_error": "이 계정에서는 이 작업을 사용할 수 없습니다."
+        "forbidden_error": "이 계정에서는 이 작업을 사용할 수 없습니다.",
+        "money_account_linked_to_different_card": "This wallet is already linked to a different MetaMask Card. Unlink it from that card before linking it here."
       }
     },
     "card_forgot_password": {
@@ -10321,6 +10417,7 @@
     "convert_again": "다시 전환",
     "wrap_again": "다시 랩",
     "unwrap_again": "다시 언랩",
+    "lend_again": "Lend again",
     "transaction_pending": "트랜잭션 대기 중",
     "likely_to_confirm_in": "컨펌 예상 시간:",
     "confirm_time_estimate": "< 30초",
@@ -10344,26 +10441,26 @@
       "description": "앱으로 돌아가서 계속 진행하세요."
     },
     "show_cli_link_success": {
-      "title": "MetaMask 에이전트 CLI 연결 완료",
+      "title": "Agent CLI successfully linked",
       "description": "계속하려면 CLI로 돌아가세요."
     },
     "push_nudge": {
-      "title": "알림 켜기",
-      "description": "CLI 세션의 트랜잭션 알림을 받으세요.",
-      "turn_on_button": "켜기",
-      "loading_title": "알림 켜는 중",
-      "loading_description": "설정을 완료하는 동안 잠시만 기다려 주세요.",
-      "enable_error": "알림을 켤 수 없습니다. 설정에서 다시 시도해 주세요."
+      "title": "Never miss a transaction",
+      "description": "Get real-time alerts to review and approve transactions from your CLI session.",
+      "turn_on_button": "알림 활성화",
+      "preview_title": "트랜잭션 요청",
+      "preview_message": "Your agent needs approval on a new limit.",
+      "preview_timestamp": "지금"
     },
     "show_otp": {
       "title": "이 코드 입력",
       "description": "연결을 완료하려면 {{dappName}}에 {{otp}}을(를) 입력하세요. 이 코드는 {{seconds}}초 후 만료됩니다.",
       "modal_title": "MetaMask 에이전트 CLI 연결",
       "modal_description": "MetaMask 모바일을 MetaMask 에이전트 CLI와 페어링하세요.",
-      "code_label": "CLI에 이 코드 입력",
+      "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "{{time}} 후 만료",
       "expired": "코드 만료됨",
-      "security_notice": "먼저 안전한 연결을 설정합니다. 다음 단계에서 CLI 액세스를 승인하게 됩니다"
+      "security_notice": "Securing the connection"
     },
     "show_not_found": {
       "title": "트랜잭션 찾을 수 없음",
@@ -10542,6 +10639,7 @@
       "bluetooth_connection_failed": "기기 연결에 실패했습니다. 다시 시도하세요",
       "camera_permission_denied": "QR 코드를 스캔하려면 카메라 권한이 필요합니다. 기기 설정에서 해당 권한을 활성화하세요.",
       "not_supported": "지원되지 않는 작업입니다",
+      "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "이 계정에 대한 비밀복구구문 또는 패스프레이즈로 {{device}}이(가) 설정되어 있는지 확인하세요"
     },
     "error": {
@@ -10565,6 +10663,7 @@
       "nearby_devices_permission_denied": "근처 장치 권한 필요",
       "scan_failed": "스캔 실패",
       "camera_permission_denied": "카메라 권한 필요",
+      "unsupported_signature": "Signature not supported",
       "something_went_wrong": "문제가 발생했습니다"
     },
     "qr_scan_errors": {
