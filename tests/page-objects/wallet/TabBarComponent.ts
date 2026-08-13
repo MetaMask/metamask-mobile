@@ -19,6 +19,7 @@ import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
 import WalletView from './WalletView';
+import ToastModal from './ToastModal';
 import WalletActionsBottomSheet from './WalletActionsBottomSheet';
 import TrendingView from '../Trending/TrendingView';
 
@@ -53,10 +54,6 @@ class TabBarComponent {
 
   get tabBarSettingButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
-  }
-
-  get tabBarActivityButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
   }
 
   get tabBarRewardsButton(): EncapsulatedElementType {
@@ -204,42 +201,26 @@ class TabBarComponent {
     );
   }
 
+  /**
+   * Opens Activity via the wallet header clock icon. MainNavigator replaces the
+   * Activity tab with Money whenever the user is geo-eligible, so the header
+   * icon is the only entry point.
+   */
   async tapActivity(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarActivityButton, { timeout: 2000 });
+        await ToastModal.waitForToastToDismiss();
+        await Gestures.waitAndTap(WalletView.activityButton, { timeout: 5000 });
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
           description: 'Activity View Title',
           timeout: 500,
         });
       },
       {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        // Each attempt: ~5.5s (5s tap + 0.5s assertion) plus toast settle time.
         maxRetries: 15,
-        timeout: 45000,
+        timeout: 90000,
         description: 'Tap Activity Button',
-      },
-    );
-  }
-
-  /**
-   * Opens Activity via the wallet header clock icon, which replaces the Activity
-   * tab when the Money tab is visible.
-   */
-  async tapActivityHeaderButton(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await Gestures.waitAndTap(WalletView.activityButton, { timeout: 2000 });
-        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          description: 'Activity View Title',
-          timeout: 500,
-        });
-      },
-      {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
-        maxRetries: 15,
-        timeout: 45000,
-        description: 'Tap Activity Header Button',
       },
     );
   }

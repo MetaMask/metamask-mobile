@@ -8338,7 +8338,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/device-mcp@npm:^0.3.0, @metamask/device-mcp@npm:^0.3.2":
+"@metamask/device-mcp@npm:^0.3.2":
   version: 0.3.2
   resolution: "@metamask/device-mcp@npm:0.3.2"
   dependencies:
@@ -8349,6 +8349,17 @@ __metadata:
   checksum: 10/62bd0e0f4138f66c161b827dca5fa076b8d14237764c8ee62f9ccda4711ac495f1508802bbdaf5b28c9afec7118c3ff6b1c59969be0b4e3957709d1d591d36c2
   languageName: node
   linkType: hard
+
+"@metamask/device-mcp@portal:/Users/pnarayanaswamy/metamask-device-mcp::locator=metamask%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@metamask/device-mcp@portal:/Users/pnarayanaswamy/metamask-device-mcp::locator=metamask%40workspace%3A."
+  dependencies:
+    "@modelcontextprotocol/sdk": "npm:^1.12.1"
+    zod: "npm:^4.4.3"
+  bin:
+    device-mcp: ./dist/cli/device-mcp.mjs
+  languageName: node
+  linkType: soft
 
 "@metamask/earn-controller@npm:^12.1.0":
   version: 12.1.0
@@ -35575,7 +35586,7 @@ __metadata:
     "@metamask/design-system-react-native": "npm:^0.39.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.8.0"
     "@metamask/design-tokens": "npm:^8.7.0"
-    "@metamask/device-mcp": "npm:^0.3.0"
+    "@metamask/device-mcp": "portal:/Users/pnarayanaswamy/metamask-device-mcp"
     "@metamask/earn-controller": "npm:^12.1.0"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
