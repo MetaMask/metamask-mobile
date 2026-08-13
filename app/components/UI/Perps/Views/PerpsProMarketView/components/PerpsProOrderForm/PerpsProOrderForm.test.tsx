@@ -587,7 +587,6 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.TPSL));
 
       expect(onTPSLPress).toHaveBeenCalledTimes(1);
-      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     });
 
     it('calls onPlaceOrderPress when Place Order is pressed', () => {
@@ -597,7 +596,6 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
 
       expect(onPlaceOrderPress).toHaveBeenCalledTimes(1);
-      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('plays selection when leverage is opened', () => {

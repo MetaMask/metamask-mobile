@@ -433,14 +433,6 @@ const PerpsProOrderForm = ({
     [onReduceOnlyChange, playSelection],
   );
 
-  const handleTPSLPress = useCallback(() => {
-    if (!onTPSLPress) {
-      return;
-    }
-    playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
-    onTPSLPress();
-  }, [onTPSLPress, playImpact]);
-
   const handleExpandOrderBook = useCallback(() => {
     if (!onExpandOrderBook) {
       return;
@@ -448,11 +440,6 @@ const PerpsProOrderForm = ({
     playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
     onExpandOrderBook();
   }, [onExpandOrderBook, playImpact]);
-
-  const handlePlaceOrderPress = useCallback(() => {
-    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
-    onPlaceOrderPress();
-  }, [onPlaceOrderPress, playImpact]);
 
   return (
     <>
@@ -627,7 +614,7 @@ const PerpsProOrderForm = ({
           {showsTpSl ? (
             <TPSLRow
               label={strings('perps.pro_order_form.tpsl')}
-              onPress={onTPSLPress ? handleTPSLPress : undefined}
+              onPress={onTPSLPress}
               testID={ids.TPSL}
             />
           ) : null}
@@ -642,7 +629,7 @@ const PerpsProOrderForm = ({
             isFullWidth
             isDisabled={isPlaceOrderDisabled}
             isLoading={isPlaceOrderLoading}
-            onPress={handlePlaceOrderPress}
+            onPress={onPlaceOrderPress}
             testID={ids.PLACE_ORDER_BUTTON}
           >
             {placeOrderLabel}
