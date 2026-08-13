@@ -33,10 +33,7 @@ export const EventCardStandard = ({
         onPress={onPress}
         testID={`predict-next-event-content-${event.venueId}-${event.id}`}
       >
-        <EventCard.Title>{event.title}</EventCard.Title>
-        {event.subtitle ? (
-          <EventCard.Subtitle>{event.subtitle}</EventCard.Subtitle>
-        ) : null}
+        <EventCard.Header event={event} />
       </EventCard.Pressable>
 
       {isSingleMarket ? (

@@ -47,6 +47,7 @@ export interface PredictEvent {
   description?: string;
   category?: string;
   volume?: string;
+  imageUrl?: string;
   markets: readonly PredictMarket[];
 }
 

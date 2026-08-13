@@ -30,6 +30,32 @@ const event = (overrides: Partial<PredictEvent> = {}): PredictEvent => ({
   ...overrides,
 });
 
+describe('EventCard.Header', () => {
+  it('shows the event title', () => {
+    render(<EventCard.Header event={event()} />);
+
+    expect(screen.getByText('Election winner')).toBeOnTheScreen();
+  });
+
+  it('shows the event image when an image URL is present', () => {
+    render(
+      <EventCard.Header
+        event={event({ imageUrl: 'https://example.com/event.png' })}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('predict-next-event-image-event-1'),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the image when the event has no image URL', () => {
+    render(<EventCard.Header event={event()} />);
+
+    expect(screen.queryByTestId('predict-next-event-image-event-1')).toBeNull();
+  });
+});
+
 describe('EventCard.Footer', () => {
   it('shows the category tag from the event', () => {
     render(<EventCard.Footer event={event({ category: 'Senate' })} />);

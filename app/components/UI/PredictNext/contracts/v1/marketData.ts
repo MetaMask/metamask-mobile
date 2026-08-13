@@ -94,6 +94,7 @@ const eventSchema = object({
   description: optional(string()),
   category: optional(string()),
   volume: optional(amount),
+  imageUrl: optional(string()),
   markets: nonEmptyMarkets,
 });
 

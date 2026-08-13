@@ -160,13 +160,18 @@ describe('Predict API canonical response parsers', () => {
     }
   });
 
-  it('parses category and volume on an event', () => {
-    const input = createEvent({ category: 'Senate', volume: '1500000' });
+  it('parses category, volume, and image URL on an event', () => {
+    const input = createEvent({
+      category: 'Senate',
+      volume: '1500000',
+      imageUrl: 'https://example.com/event.png',
+    });
 
     const result = parsePredictEvent(input);
 
     expect(result.category).toBe('Senate');
     expect(result.volume).toBe('1500000');
+    expect(result.imageUrl).toBe('https://example.com/event.png');
   });
 
   it('parses a paginated event response', () => {

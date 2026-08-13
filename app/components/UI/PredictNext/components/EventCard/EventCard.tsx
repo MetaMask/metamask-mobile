@@ -81,7 +81,9 @@ const Outcome = ({
 };
 
 const Title = ({ children }: { children: React.ReactNode }) => (
-  <Text variant={TextVariant.HeadingSm}>{children}</Text>
+  <Text variant={TextVariant.HeadingSm} numberOfLines={1} twClassName="flex-1">
+    {children}
+  </Text>
 );
 
 const Subtitle = ({ children }: { children: React.ReactNode }) => (
@@ -90,17 +92,39 @@ const Subtitle = ({ children }: { children: React.ReactNode }) => (
   </Text>
 );
 
-const Image = ({ source }: { source: string }) => {
+const Image = ({ source, testID }: { source: string; testID?: string }) => {
   const tw = useTailwind();
   return (
-    <ExpoImage
-      source={source}
-      style={tw.style('w-10 h-10 rounded-md')}
-      contentFit="cover"
-      recyclingKey={source}
-    />
+    <Box testID={testID}>
+      <ExpoImage
+        source={source}
+        style={tw.style('h-10 w-10 rounded-lg')}
+        contentFit="cover"
+        recyclingKey={source}
+      />
+    </Box>
   );
 };
+
+interface HeaderProps {
+  event: PredictEvent;
+  testID?: string;
+}
+
+const Header = ({ event, testID }: HeaderProps) => (
+  <Box
+    twClassName="flex-row items-center gap-3"
+    testID={testID ?? `predict-next-event-header-${event.venueId}-${event.id}`}
+  >
+    {event.imageUrl ? (
+      <Image
+        source={event.imageUrl}
+        testID={`predict-next-event-image-${event.id}`}
+      />
+    ) : null}
+    <Title>{event.title}</Title>
+  </Box>
+);
 
 interface FooterProps {
   event: PredictEvent;
@@ -186,5 +210,6 @@ export const EventCard = {
   Title,
   Subtitle,
   Image,
+  Header,
   Footer,
 };
