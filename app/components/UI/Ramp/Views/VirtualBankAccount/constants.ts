@@ -24,8 +24,9 @@ export const MOCK_KYC_PREFILLED_EMAIL = 'demo@metamask.io';
 export const MOCK_KYC_PROGRESS_STEPS = 4;
 
 // Demo-only autoramp payload. The Ramps Dev API forwards this to MoonPay
-// unchanged, so the vocabulary is MoonPay's. `customer_id` is deliberately
-// absent: RampsController injects it from the KYC controller's identity.
-export const DEMO_AUTORAMP_SOURCE_CURRENCY_CODE = 'brl';
-export const DEMO_AUTORAMP_DESTINATION_TOKEN = 'usdc';
-export const DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN = 'ethereum';
+// unchanged, so the vocabulary and casing are MoonPay's (PascalCase `type`,
+// uppercase currency codes). `customer_id` is deliberately absent:
+// RampsController resolves and injects it.
+export const DEMO_AUTORAMP_SOURCE_CURRENCY_CODE = 'BRL';
+export const DEMO_AUTORAMP_DESTINATION_TOKEN = 'USDC';
+export const DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN = 'Ethereum';

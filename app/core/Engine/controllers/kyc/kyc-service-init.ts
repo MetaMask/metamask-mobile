@@ -1,6 +1,5 @@
 import { KycService, type KycServiceMessenger } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
-import { isProduction } from '../../../../util/environment';
 import AppConstants from '../../../AppConstants';
 
 /**
@@ -60,9 +59,10 @@ export const kycServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new KycService({
     fetch,
-    env: isProduction() ? 'production' : 'development',
     messenger: controllerMessenger,
-    baseUrl: process.env.KYC_API_URL,
+    // Supplied by builds.yml per environment; KycService rejects an empty
+    // value with its own error rather than falling back to a hardcoded host.
+    baseUrl: process.env.KYC_API_URL ?? '',
     neobankBaseUrl: getNeobankBaseUrl(),
     fractalEncryptionBaseUrl: getFractalEncryptionBaseUrl(),
   });

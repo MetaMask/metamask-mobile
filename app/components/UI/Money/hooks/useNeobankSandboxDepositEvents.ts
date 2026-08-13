@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import ToastService from '../../../../core/ToastService/ToastService';
 import Logger from '../../../../util/Logger';
@@ -79,7 +79,7 @@ export function useNeobankSandboxDepositEvents(): void {
       };
 
       socket.onerror = () => {
-        Logger.warn('NeoBank demo WebSocket connection failed');
+        Logger.log('NeoBank demo WebSocket connection failed');
       };
 
       socket.onclose = () => {
