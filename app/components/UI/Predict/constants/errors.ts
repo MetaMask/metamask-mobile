@@ -37,6 +37,10 @@ export const PREDICT_ERROR_CODES = {
   MARKET_BETTABLE_CHECK_FAILED: 'PREDICT_MARKET_BETTABLE_CHECK_FAILED',
 } as const;
 
+export const PREDICT_BUY_CANCELLATION_REASONS = {
+  RETRY_PROMPT_EXPIRED: 'Retry prompt expired after a retryable order failure',
+} as const;
+
 export const getPredictErrorMessages = () =>
   ({
     [PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK]: strings(

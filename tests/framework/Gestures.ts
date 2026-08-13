@@ -12,10 +12,15 @@ import {
 } from './types.ts';
 import { createLogger } from './logger.ts';
 import { sleep } from '../../app/util/testUtils';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
+import {
+  asPlaywrightElement,
+  type EncapsulatedElementType,
+} from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -846,5 +851,65 @@ export default class Gestures {
     timeout = 10000,
   ): Promise<void> {
     return this.replaceText(elem, text, { timeout });
+  }
+
+  /**
+   * Tap a single iOS soft-keyboard key (Appium iOS only).
+   * For return/submit keys (Done, Next, Go, Search), use tapKeyboardReturnKey.
+   */
+  static async tapIosKeyboardKey(keyName: string): Promise<void> {
+    if (!PlatformDetector.isIOSAppium()) {
+      throw new Error('Gestures.tapIosKeyboardKey is Appium iOS only');
+    }
+    await PlaywrightGestures.tapIosKeyboardKey(keyName);
+  }
+
+  /**
+   * Tap the soft-keyboard return/submit key (Appium).
+   * iOS tries `Done:` / keyboard-scoped locators before bare `~Done` — required
+   * to fire onSubmitEditing when returnKeyType is done/next/go/search.
+   */
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.tapKeyboardReturnKey is Appium only');
+    }
+    await PlaywrightGestures.tapKeyboardReturnKey(keyName);
+  }
+
+  /**
+   * Type via the focused iOS soft keyboard by tapping keys (Appium iOS only).
+   */
+  static async typeViaIosKeyboard(
+    text: string,
+    options?: { numberPad?: boolean },
+  ): Promise<void> {
+    if (!PlatformDetector.isIOSAppium()) {
+      throw new Error('Gestures.typeViaIosKeyboard is Appium iOS only');
+    }
+    await PlaywrightGestures.typeViaIosKeyboard(text, options);
+  }
+
+  /**
+   * Appium: click, clear, type via per-character addValue (optional Return).
+   * Use for iOS multiline TextInputs where Gestures.typeText (fill) is unreliable.
+   */
+  static async typeTextByCharacters(
+    elem: EncapsulatedElementType,
+    text: string,
+    options?: { submitWithReturn?: boolean },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.typeTextByCharacters is Appium only');
+    }
+    const field = await asPlaywrightElement(elem);
+    await PlaywrightGestures.typeTextByCharacters(field, text, options);
+  }
+
+  /**
+   * Dismiss soft keyboard after token search (tapOutside + iOS pills-strip tap).
+   * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
+   */
+  static async dismissKeyboardAfterTokenSearch(): Promise<void> {
+    await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
   }
 }

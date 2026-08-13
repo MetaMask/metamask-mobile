@@ -1,5 +1,5 @@
+import type { BadgeNetworkProps } from '@metamask/design-system-react-native';
 import { AvatarAccountType } from '../../../components/Avatars/Avatar';
-import { BadgeProps } from '../../../components/Badges/Badge/Badge.types';
 
 export interface AccountBaseProps {
   /**
@@ -32,9 +32,9 @@ export interface AccountBaseProps {
    */
   accountAddress: string;
   /**
-   * Avatar wrapper props
+   * Network badge props for the account avatar wrapper
    */
-  badgeProps: BadgeProps;
+  badgeProps: Pick<BadgeNetworkProps, 'name' | 'src'>;
   /**
    * i18n string of account type label
    */

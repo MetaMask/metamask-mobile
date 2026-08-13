@@ -270,4 +270,37 @@ export default class Matchers {
     }
     return PlaywrightMatchers.getAllElementsByXPath(xpath);
   }
+
+  /** Native app XPath (not WebView). */
+  static getElementByNativeXPath(
+    xpath: string,
+    options?: Parameters<typeof PlaywrightMatchers.getElementByXPath>[1],
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByXPath(xpath, options);
+  }
+
+  /**
+   * Lazy native XPath — re-queries on each poll (needed when iOS FlatList /
+   * keyboard leaves a fixed $$ match displayed:false).
+   */
+  static getLazyElementByNativeXPath(
+    xpath: string,
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getLazyElementByXPath(xpath);
+  }
+
+  static getElementByIOSPredicate(
+    predicate: string,
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByIOSPredicate(predicate);
+  }
+
+  static getElementByAndroidUIAutomator(
+    selector: string,
+    options?: Parameters<
+      typeof PlaywrightMatchers.getElementByAndroidUIAutomator
+    >[1],
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByAndroidUIAutomator(selector, options);
+  }
 }
