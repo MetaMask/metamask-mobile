@@ -53,7 +53,7 @@ import {
   resolveQuickBuyOriginalEntryPointFromPositionSource,
   type QuickBuyOriginalEntryPoint,
   type QuickBuySheetSource,
-} from './components/QuickBuy/analytics';
+} from '../../../UI/QuickBuy/analytics';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
@@ -615,20 +615,12 @@ const TraderPositionView = () => {
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
       {/* The inset sits on this wrapper rather than on the headers themselves so
-          all three branches share one value — swapping between the loading,
-          failed and loaded headers must not move the back button. */}
+          both branches share one value — swapping between the loading/failed
+          header and the loaded one must not move the back button. */}
       <Box style={{ paddingTop: insets.top }}>
-        {isInitialLoading ? (
-          <TraderPositionHeader
-            traderName={traderName}
-            traderImageUrl={traderImageUrl}
-            traderAddress={traderAddress}
-            onBack={handleBack}
-            onTraderPress={handleTraderPress}
-            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-          />
-        ) : hasFailed ? (
+        {/* Loading and failed both render the plain (non-collapsing) header:
+            there is no scrollable content behind it to drive the animation. */}
+        {isInitialLoading || hasFailed ? (
           <TraderPositionHeader
             traderName={traderName}
             traderImageUrl={traderImageUrl}

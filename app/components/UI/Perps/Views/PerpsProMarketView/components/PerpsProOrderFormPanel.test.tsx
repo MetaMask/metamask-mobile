@@ -14,6 +14,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
+import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
@@ -204,25 +205,34 @@ describe('PerpsProOrderFormPanel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the book separator on the form when the order book is visible', () => {
+  it('uses top inset on the form panel without a book separator border', () => {
     renderPanel({ isOrderBookCollapsed: false });
 
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).toHaveStyle({
-      borderRightWidth: 1,
-      paddingRight: 16,
+      paddingTop: 16,
     });
-  });
-
-  it('omits the book separator when the order book is collapsed', () => {
-    renderPanel({ isOrderBookCollapsed: true });
-
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).not.toHaveStyle({
       borderRightWidth: 1,
     });
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the order book expand control when the order book is collapsed', () => {
+    renderPanel({ isOrderBookCollapsed: true });
+
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('wires direction changes to the hook', () => {
@@ -326,6 +336,17 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onLeverageConfirm).toHaveBeenCalledWith(10);
+  });
+
+  it('renders the leverage sheet inside the Android modal gesture root', () => {
+    mockHookResult.isLeverageVisible = true;
+
+    renderPanel();
+
+    expect(
+      screen.getByTestId(PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('mock-leverage-confirm')).toBeOnTheScreen();
   });
 
   it('saves slippage from the slippage sheet when visible', () => {

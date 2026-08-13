@@ -16,11 +16,8 @@ import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboardi
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';
 import { E2EOAuthHelpers } from '../../../module-mocking/oauth/index.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import {
   dismissExperienceEnhancerModal,
-  dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
@@ -151,18 +148,6 @@ const waitForCreatePasswordScreenPlaywright = async (
   );
 };
 
-/**
- * Disable Predict GTM full-screen modal so post-onboarding actions (accounts
- * menu → lock) are not blocked. Matches qr-sync / add-srp seedless smoke setup.
- */
-const disablePredictGtmOnboardingModal = async (
-  mockServer: Mockttp,
-): Promise<void> => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeaturePredictGtmOnboardingModalDisabled(),
-  });
-};
-
 export async function setupGoogleNewUserOAuthMock(
   mockServer: Mockttp,
 ): Promise<void> {
@@ -171,7 +156,6 @@ export async function setupGoogleNewUserOAuthMock(
   const oAuthMockttpService = createOAuthMockttpService();
   oAuthMockttpService.configureGoogleNewUser();
   await oAuthMockttpService.setup(mockServer);
-  await disablePredictGtmOnboardingModal(mockServer);
 }
 
 export async function setupGoogleExistingUserOAuthMock(
@@ -192,7 +176,6 @@ export async function setupAppleNewUserOAuthMock(
   const oAuthMockttpService = createOAuthMockttpService();
   oAuthMockttpService.configureAppleNewUser();
   await oAuthMockttpService.setup(mockServer);
-  await disablePredictGtmOnboardingModal(mockServer);
 }
 
 export async function setupAppleExistingUserOAuthMock(
@@ -206,7 +189,9 @@ export async function setupAppleExistingUserOAuthMock(
 }
 
 /**
- * Social login new user onboarding flow (Appium smoke).
+ * Social login new-user smoke.
+ * Intermediate screen UI is covered by component-view / unit tests; this
+ * helper only drives the device path.
  */
 export const completeSocialLoginOnboarding = async (
   provider: 'google' | 'apple',
@@ -290,9 +275,6 @@ export const completeSocialLoginOnboarding = async (
   await dismissPushNotificationExistingUserSheet();
   await dismissExperienceEnhancerModal();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
-  // Predict GTM can still appear if remote flags race the mock; dismiss if present
-  // so accounts-menu → lock is not blocked (Android lock/unlock / reset smokes).
-  await dismisspredictionsModalPlaywright();
 };
 
 export const completeGoogleNewUserOnboarding = (): Promise<void> =>

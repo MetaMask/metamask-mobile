@@ -93,7 +93,7 @@ export const usePerpsCloseAllPositions = (
 
     try {
       const result = await Engine.context.PerpsController.closePositions({
-        closeAll: true,
+        symbols: positions.map((p) => p.symbol),
       });
 
       const executionTime = Date.now() - startTime;

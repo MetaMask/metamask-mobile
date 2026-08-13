@@ -27,6 +27,7 @@ const DAPP_ACCOUNTS_TEXT = 'Accounts:';
 
 interface ContractNavigationParams {
   contractAddress: string;
+  scrollTo?: string;
 }
 
 const testDappPageUrl = (): string => getDappUrl(0);
@@ -650,11 +651,14 @@ class TestDApp {
 
   async navigateToTestDappWithContract({
     contractAddress,
+    scrollTo,
   }: ContractNavigationParams): Promise<void> {
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(
-      `${getDappUrl(0)}/?scrollTo=''&contract=${contractAddress}`,
-    );
+    const params = new URLSearchParams({ contract: contractAddress });
+    if (scrollTo) {
+      params.set('scrollTo', scrollTo);
+    }
+    await Browser.navigateToURL(`${getDappUrl(0)}/?${params.toString()}`);
   }
 
   async switchChainFromTestDapp(): Promise<void> {

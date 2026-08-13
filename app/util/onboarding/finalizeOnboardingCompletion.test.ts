@@ -77,6 +77,32 @@ describe('finalizeOnboardingCompletion', () => {
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
 
+  it('merges social Wallet Setup attribution props into ONBOARDING_COMPLETED', () => {
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      accountType: AccountType.MetamaskGoogle,
+      isBasicFunctionalityEnabled: true,
+      walletSetupAttributionProps: {
+        utm_source: 'e2e_wsc_utm_source',
+        utm_campaign: 'e2e_wsc_campaign',
+        attribution_id: 'e2e_wsc_attr_id',
+      },
+      dispatch: mockDispatch,
+      discoverAccountsLogContext: 'TestContext',
+    });
+
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Onboarding Completed',
+        properties: expect.objectContaining({
+          utm_source: 'e2e_wsc_utm_source',
+          utm_campaign: 'e2e_wsc_campaign',
+          attribution_id: 'e2e_wsc_attr_id',
+        }),
+      }),
+    );
+  });
+
   it('only clears attribution when successFlow is ineligible', () => {
     finalizeOnboardingCompletion({
       successFlow: ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP,

@@ -34,6 +34,21 @@ export interface CreatePhaseTimerOptions {
 }
 
 const storage = new AsyncLocalStorage<PhaseTimer>();
+/**
+ * Fallback when Playwright's `use()` resumes the test outside the ALS store.
+ * Meta is written on the timer object directly; phases go through getPhaseTimer().
+ */
+let activeTimer: PhaseTimer | undefined;
+
+export function bindPhaseTimer(timer: PhaseTimer): () => void {
+  const previous = activeTimer;
+  activeTimer = timer;
+  return () => {
+    if (activeTimer === timer) {
+      activeTimer = previous;
+    }
+  };
+}
 
 class PhaseTimerImpl implements PhaseTimer {
   readonly #phases = new Map<string, number>();
@@ -101,10 +116,30 @@ export function runWithPhaseTimer<T>(
   timer: PhaseTimer,
   fn: () => T | Promise<T>,
 ): T | Promise<T> {
-  return storage.run(timer, fn);
+  const unbind = bindPhaseTimer(timer);
+  let result: T | Promise<T>;
+  try {
+    result = storage.run(timer, fn);
+  } catch (error) {
+    unbind();
+    throw error;
+  }
+  if (result instanceof Promise) {
+    return result.finally(unbind);
+  }
+  unbind();
+  return result;
 }
 
 export function getPhaseTimer(): PhaseTimer | undefined {
+  return storage.getStore() ?? activeTimer;
+}
+
+/**
+ * ALS store only — ignores the activeTimer fallback.
+ * Tests use this to prove a real context gap while getPhaseTimer() still resolves.
+ */
+export function getPhaseTimerAlsStore(): PhaseTimer | undefined {
   return storage.getStore();
 }
 

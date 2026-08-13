@@ -13,7 +13,7 @@ interface MoneyHeaderProps {
 const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
   <HeaderRoot
     testID={MoneyHeaderTestIds.CONTAINER}
-    twClassName="px-4"
+    twClassName="pl-4 pr-3"
     endButtonIconProps={[
       {
         iconName: IconName.MoreVertical,

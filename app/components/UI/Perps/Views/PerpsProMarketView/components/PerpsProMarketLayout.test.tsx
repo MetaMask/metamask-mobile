@@ -3,6 +3,11 @@ import { View } from 'react-native';
 import { render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProMarketLayout from './PerpsProMarketLayout';
+import {
+  PRO_ORDER_BOOK_COLUMN_WIDTH,
+  PRO_SCREEN_HORIZONTAL_INSET,
+  PRO_TRADING_AREA_BOTTOM_INSET,
+} from './PerpsProMarketLayout.styles';
 
 const renderLayout = (
   props: Partial<React.ComponentProps<typeof PerpsProMarketLayout>> = {},
@@ -29,27 +34,38 @@ describe('PerpsProMarketLayout', () => {
       within(rightColumn).getByTestId('mock-order-book'),
     ).toBeOnTheScreen();
     expect(leftColumn).toHaveStyle({ flex: 1 });
-    expect(rightColumn).toHaveStyle({ width: 132 });
+    expect(rightColumn).toHaveStyle({ width: PRO_ORDER_BOOK_COLUMN_WIDTH });
   });
 
-  it('uses content-driven column heights without a fixed trading-area min height', () => {
+  it('uses the correct width and padding for the order book column', () => {
+    const { getByTestId } = renderLayout();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+    ).toHaveStyle({
+      width: PRO_ORDER_BOOK_COLUMN_WIDTH,
+      paddingLeft: 0,
+    });
+  });
+
+  it('uses content-driven column heights with bottom inset on each column', () => {
     const { getByTestId } = renderLayout();
 
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT)).toHaveStyle({
-      paddingBottom: 16,
-      paddingHorizontal: 8,
+      paddingHorizontal: PRO_SCREEN_HORIZONTAL_INSET,
     });
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.LEFT_COLUMN)).toHaveStyle(
       {
         alignSelf: 'flex-start',
+        paddingBottom: PRO_TRADING_AREA_BOTTOM_INSET,
       },
     );
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
     ).toHaveStyle({
-      width: 132,
+      width: PRO_ORDER_BOOK_COLUMN_WIDTH,
       alignSelf: 'flex-start',
-      paddingLeft: 16,
+      paddingBottom: PRO_TRADING_AREA_BOTTOM_INSET,
     });
   });
 

@@ -63,6 +63,8 @@ export interface PerpsProOrderFormProps {
   isOrderBookCollapsed?: boolean;
   onExpandOrderBook?: () => void;
   marginModeLabel: string;
+  /** Called when the user taps the Isolated margin-mode chip. */
+  onMarginModePress?: () => void;
   leverageLabel: string;
   onLeveragePress?: () => void;
   orderType: OrderType;

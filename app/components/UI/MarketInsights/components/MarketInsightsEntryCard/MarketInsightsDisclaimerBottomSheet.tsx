@@ -14,7 +14,6 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface MarketInsightsDisclaimerBottomSheetProps {
   onClose: () => void;
@@ -24,7 +23,6 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
   MarketInsightsDisclaimerBottomSheetProps
 > = ({ onClose }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -49,11 +47,7 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
         statusBarTranslucent
         onRequestClose={handleClose}
       >
-        <BottomSheet
-          ref={bottomSheetRef}
-          onClose={onClose}
-          twClassName={surfaceClass}
-        >
+        <BottomSheet ref={bottomSheetRef} onClose={onClose}>
           <BottomSheetHeader onClose={handleClose}>
             {strings('market_insights.disclaimer_modal.title')}
           </BottomSheetHeader>
