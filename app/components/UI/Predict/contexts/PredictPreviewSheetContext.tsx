@@ -40,6 +40,7 @@ import {
   PredictBuyPreviewParams,
   PredictSellPreviewParams,
 } from '../types/navigation';
+import { ActiveOrderState } from '../types';
 import { formatCents, getCashoutInfoText } from '../utils/format';
 import PredictPreviewSheet, {
   type PredictPreviewSheetRef,
@@ -54,6 +55,7 @@ import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWi
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
+import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
 import { getBuyOutcomeImage } from '../utils/sports';
@@ -267,9 +269,8 @@ export const PredictPreviewSheetProvider: React.FC<
   /**
    * Pending timer that auto-clears `activeOrder.error` after the failure
    * toast finishes auto-dismissing (~3s — `visibilityDuration` 2750ms +
-   * exit animation in `Toast.tsx`). Cancelled when the user taps Retry
-   * (so the reopened slip surfaces the error banner) and on unmount (so
-   * we don't fire `clearOrderError` after teardown).
+   * exit animation in `Toast.tsx`). Cancelled whenever the buy sheet reopens
+   * (so the reopened slip surfaces the error banner) and on unmount.
    */
   const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -307,6 +308,11 @@ export const PredictPreviewSheetProvider: React.FC<
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
+      if (clearErrorTimerRef.current) {
+        clearTimeout(clearErrorTimerRef.current);
+        clearErrorTimerRef.current = null;
+      }
+
       if (bottomSheetEnabled) {
         lastBuyParamsRef.current = params;
         setBuyParams(params);
@@ -341,6 +347,18 @@ export const PredictPreviewSheetProvider: React.FC<
   const dismissPreviewSheet = useCallback(() => {
     setBuyParams(null);
   }, []);
+
+  useEffect(() => {
+    const orderFinishedWithoutError =
+      activeOrder?.state === ActiveOrderState.SUCCESS ||
+      (activeOrder?.state === ActiveOrderState.PREVIEW &&
+        !activeOrder.error &&
+        !buyParams);
+
+    if (orderFinishedWithoutError) {
+      lastBuyParamsRef.current = null;
+    }
+  }, [activeOrder?.error, activeOrder?.state, buyParams]);
 
   useEffect(() => {
     if (buyParams) {
@@ -441,10 +459,6 @@ export const PredictPreviewSheetProvider: React.FC<
           : strings('predict.order.retry'),
         variant: ButtonVariants.Link,
         onPress: () => {
-          if (clearErrorTimerRef.current) {
-            clearTimeout(clearErrorTimerRef.current);
-            clearErrorTimerRef.current = null;
-          }
           if (isPaymentFailure) {
             Engine.context.PredictController.trackPredictOrderEvent({
               status: PredictTradeStatus.ADD_FUNDS_SUBMITTED,
@@ -467,14 +481,17 @@ export const PredictPreviewSheetProvider: React.FC<
     // ~250ms exit anim). When that finishes without the user tapping
     // Retry, clear order-stage errors so the next slip open is clean.
     // Payment-stage errors persist so reopening the slip still explains
-    // what happened. Tapping Retry cancels this timer so the reopened
-    // slip can show the banner explaining what went wrong.
+    // what happened. Reopening the sheet by any path cancels this timer
+    // so the slip can show the banner explaining what went wrong.
     if (clearErrorTimerRef.current) {
       clearTimeout(clearErrorTimerRef.current);
     }
     if (!isPaymentFailure) {
       clearErrorTimerRef.current = setTimeout(() => {
         clearErrorTimerRef.current = null;
+        Engine.context.PredictController.cancelRetryablePredictBuyAttempt(
+          PREDICT_BUY_CANCELLATION_REASONS.RETRY_PROMPT_EXPIRED,
+        );
         clearOrderError();
       }, 3000);
     }
@@ -496,6 +513,13 @@ export const PredictPreviewSheetProvider: React.FC<
   );
 
   const onBuyDismiss = useCallback(() => {
+    const orderWasInitiated = predictBuyPreviewOrderInitiatedRef.current;
+    const orderIsInFlight =
+      activeOrder?.state === ActiveOrderState.DEPOSITING ||
+      activeOrder?.state === ActiveOrderState.PLACING_ORDER;
+
+    Engine.context.PredictController.cancelRetryablePredictBuyAttempt();
+
     // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
     // Skip if: the back-button handler already fired it, or the sheet is
     // closing because the user confirmed an order (not a dismissal).
@@ -521,8 +545,12 @@ export const PredictPreviewSheetProvider: React.FC<
     predictBuyPreviewOrderInitiatedRef.current = false;
 
     setBuyParams(null);
-    clearOrderError();
-  }, [clearOrderError, buyParams]);
+    const orderMayStartAfterDismiss = orderWasInitiated && !activeOrder?.error;
+    if (!orderIsInFlight && !orderMayStartAfterDismiss) {
+      lastBuyParamsRef.current = null;
+      clearOrderError();
+    }
+  }, [activeOrder?.error, activeOrder?.state, clearOrderError, buyParams]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(
