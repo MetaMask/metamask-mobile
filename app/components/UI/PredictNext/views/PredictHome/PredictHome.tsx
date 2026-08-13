@@ -17,7 +17,7 @@ import {
 import { useEventList } from '../../hooks/useEventList';
 import { useVenueStatus } from '../../hooks/useVenueStatus';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
-import { EventCardContent } from '../../components/EventCard/EventCardContent';
+import { EventCardStandard } from '../../components/EventCard/EventCardStandard';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
 import Engine from '../../../../../core/Engine';
@@ -63,7 +63,7 @@ export const PredictHome = () => {
   );
   const renderEvent = useCallback(
     ({ item }: ListRenderItemInfo<PredictEvent>) => (
-      <EventCardContent event={item} onPress={() => openEvent(item)} />
+      <EventCardStandard event={item} onPress={() => openEvent(item)} />
     ),
     [openEvent],
   );

@@ -38,6 +38,9 @@ const decimal = refine(
   'PredictDecimal',
   (value) => /^(?:0(?:\.\d+)?|1(?:\.0+)?)$/.test(value) && Number(value) <= 1,
 );
+const amount = refine(string(), 'PredictAmount', (value) =>
+  /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value),
+);
 const status = enums([
   'upcoming',
   'open',
@@ -89,6 +92,8 @@ const eventSchema = object({
   closesAt: optional(timestamp),
   updatedAt: optional(timestamp),
   description: optional(string()),
+  category: optional(string()),
+  volume: optional(amount),
   markets: nonEmptyMarkets,
 });
 

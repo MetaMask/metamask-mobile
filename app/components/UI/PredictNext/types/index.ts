@@ -45,6 +45,8 @@ export interface PredictEvent {
   closesAt?: PredictTimestamp;
   updatedAt?: PredictTimestamp;
   description?: string;
+  category?: string;
+  volume?: string;
   markets: readonly PredictMarket[];
 }
 
