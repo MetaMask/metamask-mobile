@@ -103,18 +103,25 @@ describe('MultichainAccountServiceInit', () => {
     expect(providerConfigs).toBeDefined();
     expect(
       providerConfigs?.[BTC_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toMatchObject({
+    ).toEqual({
       timeoutMs: 3000,
     });
     expect(
       providerConfigs?.[TRX_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toMatchObject({
+    ).toEqual({
       timeoutMs: 3000,
     });
     expect(
       providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toMatchObject({
+    ).toEqual({
       timeoutMs: 3000,
+    });
+    expect(
+      providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.discovery,
+    ).toEqual({
+      timeoutMs: 2000,
+      maxAttempts: 3,
+      backOffMs: 1000,
     });
   });
 

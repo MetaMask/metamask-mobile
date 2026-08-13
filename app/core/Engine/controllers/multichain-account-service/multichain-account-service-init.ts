@@ -31,7 +31,6 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     maxConcurrency: 1,
     // Re-use the default config for the rest:
     discovery: {
-      enabled: true,
       timeoutMs: 2000,
       maxAttempts: 3,
       backOffMs: 1000,
@@ -44,17 +43,13 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   };
 
-  const solanaSnapAccountProviderConfig = {
-    ...snapAccountProviderConfig,
-    createAccounts: {
-      ...snapAccountProviderConfig.createAccounts,
-      batched: true,
-    },
-  };
-
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   const stellarSnapAccountProviderConfig = {
     ...snapAccountProviderConfig,
+    discovery: {
+      ...snapAccountProviderConfig.discovery,
+      enabled: true,
+    },
     createAccounts: {
       ...snapAccountProviderConfig.createAccounts,
       batched: true,
@@ -77,7 +72,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     ],
     ///: END:ONLY_INCLUDE_IF
     providerConfigs: {
-      [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
+      [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// END:ONLY_INCLUDE_IF
