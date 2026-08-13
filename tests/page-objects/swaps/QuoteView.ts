@@ -40,10 +40,6 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
   }
 
-  get badgeNetwork(): EncapsulatedElementType {
-    return Matchers.getElementByID('badgenetwork');
-  }
-
   get amountInput(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
   }

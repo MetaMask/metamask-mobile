@@ -30,7 +30,7 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
 
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(QuoteView.badgeNetwork),
+          asPlaywrightElement(QuoteView.bridgeViewScroll),
         );
       });
 
