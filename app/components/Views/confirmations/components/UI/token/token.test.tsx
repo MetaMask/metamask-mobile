@@ -86,11 +86,12 @@ describe('Token', () => {
       symbol: 'ETH',
     });
 
-    const { getByText } = renderWithProvider(
+    const { getByText, getByTestId } = renderWithProvider(
       <Token asset={mockToken} onPress={mockOnPress} />,
     );
 
     expect(getByText('Polygon ETH')).toBeOnTheScreen();
+    expect(getByTestId('token-network-badge')).toBeOnTheScreen();
   });
 
   it('displays balance in selected currency when provided', () => {
