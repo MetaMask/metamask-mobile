@@ -780,6 +780,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      '1.5',
     );
   });
 
