@@ -4,7 +4,6 @@ import {
   createLogger,
   PlaywrightAssertions,
   PlaywrightGestures,
-  PlaywrightMatchers,
 } from '../../framework';
 import { withImplicitWait } from '../../framework/PlaywrightUtilities';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
@@ -32,11 +31,11 @@ const logger = createLogger({
 
 // Single source of truth for post-onboarding destinations. The count is used
 // as the loop safety cap so adding a new destination automatically extends
-// the cap. Predict is A/B — may or may not appear after Agree.
+// the cap. Predict is dismissed outside performance measurements because it
+// is an optional onboarding modal, not a measured destination.
 const POST_ONBOARDING_DESTINATIONS = [
   'interest-questionnaire',
   'push-notification',
-  'predict-modal',
   'wallet',
 ] as const;
 
@@ -57,7 +56,6 @@ const POST_ONBOARDING_DESTINATION_LABELS: Record<
 > = {
   'interest-questionnaire': 'onboarding interest questionnaire',
   'push-notification': 'push notification sheet',
-  'predict-modal': 'Predict onboarding sheet',
   wallet: 'usable wallet',
 };
 
@@ -65,7 +63,6 @@ const POST_ONBOARDING_SOURCE_LABELS: Record<PostOnboardingSource, string> = {
   metametrics: '"Agree" on MetaMetrics',
   'interest-questionnaire': '"Skip" on the onboarding interest questionnaire',
   'push-notification': '"Not now" on the push notification sheet',
-  'predict-modal': '"Not now" on the Predict onboarding sheet',
 };
 
 const DESTINATION_PROBE_IMPLICIT_WAIT_MS = 300;
@@ -101,15 +98,6 @@ const waitForPostOnboardingDestination = async (
       destination: 'push-notification',
       getElement: () =>
         asPlaywrightElement(PushNotificationOnboardingView.title),
-    },
-    {
-      // A/B Predict GTM sheet — detect by title so we do not collide with
-      // push-notification's "Not now".
-      destination: 'predict-modal',
-      getElement: () =>
-        asPlaywrightElement(
-          PlaywrightMatchers.getElementByText('PREDICT AND WIN', true),
-        ),
     },
     {
       // Tab-bar Wallet button (matches import-wallet.spec.ts): usable home,
@@ -248,15 +236,6 @@ const dismissPostOnboardingDestination = async (
     case 'push-notification':
       await PushNotificationOnboardingView.tapNotNowButton();
       break;
-    case 'predict-modal': {
-      const dismissed = await closePredictModal();
-      if (!dismissed) {
-        throw new Error(
-          'Predict modal was detected but could not be dismissed',
-        );
-      }
-      break;
-    }
   }
 };
 
@@ -388,6 +367,11 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           destination !== 'wallet';
           hop += 1
         ) {
+          // Predict is an optional onboarding modal. Dismiss it before
+          // starting the next measured transition so its appearance and
+          // closing animation are never included in performance metrics.
+          await closePredictModal();
+
           const transitionTimer = new TimerHelper(
             `Fresh SRP post-onboarding transition ${hop}`,
             POST_ONBOARDING_THRESHOLD,
@@ -408,8 +392,8 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             break;
           }
 
-          // Interest/push/Predict may never appear; once we land on a later
-          // sheet, mark prior destinations skipped so the next hop
+          // Interest/push may never appear; once we land on a later sheet,
+          // mark prior destinations skipped so the next hop
           // short-circuits to a single-element wallet wait instead of
           // probing ghosts.
           markSkippedDestinationsBefore(dismissedDestinations, destination);
