@@ -44,11 +44,11 @@ type StepId = 'identity' | 'customer' | 'autoramp' | 'live';
 
 type StepStatus = 'idle' | 'running' | 'waiting' | 'success' | 'failed';
 
-type StepState = {
+interface StepState {
   status: StepStatus;
   detail?: string;
   ms?: number;
-};
+}
 
 /**
  * The four stages the demo makes visible. `caller` is the actual code path or
@@ -122,6 +122,21 @@ function readCustomerId(customer: unknown): string | null {
     const { id } = customer as { id?: unknown };
     if (typeof id === 'string' && id.length > 0) {
       return id;
+    }
+  }
+  return null;
+}
+
+/**
+ * Reads MoonPay's account state off the same `Customer` object. MoonPay refuses
+ * to create an autoramp for a customer that isn't active, so showing this
+ * alongside the id turns an otherwise opaque 403 into a readable blocker.
+ */
+function readCustomerStatus(customer: unknown): string | null {
+  if (customer && typeof customer === 'object') {
+    const { status } = customer as { status?: unknown };
+    if (typeof status === 'string' && status.length > 0) {
+      return status;
     }
   }
   return null;
@@ -235,6 +250,7 @@ const MockKycSuccess = () => {
   const [steps, setSteps] = useState<Record<StepId, StepState>>(IDLE_STEPS);
   const [isRunning, setIsRunning] = useState(false);
   const [autorampId, setAutorampId] = useState<string | null>(null);
+  const [customerStatus, setCustomerStatus] = useState<string | null>(null);
   const [pushCount, setPushCount] = useState(0);
   const isMountedRef = useRef(true);
 
@@ -255,6 +271,7 @@ const MockKycSuccess = () => {
   const handleRun = useCallback(async () => {
     setSteps(IDLE_STEPS);
     setAutorampId(null);
+    setCustomerStatus(null);
     setPushCount(0);
     setIsRunning(true);
 
@@ -297,20 +314,25 @@ const MockKycSuccess = () => {
         detail: `externalId = ${truncateId(profileId)}`,
       });
 
-      const customerId = await timed('customer', async () => {
+      const { customerId, status } = await timed('customer', async () => {
         const customer =
-          await Engine.context.NeoBankService.getCustomerByExternalId(profileId);
+          await Engine.context.NeoBankService.getCustomerByExternalId(
+            profileId,
+          );
         const resolved = readCustomerId(customer);
         if (!resolved) {
           throw new Error(
             'Proxy responded without a customer id for this external id.',
           );
         }
-        return resolved;
+        return { customerId: resolved, status: readCustomerStatus(customer) };
       });
+      setCustomerStatus(status);
       updateStep('customer', {
         status: 'success',
-        detail: `customer_id = ${truncateId(customerId)}`,
+        detail: status
+          ? `customer_id = ${truncateId(customerId)} · status = ${status}`
+          : `customer_id = ${truncateId(customerId)}`,
       });
 
       const account = await timed('autoramp', async () =>
@@ -470,6 +492,11 @@ const MockKycSuccess = () => {
               customer lookup means MoonPay has no customer registered against
               this wallet&apos;s external id yet.
             </Text>
+            {customerStatus && customerStatus !== 'Active' ? (
+              <Text variant={TextVariant.BodySm} twClassName="mt-2">
+                {`This customer exists and is mapped correctly, but MoonPay reports status = ${customerStatus}, so it refuses to create an autoramp ("Customer is not active"). Identity documents have to clear before this stage can pass.`}
+              </Text>
+            ) : null}
           </Box>
         ) : null}
       </ScrollView>
