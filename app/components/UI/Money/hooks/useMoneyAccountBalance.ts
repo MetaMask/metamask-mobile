@@ -179,7 +179,7 @@ const useMoneyAccountBalance = ({
   ]);
 
   // Stash the exact atomic redeemable (vmusdValueInMusd, already raw mUSD) so
-  // the transaction-pay resolveSourceAmount callback can read it synchronously
+  // the transaction-pay getBalance callback can read it synchronously
   // from Redux (it runs outside React and cannot use this hook). Only write on
   // a successful fetch, so an error/loading state never clobbers the last known
   // value (mirrors the lastKnownBalance persistence above).
