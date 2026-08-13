@@ -4047,6 +4047,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsProTriggeredOrdersEnabled: {
+    name: 'perpsProTriggeredOrdersEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsHip3AllowlistMarkets: {
     name: 'perpsHip3AllowlistMarkets',
     type: FeatureFlagType.Remote,
