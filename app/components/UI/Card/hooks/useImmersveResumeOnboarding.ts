@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { setImmersveFundingSourceId } from '../../../../core/redux/slices/card';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import { selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
 import { KYC_REDIRECT_URL } from '../constants';
 import { deriveNextImmersveAction } from '../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../util/immersveResume';
@@ -22,7 +22,7 @@ export const useImmersveResumeOnboarding = () => {
   const dispatch = useDispatch();
   const { signIn } = useImmersveSiweAuth();
   const route = useImmersveOnboardingRouter();
-  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
+  const immersveConfig = useSelector(selectCardImmersveConfig);
 
   return useCallback(
     async ({
@@ -42,7 +42,7 @@ export const useImmersveResumeOnboarding = () => {
       const resume = await controller.getResumeCardInfo();
 
       const id = await resolveImmersveFundingSourceId({
-        fundingChannelId: cardFeatureFlag.immersve?.fundingChannelId,
+        fundingChannelId: immersveConfig.fundingChannelId,
         existingId: resume?.fundingSourceIds?.[0],
       });
       dispatch(setImmersveFundingSourceId(id));
@@ -74,6 +74,6 @@ export const useImmersveResumeOnboarding = () => {
         navigateFromRoot,
       });
     },
-    [dispatch, signIn, route, cardFeatureFlag],
+    [dispatch, signIn, route, immersveConfig],
   );
 };

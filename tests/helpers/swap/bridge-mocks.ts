@@ -17,6 +17,7 @@ import {
   toSSEResponse,
 } from './constants';
 import { setupSpotPricesMock } from './swap-mocks';
+import { toQuoteResponseV2 } from '@metamask/bridge-controller';
 
 const BRIDGE_TX_STATUS_COMPLETE = {
   status: 'COMPLETE',
@@ -134,7 +135,7 @@ export const testSpecificMock: TestSpecificMock = async (
   await setupSSEMockRequest(
     mockServer,
     /getQuoteStream.*destChainId=1151111081099710/i,
-    toSSEResponse(GET_QUOTE_ETH_SOLANA_RESPONSE),
+    toSSEResponse(GET_QUOTE_ETH_SOLANA_RESPONSE.map(toQuoteResponseV2)),
   );
 
   // Mock SSE quote response ETH(Ethereum)->ETH(BASE)

@@ -2445,7 +2445,7 @@
     "failed_to_load_market_data": "Failed to load market data",
     "data_updates_automatically": "Data updates automatically every few seconds",
     "tap_to_retry": "Tap to retry",
-    "search_by_token_symbol": "Search by token symbol",
+    "search_by_token_symbol": "Search",
     "no_favorites_found": "No markets in watchlist",
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
     "watchlist": {
@@ -2453,6 +2453,8 @@
       "empty_subtitle": "Tap + to add a market to your watchlist.",
       "show_more": "Show {{count}} more",
       "show_less": "Show less",
+      "added": "Added {{symbol}} to watchlist",
+      "removed": "Removed {{symbol}} from watchlist",
       "add_error": "Failed to add market to watchlist",
       "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
       "filter_badge_label": "Watchlist",
@@ -2463,7 +2465,7 @@
     "market_count": "{{count}} market",
     "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
-    "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_tokens_found_description": "We couldn't find any markets with the name \"{{searchQuery}}\". Try a different search.",
     "no_markets_found": "No markets found",
     "no_markets_found_description": "No markets match your current filter. Try a different category.",
     "no_markets_search_description": "No markets match \"{{searchQuery}}\" in this category. Try a different search or clear the filter.",
@@ -3119,6 +3121,9 @@
       "prediction_in_progress": "Prediction in progress",
       "prediction_in_progress_description": "Your prediction will be placed shortly",
       "prediction_failed": "Failed to place prediction",
+      "prediction_not_placed": "Prediction not placed",
+      "post_deposit_order_failed": "{{amount}} was added to your Predict balance.",
+      "post_deposit_order_failed_fallback": "Your funds were added to your Predict balance.",
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
@@ -3133,6 +3138,9 @@
       "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
       "order_failed_title": "Order failed",
       "order_failed_body": "Your order couldn't be filled. Try again?",
+      "payment_failed_title": "Payment didn't go through",
+      "payment_failed_body": "We couldn't convert your {{token}}. Add funds to your Predict balance instead.",
+      "payment_failed_body_generic": "We couldn't convert your token. Add funds to your Predict balance instead.",
       "price_changed_title": "Price changed",
       "price_changed_body": "Couldn't buy at {{price}}. Try at market price?",
       "retry": "Retry",
@@ -3203,7 +3211,9 @@
       "preview_not_available": "No preview available",
       "market_pending_resolution": "This market is pending resolution.",
       "market_not_accepting_bets": "This market is no longer accepting bets.",
-      "market_bettable_check_failed": "We couldn't confirm this market is accepting bets. Try again."
+      "market_bettable_check_failed": "We couldn't confirm this market is accepting bets. Try again.",
+      "deposit_failed": "We couldn't add funds to your Predict balance. Try again.",
+      "withdraw_failed": "We couldn't complete your withdrawal. Try again."
     },
     "game_details_footer": {
       "pick_a_winner": "Pick a winner",
@@ -4371,7 +4381,9 @@
         "reset_onboarding_button": "Reset Onboarding State",
         "unlink_money_account_description": "Revoke the USDC spending-limit allowance that authorises Card to spend from your Money Account. This submits an approve(0) transaction and marks the Money Account as not-delegated on the Card backend.",
         "unlink_money_account_button": "Unlink Money Account from Card",
-        "unlink_money_account_disabled_hint": "No active linkage to remove."
+        "unlink_money_account_disabled_hint": "No active linkage to remove.",
+        "reset_card_arrival_description": "Clear the card arrival animation state so the reveal plays again the next time you open the Card dashboard.",
+        "reset_card_arrival_button": "Reset arrival animation"
       },
       "identity": {
         "title": "Identity",
@@ -8984,7 +8996,7 @@
       "set_label": "PIN",
       "continue": "Continue",
       "confirm_title": "Confirm your card PIN",
-      "confirm_description": "Re-enter your PIN to confirm",
+      "confirm_description": "Enter your PIN again to confirm.",
       "confirm_label": "Confirm PIN",
       "submit": "Set PIN",
       "mismatch_error": "PINs must match.",
@@ -8992,9 +9004,8 @@
       "repeating_pin_error": "That PIN can't be used. Choose a different one.",
       "forbidden_error": "You can't set a PIN on this card right now.",
       "network_error": "Something went wrong. Please try again.",
-      "success_title": "PIN set",
-      "success_description": "Your card PIN is ready to use. Make sure you keep it safe—you won't be able to view it in the app.",
-      "success_done": "Done"
+      "success_title": "Your PIN is set",
+      "success_description": "Make sure you keep it safe. You won't be able to view it in the app."
     },
     "choose_your_card": {
       "title": "Choose your card",
@@ -9377,8 +9388,8 @@
         "view_pin": "View PIN",
         "view_pin_description": "View your card PIN securely",
         "view_pin_error": "Failed to load PIN. Please try again.",
-        "set_pin": "Set card PIN",
-        "set_pin_description": "Set a 4-digit PIN for ATM and chip payments",
+        "set_pin": "Set a 4-digit PIN",
+        "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",

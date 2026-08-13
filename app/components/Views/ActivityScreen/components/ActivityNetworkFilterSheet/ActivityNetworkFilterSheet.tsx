@@ -128,7 +128,7 @@ const ActivityNetworkFilterSheet: React.FC = () => {
           const isSelected = isNetworkSelected(network);
           return (
             <Cell
-              testID={`network-select-${network.caipChainId}`}
+              testID={`${ActivityScreenSelectorsIDs.NETWORK_FILTER_OPTION_PREFIX}${network.caipChainId}`}
               key={network.caipChainId}
               variant={CellVariant.Select}
               title={network.name}

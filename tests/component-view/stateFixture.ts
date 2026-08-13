@@ -1,6 +1,10 @@
 import type { DeepPartial } from '../../app/util/test/renderWithProvider';
 import type { RootState } from '../../app/reducers';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+  getNativeAssetForChainId,
+} from '@metamask/bridge-controller';
 // Removed dependency on large JSON snapshot; tests compose state via builder helpers
 
 type PlainObject = Record<string, unknown>;
@@ -214,56 +218,80 @@ export function createStateFixture(): StateFixtureBuilder {
       const now = Date.now();
       const numericChainId = parseInt(chainIdHex, 16);
       const quoteResponse = {
+        namespace: 'eip155',
+        chainId: formatChainIdToCaip(numericChainId),
         quote: {
+          aggregator: 'bridge-1',
+          protocols: ['bridge-1'],
+          steps: [],
           requestId: 'req-1',
-          srcChainId: numericChainId,
-          destChainId: numericChainId,
-          srcAsset: {
-            chainId: numericChainId,
-            address: srcTokenAddress,
-            decimals: 18,
-            symbol: 'ETH',
-            assetId: formatAddressToAssetId(
-              srcTokenAddress,
-              numericChainId,
-            ) as `${string}:${string}/${string}:${string}`,
-            name: 'Ether',
-          },
-          destAsset: {
-            chainId: numericChainId,
-            address: destTokenAddress,
-            decimals: 6,
-            symbol: 'USDC',
-            name: 'USD Coin',
-            assetId: formatAddressToAssetId(
-              destTokenAddress,
-              numericChainId,
-            ) as `${string}:${string}/${string}:${string}`,
-          },
-          srcTokenAmount: srcAmount,
-          destTokenAmount: '1000000', // 1 USDC (6 decimals)
-          feeData: {
-            metabridge: {
-              amount: '0',
-              asset: {
-                address: srcTokenAddress,
-                chainId: numericChainId,
-                decimals: 18,
-                symbol: 'ETH',
-                name: 'Ether',
-                assetId: formatAddressToAssetId(
-                  srcTokenAddress,
-                  numericChainId,
-                ) as `${string}:${string}/${string}:${string}`,
-              },
+          src: {
+            asset: {
+              address: srcTokenAddress,
+              decimals: 18,
+              symbol: 'ETH',
+              assetId: formatAddressToAssetId(
+                srcTokenAddress,
+                numericChainId,
+              ) as `${string}:${string}/${string}:${string}`,
+              name: 'Ether',
             },
+            amount: srcAmount,
+          },
+          dest: {
+            asset: {
+              address: destTokenAddress,
+              decimals: 6,
+              symbol: 'USDC',
+              name: 'USD Coin',
+              assetId: formatAddressToAssetId(
+                destTokenAddress,
+                numericChainId,
+              ) as `${string}:${string}/${string}:${string}`,
+            },
+            amount: '1000000',
+            minAmount: '100000',
+          },
+          feeData: {
+            metabridge: [
+              {
+                amount: '0',
+                asset: {
+                  address: srcTokenAddress,
+                  chainId: numericChainId,
+                  decimals: 18,
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  assetId: formatAddressToAssetId(
+                    srcTokenAddress,
+                    numericChainId,
+                  ) as `${string}:${string}/${string}:${string}`,
+                },
+              },
+            ],
+            network: [
+              {
+                amount: '1000000000000000',
+                normalizedAmount: '0.001',
+                valueInCurrency: '2',
+                asset: getNativeAssetForChainId(numericChainId),
+              },
+            ],
           },
           gasIncluded: false,
-          priceData: { priceImpact: '0.01' },
+          priceData: { priceImpact: { amount: '0.01' } },
         },
-        totalNetworkFee: { amount: '0.001', valueInCurrency: '2' },
         estimatedProcessingTimeInSeconds: 30,
+        trade: {
+          chainId: numericChainId,
+          to: '0x0000000000000000000000000000000000000000',
+          from: '0x0000000000000000000000000000000000000000',
+          data: '0x0',
+          value: '0x0',
+          gasLimit: 100,
+        },
       };
+
       current = deepMerge(
         current as PlainObject,
         {
