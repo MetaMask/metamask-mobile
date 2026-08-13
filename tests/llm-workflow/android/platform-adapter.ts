@@ -17,8 +17,9 @@ import {
   type AndroidAnimationState,
 } from './animations';
 import {
-  attachAndroidMetro,
   cleanupAndroidMetro,
+  openAndroidMetroDeepLink,
+  prepareAndroidMetro,
   type AndroidMetroAttachment,
 } from './metro-watch-attach';
 import {
@@ -54,6 +55,10 @@ const READINESS_TEST_ID_LIMIT = 150;
 // a real failure surfaces as MM_LAUNCH_FAILED, not a bare timeout.
 const DEFAULT_READINESS_TIMEOUT_MS = 90_000;
 const DEFAULT_READINESS_INTERVAL_MS = 250;
+// Bounded probe for an already-attached, healthy app before deciding to skip
+// the reloading deep-link (mirrors the iOS pure-attach ceiling).
+const PURE_ATTACH_PROBE_TIMEOUT_MS = 3_000;
+const PURE_ATTACH_PROBE_INTERVAL_MS = 250;
 
 interface ResolvedAndroidAdapterOptions extends ResolvedMobileLaunchOptions {
   readonly platform: 'android';
@@ -76,6 +81,8 @@ interface AndroidPlatformAdapterDependencies {
   readonly delay?: (milliseconds: number) => Promise<void>;
   readonly readinessTimeoutMs?: number;
   readonly readinessIntervalMs?: number;
+  readonly pureAttachTimeoutMs?: number;
+  readonly pureAttachIntervalMs?: number;
 }
 
 export function isAdbBackend(backend: DeviceBackend): boolean {
@@ -107,6 +114,8 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
       delay: sleep,
       readinessTimeoutMs: DEFAULT_READINESS_TIMEOUT_MS,
       readinessIntervalMs: DEFAULT_READINESS_INTERVAL_MS,
+      pureAttachTimeoutMs: PURE_ATTACH_PROBE_TIMEOUT_MS,
+      pureAttachIntervalMs: PURE_ATTACH_PROBE_INTERVAL_MS,
       ...dependencies,
     };
   }
@@ -160,14 +169,10 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
     );
 
     if (android.metroPort !== undefined) {
-      this.metroAttachment = await attachAndroidMetro(
-        android.serial,
-        android.metroPort,
-        undefined,
-        () => {
-          this.appLaunchAttempted = true;
-        },
-      );
+      const pureAttachState = await this.tryPureAttach(android, mobileDriver);
+      if (pureAttachState) {
+        return { driver: mobileDriver, state: pureAttachState };
+      }
     } else {
       this.appLaunchAttempted = true;
       await backend.openApp(ANDROID_APP_ID);
@@ -175,6 +180,69 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
 
     const state = await this.waitForReadiness(android, mobileDriver);
     return { driver: mobileDriver, state };
+  }
+
+  // With --metro-port, prepare the reverse mapping (passive, no reload) and, if
+  // the app is already loaded on the exact activity, briefly poll full
+  // readiness. A healthy observation adopts the running app WITHOUT the
+  // reloading deep-link; otherwise we fall through to a deep-link launch.
+  private async tryPureAttach(
+    android: ResolvedAndroidLaunchOptions,
+    mobileDriver: MobilePlatformDriver,
+  ): Promise<
+    Awaited<ReturnType<MobilePlatformDriver['getAppState']>> | undefined
+  > {
+    const metroPort = android.metroPort;
+    if (metroPort === undefined) {
+      return undefined;
+    }
+
+    this.metroAttachment = await prepareAndroidMetro(android.serial, metroPort);
+
+    if (await this.isPureAttachCandidate(android, mobileDriver)) {
+      const observed = await this.pollReadiness(
+        android,
+        mobileDriver,
+        this.dependencies.pureAttachTimeoutMs,
+        this.dependencies.pureAttachIntervalMs,
+      );
+      if (observed.ready) {
+        this.appLaunchAttempted = true;
+        return observed.state;
+      }
+    }
+
+    openAndroidMetroDeepLink(this.metroAttachment, () => {
+      this.appLaunchAttempted = true;
+    });
+    return undefined;
+  }
+
+  // Cheap pre-check gating the pure-attach poll: the app process is loaded and
+  // its exact MainActivity is the resumed activity. Skips the poll (and its
+  // Hermes discovery) when a reload is clearly required.
+  private async isPureAttachCandidate(
+    android: ResolvedAndroidLaunchOptions,
+    mobileDriver: MobilePlatformDriver,
+  ): Promise<boolean> {
+    try {
+      const activityOutput = this.dependencies.runDeviceAdb(android.serial, [
+        'shell',
+        'dumpsys',
+        'activity',
+        'activities',
+        ANDROID_APP_ID,
+      ]);
+      if (
+        !hasExactResumedMetaMaskActivity(activityOutput, android.mainActivity)
+      ) {
+        return false;
+      }
+      const state = await mobileDriver.getAppState();
+      return state.isLoaded;
+    } catch {
+      return false;
+    }
   }
 
   async cleanup(): Promise<void> {
@@ -227,71 +295,14 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
     android: ResolvedAndroidLaunchOptions,
     mobileDriver: MobilePlatformDriver,
   ): Promise<Awaited<ReturnType<MobilePlatformDriver['getAppState']>>> {
-    const deadline =
-      this.dependencies.now() + this.dependencies.readinessTimeoutMs;
-    let lastFailure = 'MetaMask readiness markers were not observed.';
-
-    while (this.dependencies.now() <= deadline) {
-      try {
-        const activityOutput = this.dependencies.runDeviceAdb(android.serial, [
-          'shell',
-          'dumpsys',
-          'activity',
-          'activities',
-          ANDROID_APP_ID,
-        ]);
-        if (
-          !hasExactResumedMetaMaskActivity(
-            activityOutput,
-            android.mainActivity,
-          )
-        ) {
-          lastFailure = `${android.mainActivity} is not the exact resumed activity.`;
-        } else {
-          const state = await mobileDriver.getAppState();
-          if (!state.isLoaded) {
-            lastFailure = `${ANDROID_APP_ID} process is not running.`;
-          } else {
-            const testIds = await mobileDriver.getTestIds(
-              READINESS_TEST_ID_LIMIT,
-            );
-            const testIdValues = new Set(testIds.map(({ testId }) => testId));
-            const hasLockedMarker = [...LOCKED_SCREEN_TEST_IDS].some((testId) =>
-              testIdValues.has(testId),
-            );
-            const hasUnlockedMarker = [...UNLOCKED_SCREEN_TEST_IDS].some(
-              (testId) => testIdValues.has(testId),
-            );
-            if (!hasLockedMarker && !hasUnlockedMarker) {
-              lastFailure = 'No recognized MetaMask startup screen is mounted.';
-            } else if (
-              android.metroPort !== undefined &&
-              !(await hasExactHermesTarget(mobileDriver, android.metroPort))
-            ) {
-              lastFailure = `Metro does not expose an unambiguous ${ANDROID_APP_ID} Hermes target.`;
-            } else {
-              return {
-                ...state,
-                isLoaded: true,
-                isUnlocked: hasUnlockedMarker && !hasLockedMarker,
-              };
-            }
-          }
-        }
-      } catch (error) {
-        lastFailure = error instanceof Error ? error.message : String(error);
-      }
-
-      const remainingMs =
-        this.dependencies.now() >= deadline
-          ? 0
-          : deadline - this.dependencies.now();
-      if (remainingMs <= 0) {
-        break;
-      }
-      await this.dependencies.delay(
-        Math.min(this.dependencies.readinessIntervalMs, remainingMs),
-      );
+    const outcome = await this.pollReadiness(
+      android,
+      mobileDriver,
+      this.dependencies.readinessTimeoutMs,
+      this.dependencies.readinessIntervalMs,
+    );
+    if (outcome.ready) {
+      return outcome.state;
     }
 
     const metroRemediation =
@@ -300,11 +311,118 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
         : ' Ensure Metro has bundled MetaMask, dismiss the Expo Dev Launcher if it remains visible, and verify Metro can select an unambiguous io.metamask Hermes target from one logical device.';
     throw new AndroidLaunchError({
       code: 'MM_LAUNCH_FAILED',
-      message: `${ANDROID_APP_ID} did not become ready: ${lastFailure}`,
+      message: `${ANDROID_APP_ID} did not become ready: ${outcome.reason}`,
       remediation: `Open MetaMask on the emulator and resolve any system prompt.${metroRemediation}`,
     });
   }
+
+  // Bounded poll of the single-shot readiness observation, clamping the final
+  // delay to the remaining budget. Shared by the long post-launch wait and the
+  // short pure-attach probe so both apply the identical readiness contract.
+  private async pollReadiness(
+    android: ResolvedAndroidLaunchOptions,
+    mobileDriver: MobilePlatformDriver,
+    timeoutMs: number,
+    intervalMs: number,
+  ): Promise<ReadinessOutcome> {
+    const deadline = this.dependencies.now() + timeoutMs;
+    let reason = 'MetaMask readiness markers were not observed.';
+
+    while (this.dependencies.now() <= deadline) {
+      const outcome = await this.observeReadiness(android, mobileDriver);
+      if (outcome.ready) {
+        return outcome;
+      }
+      reason = outcome.reason;
+
+      const remainingMs =
+        this.dependencies.now() >= deadline
+          ? 0
+          : deadline - this.dependencies.now();
+      if (remainingMs <= 0) {
+        break;
+      }
+      await this.dependencies.delay(Math.min(intervalMs, remainingMs));
+    }
+
+    return { ready: false, reason };
+  }
+
+  // Single readiness observation: exact resumed activity, loaded process, a
+  // recognized startup marker, and (when a Metro port is set) an unambiguous
+  // io.metamask Hermes target. Returns the resolved app state or a failure
+  // reason; never throws.
+  private async observeReadiness(
+    android: ResolvedAndroidLaunchOptions,
+    mobileDriver: MobilePlatformDriver,
+  ): Promise<ReadinessOutcome> {
+    try {
+      const activityOutput = this.dependencies.runDeviceAdb(android.serial, [
+        'shell',
+        'dumpsys',
+        'activity',
+        'activities',
+        ANDROID_APP_ID,
+      ]);
+      if (
+        !hasExactResumedMetaMaskActivity(activityOutput, android.mainActivity)
+      ) {
+        return {
+          ready: false,
+          reason: `${android.mainActivity} is not the exact resumed activity.`,
+        };
+      }
+
+      const state = await mobileDriver.getAppState();
+      if (!state.isLoaded) {
+        return { ready: false, reason: `${ANDROID_APP_ID} process is not running.` };
+      }
+
+      const testIds = await mobileDriver.getTestIds(READINESS_TEST_ID_LIMIT);
+      const testIdValues = new Set(testIds.map(({ testId }) => testId));
+      const hasLockedMarker = [...LOCKED_SCREEN_TEST_IDS].some((testId) =>
+        testIdValues.has(testId),
+      );
+      const hasUnlockedMarker = [...UNLOCKED_SCREEN_TEST_IDS].some((testId) =>
+        testIdValues.has(testId),
+      );
+      if (!hasLockedMarker && !hasUnlockedMarker) {
+        return {
+          ready: false,
+          reason: 'No recognized MetaMask startup screen is mounted.',
+        };
+      }
+
+      if (
+        android.metroPort !== undefined &&
+        !(await hasExactHermesTarget(mobileDriver, android.metroPort))
+      ) {
+        return {
+          ready: false,
+          reason: `Metro does not expose an unambiguous ${ANDROID_APP_ID} Hermes target.`,
+        };
+      }
+
+      return {
+        ready: true,
+        state: {
+          ...state,
+          isLoaded: true,
+          isUnlocked: hasUnlockedMarker && !hasLockedMarker,
+        },
+      };
+    } catch (error) {
+      return {
+        ready: false,
+        reason: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
 }
+
+type ReadinessOutcome =
+  | { ready: true; state: Awaited<ReturnType<MobilePlatformDriver['getAppState']>> }
+  | { ready: false; reason: string };
 
 function hasExactResumedMetaMaskActivity(
   output: string,

@@ -33,11 +33,13 @@ export function buildAndroidMetroDeepLink(metroPort: number): {
   };
 }
 
-export async function attachAndroidMetro(
+// Passive half of attachment: validate Metro and ensure the reverse mapping
+// without deep-linking. A reverse mapping does not reload the app, so this is
+// safe when the app may already be attached (pure-attach path).
+export async function prepareAndroidMetro(
   serial: string,
   metroPort: number,
   fetchImpl: typeof fetch = globalThis.fetch,
-  onBeforeOpenApp: () => void = () => undefined,
 ): Promise<AndroidMetroAttachment> {
   await validateMetro(metroPort, fetchImpl);
   const expected = `tcp:${metroPort}`;
@@ -56,11 +58,19 @@ export async function attachAndroidMetro(
   const ownsReverse =
     existing === undefined ? createOwnedReverse(serial, expected) : false;
 
-  const attachment = { serial, metroPort, ownsReverse };
+  return { serial, metroPort, ownsReverse };
+}
+
+// Active half of attachment: deep-link to (re)launch the app against Metro,
+// which reloads the JS bundle. Cleans up the owned reverse mapping on failure.
+export function openAndroidMetroDeepLink(
+  attachment: AndroidMetroAttachment,
+  onBeforeOpenApp: () => void = () => undefined,
+): void {
   try {
-    const { deepLinkUrl } = buildAndroidMetroDeepLink(metroPort);
+    const { deepLinkUrl } = buildAndroidMetroDeepLink(attachment.metroPort);
     onBeforeOpenApp();
-    runDeviceAdb(serial, [
+    runDeviceAdb(attachment.serial, [
       'shell',
       'am',
       'start',
@@ -72,11 +82,21 @@ export async function attachAndroidMetro(
       '-n',
       ANDROID_MAIN_ACTIVITY,
     ]);
-    return attachment;
   } catch (error) {
     cleanupAndroidMetro(attachment);
     throw error;
   }
+}
+
+export async function attachAndroidMetro(
+  serial: string,
+  metroPort: number,
+  fetchImpl: typeof fetch = globalThis.fetch,
+  onBeforeOpenApp: () => void = () => undefined,
+): Promise<AndroidMetroAttachment> {
+  const attachment = await prepareAndroidMetro(serial, metroPort, fetchImpl);
+  openAndroidMetroDeepLink(attachment, onBeforeOpenApp);
+  return attachment;
 }
 
 function shellQuote(value: string): string {
