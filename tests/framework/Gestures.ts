@@ -855,12 +855,25 @@ export default class Gestures {
 
   /**
    * Tap a single iOS soft-keyboard key (Appium iOS only).
+   * For return/submit keys (Done, Next, Go, Search), use tapKeyboardReturnKey.
    */
   static async tapIosKeyboardKey(keyName: string): Promise<void> {
     if (!PlatformDetector.isIOSAppium()) {
       throw new Error('Gestures.tapIosKeyboardKey is Appium iOS only');
     }
     await PlaywrightGestures.tapIosKeyboardKey(keyName);
+  }
+
+  /**
+   * Tap the soft-keyboard return/submit key (Appium).
+   * iOS tries `Done:` / keyboard-scoped locators before bare `~Done` — required
+   * to fire onSubmitEditing when returnKeyType is done/next/go/search.
+   */
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.tapKeyboardReturnKey is Appium only');
+    }
+    await PlaywrightGestures.tapKeyboardReturnKey(keyName);
   }
 
   /**

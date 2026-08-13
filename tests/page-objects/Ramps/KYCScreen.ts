@@ -85,11 +85,13 @@ class KYCScreen {
     }
 
     // iOS: Done fires onSubmitEditing (returnKeyType=done).
+    // Use tapKeyboardReturnKey (not tapIosKeyboardKey) — iOS return keys are
+    // often named "Done:" and need keyboard-scoped locator fallbacks.
     await Gestures.typeText(this.emailInput, email, {
       hideKeyboard: false,
       elemDescription: 'Email input',
     });
-    await Gestures.tapIosKeyboardKey('Done');
+    await Gestures.tapKeyboardReturnKey('Done');
   }
 
   async tapSendEmail(): Promise<void> {
