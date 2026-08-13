@@ -16,33 +16,19 @@ describeForPlatforms('NetworksManagementView', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the network list with Polygon, zkSync, and custom localhost', async () => {
+  it('opens Network Details for custom localhost from the list', async () => {
     const { findByTestId } = renderNetworksManagementView();
 
-    expect(
-      await findByTestId(NetworksManagementViewSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-
-    expect(
-      await findByTestId(
-        NetworksManagementViewSelectorsIDs.NETWORK_ITEM(
-          NETWORKS_MGMT_POLYGON_CHAIN_ID,
-        ),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      await findByTestId(
-        NetworksManagementViewSelectorsIDs.NETWORK_ITEM(
-          NETWORKS_MGMT_ZKSYNC_CHAIN_ID,
-        ),
-      ),
-    ).toBeOnTheScreen();
-    expect(
+    fireEvent.press(
       await findByTestId(
         NetworksManagementViewSelectorsIDs.NETWORK_ITEM(
           NETWORKS_MGMT_LOCALHOST_CHAIN_ID,
         ),
       ),
+    );
+
+    expect(
+      await findByTestId(NetworkDetailsViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
   });
 
