@@ -1,5 +1,4 @@
 import type { Fixtures, TestInfo } from '@playwright/test';
-import type { ChainablePromiseElement } from 'webdriverio';
 import { copyProfilerResult } from '../../services/appium/Profiler';
 import type {
   CurrentDeviceDetails,
@@ -13,32 +12,14 @@ const PROFILER_OUTPUT_DIRECTORY =
 const PROFILER_ENABLED = process.env.APPIUM_CAPTURE_PROFILER === 'true';
 const ELEMENT_TIMEOUT_MS = 30_000;
 
-async function isDisplayed(element: ChainablePromiseElement): Promise<boolean> {
-  try {
-    return await element.isDisplayed();
-  } catch {
-    return false;
-  }
-}
-
-async function openProfilerMenu(driver: WebdriverIO.Browser): Promise<void> {
-  const menu = await driver.$('~e2e-profiler-toggle');
-  await menu.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
-  await menu.click();
-}
-
 async function startProfiler(driver: WebdriverIO.Browser): Promise<void> {
-  await openProfilerMenu(driver);
-  const start = await driver.$('~profiler-start-button');
+  const start = await driver.$('~e2e-profiler-start');
   await start.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
   await start.click();
 }
 
 async function stopProfiler(driver: WebdriverIO.Browser): Promise<void> {
-  const stop = await driver.$('~profiler-stop-button');
-  if (!(await isDisplayed(stop))) {
-    await openProfilerMenu(driver);
-  }
+  const stop = await driver.$('~e2e-profiler-stop');
   await stop.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
   await stop.click();
 }

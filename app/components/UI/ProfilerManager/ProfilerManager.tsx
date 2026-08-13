@@ -32,6 +32,14 @@ const styles = StyleSheet.create({
     height: 1,
     opacity: 0.01,
   },
+  e2eStart: {
+    top: 0,
+    left: 0,
+  },
+  e2eStop: {
+    top: 2,
+    left: 0,
+  },
 });
 
 interface ProfilerManagerProps {
@@ -124,14 +132,32 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
     <>
       <ShakeDetector onShake={handleShake} sensibility={3} />
       {process.env.METAMASK_ENVIRONMENT === 'e2e' && (
-        <Pressable
-          testID="e2e-profiler-toggle"
-          accessibilityLabel="e2e-profiler-toggle"
-          accessible
-          importantForAccessibility="yes"
-          onPress={handleShake}
-          style={styles.e2eToggle}
-        />
+        <>
+          <Pressable
+            testID="e2e-profiler-toggle"
+            accessibilityLabel="e2e-profiler-toggle"
+            accessible
+            importantForAccessibility="yes"
+            onPress={handleShake}
+            style={styles.e2eToggle}
+          />
+          <Pressable
+            testID="e2e-profiler-start"
+            accessibilityLabel="e2e-profiler-start"
+            accessible
+            importantForAccessibility="yes"
+            onPress={startProfiler}
+            style={[styles.e2eToggle, styles.e2eStart]}
+          />
+          <Pressable
+            testID="e2e-profiler-stop"
+            accessibilityLabel="e2e-profiler-stop"
+            accessible
+            importantForAccessibility="yes"
+            onPress={stopProfiler}
+            style={[styles.e2eToggle, styles.e2eStop]}
+          />
+        </>
       )}
       {isVisible && (
         <Box twClassName="absolute top-20 right-4 z-50 shadow-lg min-w-48">
