@@ -309,6 +309,7 @@ describe('PlaywrightUtilities.buildDeviceAccountMapping', () => {
     expect(mapping['Pixel 7']).toBe('Account 1');
     expect(mapping['Pixel 7 Pro']).toBe('Account 1');
     expect(mapping['Pixel 7|Pixel 7 Pro']).toBe('Account 1');
+    expect(mapping['Pixel 8 Pro']).toBe('Account 1');
 
     // The current performance matrix has no high-tier Android device.
     expect(mapping['Samsung Galaxy S25 Ultra']).toBeUndefined();

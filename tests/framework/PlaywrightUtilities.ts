@@ -550,6 +550,7 @@ class PlaywrightUtilities {
     if (mapping['Pixel 7 Pro'] === 'Account 1') {
       mapping['Pixel 7'] = 'Account 1';
       mapping['Pixel 7|Pixel 7 Pro'] = 'Account 1';
+      mapping['Pixel 8 Pro'] = 'Account 1';
     }
 
     // Process iOS devices
