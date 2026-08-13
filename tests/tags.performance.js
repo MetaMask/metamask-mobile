@@ -43,6 +43,7 @@ export const PerformanceLaunch = '@PerformanceLaunch';
 export const PerformanceAssetLoading = '@PerformanceAssetLoading';
 export const PerformancePredict = '@PerformancePredict';
 export const PerformancePreps = '@PerformancePreps';
+export const PerformanceRewards = '@PerformanceRewards';
 
 export const performanceTags = {
   performanceAccountList: {
@@ -84,5 +85,10 @@ export const performanceTags = {
     tag: '@PerformancePreps:',
     description:
       'Perpetuals trading performance - covers perps market loading, position management, add funds flow, and order execution',
+  },
+  performanceRewards: {
+    tag: '@PerformanceRewards:',
+    description:
+      'Rewards tab performance - covers time-to-content for onboarding or enrolled dashboard after tapping the Rewards tab',
   },
 };
