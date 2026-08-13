@@ -60,6 +60,73 @@ const StepRow = ({
   </Box>
 );
 
+// A single collapsible row used for the "Data and privacy" sub-topics
+// (What we collect / How we store data / How to delete). Manages its own
+// expand state and chevron animation since none of them affect each other
+// or anything outside the accordion.
+const AccordionRow = ({
+  title,
+  defaultExpanded = false,
+  testID,
+  children,
+}: {
+  title: string;
+  defaultExpanded?: boolean;
+  testID: string;
+  children: React.ReactNode;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const chevronRotation = useSharedValue(defaultExpanded ? 180 : 0);
+
+  const animatedChevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${chevronRotation.value}deg` }],
+  }));
+
+  const toggle = useCallback(() => {
+    setIsExpanded((prev) => {
+      chevronRotation.value = withTiming(prev ? 0 : 180, {
+        duration: CHEVRON_ANIMATION_DURATION,
+        easing: Easing.out(Easing.ease),
+      });
+      return !prev;
+    });
+  }, [chevronRotation]);
+
+  return (
+    <Box>
+      <Pressable onPress={toggle} testID={testID}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2"
+        >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {title}
+          </Text>
+          <Animated.View style={animatedChevronStyle}>
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
+          </Animated.View>
+        </Box>
+      </Pressable>
+      {isExpanded ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="pb-3"
+        >
+          {children}
+        </Text>
+      ) : null}
+      <Box twClassName="h-px bg-border-muted" />
+    </Box>
+  );
+};
+
 const LegalLinkRow = ({
   onPress,
   testID,
@@ -202,56 +269,91 @@ const VbaVerifyIdentity = () => {
             </Animated.View>
           </Box>
         </Pressable>
-        <Box twClassName="h-px bg-border-muted" />
 
         {isDataAndPrivacyExpanded ? (
-          <Box twClassName="mt-3 gap-1">
-            <LegalLinkRow
-              onPress={openMetaMaskPrivacyPolicy}
-              testID={
-                VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK
-              }
+          <Box>
+            <AccordionRow
+              title={strings(
+                'virtual_bank_account.verify_identity.what_we_collect_title',
+              )}
+              defaultExpanded
+              testID={VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_TOGGLE}
             >
               {strings(
-                'virtual_bank_account.verify_identity.metamask_privacy_policy',
+                'virtual_bank_account.verify_identity.what_we_collect_description',
               )}
-            </LegalLinkRow>
-            <LegalLinkRow
-              onPress={openMetaMaskTerms}
-              testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK}
-            >
-              {strings('virtual_bank_account.verify_identity.metamask_terms')}
-            </LegalLinkRow>
-            <LegalLinkRow
-              onPress={openIdosPrivacyPolicy}
-              testID={VbaVerifyIdentitySelectorsIDs.IDOS_PRIVACY_POLICY_LINK}
+            </AccordionRow>
+            <AccordionRow
+              title={strings(
+                'virtual_bank_account.verify_identity.how_we_store_data_title',
+              )}
+              defaultExpanded
+              testID={VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_TOGGLE}
             >
               {strings(
-                'virtual_bank_account.verify_identity.idos_privacy_policy',
+                'virtual_bank_account.verify_identity.how_we_store_data_description',
               )}
-            </LegalLinkRow>
-            <LegalLinkRow
-              onPress={openIdosTerms}
-              testID={VbaVerifyIdentitySelectorsIDs.IDOS_TERMS_LINK}
-            >
-              {strings('virtual_bank_account.verify_identity.idos_terms')}
-            </LegalLinkRow>
-            <LegalLinkRow
-              onPress={openSumsubPrivacyPolicy}
-              testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_PRIVACY_POLICY_LINK}
+            </AccordionRow>
+            <AccordionRow
+              title={strings(
+                'virtual_bank_account.verify_identity.how_to_delete_title',
+              )}
+              defaultExpanded
+              testID={VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_TOGGLE}
             >
               {strings(
-                'virtual_bank_account.verify_identity.sumsub_privacy_policy',
+                'virtual_bank_account.verify_identity.how_to_delete_description',
               )}
-            </LegalLinkRow>
-            <LegalLinkRow
-              onPress={openSumsubTerms}
-              testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_TERMS_LINK}
-            >
-              {strings('virtual_bank_account.verify_identity.sumsub_terms')}
-            </LegalLinkRow>
+            </AccordionRow>
           </Box>
         ) : null}
+
+        {/* Legal links are their own always-visible section, not gated
+        behind the "Data and privacy" toggle above. */}
+        <Box twClassName="mt-4 gap-1">
+          <LegalLinkRow
+            onPress={openMetaMaskPrivacyPolicy}
+            testID={VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK}
+          >
+            {strings(
+              'virtual_bank_account.verify_identity.metamask_privacy_policy',
+            )}
+          </LegalLinkRow>
+          <LegalLinkRow
+            onPress={openMetaMaskTerms}
+            testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK}
+          >
+            {strings('virtual_bank_account.verify_identity.metamask_terms')}
+          </LegalLinkRow>
+          <LegalLinkRow
+            onPress={openIdosPrivacyPolicy}
+            testID={VbaVerifyIdentitySelectorsIDs.IDOS_PRIVACY_POLICY_LINK}
+          >
+            {strings(
+              'virtual_bank_account.verify_identity.idos_privacy_policy',
+            )}
+          </LegalLinkRow>
+          <LegalLinkRow
+            onPress={openIdosTerms}
+            testID={VbaVerifyIdentitySelectorsIDs.IDOS_TERMS_LINK}
+          >
+            {strings('virtual_bank_account.verify_identity.idos_terms')}
+          </LegalLinkRow>
+          <LegalLinkRow
+            onPress={openSumsubPrivacyPolicy}
+            testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_PRIVACY_POLICY_LINK}
+          >
+            {strings(
+              'virtual_bank_account.verify_identity.sumsub_privacy_policy',
+            )}
+          </LegalLinkRow>
+          <LegalLinkRow
+            onPress={openSumsubTerms}
+            testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_TERMS_LINK}
+          >
+            {strings('virtual_bank_account.verify_identity.sumsub_terms')}
+          </LegalLinkRow>
+        </Box>
       </ScrollView>
 
       <Box twClassName="p-4">
