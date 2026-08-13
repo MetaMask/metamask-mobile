@@ -79,4 +79,4 @@ export const MOCK_KYC_PROGRESS_STEPS = 4;
 // RampsController resolves and injects it.
 export const DEMO_AUTORAMP_SOURCE_CURRENCY_CODE = 'BRL';
 export const DEMO_AUTORAMP_DESTINATION_TOKEN = 'USDC';
-export const DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN = 'Ethereum';
+export const DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN = 'Monad';
