@@ -417,6 +417,7 @@ describe('App', () => {
   afterEach(() => {
     cleanup();
     jest.runOnlyPendingTimers();
+    jest.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -477,7 +478,7 @@ describe('App', () => {
       },
     };
 
-    beforeAll(() => {
+    beforeEach(() => {
       // Mock the storage item to simulate existing user and bypass onboarding
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {
@@ -1670,29 +1671,29 @@ describe('App', () => {
       return render(<App />, { wrapper: Providers });
     };
 
-    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', async () => {
+    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', () => {
       renderAppWithSeedlessState(true);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-          expect.objectContaining({
-            skipCache: true,
-            captureSentryError: false,
-          }),
-        );
+      act(() => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCache: true,
+          captureSentryError: false,
+        }),
+      );
     });
 
-    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', async () => {
+    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', () => {
       renderAppWithSeedlessState(false);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
+      act(() => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
     });
 
     it('logs error when checkIsSeedlessPasswordOutdated rejects', async () => {
@@ -1701,14 +1702,14 @@ describe('App', () => {
 
       renderAppWithSeedlessState(true);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          testError,
-          'App: Error in checkIsSeedlessPasswordOutdated',
-        );
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        testError,
+        'App: Error in checkIsSeedlessPasswordOutdated',
+      );
     });
   });
 

@@ -99,7 +99,10 @@ import {
   getLoginPerformanceTags,
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
-import { startHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
+import {
+  cancelHomepageReadyTrace,
+  startHomepageReadyTrace,
+} from '../../../core/Performance/HomepageReady';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -355,6 +358,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
+      cancelHomepageReadyTrace({ reason: 'unlock_failed' });
       await handleLoginError(loginErr as Error);
     }
     setLoading(false);
@@ -398,6 +402,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginerror) {
+      cancelHomepageReadyTrace({ reason: 'unlock_failed' });
       await handleLoginError(loginerror as Error);
     }
     setLoading(false);

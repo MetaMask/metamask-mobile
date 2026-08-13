@@ -20,6 +20,10 @@ interface EndHomepageReadyTraceOptions {
   contentState: HomepageReadyContentState;
 }
 
+interface CancelHomepageReadyTraceOptions {
+  reason: 'unlock_failed';
+}
+
 let startedAt: number | null = null;
 
 /**
@@ -66,6 +70,29 @@ export const endHomepageReadyTrace = ({
     data: {
       success: contentState !== 'error',
       content_state: contentState,
+    },
+  });
+  startedAt = null;
+};
+
+/**
+ * Ends an in-flight Homepage Ready CUF that cannot reach the homepage.
+ *
+ * Failed authentication attempts must release the guard so a retry starts from
+ * its own submit action rather than inheriting time from the failed attempt.
+ */
+export const cancelHomepageReadyTrace = ({
+  reason,
+}: CancelHomepageReadyTraceOptions) => {
+  if (startedAt === null) {
+    return;
+  }
+
+  endTrace({
+    name: TraceName.HomepageReady,
+    data: {
+      success: false,
+      reason,
     },
   });
   startedAt = null;

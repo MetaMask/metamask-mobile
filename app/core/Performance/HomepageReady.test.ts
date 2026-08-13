@@ -1,5 +1,6 @@
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import {
+  cancelHomepageReadyTrace,
   endHomepageReadyTrace,
   resetHomepageReadyTraceForTesting,
   startHomepageReadyTrace,
@@ -81,6 +82,28 @@ describe('HomepageReady', () => {
     endHomepageReadyTrace({ contentState: 'empty' });
 
     expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
+  it('ends a failed unlock and allows its retry to start a new trace', () => {
+    startHomepageReadyTrace({
+      source: 'unlock',
+      appStartType: 'warm',
+    });
+
+    cancelHomepageReadyTrace({ reason: 'unlock_failed' });
+    startHomepageReadyTrace({
+      source: 'unlock',
+      appStartType: 'warm',
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.HomepageReady,
+      data: {
+        success: false,
+        reason: 'unlock_failed',
+      },
+    });
+    expect(mockTrace).toHaveBeenCalledTimes(2);
   });
 
   it('marks a rendered error state as unsuccessful', () => {

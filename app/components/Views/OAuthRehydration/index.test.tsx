@@ -43,6 +43,8 @@ const mockRequestBiometricsAccessControlForIOS = jest.fn();
 const mockUpdateAuthPreference = jest.fn();
 const mockAnalyticsIdentify = jest.fn();
 const mockAnalyticsTrackEvent = jest.fn();
+const mockStartHomepageReadyTrace = jest.fn();
+const mockCancelHomepageReadyTrace = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -58,6 +60,13 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
       mockRequestBiometricsAccessControlForIOS,
     updateAuthPreference: mockUpdateAuthPreference,
   }),
+}));
+
+jest.mock('../../../core/Performance/HomepageReady', () => ({
+  startHomepageReadyTrace: (...args: unknown[]) =>
+    mockStartHomepageReadyTrace(...args),
+  cancelHomepageReadyTrace: (...args: unknown[]) =>
+    mockCancelHomepageReadyTrace(...args),
 }));
 
 jest.mock('../../../util/Logger');
@@ -376,6 +385,9 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      });
+      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+        reason: 'unlock_failed',
       });
     });
 
