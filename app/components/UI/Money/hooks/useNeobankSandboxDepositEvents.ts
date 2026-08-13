@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
+import Engine from '../../../../core/Engine';
 import ToastService from '../../../../core/ToastService/ToastService';
 import Logger from '../../../../util/Logger';
+import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import { selectKycControllerState } from '../../../../selectors/kycController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import { strings } from '../../../../../locales/i18n';
@@ -11,6 +13,7 @@ import {
   getNeobankEventsUrl,
   isCompletedNeobankDeposit,
   parseNeobankEvent,
+  readNeobankCustomerId,
   resolveNeobankDemoCustomerId,
 } from '../utils/neobankEvents';
 
@@ -29,15 +32,72 @@ export function useNeobankSandboxDepositEvents(): void {
   );
   const kycState = useSelector(selectKycControllerState);
   const handledEventIds = useRef(new Set<string>());
+  const [lookedUpCustomerId, setLookedUpCustomerId] = useState<
+    string | null | undefined
+  >(undefined);
 
-  // Only the Iron vendor path drives the sandbox demo. When the Iron customer
-  // id was never persisted, fall back to the demo id so the socket still opens.
-  // The Iron gate here plus the `neobankEnabled` gate below keep this from
-  // opening sockets for real users on a normal build.
-  const customerId =
-    kycState.activeVendor === 'iron'
-      ? resolveNeobankDemoCustomerId(kycState.moonpayCustomerId)
-      : null;
+  const isIronVendor = kycState.activeVendor === 'iron';
+  const persistedCustomerId = kycState.moonpayCustomerId;
+
+  // When Iron has no persisted customer id, resolve it once via the signed-in
+  // profile id (Iron `external_id`) through NeoBankService. Failures fall
+  // through to the demo constant so the sandbox toast still works.
+  useEffect(() => {
+    if (!neobankEnabled || !isIronVendor || persistedCustomerId) {
+      setLookedUpCustomerId(undefined);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const lookup = async () => {
+      try {
+        const profileId = await getSessionProfileId();
+        if (!profileId) {
+          if (!cancelled) {
+            setLookedUpCustomerId(null);
+          }
+          return;
+        }
+
+        const customer =
+          await Engine.context.NeoBankService.getCustomerByExternalId(
+            profileId,
+          );
+        const resolved = readNeobankCustomerId(customer);
+        if (!cancelled) {
+          setLookedUpCustomerId(resolved);
+        }
+      } catch (error) {
+        Logger.log('NeoBank demo customer lookup failed', error);
+        if (!cancelled) {
+          setLookedUpCustomerId(null);
+        }
+      }
+    };
+
+    lookup();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [neobankEnabled, isIronVendor, persistedCustomerId]);
+
+  // Only the Iron vendor path drives the sandbox demo. Wait for the async
+  // lookup to settle before opening the socket so we do not connect with the
+  // demo fallback and then reconnect with the real id.
+  const customerId = (() => {
+    if (!isIronVendor) {
+      return null;
+    }
+    if (persistedCustomerId) {
+      return persistedCustomerId;
+    }
+    if (lookedUpCustomerId === undefined) {
+      return null;
+    }
+    return resolveNeobankDemoCustomerId(null, lookedUpCustomerId);
+  })();
 
   useEffect(() => {
     if (!neobankEnabled || !customerId) {

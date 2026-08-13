@@ -3,6 +3,7 @@ import {
   getNeobankEventsUrl,
   isCompletedNeobankDeposit,
   parseNeobankEvent,
+  readNeobankCustomerId,
   resolveNeobankDemoCustomerId,
 } from './neobankEvents';
 
@@ -66,10 +67,31 @@ describe('neobankEvents', () => {
     });
   });
 
+  describe('readNeobankCustomerId', () => {
+    it('reads id from a proxy customer payload', () => {
+      expect(
+        readNeobankCustomerId({ id: 'cust-1', external_id: 'ext-1' }),
+      ).toBe('cust-1');
+    });
+
+    it.each([null, undefined, {}, { id: '' }, { id: 1 }])(
+      'returns null for %p',
+      (value) => {
+        expect(readNeobankCustomerId(value)).toBeNull();
+      },
+    );
+  });
+
   describe('resolveNeobankDemoCustomerId', () => {
     it('prefers the persisted moonpay customer id', () => {
-      expect(resolveNeobankDemoCustomerId('real-customer')).toBe(
-        'real-customer',
+      expect(
+        resolveNeobankDemoCustomerId('real-customer', 'looked-up'),
+      ).toBe('real-customer');
+    });
+
+    it('prefers the looked-up id when moonpayCustomerId is unset', () => {
+      expect(resolveNeobankDemoCustomerId(null, 'looked-up')).toBe(
+        'looked-up',
       );
     });
 
@@ -78,9 +100,9 @@ describe('neobankEvents', () => {
     // override cannot be exercised here. When it is unset (the common case,
     // including George's demo build), the resolver returns the hardcoded id.
     it.each([null, undefined, ''])(
-      'falls back to the demo id when moonpayCustomerId is %p',
+      'falls back to the demo id when moonpayCustomerId is %p and lookup is empty',
       (value) => {
-        expect(resolveNeobankDemoCustomerId(value)).toBe(
+        expect(resolveNeobankDemoCustomerId(value, null)).toBe(
           DEMO_NEOBANK_CUSTOMER_ID,
         );
       },
