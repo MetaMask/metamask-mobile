@@ -85,6 +85,8 @@ const Settings: React.FC = () => {
   );
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
+  const metaMetricsSectionRef = useRef<View>(null);
+  const dataCollectionSectionRef = useRef<View>(null);
   const {
     disableNotifications,
     loading: disableNotificationsLoading,
@@ -184,6 +186,42 @@ const Settings: React.FC = () => {
     useCallback(() => {
       waitForRenderDetectNftComponentRef();
     }, [waitForRenderDetectNftComponentRef]),
+  );
+
+  const scrollToSection = useCallback(() => {
+    const sectionRef =
+      params?.scrollToSection === 'data-collection'
+        ? dataCollectionSectionRef
+        : metaMetricsSectionRef;
+
+    sectionRef.current?.measureLayout(
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      scrollViewRef.current as any,
+      (_, y) => {
+        scrollViewRef.current?.scrollTo({
+          y,
+          animated: true,
+        });
+      },
+      () => null,
+    );
+  }, [params?.scrollToSection]);
+
+  const waitForRenderSectionRef = useCallback(async () => {
+    if (params?.scrollToSection) {
+      // Add a delay to ensure the component is fully rendered
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Scroll to the desired position
+      scrollToSection();
+    }
+  }, [scrollToSection, params?.scrollToSection]);
+
+  useFocusEffect(
+    useCallback(() => {
+      waitForRenderSectionRef();
+    }, [waitForRenderSectionRef]),
   );
 
   const toggleHint = () => {
@@ -410,7 +448,10 @@ const Settings: React.FC = () => {
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.analytics_subheading')}
           </Text>
-          <MetaMetricsAndDataCollectionSection />
+          <MetaMetricsAndDataCollectionSection
+            metaMetricsRef={metaMetricsSectionRef}
+            dataCollectionRef={dataCollectionSectionRef}
+          />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
           <DeleteWalletData />
           <TopTradersSection />

@@ -63,8 +63,10 @@ jest.mock('@react-native-cookies/cookies', () => ({
 
 let mockUseParamsValues: {
   scrollToDetectNFTs?: boolean;
+  scrollToSection?: 'metametrics' | 'data-collection';
 } = {
   scrollToDetectNFTs: undefined,
+  scrollToSection: undefined,
 };
 
 jest.mock('../../../../util/navigation/navUtils', () => ({
@@ -95,6 +97,7 @@ describe('SecuritySettings', () => {
     mockGoBack.mockClear();
     mockUseParamsValues = {
       scrollToDetectNFTs: undefined,
+      scrollToSection: undefined,
     };
 
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -118,6 +121,18 @@ describe('SecuritySettings', () => {
       state: initialState,
     });
     expect(getByText(strings('app_settings.security_title'))).toBeOnTheScreen();
+  });
+
+  it('renders the metametrics sections when scrollToSection param is set', () => {
+    mockUseParamsValues = {
+      scrollToDetectNFTs: undefined,
+      scrollToSection: 'data-collection',
+    };
+    const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+    expect(getByTestId(META_METRICS_SECTION)).toBeOnTheScreen();
+    expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeOnTheScreen();
   });
 
   it('renders inline header with Security and privacy title', () => {
