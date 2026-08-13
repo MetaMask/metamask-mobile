@@ -75,6 +75,18 @@ describe('TokenIcon', () => {
     expect(getByTestId('token-icon').props.accessibilityLabel).toBe(
       TOKEN_ICON_URL_MOCK,
     );
+    expect(getByTestId('token-icon-network-badge')).toBeOnTheScreen();
+  });
+
+  it('hides network badge when showNetwork is false', () => {
+    const { getByTestId, queryByTestId } = render({
+      address: ADDRESS_MOCK,
+      chainId: CHAIN_ID_MOCK,
+      showNetwork: false,
+    });
+
+    expect(getByTestId('token-icon')).toBeOnTheScreen();
+    expect(queryByTestId('token-icon-network-badge')).not.toBeOnTheScreen();
   });
 
   it('renders nothing if token not found', () => {

@@ -232,6 +232,10 @@ describe('filterSupportedLeagues', () => {
       'dota2',
       'val',
       'r6siege',
+      'usc',
+      'efa',
+      'clf',
+      'saf1',
     ];
 
     const result = filterSupportedLeagues([
