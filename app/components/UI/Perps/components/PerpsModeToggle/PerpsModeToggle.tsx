@@ -11,7 +11,7 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useHaptics } from '../../../../../util/haptics';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
@@ -45,7 +45,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   testID = PerpsModeToggleSelectorsIDs.CONTAINER,
 }) => {
   const { track } = usePerpsEventTracking();
-  const { playSelection } = useHaptics();
+  const { playImpact } = useHaptics();
 
   const handleChange = useCallback(
     async (value: string) => {
@@ -62,10 +62,10 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
         return;
       }
 
-      // Active pill fires selection immediately on press; the delayed
+      // Active pill fires TabChange immediately on press; the delayed
       // onSwitchRequest path must not double-fire after the shimmer.
       if (enableHaptics && variant !== 'active') {
-        playSelection().catch(() => undefined);
+        playImpact(ImpactMoment.TabChange).catch(() => undefined);
       }
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -75,7 +75,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
         ...(source ? { [PERPS_EVENT_PROPERTY.SOURCE]: source } : {}),
       });
     },
-    [enableHaptics, mode, onChange, playSelection, source, track, variant],
+    [enableHaptics, mode, onChange, playImpact, source, track, variant],
   );
 
   const liteLabel = strings('perps.mode.lite');

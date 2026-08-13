@@ -374,6 +374,7 @@ const PerpsProOrderForm = ({
   const showsLimitPrice = isLimitExecutionOrderType(orderType);
   const showsTpSl = !reduceOnly && !showsTriggerPrice;
   const orderTypeTitle = strings(`perps.order.type.${orderType}.title`);
+  const summaryOnSlippagePress = summary.onSlippagePress;
 
   const handleDirectionChange = useCallback(
     (value: string) => {
@@ -402,6 +403,14 @@ const PerpsProOrderForm = ({
     playSelection().catch(() => undefined);
     onLeveragePress();
   }, [onLeveragePress, playSelection]);
+
+  const handleSlippagePress = useCallback(() => {
+    if (!summaryOnSlippagePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    summaryOnSlippagePress();
+  }, [playSelection, summaryOnSlippagePress]);
 
   const handleOrderTypeButtonPress = useCallback(() => {
     playSelection().catch(() => undefined);
@@ -639,7 +648,12 @@ const PerpsProOrderForm = ({
             {placeOrderLabel}
           </ButtonSemantic>
         </Box>
-        <OrderSummary {...summary} />
+        <OrderSummary
+          {...summary}
+          onSlippagePress={
+            summaryOnSlippagePress ? handleSlippagePress : undefined
+          }
+        />
       </Box>
       {Platform.OS === 'ios' ? (
         <>

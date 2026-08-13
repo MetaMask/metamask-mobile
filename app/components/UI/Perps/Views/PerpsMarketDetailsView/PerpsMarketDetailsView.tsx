@@ -1531,6 +1531,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isFavorite={isWatchlist}
         mode={isPerpsProModeEnabled ? perpsMode : undefined}
         onModeChange={isPerpsProModeEnabled ? handlePerpsModeChange : undefined}
+        enableHaptics
         scrollY={scrollYShared}
         priceSectionHeight={titleSectionHeightSv}
         currentPrice={syncedChartCurrentPrice}

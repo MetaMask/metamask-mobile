@@ -17,7 +17,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useHaptics } from '../../../../../util/haptics';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 export const GLOW_TOTAL_MS = 750;
 const GLOW_SWEEP_MS = 700;
@@ -118,7 +118,7 @@ const PerpsModeSwitchPill = ({
   testID,
 }: PerpsModeSwitchPillProps) => {
   const tw = useTailwind();
-  const { playSelection } = useHaptics();
+  const { playImpact } = useHaptics();
   const [width, setWidth] = useState(0);
   const [isShimmering, setIsShimmering] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -152,7 +152,7 @@ const PerpsModeSwitchPill = ({
     }
 
     if (enableHaptics) {
-      playSelection().catch(() => undefined);
+      playImpact(ImpactMoment.TabChange).catch(() => undefined);
     }
 
     setIsShimmering(true);
@@ -176,7 +176,7 @@ const PerpsModeSwitchPill = ({
     enableHaptics,
     onSwitchRequest,
     overlayOpacity,
-    playSelection,
+    playImpact,
     sweepProgress,
   ]);
 

@@ -50,6 +50,7 @@ interface MockRouteParams {
 interface MockChartPanelProps {
   symbol: string;
   selectedCandlePeriod: CandlePeriod;
+  onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
   currentPrice?: number;
   onLatestPriceChange?: (price: number | undefined) => void;
@@ -111,7 +112,12 @@ const mockHandlePerpsModeChange = jest.fn();
 const mockHeaderPerpsMode = PerpsMode.Pro;
 
 const mockPerpsProChartPanel = jest.fn(
-  ({ symbol, onMorePress }: MockChartPanelProps) => (
+  ({
+    symbol,
+    selectedCandlePeriod,
+    onCandlePeriodChange,
+    onMorePress,
+  }: MockChartPanelProps) => (
     <>
       <Box
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
@@ -126,6 +132,18 @@ const mockPerpsProChartPanel = jest.fn(
           twClassName="h-[344px]"
         />
         <ButtonBase testID="mock-pro-chart-more-button" onPress={onMorePress}>
+          <Box />
+        </ButtonBase>
+        <ButtonBase
+          testID="mock-pro-chart-period-option"
+          onPress={() => onCandlePeriodChange(CandlePeriod.FiveMinutes)}
+        >
+          <Box />
+        </ButtonBase>
+        <ButtonBase
+          testID="mock-pro-chart-current-period"
+          onPress={() => onCandlePeriodChange(selectedCandlePeriod)}
+        >
           <Box />
         </ButtonBase>
       </Box>
@@ -182,7 +200,7 @@ jest.mock('../../components/PerpsBalanceBottomSheet', () => ({
 // need a lightweight placeholder so the layout scaffold assertions still pass.
 jest.mock('./components/PerpsProOrderFormPanel', () => {
   const ReactActual = jest.requireActual('react');
-  const { Box, ButtonBase } = jest.requireActual(
+  const { Box: MockBox, ButtonBase: MockButtonBase } = jest.requireActual(
     '@metamask/design-system-react-native',
   );
   const { PerpsProMarketViewSelectorsIDs: ids } = jest.requireActual(
@@ -195,16 +213,16 @@ jest.mock('./components/PerpsProOrderFormPanel', () => {
       onExpandOrderBook,
     }: MockOrderFormPanelProps) =>
       ReactActual.createElement(
-        Box,
+        MockBox,
         { testID: ids.ORDER_FORM_PANEL },
         isOrderBookCollapsed
           ? ReactActual.createElement(
-              ButtonBase,
+              MockButtonBase,
               {
                 testID: ids.ORDER_BOOK_EXPAND_BUTTON,
                 onPress: onExpandOrderBook,
               },
-              ReactActual.createElement(Box, null),
+              ReactActual.createElement(MockBox, null),
             )
           : null,
       ),
@@ -703,6 +721,23 @@ describe('PerpsProMarketView', () => {
         selectedCandlePeriod: CandlePeriod.FourHours,
       }),
     );
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays selection when a visible candle period changes', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId('mock-pro-chart-period-option'));
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps haptics silent when the current candle period is selected', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId('mock-pro-chart-current-period'));
+
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('closes the More candle periods sheet', () => {

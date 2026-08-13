@@ -610,7 +610,7 @@ describe('PerpsProOrderForm', () => {
       expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onSlippagePress when the slippage value is pressed', () => {
+    it('plays selection when the slippage summary value opens the sheet', () => {
       const onSlippagePress = jest.fn();
       renderForm({
         summary: {
@@ -624,6 +624,21 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
 
       expect(onSlippagePress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps haptics silent when the slippage summary action is disabled', () => {
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          slippage: '0.50% / 1%',
+        },
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
+
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('disables Place Order when requested', () => {

@@ -10,6 +10,7 @@ import {
   isLimitExecutionOrderType,
   isTriggerOrderType,
   TimeDuration,
+  type CandlePeriod,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import {
@@ -324,6 +325,17 @@ const PerpsProMarketView = () => {
       onAdvancedChartError: handleAdvancedChartError,
     });
 
+  const handleProCandlePeriodChange = useCallback(
+    (period: CandlePeriod) => {
+      if (period === selectedCandlePeriod) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      handleCandlePeriodChange(period);
+    },
+    [handleCandlePeriodChange, playSelection, selectedCandlePeriod],
+  );
+
   const {
     perpsMode,
     isWatchlist,
@@ -393,7 +405,7 @@ const PerpsProMarketView = () => {
           selectedCandlePeriod={selectedCandlePeriod}
           isAdvancedChartEnabled={isAdvancedChartEnabled}
           effectiveChartLibrary={effectiveChartLibrary}
-          onCandlePeriodChange={handleCandlePeriodChange}
+          onCandlePeriodChange={handleProCandlePeriodChange}
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
           onChartError={handleChartError}
           currentPrice={syncedChartCurrentPrice}
@@ -459,7 +471,7 @@ const PerpsProMarketView = () => {
         onClose={() => setIsMoreCandlePeriodsVisible(false)}
         selectedPeriod={selectedCandlePeriod}
         selectedDuration={TimeDuration.YearToDate}
-        onPeriodChange={handleCandlePeriodChange}
+        onPeriodChange={handleProCandlePeriodChange}
         showAllPeriods
         asset={market.symbol}
         testID={PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET}

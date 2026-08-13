@@ -247,7 +247,7 @@ describe('PerpsMarketHeader', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
-  it('plays selection immediately on mode-pill press when enableHaptics is true', () => {
+  it('plays TabChange immediately on mode-pill press when haptics are enabled', () => {
     jest.useFakeTimers();
     const onModeChange = jest.fn();
     const { getByTestId } = renderHeader({
@@ -257,7 +257,7 @@ describe('PerpsMarketHeader', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(onModeChange).not.toHaveBeenCalled();
 
     act(() => {
@@ -265,7 +265,7 @@ describe('PerpsMarketHeader', () => {
     });
 
     expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
-    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
   });
 
   it('renders the filled star when the market is favorited', () => {
