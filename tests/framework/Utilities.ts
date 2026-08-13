@@ -153,6 +153,24 @@ export default class Utilities {
   }
 
   /**
+   * Read text content from an element.
+   */
+  static async getElementText(elem: EncapsulatedElementType): Promise<string> {
+    if (FrameworkDetector.isAppium()) {
+      const playwrightElement = await asPlaywrightElement(elem);
+      return playwrightElement.textContent();
+    }
+
+    const detoxElement = (await elem) as Detox.IndexableNativeElement;
+    const attributes = (await detoxElement.getAttributes()) as {
+      text?: string;
+      label?: string;
+    };
+
+    return attributes.text ?? attributes.label ?? '';
+  }
+
+  /**
    * Check if element is actually tappable (not obscured by other elements)
    * Android-specific check for element obscuration
    */
