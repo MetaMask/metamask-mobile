@@ -68,12 +68,9 @@ jest.mock('../../UI/Predict/hooks/usePredictToastRegistrations', () => ({
   usePredictToastRegistrations: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock(
-  '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations',
-  () => ({
-    useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
-  }),
-);
+jest.mock('../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations', () => ({
+  useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
+}));
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
 jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
@@ -190,10 +187,10 @@ jest.mock(
   '../../UI/TokenDetails/components/SecurityBadgeBottomSheet',
   () => () => <MockView testID="mock-security-badge" />,
 );
-jest.mock('../../../components/UI/DeleteWalletModal', () => () => (
+jest.mock('../../UI/DeleteWalletModal', () => () => (
   <MockView testID="mock-delete-wallet" />
 ));
-jest.mock('../../../components/Views/AccountActions', () => () => (
+jest.mock('../../Views/AccountActions', () => () => (
   <MockView testID="mock-account-actions" />
 ));
 jest.mock('../../Views/EditAccountName/EditAccountName', () => () => (
@@ -304,7 +301,7 @@ jest.mock('../../../util/trace', () => ({
 const mockCheckIsSeedlessPasswordOutdated = jest
   .fn()
   .mockResolvedValue(undefined);
-jest.mock('../../../core/', () => ({
+jest.mock('../../../core', () => ({
   Authentication: {
     checkIsSeedlessPasswordOutdated: (...args: unknown[]) =>
       mockCheckIsSeedlessPasswordOutdated(...args),
@@ -379,7 +376,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
-jest.mock('../../../components/hooks/useAsyncResult', () => ({
+jest.mock('../../hooks/useAsyncResult', () => ({
   useAsyncResultOrThrow: jest.fn().mockResolvedValue({
     pending: false,
     value: {},
@@ -387,16 +384,13 @@ jest.mock('../../../components/hooks/useAsyncResult', () => ({
 }));
 
 // Mock 7702 networks
-jest.mock(
-  '../../../components/Views/confirmations/hooks/7702/useEIP7702Networks',
-  () => ({
-    useEIP7702Networks: jest.fn().mockReturnValue({
-      network7702List: [],
-      networkSupporting7702Present: false,
-      pending: false,
-    }),
+jest.mock('../../Views/confirmations/hooks/7702/useEIP7702Networks', () => ({
+  useEIP7702Networks: jest.fn().mockReturnValue({
+    network7702List: [],
+    networkSupporting7702Present: false,
+    pending: false,
   }),
-);
+}));
 
 jest.mock('../../../core/Multichain/networks', () => ({
   getMultichainBlockExplorer: jest.fn().mockReturnValue({
