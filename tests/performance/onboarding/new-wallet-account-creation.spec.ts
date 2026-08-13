@@ -29,7 +29,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import ProtectYourWalletModal from '../../page-objects/Onboarding/ProtectYourWalletModal.js';
 
 const dismissProtectWalletModalIfPresent = async (): Promise<void> => {
-  const modal = asPlaywrightElement(ProtectYourWalletModal.container);
+  const modal = await asPlaywrightElement(ProtectYourWalletModal.container);
 
   try {
     if (!(await modal.isVisible())) {
@@ -40,7 +40,7 @@ const dismissProtectWalletModalIfPresent = async (): Promise<void> => {
   }
 
   await PlaywrightGestures.waitAndTap(
-    asPlaywrightElement(
+    await asPlaywrightElement(
       PlaywrightMatchers.getElementByText('Protect wallet', true),
     ),
   );
