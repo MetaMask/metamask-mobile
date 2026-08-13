@@ -23,7 +23,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { apyDigitCount } from '../../utils/riveApy';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
@@ -274,7 +274,7 @@ const MoneyOnboardingView = () => {
     component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
   });
 
-  const { apyPercent, apyPercentFormatted } = useMoneyAccountBalance();
+  const { apyPercent, apyPercentFormatted } = useMoneyVaultApy();
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
   const { initiateDeposit } = useMoneyAccountDeposit();
 

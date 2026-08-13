@@ -11,7 +11,11 @@ import {
   describeForPlatforms,
   itForPlatforms,
 } from '../../../../../../tests/component-view/platform';
-import { createFundedAccountForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import {
+  createFundedAccountForViews,
+  createLongPositionForViews,
+} from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import { strings } from '../../../../../../locales/i18n';
 import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -110,6 +114,85 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(slider, 'dragEnd', 50);
 
       await waitFor(() => expect(sizeInput).toHaveProp('value', previewValue));
+    },
+  );
+
+  itForPlatforms(
+    'blocks reduce-only orders when there is no open position',
+    async () => {
+      renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+          positions: [],
+          orders: [],
+        },
+      });
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`${ids.NOTICE}-reduce-only`),
+        ).toHaveTextContent(
+          strings('perps.order.validation.reduce_only_no_position'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      });
+    },
+  );
+
+  itForPlatforms(
+    'blocks reduce-only orders that match the open position direction',
+    async () => {
+      renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+          positions: [createLongPositionForViews()],
+          orders: [],
+        },
+      });
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`${ids.NOTICE}-reduce-only`),
+        ).toHaveTextContent(
+          strings('perps.order.validation.reduce_only_wrong_side'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      });
+    },
+  );
+
+  itForPlatforms(
+    'blocks reduce-only orders when size exceeds the open position',
+    async () => {
+      renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('100000'),
+          positions: [createLongPositionForViews({ size: '-1' })],
+          orders: [],
+        },
+      });
+      const sizeInput = await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+      fireEvent.changeText(sizeInput, '3000');
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`${ids.NOTICE}-reduce-only`),
+        ).toHaveTextContent(
+          strings('perps.order.validation.reduce_only_too_large'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      });
     },
   );
 });

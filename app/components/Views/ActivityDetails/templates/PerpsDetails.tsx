@@ -30,8 +30,8 @@ import {
   ActivityDetailsPerpsStepTimeline,
   ActivityDetailsStatus,
   ActivityDetailsTemplateFrame,
-  formatActivityTokenAmount,
   useActivityPayFiat,
+  useFormatActivityTokenAmount,
 } from '../components';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import {
@@ -382,7 +382,9 @@ function FundsDetails({
           symbol={depositWithdrawal.asset}
         />
       }
-      metadata={<ActivityDetailsPerpsMetadata item={item} />}
+      metadata={
+        <ActivityDetailsPerpsMetadata item={item} isDeposit={isDeposit} />
+      }
       details={
         <PerpsFundsDetailsBody
           pay={isDeposit ? pay : undefined}
@@ -415,6 +417,7 @@ function FundsDetails({
 function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
   const openPerpsHome = useNavigateToPerpsHome();
   const pay = useActivityPayFiat(item);
+  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const isDeposit = item.type === 'perpsAddFunds';
   const token = 'token' in item.data ? item.data.token : undefined;
 
@@ -427,7 +430,9 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
           symbol={token?.symbol}
         />
       }
-      metadata={<ActivityDetailsPerpsMetadata item={item} />}
+      metadata={
+        <ActivityDetailsPerpsMetadata item={item} isDeposit={isDeposit} />
+      }
       details={
         <PerpsFundsDetailsBody
           pay={isDeposit ? pay : undefined}

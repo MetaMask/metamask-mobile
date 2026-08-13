@@ -95,11 +95,16 @@ describe('usePerpsProSizeInput', () => {
   });
 
   it('finalizes a trailing USD decimal on blur', () => {
-    const params = createParams();
-    const { result } = renderHook(() => usePerpsProSizeInput(params));
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams() },
+    );
+
     act(() => {
       result.current.sizeInput.onChange('12.');
     });
+
+    rerender(createParams({ usdAmount: '12.' }));
 
     act(() => {
       result.current.sizeInput.onBlur();
@@ -107,6 +112,19 @@ describe('usePerpsProSizeInput', () => {
 
     expect(result.current.sizeInput.value).toBe('12');
     expect(mockSetAmount).toHaveBeenLastCalledWith('12');
+  });
+
+  it('does not update USD amount on blur when already finalized', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ usdAmount: '12' })),
+    );
+
+    act(() => {
+      result.current.sizeInput.onBlur();
+    });
+
+    expect(result.current.sizeInput.value).toBe('12');
+    expect(mockSetAmount).not.toHaveBeenCalled();
   });
 
   it('does not leave a pending commit after an unchanged USD blur', () => {

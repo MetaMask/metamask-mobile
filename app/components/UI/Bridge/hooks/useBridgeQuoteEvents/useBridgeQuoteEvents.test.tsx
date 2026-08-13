@@ -3,11 +3,12 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { RequestStatus, toQuoteResponseV2 } from '@metamask/bridge-controller';
 import {
   selectBridgeQuotes,
   selectControllerFields,
 } from '../../../../../core/redux/slices/bridge';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -21,6 +22,13 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
 }));
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
+
+const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 describe('useBridgeQuoteEvents', () => {
   const expectedQuotesReceivedProperties = {
@@ -58,7 +66,7 @@ describe('useBridgeQuoteEvents', () => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
         quoteFetchError: null,
-        quotes: [mockQuoteWithMetadata],
+        quotes: [toQuoteResponseV2(mockQuoteWithMetadata)],
         quotesRefreshCount: 1,
         ...stateOverrides,
       };
@@ -84,6 +92,40 @@ describe('useBridgeQuoteEvents', () => {
       ).not.toHaveBeenCalled();
     },
   );
+
+  it('ends the quote trace when the first quote arrives during streaming', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: RequestStatus.LOADING,
+        quoteFetchError: null,
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 0,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+    });
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).not.toHaveBeenCalled();
+  });
 
   it.each([
     [{ hasNoQuotesAvailable: true }, ['no_quotes']],
@@ -138,6 +180,73 @@ describe('useBridgeQuoteEvents', () => {
         ...expectedQuotesReceivedProperties,
         warnings,
       });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.SwapQuoteFetch,
+        timestamp: expect.any(Number),
+      });
     },
   );
+
+  it('ends the quote trace when a completed request has no quotes', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+        quotes: [],
+        quotesRefreshCount: 1,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: true,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+    });
+  });
+
+  it('ends the quote trace when quote fetching fails', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: 'Error fetching quotes',
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 1,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+      data: { success: false },
+    });
+  });
 });

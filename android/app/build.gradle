@@ -201,11 +201,12 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "8.7.0"
+        versionName "8.8.0"
         versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
+        // Still needed so E2E CI can assemble*AndroidTest (artifact cache/reuse).
+        // Detox flavor dimension (`missingDimensionStrategy 'detox'`) removed in MMQA-2230.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        missingDimensionStrategy 'detox', 'full'
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
         manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
 
@@ -321,9 +322,9 @@ android {
         release {
             manifestPlaceholders.isDebug = false
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
-            testProguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
+            testProguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
 
@@ -421,27 +422,14 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
+    // Minimal androidTest deps so assemble*AndroidTest still produces the CI
+    // androidTest APK artifact. Detox instrumentation was removed (MMQA-2230);
+    // Appium drives the app APK.
     androidTestImplementation 'androidx.test:core:1.5.0'
-    androidTestImplementation 'androidx.test:core-ktx:1.5.0'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
 
     // Hermes is the default (and only bundled) JS engine in React Native 0.83+.
     // JSC was removed from core, so we always link Hermes.
     implementation("com.facebook.react:hermes-android")
-    // Detox's AAR still reflects Espresso UiControllerImpl.eventInjector, but its POM pulls
-    // espresso-* 3.6.x where that field was removed. Exclude Espresso from Detox and pin 3.5.1.
-    androidTestImplementation(project(path: ":detox")) {
-        exclude module: 'protobuf-lite'
-        exclude group: 'androidx.test.espresso', module: 'espresso-core'
-        exclude group: 'androidx.test.espresso', module: 'espresso-web'
-        exclude group: 'androidx.test.espresso', module: 'espresso-contrib'
-    }
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-web:3.5.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
-    // Add these dependencies for androidTest
-    androidTestImplementation "com.google.guava:guava:31.1-android"
-    androidTestImplementation "org.ow2.asm:asm:9.4"
-    androidTestImplementation "net.java.dev.jna:jna:5.12.1"
-    androidTestImplementation "net.java.dev.jna:jna-platform:5.12.1"
-    androidTestImplementation "org.opentest4j:opentest4j:1.2.0"
 }

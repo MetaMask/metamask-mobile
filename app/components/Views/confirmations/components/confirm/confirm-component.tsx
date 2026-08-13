@@ -12,7 +12,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
@@ -44,6 +44,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -128,6 +129,7 @@ const ConfirmWrapped = ({
               </TouchableWithoutFeedback>
             </ScrollView>
             <Footer />
+            <MmPayDebugFloatingButton />
           </QRHardwareContextProvider>
         </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
@@ -203,12 +205,7 @@ export const Confirm = ({
   }
 
   return (
-    <BottomSheet
-      onClose={() => onReject()}
-      shouldNavigateBack={false}
-      style={styles.bottomSheetDialogSheet}
-      testID={ConfirmationUIType.MODAL}
-    >
+    <BottomSheet onClose={() => onReject()} testID={ConfirmationUIType.MODAL}>
       <View testID={approvalRequest?.type} style={styles.confirmContainer}>
         <ConfirmWrapped styles={styles} route={route} />
       </View>

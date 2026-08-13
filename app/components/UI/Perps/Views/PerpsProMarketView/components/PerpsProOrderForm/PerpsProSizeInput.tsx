@@ -146,7 +146,7 @@ const PerpsProSizeInput = ({
         <Box twClassName="absolute right-3 top-3 z-10">
           <ButtonIcon
             iconName={IconName.SwapHorizontal}
-            size={ButtonIconSize.Xs}
+            size={ButtonIconSize.Sm}
             isDisabled={!canPressDenominationToggle}
             onPress={
               canPressDenominationToggle ? handleToggleDenomination : undefined

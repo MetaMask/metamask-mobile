@@ -85,6 +85,8 @@ const clampSliderUsdAmount = (
   return Math.floor(clamped).toString();
 };
 
+const isEmptyUsdAmount = (value: string) => value === '' || value === '0';
+
 const getSliderDisplayValue = (
   usdAmount: string,
   maxPossibleAmount: number,
@@ -147,7 +149,12 @@ export const usePerpsProSizeInput = ({
 
   const commitUsdAmount = useCallback(
     (nextUsdAmount: string) => {
-      if (new BigNumber(nextUsdAmount || 0).eq(new BigNumber(usdAmount || 0))) {
+      if (nextUsdAmount === usdAmount) {
+        pendingInternalUsdRef.current = null;
+        return false;
+      }
+
+      if (isEmptyUsdAmount(nextUsdAmount) && isEmptyUsdAmount(usdAmount)) {
         pendingInternalUsdRef.current = null;
         return false;
       }

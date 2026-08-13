@@ -6,7 +6,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import {
   Box,
-  BottomSheetFooter,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -277,18 +276,6 @@ const PerpsAdjustMarginView: React.FC = () => {
     marginAmount > flooredMaxAmount ||
     Boolean(validationErrors.length);
 
-  const confirmButtonProps = useMemo(
-    () => ({
-      children: buttonLabel,
-      onPress: handleConfirm,
-      size: ButtonSize.Lg,
-      isDisabled: isConfirmDisabled,
-      isLoading: isAdjusting,
-      testID: PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON,
-    }),
-    [buttonLabel, handleConfirm, isConfirmDisabled, isAdjusting],
-  );
-
   // Show error if no position found (either from route or live data)
   if ((!routePosition && !position) || !mode) {
     return (
@@ -509,7 +496,19 @@ const PerpsAdjustMarginView: React.FC = () => {
       <Box twClassName="w-full pb-4">
         {!isInputFocused && Summary}
         {!isInputFocused && (
-          <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
+          <Box twClassName="px-4 pt-2">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              twClassName="w-full"
+              onPress={handleConfirm}
+              isDisabled={isConfirmDisabled}
+              isLoading={isAdjusting}
+              testID={PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON}
+            >
+              {buttonLabel}
+            </Button>
+          </Box>
         )}
       </Box>
 

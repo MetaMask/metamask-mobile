@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  DEFAULT_PRO_POSITION_SORT,
   PRO_POSITION_SORT_OPTIONS,
   type ProPositionSortConfig,
 } from '../utils/proPositionSort';
@@ -29,6 +30,7 @@ const PerpsProPositionsSortSheet = ({
     options={PRO_POSITION_SORT_OPTIONS}
     onApply={onApply}
     onClose={onClose}
+    onClear={() => onApply(DEFAULT_PRO_POSITION_SORT)}
     testID={testID}
   />
 );

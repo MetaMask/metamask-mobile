@@ -180,6 +180,18 @@ export default class ChromeCdpHelpers {
    * Forward host → device Chrome DevTools abstract socket.
    */
   private static ensureAdbForward(port = CDP_FORWARD_PORT): void {
+    this.ensureAdbForwardToAbstractSocket(port, 'chrome_devtools_remote');
+    logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
+  }
+
+  /**
+   * Replace any existing `adb forward` for `port` so rediscovery cannot leave
+   * the host port pointed at a dead abstract socket ("already forwarded").
+   */
+  private static ensureAdbForwardToAbstractSocket(
+    port: number,
+    abstractSocket: string,
+  ): void {
     try {
       execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
         stdio: 'pipe',
@@ -189,10 +201,9 @@ export default class ChromeCdpHelpers {
     }
     execFileSync(
       'adb',
-      ['forward', `tcp:${port}`, 'localabstract:chrome_devtools_remote'],
+      ['forward', `tcp:${port}`, `localabstract:${abstractSocket}`],
       { stdio: 'pipe' },
     );
-    logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
   }
 
   /**
@@ -342,6 +353,33 @@ export default class ChromeCdpHelpers {
     });
   }
 
+  private static elementEnabledExpression(elementId: string): string {
+    return `(() => {
+      const el = document.getElementById(${JSON.stringify(elementId)});
+      if (!el) return false;
+      if ('disabled' in el && Boolean(el.disabled)) return false;
+      if (el.getAttribute('aria-disabled') === 'true') return false;
+      return true;
+    })()`;
+  }
+
+  private static async waitForEnabledInSession(
+    session: CdpSession,
+    elementId: string,
+    timeoutMs: number,
+  ): Promise<void> {
+    const isEnabledExpression = this.elementEnabledExpression(elementId);
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const ready = await session.evaluate<boolean>(isEnabledExpression);
+      if (ready) return;
+      await new Promise<void>((r) => setTimeout(r, POLL_MS));
+    }
+    throw new Error(
+      `Timed out after ${timeoutMs}ms waiting for #${elementId} to be enabled`,
+    );
+  }
+
   private static async dispatchTrustedClickById(
     session: CdpSession,
     elementId: string,
@@ -350,6 +388,9 @@ export default class ChromeCdpHelpers {
       `(() => {
         const el = document.getElementById(${JSON.stringify(elementId)});
         if (!el || typeof el.click !== 'function') return false;
+        // Disabled controls ignore HTMLElement.click(); treat as miss.
+        if ('disabled' in el && Boolean(el.disabled)) return false;
+        if (el.getAttribute('aria-disabled') === 'true') return false;
         el.scrollIntoView({ block: 'center', inline: 'center' });
         el.click();
         return true;
@@ -359,6 +400,18 @@ export default class ChromeCdpHelpers {
     if (!clicked) {
       throw new Error(`CDP: could not click #${elementId}`);
     }
+  }
+
+  /**
+   * Wait until `#elementId` is DOM-enabled, then trusted-click (same CDP session).
+   */
+  private static async waitForEnabledAndClickById(
+    session: CdpSession,
+    elementId: string,
+    timeoutMs = DAPP_PAGE_TIMEOUT_MS,
+  ): Promise<void> {
+    await this.waitForEnabledInSession(session, elementId, timeoutMs);
+    await this.dispatchTrustedClickById(session, elementId);
   }
 
   private static async installDeeplinkCapture(
@@ -769,16 +822,17 @@ export default class ChromeCdpHelpers {
   private static async resolveMetaMaskWebViewEndpoint(): Promise<string> {
     if (this.cachedMmWebViewSocket) {
       try {
-        execFileSync(
-          'adb',
-          [
-            'forward',
-            `tcp:${this.MM_WV_CDP_PORT}`,
-            `localabstract:${this.cachedMmWebViewSocket}`,
-          ],
-          { stdio: 'pipe' },
+        this.ensureAdbForwardToAbstractSocket(
+          this.MM_WV_CDP_PORT,
+          this.cachedMmWebViewSocket,
         );
-        return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+        const endpoint = `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+        // adb forward succeeds even when the abstract socket is gone — probe CDP.
+        const response = await fetch(`${endpoint}/json/version`);
+        if (response.ok) {
+          return endpoint;
+        }
+        this.cachedMmWebViewSocket = null;
       } catch {
         this.cachedMmWebViewSocket = null;
       }
@@ -796,19 +850,7 @@ export default class ChromeCdpHelpers {
     if (!mmCtx?.proc) throw new Error('MetaMask WebView CDP context not found');
 
     const socketName = mmCtx.proc.replace(/^@/, '');
-    try {
-      execFileSync(
-        'adb',
-        [
-          'forward',
-          `tcp:${this.MM_WV_CDP_PORT}`,
-          `localabstract:${socketName}`,
-        ],
-        { stdio: 'pipe' },
-      );
-    } catch {
-      // may already be forwarded
-    }
+    this.ensureAdbForwardToAbstractSocket(this.MM_WV_CDP_PORT, socketName);
     this.cachedMmWebViewSocket = socketName;
     return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
   }
@@ -817,18 +859,25 @@ export default class ChromeCdpHelpers {
     dappUrl: string,
     fn: (session: CdpSession) => Promise<T>,
   ): Promise<T> {
-    const endpoint = await this.resolveMetaMaskWebViewEndpoint();
-    const target = await this.waitForCdpTarget(endpoint, dappUrl);
-    if (!target.webSocketDebuggerUrl) {
-      throw new Error(
-        `MetaMask WebView CDP target for ${dappUrl} has no webSocketDebuggerUrl`,
-      );
-    }
-    const session = await CdpSession.connect(target.webSocketDebuggerUrl);
     try {
-      return await fn(session);
-    } finally {
-      session.close();
+      const endpoint = await this.resolveMetaMaskWebViewEndpoint();
+      const target = await this.waitForCdpTarget(endpoint, dappUrl);
+      if (!target.webSocketDebuggerUrl) {
+        throw new Error(
+          `MetaMask WebView CDP target for ${dappUrl} has no webSocketDebuggerUrl`,
+        );
+      }
+      const session = await CdpSession.connect(target.webSocketDebuggerUrl);
+      try {
+        return await fn(session);
+      } finally {
+        session.close();
+      }
+    } catch (error) {
+      // Stale webview_devtools_remote_<pid> after app restart / fixture reuse
+      // otherwise burns the full CDP target timeout on a dead socket.
+      this.resetMetaMaskWebViewCache();
+      throw error;
     }
   }
 
@@ -868,19 +917,32 @@ export default class ChromeCdpHelpers {
 
   /**
    * Click an element by HTML `id` in the MetaMask in-app WebView.
+   * Waits until the control exists and is not disabled (test-dapp buttons start
+   * disabled until connect / contract deploy), then clicks.
    * Android: CDP trusted click. iOS: Appium WebView context + element.click().
    */
   static async clickByIdInWebView(
     dappUrl: string,
     elementId: string,
+    timeoutMs = DAPP_PAGE_TIMEOUT_MS,
   ): Promise<boolean> {
     if (PlatformDetector.isAndroid()) {
       try {
         await this.withMetaMaskWebViewSession(dappUrl, (session) =>
-          this.dispatchTrustedClickById(session, elementId),
+          this.waitForEnabledAndClickById(session, elementId, timeoutMs),
         );
         return true;
-      } catch {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.debug(`clickByIdInWebView failed for #${elementId}: ${message}`);
+        // Surface enable timeouts — native UiAutomator fallback cannot fix a
+        // control that never becomes DOM-enabled.
+        if (
+          message.includes('Timed out after') &&
+          message.includes('to be enabled')
+        ) {
+          throw error;
+        }
         return false;
       }
     }
@@ -888,6 +950,8 @@ export default class ChromeCdpHelpers {
     try {
       await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
       const el = getDriver().$(`#${elementId}`);
+      await el.waitForExist({ timeout: timeoutMs });
+      await el.waitForEnabled({ timeout: timeoutMs });
       await el.scrollIntoView();
       await el.click();
       await PlaywrightContextHelpers.switchToNativeContext();
@@ -936,6 +1000,50 @@ export default class ChromeCdpHelpers {
       );
       return null;
     }
+  }
+
+  /**
+   * Poll until `#elementId` exists and is not disabled / aria-disabled.
+   * Android: CDP. iOS: Appium WebView context.
+   */
+  static async waitForElementEnabledByIdInWebView(
+    dappUrl: string,
+    elementId: string,
+    timeoutMs = DAPP_PAGE_TIMEOUT_MS,
+  ): Promise<void> {
+    const isEnabledExpression = this.elementEnabledExpression(elementId);
+    const deadline = Date.now() + timeoutMs;
+
+    if (PlatformDetector.isAndroid()) {
+      await this.withMetaMaskWebViewSession(dappUrl, (session) =>
+        this.waitForEnabledInSession(session, elementId, timeoutMs),
+      );
+      return;
+    }
+
+    try {
+      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      while (Date.now() < deadline) {
+        const ready = (await getDriver().execute(
+          `return (${isEnabledExpression})`,
+        )) as boolean;
+        if (ready) {
+          await PlaywrightContextHelpers.switchToNativeContext();
+          return;
+        }
+        await new Promise<void>((r) => setTimeout(r, POLL_MS));
+      }
+      await PlaywrightContextHelpers.switchToNativeContext();
+    } catch (error) {
+      await PlaywrightContextHelpers.switchToNativeContext().catch(
+        () => undefined,
+      );
+      throw error;
+    }
+
+    throw new Error(
+      `Timed out after ${timeoutMs}ms waiting for #${elementId} to be enabled`,
+    );
   }
 
   /**

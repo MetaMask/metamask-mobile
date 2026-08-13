@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import type { ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import BottomSheet, {
@@ -149,17 +148,19 @@ export default function NetworkListBottomSheet({
         }}
       />
 
-      <FlashList
-        data={filteredNetworkConfigurations}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
+      <Box
         style={tw.style(
+          'grow shrink flex-row min-h-[200px]',
           `max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`,
         )}
-        renderScrollComponent={
-          ScrollView as React.ComponentType<ScrollViewProps>
-        }
-      />
+      >
+        <FlashList
+          data={filteredNetworkConfigurations}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          renderScrollComponent={ScrollView}
+        />
+      </Box>
     </BottomSheet>
   );
 }

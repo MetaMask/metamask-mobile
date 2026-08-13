@@ -6,13 +6,12 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import {
+  BottomSheetFooter,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+  ButtonsAlignment,
+  IconName,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -193,30 +192,6 @@ export const Footer = () => {
     (isMMPayTransaction && isPayAmountStale) ||
     isGaslessLoading;
 
-  const buttons = [
-    {
-      variant: ButtonVariants.Secondary,
-      label: strings('confirm.cancel'),
-      size: ButtonSize.Lg,
-      onPress: () =>
-        onReject(providerErrors.userRejectedRequest(), undefined, isMMSendReq),
-      testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
-    },
-    {
-      variant: ButtonVariants.Primary,
-      isDanger:
-        !isPayLoading &&
-        (securityAlertResponse?.result_type === ResultType.Malicious ||
-          hasDangerAlerts),
-      isDisabled: isConfirmDisabled,
-      label: confirmButtonLabel(),
-      size: ButtonSize.Lg,
-      onPress: onSignConfirm,
-      testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-      startIconName: getStartIcon(),
-    },
-  ];
-
   const isFooterVisible =
     isFooterVisibleFlag ??
     (!transactionMetadata ||
@@ -246,7 +221,29 @@ export const Footer = () => {
       )}
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={buttons}
+        secondaryButtonProps={{
+          children: strings('confirm.cancel'),
+          size: ButtonSize.Lg,
+          onPress: () =>
+            onReject(
+              providerErrors.userRejectedRequest(),
+              undefined,
+              isMMSendReq,
+            ),
+          testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
+        }}
+        primaryButtonProps={{
+          children: confirmButtonLabel(),
+          size: ButtonSize.Lg,
+          onPress: onSignConfirm,
+          isDisabled: isConfirmDisabled,
+          isDanger:
+            !isPayLoading &&
+            (securityAlertResponse?.result_type === ResultType.Malicious ||
+              hasDangerAlerts),
+          startIconName: getStartIcon(),
+          testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+        }}
         style={styles.base}
       />
       {isStakingConfirmationBool && (

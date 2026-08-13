@@ -77,6 +77,8 @@ interface PerpsProPositionsPanelProps {
     market: PerpsMarketData | Partial<PerpsMarketData>,
     sourceSection: ProPositionsPanelSourceSection,
   ) => void;
+  /** Navigates to the order history screen. */
+  onHistoryPress?: () => void;
 }
 
 /**
@@ -96,6 +98,7 @@ interface PerpsProPositionsPanelProps {
 const PerpsProPositionsPanel = ({
   symbol,
   onSelectMarket,
+  onHistoryPress,
 }: PerpsProPositionsPanelProps) => {
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
@@ -289,6 +292,10 @@ const PerpsProPositionsPanel = ({
           <PerpsProUnrealizedPnl
             unrealizedPnl={aggregateTotals.unrealizedPnl}
             returnOnEquity={aggregateTotals.returnOnEquity}
+            positionCount={sideFilteredPositions.length}
+            isFiltered={
+              isTickerOnly || sideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER
+            }
             onCloseAll={handleCloseAllPress}
           />
           {sortedVisiblePositions.map((position) => (
@@ -393,30 +400,51 @@ const PerpsProPositionsPanel = ({
           reads as extra padding on the tab labels. Pull it back in with a
           matching negative margin instead of touching the shared component's
           own padding (used by other tab bars across the app). */}
-      <TabsBar
-        tabs={tabs}
-        activeIndex={activeIndex}
-        onTabPress={setActiveIndex}
-        twClassName="-mx-2"
-        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
-      />
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-3 px-2 pt-3"
+        twClassName="pr-2"
+      >
+        <Box twClassName="flex-1">
+          <TabsBar
+            tabs={tabs}
+            activeIndex={activeIndex}
+            onTabPress={setActiveIndex}
+            twClassName="-mx-2"
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
+          />
+        </Box>
+        {onHistoryPress ? (
+          <ButtonIcon
+            iconName={IconName.Clock}
+            size={ButtonIconSize.Md}
+            onPress={onHistoryPress}
+            accessibilityLabel={strings(
+              'perps.pro_positions_panel.order_history',
+            )}
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_HISTORY_BUTTON}
+          />
+        ) : null}
+      </Box>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2 px-2 pt-3"
         accessible={false}
       >
-        <ButtonIcon
-          iconName={IconName.Customize}
-          accessibilityLabel={strings(
-            activeIndex === ORDERS_TAB_INDEX
-              ? 'perps.pro_positions_panel.sort.orders_settings_accessibility'
-              : 'perps.pro_positions_panel.sort.settings_accessibility',
-          )}
-          size={ButtonIconSize.Md}
-          onPress={() => setIsSortSheetOpen(true)}
-          testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
-        />
+        <Box twClassName="bg-muted rounded-lg">
+          <ButtonIcon
+            iconName={IconName.Customize}
+            accessibilityLabel={strings(
+              activeIndex === ORDERS_TAB_INDEX
+                ? 'perps.pro_positions_panel.sort.orders_settings_accessibility'
+                : 'perps.pro_positions_panel.sort.settings_accessibility',
+            )}
+            size={ButtonIconSize.Md}
+            onPress={() => setIsSortSheetOpen(true)}
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
+          />
+        </Box>
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
@@ -426,12 +454,14 @@ const PerpsProPositionsPanel = ({
         >
           {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
         </Button>
-        {renderTickerOnlyCheckbox()}
+        <Box twClassName="bg-muted rounded-lg px-2 py-1">
+          {renderTickerOnlyCheckbox()}
+        </Box>
       </Box>
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets()}
+      {renderActionSheets(sideFilteredPositions)}
       {activeIndex === ORDERS_TAB_INDEX ? (
         <PerpsProOrdersSortSheet
           isVisible={isSortSheetOpen}

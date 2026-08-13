@@ -48,6 +48,7 @@ import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import useMoneyAccountCardLinkage from './useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { useCardHomeData } from './useCardHomeData';
 import {
   ToastContext,
@@ -181,10 +182,9 @@ const useSpendingLimit = ({
     confirmLinkInBackground: confirmMoneyAccountLinkInBackground,
     canLink: canLinkMoneyAccount,
   } = useMoneyAccountCardLinkage();
-  const {
-    totalFiatFormatted: moneyAccountTotalFiatFormatted,
-    apyPercent: moneyAccountApyPercent,
-  } = useMoneyAccountBalance();
+  const { totalFiatFormatted: moneyAccountTotalFiatFormatted } =
+    useMoneyAccountBalance();
+  const { apyPercent: moneyAccountApyPercent } = useMoneyVaultApy();
 
   const { data: cardHomeData } = useCardHomeData();
   const hasMetalCard = cardHomeData?.card?.type === CardType.METAL;
@@ -597,8 +597,12 @@ const useSpendingLimit = ({
 
   // Navigation helpers
   const navigateToCardHome = useCallback(() => {
-    navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
-  }, [navigation]);
+    navigation.dispatch(
+      StackActions.replace(Routes.CARD.HOME, {
+        fromCardOnboarding: isOnboardingFlow,
+      }),
+    );
+  }, [navigation, isOnboardingFlow]);
 
   // Actions
   const submit = useCallback(async () => {

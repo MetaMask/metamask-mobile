@@ -2,20 +2,10 @@ import { ApproveComponentIDs } from '../../../app/components/Views/confirmations
 import { TEXTFIELD_TEST_ID } from '../../../app/component-library/components/Form/TextField/TextField.constants';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import {
-  EncapsulatedElementType,
-  asPlaywrightElement,
-  encapsulated,
-  encapsulatedAction,
-  PlatformDetector,
-  PlaywrightGestures,
-  PlaywrightMatchers,
-} from '../../framework';
+import { EncapsulatedElementType, PlatformDetector } from '../../framework';
 
-/** Modal title — tap to dismiss number pad without hitting the backdrop (cancel). */
 const EDIT_SPENDING_CAP_MODAL_TITLE = 'Edit approval limit';
 
-// This components are used to check the approve confirmation specific components in the confirmation modal
 class TokenApproveConfirmation {
   get SpendingCapValue(): EncapsulatedElementType {
     return Matchers.getElementByID(ApproveComponentIDs.SPENDING_CAP_VALUE);
@@ -28,21 +18,11 @@ class TokenApproveConfirmation {
   }
 
   get EditSpendingCapInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(TEXTFIELD_TEST_ID, {
-            exact: true,
-          }),
-      },
-    });
+    // iOS exposes the generic TextField id; Android uses the specific input id.
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByID(TEXTFIELD_TEST_ID);
+    }
+    return Matchers.getElementByID(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
   }
 
   get EditSpendingCapSaveButton(): EncapsulatedElementType {
@@ -54,68 +34,44 @@ class TokenApproveConfirmation {
   async tapEditSpendingCapButton(): Promise<void> {
     await Gestures.waitAndTap(this.EditSpendingCapButton, {
       elemDescription: 'Edit Spending Cap Button in Token Approve Confirmation',
-      // iOS BottomSheet children often report isDisplayed=false while visible.
       checkForDisplayed: false,
     });
   }
 
   async tapEditSpendingCapSaveButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.EditSpendingCapSaveButton, {
-          elemDescription:
-            'Edit Spending Cap Save Button in Token Approve Confirmation',
-        });
-      },
-      appium: async () => {
-        if (PlatformDetector.isIOS()) {
-          const title = await PlaywrightMatchers.getElementByText(
-            EDIT_SPENDING_CAP_MODAL_TITLE,
-          );
-          // Blur number pad via modal title (backdrop tap cancels the edit).
-          await PlaywrightGestures.waitAndTap(title, {
-            checkForDisplayed: false,
-          });
-        }
+    if (PlatformDetector.isIOS()) {
+      const title = Matchers.getElementByText(EDIT_SPENDING_CAP_MODAL_TITLE);
+      // Dismiss the number pad by tapping the modal title.
+      await Gestures.waitAndTap(title, {
+        checkForDisplayed: false,
+      });
+    }
 
-        await Gestures.waitAndTap(this.EditSpendingCapSaveButton, {
-          elemDescription:
-            'Edit Spending Cap Save Button in Token Approve Confirmation',
-          checkForDisplayed: false,
-        });
-      },
+    await Gestures.waitAndTap(this.EditSpendingCapSaveButton, {
+      elemDescription:
+        'Edit Spending Cap Save Button in Token Approve Confirmation',
+      checkForDisplayed: false,
     });
   }
 
   async inputSpendingCap(spendingCap: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.typeText(this.EditSpendingCapInput, spendingCap, {
-          elemDescription:
-            'Edit Spending Cap Input in Token Approve Confirmation',
-          hideKeyboard: true,
-        });
-      },
-      appium: async () => {
-        if (PlatformDetector.isIOS()) {
-          const input = await asPlaywrightElement(this.EditSpendingCapInput);
-          await PlaywrightGestures.waitAndTap(input, {
-            checkForDisplayed: false,
-          });
-          // Burst Delete clears the open edit-modal default on the number pad.
-          for (let i = 0; i < 3; i++) {
-            await PlaywrightGestures.tapIosKeyboardKey('Delete');
-          }
-          await PlaywrightGestures.typeViaIosKeyboard(spendingCap, {
-            numberPad: true,
-          });
-          return;
-        }
+    if (PlatformDetector.isIOS()) {
+      // Number-pad fields reject sendKeys/hideKeyboard; tap keys instead.
+      await Gestures.waitAndTap(this.EditSpendingCapInput, {
+        elemDescription: 'Edit Spending Cap Input (focus)',
+        checkForDisplayed: false,
+      });
+      for (let i = 0; i < 12; i++) {
+        await Gestures.tapIosKeyboardKey('Delete');
+      }
+      await Gestures.typeViaIosKeyboard(spendingCap, { numberPad: true });
+      return;
+    }
 
-        const el = await asPlaywrightElement(this.EditSpendingCapInput);
-        await el.fill(spendingCap);
-        await PlaywrightGestures.hideKeyboard();
-      },
+    await Gestures.typeText(this.EditSpendingCapInput, spendingCap, {
+      elemDescription: 'Edit Spending Cap Input in Token Approve Confirmation',
+      hideKeyboard: true,
+      clearFirst: true,
     });
   }
 }

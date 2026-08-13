@@ -31,6 +31,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ConfigRegistryApiService',
   'ChompApiService',
   'SentinelApiService',
+  'PredictNextController',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -42,7 +43,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AppMetadataController:stateChange',
   'AssetsController:stateChange',
   'ConnectivityController:stateChange',
-  'ConfigRegistryController:stateChange',
+  'ConfigRegistryController:stateChanged',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',

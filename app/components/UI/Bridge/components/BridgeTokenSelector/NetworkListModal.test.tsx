@@ -7,12 +7,22 @@ import {
   selectAllowedChainRanking,
   selectTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
+import { useABTest } from '../../../../../hooks';
+import { useChainValueOrder } from '../../hooks/useChainValueOrder';
 
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks', () => ({
+  useABTest: jest.fn(),
+}));
+
+jest.mock('../../hooks/useChainValueOrder', () => ({
+  useChainValueOrder: jest.fn(),
 }));
 
 jest.mock('../../../../../util/networks', () => ({
@@ -109,6 +119,12 @@ describe('NetworkListModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    jest.mocked(useABTest).mockReturnValue({
+      variant: { orderByValue: false },
+      variantName: 'control',
+      isActive: true,
+    });
+    jest.mocked(useChainValueOrder).mockReturnValue(mockChainRanking);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectAllowedChainRanking) {
@@ -122,6 +138,12 @@ describe('NetworkListModal', () => {
   });
 
   describe('rendering', () => {
+    it('does not calculate holdings order for control', () => {
+      render(<NetworkListModal />);
+
+      expect(useChainValueOrder).not.toHaveBeenCalled();
+    });
+
     it('renders the header with "Select network"', () => {
       const { getByText } = render(<NetworkListModal />);
       expect(getByText('Select network')).toBeTruthy();
@@ -138,6 +160,31 @@ describe('NetworkListModal', () => {
       expect(getByText('Ethereum')).toBeTruthy();
       expect(getByText('Polygon')).toBeTruthy();
       expect(getByText('Optimism')).toBeTruthy();
+    });
+
+    it('renders every network in holdings order for treatment', () => {
+      const treatmentRanking = [
+        mockChainRanking[2],
+        mockChainRanking[1],
+        mockChainRanking[0],
+      ];
+      jest.mocked(useABTest).mockReturnValue({
+        variant: { orderByValue: true },
+        variantName: 'treatment',
+        isActive: true,
+      });
+      jest.mocked(useChainValueOrder).mockReturnValue(treatmentRanking);
+
+      const { getAllByTestId } = render(<NetworkListModal />);
+
+      expect(
+        getAllByTestId(/^network-option-/).map(({ props }) => props.testID),
+      ).toEqual([
+        'network-option-all',
+        'network-option-eip155:10',
+        'network-option-eip155:137',
+        'network-option-eip155:1',
+      ]);
     });
   });
 

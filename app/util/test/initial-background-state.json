@@ -431,7 +431,10 @@
     "location": "UNKNOWN",
     "status": "loading",
     "lastFetchedAt": null,
-    "error": null
+    "error": null,
+    "country": null,
+    "region": null,
+    "timezone": null
   },
   "GasFeeController": {
     "gasFeeEstimates": {},
@@ -724,6 +727,7 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "providerUserId": null,
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
     "isAuthenticated": false,

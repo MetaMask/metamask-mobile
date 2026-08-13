@@ -27,6 +27,8 @@ export interface PerpsMarketHeaderProps {
    * target that opens the market list, and a trailing caret is shown.
    */
   onIdentityPress?: () => void;
+  /** Whether to render the market identity content in the header. */
+  showMarketIdentity?: boolean;
   /** When set, replaces the default right-side action row entirely. */
   endAccessory?: ReactNode;
   /** Default action row — ignored when `endAccessory` is provided. */

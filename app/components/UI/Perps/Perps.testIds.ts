@@ -502,6 +502,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_BOOK_EXPAND_BUTTON: 'perps-pro-market-order-book-expand',
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
   POSITIONS_PANEL_TABS: 'perps-pro-market-positions-panel-tabs',
+  POSITIONS_HISTORY_BUTTON: 'perps-pro-market-positions-history',
   POSITIONS_PANEL_TAB_POSITIONS:
     'perps-pro-market-positions-panel-tab-positions',
   POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
@@ -525,6 +526,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
   ORDER_SIZE_EDIT: 'perps-pro-market-order-size-edit',
   ORDER_ROW: 'perps-pro-market-order-row',
+  ORDER_DIRECTION_TAG: 'perps-pro-market-order-direction-tag',
   ORDER_TYPE: 'perps-pro-market-order-type',
 };
 
@@ -541,6 +543,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   DIRECTION_LONG: 'perps-pro-order-form-direction-long',
   DIRECTION_SHORT: 'perps-pro-order-form-direction-short',
   LEVERAGE_BUTTON: 'perps-pro-order-form-leverage',
+  MARGIN_MODE_BUTTON: 'perps-pro-order-form-margin-mode',
   ORDER_TYPE_BUTTON: 'perps-pro-order-form-order-type',
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
   LIMIT_PRICE_PREFIX: 'perps-pro-order-form-limit-price-prefix',
@@ -859,6 +862,13 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   LIMIT_OPTION: 'perps-order-type-limit',
 } as const;
 
+export const PerpsMarginModeBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-margin-mode-bottom-sheet',
+  CLOSE_BUTTON: 'perps-margin-mode-bottom-sheet-close',
+  ISOLATED_OPTION: 'perps-margin-mode-isolated',
+  CROSS_OPTION: 'perps-margin-mode-cross',
+} as const;
+
 export const PerpsLeverageBottomSheetSelectorsIDs = {
   SLIDER: 'perps-leverage-slider',
   SLIDER_INCOMING: 'perps-leverage-slider-incoming',
@@ -1048,11 +1058,16 @@ export const PerpsModeToggleSelectorsIDs = {
   PRO_SEGMENT: 'perps-mode-toggle-pro',
 } as const;
 
+export const PerpsModeSelectionBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-mode-selection-bottom-sheet',
+  TITLE: 'perps-mode-selection-bottom-sheet-title',
+  LITE_OPTION: 'perps-mode-selection-lite-option',
+  PRO_OPTION: 'perps-mode-selection-pro-option',
+  LITE_ICON: 'perps-mode-selection-lite-icon',
+  PRO_ICON: 'perps-mode-selection-pro-icon',
+  SELECTED_INDICATOR: 'perps-mode-selection-selected-indicator',
+} as const;
+
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================
-
-export const PerpsModeFlashSelectorsIDs = {
-  CONTAINER: 'perps-mode-flash',
-  TITLE: 'perps-mode-flash-title',
-} as const;
