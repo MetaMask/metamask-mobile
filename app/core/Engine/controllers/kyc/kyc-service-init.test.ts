@@ -72,4 +72,31 @@ describe('kycServiceInit', () => {
       env: 'development',
     });
   });
+
+  it('passes neobankBaseUrl for on-ramp wallet registration', () => {
+    mockIsProduction.mockReturnValue(false);
+    const previousEnv = process.env.METAMASK_ENVIRONMENT;
+    const previousNeobank = process.env.NEOBANK_API_URL;
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+    delete process.env.NEOBANK_API_URL;
+
+    try {
+      const { controller } = kycServiceInit(getInitRequestMock());
+
+      expect(controller).toMatchObject({
+        neobankBaseUrl: 'https://on-ramp.dev-api.cx.metamask.io',
+      });
+    } finally {
+      if (previousEnv === undefined) {
+        delete process.env.METAMASK_ENVIRONMENT;
+      } else {
+        process.env.METAMASK_ENVIRONMENT = previousEnv;
+      }
+      if (previousNeobank === undefined) {
+        delete process.env.NEOBANK_API_URL;
+      } else {
+        process.env.NEOBANK_API_URL = previousNeobank;
+      }
+    }
+  });
 });

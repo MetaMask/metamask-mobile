@@ -4,7 +4,10 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MockKycEmail from './MockKycEmail';
 import { MockKycEmailSelectorsIDs } from './MockKycEmail.testIds';
-import { startIronKycVerification } from './ironKycFlow';
+import {
+  registerSelectedMoneyAccountWallet,
+  startIronKycVerification,
+} from './ironKycFlow';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -18,13 +21,21 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('./ironKycFlow');
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn(), log: jest.fn() },
+}));
 
 const mockStartIronKycVerification = jest.mocked(startIronKycVerification);
+const mockRegisterSelectedMoneyAccountWallet = jest.mocked(
+  registerSelectedMoneyAccountWallet,
+);
 
 describe('MockKycEmail', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStartIronKycVerification.mockResolvedValue(undefined);
+    mockRegisterSelectedMoneyAccountWallet.mockResolvedValue(undefined);
   });
 
   it('navigates back when the header back button is pressed', () => {
@@ -48,6 +59,7 @@ describe('MockKycEmail', () => {
       expect(mockStartIronKycVerification).toHaveBeenCalledWith(
         'user@example.com',
       );
+      expect(mockRegisterSelectedMoneyAccountWallet).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('RampVbaMockKycSuccess');
     });
   });
@@ -77,6 +89,25 @@ describe('MockKycEmail', () => {
         'Iron session failed: consents.',
       );
     });
+    expect(mockRegisterSelectedMoneyAccountWallet).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('alerts but still navigates when wallet registration fails after KYC', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockRegisterSelectedMoneyAccountWallet.mockRejectedValue(
+      new Error('Wallet registration failed.'),
+    );
+    const { getByTestId } = renderWithProvider(<MockKycEmail />);
+
+    fireEvent.press(getByTestId(MockKycEmailSelectorsIDs.CONTINUE_BUTTON));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Identity verification',
+        'Wallet registration failed.',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith('RampVbaMockKycSuccess');
+    });
   });
 });

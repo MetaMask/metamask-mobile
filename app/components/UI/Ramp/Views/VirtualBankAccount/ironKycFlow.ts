@@ -1,3 +1,4 @@
+import type { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 
 // Demo Iron → Sumsub helpers for the VBA Get Pix Key flow.
@@ -6,6 +7,7 @@ import Engine from '../../../../../core/Engine';
 // (file:../core/... dep for @metamask/kyc-controller).
 // - After yarn: yarn pod:install (SumSub SNSDK Specs + RN module).
 // - Builds use KYC_API_URL=https://kyc-api.dev-api.cx.metamask.io (builds.yml).
+// - Wallet registration uses neobankBaseUrl → on-ramp.dev-api neobank-proxy.
 // - Caller must be signed in with a MetaMask profile JWT.
 
 // The VBA flow runs for Money, so the controller scopes its KYC-required check
@@ -77,4 +79,24 @@ export async function startIronKycVerification(email: string): Promise<void> {
       idosTncSigned: true,
     }),
   );
+}
+
+/**
+ * Registers the currently selected account as a Money Account wallet after KYC
+ * succeeds (Sumsub complete). Signs an ownership proof via KeyringController
+ * and posts through neobank-proxy.
+ *
+ * Callers should soft-fail: verification already succeeded, so a registration
+ * error should not block the success screen.
+ */
+export async function registerSelectedMoneyAccountWallet(): Promise<void> {
+  const selectedAccount =
+    Engine.context.AccountsController.getSelectedAccount();
+  const address = selectedAccount?.address as Hex | undefined;
+
+  if (!address) {
+    throw new Error('No selected account available to register.');
+  }
+
+  await Engine.context.KycController.registerMoneyAccountWallet({ address });
 }

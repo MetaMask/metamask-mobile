@@ -23,6 +23,27 @@ function getFractalEncryptionBaseUrl(): string {
 }
 
 /**
+ * Resolves the on-ramp / neobank-proxy host used for Money Account wallet
+ * registration. Override with `NEOBANK_API_URL` when needed for local demos.
+ *
+ * @returns The neobank-proxy base URL for this environment.
+ */
+function getNeobankBaseUrl(): string {
+  if (process.env.NEOBANK_API_URL) {
+    return process.env.NEOBANK_API_URL;
+  }
+
+  const env = process.env.METAMASK_ENVIRONMENT;
+  if (env === 'dev' || env === 'exp' || env === 'test' || env === 'e2e') {
+    return 'https://on-ramp.dev-api.cx.metamask.io';
+  }
+  if (env === 'production' || env === 'beta' || env === 'rc') {
+    return 'https://api.onramp.metamask.io';
+  }
+  return 'https://on-ramp.uat-api.cx.metamask.io';
+}
+
+/**
  * Initialize the KycService.
  *
  * The service is a stateless HTTP client for the Universal KYC backend. It
@@ -42,6 +63,7 @@ export const kycServiceInit: MessengerClientInitFunction<
     env: isProduction() ? 'production' : 'development',
     messenger: controllerMessenger,
     baseUrl: process.env.KYC_API_URL,
+    neobankBaseUrl: getNeobankBaseUrl(),
     fractalEncryptionBaseUrl: getFractalEncryptionBaseUrl(),
   });
 
