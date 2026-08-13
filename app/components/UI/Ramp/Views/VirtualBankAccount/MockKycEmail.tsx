@@ -26,6 +26,8 @@ import {
 import Logger from '../../../../../util/Logger';
 import MockKycProgressBar from './MockKycProgressBar';
 import { MockKycEmailSelectorsIDs } from './MockKycEmail.testIds';
+import { describeError, vbaTrace } from '../../debug/vbaTrace';
+import { useVbaKycTrace } from './hooks/useVbaKycTrace';
 
 /**
  * Demo-only email step for the Iron/Sumsub KYC flow: the screen chrome is still
@@ -38,6 +40,8 @@ const MockKycEmail = () => {
   const [email, setEmail] = useState(MOCK_KYC_PREFILLED_EMAIL);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  useVbaKycTrace('MockKycEmail');
+
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleContinue = useCallback(async () => {
@@ -47,12 +51,20 @@ const MockKycEmail = () => {
     }
 
     setIsVerifying(true);
+    const startedAt = Date.now();
+    vbaTrace('kyc.verification.start', { hasEmail: Boolean(trimmedEmail) });
     try {
       await startIronKycVerification(trimmedEmail);
+      vbaTrace('kyc.verification.success', {
+        durationMs: Date.now() - startedAt,
+      });
       try {
         await registerSelectedMoneyAccountWallet();
       } catch (registerError) {
         // KYC already succeeded — soft-fail so the demo can continue.
+        vbaTrace('wallet.register.softFailed', {
+          error: describeError(registerError),
+        });
         Logger.error(
           registerError instanceof Error
             ? registerError
@@ -70,6 +82,10 @@ const MockKycEmail = () => {
       }
       navigation.navigate(Routes.RAMP.VBA_MOCK_KYC_SUCCESS);
     } catch (error) {
+      vbaTrace('kyc.verification.failed', {
+        durationMs: Date.now() - startedAt,
+        error: describeError(error),
+      });
       Alert.alert(
         strings('virtual_bank_account.kyc_error.title'),
         error instanceof Error

@@ -39,6 +39,13 @@ import {
   DEMO_AUTORAMP_DESTINATION_TOKEN,
   DEMO_AUTORAMP_SOURCE_CURRENCY_CODE,
 } from './constants';
+import {
+  abbreviate,
+  describeError,
+  traceWhilePending,
+  vbaTrace,
+} from '../../debug/vbaTrace';
+import { useVbaKycTrace } from './hooks/useVbaKycTrace';
 
 type StepId = 'identity' | 'customer' | 'autoramp' | 'live';
 
@@ -254,6 +261,8 @@ const MockKycSuccess = () => {
   const [pushCount, setPushCount] = useState(0);
   const isMountedRef = useRef(true);
 
+  useVbaKycTrace('MockKycSuccess');
+
   const updateStep = useCallback((id: StepId, next: StepState) => {
     setSteps((current) => ({ ...current, [id]: next }));
   }, []);
@@ -261,6 +270,7 @@ const MockKycSuccess = () => {
   useEffect(
     () => () => {
       isMountedRef.current = false;
+      vbaTrace('pipeline.unmount', { socket: 'disconnecting' });
       NeobankWebSocket.getInstance().disconnect();
     },
     [],
@@ -275,23 +285,44 @@ const MockKycSuccess = () => {
     setPushCount(0);
     setIsRunning(true);
 
+    vbaTrace('pipeline.run.start', {
+      walletAddress: abbreviate(walletAddress),
+      destinationBlockchain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
+      destinationToken: DEMO_AUTORAMP_DESTINATION_TOKEN,
+      sourceCurrency: DEMO_AUTORAMP_SOURCE_CURRENCY_CODE,
+    });
+
     const timed = async <Result,>(
       id: StepId,
       work: () => Promise<Result>,
     ): Promise<Result> => {
       updateStep(id, { status: 'running' });
       const startedAt = Date.now();
+      vbaTrace('pipeline.stage.start', { stage: id });
+      const stopPendingReports = traceWhilePending('pipeline.stage.pending', {
+        stage: id,
+      });
       try {
         const result = await work();
-        updateStep(id, { status: 'success', ms: Date.now() - startedAt });
+        const ms = Date.now() - startedAt;
+        updateStep(id, { status: 'success', ms });
+        vbaTrace('pipeline.stage.success', { stage: id, durationMs: ms });
         return result;
       } catch (error) {
+        const ms = Date.now() - startedAt;
         updateStep(id, {
           status: 'failed',
-          ms: Date.now() - startedAt,
+          ms,
           detail: errorMessageOf(error),
         });
+        vbaTrace('pipeline.stage.failed', {
+          stage: id,
+          durationMs: ms,
+          error: describeError(error),
+        });
         throw error;
+      } finally {
+        stopPendingReports();
       }
     };
 
@@ -314,12 +345,27 @@ const MockKycSuccess = () => {
         detail: `externalId = ${truncateId(profileId)}`,
       });
 
+      vbaTrace('identity.resolved', {
+        externalId: profileId,
+        source: 'AuthenticationController.getSessionProfile',
+      });
+
       const { customerId, status } = await timed('customer', async () => {
         const customer =
           await Engine.context.NeoBankService.getCustomerByExternalId(
             profileId,
           );
         const resolved = readCustomerId(customer);
+        vbaTrace('customer.lookup.result', {
+          route: 'GET /neobank/customers/{externalId}/external',
+          externalId: profileId,
+          customerId: resolved,
+          status: readCustomerStatus(customer),
+          responseKeys:
+            customer && typeof customer === 'object'
+              ? Object.keys(customer as Record<string, unknown>)
+              : null,
+        });
         if (!resolved) {
           throw new Error(
             'Proxy responded without a customer id for this external id.',
@@ -335,24 +381,55 @@ const MockKycSuccess = () => {
           : `customer_id = ${truncateId(customerId)}`,
       });
 
-      const account = await timed('autoramp', async () =>
-        Engine.context.RampsController.createAutoramp({
-          source_currencies: [
-            { type: 'Fiat', code: DEMO_AUTORAMP_SOURCE_CURRENCY_CODE },
-          ],
-          destination_currency: {
-            type: 'Crypto',
-            token: DEMO_AUTORAMP_DESTINATION_TOKEN,
-            blockchain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
-          },
-          recipient_account: {
-            type: 'Crypto',
-            chain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
-            address: walletAddress,
-          },
-          source_is_third_party: false,
-        }),
-      );
+      const autorampRequest = {
+        source_currencies: [
+          { type: 'Fiat' as const, code: DEMO_AUTORAMP_SOURCE_CURRENCY_CODE },
+        ],
+        destination_currency: {
+          type: 'Crypto' as const,
+          token: DEMO_AUTORAMP_DESTINATION_TOKEN,
+          blockchain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
+        },
+        recipient_account: {
+          type: 'Crypto' as const,
+          chain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
+          address: walletAddress,
+        },
+        source_is_third_party: false,
+      };
+
+      const account = await timed('autoramp', async () => {
+        vbaTrace('autoramp.create.start', {
+          route: 'POST /neobank/autoramps',
+          // `customer_id` is not passed from here: RampsController resolves it
+          // via resolveAutorampCustomerId. Stage 2 above shows what the UI
+          // believes that resolution returns.
+          uiResolvedCustomerId: customerId,
+          uiResolvedCustomerStatus: status,
+          request: autorampRequest,
+        });
+        try {
+          const created =
+            await Engine.context.RampsController.createAutoramp(
+              autorampRequest,
+            );
+          vbaTrace('autoramp.create.success', {
+            autorampId: created.id,
+            status: created.status,
+          });
+          return created;
+        } catch (error) {
+          vbaTrace('autoramp.create.failed', {
+            uiResolvedCustomerId: customerId,
+            uiResolvedCustomerStatus: status,
+            error: describeError(error),
+            // The response body for this failure is reported separately by the
+            // `neobank.response.error` record for POST /neobank/autoramps.
+            bodySource: 'neobank.response.error',
+          });
+          throw error;
+        }
+      });
 
       if (!isMountedRef.current) {
         return;
@@ -366,12 +443,19 @@ const MockKycSuccess = () => {
 
       const socket = NeobankWebSocket.getInstance();
       socket.connect();
+      vbaTrace('push.subscribe', { autorampId: account.id });
       updateStep('live', {
         status: 'waiting',
         detail:
           'Socket open. Move the autoramp forward in the MoonPay dashboard to see a push land here.',
       });
       socket.addListener(({ remote }) => {
+        vbaTrace('push.received', {
+          autorampId: remote.id,
+          customerId: remote.customerId,
+          status: remote.status,
+          isMounted: isMountedRef.current,
+        });
         if (!isMountedRef.current) {
           return;
         }
@@ -381,8 +465,9 @@ const MockKycSuccess = () => {
           detail: `${remote.status} received at ${new Date().toLocaleTimeString()}`,
         });
       });
-    } catch {
+    } catch (error) {
       // Each stage already recorded its own failure detail.
+      vbaTrace('pipeline.run.stopped', { error: describeError(error) });
     } finally {
       if (isMountedRef.current) {
         setIsRunning(false);
