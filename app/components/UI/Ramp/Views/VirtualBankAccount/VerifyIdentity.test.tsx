@@ -71,7 +71,7 @@ describe('VbaVerifyIdentity', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps the data and privacy sub-topics collapsed by default, and shows them expanded once opened', () => {
+  it('keeps the data and privacy sub-topics collapsed by default, and shows their titles once opened', () => {
     const { getByText, queryByText, getByTestId } = renderWithProvider(
       <VbaVerifyIdentity />,
     );
@@ -84,12 +84,20 @@ describe('VbaVerifyIdentity', () => {
       getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
     );
 
+    // Sub-topic titles are visible once "Data and privacy" opens, but each
+    // sub-topic's own body copy stays folded until it's individually
+    // expanded.
     expect(getByText('What we collect')).toBeOnTheScreen();
     expect(getByText('How we store data')).toBeOnTheScreen();
     expect(getByText('How to delete')).toBeOnTheScreen();
+    expect(
+      queryByText(
+        'We collect personal information as part of identity verification, including legal full name, address, and more.',
+      ),
+    ).not.toBeOnTheScreen();
   });
 
-  it('collapses an individual sub-topic without affecting the others', () => {
+  it('expands an individual sub-topic without affecting the others', () => {
     const { getByTestId, getByText, queryByText } = renderWithProvider(
       <VbaVerifyIdentity />,
     );
@@ -102,16 +110,16 @@ describe('VbaVerifyIdentity', () => {
     );
 
     expect(
-      queryByText(
+      getByText(
         'We collect personal information as part of identity verification, including legal full name, address, and more.',
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
     expect(getByText('How we store data')).toBeOnTheScreen();
     expect(
-      getByText(
+      queryByText(
         'You can delete your data anytime by going to Settings > Manage data.',
       ),
-    ).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
   });
 
   it('opens each legal link with the expected URL', () => {

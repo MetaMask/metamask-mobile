@@ -276,7 +276,6 @@ const VbaVerifyIdentity = () => {
               title={strings(
                 'virtual_bank_account.verify_identity.what_we_collect_title',
               )}
-              defaultExpanded
               testID={VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_TOGGLE}
             >
               {strings(
@@ -287,7 +286,6 @@ const VbaVerifyIdentity = () => {
               title={strings(
                 'virtual_bank_account.verify_identity.how_we_store_data_title',
               )}
-              defaultExpanded
               testID={VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_TOGGLE}
             >
               {strings(
@@ -298,7 +296,6 @@ const VbaVerifyIdentity = () => {
               title={strings(
                 'virtual_bank_account.verify_identity.how_to_delete_title',
               )}
-              defaultExpanded
               testID={VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_TOGGLE}
             >
               {strings(
