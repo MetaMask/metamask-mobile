@@ -467,7 +467,7 @@ class PerpsView {
       timeout: 8000,
       elemDescription: 'Place order button',
     });
-    await waitForStableEnabledIOS(el as DetoxElement, {
+    await waitForStableEnabledIOS(el, {
       timeout: 22000,
       pollIntervalMs: 120,
       consecutiveSuccess: 5,
@@ -475,6 +475,7 @@ class PerpsView {
     await Gestures.waitAndTap(el, {
       timeout: 35000,
       elemDescription: 'Place order button',
+      checkStability: true,
     });
   }
 

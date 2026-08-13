@@ -74,7 +74,7 @@ class PerpsOrderView {
       timeout: 8000,
       elemDescription: 'Place order button',
     });
-    await waitForStableEnabledIOS(this.placeOrderButton as DetoxElement, {
+    await waitForStableEnabledIOS(this.placeOrderButton, {
       timeout: 22000,
       pollIntervalMs: 120,
       consecutiveSuccess: 5,
@@ -84,6 +84,7 @@ class PerpsOrderView {
       elemDescription: 'Place order button',
       checkForDisplayed: true,
       checkEnabled: true,
+      checkStability: true,
       delay: 1000,
     });
   }

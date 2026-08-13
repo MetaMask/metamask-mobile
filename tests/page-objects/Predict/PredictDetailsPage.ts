@@ -5,7 +5,6 @@ import {
   getDriver,
   type EncapsulatedElementType,
 } from '../../framework';
-import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import {
   PredictBalanceSelectorsIDs,
@@ -102,9 +101,6 @@ class PredictDetailsPage {
 
   private getKeypadDigitButton(digit: string): EncapsulatedElementType {
     const testID = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-    if (PlatformDetector.isIOS()) {
-      return Matchers.getElementByText(digit);
-    }
     return Matchers.getElementByID(testID);
   }
 
@@ -298,7 +294,7 @@ class PredictDetailsPage {
     await Gestures.waitAndTap(this.placeBetButton, {
       elemDescription: 'Place bet button',
       delay: 1000,
-      checkStability: true,
+      waitForInteractive: true,
     });
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Market details screen after order submission',

@@ -189,6 +189,7 @@ class PerpsMarketDetailsView {
       elemDescription: 'Perps Long button',
       checkForDisplayed: true,
       checkEnabled: true,
+      checkStability: true,
     });
   }
 
@@ -196,6 +197,7 @@ class PerpsMarketDetailsView {
     await Gestures.waitAndTap(this.shortButton, {
       checkForDisplayed: true,
       checkEnabled: true,
+      checkStability: true,
     });
   }
 

@@ -150,6 +150,9 @@ export default class Gestures {
         delay: options.delay,
         checkForDisplayed: options.checkForDisplayed,
         checkForEnabled: options.checkEnabled,
+        waitForInteractive: options.waitForInteractive,
+        // Detox checkStability ≈ Appium position-stable wait
+        checkForStable: options.checkStability,
       });
     }
 
