@@ -62,6 +62,12 @@ export interface ABTestExposureMetadata<T extends ABTestVariants> {
   experimentName?: string;
   /** Optional map from variant id to human-readable variant name */
   variationNames?: Partial<Record<Extract<keyof T, string>, string>>;
+  /**
+   * When false, resolves assignment without emitting Experiment Viewed.
+   * Defaults to true. Use false for assignment-only reads outside the
+   * experiment surface so exposure is not counted early.
+   */
+  trackExposure?: boolean;
 }
 
 const trackedExposureAssignments = new Set<string>();
@@ -186,8 +192,10 @@ export function useABTest<T extends ABTestVariants>(
   const activeVariationName =
     exposureMetadata?.variationNames?.[variantName as Extract<keyof T, string>];
 
+  const shouldTrackExposure = exposureMetadata?.trackExposure !== false;
+
   useEffect(() => {
-    if (!isActive) {
+    if (!shouldTrackExposure || !isActive) {
       return;
     }
 
@@ -215,6 +223,7 @@ export function useABTest<T extends ABTestVariants>(
     exposureMetadata?.experimentName,
     flagKey,
     isActive,
+    shouldTrackExposure,
     trackEvent,
     variantName,
   ]);

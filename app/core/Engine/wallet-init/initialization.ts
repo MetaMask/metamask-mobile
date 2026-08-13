@@ -7,6 +7,9 @@ import { getConnectivityControllerInstanceOptions } from './instance-options/con
 import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
 import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
+import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
+import { getShieldApiServiceInstanceOptions } from './instance-options/shield-api-service';
+import { getClaimsServiceInstanceOptions } from './instance-options/claims-service';
 import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
@@ -55,6 +58,9 @@ export function initializeWallet({
       seedlessOnboardingController:
         getSeedlessOnboardingControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
+      subscriptionService: getSubscriptionServiceInstanceOptions(),
+      shieldApiService: getShieldApiServiceInstanceOptions(),
+      claimsService: getClaimsServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         initMessenger: transactionControllerInitMessenger,
       }),
