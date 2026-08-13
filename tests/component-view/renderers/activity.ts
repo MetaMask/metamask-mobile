@@ -15,6 +15,7 @@ import PerpsActivityFilterSheet from '../../../app/components/Views/ActivityScre
 import ActivityNetworkFilterSheet from '../../../app/components/Views/ActivityScreen/components/ActivityNetworkFilterSheet';
 import { HardwareWalletProvider } from '../../../app/core/HardwareWallet/HardwareWalletProvider';
 import {
+  createRouteParamsProbe,
   getRouteProbeTestId,
   renderComponentViewScreen,
   renderScreenWithRoutes,
@@ -316,7 +317,10 @@ export function renderActivityDetailsView(
     ActivityDetailsWithProviders,
     { name: Routes.ACTIVITY_DETAILS },
     [
-      { name: Routes.BRIDGE.MODALS.ROOT },
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
+      },
       { name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER },
       ...(options.extraRoutes ?? []),
     ],

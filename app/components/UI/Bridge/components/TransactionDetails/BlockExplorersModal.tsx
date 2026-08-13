@@ -29,6 +29,7 @@ import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockE
 import { Transaction } from '@metamask/keyring-api';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { BlockExplorersModalSelectorsIDs } from './BlockExplorersModal.testIds';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -101,7 +102,7 @@ const BlockExplorersModal = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} testID={BlockExplorersModalSelectorsIDs.SHEET}>
       <BottomSheetHeader>
         {strings('bridge_transaction_details.view_on_block_explorer')}
       </BottomSheetHeader>

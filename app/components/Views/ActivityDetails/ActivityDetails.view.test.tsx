@@ -7,6 +7,9 @@ import { formatTimestampToDateTime } from '../../../util/date';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
   ACTIVITY_CV_ACCOUNT,
+  ACTIVITY_CV_DEPOSIT_CONTRACT,
+  ACTIVITY_CV_DEPOSIT_USDC_HASH,
+  ACTIVITY_CV_DEPOSIT_USDC_TIMESTAMP_MS,
   ACTIVITY_CV_RECIPIENT,
   ACTIVITY_CV_RAMP_BUY_ORDER_ID,
   ACTIVITY_CV_RAMP_BUY_TX_HASH,
@@ -15,6 +18,7 @@ import {
   ACTIVITY_CV_RAMP_SELL_TX_HASH,
   ACTIVITY_CV_SOLANA_CHAIN_ID,
   ACTIVITY_CV_SOLANA_SEND_ID,
+  ACTIVITY_CV_USDC,
   activityCvBridgeEthToMusdLineaHistoryEntry,
   activityCvBridgeEthToSolHistoryEntry,
   activityCvCrossChainSwapBridgeHistoryEntry,
@@ -22,6 +26,7 @@ import {
   activityCvMusdConversionHistoryEntry,
   activityCvPendingCrossChainSwapBridgeHistoryEntry,
   activityCvSolanaSendStateOverrides,
+  activityLineaMusdTokenRatesOverride,
   activityLineaNetworkOverride,
   activityMusdTokenRatesOverride,
   activityUsdcTokenRatesOverride,
@@ -32,6 +37,7 @@ import {
   buildConfirmedLocalContractInteractionWithFeesTransaction,
   buildConfirmedLocalCrossChainSwapTransaction,
   buildConfirmedLocalEthToMusdSwapTransaction,
+  buildConfirmedLocalMusdClaimTransaction,
   buildConfirmedLocalMusdConversionTransaction,
   buildConfirmedLocalMusdSendTransaction,
   buildConfirmedLocalSmartAccountUpgradeTransaction,
@@ -48,7 +54,7 @@ import {
   setupAccountsTransactionsApiMock,
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import { renderActivityDetailsView } from '../../../../tests/component-view/renderers/activity';
-import { getRouteProbeTestId } from '../../../../tests/component-view/render';
+import { getRouteParamsProbeTestId } from '../../../../tests/component-view/render';
 import Routes from '../../../constants/navigation/Routes';
 import { formatShortRampOrderId } from './templates/rampDetailsUtils';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
@@ -982,9 +988,197 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
     await act(async () => {
       fireEvent.press(getByTestId(BLOCK_EXPLORER_BUTTON));
     });
+    const bridgeModalsParamsEl = await findByTestId(
+      getRouteParamsProbeTestId(Routes.BRIDGE.MODALS.ROOT),
+    );
+    expect(bridgeModalsParamsEl).toBeOnTheScreen();
+    const bridgeModalsParams = JSON.parse(
+      bridgeModalsParamsEl.props.children as string,
+    );
+    expect(bridgeModalsParams.screen).toBe(
+      Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+    );
+    expect(bridgeModalsParams.params.evmTxMeta.id).toBe(bridgeTransaction.id);
+  });
+});
+
+const LINEA_CAIP = 'eip155:59144';
+
+describeForPlatforms('ActivityDetails — claim / deposit', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  it('shows confirmed Claimed mUSD bonus with fee and total', async () => {
+    const claimTransaction = buildConfirmedLocalMusdClaimTransaction();
+    const state = initialStateActivityWithLocalTransactions([claimTransaction])
+      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
+      .withOverrides(activityLineaNetworkOverride)
+      .withOverrides(activityLineaMusdTokenRatesOverride)
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                  '0xe708': true,
+                },
+                solana: {},
+              },
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, findByText, getByTestId, UNSAFE_getAllByType } =
+      renderActivityDetailsView({
+        state,
+        params: {
+          chainId: LINEA_CAIP,
+          txIdentifier: claimTransaction.id,
+        },
+      });
+
+    expect(await findByTestId(SCREEN)).toBeOnTheScreen();
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.BRIDGE.MODALS.ROOT)),
+      await findByText(strings('transactions.activity_claim_musd_bonus')),
     ).toBeOnTheScreen();
+
+    const amountHeader = await findByTestId(AMOUNT_HEADER);
+    expect(
+      within(amountHeader).getByTestId(AMOUNT_AVATAR_SINGLE),
+    ).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^\+.*mUSD/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^\+.*mUSD/)).toBe(
+      TextColor.SuccessDefault,
+    );
+
+    expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
+      strings('transaction.confirmed'),
+    );
+
+    const expectedDate = formatTimestampToDateTime(claimTransaction.time);
+    expect(getByTestId(DATE_ROW)).toHaveTextContent(expectedDate as string, {
+      exact: false,
+    });
+
+    const accountRow = getByTestId(ACCOUNT_ROW);
+    expect(accountRow).toHaveTextContent('Group 1', { exact: false });
+    expect(accountRow).toHaveTextContent(
+      renderShortAddress(ACTIVITY_CV_ACCOUNT),
+      { exact: false },
+    );
+
+    expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Linea', {
+      exact: false,
+    });
+
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent(
+      renderShortAddress(claimTransaction.hash as string),
+      { exact: false },
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
+    });
+
+    await waitFor(() => {
+      expect(getByTestId(FEE_ROW)).toHaveTextContent(/\$/);
+    });
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
+  });
+
+  it('shows confirmed Deposited USDC with fee and total', async () => {
+    setupAccountsTransactionsApiMock([
+      {
+        hash: ACTIVITY_CV_DEPOSIT_USDC_HASH,
+        timestamp: new Date(
+          ACTIVITY_CV_DEPOSIT_USDC_TIMESTAMP_MS,
+        ).toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_DEPOSIT_CONTRACT,
+        value: '0',
+        gasUsed: 21000,
+        effectiveGasPrice: 1_000_000_000,
+        valueTransfers: [
+          {
+            from: ACTIVITY_CV_ACCOUNT,
+            to: ACTIVITY_CV_DEPOSIT_CONTRACT,
+            amount: '1000000',
+            symbol: 'USDC',
+            decimal: 6,
+            contractAddress: ACTIVITY_CV_USDC,
+            transferType: 'ERC20',
+          },
+        ],
+        isError: false,
+        transactionCategory: 'DEPOSIT',
+      },
+    ]);
+
+    const state = initialStateActivityWithAccountsApi()
+      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
+      .withOverrides(activityUsdcTokenRatesOverride)
+      .build();
+
+    const { findByTestId, findByText, getByTestId, UNSAFE_getAllByType } =
+      renderActivityDetailsView({
+        state,
+        params: {
+          chainId: MAINNET_CAIP,
+          txIdentifier: ACTIVITY_CV_DEPOSIT_USDC_HASH,
+        },
+      });
+
+    expect(await findByTestId(SCREEN)).toBeOnTheScreen();
+    expect(await findByText('Deposited USDC')).toBeOnTheScreen();
+
+    const amountHeader = await findByTestId(AMOUNT_HEADER);
+    expect(
+      within(amountHeader).getByTestId(AMOUNT_AVATAR_SINGLE),
+    ).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^\+.*USDC/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^\+.*USDC/)).toBe(
+      TextColor.SuccessDefault,
+    );
+
+    expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
+      strings('transaction.confirmed'),
+    );
+
+    const expectedDate = formatTimestampToDateTime(
+      ACTIVITY_CV_DEPOSIT_USDC_TIMESTAMP_MS,
+    );
+    expect(getByTestId(DATE_ROW)).toHaveTextContent(expectedDate as string, {
+      exact: false,
+    });
+
+    const accountRow = getByTestId(ACCOUNT_ROW);
+    expect(accountRow).toHaveTextContent('Group 1', { exact: false });
+    expect(accountRow).toHaveTextContent(
+      renderShortAddress(ACTIVITY_CV_ACCOUNT),
+      { exact: false },
+    );
+
+    expect(getByTestId(NETWORK_ROW)).toHaveTextContent(
+      'Ethereum Main Network',
+      { exact: false },
+    );
+
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent(
+      renderShortAddress(ACTIVITY_CV_DEPOSIT_USDC_HASH),
+      { exact: false },
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
+    });
+
+    await waitFor(() => {
+      expect(getByTestId(FEE_ROW)).toHaveTextContent(/\$/);
+    });
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
   });
 });
 

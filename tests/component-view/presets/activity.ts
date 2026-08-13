@@ -9,6 +9,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../app/constants/on-ramp';
 import type { FiatOrder } from '../../../app/reducers/fiatOrders/types';
+import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../app/components/UI/Earn/components/MerklRewards/constants';
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -784,6 +785,69 @@ export const activityUsdcTokenRatesOverride = {
     },
   },
 } as unknown as DeepPartial<RootState>;
+
+const ERC20_TRANSFER_TOPIC =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+const addressTopic = (address: string): string =>
+  `0x${address.slice(2).toLowerCase().padStart(64, '0')}`;
+
+/**
+ * Confirmed Merkl mUSD claim on Linea with receipt payout.
+ * Claims always settle on Linea.
+ */
+export const buildConfirmedLocalMusdClaimTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-musd-claim',
+    hash: '0xactivitycvconfirmedmusdclaim',
+    chainId: '0xe708',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_798_000,
+    type: TransactionType.musdClaim,
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: MERKL_DISTRIBUTOR_ADDRESS,
+      value: '0x0',
+      nonce: '0x12',
+    },
+    txReceipt: {
+      ...ACTIVITY_CV_GAS_RECEIPT,
+      logs: [
+        {
+          address: ACTIVITY_CV_MUSD,
+          data: '0x0f4240',
+          topics: [
+            ERC20_TRANSFER_TOPIC,
+            addressTopic(MERKL_DISTRIBUTOR_ADDRESS),
+            addressTopic(ACTIVITY_CV_ACCOUNT),
+          ],
+        },
+      ],
+    },
+  }) as unknown as TransactionMeta;
+
+/** TokenRates so Linea claim Total can resolve mUSD fiat. */
+export const activityLineaMusdTokenRatesOverride = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {
+          '0xe708': {
+            [ACTIVITY_CV_MUSD.toLowerCase()]: { price: 1 },
+            [ACTIVITY_CV_MUSD]: { price: 1 },
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+/** Earn/staking pool used as the DEPOSIT counterpart. */
+export const ACTIVITY_CV_DEPOSIT_CONTRACT =
+  '0x00000000219ab540356cbb839cbe05303d7705fa';
+
+export const ACTIVITY_CV_DEPOSIT_USDC_HASH = '0xactivitycvdepositusdc';
+export const ACTIVITY_CV_DEPOSIT_USDC_TIMESTAMP_MS = 1_716_367_799_000;
 
 export const buildPendingLocalSendTransaction = (): TransactionMeta =>
   ({

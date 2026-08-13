@@ -9,13 +9,11 @@ import { BridgeState } from '../../../../../core/redux/slices/bridge';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
 import BlockExplorersModal from './BlockExplorersModal';
-import { fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
   ...jest.requireActual('../../../../../util/analytics/externalLinkTracking'),
   trackBlockExplorerLinkClicked: jest.fn(),
 }));
-import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const mockNavigate = jest.fn();
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
@@ -112,108 +110,5 @@ describe('BlockExplorersModal', () => {
       { state: mockState },
     );
     expect(getByText('View on block explorer')).toBeTruthy();
-  });
-
-  it('should display both source and destination chain block explorer buttons', () => {
-    const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal />,
-      {
-        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-      },
-      { state: mockState },
-    );
-    const etherscanButton = getAllByText('Etherscan');
-    expect(etherscanButton).toHaveLength(1);
-
-    const optimisticButton = getAllByText('Optimistic');
-    expect(optimisticButton).toHaveLength(1);
-  });
-
-  it('should handle missing destination chain transaction hash', () => {
-    const modifiedState = {
-      ...mockState,
-      engine: {
-        ...mockState.engine,
-        backgroundState: {
-          ...mockState.engine.backgroundState,
-          BridgeStatusController: {
-            txHistory: {
-              [mockTx.id]: {
-                ...mockState.engine.backgroundState.BridgeStatusController
-                  .txHistory['test-tx-id'],
-                status: {
-                  srcChain: {
-                    txHash: '0x123',
-                  },
-                  destChain: {
-                    txHash: undefined,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal />,
-      {
-        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-      },
-      { state: modifiedState },
-    );
-    const etherscanButtons = getAllByText('Etherscan');
-    expect(etherscanButtons).toHaveLength(1);
-  });
-
-  it('should navigate to webview when source chain explorer button is pressed', () => {
-    const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal />,
-      {
-        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-      },
-      { state: mockState },
-    );
-
-    const [srcExplorerButton] = getAllByText('Etherscan');
-    fireEvent.press(srcExplorerButton);
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: expect.objectContaining({
-        url: expect.stringContaining('etherscan.io'),
-      }),
-    });
-    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
-      expect.any(Function),
-      expect.any(Function),
-      expect.objectContaining({
-        location: 'bridge_transaction_details',
-        url: expect.stringContaining('etherscan.io'),
-      }),
-    );
-  });
-
-  it('should navigate to webview when destination chain explorer button is pressed', () => {
-    const { getByText } = renderScreen(
-      () => <BlockExplorersModal />,
-      {
-        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-      },
-      { state: mockState },
-    );
-
-    const destExplorerButton = getByText('Optimistic');
-    fireEvent.press(destExplorerButton);
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: expect.objectContaining({
-        url: expect.stringContaining('optimistic.etherscan.io'),
-      }),
-    });
   });
 });
