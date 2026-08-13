@@ -7625,15 +7625,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@7.6.1-preview-316ba6af0":
-  version: 7.6.1-preview-316ba6af0
-  resolution: "@metamask-previews/account-tree-controller@npm:7.6.1-preview-316ba6af0"
+"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@7.6.1-preview-c449b8da8":
+  version: 7.6.1-preview-c449b8da8
+  resolution: "@metamask-previews/account-tree-controller@npm:7.6.1-preview-c449b8da8"
   dependencies:
     "@metamask/accounts-controller": "npm:^39.1.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/keyring-api": "npm:^24.0.0"
     "@metamask/keyring-controller": "npm:^27.1.1"
-    "@metamask/keyring-sdk": "npm:^3.1.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/multichain-account-service": "npm:^13.0.1"
     "@metamask/profile-sync-controller": "npm:^29.0.0"
@@ -7647,7 +7646,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/61f1696a6415befe75c27d587ce679d76f61979300e381e7fd83f9220dd3b2ef5d81d537a6f3fb5dda45e937599471938d241e97bc019b633d7ed8848cfbfcd0
+  checksum: 10/6f5ead0f9cd2038e886ff256b986674020049b251ab374e6ecacc83873b21dd2979af3db64a5cd7c94b5736f9cd159ab56d6c42d8540ad0a64cb953319e10f30
   languageName: node
   linkType: hard
 
@@ -9252,9 +9251,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@13.0.1-preview-316ba6af0":
-  version: 13.0.1-preview-316ba6af0
-  resolution: "@metamask-previews/multichain-account-service@npm:13.0.1-preview-316ba6af0"
+"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@13.0.1-preview-c449b8da8":
+  version: 13.0.1-preview-c449b8da8
+  resolution: "@metamask-previews/multichain-account-service@npm:13.0.1-preview-c449b8da8"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/account-api": "npm:^2.0.0"
@@ -9279,7 +9278,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/4299ced57f01897438e114e5fc2f34aa066c8cedebf4d89138a09a664984d7bffdfef998a2e61d8ba71f46c2e068d3e89c893bdfba747d32d84ef263366fadf4
+  checksum: 10/470344afe2252c64d028b3b1252f356d7e203218f5a7f648c6beb01d279a98046f97bf1978e261430e55bd523f54f6f07fdec3a1ff943a228c35f9f03381202f
   languageName: node
   linkType: hard
 
