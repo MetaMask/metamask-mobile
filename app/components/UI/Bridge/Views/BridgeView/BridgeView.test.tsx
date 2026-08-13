@@ -34,6 +34,7 @@ import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Engine from '../../../../../core/Engine';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 import { SwapDiscoveryFeedTestIds } from '../../components/SwapDiscoveryFeed/SwapDiscoveryFeed.testIds';
+import { selectSwapsLimitOrdersEnabled } from '../../../../../selectors/featureFlagController/swapsLimitOrders';
 import {
   SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
   SwapDiscoveryFeedRevampVariant,
@@ -98,6 +99,17 @@ const mockState = {
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/swapsLimitOrders',
+  () => ({
+    selectSwapsLimitOrdersEnabled: jest.fn(),
+  }),
+);
+
+const mockSelectSwapsLimitOrdersEnabled = jest.mocked(
+  selectSwapsLimitOrdersEnabled,
+);
 
 jest.mock('../../../../../core/Engine', () => {
   const { MOCK_ENTROPY_SOURCE } = jest.requireActual(
@@ -416,6 +428,7 @@ describe('BridgeView', () => {
       variantName: SwapDiscoveryFeedRevampVariant.Control,
       isActive: true,
     });
+    mockSelectSwapsLimitOrdersEnabled.mockReturnValue(false);
   });
 
   it('renders source and destination token areas', async () => {
@@ -432,6 +445,46 @@ describe('BridgeView', () => {
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
   });
+
+  it('hides order tabs when the feature flag is disabled', () => {
+    const { queryByTestId } = renderScreen(
+      BridgeView,
+      { name: Routes.BRIDGE.ROOT },
+      { state: mockState },
+    );
+
+    expect(queryByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_TABS)).toBeNull();
+  });
+
+  it.each([BridgeViewMode.Bridge, BridgeViewMode.Swap, BridgeViewMode.Unified])(
+    'shows order tabs in %s mode when enabled',
+    (bridgeViewMode) => {
+      mockSelectSwapsLimitOrdersEnabled.mockReturnValue(true);
+
+      const state: DeepPartial<RootState> = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          bridgeViewMode,
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state },
+      );
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_TABS),
+      ).toBeOnTheScreen();
+      expect(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB)).toBeOnTheScreen();
+      expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('renders the slippage settings button without an active quote', () => {
     jest

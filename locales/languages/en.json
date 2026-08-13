@@ -8512,6 +8512,39 @@
     "bridge_from": "Bridge from",
     "swap_from": "Swap from",
     "title": "Bridge",
+    "order_type": {
+      "market": "Market",
+      "limit": "Limit",
+      "recurring": "Recurring",
+      "recurring_coming_soon": "Recurring orders are coming soon."
+    },
+    "limit_order": {
+      "trigger_price": "Trigger price",
+      "quote_unavailable": "Quote unavailable",
+      "expiration": {
+        "title": "Expiration",
+        "label": "Expiration",
+        "never": "Never",
+        "10_minutes": "10 minutes",
+        "1_hour": "1 hour",
+        "1_day": "1 day",
+        "3_days": "3 days",
+        "1_week": "1 week"
+      },
+      "slippage": "Slippage",
+      "open_orders": "Open orders",
+      "history": "History",
+      "all_networks": "All networks",
+      "empty_open_orders": "You don't have any open orders.",
+      "empty_history": "Your order history is empty.",
+      "status": {
+        "open": "Open",
+        "pending": "Pending",
+        "filled": "Filled",
+        "cancelled": "Cancelled",
+        "expired": "Expired"
+      }
+    },
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
     "fee_includes": "Includes",

@@ -18,6 +18,7 @@ import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  ...jest.requireActual('../../../../util/remoteFeatureFlag'),
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
 }));
 

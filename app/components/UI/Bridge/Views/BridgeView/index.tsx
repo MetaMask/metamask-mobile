@@ -23,6 +23,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  TabEmptyState,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -132,6 +133,7 @@ import {
 } from '../../components/SwapDiscoveryFeed/abTestConfig';
 import { useABTest } from '../../../../../hooks/useABTest';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import { selectSwapsLimitOrdersEnabled } from '../../../../../selectors/featureFlagController/swapsLimitOrders';
 import type { RootState } from '../../../../../reducers';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
@@ -149,6 +151,9 @@ import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../utils/postTradeNotifications';
+import { TabsBar } from '../../../../../component-library/components-temp/Tabs';
+import LimitOrdersView from '../../components/LimitOrders/LimitOrdersView';
+import { BridgeOrderType } from '../../components/LimitOrders/limitOrders';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -158,7 +163,11 @@ interface BridgeViewContentProps {
 
 const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
+  const [selectedOrderType, setSelectedOrderType] = useState(
+    BridgeOrderType.Market,
+  );
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const swapsLimitOrdersEnabled = useSelector(selectSwapsLimitOrdersEnabled);
 
   const isFiatToggleEnabled = useSelector(
     (state: RootState) =>
@@ -560,6 +569,29 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     shouldShowDiscoveryFeed && discoveryFeedVariant.mode !== 'empty';
   const shouldTrackNearBottom =
     shouldShowDiscoveryFeed && discoveryFeedVariant.mode === 'control';
+  const isMarketOrderType =
+    !swapsLimitOrdersEnabled || selectedOrderType === BridgeOrderType.Market;
+
+  const orderTypeTabs = [
+    {
+      key: BridgeOrderType.Market,
+      label: strings('bridge.order_type.market'),
+      content: null,
+      testID: BridgeViewSelectorsIDs.MARKET_TAB,
+    },
+    {
+      key: BridgeOrderType.Limit,
+      label: strings('bridge.order_type.limit'),
+      content: null,
+      testID: BridgeViewSelectorsIDs.LIMIT_TAB,
+    },
+    {
+      key: BridgeOrderType.Recurring,
+      label: strings('bridge.order_type.recurring'),
+      content: null,
+      testID: BridgeViewSelectorsIDs.RECURRING_TAB,
+    },
+  ];
 
   const dismissInputAndKeypad = useCallback(() => {
     inputRef.current?.blur();
@@ -578,22 +610,67 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     [],
   );
 
+  const header = (
+    <HeaderStandard
+      title={headerTitle}
+      onBack={() => navigation.goBack()}
+      endButtonIconProps={
+        isMarketOrderType
+          ? [
+              {
+                iconName: IconName.Setting,
+                onPress: handleSlippageSettingsPress,
+                testID: BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON,
+                accessibilityLabel: strings('bridge.slippage'),
+              },
+            ]
+          : []
+      }
+      includesTopInset
+    />
+  );
+
+  const orderTypeTabsView = swapsLimitOrdersEnabled ? (
+    <TabsBar
+      tabs={orderTypeTabs}
+      activeIndex={orderTypeTabs.findIndex(
+        (tab) => tab.key === selectedOrderType,
+      )}
+      onTabPress={(index) => setSelectedOrderType(orderTypeTabs[index].key)}
+      testID={BridgeViewSelectorsIDs.ORDER_TYPE_TABS}
+    />
+  ) : null;
+
+  if (!isMarketOrderType) {
+    return (
+      <View style={styles.screenWrapper}>
+        {header}
+        <ScreenView
+          safeAreaEdges={[]}
+          scrollEnabled={false}
+          contentContainerStyle={styles.screen}
+        >
+          {orderTypeTabsView}
+          <Box style={styles.content}>
+            {selectedOrderType === BridgeOrderType.Limit ? (
+              <LimitOrdersView />
+            ) : (
+              <TabEmptyState
+                twClassName="flex-1 self-center"
+                description={strings('bridge.order_type.recurring_coming_soon')}
+              />
+            )}
+          </Box>
+        </ScreenView>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.screenWrapper}>
-      <HeaderStandard
-        title={headerTitle}
-        onBack={() => navigation.goBack()}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Setting,
-            onPress: handleSlippageSettingsPress,
-            testID: BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON,
-            accessibilityLabel: strings('bridge.slippage'),
-          },
-        ]}
-        includesTopInset
-      />
+      {header}
       <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>
+        {orderTypeTabsView}
         <Box
           style={styles.content}
           onStartShouldSetResponder={() => !hasInteractiveDiscoverySurface}
@@ -665,7 +742,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                     token={destToken}
                     networkImageSource={
                       destToken
-                        ? getNetworkImageSource({ chainId: destToken?.chainId })
+                        ? getNetworkImageSource({
+                            chainId: destToken?.chainId,
+                          })
                         : undefined
                     }
                     testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
@@ -769,7 +848,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                                 )
                           }
                           onClose={navigateToModal}
-                          closeButtonProps={{ iconName: CLIconName.ArrowRight }}
+                          closeButtonProps={{
+                            iconName: CLIconName.ArrowRight,
+                          }}
                         />
                       </Pressable>
                     );

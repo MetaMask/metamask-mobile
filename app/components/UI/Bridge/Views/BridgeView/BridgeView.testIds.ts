@@ -12,6 +12,10 @@ export const BridgeViewSelectorsIDs = {
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
+  ORDER_TYPE_TABS: 'bridge-order-type-tabs',
+  MARKET_TAB: 'bridge-market-tab',
+  LIMIT_TAB: 'bridge-limit-tab',
+  RECURRING_TAB: 'bridge-recurring-tab',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

@@ -14,6 +14,7 @@ import { initialStateBridge } from '../../../../../../tests/component-view/prese
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
+import { LimitOrdersSelectorsIDs } from '../../components/LimitOrders/limitOrders';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import {
@@ -88,6 +89,111 @@ describeForPlatforms('BridgeView', () => {
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeOnTheScreen();
     expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+  });
+
+  it('switches feature-gated order types and Limit order tabs', async () => {
+    const quoteWithCurrentPair = {
+      ...mockQuoteWithMetadata,
+      quote: {
+        ...mockQuoteWithMetadata.quote,
+        srcChainId: 1,
+        destChainId: 1,
+        srcTokenAmount: '1000000000000000000',
+        destTokenAmount: '2000000000',
+        srcAsset: {
+          ...ETH_SOURCE,
+          chainId: 1,
+          assetId: 'eip155:1/slip44:60',
+          name: ETH_SOURCE.name ?? 'Ether',
+        },
+        destAsset: {
+          ...USDC_DEST,
+          chainId: 1,
+          assetId: `eip155:1/erc20:${USDC_DEST.address}`,
+          name: USDC_DEST.name ?? 'USD Coin',
+        },
+      },
+    } satisfies typeof mockQuoteWithMetadata;
+
+    const { getByTestId, getByText, queryByTestId } = renderBridgeView({
+      deterministicFiat: true,
+      overrides: {
+        bridge: {
+          ...DEFAULT_BRIDGE,
+          selectedDestChainId: '0x1',
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [quoteWithCurrentPair],
+              recommendedQuote: quoteWithCurrentPair,
+              quotesLastFetched: Date.now(),
+              quotesLoadingStatus: RequestStatus.FETCHED,
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                swapsLimitOrders: {
+                  enabled: true,
+                  minimumVersion: '0.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>,
+    });
+
+    await waitFor(() => {
+      expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeOnTheScreen();
+    });
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+    expect(getByTestId(LimitOrdersSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(`${LimitOrdersSelectorsIDs.TRIGGER_PRESET_PREFIX}--5`),
+    );
+    expect(
+      getByTestId(LimitOrdersSelectorsIDs.TRIGGER_PRICE),
+    ).toHaveTextContent('$0.95');
+    fireEvent.press(getByTestId(LimitOrdersSelectorsIDs.EXPIRATION_ROW));
+    fireEvent.press(
+      getByTestId(`${LimitOrdersSelectorsIDs.EXPIRATION_SHEET}-10m`),
+    );
+    fireEvent.press(getByTestId(LimitOrdersSelectorsIDs.HISTORY_TAB));
+
+    expect(
+      getByText(strings('bridge.limit_order.expiration.10_minutes')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(LimitOrdersSelectorsIDs.HISTORY_EMPTY),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+    expect(
+      getByText(strings('bridge.order_type.recurring_coming_soon')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+    ).toBeOnTheScreen();
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
