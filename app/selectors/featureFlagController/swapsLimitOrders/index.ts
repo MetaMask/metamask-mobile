@@ -7,7 +7,6 @@ export const selectSwapsLimitOrdersEnabled = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag = remoteFeatureFlags?.swapsLimitOrders;
 
-    return true;
-    // return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
