@@ -21,11 +21,52 @@ import {
 } from '@metamask/design-system-react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { PredictEvent, PredictMarket, PredictOutcome } from '../../types';
+import { brandColor } from '@metamask/design-tokens';
+import type {
+  PredictDecimal,
+  PredictEvent,
+  PredictMarket,
+  PredictOutcome,
+} from '../../types';
 import { formatAskPrice } from './formatAskPrice';
+import { formatMultiplier } from './formatMultiplier';
 import { formatVolume } from './formatVolume';
 
 export const EVENT_CARD_VISIBLE_MARKET_COUNT = 3;
+
+export type OutcomeRowColor = 'green' | 'indigo' | 'red';
+
+export const BINARY_OUTCOME_ROW_COLORS: Record<'yes' | 'no', OutcomeRowColor> =
+  {
+    yes: 'green',
+    no: 'red',
+  };
+
+export const MULTI_OUTCOME_ROW_COLORS: readonly OutcomeRowColor[] = [
+  'green',
+  'indigo',
+  'red',
+];
+
+const OUTCOME_ROW_FILL: Record<OutcomeRowColor, string> = {
+  green: brandColor.lime100,
+  indigo: brandColor.indigo300,
+  red: brandColor.red300,
+};
+
+const getAskPricePercent = (askPrice?: PredictDecimal): number | undefined => {
+  if (askPrice === undefined) {
+    return undefined;
+  }
+
+  const value = Number(askPrice);
+
+  if (!Number.isFinite(value) || value < 0) {
+    return undefined;
+  }
+
+  return Math.min(100, value * 100);
+};
 
 interface RootProps {
   children: React.ReactNode;
@@ -33,10 +74,7 @@ interface RootProps {
 }
 
 const Root = ({ children, testID }: RootProps) => (
-  <Box
-    twClassName="m-4 gap-3 rounded-xl border border-muted p-4"
-    testID={testID}
-  >
+  <Box twClassName="m-4 gap-3 rounded-2xl bg-section p-4" testID={testID}>
     {children}
   </Box>
 );
@@ -45,10 +83,11 @@ const Pressable = ({ children, ...props }: PressableProps) => (
   <NativePressable {...props}>{children}</NativePressable>
 );
 
-interface OutcomeProps {
+interface OutcomeRowProps {
   event: PredictEvent;
   market: PredictMarket;
   outcome: PredictOutcome;
+  color: OutcomeRowColor;
   label?: string;
   onOrder?: (
     event: PredictEvent,
@@ -58,30 +97,65 @@ interface OutcomeProps {
   testID?: string;
 }
 
-const Outcome = ({
+const OutcomeRow = ({
   event,
   market,
   outcome,
+  color,
   label = outcome.label,
   onOrder,
   testID,
-}: OutcomeProps) => {
+}: OutcomeRowProps) => {
   const price = formatAskPrice(outcome.askPrice);
+  const multiplier = formatMultiplier(outcome.askPrice);
+  const percent = getAskPricePercent(outcome.askPrice);
+  const fill = OUTCOME_ROW_FILL[color];
+
   return (
-    <Button
-      testID={testID}
-      size={ButtonSize.Sm}
-      variant={ButtonVariant.Secondary}
-      isDisabled={!onOrder}
-      onPress={() => onOrder?.(event, market, outcome)}
-    >
-      {price ? `${label} ${price}` : label}
-    </Button>
+    <Box twClassName="flex-row items-center gap-3">
+      <Box twClassName="min-w-0 flex-1 gap-2">
+        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+          {label}
+        </Text>
+        {percent !== undefined ? (
+          <Box
+            testID={testID ? `${testID}-bar` : undefined}
+            twClassName="h-0.5 rounded-full"
+            style={{ width: `${percent}%`, backgroundColor: fill }}
+          />
+        ) : null}
+      </Box>
+      {multiplier ? (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          twClassName="text-right"
+        >
+          {multiplier}
+        </Text>
+      ) : null}
+      <Button
+        testID={testID}
+        size={ButtonSize.Lg}
+        variant={ButtonVariant.Secondary}
+        onPress={() => onOrder?.(event, market, outcome)}
+        style={{ backgroundColor: fill }}
+      >
+        <Text
+          variant={TextVariant.ButtonLabelMd}
+          fontWeight={FontWeight.Medium}
+          style={{ color: brandColor.grey1000 }}
+        >
+          {price ?? '-'}
+        </Text>
+      </Button>
+    </Box>
   );
 };
 
 const Title = ({ children }: { children: React.ReactNode }) => (
-  <Text variant={TextVariant.HeadingSm} numberOfLines={1} twClassName="flex-1">
+  <Text variant={TextVariant.HeadingSm} numberOfLines={2} twClassName="flex-1">
     {children}
   </Text>
 );
@@ -206,7 +280,7 @@ const Footer = ({ event, onPress, testID }: FooterProps) => {
 export const EventCard = {
   Root,
   Pressable,
-  Outcome,
+  OutcomeRow,
   Title,
   Subtitle,
   Image,

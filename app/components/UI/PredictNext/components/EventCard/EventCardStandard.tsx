@@ -1,7 +1,12 @@
 import React from 'react';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import type { PredictEvent, PredictMarket, PredictOutcome } from '../../types';
-import { EVENT_CARD_VISIBLE_MARKET_COUNT, EventCard } from './EventCard';
+import {
+  BINARY_OUTCOME_ROW_COLORS,
+  EVENT_CARD_VISIBLE_MARKET_COUNT,
+  EventCard,
+  MULTI_OUTCOME_ROW_COLORS,
+} from './EventCard';
 
 interface EventCardContentProps {
   event: PredictEvent;
@@ -37,37 +42,32 @@ export const EventCardStandard = ({
       </EventCard.Pressable>
 
       {isSingleMarket ? (
-        <Box twClassName="flex-row gap-2">
+        <Box twClassName="gap-3">
           {(['yes', 'no'] as const).map((side) => (
-            <EventCard.Outcome
+            <EventCard.OutcomeRow
               key={side}
               event={event}
               market={event.markets[0]}
               outcome={getOutcome(event.markets[0], side)}
+              label={side === 'yes' ? 'Yes' : 'No'}
+              color={BINARY_OUTCOME_ROW_COLORS[side]}
               onOrder={onOrder}
               testID={`predict-next-outcome-${event.id}-${side}`}
             />
           ))}
         </Box>
       ) : (
-        <Box twClassName="gap-2">
-          {visibleMarkets.map((market) => (
-            <Box
+        <Box twClassName="gap-3">
+          {visibleMarkets.map((market, index) => (
+            <EventCard.OutcomeRow
               key={market.id}
-              twClassName="flex-row items-center justify-between gap-2"
-            >
-              <Text variant={TextVariant.BodyMd} twClassName="flex-1">
-                {market.question}
-              </Text>
-              <EventCard.Outcome
-                event={event}
-                market={market}
-                outcome={getOutcome(market, 'yes')}
-                label="Yes"
-                onOrder={onOrder}
-                testID={`predict-next-outcome-${event.id}-${market.id}-yes`}
-              />
-            </Box>
+              event={event}
+              market={market}
+              outcome={getOutcome(market, 'yes')}
+              color={MULTI_OUTCOME_ROW_COLORS[index]}
+              onOrder={onOrder}
+              testID={`predict-next-outcome-${event.id}-${market.id}-yes`}
+            />
           ))}
         </Box>
       )}

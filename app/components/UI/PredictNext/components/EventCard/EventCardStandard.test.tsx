@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { brandColor } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -10,10 +11,14 @@ import type {
 } from '../../types';
 import { EventCardStandard } from './EventCardStandard';
 
-const outcome = (side: 'yes' | 'no', askPrice?: string): PredictOutcome => ({
+const outcome = (
+  side: 'yes' | 'no',
+  askPrice?: string,
+  label?: string,
+): PredictOutcome => ({
   id: `${side}-outcome` as PredictEntityId,
   side,
-  label: side === 'yes' ? 'Yes' : 'No',
+  label: label ?? (side === 'yes' ? 'Yes' : 'No'),
   askPrice: askPrice as PredictDecimal | undefined,
 });
 
@@ -21,7 +26,10 @@ const market = (id: string, askPrice = '0.42'): PredictMarket => ({
   id: id as PredictEntityId,
   question: `Question ${id}`,
   status: 'open',
-  outcomes: [outcome('yes', askPrice), outcome('no', '0.58')],
+  outcomes: [
+    outcome('yes', askPrice, `Candidate ${id}`),
+    outcome('no', '0.58'),
+  ],
 });
 
 const event = (
@@ -64,7 +72,7 @@ describe('EventCardStandard', () => {
     expect(screen.queryByTestId('predict-next-event-image-event-1')).toBeNull();
   });
 
-  it('shows Yes and No controls for one Market', () => {
+  it('shows Yes and No rows for one Market', () => {
     render(
       <EventCardStandard
         event={event([market('market-1')])}
@@ -72,8 +80,55 @@ describe('EventCardStandard', () => {
       />,
     );
 
-    expect(screen.getByText('Yes 42¢')).toBeOnTheScreen();
-    expect(screen.getByText('No 58¢')).toBeOnTheScreen();
+    expect(screen.getByText('Yes')).toBeOnTheScreen();
+    expect(screen.getByText('42¢')).toBeOnTheScreen();
+    expect(screen.getByText('No')).toBeOnTheScreen();
+    expect(screen.getByText('58¢')).toBeOnTheScreen();
+  });
+
+  it('paints binary rows green and red', () => {
+    render(
+      <EventCardStandard
+        event={event([market('market-1')])}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
+    ).toHaveStyle({ backgroundColor: brandColor.lime100 });
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-no-bar'),
+    ).toHaveStyle({ backgroundColor: brandColor.red300 });
+  });
+
+  it('shows three market rows with green, indigo, and red', () => {
+    render(
+      <EventCardStandard
+        event={event([
+          market('market-1'),
+          market('market-2', '0.5'),
+          market('market-3', '0.2'),
+          market('market-4'),
+        ])}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Candidate market-1')).toBeOnTheScreen();
+    expect(screen.getByText('Candidate market-2')).toBeOnTheScreen();
+    expect(screen.getByText('Candidate market-3')).toBeOnTheScreen();
+    expect(screen.queryByText('Candidate market-4')).toBeNull();
+    expect(screen.queryByText('Question market-1')).toBeNull();
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-market-1-yes-bar'),
+    ).toHaveStyle({ backgroundColor: brandColor.lime100 });
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-market-2-yes-bar'),
+    ).toHaveStyle({ backgroundColor: brandColor.indigo300 });
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-market-3-yes-bar'),
+    ).toHaveStyle({ backgroundColor: brandColor.red300 });
   });
 
   it('keeps card navigation independent from an Outcome action', () => {

@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { brandColor } from '@metamask/design-tokens';
 import type {
+  PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictMarket,
@@ -9,10 +11,11 @@ import type {
 } from '../../types';
 import { EventCard } from './EventCard';
 
-const outcome = (side: 'yes' | 'no'): PredictOutcome => ({
+const outcome = (side: 'yes' | 'no', askPrice?: string): PredictOutcome => ({
   id: `${side}-outcome` as PredictEntityId,
   side,
   label: side === 'yes' ? 'Yes' : 'No',
+  askPrice: askPrice as PredictDecimal | undefined,
 });
 
 const market = (id: string): PredictMarket => ({
@@ -151,5 +154,74 @@ describe('EventCard.Footer', () => {
     fireEvent.press(screen.getByTestId('predict-next-event-more-event-1'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('EventCard.OutcomeRow', () => {
+  const renderRow = (
+    askPrice?: string,
+    color: 'green' | 'indigo' | 'red' = 'green',
+    onOrder?: () => void,
+  ) => {
+    const value = event();
+
+    render(
+      <EventCard.OutcomeRow
+        event={value}
+        market={value.markets[0]}
+        outcome={outcome('yes', askPrice)}
+        color={color}
+        onOrder={onOrder}
+        testID="predict-next-outcome-event-1-yes"
+      />,
+    );
+
+    return value;
+  };
+
+  it('shows the outcome label, multiplier, and Ask Price', () => {
+    renderRow('0.42');
+
+    expect(screen.getByText('Yes')).toBeOnTheScreen();
+    expect(screen.getByText('2.38x')).toBeOnTheScreen();
+    expect(screen.getByText('42¢')).toBeOnTheScreen();
+  });
+
+  it('sizes the chance line from the Ask Price', () => {
+    renderRow('0.42');
+
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
+    ).toHaveStyle({ width: '42%' });
+  });
+
+  it('paints the chance line with the outcome color', () => {
+    renderRow('0.5', 'red');
+
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
+    ).toHaveStyle({ backgroundColor: brandColor.red300 });
+  });
+
+  it('omits the chance line and multiplier when Ask Price is missing', () => {
+    renderRow();
+
+    expect(
+      screen.queryByTestId('predict-next-outcome-event-1-yes-bar'),
+    ).toBeNull();
+    expect(screen.queryByText(/x$/)).toBeNull();
+  });
+
+  it('calls onOrder when the price control is pressed', () => {
+    const onOrder = jest.fn();
+    const value = renderRow('0.42', 'green', onOrder);
+
+    fireEvent.press(screen.getByTestId('predict-next-outcome-event-1-yes'));
+
+    expect(onOrder).toHaveBeenCalledWith(
+      value,
+      value.markets[0],
+      outcome('yes', '0.42'),
+    );
   });
 });
