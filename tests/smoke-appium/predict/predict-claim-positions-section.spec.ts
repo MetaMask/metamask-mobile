@@ -53,7 +53,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
 
           await verifyResolvedPositionsRemoved();
 
-          await TabBarComponent.tapActivity();
+          await TabBarComponent.tapActivityHeaderButton();
 
           await ActivitiesView.tapOnPredictionsTab();
 

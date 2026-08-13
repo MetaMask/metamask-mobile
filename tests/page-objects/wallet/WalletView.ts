@@ -31,6 +31,15 @@ class WalletView extends WalletHomeSectionsBase {
   }
 
   /**
+   * Header clock icon.
+   */
+  get activityButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
+    );
+  }
+
+  /**
    * Wallet header root — high in the Android view hierarchy (above scroll /
    * homepage sections). Appium uses resourceIdMatches so package-qualified
    * IDs resolve quickly without deep tree walks into token lists.

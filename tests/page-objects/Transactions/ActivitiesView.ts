@@ -12,13 +12,8 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
@@ -31,6 +26,10 @@ class ActivitiesView {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
     );
+  }
+
+  get typeFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP);
   }
 
   get redesignedScreen(): EncapsulatedElementType {
@@ -63,21 +62,8 @@ class ActivitiesView {
       },
     );
   }
-  get predictionsTab(): EncapsulatedElementType {
-    const label = ActivitiesViewSelectorsText.PREDICTIONS_TAB;
-    return encapsulated({
-      detox: () => Matchers.getElementByLabel(label),
-      appium: () => PlaywrightMatchers.getElementByText(label),
-    });
-  }
   get transferTab(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
-  }
-
-  get tabsBar(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
-    );
   }
 
   get container(): EncapsulatedElementType {
@@ -201,31 +187,28 @@ class ActivitiesView {
     await Gestures.waitAndTap(this.transactionItem(row));
   }
 
+  /**
+   * Filters redesigned Activity to Predictions. The redesign replaced the
+   * Predictions tab with a Type filter chip, so there is no tab to tap.
+   */
   async tapOnPredictionsTab(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        for (let attempt = 0; attempt < 4; attempt += 1) {
-          try {
-            await Assertions.expectElementToBeVisible(this.predictionsTab, {
-              timeout: 1000,
-            });
-            break;
-          } catch {
-            await UnifiedGestures.swipe(this.tabsBar, 'left', {
-              percentage: 0.5,
-              speed: 'slow',
-              description: `Swipe activity tabs to reveal Predictions (attempt ${attempt + 1})`,
-            });
-          }
-        }
-        await UnifiedGestures.waitAndTap(this.predictionsTab, {
-          description: 'Predictions Tab in Activity View',
-          timeout: 10_000,
-        });
-      },
+    await Assertions.expectElementToExist(this.redesignedScreen, {
+      description: 'Redesigned Activity screen',
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(this.typeFilterChip, {
+      elemDescription: 'Activity type filter chip',
+      checkForDisplayed: false,
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
+        `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}predictions`,
+      ),
       {
-        timeout: 30_000,
-        description: 'Tap Predictions tab in Activity View',
+        elemDescription: 'Activity type filter option Predictions',
+        checkForDisplayed: false,
+        timeout: 15_000,
       },
     );
   }
