@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -19,22 +19,67 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { MOCK_KYC_PREFILLED_EMAIL } from './constants';
+import {
+  registerSelectedMoneyAccountWallet,
+  startIronKycVerification,
+} from './ironKycFlow';
+import Logger from '../../../../../util/Logger';
 import MockKycProgressBar from './MockKycProgressBar';
 import { MockKycEmailSelectorsIDs } from './MockKycEmail.testIds';
 
 /**
- * Demo-only placeholder for the real Iron/Sumsub KYC email step.
+ * Demo-only email step for the Iron/Sumsub KYC flow: the screen chrome is still
+ * placeholder copy, but Continue drives the real Iron customer creation,
+ * consents, and native Sumsub hand-off.
  */
 const MockKycEmail = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [email, setEmail] = useState(MOCK_KYC_PREFILLED_EMAIL);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_MOCK_KYC_SUCCESS);
-  }, [navigation]);
+  const handleContinue = useCallback(async () => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || isVerifying) {
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      await startIronKycVerification(trimmedEmail);
+      try {
+        await registerSelectedMoneyAccountWallet();
+      } catch (registerError) {
+        // KYC already succeeded — soft-fail so the demo can continue.
+        Logger.error(
+          registerError instanceof Error
+            ? registerError
+            : new Error(String(registerError)),
+          { message: 'Money Account wallet registration failed after KYC' },
+        );
+        Alert.alert(
+          strings('virtual_bank_account.kyc_error.title'),
+          registerError instanceof Error
+            ? registerError.message
+            : strings(
+                'virtual_bank_account.kyc_error.wallet_registration_failed',
+              ),
+        );
+      }
+      navigation.navigate(Routes.RAMP.VBA_MOCK_KYC_SUCCESS);
+    } catch (error) {
+      Alert.alert(
+        strings('virtual_bank_account.kyc_error.title'),
+        error instanceof Error
+          ? error.message
+          : strings('virtual_bank_account.kyc_error.verification_failed'),
+      );
+    } finally {
+      setIsVerifying(false);
+    }
+  }, [email, isVerifying, navigation]);
 
   return (
     <SafeAreaView
@@ -90,6 +135,8 @@ const MockKycEmail = () => {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
+            isLoading={isVerifying}
+            isDisabled={isVerifying}
             onPress={handleContinue}
             testID={MockKycEmailSelectorsIDs.CONTINUE_BUTTON}
           >

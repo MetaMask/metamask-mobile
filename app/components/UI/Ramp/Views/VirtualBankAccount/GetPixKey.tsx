@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -30,6 +30,7 @@ import {
   TRACE_TERMS_URL,
 } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
+import { startIronKycFlow } from './ironKycFlow';
 
 // Placeholder until the real vault/config APY feed is wired into this screen.
 const PIX_APY_PERCENTAGE = 4;
@@ -76,11 +77,25 @@ const LegalLink = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const [isStartingKyc, setIsStartingKyc] = useState(false);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleAgreeAndContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+  const handleAgreeAndContinue = useCallback(async () => {
+    setIsStartingKyc(true);
+    try {
+      await startIronKycFlow();
+      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+    } catch (error) {
+      Alert.alert(
+        strings('virtual_bank_account.kyc_error.title'),
+        error instanceof Error
+          ? error.message
+          : strings('virtual_bank_account.kyc_error.start_failed'),
+      );
+    } finally {
+      setIsStartingKyc(false);
+    }
   }, [navigation]);
 
   const openMoonPayPrivacyPolicy = useCallback(
@@ -197,6 +212,8 @@ const GetPixKey = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
+          isLoading={isStartingKyc}
+          isDisabled={isStartingKyc}
           onPress={handleAgreeAndContinue}
           testID={GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON}
         >

@@ -21,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -34,9 +35,11 @@ import {
 } from './constants';
 
 /**
- * Demo-only KYC success screen. Finishing creates the autoramp (the standing
- * Pix -> crypto conversion rule) and hands off to the Virtual Bank Account
- * screen, which then tracks its status over the neo-bank websocket.
+ * Demo-only KYC success screen shown after Iron → Sumsub completes.
+ *
+ * Finishing creates the autoramp (the standing Pix -> crypto conversion rule)
+ * and hands off to the Virtual Bank Account screen, which then tracks its
+ * status over the neo-bank websocket.
  *
  * The MoonPay `customer_id` is not passed here on purpose: `createAutoramp`
  * resolves it from the KYC controller's verified identity.

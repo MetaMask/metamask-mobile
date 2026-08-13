@@ -1,6 +1,6 @@
 import React from 'react';
-import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { Alert, Linking } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
@@ -9,6 +9,7 @@ import {
   MOONPAY_TERMS_URL,
   TRACE_TERMS_URL,
 } from './constants';
+import { startIronKycFlow } from './ironKycFlow';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -21,9 +22,14 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('./ironKycFlow');
+
+const mockStartIronKycFlow = jest.mocked(startIronKycFlow);
+
 describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockStartIronKycFlow.mockResolvedValue(undefined);
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
@@ -44,14 +50,35 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('navigates to the verify identity screen when agree and continue is pressed', () => {
+  it('starts the Iron KYC flow and navigates to verify identity when agree and continue is pressed', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     fireEvent.press(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+    await waitFor(() => {
+      expect(mockStartIronKycFlow).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+    });
+  });
+
+  it('alerts and stays put when the Iron KYC flow fails to start', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockStartIronKycFlow.mockRejectedValue(new Error('No disclaimers.'));
+    const { getByTestId } = renderWithProvider(<GetPixKey />);
+
+    fireEvent.press(
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Identity verification',
+        'No disclaimers.',
+      );
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens the MoonPay privacy policy link', () => {
