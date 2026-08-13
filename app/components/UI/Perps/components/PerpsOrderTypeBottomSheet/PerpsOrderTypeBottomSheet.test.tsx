@@ -18,8 +18,18 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 const mockTrack = jest.fn();
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
+  const resolveStyle = (...args: unknown[]) => {
+    const classNames = JSON.stringify(args);
+    if (classNames.includes('bg-transparent')) {
+      return { backgroundColor: 'transparent' };
+    }
+    if (classNames.includes('bg-background-muted')) {
+      return { backgroundColor: 'muted' };
+    }
+    return {};
+  };
+  const tw = (...args: unknown[]) => resolveStyle(...args);
+  tw.style = jest.fn(resolveStyle);
   return { useTailwind: () => tw };
 });
 
@@ -272,6 +282,27 @@ describe('PerpsOrderTypeBottomSheet', () => {
         IconName.Check,
       );
       expect(within(unselectedOption).UNSAFE_queryByType(Icon)).toBeNull();
+    });
+
+    it('preserves the selected background when selected icons are hidden', () => {
+      const { rerender } = render(
+        <PerpsOrderTypeBottomSheet {...defaultProps} />,
+      );
+
+      const selectedOption = screen.getByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+      );
+
+      expect(selectedOption).toHaveStyle({ backgroundColor: 'muted' });
+      expect(within(selectedOption).UNSAFE_queryByType(Icon)).toBeNull();
+
+      rerender(
+        <PerpsOrderTypeBottomSheet {...defaultProps} showTriggeredTypes />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+      ).toHaveStyle({ backgroundColor: 'transparent' });
     });
   });
 

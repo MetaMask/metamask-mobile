@@ -104,6 +104,7 @@ const PerpsOrderTypeBottomSheetView = ({
 }: PerpsOrderTypeBottomSheetViewProps) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
+  const shouldShowSelectedIcon = showSelectedIcon || showTriggeredTypes;
 
   useEffect(() => {
     if (isVisible && !externalSheetRef) {
@@ -153,8 +154,10 @@ const PerpsOrderTypeBottomSheetView = ({
           </Box>
         }
         isSelected={currentOrderType === orderType.type}
-        showSelectedIcon={showSelectedIcon || showTriggeredTypes}
-        twClassName="bg-transparent"
+        showSelectedIcon={shouldShowSelectedIcon}
+        // The Pro design uses a checkmark without a selected-row fill. Shared
+        // sheets without checkmarks retain ListItemSelect's selected background.
+        twClassName={shouldShowSelectedIcon ? 'bg-transparent' : undefined}
         onPress={() => handleSelect(orderType.type)}
         testID={orderType.testID}
       />
