@@ -3,7 +3,7 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { RequestStatus, toQuoteResponseV2 } from '@metamask/bridge-controller';
 import {
   selectBridgeQuotes,
   selectControllerFields,
@@ -66,7 +66,7 @@ describe('useBridgeQuoteEvents', () => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
         quoteFetchError: null,
-        quotes: [mockQuoteWithMetadata],
+        quotes: [toQuoteResponseV2(mockQuoteWithMetadata)],
         quotesRefreshCount: 1,
         ...stateOverrides,
       };

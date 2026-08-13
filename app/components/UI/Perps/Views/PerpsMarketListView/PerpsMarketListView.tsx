@@ -768,9 +768,9 @@ const PerpsMarketListView = ({
     const hasSearchQuery = searchQuery.trim().length > 0;
     const hasActiveFilter = marketTypeFilter !== 'all';
 
-    // Filter-priority: both search and category filter active, no results.
-    // Show a filter-aware description and a "Clear filter" CTA so the user
-    // can widen results without losing their search term.
+    // Search + active filter, no results in this category → "Clear filter".
+    // Consistent regardless of whether there are global results; the description
+    // tells the user they can also try a different search.
     if (hasSearchQuery && hasActiveFilter && filteredMarkets.length === 0) {
       return (
         <PerpsMarketListEmptyState

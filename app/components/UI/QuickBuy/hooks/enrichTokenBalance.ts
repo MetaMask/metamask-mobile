@@ -5,7 +5,7 @@ import {
   isNativeAddress,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { BtcScope, TrxScope } from '@metamask/keyring-api';
+import { BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import type { BridgeToken } from '../../Bridge/types';
 import { formatCurrency } from '../../Bridge/utils/currencyUtils';
 import { calcTokenFiatRate } from '../../Bridge/utils/exchange-rates';
@@ -51,6 +51,7 @@ export interface TokenBalanceDeps {
   allNetworkConfigs?: Record<string, { nativeCurrency?: string } | undefined>;
   solanaAccount?: { id: string };
   tronAccount?: { id: string };
+  stellarAccount?: { id: string };
   bitcoinAccount?: { id: string };
   multichainBalances?: Record<
     string,
@@ -149,6 +150,7 @@ const getNonEvmAccount = (
 ): { id: string } | undefined => {
   if (isSolanaChainId(chainId)) return deps.solanaAccount;
   if (chainId === TrxScope.Mainnet) return deps.tronAccount;
+  if (chainId === XlmScope.Pubnet) return deps.stellarAccount;
   if (chainId === BtcScope.Mainnet) return deps.bitcoinAccount;
   return undefined;
 };
