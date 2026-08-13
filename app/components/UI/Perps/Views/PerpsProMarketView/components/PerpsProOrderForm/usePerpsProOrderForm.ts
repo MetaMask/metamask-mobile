@@ -15,7 +15,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
 import Engine from '../../../../../../../core/Engine';
@@ -60,7 +60,10 @@ import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
 } from '../../../../utils/orderParams';
-import { deriveOrderSizing } from '../../../../utils/orderSizing';
+import {
+  deriveOrderSizing,
+  getReduceOnlyMaxUsdAmount,
+} from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
 import {
   validateReduceOnlyOrder,
@@ -320,6 +323,7 @@ export const usePerpsProOrderForm = ({
     setLimitPrice,
     setOrderType,
     maxPossibleAmount,
+    setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
   } = usePerpsOrderContext();
 
@@ -394,6 +398,24 @@ export const usePerpsProOrderForm = ({
     return parsedLimitPrice > 0 ? parsedLimitPrice : assetData.price;
   }, [assetData.price, orderForm.limitPrice, orderForm.type]);
 
+  // Reduce-only orders close existing size; slider 100% is the open position,
+  // not available-margin × leverage.
+  const sizeSliderMaxAmount = useMemo(() => {
+    if (!reduceOnly) {
+      return maxPossibleAmount;
+    }
+
+    return getReduceOnlyMaxUsdAmount({
+      positionSize: currentMarketPosition?.size,
+      price: effectiveInputPrice,
+    });
+  }, [
+    currentMarketPosition?.size,
+    effectiveInputPrice,
+    maxPossibleAmount,
+    reduceOnly,
+  ]);
+
   const {
     sizeInput,
     sizeSlider,
@@ -405,7 +427,7 @@ export const usePerpsProOrderForm = ({
     assetSymbol: symbol,
     effectivePrice: effectiveInputPrice,
     szDecimals,
-    maxPossibleAmount,
+    maxPossibleAmount: sizeSliderMaxAmount,
     maxDigits: MAX_PERPS_INPUT_DIGITS,
   });
 
@@ -853,7 +875,7 @@ export const usePerpsProOrderForm = ({
 
       const currentAmount = Number.parseFloat(effectiveUsdAmount || '0');
       const newMaxAmount = spendableBalance * leverage;
-      if (currentAmount > newMaxAmount) {
+      if (!reduceOnly && currentAmount > newMaxAmount) {
         setAmount(Math.floor(newMaxAmount).toString());
       }
 
@@ -889,6 +911,7 @@ export const usePerpsProOrderForm = ({
       orderForm.asset,
       orderForm.direction,
       orderForm.leverage,
+      reduceOnly,
       spendableBalance,
       track,
     ],
@@ -1115,10 +1138,43 @@ export const usePerpsProOrderForm = ({
       if (value) {
         setTakeProfitPrice(undefined);
         setStopLossPrice(undefined);
+        setMaxPossibleAmountOverride(
+          getReduceOnlyMaxUsdAmount({
+            positionSize: currentMarketPosition?.size,
+            price: effectiveInputPrice,
+          }),
+        );
+        return;
       }
+
+      setMaxPossibleAmountOverride(null);
     },
-    [setTakeProfitPrice, setStopLossPrice],
+    [
+      currentMarketPosition?.size,
+      effectiveInputPrice,
+      setMaxPossibleAmountOverride,
+      setTakeProfitPrice,
+      setStopLossPrice,
+    ],
   );
+
+  useEffect(() => {
+    if (!reduceOnly) {
+      return;
+    }
+
+    setMaxPossibleAmountOverride(
+      getReduceOnlyMaxUsdAmount({
+        positionSize: currentMarketPosition?.size,
+        price: effectiveInputPrice,
+      }),
+    );
+  }, [
+    currentMarketPosition?.size,
+    effectiveInputPrice,
+    reduceOnly,
+    setMaxPossibleAmountOverride,
+  ]);
 
   return {
     direction: orderForm.direction,

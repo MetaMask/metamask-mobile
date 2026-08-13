@@ -195,4 +195,43 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
     },
   );
+
+  itForPlatforms(
+    'sets the size slider max to the open position when Reduce Only is selected',
+    async () => {
+      renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [createLongPositionForViews({ size: '-1' })],
+          orders: [],
+        },
+      });
+      await findSizeInput();
+      const slider = screen.getByTestId(ids.SIZE_SLIDER);
+
+      fireEvent(slider, 'valueChange', 2500);
+      fireEvent(slider, 'dragEnd', 2500);
+
+      await waitFor(() => {
+        const marginCappedAmount = Number(
+          screen.getByTestId(ids.SIZE_INPUT).props.value,
+        );
+        expect(marginCappedAmount).toBeGreaterThan(0);
+        expect(marginCappedAmount).toBeLessThan(2500);
+      });
+
+      fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+
+      await waitFor(() => {
+        expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      });
+
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 2500);
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 2500);
+
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '2500'),
+      );
+    },
+  );
 });
