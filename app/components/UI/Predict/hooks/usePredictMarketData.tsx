@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useState,
   useRef,
 } from 'react';
@@ -241,13 +242,16 @@ export const usePredictMarketData = (
     fetchMarketData(false);
   }, [category, customQueryParams, fetchMarketData, enabled]);
 
-  return {
-    marketData,
-    isFetching: isLoading,
-    isFetchingMore: isLoadingMore,
-    error,
-    hasMore,
-    refetch,
-    fetchMore: loadMore,
-  };
+  return useMemo(
+    () => ({
+      marketData,
+      isFetching: isLoading,
+      isFetchingMore: isLoadingMore,
+      error,
+      hasMore,
+      refetch,
+      fetchMore: loadMore,
+    }),
+    [marketData, isLoading, isLoadingMore, error, hasMore, refetch, loadMore],
+  );
 };

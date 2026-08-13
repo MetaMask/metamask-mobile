@@ -430,6 +430,26 @@ describe('usePredictMarketData', () => {
     expect(result.current.refetch).toBe(firstRefetch);
   });
 
+  it('maintains a stable result reference across re-renders with unchanged state', async () => {
+    mockGetMarkets.mockResolvedValue({
+      markets: mockMarketData,
+      nextCursor: null,
+    });
+
+    const { result, rerender } = renderHook(() => usePredictMarketData());
+
+    await waitFor(() => {
+      expect(result.current.isFetching).toBe(false);
+    });
+
+    const firstResult = result.current;
+
+    // Trigger a re-render with no state changes
+    rerender(undefined);
+
+    expect(result.current).toBe(firstResult);
+  });
+
   describe('customQueryParams option', () => {
     it('passes customQueryParams to getMarkets', async () => {
       mockGetMarkets.mockResolvedValue({

@@ -420,11 +420,15 @@ const Wallet = ({
 
   // Hook for handling non-EVM asset sending
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const { sendNonEvmAsset } = useSendNonEvmAsset({
-    asset: {
+  const nonEvmSendAsset = useMemo(
+    () => ({
       chainId: chainId as string,
       address: undefined,
-    },
+    }),
+    [chainId],
+  );
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: nonEvmSendAsset,
   });
   ///: END:ONLY_INCLUDE_IF
 
