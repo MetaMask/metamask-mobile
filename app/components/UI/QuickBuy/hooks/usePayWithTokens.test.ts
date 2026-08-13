@@ -9,7 +9,6 @@ import { TrxScope, BtcScope } from '@metamask/keyring-api';
 import { EVM_SCOPE } from '../../Earn/constants/networks';
 import { enrichTokenBalance } from './enrichTokenBalance';
 import { usePayWithTokens } from './usePayWithTokens';
-import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => undefined),
@@ -58,14 +57,9 @@ jest.mock('./enrichTokenBalance', () => ({
   enrichTokenBalance: jest.fn(),
 }));
 
-jest.mock('./useNetworkEnabledPredicate', () => ({
-  useNetworkEnabledPredicate: jest.fn(),
-}));
-
 const mockUseSelector = useSelector as jest.Mock;
 const mockUseTokensWithBalance = useTokensWithBalance as jest.Mock;
 const mockEnrich = enrichTokenBalance as jest.Mock;
-const mockUseNetworkEnabledPredicate = useNetworkEnabledPredicate as jest.Mock;
 const mockGetIgnoredTokens =
   getTokensControllerAllIgnoredTokens as unknown as jest.Mock;
 const mockGetIgnoredAssets =
@@ -128,7 +122,6 @@ describe('usePayWithTokens', () => {
       selector(FAKE_STATE),
     );
     mockAccountByScope.mockReturnValue(() => undefined);
-    mockUseNetworkEnabledPredicate.mockReturnValue(() => true);
   });
 
   it('returns the held tokens enriched with priced balances', () => {
@@ -199,14 +192,17 @@ describe('usePayWithTokens', () => {
     expect(mockEnrich).not.toHaveBeenCalled();
   });
 
-  it('drops held tokens on networks the user has not enabled', () => {
+  it('keeps cross-chain holdings regardless of the wallet enabled-networks filter (TSA-921)', () => {
+    // Regression: an exclusive `enableNetwork('eip155:4663')` (Robinhood)
+    // used to collapse the wallet's enabled-map to Robinhood-only via
+    // `useNetworkEnabledPredicate`, dropping every held token on other
+    // chains. `usePayWithTokens` no longer consults that filter, so the
+    // caller sees every bridge-reachable holding.
     mockUseTokensWithBalance.mockReturnValue([
-      token('USDC', '0x1'),
-      token('CAKE', '0x38'),
+      token('ETH', '0x1237'),
+      token('MUSD', '0xe708'),
+      token('USDT', '0x89'),
     ]);
-    mockUseNetworkEnabledPredicate.mockReturnValue(
-      (chainId: string | undefined) => chainId === '0x1',
-    );
     mockEnrich.mockImplementation((t: BridgeToken) => ({
       balance: '10',
       balanceFiat: '$10.00',
@@ -216,11 +212,11 @@ describe('usePayWithTokens', () => {
 
     const { result } = renderHook(() => usePayWithTokens());
 
-    expect(result.current.options.map((o) => o.symbol)).toEqual(['USDC']);
-    expect(mockEnrich).not.toHaveBeenCalledWith(
-      expect.objectContaining({ symbol: 'CAKE' }),
-      expect.anything(),
-    );
+    expect(result.current.options.map((o) => o.symbol)).toEqual([
+      'ETH',
+      'MUSD',
+      'USDT',
+    ]);
   });
 
   it('enriches held tokens without a price fallback', () => {

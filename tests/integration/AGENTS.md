@@ -1,6 +1,6 @@
 # tests/integration/ — AGENTS.md
 
-Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tests that exercise real controller / provider / service code with the I/O boundary mocked. Pointers only; details live in the canonical skill, the strategy doc, and references below.
+Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tests that exercise real controller / provider / service code with the I/O boundary mocked. Pointers only; details live in the canonical skill, the shared strategy doc, and each domain’s `STRATEGY.md`.
 
 ---
 
@@ -22,11 +22,18 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 
 - Tests live beside production code as `*.integration.test.ts?(x)`.
 - `jest.config.integration.js` owns suite discovery and runtime settings.
-- Reusable setup lives in `tests/integration/harnesses/`; the inventory below records the Mobile-specific real/mocked boundary and public factory for each harness.
+- Reusable setup lives in `tests/integration/harnesses/<domain>/`.
+- **Every domain folder** should include a use-case matrix (`*-use-cases.md` or equivalent) mapping flows → primary test layer. Domain harness inventory (Real / Mocked / factory / returns / use when), rollout, and shape detail live in that folder’s `STRATEGY.md`. Shared four-layer rules stay in the root [`STRATEGY.md`](STRATEGY.md).
+- Do **not** put domain Real/Mocked/factory detail in this file — open the domain `STRATEGY.md` instead.
 
 ---
 
-## Per-domain harnesses
+## Domains
+
+| Domain             | Folder                                       | Strategy (harness inventory + rollout)                             | Use-case matrix                                                                      |
+| ------------------ | -------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Perps              | [`harnesses/perps/`](harnesses/perps/)       | [`harnesses/perps/STRATEGY.md`](harnesses/perps/STRATEGY.md)       | [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md)           |
+| Networks / Core UX | [`harnesses/networks/`](harnesses/networks/) | [`harnesses/networks/STRATEGY.md`](harnesses/networks/STRATEGY.md) | [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md) |
 
 ### PredictNext — [`harnesses/predict-next.ts`](harnesses/predict-next.ts)
 
@@ -35,39 +42,25 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 - **Factory:** `buildPredictNextIntegrationHarness(responder)`
 - **Returns:** `{ controller, messenger, fetchMock, destroy }`
 
-### Perps — [`harnesses/perps.ts`](harnesses/perps.ts)
+---
 
-- **Real:** `HyperLiquidProvider` (mobile), all of its order / close / validation logic, asset-map lookups, in-memory state transitions
-- **Mocked:** `HyperLiquidClientService`, `HyperLiquidWalletService`, `HyperLiquidSubscriptionService`, `TradingReadinessCache`, injected `streamManager` platform dependency, `hyperLiquidValidation` utility module
-- **Factory:** `buildPerpsIntegrationHarness({ isTestnet?, assetMapping?, cachedPrices? })`
-- **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
-- **Use cases the harness covers:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration
+## New domain — definition of done
 
-### Perps Flow — [`harnesses/perps-flow.ts`](harnesses/perps-flow.ts)
+When adding `harnesses/<domain>/` (or a new public harness for a domain):
 
-- **Shape:** B — hook-flow harness built on Shape A
-- **Real:** `usePerpsTrading` consumers, `TradingService`, `HyperLiquidProvider`, validation and order/state transitions
-- **Mocked:** Shape A I/O mocks plus `app/core/Engine` as a thin `PerpsController` shim and `usePerpsNetworkManagement`
-- **Factory:** `buildPerpsFlowHarness({ isTestnet?, assetMapping?, cachedPrices? })`
-- **Returns:** `{ harness, tradingService }`, where `harness` is the Shape A provider harness
-- **Use when:** a hook call should prove the user-facing flow reaches the real `TradingService`/provider chain without rendering UI
+1. **Harness file(s)** — Shape A (and B/C if needed) with a REAL/MOCKED header + factory. Authoring details: [`harness-extension.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md).
+2. **Use-case matrix** — `*-use-cases.md` (or equivalent) mapping flows → primary test layer.
+3. **Domain `STRATEGY.md`** — harness inventory (Real / Mocked / factory / returns / use when) plus any rollout / shape tables that do not fit the matrix. Update when the public harness boundary changes.
+4. **Root [`STRATEGY.md`](STRATEGY.md)** — add a row to the domain table under “Domain strategy convention.”
+5. **This file** — add a row to [Domains](#domains) (folder + strategy + matrix links only).
 
-### Perps Component Flow — [`harnesses/perps-component.tsx`](harnesses/perps-component.tsx)
-
-- **Shape:** C — rendered-component harness built on Shape B
-- **Real:** perps React components, Redux selectors, stream/provider contexts, `usePerpsTrading` → Shape B Engine shim → real `TradingService`/provider
-- **Mocked:** Shape A/B I/O mocks, native rendering/runtime modules, toast ref, confirmation/payment app surface that is outside perps trading logic
-- **Factory:** `buildPerpsComponentHarness({ isTestnet?, assetMapping?, cachedPrices? })`
-- **Returns:** `{ renderWithFlow, renderScreenWithFlow, harness, tradingService, mocks, teardown }`
-- **Use when:** the rendered button press is the integration surface, e.g. `PerpsOrderView` place-order or `PerpsFlipPositionConfirmSheet` reverse-position. Prefer CV tests for pure UI variants that do not need real controller code.
-
-When a harness is added or its public boundary changes, update this inventory. Follow the central [`harness-extension.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md) workflow rather than documenting authoring rules here.
+Do **not** create a separate checklist file at the integration root. Do **not** paste domain Real/Mocked detail here.
 
 ---
 
 ## Strategy documents
 
-- [`STRATEGY.md`](STRATEGY.md) — Four-layer testing strategy. Layer responsibilities, comparison tables (cost / efficiency / refactor sensitivity), perps coverage plan, six-phase rollout.
-- [`perps-use-cases.md`](perps-use-cases.md) — Every perps user-facing flow mapped to its primary test layer. The authoritative driver for what gets tested where during the perps rollout.
-- [`coverage-and-tracking.md`](coverage-and-tracking.md) — Per-layer coverage targets and bug-tracking mechanisms (CI tagging, pre/post comparison, mutation testing). What to measure, how to measure it.
+- [`STRATEGY.md`](STRATEGY.md) — Shared four-layer testing strategy, harness shapes (A–D), coverage targets, folder convention. Domain rollouts and harness inventories do **not** live here.
 - [`coverage.svg`](coverage.svg) — Diagram showing which test type runs real code at each layer of the stack.
+
+Domain strategy + inventory: see [Domains](#domains).

@@ -31,6 +31,7 @@ import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import {
@@ -156,6 +157,10 @@ jest.mock(
 );
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -381,6 +386,7 @@ const CARD_TX: AccountsApiActivity = {
 const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInterest = jest.mocked(useMoneyAccountInterest);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockUseMoneyHomePerformance = jest.mocked(useMoneyHomePerformance);
@@ -472,6 +478,7 @@ const expectTestIdBefore = (
 
 describe('MoneyHomeView', () => {
   let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
+  let defaultMoneyVaultApy: ReturnType<typeof useMoneyVaultApy>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -549,13 +556,6 @@ describe('MoneyHomeView', () => {
       isBalanceUnavailable: false,
       lastKnownTotalFiatFormatted: undefined,
       refetchBalance: mockRefetchBalance,
-      apyDecimal: 0.05,
-      apyPercent: 5,
-      apyPercentFormatted: '5%',
-      vaultApyQuery: {
-        data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
-        isLoading: false,
-      },
       moneyBalanceQuery: {
         data: {
           musdBalance: '1000000',
@@ -567,7 +567,17 @@ describe('MoneyHomeView', () => {
         isLoading: false,
       },
     } as unknown as ReturnType<typeof useMoneyAccountBalance>;
+    defaultMoneyVaultApy = {
+      apyDecimal: 0.05,
+      apyPercent: 5,
+      apyPercentFormatted: '5%',
+      vaultApyQuery: {
+        data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
+        isLoading: false,
+      },
+    } as unknown as ReturnType<typeof useMoneyVaultApy>;
     mockUseMoneyAccountBalance.mockReturnValue(defaultMoneyAccountBalance);
+    mockUseMoneyVaultApy.mockReturnValue(defaultMoneyVaultApy);
 
     mockUseMusdBalance.mockReturnValue({
       hasMusdBalanceOnAnyChain: true,
@@ -657,13 +667,13 @@ describe('MoneyHomeView', () => {
 
   describe('time to content telemetry', () => {
     it('marks APY and earnings ready when cached content is visible during refetch', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({
-        ...defaultMoneyAccountBalance,
+      mockUseMoneyVaultApy.mockReturnValue({
+        ...defaultMoneyVaultApy,
         vaultApyQuery: {
-          ...defaultMoneyAccountBalance.vaultApyQuery,
+          ...defaultMoneyVaultApy.vaultApyQuery,
           isLoading: true,
         },
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      } as ReturnType<typeof useMoneyVaultApy>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
@@ -702,6 +712,8 @@ describe('MoneyHomeView', () => {
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
         isBalanceLoading: true,
+      } as ReturnType<typeof useMoneyAccountBalance>);
+      mockUseMoneyVaultApy.mockReturnValue({
         apyDecimal: undefined,
         apyPercent: undefined,
         apyPercentFormatted: undefined,
@@ -710,7 +722,7 @@ describe('MoneyHomeView', () => {
           isLoading: true,
           isError: false,
         },
-      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      } as ReturnType<typeof useMoneyVaultApy>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
@@ -738,14 +750,14 @@ describe('MoneyHomeView', () => {
     });
 
     it('treats displayed APY and earnings fallbacks as successful content', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({
-        ...defaultMoneyAccountBalance,
+      mockUseMoneyVaultApy.mockReturnValue({
+        ...defaultMoneyVaultApy,
         vaultApyQuery: {
           data: undefined,
           isLoading: false,
           isError: true,
         },
-      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      } as ReturnType<typeof useMoneyVaultApy>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
@@ -1746,15 +1758,12 @@ describe('MoneyHomeView', () => {
       // and MoneyEarnings renders. moneyFormatUsd is mocked to return '$0.00'
       // for all API and fallback values, exercising the no-plus-prefix path.
       mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$3.00',
         totalFiatRaw: '3',
         isBalanceLoading: false,
-        apyDecimal: 0.05,
-        apyPercent: 5,
-        apyPercentFormatted: '5%',
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
         moneyBalanceQuery: { data: undefined, isLoading: false },
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

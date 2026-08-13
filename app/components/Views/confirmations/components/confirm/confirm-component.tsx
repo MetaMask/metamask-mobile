@@ -48,6 +48,7 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
 import { ConfirmationNavHeader } from '../UI/navbar/navbar';
+import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -143,6 +144,7 @@ const ConfirmBody = ({
             </TouchableWithoutFeedback>
           </ScrollView>
           <Footer />
+          <MmPayDebugFloatingButton />
         </QRHardwareContextProvider>
       </ConfirmationAlerts>
     </ConfirmationAssetPollingProvider>
@@ -227,11 +229,7 @@ export const Confirm = ({
   }
 
   return (
-    <BottomSheet
-      onClose={() => onReject()}
-      style={styles.bottomSheetDialogSheet}
-      testID={ConfirmationUIType.MODAL}
-    >
+    <BottomSheet onClose={() => onReject()} testID={ConfirmationUIType.MODAL}>
       <View testID={approvalRequest?.type} style={styles.confirmContainer}>
         <ConfirmWrapped styles={styles} route={route} />
       </View>

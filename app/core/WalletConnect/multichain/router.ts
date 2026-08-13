@@ -1,4 +1,5 @@
 import type { CaipAccountId, CaipChainId, Json } from '@metamask/utils';
+import type { OriginMetadata } from '@metamask/snaps-sdk';
 import Engine from '../../Engine';
 import type { RpcMethod, RpcResponse, RpcSpec } from './types';
 
@@ -9,6 +10,7 @@ import type { RpcMethod, RpcResponse, RpcSpec } from './types';
 export function createSnapCaller<Spec extends RpcSpec<Spec>>() {
   return async <Method extends RpcMethod<Spec>>({
     origin,
+    originMetadata,
     connectedAddresses,
     scope,
     requestId,
@@ -21,6 +23,7 @@ export function createSnapCaller<Spec extends RpcSpec<Spec>>() {
      * dapp's self-reported URL or a shared transport-wide constant here.
      */
     origin: string;
+    originMetadata: OriginMetadata;
     connectedAddresses: CaipAccountId[];
     scope: CaipChainId;
     requestId: number;
@@ -29,6 +32,7 @@ export function createSnapCaller<Spec extends RpcSpec<Spec>>() {
     Engine.controllerMessenger.call('MultichainRoutingService:handleRequest', {
       connectedAddresses,
       origin,
+      originMetadata,
       scope,
       request: {
         jsonrpc: '2.0' as const,
