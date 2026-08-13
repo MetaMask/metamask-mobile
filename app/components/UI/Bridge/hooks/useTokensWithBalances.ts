@@ -3,10 +3,7 @@ import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { BalancesByAssetId } from './useBalancesByAssetId';
 import { convertAPITokensToBridgeTokens } from '../utils/tokenUtils';
 import { mergeBridgeTokensWithBalances } from '../utils/mergeBridgeTokensWithBalances';
-import {
-  ARC_NATIVE_ASSET_ID,
-  ARC_NATIVE_ASSET_ID_LEGACY,
-} from '../../../hooks/useArcDefaultTokens';
+import { ARC_NATIVE_ASSET_ID } from '../../../hooks/useArcDefaultTokens';
 import { assetIdsMatch } from '@metamask/bridge-controller';
 
 /**
@@ -25,9 +22,5 @@ export const useTokensWithBalances = (
     return mergeBridgeTokensWithBalances(
       convertedTokens,
       balancesByAssetId,
-    ).filter(
-      (token) =>
-        !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID) &&
-        !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY),
-    );
+    ).filter((token) => !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID));
   }, [apiTokens, balancesByAssetId]);
