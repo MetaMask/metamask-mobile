@@ -9,6 +9,9 @@ describe('buildMoneyAccountAutorampParams', () => {
   it('builds the demo autoramp request routed to the given address', () => {
     const address = '0xabc';
 
+    expect(DEMO_AUTORAMP_DESTINATION_TOKEN).toBe('MUSD');
+    expect(DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN).toBe('Monad');
+
     const params = buildMoneyAccountAutorampParams(address);
 
     expect(params).toStrictEqual({

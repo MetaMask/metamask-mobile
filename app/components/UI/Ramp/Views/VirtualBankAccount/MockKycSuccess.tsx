@@ -49,6 +49,12 @@ import { useVbaKycTrace } from './hooks/useVbaKycTrace';
 import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
 import { ensureMoneyAccountAutorampCreated } from './moneyAccountProvisioning';
 import { registerSelectedMoneyAccountWallet } from './registerSelectedMoneyAccountWallet';
+import {
+  formatVbaKycNotVerifiedMessage,
+  readCustomerId,
+  readCustomerStatus,
+  resolveVbaKycSkipEligibility,
+} from './resolveVbaKycSkipEligibility';
 
 type StepId = 'identity' | 'customer' | 'signing' | 'autoramp' | 'live';
 
@@ -128,35 +134,6 @@ function truncateId(value: string): string {
 
 function errorMessageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
-}
-
-/**
- * Reads the MoonPay customer id out of the neo-bank proxy's passthrough of
- * MoonPay's `Customer` object.
- */
-function readCustomerId(customer: unknown): string | null {
-  if (customer && typeof customer === 'object') {
-    const { id } = customer as { id?: unknown };
-    if (typeof id === 'string' && id.length > 0) {
-      return id;
-    }
-  }
-  return null;
-}
-
-/**
- * Reads MoonPay's account state off the same `Customer` object. MoonPay refuses
- * to create an autoramp for a customer that isn't active, so showing this
- * alongside the id turns an otherwise opaque 403 into a readable blocker.
- */
-function readCustomerStatus(customer: unknown): string | null {
-  if (customer && typeof customer === 'object') {
-    const { status } = customer as { status?: unknown };
-    if (typeof status === 'string' && status.length > 0) {
-      return status;
-    }
-  }
-  return null;
 }
 
 /**
@@ -400,12 +377,17 @@ const MockKycSuccess = () => {
       });
 
       const registration = await timed('signing', async () => {
-        const { status: kycStatus } =
-          await Engine.context.KycController.refreshKycStatus();
-        if (kycStatus !== 'completed') {
-          throw new Error(
-            `KYC status is "${kycStatus}". The wallet can only be registered once it reads completed.`,
-          );
+        const eligibility = await resolveVbaKycSkipEligibility();
+        vbaTrace('pipeline.signing.eligibility', {
+          skip: eligibility.skip,
+          reason: eligibility.reason,
+          ukycStatus: eligibility.ukycStatus,
+          customerStatus: eligibility.customerStatus,
+          customerId: eligibility.customerId,
+          externalId: eligibility.externalId,
+        });
+        if (!eligibility.skip) {
+          throw new Error(formatVbaKycNotVerifiedMessage(eligibility));
         }
         return registerSelectedMoneyAccountWallet({
           source: 'pipeline',

@@ -4,14 +4,15 @@ import {
   traceWhilePending,
   vbaTrace,
 } from '../../debug/vbaTrace';
+import { resolveVbaKycSkipEligibility } from './resolveVbaKycSkipEligibility';
 
-// Demo Iron → Sumsub helpers for the VBA Get Pix Key flow.
+// Demo Iron -> Sumsub helpers for the VBA Get Pix Key flow.
 // Local run requirements (demo/vba-kyc):
 // - Sibling core on neobank-demo with built packages/kyc-controller/dist
 // (file:../core/... dep for @metamask/kyc-controller).
 // - After yarn: yarn pod:install (SumSub SNSDK Specs + RN module).
 // - Builds use KYC_API_URL=https://kyc-api.dev-api.cx.metamask.io (builds.yml).
-// - Wallet registration uses neobankBaseUrl → on-ramp.dev-api neobank-proxy.
+// - Wallet registration uses neobankBaseUrl -> on-ramp.dev-api neobank-proxy.
 // - Caller must be signed in with a MetaMask profile JWT.
 
 // The VBA flow runs for Money, so the controller scopes its KYC-required check
@@ -40,8 +41,8 @@ function kycStateSummary(): Record<string, unknown> {
  * Runs a `KycController` step and rethrows whatever it recorded on state.
  *
  * The controller captures failures on `state.error` instead of rejecting, so a
- * step only counts as failed when it leaves behind an error that wasn't already
- * there from an earlier attempt.
+ * step counts as failed whenever it leaves a non-null error behind, including
+ * when a retry rewrites the same message that was already present.
  *
  * @param name - Step name recorded on the trace records.
  * @param step - The controller call to run.
@@ -50,7 +51,6 @@ async function runKycStep(
   name: string,
   step: () => Promise<void>,
 ): Promise<void> {
-  const errorBeforeStep = Engine.context.KycController.state.error;
   const startedAt = Date.now();
 
   vbaTrace('kyc.step.start', { step: name, before: kycStateSummary() });
@@ -73,7 +73,7 @@ async function runKycStep(
   }
 
   const { error } = Engine.context.KycController.state;
-  if (error && error !== errorBeforeStep) {
+  if (error) {
     vbaTrace('kyc.step.failed', {
       step: name,
       durationMs: Date.now() - startedAt,
@@ -94,7 +94,7 @@ async function runKycStep(
  * Starts the Iron vendor path from the VBA "Get your Pix Key" terms screen.
  *
  * Resolves the geolocation country and loads the Iron disclaimers the consent
- * call later needs, without creating a customer — the email that identifies one
+ * call later needs, without creating a customer - the email that identifies one
  * is collected further down the flow (see {@link startIronKycVerification}).
  */
 export async function startIronKycFlow(): Promise<void> {
@@ -110,9 +110,24 @@ export async function startIronKycFlow(): Promise<void> {
  * Creates the Iron customer for `email`, posts the terms consents, and hands
  * off to the native SumSub SDK for document verification.
  *
+ * Skips Iron/SumSub entirely when {@link resolveVbaKycSkipEligibility} finds
+ * UKYC `completed` or a neobank customer with `status: Active`.
+ *
  * @param email - The email the Iron customer is keyed by.
  */
 export async function startIronKycVerification(email: string): Promise<void> {
+  const eligibility = await resolveVbaKycSkipEligibility();
+  if (eligibility.skip) {
+    vbaTrace('kyc.verification.skip', {
+      reason: eligibility.reason,
+      ukycStatus: eligibility.ukycStatus,
+      customerStatus: eligibility.customerStatus,
+      customerId: eligibility.customerId,
+      externalId: eligibility.externalId,
+    });
+    return;
+  }
+
   // `POST /vendors/iron/customers` creates or resumes, so re-running this step
   // for an email that already has a customer is safe.
   await runKycStep('createIronCustomer', () =>

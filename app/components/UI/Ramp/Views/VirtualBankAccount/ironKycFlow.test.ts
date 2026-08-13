@@ -1,5 +1,6 @@
 import Engine from '../../../../../core/Engine';
 import { startIronKycFlow, startIronKycVerification } from './ironKycFlow';
+import { resolveVbaKycSkipEligibility } from './resolveVbaKycSkipEligibility';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -12,12 +13,20 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('./resolveVbaKycSkipEligibility', () => ({
+  resolveVbaKycSkipEligibility: jest.fn(),
+}));
+
 const mockKycController = Engine.context.KycController as unknown as {
   state: { error: string | null; disclaimers: { id: string }[] };
   initialize: jest.Mock<Promise<void>, [unknown?]>;
   createIronCustomer: jest.Mock<Promise<void>, [unknown?]>;
   acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown?]>;
 };
+
+const mockResolveVbaKycSkipEligibility = jest.mocked(
+  resolveVbaKycSkipEligibility,
+);
 
 const resetControllerState = ({
   error = null,
@@ -28,6 +37,15 @@ const resetControllerState = ({
 } = {}) => {
   mockKycController.state.error = error;
   mockKycController.state.disclaimers = disclaimers;
+};
+
+const notEligible = {
+  skip: false as const,
+  reason: null,
+  ukycStatus: 'not-started',
+  customerId: null,
+  customerStatus: 'Pending',
+  externalId: 'profile-1',
 };
 
 describe('startIronKycFlow', () => {
@@ -58,10 +76,22 @@ describe('startIronKycFlow', () => {
     );
   });
 
-  it('ignores an error left behind by an earlier attempt', async () => {
+  it('throws when a retry rewrites the same Iron/SumSub error', async () => {
+    const sameError = 'SNSMobileSDKModule missing';
+    resetControllerState({ error: sameError });
+    mockKycController.initialize.mockImplementation(async () => {
+      mockKycController.state.error = sameError;
+    });
+
+    await expect(startIronKycFlow()).rejects.toThrow(sameError);
+  });
+
+  it('throws when a non-null controller error remains after the step', async () => {
     resetControllerState({ error: 'Stale failure from a previous attempt.' });
 
-    await expect(startIronKycFlow()).resolves.toBeUndefined();
+    await expect(startIronKycFlow()).rejects.toThrow(
+      'Stale failure from a previous attempt.',
+    );
   });
 });
 
@@ -71,12 +101,50 @@ describe('startIronKycVerification', () => {
     mockKycController.initialize.mockResolvedValue(undefined);
     mockKycController.createIronCustomer.mockResolvedValue(undefined);
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
+    mockResolveVbaKycSkipEligibility.mockResolvedValue(notEligible);
     resetControllerState();
   });
 
-  it('creates the Iron customer then accepts terms to start the session', async () => {
+  it('skips Iron/SumSub when UKYC status is completed', async () => {
+    mockResolveVbaKycSkipEligibility.mockResolvedValue({
+      skip: true,
+      reason: 'ukyc-completed',
+      ukycStatus: 'completed',
+      customerId: null,
+      customerStatus: null,
+      externalId: 'profile-1',
+    });
+
+    await expect(
+      startIronKycVerification('user@example.com'),
+    ).resolves.toBeUndefined();
+
+    expect(mockKycController.createIronCustomer).not.toHaveBeenCalled();
+    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
+  });
+
+  it('skips Iron/SumSub when neobank customer status is Active', async () => {
+    mockResolveVbaKycSkipEligibility.mockResolvedValue({
+      skip: true,
+      reason: 'neobank-active',
+      ukycStatus: 'not-started',
+      externalId: 'profile-1',
+      customerId: 'cus_1',
+      customerStatus: 'Active',
+    });
+
+    await expect(
+      startIronKycVerification('user@example.com'),
+    ).resolves.toBeUndefined();
+
+    expect(mockKycController.createIronCustomer).not.toHaveBeenCalled();
+    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
+  });
+
+  it('creates the Iron customer then accepts terms when not eligible to skip', async () => {
     await startIronKycVerification('user@example.com');
 
+    expect(mockResolveVbaKycSkipEligibility).toHaveBeenCalled();
     expect(mockKycController.createIronCustomer).toHaveBeenCalledWith({
       email: 'user@example.com',
     });
