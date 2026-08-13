@@ -50,7 +50,6 @@ scripts/build.sh                                            @MetaMask/mobile-pla
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
 .github/workflows/generate-build-version.yml                @MetaMask/mobile-platform
-.github/workflows/commit-build-version.yml                  @MetaMask/mobile-platform
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 .github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
