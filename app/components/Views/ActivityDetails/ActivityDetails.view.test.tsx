@@ -141,8 +141,8 @@ describeForPlatforms('ActivityDetails', () => {
     expect(within(amountHeader).getByText(/SOL/)).toBeOnTheScreen();
 
     const totalRow = await findByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW);
-    // 2 SOL * multichain rate 4 → 8 USD
-    expect(within(totalRow).getByText('8 USD')).toBeOnTheScreen();
+    // 2 SOL * multichain rate 4 → $8.00 (formatCurrencyWithMinThreshold)
+    expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen();
 
     expect(
       await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
