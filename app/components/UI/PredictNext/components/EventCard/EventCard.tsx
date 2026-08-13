@@ -8,12 +8,24 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { Image as ExpoImage } from 'expo-image';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { PredictEvent, PredictMarket, PredictOutcome } from '../../types';
 import { formatAskPrice } from './formatAskPrice';
+import { formatVolume } from './formatVolume';
+
+export const EVENT_CARD_VISIBLE_MARKET_COUNT = 3;
 
 interface RootProps {
   children: React.ReactNode;
@@ -78,4 +90,101 @@ const Subtitle = ({ children }: { children: React.ReactNode }) => (
   </Text>
 );
 
-export const EventCard = { Root, Pressable, Outcome, Title, Subtitle };
+const Image = ({ source }: { source: string }) => {
+  const tw = useTailwind();
+  return (
+    <ExpoImage
+      source={source}
+      style={tw.style('w-10 h-10 rounded-md')}
+      contentFit="cover"
+      recyclingKey={source}
+    />
+  );
+};
+
+interface FooterProps {
+  event: PredictEvent;
+  onPress?: () => void;
+  testID?: string;
+}
+
+const Footer = ({ event, onPress, testID }: FooterProps) => {
+  const volume = formatVolume(event.volume);
+  const hiddenCount = Math.max(
+    0,
+    event.markets.length - EVENT_CARD_VISIBLE_MARKET_COUNT,
+  );
+
+  if (!event.category && volume === undefined && hiddenCount === 0) {
+    return null;
+  }
+
+  return (
+    <Box
+      twClassName="flex-row items-center justify-between"
+      testID={
+        testID ?? `predict-next-event-footer-${event.venueId}-${event.id}`
+      }
+    >
+      <Box twClassName="flex-1 flex-row items-center gap-3">
+        {event.category ? (
+          <Tag
+            severity={TagSeverity.Neutral}
+            testID={`predict-next-event-category-${event.id}`}
+          >
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {event.category}
+            </Text>
+          </Tag>
+        ) : null}
+        {volume !== undefined ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID={`predict-next-event-volume-${event.id}`}
+          >
+            ${volume} Vol
+          </Text>
+        ) : null}
+      </Box>
+      {hiddenCount > 0 ? (
+        <NativePressable
+          accessibilityLabel={`+${hiddenCount} more`}
+          accessibilityRole="button"
+          onPress={onPress}
+          testID={`predict-next-event-more-${event.id}`}
+        >
+          <Box twClassName="flex-row items-center">
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              +{hiddenCount} more
+            </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Xs}
+              color={IconColor.IconAlternative}
+            />
+          </Box>
+        </NativePressable>
+      ) : null}
+    </Box>
+  );
+};
+
+export const EventCard = {
+  Root,
+  Pressable,
+  Outcome,
+  Title,
+  Subtitle,
+  Image,
+  Footer,
+};
