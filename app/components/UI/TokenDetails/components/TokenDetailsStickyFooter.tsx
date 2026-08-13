@@ -483,4 +483,4 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
 };
 
-export default React.memo(TokenDetailsStickyFooter);
+export default TokenDetailsStickyFooter;

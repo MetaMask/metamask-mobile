@@ -37,7 +37,7 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 
-const TokenDetailsInlineHeaderComponent = ({
+export const TokenDetailsInlineHeader = ({
   token,
   securityData,
   onBackPress,
@@ -230,7 +230,3 @@ const TokenDetailsInlineHeaderComponent = ({
     />
   );
 };
-
-export const TokenDetailsInlineHeader = React.memo(
-  TokenDetailsInlineHeaderComponent,
-);

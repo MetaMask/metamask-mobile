@@ -73,7 +73,7 @@ export const TokenDetailsActionsSkeleton: React.FC = () => {
   );
 };
 
-const TokenDetailsActionsComponent: React.FC<TokenDetailsActionsProps> = ({
+export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   hasPerpsMarket,
   hasBalance,
   isBuyable,
@@ -318,7 +318,5 @@ const TokenDetailsActionsComponent: React.FC<TokenDetailsActionsProps> = ({
     </View>
   );
 };
-
-export const TokenDetailsActions = React.memo(TokenDetailsActionsComponent);
 
 export default TokenDetailsActions;

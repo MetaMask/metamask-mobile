@@ -789,4 +789,4 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 };
 
-export default React.memo(AssetOverviewContent);
+export default AssetOverviewContent;
