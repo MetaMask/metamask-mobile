@@ -1745,16 +1745,20 @@ describe('Metamask Pay Metrics', () => {
         } as unknown as TransactionMeta,
         request.transactionMeta,
       ];
-      request.getUIMetrics = jest.fn((id: string) =>
-        id === 'parent-1'
-          ? {
-              properties: {
-                mm_pay_amount_input_type: 'prefilled_max',
-                mm_pay_amount_input_prefill_presented: true,
+      request.getUIMetrics = jest.fn(
+        (id: string): TransactionMetrics =>
+          id === 'parent-1'
+            ? {
+                properties: {
+                  mm_pay_amount_input_type: 'prefilled_max',
+                  mm_pay_amount_input_prefill_presented: true,
+                },
+                sensitiveProperties: {},
+              }
+            : {
+                properties: {},
+                sensitiveProperties: {},
               },
-              sensitiveProperties: {},
-            }
-          : undefined,
       );
 
       getStateMock.mockReturnValue({

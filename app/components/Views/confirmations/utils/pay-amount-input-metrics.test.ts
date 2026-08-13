@@ -74,7 +74,7 @@ describe('resolveMoneyAccountDepositPrefillPresented', () => {
   const depositTx = {
     type: TransactionType.moneyAccountDeposit,
     batchId: '0xbatch',
-  } as TransactionMeta;
+  } as unknown as TransactionMeta;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -118,7 +118,7 @@ describe('resolveMoneyAccountDepositPrefillPresented', () => {
   it('returns false for non-deposit transaction types', () => {
     expect(
       resolveMoneyAccountDepositPrefillPresented(
-        { type: TransactionType.perpsDeposit } as TransactionMeta,
+        { type: TransactionType.perpsDeposit } as unknown as TransactionMeta,
         state,
       ),
     ).toBe(false);
