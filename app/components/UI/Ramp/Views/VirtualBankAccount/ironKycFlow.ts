@@ -98,5 +98,5 @@ export async function registerSelectedMoneyAccountWallet(): Promise<void> {
     throw new Error('No selected account available to register.');
   }
 
-  await Engine.context.KycController.registerMoneyAccountWallet({ address });
+  await Engine.context.RampsController.registerMoneyAccountWallet({ address });
 }
