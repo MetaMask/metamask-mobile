@@ -1,5 +1,4 @@
 import React from 'react';
-/* eslint-disable @metamask/design-tokens/color-no-hex -- theme mock uses hex for test compatibility */
 import { render, act } from '@testing-library/react-native';
 import type { Trade } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
@@ -67,15 +66,13 @@ jest.mock('../../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter', () => ({
     mockUsePerpsAdvancedChartAdapter(...args),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      border: { muted: '#ccc' },
-      success: { default: '#0f0' },
-      error: { default: '#f00' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => 'USD'),
