@@ -71,22 +71,22 @@ describe('VbaVerifyIdentity', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the data and privacy sub-topics expanded by default, and hides them when collapsed', () => {
+  it('keeps the data and privacy sub-topics collapsed by default, and shows them expanded once opened', () => {
     const { getByText, queryByText, getByTestId } = renderWithProvider(
       <VbaVerifyIdentity />,
-    );
-
-    expect(getByText('What we collect')).toBeOnTheScreen();
-    expect(getByText('How we store data')).toBeOnTheScreen();
-    expect(getByText('How to delete')).toBeOnTheScreen();
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
     );
 
     expect(queryByText('What we collect')).not.toBeOnTheScreen();
     expect(queryByText('How we store data')).not.toBeOnTheScreen();
     expect(queryByText('How to delete')).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
+    );
+
+    expect(getByText('What we collect')).toBeOnTheScreen();
+    expect(getByText('How we store data')).toBeOnTheScreen();
+    expect(getByText('How to delete')).toBeOnTheScreen();
   });
 
   it('collapses an individual sub-topic without affecting the others', () => {
@@ -94,6 +94,9 @@ describe('VbaVerifyIdentity', () => {
       <VbaVerifyIdentity />,
     );
 
+    fireEvent.press(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
+    );
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_TOGGLE),
     );
