@@ -20,7 +20,6 @@ import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
-import { useNeobankSandboxDepositEvents } from '../hooks/useNeobankSandboxDepositEvents';
 import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
 import type {
   MoneyConfirmationsNavigationParamList,
@@ -38,7 +37,6 @@ const MoneyTabScreenStack = () => {
   const { colors } = useTheme();
 
   useUpgradeMoneyAccountOnFocus();
-  useNeobankSandboxDepositEvents();
 
   return (
     <TabStack.Navigator

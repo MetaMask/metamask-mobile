@@ -1165,9 +1165,6 @@
       "start_failed": "We couldn't start identity verification. Try again.",
       "verification_failed": "We couldn't verify your identity. Try again.",
       "wallet_registration_failed": "Identity verified, but we couldn't register your Money Account wallet. You can continue."
-    },
-    "deposit_demo": {
-      "success_toast": "Deposit successful"
     }
   },
   "social_leaderboard": {
