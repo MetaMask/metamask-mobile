@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
-import type { AccountWalletMnemonicPayload } from '@metamask/account-tree-controller';
+import { type AccountWalletMnemonicPayload } from '@metamask/account-tree-controller';
+import { encodeMnemonicWords } from '@metamask/keyring-sdk';
 import type { RootState } from '../../reducers';
 import {
   QrSyncPhases,
@@ -28,14 +29,14 @@ export const selectQrSyncError = createSelector(
 export const selectQrSyncPrimaryMnemonic = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => {
-    const primaryWallet = qrSyncState.pendingPayload?.data.wallets.find(
+    const primaryWallet = qrSyncState.pendingPayload?.wallets.find(
       (w): w is AccountWalletMnemonicPayload => w.type === 'mnemonic',
     );
     if (!primaryWallet?.value) {
       return null;
     }
     try {
-      return primaryWallet.value;
+      return encodeMnemonicWords(new Uint8Array(primaryWallet.value));
     } catch {
       return null;
     }
@@ -48,7 +49,7 @@ export const selectQrSyncHasPendingSecrets = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
     qrSyncState.pendingPayload !== null &&
-    qrSyncState.pendingPayload?.data.wallets.length > 0,
+    qrSyncState.pendingPayload?.wallets.length > 0,
 );
 
 export const selectQrSyncIsBusy = createSelector(
