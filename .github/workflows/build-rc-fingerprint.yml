@@ -18,12 +18,6 @@
 name: Build RC (fingerprint reuse)
 
 on:
-  # TEMPORARY: registers this workflow so it can be dispatched from this branch
-  # before merge. Real jobs skip these events; remove with the register-workflow
-  # job after GitHub lists it in Actions.
-  pull_request:
-  push:
-    branches: [feat/rc-fingerprint-reuse]
   workflow_call:
     inputs:
       source_branch:
@@ -155,16 +149,8 @@ env:
   STATUS_CONTEXT: rc-fingerprint-build-source-hash
 
 jobs:
-  register-workflow:
-    name: Register workflow for dispatch
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Registered Build RC (fingerprint reuse) for later workflow_dispatch."
-
   prepare:
     name: Fingerprint and resolve reuse
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call'
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
       fingerprint: ${{ steps.publish.outputs.fingerprint }}
