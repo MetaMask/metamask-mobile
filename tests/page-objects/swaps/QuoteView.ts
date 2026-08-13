@@ -349,27 +349,41 @@ class QuoteView {
   }
 
   /**
+   * Waits until a quote is ready without relying on "Network fee" text visibility.
+   * Destination amount sits above the keypad BottomSheet, so this works while the
+   * keypad is open (Network fee / QuoteDetailsCard can exist but report not displayed).
+   */
+  async waitForQuoteReady(options?: { timeout?: number }): Promise<void> {
+    const timeout = options?.timeout ?? 60_000;
+    const interval = 300;
+    const start = Date.now();
+    let lastSeen = '<element not found>';
+    while (Date.now() - start < timeout) {
+      try {
+        const el = (await this.destinationTokenInput) as {
+          textContent: () => Promise<string>;
+        };
+        const text = await el.textContent();
+        lastSeen = text ?? '';
+        if (text && /\d/.test(text) && parseFloat(text) > 0) {
+          return;
+        }
+      } catch {
+        lastSeen = '<element not found>';
+      }
+      await sleep(interval);
+    }
+    throw new Error(
+      `Destination token input does not contain a numeric value after ${timeout}ms, got: "${lastSeen}"`,
+    );
+  }
+
+  /**
    * Asserts the quote is displayed by verifying the destination token input
    * contains a numeric value (meaning a quote result has populated the field).
    */
   async isQuoteDisplayed(): Promise<void> {
-    const timeout = TIMEOUT.QUOTE_DISPLAYED;
-    const interval = 300;
-    const start = Date.now();
-    const el = (await this.destinationTokenInput) as {
-      textContent: () => Promise<string>;
-    };
-    while (Date.now() - start < timeout) {
-      const text = await el.textContent();
-      if (text && /\d/.test(text) && parseFloat(text) > 0) {
-        return;
-      }
-      await sleep(interval);
-    }
-    const finalText = await el.textContent();
-    throw new Error(
-      `Destination token input does not contain a numeric value after ${timeout}ms, got: "${finalText}"`,
-    );
+    await this.waitForQuoteReady({ timeout: TIMEOUT.QUOTE_DISPLAYED });
   }
 
   /**

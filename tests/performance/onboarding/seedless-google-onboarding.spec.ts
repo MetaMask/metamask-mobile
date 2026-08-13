@@ -6,7 +6,10 @@ import {
   PlaywrightGestures,
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import { dismissPushNotificationExistingUserSheet } from '../../flows/wallet.flow';
+import {
+  closePredictModal,
+  dismissPushNotificationExistingUserSheet,
+} from '../../flows/wallet.flow';
 import {
   Performance,
   System,
@@ -132,9 +135,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
+        await OnboardingSuccessView.tapDone();
+        await dismissPushNotificationExistingUserSheet();
+        await closePredictModal();
         await timer5.measure(async () => {
-          await OnboardingSuccessView.tapDone();
-          await dismissPushNotificationExistingUserSheet();
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
