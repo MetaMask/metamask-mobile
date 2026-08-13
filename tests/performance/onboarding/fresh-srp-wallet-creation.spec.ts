@@ -367,10 +367,9 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           destination !== 'wallet';
           hop += 1
         ) {
-          // Predict is an optional onboarding modal. Dismiss it before
-          // starting the next measured transition so its appearance and
-          // closing animation are never included in performance metrics.
-          await closePredictModal();
+          // Predict is optional. Probe without waiting so an absent modal
+          // cannot delay the start of the measured transition.
+          await closePredictModal({ timeoutMs: 0 });
 
           const transitionTimer = new TimerHelper(
             `Fresh SRP post-onboarding transition ${hop}`,
