@@ -120,6 +120,21 @@ describe('PredictPortfolioSummary', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows unavailable portfolio values while keeping the available balance private', () => {
+    renderSummary({ hasError: true, isHidden: true });
+
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.queryByText('$0.00 available')).toBeNull();
+    expect(screen.getByText('•••••••••')).toBeOnTheScreen();
+  });
+
+  it('shows an unavailable balance in privacy mode', () => {
+    renderSummary({ hasBalanceError: true, hasError: true, isHidden: true });
+
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getByText('— available')).toBeOnTheScreen();
+  });
+
   it('renders the available balance as unavailable when balance loading fails', () => {
     renderSummary({ hasBalanceError: true, hasError: true });
 

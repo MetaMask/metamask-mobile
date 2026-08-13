@@ -112,7 +112,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
         accessible
       >
         <SensitiveText
-          isHidden={isHidden}
+          isHidden={isHidden && !hasError}
           length={SensitiveTextLength.Long}
           testID={PREDICT_PORTFOLIO_TEST_IDS.PRIMARY_VALUE}
           variant={ComponentTextVariant.DisplayLG}
@@ -135,7 +135,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
                   ? ComponentTextColor.Success
                   : ComponentTextColor.Error
             }
-            isHidden={isHidden}
+            isHidden={isHidden && !hasError}
             length={SensitiveTextLength.Long}
             variant={ComponentTextVariant.BodySM}
           >
@@ -146,7 +146,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
           </Text>
           <SensitiveText
             color={ComponentTextColor.Alternative}
-            isHidden={isHidden}
+            isHidden={isHidden && !hasBalanceError}
             length={SensitiveTextLength.Medium}
             variant={ComponentTextVariant.BodySM}
           >
