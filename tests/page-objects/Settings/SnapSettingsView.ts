@@ -26,15 +26,6 @@ class SnapSettingsView {
   }
 
   /**
-   * Flip the Snap enable Switch once and verify the value changed.
-   * Prefer {@link setEnabled} when the desired end state is known.
-   */
-  async toggleEnable(): Promise<void> {
-    const currentlyOn = await Assertions.isToggleOn(this.enabledToggle);
-    await this.setEnabled(!currentlyOn);
-  }
-
-  /**
    * Ensure the Snap details enable Switch is in the requested state.
    * Re-taps with fresh queries until the native value matches (Appium iOS
    * Switch taps can report success without flipping `value`).

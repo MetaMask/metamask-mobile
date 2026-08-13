@@ -347,37 +347,9 @@ export default class Assertions {
   }
 
   /**
-   * Read Appium Switch / checkbox on-state from native attributes.
-   * iOS XCUITest switches report `value` as `"1"` / `"0"`; Android often uses
-   * `checked` (`"true"` / `"false"`). Returns undefined when no known attr is set.
+   * Returns whether a Switch/toggle is currently on.
    */
-  private static parseAppiumToggleOnState(
-    attributes: Record<string, unknown>,
-  ): boolean | undefined {
-    if (attributes.checked === true || attributes.checked === 'true') {
-      return true;
-    }
-    if (attributes.checked === false || attributes.checked === 'false') {
-      return false;
-    }
-    if (attributes.value === 1 || attributes.value === '1') {
-      return true;
-    }
-    if (attributes.value === 0 || attributes.value === '0') {
-      return false;
-    }
-    if (attributes.value === true || attributes.value === 'true') {
-      return true;
-    }
-    if (attributes.value === false || attributes.value === 'false') {
-      return false;
-    }
-    return undefined;
-  }
-
-  private static async readAppiumToggleOn(
-    elem: EncapsulatedElementType,
-  ): Promise<boolean> {
+  static async isToggleOn(elem: EncapsulatedElementType): Promise<boolean> {
     const el = await asPlaywrightElement(elem);
     // Each Appium driver only supports the attribute native to its Switch:
     // iOS XCUITest exposes `value` (`"1"` / `"0"`); Android UiAutomator2 exposes
@@ -385,24 +357,18 @@ export default class Assertions {
     // `attribute is unknown`, so read only the platform-appropriate attribute.
     const attributeName = PlatformDetector.isIOS() ? 'value' : 'checked';
     const attributeValue = await el.getAttribute(attributeName);
-    const state = this.parseAppiumToggleOnState({
-      [attributeName]: attributeValue,
-    });
-    if (state === undefined) {
-      throw new Error(
-        `Unable to determine toggle state from attribute ${attributeName}=${String(
-          attributeValue,
-        )}`,
-      );
-    }
-    return state;
-  }
 
-  /**
-   * Returns whether a Switch/toggle is currently on.
-   */
-  static async isToggleOn(elem: EncapsulatedElementType): Promise<boolean> {
-    return this.readAppiumToggleOn(elem);
+    if (attributeValue === '1' || attributeValue === 'true') {
+      return true;
+    }
+    if (attributeValue === '0' || attributeValue === 'false') {
+      return false;
+    }
+    throw new Error(
+      `Unable to determine toggle state from attribute ${attributeName}=${String(
+        attributeValue,
+      )}`,
+    );
   }
 
   /**
@@ -419,7 +385,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const isOn = await this.readAppiumToggleOn(elem);
+        const isOn = await this.isToggleOn(elem);
         if (!isOn) {
           throw new Error(
             [
@@ -451,7 +417,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const isOn = await this.readAppiumToggleOn(elem);
+        const isOn = await this.isToggleOn(elem);
         if (isOn) {
           throw new Error(
             [
