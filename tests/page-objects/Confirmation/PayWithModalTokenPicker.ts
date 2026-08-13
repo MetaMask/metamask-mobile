@@ -1,11 +1,8 @@
 import { TransactionPayComponentIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import {
-  FrameworkDetector,
+  Gestures,
   Matchers,
-  PlaywrightMatchers,
-  UnifiedGestures,
-  encapsulated,
   type EncapsulatedElementType,
 } from '../../framework';
 
@@ -24,55 +21,46 @@ class PayWithModalTokenPicker {
   }
 
   getAssetRow(symbol: string, index = 0): EncapsulatedElementType {
-    const testID = getAssetTestId(symbol);
-    return encapsulated({
-      detox: () => Matchers.getElementByID(testID, index),
-      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
-    });
+    return Matchers.getElementByID(getAssetTestId(symbol), index);
   }
 
   getAssetRowOnNetwork(
     symbol: string,
     chainId: string,
   ): EncapsulatedElementType {
-    const testID = getAssetTestId(`${chainId}-${symbol}`);
-    return encapsulated({
-      detox: () => Matchers.getElementByID(testID),
-      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
-    });
+    return Matchers.getElementByID(getAssetTestId(`${chainId}-${symbol}`));
   }
 
   async tapAsset(symbol: string, index = 0): Promise<void> {
     const assetRow = this.getAssetRow(symbol, index);
-    const opts = { description: `Pay with asset ${symbol}` };
-
-    if (FrameworkDetector.isDetox()) {
-      await UnifiedGestures.scrollToElement(
-        assetRow,
-        this.tokenListScrollViewIdentifier,
-        { ...opts, direction: 'down', scrollAmount: 200 },
-      );
-    }
-    await UnifiedGestures.waitAndTap(assetRow, opts);
+    await Gestures.scrollToElement(
+      assetRow,
+      this.tokenListScrollViewIdentifier,
+      {
+        elemDescription: `Pay with asset ${symbol}`,
+        direction: 'down',
+        scrollAmount: 200,
+      },
+    );
+    await Gestures.waitAndTap(assetRow, {
+      elemDescription: `Pay with asset ${symbol}`,
+    });
   }
 
-  /**
-   * Taps an asset row by specifically targeting its chainId.
-   */
   async tapAssetOnNetwork(symbol: string, chainId: string): Promise<void> {
     const assetRow = this.getAssetRowOnNetwork(symbol, chainId);
-    const opts = {
-      description: `Pay with asset ${symbol} on network ${chainId}`,
-    };
-
-    if (FrameworkDetector.isDetox()) {
-      await UnifiedGestures.scrollToElement(
-        assetRow,
-        this.tokenListScrollViewIdentifier,
-        { ...opts, direction: 'down', scrollAmount: 200 },
-      );
-    }
-    await UnifiedGestures.waitAndTap(assetRow, opts);
+    await Gestures.scrollToElement(
+      assetRow,
+      this.tokenListScrollViewIdentifier,
+      {
+        elemDescription: `Pay with asset ${symbol} on network ${chainId}`,
+        direction: 'down',
+        scrollAmount: 200,
+      },
+    );
+    await Gestures.waitAndTap(assetRow, {
+      elemDescription: `Pay with asset ${symbol} on network ${chainId}`,
+    });
   }
 }
 
