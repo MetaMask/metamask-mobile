@@ -18,6 +18,7 @@ import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
+import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -137,6 +138,16 @@ const mockUseStickyTokenActions = jest.fn();
 jest.mock('../hooks/useStickyTokenActions', () => ({
   useStickyTokenActions: () => mockUseStickyTokenActions(),
 }));
+
+jest.mock(
+  '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing',
+  () => ({
+    useAddNetworkIfMissingQuery: jest.fn(),
+  }),
+);
+const mockUseAddNetworkIfMissingQuery = jest.mocked(
+  useAddNetworkIfMissingQuery,
+);
 
 const defaultUseTokenTransactionsReturn = {
   transactions: [],
@@ -500,6 +511,19 @@ describe('TokenDetails', () => {
     const { UNSAFE_getByType } = render(<TokenDetails />);
 
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  it('requests the auto-add of the network for the token chain', () => {
+    mockRouteParams.mockReturnValue({
+      ...defaultRouteParams,
+      chainId: '0x1237',
+    });
+
+    render(<TokenDetails />);
+
+    expect(mockUseAddNetworkIfMissingQuery).toHaveBeenCalledWith({
+      chainId: '0x1237',
+    });
   });
 
   describe('Swap/Buy sticky buttons', () => {
