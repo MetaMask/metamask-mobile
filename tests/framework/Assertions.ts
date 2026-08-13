@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor } from './legacy-detox-shim';
 import Utilities, { BASE_DEFAULTS, stripJsonKeys } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import Matchers from './Matchers.ts';

@@ -19,11 +19,9 @@ import {
 import Utilities from '../Utilities';
 import {
   dismissAndroidSystemOverlaysPlaywright,
-  dismissDevScreens,
   dismissDeveloperMenuPlaywright,
   dismissDevelopmentServerPickerPlaywright,
 } from '../../flows/general.flow';
-import { launchApp as launchDetoxApp } from '../detox/DetoxAppLaunch';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
@@ -95,52 +93,27 @@ import {
   recordPhase,
   startPhase,
   stopPhase,
-} from '../telemetry/PhaseTimer';
+} from '../telemetry/PhaseTimer.ts';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
 
 /**
- *
- * @param currentDeviceDetails - The current device details. If not provided, the device command options will be undefined.
- * @returns The device command options. If the current device details are provided and are not browserstack, the device command options will be returned. If the current device details are not provided and the framework is detox, the device command options will be returned. If the current device details are not provided and the framework is not detox, the device command options will be undefined.
+ * @param currentDeviceDetails - Appium device details from the Playwright fixture.
+ * @returns Device command options for local Appium devices, or undefined for
+ * BrowserStack / missing device details.
  */
 function getDeviceCommandOptions(
   currentDeviceDetails?: CurrentDeviceDetails,
 ): DeviceCommandHandlerOptions | undefined {
-  // Appium based devices
-  if (currentDeviceDetails) {
-    if (currentDeviceDetails.isBrowserstack) {
-      return undefined;
-    }
-
-    return {
-      currentDeviceDetails,
-      deviceId: currentDeviceDetails.udid ?? currentDeviceDetails.deviceName,
-      logger,
-    };
-  }
-
-  // Detox based devices
-  if (!FrameworkDetector.isDetox()) {
+  if (!currentDeviceDetails || currentDeviceDetails.isBrowserstack) {
     return undefined;
   }
 
-  const deviceId = process.env.DEVICE_UDID || device.id;
-  if (!deviceId) {
-    return undefined;
-  }
-
-  const platform = device.getPlatform() as 'android' | 'ios';
   return {
-    currentDeviceDetails: {
-      platform,
-      deviceName: deviceId,
-      udid: platform === 'android' ? deviceId : undefined,
-      isBrowserstack: false,
-    },
-    deviceId,
+    currentDeviceDetails,
+    deviceId: currentDeviceDetails.udid ?? currentDeviceDetails.deviceName,
     logger,
   };
 }
@@ -544,15 +517,12 @@ export const loadFixture = async (
 
 /**
  * The mock server is shared across tests within a spec file instead of being
- * stopped and restarted per test. On Android the emulator's global proxy
- * tunnels the Detox tester WebSocket through this server (the proxy exclusion
- * list is not honored for WS upgrades); stopping the server between tests
- * cleanly closes that tunnel, which makes the app-side Detox client terminate
- * permanently and breaks every later test using restartDevice: false.
- * Per-test isolation comes from MockServerE2E.reconfigure(), which resets all
- * rules/subscriptions without touching established tunnels. The instance is
- * stopped once per spec file (afterAll in tests/init.detox.js); on Playwright
- * workers it lives until the worker process exits.
+ * stopped and restarted per test. On Android the emulator's global proxy can
+ * tunnel Appium/CDP WebSockets through this server; stopping it between tests
+ * would tear those tunnels down. Per-test isolation comes from
+ * MockServerE2E.reconfigure(), which resets rules/subscriptions without
+ * touching established tunnels. On Playwright workers the instance lives until
+ * the worker process exits (or stopSharedMockServer() is called explicitly).
  */
 let sharedMockServerInstance: MockServerE2E | undefined;
 
@@ -648,14 +618,14 @@ export async function withFixtures(
     ],
     testSpecificMock,
     launchArgs,
-    languageAndLocale,
-    permissions = {},
+    languageAndLocale: _languageAndLocale,
+    permissions: _permissions = {},
     endTestfn,
-    skipReactNativeReload = false,
+    skipReactNativeReload: _skipReactNativeReload = false,
     useCommandQueueServer = false,
     analyticsExpectations,
     currentDeviceDetails,
-    disableSynchronization = false,
+    disableSynchronization: _disableSynchronization = false,
   } = options;
   const deviceCommandOptions = getDeviceCommandOptions(currentDeviceDetails);
   const deviceCommands = deviceCommandOptions
@@ -832,100 +802,59 @@ export async function withFixtures(
       // On Android, LaunchArguments library integration is unreliable on CI
       // We must pass fallback ports so the app uses them and adb reverse can map them
       // to the actual allocated ports
-      const isAndroid = PlatformDetector.isAndroid();
-      const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
+      const isAndroid = await PlatformDetector.isAndroid();
 
-      if (framework === 'Detox') {
-        await launchDetoxApp({
-          delete: true,
-          launchArgs: {
-            fixtureServerPort: isAndroid
-              ? `${FALLBACK_FIXTURE_SERVER_PORT}`
-              : `${getFixturesServerPort()}`,
-            commandQueueServerPort: isAndroid
-              ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
-              : `${commandQueueServer.getServerPort()}`,
-            detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-            mockServerPort: isAndroid
-              ? `${FALLBACK_MOCKSERVER_PORT}`
-              : `${mockServerPort}`,
-            [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
-              ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
-              : `${accountActivityWsServer.getServerPort()}`,
-            [SOLANA_INFURA_WS.launchArgKey]: isAndroid
-              ? `${SOLANA_INFURA_WS.fallbackPort}`
-              : `${solanaInfuraWsServer.getServerPort()}`,
-            ...(launchArgs || {}),
-          },
-          languageAndLocale,
-          permissions,
-        });
-      } else if (framework === 'Appium') {
-        if (!currentDeviceDetails) {
-          throw new Error('currentDeviceDetails is not available');
-        }
-        const testArgs = {
-          fixtureServerPort: isAndroid
-            ? `${FALLBACK_FIXTURE_SERVER_PORT}`
-            : `${getFixturesServerPort()}`,
-          commandQueueServerPort: isAndroid
-            ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
-            : `${commandQueueServer.getServerPort()}`,
-          detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-          mockServerPort: isAndroid
-            ? `${FALLBACK_MOCKSERVER_PORT}`
-            : `${mockServerPort}`,
-          ...(isAndroid
-            ? {}
-            : { [IOS_E2E_APP_PROXY_LAUNCH_ARG]: `${mockServerPort}` }),
-          [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
-            ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
-            : `${accountActivityWsServer.getServerPort()}`,
-          [SOLANA_INFURA_WS.launchArgKey]: isAndroid
-            ? `${SOLANA_INFURA_WS.fallbackPort}`
-            : `${solanaInfuraWsServer.getServerPort()}`,
-          ...(launchArgs || {}),
-        };
-
-        const softReloadResult = await softReloadAppForFixtures({
-          currentDeviceDetails,
-          deviceCommands,
-          launchArgs: testArgs,
-          fixtureServer,
-        });
-        recordPhase('app_clear', softReloadResult.clearAppDataMs);
-        recordPhase('context_reset', softReloadResult.contextResetMs);
-        recordPhase('app_launch', softReloadResult.launchAppMs);
-        recordPhase('fixture_bootstrap', softReloadResult.fixtureBootstrapMs);
-        if (softReloadResult.attemptedMetroDevLauncherDismissal) {
-          didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
-        }
-      } else {
-        throw new Error(`Unsupported test runner: ${framework}`);
+      if (!currentDeviceDetails) {
+        throw new Error('currentDeviceDetails is not available');
       }
-    }
+      const testArgs = {
+        fixtureServerPort: isAndroid
+          ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+          : `${getFixturesServerPort()}`,
+        commandQueueServerPort: isAndroid
+          ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+          : `${commandQueueServer.getServerPort()}`,
+        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+        mockServerPort: isAndroid
+          ? `${FALLBACK_MOCKSERVER_PORT}`
+          : `${mockServerPort}`,
+        ...(isAndroid
+          ? {}
+          : { [IOS_E2E_APP_PROXY_LAUNCH_ARG]: `${mockServerPort}` }),
+        [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+          ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+          : `${accountActivityWsServer.getServerPort()}`,
+        [SOLANA_INFURA_WS.launchArgKey]: isAndroid
+          ? `${SOLANA_INFURA_WS.fallbackPort}`
+          : `${solanaInfuraWsServer.getServerPort()}`,
+        ...(launchArgs || {}),
+      };
 
-    if (FrameworkDetector.isDetox()) {
-      if (disableSynchronization) {
-        await device.disableSynchronization();
-      } else {
-        await device.enableSynchronization();
+      const softReloadResult = await softReloadAppForFixtures({
+        currentDeviceDetails,
+        deviceCommands,
+        launchArgs: testArgs,
+        fixtureServer,
+      });
+      recordPhase('app_clear', softReloadResult.clearAppDataMs);
+      recordPhase('context_reset', softReloadResult.contextResetMs);
+      recordPhase('app_launch', softReloadResult.launchAppMs);
+      recordPhase('fixture_bootstrap', softReloadResult.fixtureBootstrapMs);
+      if (softReloadResult.attemptedMetroDevLauncherDismissal) {
+        didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
       }
     }
 
     // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
-    if (process.env.CI !== 'true') {
-      if (FrameworkDetector.isDetox()) {
-        await dismissDevScreens();
-      } else if (
-        FrameworkDetector.isAppium() &&
-        shouldHandleMetroDevLauncherLocally()
-      ) {
-        if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
-          await dismissDevelopmentServerPickerPlaywright();
-        }
-        await dismissDeveloperMenuPlaywright();
+    if (
+      process.env.CI !== 'true' &&
+      FrameworkDetector.isAppium() &&
+      shouldHandleMetroDevLauncherLocally()
+    ) {
+      if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
+        await dismissDevelopmentServerPickerPlaywright();
       }
+      await dismissDeveloperMenuPlaywright();
     }
 
     startPhase('test_body');
@@ -1012,24 +941,8 @@ export async function withFixtures(
       }
     }
 
-    // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
-    if (!skipReactNativeReload && FrameworkDetector.isDetox()) {
-      try {
-        // Disable synchronization to prevent race conditions with pending timers
-        await device.disableSynchronization();
-        await device.reloadReactNative();
-        await device.enableSynchronization();
-      } catch (cleanupError) {
-        logger.warn('React Native reload failed (non-critical):', cleanupError);
-        // Ensure synchronization is re-enabled even on failure
-        try {
-          await device.enableSynchronization();
-        } catch {
-          // Ignore - best effort
-        }
-        // Don't add to cleanupErrors as this is a non-critical cleanup operation
-      }
-    }
+    // skipReactNativeReload was Detox-only (device.reloadReactNative); Appium
+    // uses softReloadAppForFixtures / fixture bootstrap instead (MMQA-2230).
 
     if (mockServerInstance) {
       // N4: warn-only summary of OS-proxy-intercepted native traffic and the
@@ -1066,8 +979,8 @@ export async function withFixtures(
 
     // The mock server is intentionally NOT stopped here: it is shared across
     // tests in this spec file (see sharedMockServerInstance) and stays in
-    // drain mode until the next test reconfigures it. It is stopped once per
-    // spec file via stopSharedMockServer() in tests/init.detox.js.
+    // drain mode until the next test reconfigures it. Playwright workers keep
+    // it until the worker exits (or stopSharedMockServer() is called).
 
     // Clean up the fixture server
     if (fixtureServer?.isStarted()) {

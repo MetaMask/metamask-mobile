@@ -1,6 +1,6 @@
 import type { ServiceProvider } from '../../services';
 import type { PerformanceTracker } from '../../../reporters/PerformanceTracker';
-import type { PhaseTimer } from '../../telemetry/PhaseTimer';
+import type { PhaseTimer } from '../../telemetry/PhaseTimer.ts';
 
 export interface CurrentDeviceDetails {
   platform: 'android' | 'ios';

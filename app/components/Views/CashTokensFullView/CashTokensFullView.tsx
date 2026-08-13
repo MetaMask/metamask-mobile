@@ -43,6 +43,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../UI/Earn/constants/musd';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -215,9 +216,12 @@ const CashTokensFullView = () => {
         .build(),
     );
 
-    goToBuy({
-      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-    });
+    goToBuy(
+      {
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+      },
+      { surface: RAMPS_BUY_CUF_SURFACE.CASH },
+    );
   }, [createEventBuilder, goToBuy, trackEvent]);
 
   const balanceHeading = useMemo(

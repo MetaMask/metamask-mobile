@@ -407,12 +407,10 @@ export const selectPerpsWatchlistEnabledFlag = createSelector(
 export const selectPerpsProModeEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    // Default to false if no flag is set (disabled by default)
-    const localFlag = process.env.MM_PERPS_PRO_MODE_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsProModeEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

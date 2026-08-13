@@ -11,6 +11,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 
 interface PerpsFeesDisplayProps {
@@ -34,6 +35,9 @@ interface PerpsFeesDisplayProps {
   placeholder?: string;
   testID?: string;
   variant?: TextVariant;
+  /** Main fee value color. Defaults to `TextAlternative` for legacy screens. */
+  color?: TextColor;
+  fontWeight?: FontWeight;
 }
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
@@ -43,6 +47,8 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   placeholder = '--',
   testID,
   variant = TextVariant.BodyMd,
+  color = TextColor.TextAlternative,
+  fontWeight,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -71,7 +77,11 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
 
   return (
     <View style={styles.feeRowContent}>
-      {showVipBadge ? <RewardsVipBadge /> : null}
+      {showVipBadge ? (
+        <View style={styles.vipBadgeContainer}>
+          <RewardsVipBadge />
+        </View>
+      ) : null}
       {originalFeeText !== undefined ? (
         <Text
           variant={variant}
@@ -83,7 +93,12 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           {originalFeeText}
         </Text>
       ) : null}
-      <Text variant={variant} color={TextColor.TextAlternative} testID={testID}>
+      <Text
+        variant={variant}
+        color={color}
+        fontWeight={fontWeight}
+        testID={testID}
+      >
         {feeText}
       </Text>
     </View>

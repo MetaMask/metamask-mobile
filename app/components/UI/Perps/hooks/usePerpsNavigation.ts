@@ -162,9 +162,22 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToMarketList = useCallback(
     (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
-      // Navigate via the Perps root so this works from both contexts:
-      // 1. When PerpsHomeView is embedded as a tab in the main navigator (wallet home)
-      // 2. When PerpsHomeView is a stack screen inside PerpsScreenStack
+      // Inside the Perps stack, push rather than navigate. `navigate()` reuses
+      // an existing market-list entry and pops everything above it, so opening
+      // the list from a market screen the user reached *through* the list
+      // animates backwards — the market → list → market loop reported in
+      // TAT-3649.
+      if (
+        navigation.getState()?.routeNames?.includes(Routes.PERPS.MARKET_LIST)
+      ) {
+        navigation.dispatch(
+          StackActions.push(Routes.PERPS.MARKET_LIST, params),
+        );
+        return;
+      }
+
+      // Outside the Perps stack (e.g. PerpsHomeView embedded as a tab in the
+      // main navigator) the list is only reachable through the Perps root.
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
         params,

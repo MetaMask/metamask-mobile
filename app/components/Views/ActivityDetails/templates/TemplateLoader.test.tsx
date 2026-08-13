@@ -33,6 +33,11 @@ jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [],
 }));
 
+jest.mock('../../../UI/Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({ earnTokensByChainIdAndAddress: {} }),
+}));
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => {

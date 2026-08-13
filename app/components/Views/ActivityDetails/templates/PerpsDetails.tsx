@@ -17,6 +17,7 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { useNavigateToPerpsHome } from '../../../UI/Perps/utils/perpsModeSwitch';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
   ActivityDetailRow,
@@ -29,8 +30,8 @@ import {
   ActivityDetailsPerpsStepTimeline,
   ActivityDetailsStatus,
   ActivityDetailsTemplateFrame,
-  formatActivityTokenAmount,
   useActivityPayFiat,
+  useFormatActivityTokenAmount,
 } from '../components';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import {
@@ -90,17 +91,6 @@ function useTradeAgain(asset: string | undefined) {
       },
     });
   }, [market, navigation]);
-}
-
-function useOpenPerpsHome() {
-  const navigation = useNavigation<AppNavigationProp>();
-
-  return useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: {},
-    });
-  }, [navigation]);
 }
 
 function StatusAndDateRows({
@@ -364,7 +354,7 @@ function FundsDetails({
   transaction: PerpsTransaction;
 }) {
   const depositWithdrawal = transaction.depositWithdrawal;
-  const openPerpsHome = useOpenPerpsHome();
+  const openPerpsHome = useNavigateToPerpsHome();
   // Provider-backed rows carry no `metamaskPay`; it is resolved from the local
   // transaction behind this row's hash.
   const pay = useActivityPayFiat(item);
@@ -392,7 +382,9 @@ function FundsDetails({
           symbol={depositWithdrawal.asset}
         />
       }
-      metadata={<ActivityDetailsPerpsMetadata item={item} />}
+      metadata={
+        <ActivityDetailsPerpsMetadata item={item} isDeposit={isDeposit} />
+      }
       details={
         <PerpsFundsDetailsBody
           pay={isDeposit ? pay : undefined}
@@ -423,8 +415,9 @@ function FundsDetails({
  * from the local row, so both entry points land on the same screen.
  */
 function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
-  const openPerpsHome = useOpenPerpsHome();
+  const openPerpsHome = useNavigateToPerpsHome();
   const pay = useActivityPayFiat(item);
+  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const isDeposit = item.type === 'perpsAddFunds';
   const token = 'token' in item.data ? item.data.token : undefined;
 
@@ -437,7 +430,9 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
           symbol={token?.symbol}
         />
       }
-      metadata={<ActivityDetailsPerpsMetadata item={item} />}
+      metadata={
+        <ActivityDetailsPerpsMetadata item={item} isDeposit={isDeposit} />
+      }
       details={
         <PerpsFundsDetailsBody
           pay={isDeposit ? pay : undefined}

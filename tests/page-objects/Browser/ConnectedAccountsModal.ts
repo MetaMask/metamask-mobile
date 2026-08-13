@@ -5,12 +5,12 @@ import {
 import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { waitFor } from 'detox';
-import type {
-  IndexableNativeElement,
-  NativeElement,
-  IndexableSystemElement,
-} from 'detox/detox';
+import {
+  waitFor,
+  type IndexableNativeElement,
+  type NativeElement,
+  type IndexableSystemElement,
+} from '../../framework/legacy-detox-shim';
 import { EncapsulatedElementType } from '../../framework';
 type DetoxElement = Promise<
   IndexableNativeElement | NativeElement | IndexableSystemElement

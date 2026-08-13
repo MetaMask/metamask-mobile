@@ -100,6 +100,9 @@ import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusCo
 import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ActivityEmptyState from '../ActivityScreen/components/ActivityEmptyState';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useActivityScreenViewed } from '../ActivityScreen/hooks/useActivityScreenViewed';
+import type { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
@@ -130,6 +133,7 @@ import {
   resolveRampOrderTarget,
 } from './utils/resolveRampOrderTarget';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -212,6 +216,8 @@ interface ActivityListProps {
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
+  trackScreenViewed?: boolean;
+  entryPoint?: ActivityScreenEntryPoint;
 }
 
 export interface ActivityListHandle {
@@ -221,7 +227,16 @@ export interface ActivityListHandle {
 
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
   (
-    { header, chainId, scrollY, typeFilter, networkFilter, subFilterKinds },
+    {
+      header,
+      chainId,
+      scrollY,
+      typeFilter,
+      networkFilter,
+      subFilterKinds,
+      trackScreenViewed = false,
+      entryPoint,
+    },
     ref,
   ) => {
     const navigation = useNavigation<AppNavigationProp>();
@@ -260,11 +275,30 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
       INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
     );
+    const [hasPerpsSourceReported, setHasPerpsSourceReported] = useState(false);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const [predictSource, setPredictSource] =
       useState<PredictActivitySourceState>(
         INITIAL_PREDICT_ACTIVITY_SOURCE_STATE,
       );
+    const [hasPredictSourceReported, setHasPredictSourceReported] =
+      useState(false);
+
+    const handlePerpsSourceChange = useCallback(
+      (state: PerpsActivitySourceState) => {
+        setHasPerpsSourceReported(true);
+        setPerpsSource(state);
+      },
+      [],
+    );
+
+    const handlePredictSourceChange = useCallback(
+      (state: PredictActivitySourceState) => {
+        setHasPredictSourceReported(true);
+        setPredictSource(state);
+      },
+      [],
+    );
 
     const nonEvmState = useSelector(
       selectNonEvmTransactionsForSelectedAccountGroup,
@@ -562,6 +596,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     ]);
     const groupedData = useMemo(() => groupActivityListItems(data), [data]);
 
+    const pendingActivityCount = useMemo(
+      () => data.filter((item) => item.status === 'pending').length,
+      [data],
+    );
+
     const hasConfiguredEvmChains = configuredEVMChainIds.length > 0;
     const popularListBlockExplorer = useBlockExplorer(
       hasConfiguredEvmChains ? configuredEVMChainIds[0] : undefined,
@@ -837,7 +876,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // Continue → Send Transaction flow which ActivityDetails does not.
         if (raw.type === 'rampOrder') {
           if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
-            goToBuy();
+            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
             return;
           }
 
@@ -1254,6 +1293,33 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const shouldShowTransactionList = data.length > 0;
     const items = shouldShowTransactionList ? groupedData : [];
 
+    const haveRelevantSourcesReported = (() => {
+      switch (typeFilter) {
+        case ActivityTypeFilter.Perps:
+          return !isPerpsEnabled || hasPerpsSourceReported;
+        case ActivityTypeFilter.Predictions:
+          return !isPredictEnabled || hasPredictSourceReported;
+        case undefined:
+        case ActivityTypeFilter.All:
+          return (
+            (!isPerpsEnabled || hasPerpsSourceReported) &&
+            (!isPredictEnabled || hasPredictSourceReported)
+          );
+        default:
+          return true;
+      }
+    })();
+
+    useActivityScreenViewed({
+      enabled: trackScreenViewed,
+      isSettled: !isRelevantActivityLoading && haveRelevantSourcesReported,
+      isEmpty: !shouldShowTransactionList,
+      pendingCount: pendingActivityCount,
+      typeFilter,
+      networkFilter,
+      entryPoint,
+    });
+
     const renderItem = ({
       item: groupedItem,
       index,
@@ -1335,10 +1401,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
             )}
           </PriceChartContext.Consumer>
           {shouldMountPerpsSource ? (
-            <PerpsActivitySource onChange={setPerpsSource} />
+            <PerpsActivitySource onChange={handlePerpsSourceChange} />
           ) : null}
           {shouldMountPredictSource ? (
-            <PredictActivitySource onChange={setPredictSource} />
+            <PredictActivitySource onChange={handlePredictSourceChange} />
           ) : null}
           {/* Speed up / Cancel modals */}
           <CancelSpeedupModal

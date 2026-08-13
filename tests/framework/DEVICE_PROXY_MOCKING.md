@@ -43,10 +43,10 @@ device-proxy -> strict
 
 ## Lifecycle
 
-The proxy + CA lifecycle lives in the framework-neutral module `tests/framework/services/proxy-setup/`. It is deliberately decoupled from any one test runner:
+The proxy + CA lifecycle lives in `tests/framework/services/proxy-setup/`:
 
-- **Detox**: `tests/init.detox.js` calls `warmupProxyCa()` in its `beforeAll` hook; `withFixtures` in `FixtureHelper` drives the per-test setup/cleanup.
-- **Playwright/Appium**: `tests/framework/config/global.setup.ts` calls `warmupProxyCa()` once before all tests; the same `withFixtures` path drives the per-test setup/cleanup.
+- **CA warm-up**: `tests/framework/config/global.setup.ts` calls `warmupProxyCa()` once before all Appium/Playwright tests.
+- **Per-test setup/cleanup**: `withFixtures` in `FixtureHelper` drives `setupProxy` / `cleanupProxy`.
 
 The CA warm-up is idempotent (concurrent and repeat callers share one in-flight generation) and best-effort at the hook level — suites that never touch the device proxy are unaffected if it fails; the per-test path fails loudly when the proxy is actually needed.
 

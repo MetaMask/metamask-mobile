@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
@@ -8,18 +9,25 @@ export const deleteRegToken = FCMService.deleteRegToken;
 
 /**
  * FCM `notification_type` for on-chain wallet activity (send/receive/etc).
- * Suppressed in the foreground so transaction toasts remain the primary
- * in-app surface; background/closed push still delivers via the OS.
+ * Kept in sync with the iOS foreground-suppression key in
+ * `ios/MetaMask/AppDelegate.swift` (`willPresent`).
  */
 export const WALLET_ACTIVITY_NOTIFICATION_TYPE = 'wallet_activity';
 
 /**
  * Whether a foreground FCM payload should show a system banner.
- * Background/killed delivery never reaches this path.
+ * `wallet_activity` is suppressed because in-app transaction toasts already
+ * surface it. Only suppresses when the app is actually in the foreground —
+ * background/killed delivery is handled natively by the OS (Android
+ * auto-displays the `notification` payload; iOS delivers via APNs) and must
+ * not be filtered here.
  */
 export function shouldDisplayForegroundPushNotification(
   data: Record<string, string> | undefined,
 ): boolean {
+  if (AppState.currentState !== 'active') {
+    return true;
+  }
   return data?.notification_type !== WALLET_ACTIVITY_NOTIFICATION_TYPE;
 }
 

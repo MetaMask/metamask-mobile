@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View, ViewStyle } from 'react-native';
-import BottomModal from '../../../components/UI/bottom-modal';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
+import BottomModal from '../../../components/UI/bottom-modal';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
 import Icon, {
   IconName,
@@ -21,6 +21,7 @@ import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useTheme } from '../../../../../../util/theme';
+import { AlertModalSelectorsIDs } from '../../../ConfirmationView.testIds';
 import styleSheet from './alert-modal.styles';
 
 interface HeaderProps {
@@ -125,7 +126,7 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({
       <Checkbox
         onPress={() => onCheckboxClick(isConfirmed)}
         isChecked={isConfirmed}
-        testID="alert-modal-checkbox"
+        testID={AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX}
       />
       <Text style={styles.checkboxText}>
         {strings('alert_system.confirm_modal.checkbox_label')}
@@ -170,37 +171,41 @@ const Buttons: React.FC<ButtonsProps> = ({
         <>
           <Button
             onPress={onClose}
-            label={strings('alert_system.alert_modal.close_btn')}
             style={styles.footerButton}
             size={ButtonSize.Lg}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
-            testID="alert-modal-close-button"
-          />
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            testID={AlertModalSelectorsIDs.ALERT_MODAL_CLOSE_BUTTON}
+          >
+            {strings('alert_system.alert_modal.close_btn')}
+          </Button>
           <View style={styles.buttonDivider} />
         </>
       )}
       <Button
         onPress={onAcknowledge}
-        label={primaryButtonLabel}
         style={styles.footerButton}
         size={ButtonSize.Lg}
-        variant={action ? ButtonVariants.Secondary : ButtonVariants.Primary}
-        width={ButtonWidthTypes.Full}
+        variant={action ? ButtonVariant.Secondary : ButtonVariant.Primary}
+        isFullWidth
         isDisabled={isButtonDisabled}
-        testID="alert-modal-acknowledge-button"
-      />
+        testID={AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON}
+      >
+        {primaryButtonLabel}
+      </Button>
       {action ? (
         <>
           <View style={styles.buttonDivider} />
           <Button
             onPress={() => onHandleActionClick(action.callback)}
-            label={action.label}
             style={styles.footerButton}
             size={ButtonSize.Lg}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-          />
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            testID={AlertModalSelectorsIDs.ALERT_MODAL_ACTION_BUTTON}
+          >
+            {action.label}
+          </Button>
         </>
       ) : null}
     </View>

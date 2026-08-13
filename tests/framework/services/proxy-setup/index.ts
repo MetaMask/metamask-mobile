@@ -1,11 +1,8 @@
 /**
- * Framework-neutral device proxy + CA lifecycle for E2E network mocking.
+ * Device proxy + CA lifecycle for E2E network mocking (Appium/Playwright).
  *
- * Invoked from both test runners:
- * - Detox: tests/init.detox.js (CA warm-up) and the withFixtures
- * per-test setup/cleanup in tests/framework/fixtures/FixtureHelper.ts
- * - Playwright/Appium: tests/framework/config/global.setup.ts (CA warm-up)
- * and the same withFixtures path (per-test setup/cleanup)
+ * - CA warm-up: tests/framework/config/global.setup.ts
+ * - Per-test setup/cleanup: withFixtures in tests/framework/fixtures/FixtureHelper.ts
  *
  * See tests/framework/DEVICE_PROXY_MOCKING.md for the full architecture.
  */

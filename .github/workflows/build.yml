@@ -24,9 +24,7 @@ on:
       build_number:
         description: >-
           Optional (workflow_call only). From generate-build-version.yml. When non-empty, each matrix
-          build runner applies scripts/set-build-version.sh locally before building. Omit when
-          source_branch already contains the desired build number (e.g. commit-hash from
-          commit-build-version.yml).
+          build runner applies scripts/set-build-version.sh locally before building.
         required: false
         type: string
         default: ''

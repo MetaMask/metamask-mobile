@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
@@ -109,23 +109,32 @@ describe('CashGetMusdEmptyState', () => {
   it('calls initiateCustomConversion when Get mUSD pressed and has convertible tokens', async () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
-    fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON));
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON),
+      );
+    });
 
     expect(mockInitiateCustomConversion).toHaveBeenCalled();
     expect(mockGoToBuy).not.toHaveBeenCalled();
   });
 
-  it('calls goToBuy when Get mUSD pressed and mUSD buyable (no convertible tokens)', () => {
+  it('calls goToBuy when Get mUSD pressed and mUSD buyable (no convertible tokens)', async () => {
     mockUseMusdConversionFlowData.hasConvertibleTokens = false;
 
     renderWithProvider(<CashGetMusdEmptyState />);
 
-    fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON));
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON),
+      );
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledWith(
       expect.objectContaining({
         assetId: expect.stringContaining('eip155:1/erc20:'),
       }),
+      { surface: 'cash' },
     );
     expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
   });

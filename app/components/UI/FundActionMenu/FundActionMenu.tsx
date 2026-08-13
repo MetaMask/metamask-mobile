@@ -24,6 +24,7 @@ import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../Ramp/constants/rampsBuyCufTags';
 
 // Types
 import type {
@@ -122,7 +123,10 @@ const FundActionMenu = () => {
             if (customOnBuy) {
               customOnBuy();
             } else {
-              goToBuy({ assetId: assetContext?.assetId });
+              goToBuy(
+                { assetId: assetContext?.assetId },
+                { surface: RAMPS_BUY_CUF_SURFACE.FUND_MENU },
+              );
             }
           },
           traceName: TraceName.LoadRampExperience,

@@ -6,7 +6,10 @@ import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import {
   addOverhead,
+  addOverheadSleep,
   isOverheadTrackingActive,
+  nextMeasuringPollIntervalMs,
+  recordFailedPollCommand,
   recordOverheadProbe,
   recordSuccessPollCommand,
   withImplicitWait,
@@ -30,9 +33,13 @@ export interface TextDisplayedOptions extends AssertionOptions {
  *
  * ## How overhead compensation works
  *
- * While `TimerHelper.measure()` is active we subtract only the post-detect
- * probe (`isExisting` after the element is visible). That is pure Appium RTT.
- * Resolution / confirm waits stay in app time so cold start is not under-reported.
+ * While `TimerHelper.measure()` is active we subtract:
+ * - the post-detect probe (`isExisting` after visible) — pure Appium RTT
+ * - failed/success poll command time, each capped at that probe RTT
+ *
+ * Poll sleeps and uncapped portions of poll commands (e.g. implicit wait)
+ * stay in app time so cold start is not under-reported, and timers cannot
+ * collapse to 0ms after a real wait.
  */
 export default class PlaywrightAssertions {
   private static getTimeout(options: AssertionOptions): number {
@@ -48,22 +55,31 @@ export default class PlaywrightAssertions {
    * Appium providers do not pay 2× `setTimeout` RTT every probe — that
    * overhead was inflating performance timers.
    *
-   * When measuring, only the successful confirm (+ probe) counts as infra.
-   * A shorter poll interval reduces detection lag without zeroing app time.
+   * While measuring, the poll interval adapts to the last command duration
+   * (never faster than cloud RTT, never slower than a normal wait).
    */
   private static readonly FINAL_WAIT_RESERVE_MS = 2_000;
   /** Fast implicit wait for poll probes — avoids 3.5s find penalty per attempt. */
   private static readonly POLL_IMPLICIT_WAIT_MS = 300;
   private static readonly POLL_INTERVAL_MS = 300;
-  private static readonly POLL_INTERVAL_WHILE_MEASURING_MS = 50;
+
+  private static async pollSleep(ms: number): Promise<void> {
+    if (ms <= 0) {
+      return;
+    }
+    if (isOverheadTrackingActive()) {
+      addOverheadSleep(ms);
+    }
+    await sleep(ms);
+  }
 
   private static async pollUntilVisible(
     el: PlaywrightElement,
     timeout: number,
   ): Promise<void> {
     const tracking = isOverheadTrackingActive();
-    const interval = tracking
-      ? this.POLL_INTERVAL_WHILE_MEASURING_MS
+    let interval = tracking
+      ? nextMeasuringPollIntervalMs(0)
       : this.POLL_INTERVAL_MS;
     const start = Date.now();
 
@@ -76,6 +92,7 @@ export default class PlaywrightAssertions {
             break;
           }
           const t0 = Date.now();
+          let lastCommandMs = 0;
           try {
             const exists = await el.unwrap().isExisting();
             if (exists) {
@@ -88,10 +105,20 @@ export default class PlaywrightAssertions {
                 return true;
               }
             }
+            lastCommandMs = Date.now() - t0;
+            if (tracking) {
+              recordFailedPollCommand(lastCommandMs);
+            }
           } catch {
-            // element not ready yet
+            lastCommandMs = Date.now() - t0;
+            if (tracking) {
+              recordFailedPollCommand(lastCommandMs);
+            }
           }
-          await sleep(Math.min(interval, remaining));
+          if (tracking) {
+            interval = nextMeasuringPollIntervalMs(lastCommandMs);
+          }
+          await this.pollSleep(Math.min(interval, remaining));
         }
         return false;
       },
@@ -252,11 +279,18 @@ export default class PlaywrightAssertions {
 
     const timeout = this.getTimeout(options);
     const tracking = isOverheadTrackingActive();
-    const interval = tracking ? 50 : 300;
+    let interval = tracking
+      ? nextMeasuringPollIntervalMs(0)
+      : this.POLL_INTERVAL_MS;
     const start = Date.now();
     while (Date.now() - start < timeout) {
+      const remaining = timeout - (Date.now() - start);
+      if (remaining <= 0) {
+        break;
+      }
+      const t0 = Date.now();
+      let lastCommandMs = 0;
       try {
-        const t0 = Date.now();
         const text = await el.textContent();
         if (text === expected) {
           if (tracking) {
@@ -265,10 +299,20 @@ export default class PlaywrightAssertions {
           }
           return;
         }
+        lastCommandMs = Date.now() - t0;
+        if (tracking) {
+          recordFailedPollCommand(lastCommandMs);
+        }
       } catch {
-        // element not ready yet
+        lastCommandMs = Date.now() - t0;
+        if (tracking) {
+          recordFailedPollCommand(lastCommandMs);
+        }
       }
-      await sleep(interval);
+      if (tracking) {
+        interval = nextMeasuringPollIntervalMs(lastCommandMs);
+      }
+      await this.pollSleep(Math.min(interval, remaining));
     }
     throw new Error(`Expected element text "${expected}" within ${timeout}ms`);
   }
