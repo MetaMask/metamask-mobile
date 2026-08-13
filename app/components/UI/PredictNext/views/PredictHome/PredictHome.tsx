@@ -20,9 +20,12 @@ import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
 import { EventCardStandard } from '../../components/EventCard/EventCardStandard';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
 
 const PAGE_SIZE = 20;
+
+const EventSeparator = () => <Box twClassName="h-3" />;
 
 export const PredictHome = () => {
   const navigation =
@@ -51,6 +54,7 @@ export const PredictHome = () => {
     () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [eventsQuery.data],
   );
+  const tw = useTailwind();
 
   const openEvent = useCallback(
     (event: PredictEvent) =>
@@ -131,6 +135,8 @@ export const PredictHome = () => {
           keyExtractor={(event) => `${event.venueId}:${event.id}`}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.5}
+          ItemSeparatorComponent={EventSeparator}
+          contentContainerStyle={tw.style('px-4')}
           ListFooterComponent={
             eventsQuery.isFetchingNextPage ? (
               <Text testID="predict-next-footer-loading">Loading…</Text>

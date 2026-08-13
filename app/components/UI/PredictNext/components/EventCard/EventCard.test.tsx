@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { brandColor } from '@metamask/design-tokens';
+import { lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -162,6 +162,7 @@ describe('EventCard.OutcomeRow', () => {
     askPrice?: string,
     color: 'green' | 'indigo' | 'red' = 'green',
     onOrder?: () => void,
+    buttonWidth?: number,
   ) => {
     const value = event();
 
@@ -172,6 +173,7 @@ describe('EventCard.OutcomeRow', () => {
         outcome={outcome('yes', askPrice)}
         color={color}
         onOrder={onOrder}
+        buttonWidth={buttonWidth}
         testID="predict-next-outcome-event-1-yes"
       />,
     );
@@ -195,12 +197,20 @@ describe('EventCard.OutcomeRow', () => {
     ).toHaveStyle({ width: '42%' });
   });
 
+  it('applies a shared price button width', () => {
+    renderRow('0.42', 'green', undefined, 72);
+
+    expect(screen.getByTestId('predict-next-outcome-event-1-yes')).toHaveStyle({
+      width: 72,
+    });
+  });
+
   it('paints the chance line with the outcome color', () => {
     renderRow('0.5', 'red');
 
     expect(
       screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
-    ).toHaveStyle({ backgroundColor: brandColor.red300 });
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.error.default });
   });
 
   it('omits the chance line and multiplier when Ask Price is missing', () => {

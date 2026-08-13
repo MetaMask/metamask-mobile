@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Pressable as NativePressable,
+  type LayoutChangeEvent,
   type PressableProps,
 } from 'react-native';
 import {
@@ -21,7 +22,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { brandColor } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
   PredictEvent,
@@ -49,9 +49,15 @@ export const MULTI_OUTCOME_ROW_COLORS: readonly OutcomeRowColor[] = [
 ];
 
 const OUTCOME_ROW_FILL: Record<OutcomeRowColor, string> = {
-  green: brandColor.lime100,
-  indigo: brandColor.indigo300,
-  red: brandColor.red300,
+  green: 'bg-success-default',
+  indigo: 'bg-info-default',
+  red: 'bg-error-default',
+};
+
+const OUTCOME_ROW_TEXT: Record<OutcomeRowColor, TextColor> = {
+  green: TextColor.SuccessInverse,
+  indigo: TextColor.InfoInverse,
+  red: TextColor.ErrorInverse,
 };
 
 const getAskPricePercent = (askPrice?: PredictDecimal): number | undefined => {
@@ -74,7 +80,7 @@ interface RootProps {
 }
 
 const Root = ({ children, testID }: RootProps) => (
-  <Box twClassName="m-4 gap-3 rounded-2xl bg-section p-4" testID={testID}>
+  <Box twClassName="gap-3 rounded-2xl bg-section p-4 pt-3" testID={testID}>
     {children}
   </Box>
 );
@@ -94,6 +100,8 @@ interface OutcomeRowProps {
     market: PredictMarket,
     outcome: PredictOutcome,
   ) => void;
+  buttonWidth?: number;
+  onButtonLayout?: (width: number) => void;
   testID?: string;
 }
 
@@ -104,12 +112,14 @@ const OutcomeRow = ({
   color,
   label = outcome.label,
   onOrder,
+  buttonWidth,
+  onButtonLayout,
   testID,
 }: OutcomeRowProps) => {
   const price = formatAskPrice(outcome.askPrice);
   const multiplier = formatMultiplier(outcome.askPrice);
   const percent = getAskPricePercent(outcome.askPrice);
-  const fill = OUTCOME_ROW_FILL[color];
+  const fillClassName = OUTCOME_ROW_FILL[color];
 
   return (
     <Box twClassName="flex-row items-center gap-3">
@@ -120,8 +130,8 @@ const OutcomeRow = ({
         {percent !== undefined ? (
           <Box
             testID={testID ? `${testID}-bar` : undefined}
-            twClassName="h-0.5 rounded-full"
-            style={{ width: `${percent}%`, backgroundColor: fill }}
+            twClassName={`h-0.5 rounded-full ${fillClassName}`}
+            style={{ width: `${percent}%` }}
           />
         ) : null}
       </Box>
@@ -140,12 +150,19 @@ const OutcomeRow = ({
         size={ButtonSize.Lg}
         variant={ButtonVariant.Secondary}
         onPress={() => onOrder?.(event, market, outcome)}
-        style={{ backgroundColor: fill }}
+        onLayout={
+          onButtonLayout
+            ? (layoutEvent: LayoutChangeEvent) =>
+                onButtonLayout(layoutEvent.nativeEvent.layout.width)
+            : undefined
+        }
+        style={buttonWidth ? { width: buttonWidth } : undefined}
+        twClassName={fillClassName}
       >
         <Text
           variant={TextVariant.ButtonLabelMd}
           fontWeight={FontWeight.Medium}
-          style={{ color: brandColor.grey1000 }}
+          color={OUTCOME_ROW_TEXT[color]}
         >
           {price ?? '-'}
         </Text>
