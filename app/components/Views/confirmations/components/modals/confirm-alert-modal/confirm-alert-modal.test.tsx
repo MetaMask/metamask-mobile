@@ -15,7 +15,7 @@ const CHECKBOX_LABEL =
   'I have acknowledged the alert and still want to proceed';
 const CONFIRM_MODAL_MESSAGE_LABEL =
   'We suggest you reject this request. If you continue, you might put your assets at risk.';
-const CONFIRM_MODAL_TITLE_LABEL = 'High risk request';
+const CONFIRM_MODAL_TITLE_LABEL = 'High-risk request';
 const CONFIRM_BTN = 'Confirm';
 const CANCEL_BTN = 'Cancel';
 const REVIEW_ALERTS_LABEL = 'Review all alerts';
@@ -127,7 +127,7 @@ describe('ConfirmAlertModal', () => {
     expect(queryByText(CONFIRM_MODAL_TITLE_LABEL)).toBeNull();
   });
 
-  it('renders the Blockaid alert message and title when onlyBlockaidAlert is true', () => {
+  it('renders the Blockaid alert message and the shared title when onlyBlockaidAlert is true', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       showAlertModal: jest.fn(),
       fieldAlerts: [],
@@ -136,7 +136,7 @@ describe('ConfirmAlertModal', () => {
       generalAlerts: [BLOCKAID_ALERT_MOCK],
     });
     const { getByText } = render(<ConfirmAlertModal {...baseProps} />);
-    expect(getByText('Your assets may be at risk')).toBeDefined();
+    expect(getByText(CONFIRM_MODAL_TITLE_LABEL)).toBeDefined();
     expect(getByText(BLOCKAID_ALERT_MOCK.message)).toBeDefined();
     expect(getByText(CHECKBOX_LABEL)).toBeDefined();
     expect(getByText(CANCEL_BTN)).toBeDefined();

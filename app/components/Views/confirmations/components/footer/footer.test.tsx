@@ -488,7 +488,7 @@ describe('Footer', () => {
       });
 
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
-      expect(getByText('High risk request')).toBeDefined();
+      expect(getByText('High-risk request')).toBeDefined();
       expect(
         getByText(
           'We suggest you reject this request. If you continue, you might put your assets at risk.',

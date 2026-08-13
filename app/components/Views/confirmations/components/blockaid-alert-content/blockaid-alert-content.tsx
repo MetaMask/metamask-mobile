@@ -19,14 +19,13 @@ import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 // TODO: Remove legacy import
 import BlockaidBannerLink from '../../components/blockaid-banner/BlockaidBannerLink';
-import {
-  FALSE_POSITIVE_REPOST_LINE_TEST_ID,
-  REASON_DESCRIPTION_I18N_KEY_MAP,
-} from '../../components/blockaid-banner/BlockaidBanner.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/blockaid-banner/BlockaidBanner.constants';
+import { getBlockaidBannerDescription } from '../../components/blockaid-banner/BlockaidBanner.utils';
 import {
   Reason,
   SecurityAlertResponse,
 } from '../../components/blockaid-banner/BlockaidBanner.types';
+import { useSendingAssetsFiatTotal } from '../../hooks/alerts/useSendingAssetsFiatTotal';
 import styleSheet from './blockaid-alert-content.styles';
 
 interface BlockaidAlertContentProps {
@@ -51,6 +50,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const sendingFiatTotal = useSendingAssetsFiatTotal();
 
   const onToggleShowDetails = () => {
     setIsExpanded(!isExpanded);
@@ -93,10 +93,9 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
   return (
     <>
       <Text variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}>
-        {strings(
-          REASON_DESCRIPTION_I18N_KEY_MAP[
-            securityAlertResponse.reason as Reason
-          ] ?? 'blockaid_banner.other_description',
+        {getBlockaidBannerDescription(
+          securityAlertResponse.reason as Reason,
+          sendingFiatTotal,
         )}
       </Text>
       <Accordion

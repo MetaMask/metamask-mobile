@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { strings } from '../../../../../../locales/i18n';
 // TODO: Remove legacy import
 import {
   Reason,
@@ -10,9 +9,13 @@ import { Alert, AlertSeverity, Severity } from '../../types/alerts';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 // TODO: Remove legacy import
-import { REASON_TITLE_I18N_KEY_MAP } from '../../components/blockaid-banner/BlockaidBanner.constants';
+import {
+  getBlockaidBannerTitle,
+  getBlockaidConfirmModalMessage,
+} from '../../components/blockaid-banner/BlockaidBanner.utils';
 import BlockaidAlertContent from '../../components/blockaid-alert-content/blockaid-alert-content';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
+import { useSendingAssetsFiatTotal } from './useSendingAssetsFiatTotal';
 
 const IGNORED_RESULT_TYPES = [
   BlockaidResultType.Benign,
@@ -30,46 +33,10 @@ function getBlockaidAlertSeverity(severity: BlockaidResultType): AlertSeverity {
   }
 }
 
-const getTitle = (reason: Reason): string =>
-  strings(
-    REASON_TITLE_I18N_KEY_MAP[reason] ??
-      'blockaid_banner.deceptive_request_title',
-  );
-
-const getConfirmModalDescription = (reason: Reason) => {
-  let copy;
-  switch (reason) {
-    case Reason.approvalFarming:
-    case Reason.permitFarming:
-      copy = strings('alert_system.confirm_modal.blockaid.message1');
-      break;
-    case Reason.transferFarming:
-    case Reason.transferFromFarming:
-    case Reason.rawNativeTokenTransfer:
-      copy = strings('alert_system.confirm_modal.blockaid.message2');
-      break;
-    case Reason.seaportFarming:
-      copy = strings('alert_system.confirm_modal.blockaid.message3');
-      break;
-    case Reason.blurFarming:
-      copy = strings('alert_system.confirm_modal.blockaid.message4');
-      break;
-    case Reason.maliciousDomain:
-      copy = strings('alert_system.confirm_modal.blockaid.message5');
-      break;
-    case Reason.tradeOrderFarming:
-    case Reason.rawSignatureFarming:
-    case Reason.other:
-    default:
-      copy = strings('alert_system.confirm_modal.blockaid.message');
-  }
-
-  return copy;
-};
-
 export default function useBlockaidAlerts(): Alert[] {
   const { securityAlertResponse } = useSecurityAlertResponse();
   const { trackBlockaidAlertLinkClickedEvent } = useConfirmationMetricEvents();
+  const sendingFiatTotal = useSendingAssetsFiatTotal();
 
   const isResultTypeIgnored =
     !securityAlertResponse?.result_type ||
@@ -97,14 +64,18 @@ export default function useBlockaidAlerts(): Alert[] {
           />
         ),
         // The blockaid message displays in the confirm alert modal when the only alert is a blockaid alert
-        message: getConfirmModalDescription(reason as Reason),
-        title: getTitle(reason as Reason),
+        message: getBlockaidConfirmModalMessage(
+          reason as Reason,
+          sendingFiatTotal,
+        ),
+        title: getBlockaidBannerTitle(reason as Reason),
         severity: getBlockaidAlertSeverity(result_type as BlockaidResultType),
       },
     ] as Alert[];
   }, [
     isResultTypeIgnored,
     securityAlertResponse,
+    sendingFiatTotal,
     trackBlockaidAlertLinkClickedEvent,
   ]);
 

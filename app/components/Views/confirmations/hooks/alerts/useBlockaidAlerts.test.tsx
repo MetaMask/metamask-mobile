@@ -26,6 +26,14 @@ jest.mock(
   () => 'BlockaidAlertContent',
 );
 
+jest.mock('./useSendingAssetsFiatTotal', () => ({
+  useSendingAssetsFiatTotal: jest.fn(() => null),
+}));
+
+const mockUseSendingAssetsFiatTotal = jest.requireMock(
+  './useSendingAssetsFiatTotal',
+).useSendingAssetsFiatTotal;
+
 describe('useBlockaidAlerts', () => {
   const mockSecurityAlertResponse: SecurityAlertResponse = {
     result_type: BlockaidResultType.Malicious,
@@ -45,6 +53,7 @@ describe('useBlockaidAlerts', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSendingAssetsFiatTotal.mockReturnValue(null);
     (useSecurityAlertResponse as jest.Mock).mockReturnValue({
       securityAlertResponse: mockSecurityAlertResponse,
     });
@@ -74,7 +83,7 @@ describe('useBlockaidAlerts', () => {
   });
 
   const EXPECTED_MESSAGE_BLOCKAID_ALERT =
-    'If you confirm this request, you could lose your assets. We recommend that you cancel this request.';
+    "Security partners found high-risk signals in this request. If you continue, your funds can't be recovered.";
   const testCases = [
     {
       resultType: BlockaidResultType.Malicious,
@@ -112,7 +121,7 @@ describe('useBlockaidAlerts', () => {
       expect(result.current[0]).toEqual({
         key: RowAlertKey.Blockaid,
         content: expect.any(Object),
-        title: 'This is a deceptive request',
+        title: 'Risk signals detected',
         message: expectedMessage,
         severity: expectedSeverity,
       });
@@ -140,21 +149,23 @@ describe('useBlockaidAlerts', () => {
   });
 
   it.each`
-    reason                           | expectedMessageKey
-    ${Reason.rawSignatureFarming}    | ${'alert_system.confirm_modal.blockaid.message'}
-    ${Reason.approvalFarming}        | ${'alert_system.confirm_modal.blockaid.message1'}
-    ${Reason.permitFarming}          | ${'alert_system.confirm_modal.blockaid.message1'}
-    ${Reason.transferFarming}        | ${'alert_system.confirm_modal.blockaid.message2'}
-    ${Reason.transferFromFarming}    | ${'alert_system.confirm_modal.blockaid.message2'}
-    ${Reason.rawNativeTokenTransfer} | ${'alert_system.confirm_modal.blockaid.message2'}
-    ${Reason.seaportFarming}         | ${'alert_system.confirm_modal.blockaid.message3'}
-    ${Reason.blurFarming}            | ${'alert_system.confirm_modal.blockaid.message4'}
-    ${Reason.maliciousDomain}        | ${'alert_system.confirm_modal.blockaid.message5'}
-    ${Reason.tradeOrderFarming}      | ${'alert_system.confirm_modal.blockaid.message'}
-    ${Reason.other}                  | ${'alert_system.confirm_modal.blockaid.message'}
+    reason                             | expectedRequestTypeKey
+    ${Reason.approvalFarming}          | ${'blockaid_banner.request_type.approval'}
+    ${Reason.permitFarming}            | ${'blockaid_banner.request_type.approval'}
+    ${Reason.setApprovalForAllFarming} | ${'blockaid_banner.request_type.approval'}
+    ${Reason.seaportFarming}           | ${'blockaid_banner.request_type.approval'}
+    ${Reason.blurFarming}              | ${'blockaid_banner.request_type.approval'}
+    ${Reason.transferFarming}          | ${'blockaid_banner.request_type.transfer'}
+    ${Reason.transferFromFarming}      | ${'blockaid_banner.request_type.transfer'}
+    ${Reason.rawNativeTokenTransfer}   | ${'blockaid_banner.request_type.transfer'}
+    ${Reason.rawSignatureFarming}      | ${'blockaid_banner.request_type.signature'}
+    ${Reason.tradeOrderFarming}        | ${'blockaid_banner.request_type.signature'}
+    ${Reason.maliciousDomain}          | ${'blockaid_banner.request_type.request'}
+    ${Reason.other}                    | ${'blockaid_banner.request_type.request'}
+    ${'unmapped_reason'}               | ${'blockaid_banner.request_type.request'}
   `(
-    'returns the correct description for $reason',
-    ({ reason, expectedMessageKey }) => {
+    'composes the confirm modal message with the request type for $reason',
+    ({ reason, expectedRequestTypeKey }) => {
       (useSecurityAlertResponse as jest.Mock).mockReturnValue({
         securityAlertResponse: { ...mockSecurityAlertResponse, reason },
       });
@@ -162,8 +173,57 @@ describe('useBlockaidAlerts', () => {
       const { result } = renderHook(() => useBlockaidAlerts());
 
       expect(result.current).toHaveLength(1);
-      const expectedMessage = strings(expectedMessageKey);
-      expect(result.current[0].message).toBe(expectedMessage);
+      expect(result.current[0].message).toBe(
+        strings('alert_system.confirm_modal.blockaid_message', {
+          requestType: strings(expectedRequestTypeKey),
+        }),
+      );
     },
   );
+
+  it('includes the amount in the confirm modal message when a sending fiat total is available', () => {
+    mockUseSendingAssetsFiatTotal.mockReturnValue('$1,234.56');
+    (useSecurityAlertResponse as jest.Mock).mockReturnValue({
+      securityAlertResponse: {
+        ...mockSecurityAlertResponse,
+        reason: Reason.transferFarming,
+      },
+    });
+
+    const { result } = renderHook(() => useBlockaidAlerts());
+
+    expect(result.current[0].message).toBe(
+      strings('alert_system.confirm_modal.blockaid_message_with_amount', {
+        requestType: strings('blockaid_banner.request_type.transfer'),
+        amount: '$1,234.56',
+      }),
+    );
+  });
+
+  it.each`
+    reason                             | expectedTitleKey
+    ${Reason.approvalFarming}          | ${'blockaid_banner.high_risk_approval_title'}
+    ${Reason.permitFarming}            | ${'blockaid_banner.high_risk_approval_title'}
+    ${Reason.setApprovalForAllFarming} | ${'blockaid_banner.high_risk_approval_title'}
+    ${Reason.seaportFarming}           | ${'blockaid_banner.high_risk_approval_title'}
+    ${Reason.blurFarming}              | ${'blockaid_banner.high_risk_approval_title'}
+    ${Reason.transferFarming}          | ${'blockaid_banner.high_risk_transfer_title'}
+    ${Reason.transferFromFarming}      | ${'blockaid_banner.high_risk_transfer_title'}
+    ${Reason.rawNativeTokenTransfer}   | ${'blockaid_banner.high_risk_transfer_title'}
+    ${Reason.rawSignatureFarming}      | ${'blockaid_banner.high_risk_signature_title'}
+    ${Reason.tradeOrderFarming}        | ${'blockaid_banner.high_risk_signature_title'}
+    ${Reason.maliciousDomain}          | ${'blockaid_banner.site_flagged_unsafe_title'}
+    ${Reason.other}                    | ${'blockaid_banner.risk_signals_detected_title'}
+    ${Reason.failed}                   | ${'blockaid_banner.failed_title'}
+    ${'unmapped_reason'}               | ${'blockaid_banner.risk_signals_detected_title'}
+  `('returns the title for $reason', ({ reason, expectedTitleKey }) => {
+    (useSecurityAlertResponse as jest.Mock).mockReturnValue({
+      securityAlertResponse: { ...mockSecurityAlertResponse, reason },
+    });
+
+    const { result } = renderHook(() => useBlockaidAlerts());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].title).toBe(strings(expectedTitleKey));
+  });
 });
