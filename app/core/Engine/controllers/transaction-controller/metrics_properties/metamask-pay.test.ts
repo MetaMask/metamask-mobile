@@ -9,6 +9,21 @@ import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { merge } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { resolveMoneyAccountDepositPrefillPresented } from '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics';
+
+jest.mock(
+  '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics',
+    ),
+    resolveMoneyAccountDepositPrefillPresented: jest.fn(() => false),
+  }),
+);
+
+const resolveMoneyAccountDepositPrefillPresentedMock = jest.mocked(
+  resolveMoneyAccountDepositPrefillPresented,
+);
 
 const PAY_CONTROLLER_STATE_MOCK = {
   engine: {
@@ -42,6 +57,7 @@ describe('Metamask Pay Metrics', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    resolveMoneyAccountDepositPrefillPresentedMock.mockReturnValue(false);
 
     request = {
       eventType: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
@@ -50,7 +66,7 @@ describe('Metamask Pay Metrics', () => {
         txParams: { nonce: '0x1' },
       } as TransactionMeta,
       allTransactions: [],
-      getUIMetrics: jest.fn(),
+      getUIMetrics: jest.fn().mockReturnValue(undefined),
       getState: getStateMock,
       initMessenger: {} as never,
       smartTransactionsController: {} as never,
@@ -87,26 +103,36 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it.each([
-    [TransactionType.moneyAccountDeposit, 'money_account_deposit'],
-    [TransactionType.moneyAccountWithdraw, 'money_account_withdraw'],
-  ])(
-    'derives baseline properties if %s without metamaskPay',
-    (type, expectedUseCase) => {
-      request.transactionMeta.type = type;
+  it('derives baseline properties if moneyAccountDeposit without metamaskPay', () => {
+    request.transactionMeta.type = TransactionType.moneyAccountDeposit;
 
-      const result = getMetaMaskPayProperties(request);
+    const result = getMetaMaskPayProperties(request);
 
-      expect(result).toStrictEqual({
-        properties: {
-          mm_pay: true,
-          mm_pay_payment_method_selected: 'crypto',
-          mm_pay_use_case: expectedUseCase,
-        },
-        sensitiveProperties: {},
-      });
-    },
-  );
+    expect(result).toStrictEqual({
+      properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'money_account_deposit',
+        mm_pay_amount_input_prefill_presented: false,
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('derives baseline properties if moneyAccountWithdraw without metamaskPay', () => {
+    request.transactionMeta.type = TransactionType.moneyAccountWithdraw;
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'money_account_withdraw',
+      },
+      sensitiveProperties: {},
+    });
+  });
 
   it('includes chain_selected in baseline when metamaskPay has chainId but no tokenAddress', () => {
     request.transactionMeta.type = TransactionType.moneyAccountDeposit;
@@ -121,6 +147,7 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_payment_method_selected: 'crypto',
         mm_pay_strategy: 'relay',
         mm_pay_use_case: 'money_account_deposit',
+        mm_pay_amount_input_prefill_presented: false,
       },
       sensitiveProperties: {},
     });
@@ -154,6 +181,7 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_use_case: 'money_account_deposit',
         mm_pay_transaction_step_total: 1,
         mm_pay_transaction_step: 1,
+        mm_pay_amount_input_prefill_presented: false,
       },
       sensitiveProperties: {},
     });
@@ -188,6 +216,7 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_use_case: 'money_account_deposit',
         mm_pay_transaction_step_total: 1,
         mm_pay_transaction_step: 1,
+        mm_pay_amount_input_prefill_presented: false,
       },
       sensitiveProperties: {},
     });
@@ -1665,6 +1694,111 @@ describe('Metamask Pay Metrics', () => {
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
       expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
+    });
+  });
+
+  describe('mm_pay_amount_input_type / prefill_presented', () => {
+    it('tags prefilled + presented on money deposit when prefill will be shown', () => {
+      resolveMoneyAccountDepositPrefillPresentedMock.mockReturnValue(true);
+      request.eventType = TRANSACTION_EVENTS.TRANSACTION_ADDED;
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toEqual(
+        expect.objectContaining({
+          mm_pay_amount_input_type: 'prefilled',
+          mm_pay_amount_input_prefill_presented: true,
+        }),
+      );
+    });
+
+    it('prefers UI fragment amount input metrics over intent-to-treat', () => {
+      resolveMoneyAccountDepositPrefillPresentedMock.mockReturnValue(true);
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+      request.getUIMetrics = jest.fn().mockReturnValue({
+        properties: {
+          mm_pay_amount_input_type: 'manual',
+          mm_pay_amount_input_prefill_presented: true,
+        },
+        sensitiveProperties: {},
+      });
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toEqual(
+        expect.objectContaining({
+          mm_pay_amount_input_type: 'manual',
+          mm_pay_amount_input_prefill_presented: true,
+        }),
+      );
+    });
+
+    it('copies parent amount input metrics to child bridge steps', () => {
+      request.transactionMeta.type = TransactionType.bridge;
+      request.allTransactions = [
+        {
+          id: 'parent-1',
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: { chainId: '0x1', tokenAddress: '0xA0b8' },
+          requiredTransactionIds: ['child-1'],
+        } as unknown as TransactionMeta,
+        request.transactionMeta,
+      ];
+      request.getUIMetrics = jest.fn((id: string) =>
+        id === 'parent-1'
+          ? {
+              properties: {
+                mm_pay_amount_input_type: 'prefilled_max',
+                mm_pay_amount_input_prefill_presented: true,
+              },
+              sensitiveProperties: {},
+            }
+          : undefined,
+      );
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'parent-1': {
+                  paymentToken: { symbol: 'USDC', chainId: '0x1' },
+                  quotes: [
+                    {
+                      dust: { usd: '0', fiat: '0' },
+                      request: {
+                        targetTokenAddress: NATIVE_TOKEN_ADDRESS,
+                      },
+                      strategy: TransactionPayStrategy.Relay,
+                    },
+                  ],
+                  tokens: [{ skipIfBalance: false, amountUsd: '50' }],
+                  totals: {
+                    targetAmount: { usd: '49.5', fiat: '49.5' },
+                    fees: {
+                      metaMask: { usd: '0', fiat: '0' },
+                      provider: { usd: '0.2', fiat: '0.2' },
+                      sourceNetwork: { estimate: { usd: '0.1', fiat: '0.1' } },
+                      targetNetwork: { usd: '0', fiat: '0' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toEqual(
+        expect.objectContaining({
+          mm_pay_amount_input_type: 'prefilled_max',
+          mm_pay_amount_input_prefill_presented: true,
+        }),
+      );
     });
   });
 });

@@ -10,6 +10,12 @@ import {
   getMetaMaskPayFiatChainTarget,
   normalizeMetaMaskPayPaymentMethod,
 } from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
+import {
+  MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED,
+  resolveMoneyAccountDepositPrefillPresented,
+} from '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
 import { isNoOpQuote } from '../../../../../selectors/transactionPayController';
@@ -44,6 +50,11 @@ const USE_CASE_MAP: [TransactionType[], string][] = [
 const UI_PAYMENT_METHOD_PROPERTIES = [
   'mm_pay_payment_method_available',
   'mm_pay_payment_method_presented',
+] as const;
+
+const UI_AMOUNT_INPUT_PROPERTIES = [
+  MM_PAY_AMOUNT_INPUT_TYPE_KEY,
+  MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
 ] as const;
 
 type TransactionPayData =
@@ -99,11 +110,24 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       // mm_pay_payment_method_selected
       addPersistedPayMetadata(properties, payTransaction, state);
     }
+
+    // mm_pay_amount_input_type, mm_pay_amount_input_prefill_presented
+    // UI fragment wins; otherwise intent-to-treat for money deposit (Added).
+    addAmountInputProperties(properties, {
+      transaction: payTransaction,
+      uiMetrics: getUIMetrics(payTransaction.id),
+      state,
+    });
   }
 
   if (parentTransaction) {
-    // mm_pay_payment_method_available, mm_pay_payment_method_presented
+    // mm_pay_payment_method_available, mm_pay_payment_method_presented,
+    // mm_pay_amount_input_type, mm_pay_amount_input_prefill_presented
     addParentPaymentMethodUIMetrics(
+      properties,
+      getUIMetrics(parentTransaction.id),
+    );
+    addParentAmountInputUIMetrics(
       properties,
       getUIMetrics(parentTransaction.id),
     );
@@ -466,6 +490,70 @@ function addParentPaymentMethodUIMetrics(
     if (value !== undefined) {
       properties[property] = value;
     }
+  }
+}
+
+function addParentAmountInputUIMetrics(
+  properties: JsonMap,
+  parentMetrics: TransactionMetrics | undefined,
+) {
+  for (const property of UI_AMOUNT_INPUT_PROPERTIES) {
+    const value = parentMetrics?.properties?.[property];
+
+    if (value !== undefined) {
+      properties[property] = value;
+    }
+  }
+}
+
+/**
+ * Attaches amount-input metrics on every Transaction * event.
+ *
+ * Prefers the confirmation UI fragment (last edit + sticky prefill_presented).
+ * When the fragment is empty (Transaction Added), money-account deposits get
+ * intent-to-treat tags from the prefill kill-switch + A/B assignment.
+ */
+function addAmountInputProperties(
+  properties: JsonMap,
+  {
+    transaction,
+    uiMetrics,
+    state,
+  }: {
+    transaction: TransactionMeta;
+    uiMetrics: TransactionMetrics | undefined;
+    state: RootState;
+  },
+) {
+  const uiType = uiMetrics?.properties?.[MM_PAY_AMOUNT_INPUT_TYPE_KEY];
+  const uiPresented =
+    uiMetrics?.properties?.[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY];
+
+  if (uiType !== undefined) {
+    properties[MM_PAY_AMOUNT_INPUT_TYPE_KEY] = uiType;
+  }
+  if (uiPresented !== undefined) {
+    properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = uiPresented;
+  }
+
+  if (
+    !hasTransactionType(transaction, [TransactionType.moneyAccountDeposit]) ||
+    (uiType !== undefined && uiPresented !== undefined)
+  ) {
+    return;
+  }
+
+  const presented = resolveMoneyAccountDepositPrefillPresented(
+    transaction,
+    state,
+  );
+
+  if (uiPresented === undefined) {
+    properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = presented;
+  }
+  if (uiType === undefined && presented) {
+    properties[MM_PAY_AMOUNT_INPUT_TYPE_KEY] =
+      MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED;
   }
 }
 
