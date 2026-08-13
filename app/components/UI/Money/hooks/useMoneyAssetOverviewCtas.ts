@@ -16,7 +16,7 @@ import { calculateProjectedEarnings } from '../utils/projections';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
-import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
+import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
 
 const FOOTER_LABEL_KEY = 'money.asset_overview.cta.earn_apy';
@@ -38,19 +38,17 @@ export const useMoneyAssetOverviewCtas = ({
   balanceFiatUsd,
   hasBalance,
 }: UseMoneyAssetOverviewCtasArgs) => {
-  const {
-    shouldShowMoneyAssetOverviewBalanceCta,
-    shouldShowMoneyAssetOverviewFooterCta,
-  } = useMoneyCtaVisibility();
+  const { isBalanceCtaEligible, isFooterCtaEligible } =
+    useMoneyAssetOverviewCtaVisibility(asset, hasBalance, balanceFiatUsd);
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
-  const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy();
+  const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
+    enabled: isBalanceCtaEligible || isFooterCtaEligible,
+  });
   const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ASSET_DETAIL,
   });
 
-  const isFooterEligible = shouldShowMoneyAssetOverviewFooterCta(asset);
-  const isBalanceEligible = shouldShowMoneyAssetOverviewBalanceCta(asset);
   const hasApy = apyDecimal !== undefined && apyPercent !== undefined;
   const isApyLoading = vaultApyQuery.isLoading;
 
@@ -187,11 +185,11 @@ export const useMoneyAssetOverviewCtas = ({
 
   return {
     footerLabelLocalized,
-    isFooterCtaEligible: isFooterEligible,
-    isBalanceCtaLoading: isBalanceEligible && isApyLoading,
-    isBalanceCtaVisible: isBalanceEligible && hasApy,
-    isFooterCtaLoading: isFooterEligible && isApyLoading,
-    isFooterCtaVisible: isFooterEligible && hasApy,
+    isFooterCtaEligible,
+    isBalanceCtaLoading: isBalanceCtaEligible && isApyLoading,
+    isBalanceCtaVisible: isBalanceCtaEligible && hasApy,
+    isFooterCtaLoading: isFooterCtaEligible && isApyLoading,
+    isFooterCtaVisible: isFooterCtaEligible && hasApy,
     onBalancePress,
     onFooterPress,
     projectedEarningsFormatted,

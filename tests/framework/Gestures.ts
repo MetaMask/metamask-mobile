@@ -150,6 +150,9 @@ export default class Gestures {
         delay: options.delay,
         checkForDisplayed: options.checkForDisplayed,
         checkForEnabled: options.checkEnabled,
+        waitForInteractive: options.waitForInteractive,
+        // Detox checkStability ≈ Appium position-stable wait
+        checkForStable: options.checkStability,
       });
     }
 
@@ -911,5 +914,30 @@ export default class Gestures {
    */
   static async dismissKeyboardAfterTokenSearch(): Promise<void> {
     await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+  }
+
+  /**
+   * Appium: scroll an element into view (WDIO native scrollIntoView).
+   * Prefer when you already have a PlaywrightElement (e.g. from
+   * Matchers.getAllElementsByXPath). For EncapsulatedElementType targets with
+   * a known scroll container, prefer scrollToElement.
+   */
+  static async scrollIntoView(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+    },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.scrollIntoView is Appium only');
+    }
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoView(target, {
+      scrollParams: { direction: options?.direction ?? 'down' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+    });
   }
 }

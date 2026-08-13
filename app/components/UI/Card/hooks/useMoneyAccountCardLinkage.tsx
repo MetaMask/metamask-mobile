@@ -39,6 +39,7 @@ import {
   selectIsMoneyAccountDelegatedForCard,
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -68,6 +69,7 @@ import {
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,
+  withCardProvider,
 } from '../util/metrics';
 
 export type LinkageStatus =
@@ -149,6 +151,7 @@ export const useMoneyAccountCardLinkage =
     const navigation = useNavigation<AppNavigationProp>();
     const dispatch = useDispatch();
     const { trackEvent, createEventBuilder } = useAnalytics();
+    const activeProviderId = useSelector(selectCardActiveProviderId);
 
     const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
     const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
@@ -294,14 +297,16 @@ export const useMoneyAccountCardLinkage =
       ) => {
         trackEvent(
           createEventBuilder(eventName)
-            .addProperties({
-              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
-              ...properties,
-            })
+            .addProperties(
+              withCardProvider(activeProviderId, {
+                flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+                ...properties,
+              }),
+            )
             .build(),
         );
       },
-      [trackEvent, createEventBuilder],
+      [trackEvent, createEventBuilder, activeProviderId],
     );
 
     const openLinkCardSheet = useCallback(
