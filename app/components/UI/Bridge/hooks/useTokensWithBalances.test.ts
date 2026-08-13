@@ -9,7 +9,7 @@ import {
 } from '../testUtils/fixtures';
 import { BalancesByAssetId } from './useBalancesByAssetId';
 import {
-  ARC_NATIVE_USDC_ASSET_ID,
+  ARC_NATIVE_ASSET_ID,
   ARC_ERC20_USDC_ASSET_ID,
 } from '../../../hooks/useArcDefaultTokens';
 
@@ -245,7 +245,7 @@ describe('useTokensWithBalances', () => {
   describe('Arc native token filtering', () => {
     it('keeps other Arc tokens while filtering out the ERC20 duplicate', () => {
       const arcNativeToken = createMockPopularToken({
-        assetId: ARC_NATIVE_USDC_ASSET_ID,
+        assetId: ARC_NATIVE_ASSET_ID,
         symbol: 'USDC',
         name: 'USDC',
       });
