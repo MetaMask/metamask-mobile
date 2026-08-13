@@ -41,6 +41,7 @@ describe('HeroToken', () => {
 
     await waitFor(async () => {
       expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
+      expect(queryByTestId('avatar-token-network-badge')).toBeOnTheScreen();
       expect(getByText('0.0556 ETH')).toBeDefined();
       expect(getByText('$199.79')).toBeDefined();
     });
