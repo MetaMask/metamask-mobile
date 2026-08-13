@@ -248,9 +248,15 @@ const dismissPostOnboardingDestination = async (
     case 'push-notification':
       await PushNotificationOnboardingView.tapNotNowButton();
       break;
-    case 'predict-modal':
-      await closePredictModal();
+    case 'predict-modal': {
+      const dismissed = await closePredictModal();
+      if (!dismissed) {
+        throw new Error(
+          'Predict modal was detected but could not be dismissed',
+        );
+      }
       break;
+    }
   }
 };
 
