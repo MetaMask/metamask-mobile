@@ -567,6 +567,22 @@
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
   },
+  "SubscriptionController": {
+    "subscriptions": [],
+    "trialedProducts": []
+  },
+  "ShieldController": {
+    "coverageResults": {},
+    "orderedTransactionHistory": []
+  },
+  "ClaimsController": {
+    "claims": [],
+    "claimsConfigurations": {
+      "validSubmissionWindowDays": 21,
+      "supportedNetworks": ["0x1", "0xe708"]
+    },
+    "drafts": []
+  },
   "AuthenticationController": {
     "isSignedIn": false,
     "needsProfilePairing": true

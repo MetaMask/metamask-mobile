@@ -51,6 +51,7 @@ export const __mockRiveTriggerInput = jest.fn();
 interface RiveViewMethodsMock {
   play: jest.Mock;
   pause: jest.Mock;
+  playIfNeeded: jest.Mock;
   setBooleanInputValue: jest.Mock;
   triggerInput: jest.Mock;
 }
@@ -58,6 +59,7 @@ interface RiveViewMethodsMock {
 const createRiveViewMethods = (): RiveViewMethodsMock => ({
   play: jest.fn().mockResolvedValue(undefined),
   pause: jest.fn().mockResolvedValue(undefined),
+  playIfNeeded: jest.fn(),
   setBooleanInputValue: jest.fn(),
   triggerInput: __mockRiveTriggerInput,
 });

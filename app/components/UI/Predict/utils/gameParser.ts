@@ -277,6 +277,26 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     teamOrder: 'home-away',
     tagSlug: 'fifa-world-cup',
   },
+  usc: {
+    pattern: /^usc-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'uefa-super-cup',
+  },
+  efa: {
+    pattern: /^efa-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'fa-cup',
+  },
+  clf: {
+    pattern: /^clf-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'clf',
+  },
+  saf1: {
+    pattern: /^saf1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'saf1',
+  },
   atp: {
     pattern: /^atp-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'home-away',

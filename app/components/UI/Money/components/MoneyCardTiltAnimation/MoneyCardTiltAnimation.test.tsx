@@ -11,20 +11,30 @@ import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
 // The component writes tilt values through cached `instance.numberProperty()`
-// handles (not `useRiveNumber`), so the local mock provides a view-model
-// instance exposing `numberProperty` whose `.set()` records into
-// `mockSetNumber(path, value)`. The RiveView wrapper additionally captures
-// props (artboardName/style/onError) and counts mounts for the
-// remount-per-variant contract.
+// handles (not `useRiveNumber`) and fires the entry reveal through
+// `instance.triggerProperty()`, so the local mock provides a view-model
+// instance exposing both: `numberProperty(...).set()` records into
+// `mockSetNumber(path, value)` and `triggerProperty(...).trigger()` records
+// into `mockTrigger(path)`. `useRive` is overridden so tests can flip the
+// native view's readiness (`mockViewReady`), which gates the reveal. The
+// RiveView wrapper additionally captures props (artboardName/style/onError/
+// stateMachineName) and counts mounts for the remount-per-variant contract.
 const mockSetNumber = jest.fn();
 const mockNumberProperty = jest.fn((path: string) => ({
   set: (value: number) => mockSetNumber(path, value),
 }));
+const mockTrigger = jest.fn();
+const mockTriggerProperty = jest.fn((path: string) => ({
+  trigger: () => mockTrigger(path),
+}));
+const mockPlayIfNeeded = jest.fn();
 let mockInstanceReady = true;
+let mockViewReady = true;
 const mockRiveViewProps: {
   current?: {
     testID?: string;
     artboardName?: string;
+    stateMachineName?: string;
     style?: StyleProp<ViewStyle>;
     onError?: (error: RiveError) => void;
   };
@@ -37,6 +47,7 @@ jest.mock('@rive-app/react-native', () => {
   const MockRiveView = (props: {
     testID?: string;
     artboardName?: string;
+    stateMachineName?: string;
     style?: StyleProp<ViewStyle>;
     onError?: (error: RiveError) => void;
   }) => {
@@ -55,10 +66,18 @@ jest.mock('@rive-app/react-native', () => {
     ...actual,
     useViewModelInstance: () => ({
       instance: mockInstanceReady
-        ? { numberProperty: mockNumberProperty }
+        ? {
+            numberProperty: mockNumberProperty,
+            triggerProperty: mockTriggerProperty,
+          }
         : null,
       isLoading: !mockInstanceReady,
       error: null,
+    }),
+    useRive: () => ({
+      riveRef: { current: null },
+      riveViewRef: mockViewReady ? { playIfNeeded: mockPlayIfNeeded } : null,
+      setHybridRef: { f: jest.fn() },
     }),
     RiveView: MockRiveView,
   };
@@ -92,8 +111,12 @@ describe('MoneyCardTiltAnimation', () => {
     mockRiveViewProps.current = undefined;
     mockMountCount.current = 0;
     mockInstanceReady = true;
+    mockViewReady = true;
     mockNumberProperty.mockImplementation((path: string) => ({
       set: (value: number) => mockSetNumber(path, value),
+    }));
+    mockTriggerProperty.mockImplementation((path: string) => ({
+      trigger: () => mockTrigger(path),
     }));
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
@@ -316,6 +339,107 @@ describe('MoneyCardTiltAnimation', () => {
       expect(
         getByTestId(MoneyCardTiltAnimationTestIds.STATIC_IMAGE),
       ).toHaveStyle({ width: 111, height: 70, borderRadius: 6 });
+    });
+
+    it('fills the parent width using the artboard aspect ratio', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} fillWidth />);
+
+      expect(mockRiveViewProps.current?.style).toEqual({
+        width: '100%',
+        aspectRatio: 620 / 400,
+      });
+    });
+  });
+
+  describe('entry reveal', () => {
+    it('fires the authored reveal trigger once the native view is ready', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />);
+
+      expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+      expect(mockTrigger).toHaveBeenCalledTimes(1);
+    });
+
+    it('wakes the state machine after firing the reveal', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />);
+
+      expect(mockPlayIfNeeded).toHaveBeenCalled();
+    });
+
+    it('fires the reveal only once across re-renders', () => {
+      const { rerender } = render(
+        <MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />,
+      );
+
+      rerender(
+        <MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />,
+      );
+
+      expect(mockTrigger).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire the reveal when it was not requested', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} />);
+
+      expect(mockTrigger).not.toHaveBeenCalled();
+    });
+
+    it('waits the requested delay before triggering the reveal', () => {
+      jest.useFakeTimers();
+
+      render(
+        <MoneyCardTiltAnimation
+          isMetalCard={false}
+          playRevealOnMount
+          revealDelayMs={60}
+        />,
+      );
+
+      expect(mockTrigger).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(60);
+      });
+
+      expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+      jest.useRealTimers();
+    });
+
+    it('defers the reveal until the native view becomes ready', () => {
+      mockViewReady = false;
+      const { rerender } = render(
+        <MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />,
+      );
+
+      expect(mockTrigger).not.toHaveBeenCalled();
+
+      mockViewReady = true;
+      rerender(
+        <MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />,
+      );
+
+      expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+    });
+
+    it('does not fire the reveal before the view-model instance is ready', () => {
+      mockInstanceReady = false;
+
+      render(<MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />);
+
+      expect(mockTrigger).not.toHaveBeenCalled();
+    });
+
+    it('runs the tilt state machine only when the reveal is requested', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} playRevealOnMount />);
+
+      expect(mockRiveViewProps.current?.stateMachineName).toBe(
+        'State Machine 1',
+      );
+    });
+
+    it('leaves the state machine unset when the reveal is not requested', () => {
+      render(<MoneyCardTiltAnimation isMetalCard={false} />);
+
+      expect(mockRiveViewProps.current?.stateMachineName).toBeUndefined();
     });
   });
 });
