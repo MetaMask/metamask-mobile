@@ -304,10 +304,11 @@ describe('PlaywrightUtilities.buildDeviceAccountMapping', () => {
   it('maps BrowserStack matrix names and TestMu catalog aliases to the same account', () => {
     const mapping = PlaywrightUtilities.buildDeviceAccountMapping();
 
-    // Low-tier Android: matrix name + TestMu catalog alias + flexible Pixel pool.
+    // Low-tier Android: matrix name + TestMu catalog alias + phone selector.
     expect(mapping['Google Pixel 7 Pro']).toBe('Account 1');
+    expect(mapping['Pixel 7']).toBe('Account 1');
     expect(mapping['Pixel 7 Pro']).toBe('Account 1');
-    expect(mapping['Pixel.*']).toBe('Account 1');
+    expect(mapping['Pixel 7|Pixel 7 Pro']).toBe('Account 1');
 
     // The current performance matrix has no high-tier Android device.
     expect(mapping['Samsung Galaxy S25 Ultra']).toBeUndefined();

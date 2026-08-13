@@ -546,13 +546,10 @@ class PlaywrightUtilities {
       }
     });
 
-    // Flexible TestMu Pixel pool selectors resolve to a single low-category
-    // account in this performance matrix.
-    if (
-      mapping['Pixel 7 Pro'] === 'Account 1' ||
-      mapping['Pixel 8 Pro'] === 'Account 1'
-    ) {
-      mapping['Pixel.*'] = 'Account 1';
+    // The TestMu phone selector resolves to a single low-category account.
+    if (mapping['Pixel 7 Pro'] === 'Account 1') {
+      mapping['Pixel 7'] = 'Account 1';
+      mapping['Pixel 7|Pixel 7 Pro'] = 'Account 1';
     }
 
     // Process iOS devices
