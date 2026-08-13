@@ -39,9 +39,12 @@ import {
   DEMO_AUTORAMP_DESTINATION_TOKEN,
   DEMO_AUTORAMP_SOURCE_CURRENCY_CODE,
 } from './constants';
-import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
+import {
+  ensureMoneyAccountAutorampCreated,
+  ensureMoneyAccountWalletRegistered,
+} from './moneyAccountProvisioning';
 
-type StepId = 'identity' | 'customer' | 'autoramp' | 'live';
+type StepId = 'identity' | 'customer' | 'wallet' | 'autoramp' | 'live';
 
 type StepStatus = 'idle' | 'running' | 'waiting' | 'success' | 'failed';
 
@@ -52,7 +55,7 @@ interface StepState {
 }
 
 /**
- * The four stages the demo makes visible. `caller` is the actual code path or
+ * The stages the demo makes visible. `caller` is the actual code path or
  * HTTP route each stage exercises, shown verbatim so the audience can follow
  * along with the network tab / API logs.
  */
@@ -66,6 +69,11 @@ const STEPS: { id: StepId; title: string; caller: string }[] = [
     id: 'customer',
     title: 'Map identity to MoonPay customer',
     caller: 'GET /neobank/customers/{externalId}/external',
+  },
+  {
+    id: 'wallet',
+    title: 'Register Money Account wallet',
+    caller: 'KycController.refreshKycStatus() → registerMoneyAccountWallet()',
   },
   {
     id: 'autoramp',
@@ -82,6 +90,7 @@ const STEPS: { id: StepId; title: string; caller: string }[] = [
 const IDLE_STEPS: Record<StepId, StepState> = {
   identity: { status: 'idle' },
   customer: { status: 'idle' },
+  wallet: { status: 'idle' },
   autoramp: { status: 'idle' },
   live: { status: 'idle' },
 };
@@ -234,10 +243,18 @@ const StepRow = ({
  *
  * Rather than hiding the work behind a single spinner, this screen runs the
  * autoramp creation pipeline stage by stage and reports each one: resolving the
- * wallet's Profile Sync identity, mapping it to a MoonPay customer, creating
- * the autoramp, then holding a websocket open so MoonPay webhook pushes land
- * live. Failures surface the upstream message in place, which is what makes
- * this useful while the proxy routes are still being built out.
+ * wallet's Profile Sync identity, mapping it to a MoonPay customer, registering
+ * the Money Account wallet, creating the autoramp, then holding a websocket
+ * open so MoonPay webhook pushes land live. Failures surface the upstream
+ * message in place, which is what makes this useful while the proxy routes are
+ * still being built out.
+ *
+ * The wallet stage reads `GET /kyc/status` on demand rather than waiting for
+ * `KycController:statusChanged`, because a status that was already `completed`
+ * before this screen mounted publishes no event. That read and the event
+ * subscriber share {@link ensureMoneyAccountWalletRegistered} and
+ * {@link ensureMoneyAccountAutorampCreated}, so whichever arrives first does
+ * the work and the other reuses it — one signature prompt, one autoramp.
  *
  * The MoonPay `customer_id` is never passed from here: `createAutoramp`
  * resolves it itself. Stage 2 performs the same lookup only so the mapping is
@@ -336,10 +353,23 @@ const MockKycSuccess = () => {
           : `customer_id = ${truncateId(customerId)}`,
       });
 
+      const registration = await timed('wallet', async () => {
+        const { status: kycStatus } =
+          await Engine.context.KycController.refreshKycStatus();
+        if (kycStatus !== 'completed') {
+          throw new Error(
+            `KYC status is "${kycStatus}". The wallet can only be registered once it reads completed.`,
+          );
+        }
+        return await ensureMoneyAccountWalletRegistered(walletAddress);
+      });
+      updateStep('wallet', {
+        status: 'success',
+        detail: `status = completed · ${registration.type}`,
+      });
+
       const account = await timed('autoramp', async () =>
-        Engine.context.RampsController.createAutoramp(
-          buildMoneyAccountAutorampParams(walletAddress),
-        ),
+        ensureMoneyAccountAutorampCreated(walletAddress),
       );
 
       if (!isMountedRef.current) {
@@ -420,7 +450,7 @@ const MockKycSuccess = () => {
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            Creating your account runs four real steps. Watch each one report
+            Creating your account runs five real steps. Watch each one report
             back below.
           </Text>
         </Box>

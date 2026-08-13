@@ -1,6 +1,10 @@
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
+import {
+  ensureMoneyAccountWalletRegistered,
+  resetMoneyAccountProvisioning,
+} from './moneyAccountProvisioning';
 import { createRegisterMoneyAccountOnKycCompletion } from './registerMoneyAccountOnKycCompletion';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -37,6 +41,7 @@ const completedEvent = {
 
 const setUp = () => {
   jest.clearAllMocks();
+  resetMoneyAccountProvisioning();
   mockAccountsController.getSelectedAccount.mockReturnValue({ address: '0xabc' });
   mockRampsController.registerMoneyAccountWallet.mockResolvedValue({
     type: 'registered',
@@ -102,6 +107,18 @@ describe('createRegisterMoneyAccountOnKycCompletion', () => {
     expect(mockRampsController.registerMoneyAccountWallet).toHaveBeenCalledTimes(
       1,
     );
+  });
+
+  it('does not register again when the success screen already did', async () => {
+    const handle = setUp();
+
+    await ensureMoneyAccountWalletRegistered('0xabc');
+    await handle(completedEvent);
+
+    expect(mockRampsController.registerMoneyAccountWallet).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockRampsController.createAutoramp).toHaveBeenCalledTimes(1);
   });
 
   it('soft-fails and skips the autoramp when registration rejects', async () => {
