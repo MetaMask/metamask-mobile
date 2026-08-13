@@ -175,7 +175,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
         },
         expect.any(Function),
@@ -209,7 +209,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
         },
         expect.any(Function),
@@ -221,6 +221,25 @@ describe('Trace', () => {
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
+    });
+
+    it('uses data when tags and data contain the same attribute', () => {
+      updateCachedConsent(true);
+
+      trace(
+        {
+          name: NAME_MOCK,
+          tags: { shared: 'tag' },
+          data: { shared: 'data' },
+        },
+        () => true,
+      );
+
+      expect(startSpanMock).toHaveBeenCalledWith(
+        expect.objectContaining({ attributes: { shared: 'data' } }),
+        expect.any(Function),
+      );
+      expect(setTagMock).toHaveBeenCalledWith('shared', 'tag');
     });
 
     it('buffers traces when consent is not given', () => {
@@ -263,7 +282,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
           startTime: 123,
         },

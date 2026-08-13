@@ -13,7 +13,7 @@ import {
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import useMoneyAccountBalance from './useMoneyAccountBalance';
+import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
@@ -31,7 +31,7 @@ export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
   const { shouldShowMoneyTokenListItemCta } = useMoneyCtaVisibility();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
   const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: screenName,
     component_name: COMPONENT_NAMES.MONEY_TOKEN_LIST_ITEM_CTA,

@@ -9,6 +9,7 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -380,6 +381,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
     highlights: [],
     minimumVersion: '7.64.0',
   },
+  hiddenMarketsFlag: DEFAULT_HIDDEN_MARKETS_FLAG,
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,

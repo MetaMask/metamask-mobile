@@ -9,6 +9,12 @@ import {
 
 export interface MoneyHomeSegment {
   name: TraceName;
+  /**
+   * Whether this segment can appear for the current screen state.
+   */
+  enabled?: boolean;
+  /** Backdate a late-enabled segment to screen mount. */
+  backdateToMount?: boolean;
   /** Ends the span successfully the first time this flips true. */
   ready: boolean;
   /**
@@ -46,16 +52,12 @@ export function useMoneyHomePerformance({
   segments,
 }: UseMoneyHomePerformanceConfig): void {
   const tracesRef = useRef<Map<TraceName, SegmentTrace>>(new Map());
+  const disabledSegmentsRef = useRef<Set<TraceName>>(new Set());
+  const screenMountTimeRef = useRef(Date.now());
 
-  // Start every segment's span on mount; end any still in flight on unmount.
+  // End any traces still in flight when the screen unmounts.
   useEffect(() => {
     const traces = tracesRef.current;
-    for (const { name } of segments) {
-      const id = uuidv4();
-      trace({ name, op: TraceOperation.MoneyHomePerformance, id });
-      traces.set(name, { id, ended: false });
-    }
-
     return () => {
       for (const [name, segmentTrace] of traces) {
         if (!segmentTrace.ended) {
@@ -68,21 +70,58 @@ export function useMoneyHomePerformance({
         }
       }
     };
-    // Segment names are stable; only `ready` flags change across renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // End each segment's span the first time it becomes ready — or fails.
+  // Start applicable segments and end each the first time it becomes ready or
+  // fails. A segment may only become applicable after balance/activity data
+  // settles; backdating preserves screen-mount-to-content semantics while
+  // avoiding spans for sections that never render.
   // Failure is checked first: an error that arrives with (or before) readiness
   // means the content never truly loaded, while an error after a successful
   // end is ignored (the span is already closed with an accurate duration).
   useEffect(() => {
     const traces = tracesRef.current;
-    for (const { name, ready, failed, contentState } of segments) {
-      const segmentTrace = traces.get(name);
-      if (!segmentTrace || segmentTrace.ended) {
+    for (const {
+      name,
+      enabled = true,
+      backdateToMount = false,
+      ready,
+      failed,
+      contentState,
+    } of segments) {
+      if (!enabled) {
+        disabledSegmentsRef.current.add(name);
+        const segmentTrace = traces.get(name);
+        if (segmentTrace && !segmentTrace.ended) {
+          endTrace({
+            name,
+            id: segmentTrace.id,
+            data: { success: false, reason: 'disabled' },
+          });
+          segmentTrace.ended = true;
+        }
         continue;
       }
+
+      let segmentTrace = traces.get(name);
+      if (!segmentTrace) {
+        const id = uuidv4();
+        trace({
+          name,
+          op: TraceOperation.MoneyHomePerformance,
+          id,
+          ...(backdateToMount && disabledSegmentsRef.current.has(name)
+            ? { startTime: screenMountTimeRef.current }
+            : {}),
+        });
+        segmentTrace = { id, ended: false };
+        traces.set(name, segmentTrace);
+      }
+
+      if (segmentTrace.ended) {
+        continue;
+      }
+
       if (failed) {
         endTrace({
           name,

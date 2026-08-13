@@ -27,6 +27,7 @@ import {
   formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
+  resolveBenefitEndDate,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -396,6 +397,41 @@ describe('formatUtils', () => {
 
       // Then: should return days and hours format without trailing space
       expect(result).toBe('2d 3h');
+    });
+  });
+
+  describe('resolveBenefitEndDate', () => {
+    const validTo = '2026-12-31T23:59:59Z';
+    const actionDate = '2026-09-01T00:00:00Z';
+
+    it('prefers validTo when both dates are valid', () => {
+      const result = resolveBenefitEndDate(validTo, actionDate);
+
+      expect(result).toBe(validTo);
+    });
+
+    it('falls back to actionDate when validTo is null', () => {
+      const result = resolveBenefitEndDate(null, actionDate);
+
+      expect(result).toBe(actionDate);
+    });
+
+    it('falls back to actionDate when validTo is empty', () => {
+      const result = resolveBenefitEndDate('  ', actionDate);
+
+      expect(result).toBe(actionDate);
+    });
+
+    it('falls back to actionDate when validTo is malformed', () => {
+      const result = resolveBenefitEndDate('not-a-date', actionDate);
+
+      expect(result).toBe(actionDate);
+    });
+
+    it('returns null when neither date is valid', () => {
+      const result = resolveBenefitEndDate('not-a-date', null);
+
+      expect(result).toBeNull();
     });
   });
 
