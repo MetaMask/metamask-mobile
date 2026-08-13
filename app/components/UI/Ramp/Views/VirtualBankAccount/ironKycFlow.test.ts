@@ -1,40 +1,22 @@
 import Engine from '../../../../../core/Engine';
-import {
-  registerSelectedMoneyAccountWallet,
-  startIronKycFlow,
-  startIronKycVerification,
-} from './ironKycFlow';
+import { startIronKycFlow, startIronKycVerification } from './ironKycFlow';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn(),
-    },
     KycController: {
       state: { error: null, disclaimers: [] },
       initialize: jest.fn(),
       createIronCustomer: jest.fn(),
       acceptTermsAndStartSession: jest.fn(),
     },
-    RampsController: {
-      registerMoneyAccountWallet: jest.fn(),
-    },
   },
 }));
-
-const mockAccountsController = Engine.context.AccountsController as unknown as {
-  getSelectedAccount: jest.Mock;
-};
 
 const mockKycController = Engine.context.KycController as unknown as {
   state: { error: string | null; disclaimers: { id: string }[] };
   initialize: jest.Mock<Promise<void>, [unknown?]>;
   createIronCustomer: jest.Mock<Promise<void>, [unknown?]>;
   acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown?]>;
-};
-
-const mockRampsController = Engine.context.RampsController as unknown as {
-  registerMoneyAccountWallet: jest.Mock<Promise<unknown>, [unknown?]>;
 };
 
 const resetControllerState = ({
@@ -136,38 +118,5 @@ describe('startIronKycVerification', () => {
     await expect(startIronKycVerification('user@example.com')).rejects.toThrow(
       'Iron session failed: consents.',
     );
-  });
-});
-
-describe('registerSelectedMoneyAccountWallet', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockAccountsController.getSelectedAccount.mockReturnValue({
-      address: '0xabc',
-    });
-    mockRampsController.registerMoneyAccountWallet.mockResolvedValue({
-      type: 'registered',
-    });
-  });
-
-  it('registers the selected account address with RampsController', async () => {
-    await registerSelectedMoneyAccountWallet();
-
-    expect(mockRampsController.registerMoneyAccountWallet).toHaveBeenCalledWith(
-      {
-        address: '0xabc',
-      },
-    );
-  });
-
-  it('throws when no selected account is available', async () => {
-    mockAccountsController.getSelectedAccount.mockReturnValue(undefined);
-
-    await expect(registerSelectedMoneyAccountWallet()).rejects.toThrow(
-      'No selected account available to register.',
-    );
-    expect(
-      mockRampsController.registerMoneyAccountWallet,
-    ).not.toHaveBeenCalled();
   });
 });

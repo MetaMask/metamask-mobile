@@ -1,4 +1,3 @@
-import type { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 
 // Demo Iron → Sumsub helpers for the VBA Get Pix Key flow.
@@ -79,24 +78,4 @@ export async function startIronKycVerification(email: string): Promise<void> {
       idosTncSigned: true,
     }),
   );
-}
-
-/**
- * Registers the currently selected account as a Money Account wallet after KYC
- * succeeds (Sumsub complete). Signs an ownership proof via KeyringController
- * and posts through neobank-proxy.
- *
- * Callers should soft-fail: verification already succeeded, so a registration
- * error should not block the success screen.
- */
-export async function registerSelectedMoneyAccountWallet(): Promise<void> {
-  const selectedAccount =
-    Engine.context.AccountsController.getSelectedAccount();
-  const address = selectedAccount?.address as Hex | undefined;
-
-  if (!address) {
-    throw new Error('No selected account available to register.');
-  }
-
-  await Engine.context.RampsController.registerMoneyAccountWallet({ address });
 }

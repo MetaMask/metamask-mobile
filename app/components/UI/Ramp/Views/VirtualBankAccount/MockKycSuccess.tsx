@@ -39,6 +39,7 @@ import {
   DEMO_AUTORAMP_DESTINATION_TOKEN,
   DEMO_AUTORAMP_SOURCE_CURRENCY_CODE,
 } from './constants';
+import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
 
 type StepId = 'identity' | 'customer' | 'autoramp' | 'live';
 
@@ -336,22 +337,9 @@ const MockKycSuccess = () => {
       });
 
       const account = await timed('autoramp', async () =>
-        Engine.context.RampsController.createAutoramp({
-          source_currencies: [
-            { type: 'Fiat', code: DEMO_AUTORAMP_SOURCE_CURRENCY_CODE },
-          ],
-          destination_currency: {
-            type: 'Crypto',
-            token: DEMO_AUTORAMP_DESTINATION_TOKEN,
-            blockchain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
-          },
-          recipient_account: {
-            type: 'Crypto',
-            chain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
-            address: walletAddress,
-          },
-          source_is_third_party: false,
-        }),
+        Engine.context.RampsController.createAutoramp(
+          buildMoneyAccountAutorampParams(walletAddress),
+        ),
       );
 
       if (!isMountedRef.current) {
