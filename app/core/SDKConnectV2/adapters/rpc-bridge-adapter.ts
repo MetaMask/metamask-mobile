@@ -32,8 +32,7 @@ export class RPCBridgeAdapter
     this.connInfo = connInfo;
     // Stamp the connection's provenance at the entry point: the MWP
     // connection id is the unspoofable connection identity; the dapp
-    // metadata in the connection request is self-reported and display-only
-    // (MCWP-771).
+    // metadata in the connection request is self-reported and display-only.
     stampOriginProvenance({
       connectionId: connInfo.id,
       transport: RemoteTransport.MMConnect,

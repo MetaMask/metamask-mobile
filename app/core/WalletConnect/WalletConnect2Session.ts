@@ -142,7 +142,7 @@ class WalletConnect2Session {
 
     // Stamp the connection's provenance at the entry point: the channelId is
     // the unspoofable connection identity; the session peer metadata is
-    // self-reported by the dapp and display-only (MCWP-771).
+    // self-reported by the dapp and display-only.
     stampOriginProvenance({
       connectionId: channelId,
       transport: RemoteTransport.WalletConnect,

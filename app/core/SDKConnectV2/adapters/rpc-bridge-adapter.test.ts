@@ -202,7 +202,7 @@ describe('RPCBridgeAdapter', () => {
   describe('Origin Provenance', () => {
     it('stamps the connection provenance on construction and drops it on dispose', () => {
       // The MWP connection id is the unspoofable connection identity; the
-      // dapp metadata is self-reported and display-only (MCWP-771).
+      // dapp metadata is self-reported and display-only.
       expect(getOriginProvenance('mock-connection-id')).toStrictEqual({
         connectionId: 'mock-connection-id',
         transport: RemoteTransport.MMConnect,

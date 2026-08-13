@@ -56,7 +56,7 @@ export const setupBridge = ({
 
   // Stamp the connection's provenance at the entry point: the SDK channelId
   // is the unspoofable connection identity; originatorInfo is self-reported
-  // by the dapp and display-only (MCWP-771).
+  // by the dapp and display-only.
   stampOriginProvenance({
     connectionId: connection.channelId,
     transport: RemoteTransport.SDKv1,

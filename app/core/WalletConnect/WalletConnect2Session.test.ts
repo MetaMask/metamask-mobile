@@ -349,7 +349,7 @@ describe('WalletConnect2Session', () => {
 
   it('stamps the connection provenance on construction and drops it on removeListeners', async () => {
     // The channelId is the unspoofable connection identity; the peer
-    // metadata is self-reported by the dapp and display-only (MCWP-771).
+    // metadata is self-reported by the dapp and display-only.
     expect(getOriginProvenance('test-channel')).toStrictEqual({
       connectionId: 'test-channel',
       transport: RemoteTransport.WalletConnect,
