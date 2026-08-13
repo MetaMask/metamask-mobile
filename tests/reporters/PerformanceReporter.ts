@@ -44,6 +44,9 @@ interface PlaywrightTestResult {
   annotations?: { type: string; description?: string }[];
 }
 
+const isTestFailureStatus = (status: string): boolean =>
+  status === 'failed' || status === 'timedOut' || status === 'interrupted';
+
 /**
  * Main Playwright reporter for performance test runs.
  * Replaces the old custom-reporter.js with clean separation of concerns.
@@ -213,8 +216,7 @@ class PerformanceReporter {
     testTags: string[],
     projectName: string,
   ): void {
-    const isActualFailure =
-      result.status === 'failed' || result.status === 'timedOut';
+    const isActualFailure = isTestFailureStatus(result.status);
     if (!isActualFailure) return;
 
     const teamId = teamInfo.teamId;
@@ -275,7 +277,7 @@ class PerformanceReporter {
         };
 
         // Mark actual failures
-        if (result.status === 'failed' || result.status === 'timedOut') {
+        if (isTestFailureStatus(result.status)) {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = result.status;
         }
@@ -382,7 +384,7 @@ class PerformanceReporter {
       } catch (error) {
         logger.error(`Error processing metrics: ${error}`);
       }
-    } else if (result.status === 'failed' || result.status === 'timedOut') {
+    } else if (isTestFailureStatus(result.status)) {
       // For actual failed tests without metrics, create a basic entry
       logger.warn('Test failed without metrics, creating basic entry');
 
