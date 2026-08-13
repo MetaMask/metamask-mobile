@@ -2759,6 +2759,13 @@
       "entry": "Entry",
       "claim": "Claim"
     },
+    "crypto_up_down": {
+      "twap_info": {
+        "title": "How this market settles",
+        "accessibility_label": "Learn how this market settles",
+        "description": "This market settles on {{symbol}}'s average price over {{windowSeconds}} seconds, not the price at the exact moment it closes."
+      }
+    },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
       "explore": "Browse markets",
@@ -6037,6 +6044,18 @@
     "erc1155_received_title": "NFT received",
     "default_message_title": "MetaMask",
     "default_message_description": "Tap to view",
+    "feature_gate": {
+      "price_alerts": {
+        "title": "Don't miss a price alert",
+        "description": "Turn on notifications so we can alert you when a price target is hit.",
+        "preview": {
+          "title": "ETH is up 4.2% today",
+          "message": "Now at $2,668.51 — above your price alert",
+          "timestamp": "now"
+        }
+      },
+      "cta": "Turn on notifications"
+    },
     "received_payment_title": "Instant payment received",
     "pending_message": "Waiting for confirmation",
     "pending_deposit_message": "Waiting for deposit to complete",
@@ -10529,7 +10548,7 @@
     "high_to_low": "High to low",
     "low_to_high": "Low to high",
     "apply": "Apply",
-    "search_placeholder": "Search tokens, markets and URLs",
+    "search_placeholder": "Search",
     "quick_trade": "Quick Buy and Sell",
     "cancel": "Cancel",
     "perps": "Perps",

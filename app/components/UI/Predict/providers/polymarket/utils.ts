@@ -978,6 +978,19 @@ const parseEventPriceToBeat = (
     : undefined;
 };
 
+const parseTwapWindowSeconds = (
+  markets: PolymarketApiMarket[],
+): 30 | 60 | undefined => {
+  const config = markets.find(
+    (market) => market.cryptoMarketConfig?.twapEnabled === true,
+  )?.cryptoMarketConfig;
+  const windowSeconds = config?.twapLookbackSeconds;
+
+  return windowSeconds === 30 || windowSeconds === 60
+    ? windowSeconds
+    : undefined;
+};
+
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -1102,6 +1115,7 @@ export const parsePolymarketEvents = (
           : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);
+      const twapWindowSeconds = parseTwapWindowSeconds(markets);
 
       return [
         {
@@ -1125,6 +1139,7 @@ export const parsePolymarketEvents = (
           volume: event.volume,
           game,
           ...(priceToBeat !== undefined && { priceToBeat }),
+          ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
           ...(seriesData && { series: seriesData }),
           ...(event.parentEventId !== undefined && {
             parentMarketId: event.parentEventId,

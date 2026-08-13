@@ -686,6 +686,63 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.value).toBe(51000);
     });
 
+    it('preserves a fresh TWAP price across same-window market rollover', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ twapWindowSeconds: 30 });
+      const nextMarket = createMarket({
+        id: 'market-2',
+        twapWindowSeconds: 30,
+      });
+      historicalData = [];
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+      });
+
+      rerender({ activeMarket: nextMarket });
+
+      expect(result.current.data).toEqual([{ time: 100, value: 51000 }]);
+      expect(result.current.value).toBe(51000);
+    });
+
+    it('removes Chainlink history when the same market switches to TWAP', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const twapMarket = createMarket({ twapWindowSeconds: 30 });
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
+
+      rerender({ activeMarket: twapMarket });
+
+      expect(result.current.data).toEqual([]);
+      expect(result.current.value).toBe(0);
+      expect(result.current.loading).toBe(true);
+    });
+
     it('accepts live updates after changing away from a reset market', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({
@@ -1734,6 +1791,131 @@ describe('useCryptoUpDownChartData', () => {
 
       expect(result.current.loading).toBe(false);
     });
+
+    it('keeps a TWAP stream healthy after its first observation', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T01:00:00.000Z',
+        twapWindowSeconds: 60,
+      });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+        jest.advanceTimersByTime(12_000);
+      });
+
+      expect(result.current.value).toBe(51000);
+      expect(result.current.connectionError).toBe(false);
+    });
+
+    it('renders lower-cadence TWAP observations without marking the stream stale', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T01:00:00.000Z',
+        twapWindowSeconds: 60,
+      });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+        jest.advanceTimersByTime(60_000);
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51500,
+          timestamp: 160,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 51000 },
+        { time: 160, value: 51500 },
+      ]);
+      expect(result.current.window).toBe(300);
+      expect(result.current.loading).toBe(false);
+      expect(result.current.connectionError).toBe(false);
+    });
+
+    it('marks a silent TWAP stream stale after its freshness threshold', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T01:00:00.000Z',
+        twapWindowSeconds: 60,
+      });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(120_000);
+      });
+
+      expect(result.current.loading).toBe(true);
+      expect(result.current.connectionError).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(12_000);
+      });
+
+      expect(result.current.connectionError).toBe(true);
+    });
+
+    it('clears TWAP connection errors when the price source changes', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T01:00:00.000Z',
+        twapWindowSeconds: 30,
+      });
+      const nextSourceMarket = createMarket({
+        endDate: '2026-01-01T01:00:00.000Z',
+        twapWindowSeconds: 60,
+      });
+      historicalData = [];
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(12_000);
+      });
+      expect(result.current.connectionError).toBe(true);
+
+      rerender({ activeMarket: nextSourceMarket });
+
+      expect(result.current.connectionError).toBe(false);
+    });
   });
 
   describe('connection error', () => {
@@ -1837,6 +2019,34 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         jest.advanceTimersByTime(12_000);
+      });
+
+      expect(result.current.connectionError).toBe(false);
+    });
+
+    it('does not require two TWAP observations to clear a connection error', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T01:00:00.000Z',
+        twapWindowSeconds: 30,
+      });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(12_000);
+      });
+      expect(result.current.connectionError).toBe(true);
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
       });
 
       expect(result.current.connectionError).toBe(false);

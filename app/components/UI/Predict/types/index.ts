@@ -137,7 +137,10 @@ export type PredictMarket = {
   childMarketIds?: string[];
   isHighlighted?: boolean;
   priceToBeat?: number;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 };
+
+export type CryptoTwapWindowSeconds = 30 | 60;
 
 export type PredictSeries = {
   id: string;
@@ -220,6 +223,10 @@ export type PredictSportsLeague =
   | 'dfb'
   | 'cde'
   | 'fifwc'
+  | 'usc'
+  | 'efa'
+  | 'clf'
+  | 'saf1'
   | 'atp'
   | 'wta'
   | 'itf'
@@ -304,6 +311,11 @@ export interface CryptoPriceUpdate {
   symbol: string;
   price: number;
   timestamp: number;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
+}
+
+export interface CryptoPriceSubscriptionOptions {
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 export interface OrderbookLevel {
