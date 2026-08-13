@@ -103,6 +103,11 @@ export interface BuildPerpsOrderParamsInput {
   stopLossPrice?: string;
   /** Reduce-only flag (Pro only); omitted for lite. */
   reduceOnly?: boolean;
+  /**
+   * True when the order consumes the full open position.
+   * Enables the controller's minimum-notional exemption for dust closes.
+   */
+  isFullClose?: boolean;
   trackingData: OrderTrackingData;
 }
 
@@ -110,7 +115,7 @@ export interface BuildPerpsOrderParamsInput {
  * Pure assembly of the controller `OrderParams` shared by the lite
  * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit orders
  * use the fixed default slippage; TP/SL/limit price and `reduceOnly` are only
- * included when present. Mirrors the lite form's original inline object exactly.
+ * included when present. TP/SL are never attached to reduce-only orders.
  *
  * @param input - Order params inputs.
  * @returns The controller `OrderParams`.
@@ -128,6 +133,7 @@ export const buildPerpsOrderParams = ({
   takeProfitPrice,
   stopLossPrice,
   reduceOnly,
+  isFullClose,
   trackingData,
 }: BuildPerpsOrderParamsInput): OrderParams => ({
   symbol: asset,
@@ -143,9 +149,11 @@ export const buildPerpsOrderParams = ({
       ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
       : maxSlippageBps,
   ...(reduceOnly !== undefined ? { reduceOnly } : {}),
+  ...(isFullClose !== undefined ? { isFullClose } : {}),
   ...(orderType === 'limit' && limitPrice ? { price: limitPrice } : {}),
-  ...(takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
-  ...(stopLossPrice?.trim() ? { stopLossPrice } : {}),
+  // Reduce-only closes cannot attach TP/SL — omit even if stale values remain.
+  ...(!reduceOnly && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
+  ...(!reduceOnly && stopLossPrice?.trim() ? { stopLossPrice } : {}),
   trackingData,
 });
 

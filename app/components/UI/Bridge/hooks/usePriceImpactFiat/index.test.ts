@@ -1,6 +1,10 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { usePriceImpactFiat } from './index';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import {
+  toQuoteMetadataV2,
+  type QuoteMetadata,
+} from '@metamask/bridge-controller';
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
@@ -10,8 +14,14 @@ const mockSelectCurrentCurrency = selectCurrentCurrency as jest.MockedFunction<
   typeof selectCurrentCurrency
 >;
 
-const renderHook = (activeQuote: Parameters<typeof usePriceImpactFiat>[0]) =>
-  renderHookWithProvider(() => usePriceImpactFiat(activeQuote), { state: {} });
+const renderHook = (activeQuote?: QuoteMetadata | null) =>
+  renderHookWithProvider(
+    () =>
+      usePriceImpactFiat(
+        activeQuote ? (toQuoteMetadataV2(activeQuote) as never) : activeQuote,
+      ),
+    { state: {} },
+  );
 
 describe('usePriceImpactFiat', () => {
   beforeEach(() => {
@@ -35,7 +45,7 @@ describe('usePriceImpactFiat', () => {
   it('returns undefined when priceImpact.valueInCurrency is undefined', () => {
     const { result } = renderHook({
       priceImpact: { valueInCurrency: undefined },
-    } as Parameters<typeof usePriceImpactFiat>[0]);
+    });
 
     expect(result.current).toBeUndefined();
   });
@@ -45,7 +55,7 @@ describe('usePriceImpactFiat', () => {
 
     const { result } = renderHook({
       priceImpact: { valueInCurrency: '5' },
-    } as Parameters<typeof usePriceImpactFiat>[0]);
+    });
 
     // €50 - €45 = €5
     expect(result.current).toMatch(/5/);
@@ -55,7 +65,7 @@ describe('usePriceImpactFiat', () => {
   it('returns a formatted zero value when priceImpact.valueInCurrency is zero', () => {
     const { result } = renderHook({
       priceImpact: { valueInCurrency: '0' },
-    } as Parameters<typeof usePriceImpactFiat>[0]);
+    });
 
     expect(result.current).toBe('$0.00');
   });

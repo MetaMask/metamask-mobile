@@ -6,7 +6,7 @@ import {
   formatChainIdToCaip,
   type RequiredEventContextFromClient,
 } from '@metamask/bridge-controller';
-import type { CaipAssetType } from '@metamask/utils';
+import { parseCaipAssetType, type CaipAssetType } from '@metamask/utils';
 
 import Engine from '../../../../../core/Engine';
 import {
@@ -30,7 +30,7 @@ interface BatchSellQuotePageMetricPropertiesParams {
 }
 
 function getQuoteSourceUsdAmount(quote: BatchSellQuote) {
-  const usdAmount = Number(quote.sentAmount?.usd);
+  const usdAmount = Number(quote.quote.src?.usd);
 
   return Number.isFinite(usdAmount) ? usdAmount : 0;
 }
@@ -68,10 +68,10 @@ export function getBatchSellQuotePageMetricProperties({
     return undefined;
   }
 
-  const destinationTokenAddress = formatAddressToAssetId(
-    firstQuote.quote.destAsset.address,
-    firstQuote.quote.destChainId,
-  );
+  const destChainId = parseCaipAssetType(
+    firstQuote.quote.dest.asset.assetId,
+  ).chainId;
+  const destinationTokenAddress = firstQuote.quote.dest.asset.assetId;
 
   if (!destinationTokenAddress) {
     return undefined;
@@ -84,10 +84,10 @@ export function getBatchSellQuotePageMetricProperties({
   });
 
   return {
-    chain_id_destination: formatChainIdToCaip(firstQuote.quote.destChainId),
+    chain_id_destination: destChainId,
     chain_id_source: formatChainIdToCaip(firstSourceToken.chainId),
     destination_token_address: destinationTokenAddress,
-    destination_token_symbol: firstQuote.quote.destAsset.symbol,
+    destination_token_symbol: firstQuote.quote.dest.asset.symbol,
     location,
     source_token_addresses: sourceTokenAddresses,
     source_token_slippages: sourceTokenAddresses.map((assetId) =>

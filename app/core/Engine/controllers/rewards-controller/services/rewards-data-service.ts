@@ -44,6 +44,7 @@ import type {
   PredictThePitchPrizePoolDto,
   FirstPredictOnUsDto,
   VipDashboardDto,
+  VipEquityMultiplierDto,
   VipRefereeMeDto,
   VipFeesResponseDto,
   VipTransactionDto,
@@ -352,6 +353,11 @@ export interface RewardsDataServiceGetVIPDashboardAction {
   handler: RewardsDataService['getVIPDashboard'];
 }
 
+export interface RewardsDataServiceGetVipEquityMultiplierAction {
+  type: `${typeof SERVICE_NAME}:getVipEquityMultiplier`;
+  handler: RewardsDataService['getVipEquityMultiplier'];
+}
+
 export interface RewardsDataServiceGetVipRefereeDashboardAction {
   type: `${typeof SERVICE_NAME}:getVipRefereeDashboard`;
   handler: RewardsDataService['getVipRefereeDashboard'];
@@ -414,6 +420,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetBenefitsAction
   | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
@@ -668,6 +675,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVIPDashboard`,
       this.getVIPDashboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVipEquityMultiplier`,
+      this.getVipEquityMultiplier.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipRefereeDashboard`,
@@ -1672,6 +1683,34 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as VipDashboardDto;
+  }
+
+  /**
+   * Display-only equity multiplier estimate from client-supplied holdings.
+   * Not settlement input (RWDS-1485); client balance is untrusted.
+   */
+  async getVipEquityMultiplier(
+    subscriptionId: string,
+    holdingsUsd: string,
+  ): Promise<VipEquityMultiplierDto | null> {
+    const response = await this.makeRequest(
+      '/vip/equity-multiplier',
+      {
+        method: 'POST',
+        body: JSON.stringify({ holdingsUsd }),
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get VIP equity multiplier failed: ${response.status}`);
+    }
+
+    return (await response.json()) as VipEquityMultiplierDto;
   }
 
   /**

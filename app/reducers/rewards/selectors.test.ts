@@ -3275,6 +3275,8 @@ describe('Rewards selectors', () => {
         equityLockedDescription: 'Body copy',
         equityUnlockedTitle: 'VIP allocation unlocked',
         equityUnlockedDescription: 'Unlocked body copy',
+        equityMultiplierFailedTitle: 'Estimate failed',
+        equityMultiplierFailedDescription: 'Estimate failed body copy',
       },
       lastFetched: 123,
     };

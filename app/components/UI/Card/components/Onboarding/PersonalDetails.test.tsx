@@ -338,6 +338,8 @@ import useRegions from '../../hooks/useRegions';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardError, CardErrorType } from '../../types';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardScreens } from '../../util/metrics';
 
 // Mock implementations
 const mockNavigate = jest.fn();
@@ -347,9 +349,10 @@ const mockRegisterPersonalDetails = jest.fn();
 const mockSetUser = jest.fn();
 const mockFetchUserData = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
+  addProperties: mockAddProperties,
 }));
 
 // Mock hooks
@@ -456,6 +459,20 @@ describe('PersonalDetails Component', () => {
     (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
+    });
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with PERSONAL_DETAILS screen on mount', () => {
+      render(<PersonalDetails />);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.PERSONAL_DETAILS,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 

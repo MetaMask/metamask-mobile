@@ -1,4 +1,9 @@
-import { mapClaimFailureReason, parseAnalyticsProperties } from './analytics';
+import {
+  classifyPredictBuyFailure,
+  mapClaimFailureReason,
+  parseAnalyticsProperties,
+  sanitizePredictFailureReason,
+} from './analytics';
 import {
   Recurrence,
   type PredictMarket,
@@ -24,6 +29,20 @@ jest.mock('../constants/eventNames', () => ({
       NETWORK_ERROR: 'network_error',
       USER_REJECTED: 'user_rejected',
       UNKNOWN: 'unknown',
+    },
+    FAILURE_STAGE: {
+      SWAP: 'swap',
+      ORDER: 'order',
+    },
+    FAILURE_CATEGORY: {
+      GAS_LIMIT: 'gas_limit',
+      INSUFFICIENT_BALANCE: 'insufficient_balance',
+      NOT_ELIGIBLE: 'not_eligible',
+      NO_MATCH: 'no_match',
+      RELAYER: 'relayer',
+      NETWORK: 'network',
+      USER_REJECTED: 'user_rejected',
+      OTHER: 'other',
     },
   },
 }));
@@ -535,6 +554,75 @@ describe('parseAnalyticsProperties', () => {
     it('returns unknown for undefined or non-error values', () => {
       expect(mapClaimFailureReason(undefined)).toBe('unknown');
       expect(mapClaimFailureReason({ some: 'object' })).toBe('unknown');
+    });
+  });
+
+  describe('classifyPredictBuyFailure', () => {
+    it.each([
+      ['RPC transaction gas limit too high', 'gas_limit'],
+      ['insufficient balance for bet', 'insufficient_balance'],
+      ['PREDICT_NOT_ELIGIBLE', 'not_eligible'],
+      ['PREDICT_BUY_ORDER_NOT_FULLY_FILLED', 'no_match'],
+      ['Polymarket relayer unavailable', 'relayer'],
+      ['Network request timed out', 'network'],
+      ['User rejected the request', 'user_rejected'],
+      ['Unexpected provider error', 'other'],
+    ])('maps "%s" to "%s"', (message, expected) => {
+      const result = classifyPredictBuyFailure(new Error(message), 'order');
+
+      expect(result.failureCategory).toBe(expected);
+    });
+
+    it('marks no-match failures as retryable', () => {
+      const result = classifyPredictBuyFailure(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+        'order',
+      );
+
+      expect(result.isRetryable).toBe(true);
+      expect(result.isUserRejected).toBe(false);
+    });
+
+    it('marks provider rejection code as user rejected', () => {
+      const result = classifyPredictBuyFailure(
+        { code: 4001, message: 'Request rejected' },
+        'swap',
+      );
+
+      expect(result.failureCategory).toBe('user_rejected');
+      expect(result.isUserRejected).toBe(true);
+    });
+  });
+
+  describe('sanitizePredictFailureReason', () => {
+    it('removes HTML and limits output to 255 characters', () => {
+      const result = sanitizePredictFailureReason(
+        `<html>${'failure '.repeat(80)}</html>`,
+      );
+
+      expect(result).not.toContain('<html>');
+      expect(result).toHaveLength(255);
+    });
+
+    it('extracts a message from a JSON error without sending the full payload', () => {
+      const result = sanitizePredictFailureReason(
+        JSON.stringify({
+          message: 'Relayer request failed',
+          response: { privatePayload: 'do-not-send' },
+        }),
+      );
+
+      expect(result).toBe('Relayer request failed');
+    });
+
+    it('redacts addresses, URLs, and credentials', () => {
+      const result = sanitizePredictFailureReason(
+        'Request https://rpc.example/path failed for 0x1111111111111111111111111111111111111111 token=secret',
+      );
+
+      expect(result).toBe(
+        'Request [redacted] failed for [redacted] token=[redacted]',
+      );
     });
   });
 });

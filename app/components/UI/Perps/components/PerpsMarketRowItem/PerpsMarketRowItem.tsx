@@ -196,6 +196,10 @@ const PerpsMarketRowItem = ({
       titleProps={{
         testID: getPerpsMarketRowItemSelector.assetLabel(displayMarket.symbol),
         numberOfLines: 1,
+        // flexShrink lets the title text yield space to the leverage badge so
+        // it doesn't overflow into the price column on long asset names.
+        // eslint-disable-next-line react-native/no-inline-styles
+        style: { flexShrink: 1 },
       }}
       titleEndAccessory={
         <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />

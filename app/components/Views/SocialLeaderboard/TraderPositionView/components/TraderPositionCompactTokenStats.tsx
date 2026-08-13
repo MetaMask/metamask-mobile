@@ -10,7 +10,7 @@ import {
 import React from 'react';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import PerpBadges from '../../components/PerpBadges';
-import { formatPercent } from '../../utils/formatters';
+import { EM_DASH, formatPercent } from '../../utils/formatters';
 import type { PerpDirection } from '../../utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 
@@ -108,7 +108,7 @@ const TraderPositionCompactTokenStats: React.FC<
           </>
         ) : (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {'\u2014'}
+            {EM_DASH}
           </Text>
         )}
       </Box>

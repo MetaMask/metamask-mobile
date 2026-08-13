@@ -6,10 +6,7 @@ import {
   PlaywrightGestures,
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import {
-  dismisspredictionsModalPlaywright,
-  dismissPushNotificationExistingUserSheet,
-} from '../../flows/wallet.flow';
+import { dismissPushNotificationExistingUserSheet } from '../../flows/wallet.flow';
 import {
   Performance,
   System,
@@ -22,10 +19,7 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
-import {
-  measureCreatePasswordToOnboardingSuccess,
-  measurePredictGtmModalIfShown,
-} from './helpers/seedlessOnboardingTimers';
+import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -66,16 +60,11 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer4 = new TimerHelper(
         'Google: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 6000 },
+        { ios: 5000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
-        'Google: Tap "Done" → feature sheet visible',
-        { ios: 2500, android: 5000 },
-        currentDeviceDetails.platform,
-      );
-      const timer6 = new TimerHelper(
-        'Google: Dismiss feature sheet → wallet main screen visible',
+        'Google: Tap "Done" → wallet main screen visible',
         { ios: 30000, android: 5000 },
         currentDeviceDetails.platform,
       );
@@ -136,17 +125,16 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
-        await measureCreatePasswordToOnboardingSuccess(timer4);
+        //await measureCreatePasswordToOnboardingSuccess(timer4);
+        await timer4.measure(async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(OnboardingSuccessView.doneButton),
+          );
+        });
 
-        await OnboardingSuccessView.tapDone();
-        await dismissPushNotificationExistingUserSheet();
-
-        // Optional Predict GTM: measure Done → modal when present (no pre-wait).
-        const predictGtmOnboardingModalEnabled =
-          await measurePredictGtmModalIfShown(timer5);
-
-        await dismisspredictionsModalPlaywright();
-        await timer6.measure(async () => {
+        await timer5.measure(async () => {
+          await OnboardingSuccessView.tapDone();
+          await dismissPushNotificationExistingUserSheet();
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
@@ -155,14 +143,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4];
+        const timers = [timer1, timer2, timer4, timer5];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
-        if (predictGtmOnboardingModalEnabled) {
-          timers.push(timer5);
-        }
-        timers.push(timer6);
         performanceTracker.addTimers(...timers);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
