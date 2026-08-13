@@ -396,6 +396,10 @@ const TraderPerpAdvancedChart = ({
   const chartRef = useRef<AdvancedChartRef>(null);
   const handledFocusNonceRef = useRef<number | null>(null);
   const paginationInFlightRef = useRef(false);
+  const pendingFocusAfterSettleRef = useRef<{
+    tradeTime: number;
+    request: TradeFocusRequest;
+  } | null>(null);
 
   const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
 
@@ -497,6 +501,18 @@ const TraderPerpAdvancedChart = ({
     [selectedCandlePeriod],
   );
 
+  const handleChartLayoutSettled = useCallback(() => {
+    const pending = pendingFocusAfterSettleRef.current;
+    if (!pending) return;
+    if (focusRequest?.nonce !== pending.request.nonce) {
+      pendingFocusAfterSettleRef.current = null;
+      return;
+    }
+    if (focusTradeOnChart(pending.tradeTime, pending.request)) {
+      pendingFocusAfterSettleRef.current = null;
+    }
+  }, [focusRequest, focusTradeOnChart]);
+
   useEffect(() => {
     if (!focusRequest || chartLoading || shouldFallback) return;
     if (handledFocusNonceRef.current === focusRequest.nonce) return;
@@ -514,6 +530,11 @@ const TraderPerpAdvancedChart = ({
     }
 
     if (tradeTime >= firstBarTime && tradeTime <= latestBarTime) {
+      if (
+        pendingFocusAfterSettleRef.current?.request.nonce === focusRequest.nonce
+      ) {
+        return;
+      }
       focusTradeOnChart(tradeTime, focusRequest);
       return;
     }
@@ -539,7 +560,10 @@ const TraderPerpAdvancedChart = ({
             ...response.bars.map((bar) => bar.time),
           );
           if (tradeTime >= expandedFirstTime && tradeTime <= latestBarTime) {
-            focusTradeOnChart(tradeTime, focusRequest);
+            pendingFocusAfterSettleRef.current = {
+              tradeTime,
+              request: focusRequest,
+            };
           }
         })
         .finally(() => {
@@ -597,6 +621,7 @@ const TraderPerpAdvancedChart = ({
         indicators={EMPTY_INDICATORS}
         isLoading={!hasChartBeenRevealed && chartLoading}
         onSkeletonHidden={handleSkeletonHidden}
+        onChartLayoutSettled={handleChartLayoutSettled}
         rnBackedPagination={{ enabled: true }}
         onFetchOlderBarsRequest={handleFetchOlderBarsRequest}
         visibleFromMs={visibleFromMs}
