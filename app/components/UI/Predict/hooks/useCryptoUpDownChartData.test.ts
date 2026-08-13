@@ -1852,6 +1852,40 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.connectionError).toBe(false);
     });
 
+    it('marks a silent TWAP stream stale after its freshness threshold', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T01:00:00.000Z',
+        twapWindowSeconds: 60,
+      });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(120_000);
+      });
+
+      expect(result.current.loading).toBe(true);
+      expect(result.current.connectionError).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(12_000);
+      });
+
+      expect(result.current.connectionError).toBe(true);
+    });
+
     it('clears TWAP connection errors when the price source changes', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({

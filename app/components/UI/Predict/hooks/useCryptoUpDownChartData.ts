@@ -19,6 +19,7 @@ const LIVE_CHART_MAX_POINTS_PER_SEC = 60;
 const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
 const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
+const TWAP_STREAM_STALE_TIMEOUT_MS = 120000;
 const CONNECTION_ERROR_TIMEOUT_MS = 12000;
 
 // Circuit breaker for the historical-candle poll. When the endpoint is
@@ -268,10 +269,15 @@ export const useCryptoUpDownChartData = (
     if (staleTimerRef.current) {
       clearTimeout(staleTimerRef.current);
     }
-    staleTimerRef.current = setTimeout(() => {
-      setLiveStreamStale(true);
-    }, LIVE_STREAM_STALE_TIMEOUT_MS);
-  }, []);
+    staleTimerRef.current = setTimeout(
+      () => {
+        setLiveStreamStale(true);
+      },
+      twapWindowSeconds
+        ? TWAP_STREAM_STALE_TIMEOUT_MS
+        : LIVE_STREAM_STALE_TIMEOUT_MS,
+    );
+  }, [twapWindowSeconds]);
 
   const handleLiveUpdate = useCallback(
     (update: CryptoPriceUpdate) => {
@@ -557,7 +563,7 @@ export const useCryptoUpDownChartData = (
     enabled &&
     isLive &&
     (twapWindowSeconds
-      ? !hasLiveObservation
+      ? !hasLiveObservation || liveStreamStale
       : !hasRenderableLiveWindow || liveStreamStale);
   useEffect(() => {
     if (!isAwaitingLiveData) {
@@ -618,7 +624,7 @@ export const useCryptoUpDownChartData = (
       loading: isLive
         ? !symbol ||
           (twapWindowSeconds
-            ? !hasLiveObservation
+            ? !hasLiveObservation || liveStreamStale
             : !hasRenderableLiveWindow || liveStreamStale)
         : twapWindowSeconds
           ? !hasLiveObservation
