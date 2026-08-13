@@ -6,6 +6,7 @@ import {
   TRX_ACCOUNT_PROVIDER_NAME,
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   AccountProviderWrapper,
+  XlmAccountProvider,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/multichain-account-service';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
@@ -94,45 +95,68 @@ describe('MultichainAccountServiceInit', () => {
     expect(callArgs.providerConfigs).toBeDefined();
   });
 
-  it('configures createAccounts with a timeout for bitcoin, tron, and solana', () => {
+  it('configures shared snap providers without batched createAccounts or forced discovery', () => {
     multichainAccountServiceInit(getInitRequestMock());
 
     const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
     const { providerConfigs } = callArgs;
 
-    expect(providerConfigs).toBeDefined();
-    expect(
-      providerConfigs?.[BTC_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toEqual({
-      timeoutMs: 3000,
-    });
-    expect(
-      providerConfigs?.[TRX_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toEqual({
-      timeoutMs: 3000,
-    });
-    expect(
-      providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toEqual({
-      timeoutMs: 3000,
-    });
-    expect(
-      providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.discovery,
-    ).toEqual({
+    const expectedDiscovery = {
       timeoutMs: 2000,
       maxAttempts: 3,
       backOffMs: 1000,
-    });
+    };
+    const expectedCreateAccounts = {
+      timeoutMs: 3000,
+    };
+
+    expect(providerConfigs).toBeDefined();
+    expect(
+      providerConfigs?.[BTC_ACCOUNT_PROVIDER_NAME]?.createAccounts,
+    ).toEqual(expectedCreateAccounts);
+    expect(
+      providerConfigs?.[TRX_ACCOUNT_PROVIDER_NAME]?.createAccounts,
+    ).toEqual(expectedCreateAccounts);
+    expect(
+      providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.createAccounts,
+    ).toEqual(expectedCreateAccounts);
+    expect(providerConfigs?.[BTC_ACCOUNT_PROVIDER_NAME]?.discovery).toEqual(
+      expectedDiscovery,
+    );
+    expect(providerConfigs?.[TRX_ACCOUNT_PROVIDER_NAME]?.discovery).toEqual(
+      expectedDiscovery,
+    );
+    expect(providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.discovery).toEqual(
+      expectedDiscovery,
+    );
   });
 
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  it('registers stellar via custom providers with extended create timeout', () => {
+  it('registers stellar custom provider with batched createAccounts and discovery enabled', () => {
     multichainAccountServiceInit(getInitRequestMock());
 
     const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
+    const xlmAccountProviderMock = jest.mocked(XlmAccountProvider);
 
     expect(callArgs.providers).toHaveLength(1);
     expect(callArgs.providers?.[0]).toBeInstanceOf(AccountProviderWrapper);
+    expect(xlmAccountProviderMock).toHaveBeenCalledTimes(1);
+    expect(xlmAccountProviderMock.mock.calls[0][1]).toEqual({
+      maxConcurrency: 1,
+      discovery: {
+        timeoutMs: 2000,
+        maxAttempts: 3,
+        backOffMs: 1000,
+        enabled: true,
+      },
+      createAccounts: {
+        timeoutMs: 30000,
+        batched: true,
+      },
+      resyncAccounts: {
+        autoRemoveExtraSnapAccounts: false,
+      },
+    });
   });
   ///: END:ONLY_INCLUDE_IF
 });
