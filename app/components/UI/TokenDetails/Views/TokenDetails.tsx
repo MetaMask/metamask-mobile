@@ -187,7 +187,7 @@ const TokenDetails: React.FC<{
   onCtaClicked,
   onPerpsMarketResolved,
 }) => {
-  const { styles } = useStyles(styleSheet);
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =

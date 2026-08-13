@@ -321,7 +321,12 @@ describe('useMoneyCtaVisibility', () => {
       setupSelectors({
         blockedTokens: {
           default: {
-            tokens: [{ address: ctaToken.address, chainId: ctaToken.chainId }],
+            tokens: [
+              {
+                address: ctaToken.address,
+                chainId: ctaToken.chainId as string,
+              },
+            ],
           },
           overrides: {},
         },
