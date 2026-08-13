@@ -1,14 +1,11 @@
 // Third party dependencies.
+import type { BadgeNetworkProps } from '@metamask/design-system-react-native';
 import { ImageSourcePropType } from 'react-native';
 import {
   AvatarProps,
   AvatarVariant,
 } from '../../../components/Avatars/Avatar/Avatar.types';
 import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
-import {
-  BadgeVariant,
-  BadgeProps,
-} from '../../../components/Badges/Badge/Badge.types';
 
 const imageSource =
   'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
@@ -33,8 +30,7 @@ export const TEST_AVATAR_PROPS: AvatarProps = {
   type: AvatarAccountType.JazzIcon,
 };
 
-export const BADGE_PROPS: BadgeProps = {
-  variant: BadgeVariant.Network,
+export const BADGE_PROPS: Pick<BadgeNetworkProps, 'name' | 'src'> = {
   name: 'Ethereum',
-  imageSource: TEST_REMOTE_IMAGE_SOURCE,
+  src: TEST_REMOTE_IMAGE_SOURCE,
 };
