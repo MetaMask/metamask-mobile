@@ -1,21 +1,11 @@
 import React, { useEffect } from 'react';
-import { render, screen } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import { Pressable, Text } from 'react-native';
 import {
   QuickBuyTabBarVisibilityProvider,
   useIsQuickBuyOpen,
   useQuickBuyTabBarVisibility,
 } from './QuickBuyTabBarVisibilityContext';
-
-const OpenRegistrar: React.FC = () => {
-  const { registerQuickBuyOpen } = useQuickBuyTabBarVisibility();
-
-  useEffect(() => {
-    registerQuickBuyOpen();
-  }, [registerQuickBuyOpen]);
-
-  return null;
-};
 
 const StatusReader: React.FC = () => {
   const isQuickBuyOpen = useIsQuickBuyOpen();
@@ -24,6 +14,18 @@ const StatusReader: React.FC = () => {
       {isQuickBuyOpen ? 'open' : 'closed'}
     </Text>
   );
+};
+
+const SheetRegistrar: React.FC<{ testID: string }> = ({ testID }) => {
+  const { registerQuickBuyOpen, unregisterQuickBuyOpen } =
+    useQuickBuyTabBarVisibility();
+
+  useEffect(() => {
+    registerQuickBuyOpen();
+    return () => unregisterQuickBuyOpen();
+  }, [registerQuickBuyOpen, unregisterQuickBuyOpen]);
+
+  return <Text testID={testID} />;
 };
 
 describe('QuickBuyTabBarVisibilityContext', () => {
@@ -82,22 +84,53 @@ describe('QuickBuyTabBarVisibilityContext', () => {
     expect(handlers.isOpen).toBe(false);
   });
 
-  it('clears open state after unregisterQuickBuyOpen', () => {
-    const Toggle: React.FC = () => {
+  it('clears open state after unregisterQuickBuyOpen within the same provider', () => {
+    const Controller: React.FC = () => {
       const { registerQuickBuyOpen, unregisterQuickBuyOpen } =
         useQuickBuyTabBarVisibility();
 
-      useEffect(() => {
-        registerQuickBuyOpen();
-        return () => unregisterQuickBuyOpen();
-      }, [registerQuickBuyOpen, unregisterQuickBuyOpen]);
-
-      return <StatusReader />;
+      return (
+        <>
+          <StatusReader />
+          <Pressable
+            testID="register-quick-buy"
+            onPress={() => registerQuickBuyOpen()}
+          />
+          <Pressable
+            testID="unregister-quick-buy"
+            onPress={() => unregisterQuickBuyOpen()}
+          />
+        </>
+      );
     };
 
-    const { unmount } = render(
+    render(
       <QuickBuyTabBarVisibilityProvider>
-        <Toggle />
+        <Controller />
+      </QuickBuyTabBarVisibilityProvider>,
+    );
+
+    expect(screen.getByTestId('quick-buy-open-status').props.children).toBe(
+      'closed',
+    );
+
+    fireEvent.press(screen.getByTestId('register-quick-buy'));
+    expect(screen.getByTestId('quick-buy-open-status').props.children).toBe(
+      'open',
+    );
+
+    fireEvent.press(screen.getByTestId('unregister-quick-buy'));
+    expect(screen.getByTestId('quick-buy-open-status').props.children).toBe(
+      'closed',
+    );
+  });
+
+  it('keeps tab bar hidden until all concurrent sheets unregister', () => {
+    const { rerender } = render(
+      <QuickBuyTabBarVisibilityProvider>
+        <SheetRegistrar testID="sheet-a" />
+        <SheetRegistrar testID="sheet-b" />
+        <StatusReader />
       </QuickBuyTabBarVisibilityProvider>,
     );
 
@@ -105,9 +138,18 @@ describe('QuickBuyTabBarVisibilityContext', () => {
       'open',
     );
 
-    unmount();
+    rerender(
+      <QuickBuyTabBarVisibilityProvider>
+        <SheetRegistrar testID="sheet-b" />
+        <StatusReader />
+      </QuickBuyTabBarVisibilityProvider>,
+    );
 
-    render(
+    expect(screen.getByTestId('quick-buy-open-status').props.children).toBe(
+      'open',
+    );
+
+    rerender(
       <QuickBuyTabBarVisibilityProvider>
         <StatusReader />
       </QuickBuyTabBarVisibilityProvider>,
@@ -115,20 +157,6 @@ describe('QuickBuyTabBarVisibilityContext', () => {
 
     expect(screen.getByTestId('quick-buy-open-status').props.children).toBe(
       'closed',
-    );
-  });
-
-  it('tracks multiple concurrent registrations with a ref count', () => {
-    render(
-      <QuickBuyTabBarVisibilityProvider>
-        <OpenRegistrar />
-        <OpenRegistrar />
-        <StatusReader />
-      </QuickBuyTabBarVisibilityProvider>,
-    );
-
-    expect(screen.getByTestId('quick-buy-open-status').props.children).toBe(
-      'open',
     );
   });
 });
