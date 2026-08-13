@@ -54,23 +54,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
   const retry = useCallback(() => setRetryCount((count) => count + 1), []);
 
   useEffect(() => {
-    // TODO: Remove these debug console.logs before merging — added
-    // temporarily to trace the disclaimer fetch lifecycle during dev.
-    // eslint-disable-next-line no-console
-    console.log(
-      '🚨🚨🚨 [VBA KYC] useKycDisclaimers CALLED — country:',
-      country,
-      'KYC_API_BASE_URL:',
-      KYC_API_BASE_URL || '(empty — fetch will be SKIPPED)',
-      'attempt:',
-      retryCount + 1,
-    );
-
     if (!KYC_API_BASE_URL) {
-      // eslint-disable-next-line no-console
-      console.log(
-        '🚨🚨🚨 [VBA KYC] Skipping fetch, KYC_API_BASE_URL is not configured',
-      );
       setIsLoading(false);
       return;
     }
@@ -92,12 +76,6 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         const url = new URL('/vendors/moonpay/disclaimers', KYC_API_BASE_URL);
         url.searchParams.set('country', country);
 
-        // eslint-disable-next-line no-console
-        console.log(
-          '🚨🚨🚨 [VBA KYC] Fetching disclaimers from:',
-          url.toString(),
-        );
-
         const response = await fetch(url.toString(), {
           headers: { Authorization: `Bearer ${bearerToken}` },
           signal: abortController.signal,
@@ -110,8 +88,6 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         }
 
         const data: KycDisclaimer[] = await response.json();
-        // eslint-disable-next-line no-console
-        console.log('🚨🚨🚨 [VBA KYC] Fetch SUCCEEDED, disclaimers:', data);
         if (isMounted) {
           setDisclaimers(Array.isArray(data) ? data : []);
         }
@@ -119,13 +95,6 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
         const isTimeout =
           err instanceof Error &&
           (err.name === 'AbortError' || err.name === 'TimeoutError');
-        // eslint-disable-next-line no-console
-        console.log(
-          isTimeout
-            ? '🚨🚨🚨 [VBA KYC] Fetch TIMED OUT'
-            : '🚨🚨🚨 [VBA KYC] Fetch FAILED:',
-          isTimeout ? undefined : err,
-        );
         if (isMounted) {
           setDisclaimers([]);
           setError(
