@@ -67,11 +67,10 @@ class ImportSrpView {
 
     for (const [i, word] of srpArray.entries()) {
       const suffix = i === srpArray.length - 1 ? '' : ' ';
-      const isLast = i === srpArray.length - 1;
+      // Dismiss after every word — the keyboard covers the next input box.
       await Gestures.typeText(this.seedPhraseInput(i), `${word}${suffix}`, {
         elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
-        hideKeyboard: isLast,
-        checkForDisplayed: true,
+        hideKeyboard: true,
       });
     }
   }

@@ -5,7 +5,6 @@ import {
   Utilities,
   Assertions,
   EncapsulatedElementType,
-  getDriver,
 } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
@@ -175,26 +174,16 @@ class SendView {
         elemDescription: 'Recipient address textfield wrapper',
       });
       await Gestures.typeViaIosKeyboard(address);
+      await Gestures.hideKeyboard();
     } else {
       await Gestures.typeText(this.recipientAddressInput, address, {
         elemDescription: 'Enter recipient address',
-        hideKeyboard: false,
+        hideKeyboard: true,
       });
-    }
-
-    const drv = getDriver();
-    if (drv) {
-      try {
-        await drv.hideKeyboard();
-      } catch {
-        // Keyboard may already be dismissed.
-      }
     }
   }
 
   async pressReviewButton(): Promise<void> {
-    await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
-    await Utilities.waitForElementToBeEnabled(this.reviewButton);
     await Gestures.waitAndTap(this.reviewButton, {
       elemDescription: 'Review button',
       timeout: 20000,

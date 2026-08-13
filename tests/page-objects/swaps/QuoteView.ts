@@ -119,7 +119,8 @@ class QuoteView {
   getTokenElement(chainId: string, symbol: string): EncapsulatedElementType {
     const testId = this.getTokenElementId(chainId, symbol);
     if (PlatformDetector.isAndroid()) {
-      return Matchers.getElementByID(testId);
+      // Partial match — Android resource IDs are package-qualified.
+      return Matchers.getElementByPartialID(testId);
     }
     // Lazy xpath re-queries each poll — a fixed $$ match can stay
     // displayed:false on iOS after search/list virtualization.
@@ -181,6 +182,7 @@ class QuoteView {
             Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
             {
               direction: 'down',
+              maxScrolls: 30,
               elemDescription: `Scroll to token symbol ${symbol}`,
             },
           );
@@ -288,18 +290,20 @@ class QuoteView {
   }
 
   async selectNetwork(network: string): Promise<void> {
-    // Best-effort only: some swap flows never expose "more networks". Prior
-    // Appium path scrolled that control into view via scrollIntoViewFullyVisible
-    // (no facade yet) — visibility wait is the closest safe substitute.
+    // Best-effort only: some swap flows never expose "more networks", and
+    // forcing a scroll there fails Appium smoke after 30 scrolls.
     try {
-      await Assertions.expectElementToBeVisible(this.moreNetworksButton, {
+      await Assertions.expectElementToExist(this.moreNetworksButton, {
         timeout: 2000,
         description: 'More networks control (optional)',
       });
+      await Gestures.scrollIntoViewFullyVisible(this.moreNetworksButton);
     } catch {
       // Continue — the target network may already be visible without this control.
     }
-    const networkElement = Matchers.getElementByText(network);
+    // Catch-all (last match): the network name also appears in surrounding copy,
+    // and the selectable pill is rendered last.
+    const networkElement = Matchers.getElementByCatchAll(network);
     await Assertions.expectElementToBeVisible(networkElement, {
       timeout: TIMEOUT.NETWORK_SELECT,
       description: `Network ${network} should be visible`,
