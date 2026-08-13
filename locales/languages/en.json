@@ -9439,6 +9439,33 @@
         "change_asset_description": "Select a different token"
       }
     },
+    "transactions": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "reversed": "Reversed",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "details_title": "Transaction",
+      "merchant": "Merchant",
+      "category": "Category",
+      "location": "Location",
+      "decline_reason": "Decline reason",
+      "decline_reasons": {
+        "insufficient_funds": "Insufficient funds"
+      },
+      "categories": {
+        "subscriptions": "Subscriptions",
+        "food": "Food and drink",
+        "travel": "Travel",
+        "entertainment": "Entertainment",
+        "health": "Health",
+        "atm": "ATM",
+        "utilities": "Utilities",
+        "misc": "Other"
+      },
+      "view_on_explorer": "View on block explorer",
+      "report_cta": "Report Transaction"
+    },
     "card_spending_limit": {
       "title_change_token": "Change token and network",
       "title_enable_token": "Enable token",

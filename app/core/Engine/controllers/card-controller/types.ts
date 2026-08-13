@@ -35,6 +35,8 @@ export const CARD_CONTROLLER_NAME = 'CardController';
 /** The provider ID used when no other provider has been selected. */
 export const DEFAULT_CARD_PROVIDER_ID = CardProviderIds.Baanx;
 
+export const MONEY_ACCOUNT_LAUNCH_MS = Date.UTC(2026, 4, 1);
+
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
 export type CardUnauthenticatedReason = 'onboarding_token_revoked';
 

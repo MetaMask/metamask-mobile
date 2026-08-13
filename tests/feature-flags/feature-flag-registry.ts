@@ -3470,6 +3470,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardTransactionHistory: {
+    name: 'cardTransactionHistory',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyFirstTimeDepositAnimationEnabled: {
     name: 'earnMoneyFirstTimeDepositAnimationEnabled',
     type: FeatureFlagType.Remote,
