@@ -46,6 +46,7 @@ import {
   vbaTrace,
 } from '../../debug/vbaTrace';
 import { useVbaKycTrace } from './hooks/useVbaKycTrace';
+import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
 
 type StepId = 'identity' | 'customer' | 'autoramp' | 'live';
 
@@ -381,22 +382,7 @@ const MockKycSuccess = () => {
           : `customer_id = ${truncateId(customerId)}`,
       });
 
-      const autorampRequest = {
-        source_currencies: [
-          { type: 'Fiat' as const, code: DEMO_AUTORAMP_SOURCE_CURRENCY_CODE },
-        ],
-        destination_currency: {
-          type: 'Crypto' as const,
-          token: DEMO_AUTORAMP_DESTINATION_TOKEN,
-          blockchain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
-        },
-        recipient_account: {
-          type: 'Crypto' as const,
-          chain: DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN,
-          address: walletAddress,
-        },
-        source_is_third_party: false,
-      };
+      const autorampRequest = buildMoneyAccountAutorampParams(walletAddress);
 
       const account = await timed('autoramp', async () => {
         vbaTrace('autoramp.create.start', {

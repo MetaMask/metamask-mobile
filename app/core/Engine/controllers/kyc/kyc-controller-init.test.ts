@@ -1,8 +1,12 @@
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { getKycControllerMessenger } from '../../messengers/kyc/kyc-controller-messenger';
+import {
+  getKycControllerMessenger,
+  type KycControllerInitMessenger,
+} from '../../messengers/kyc/kyc-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { kycControllerInit } from './kyc-controller-init';
+import { createRegisterMoneyAccountOnKycCompletion } from '../../../../components/UI/Ramp/Views/VirtualBankAccount/registerMoneyAccountOnKycCompletion';
 import {
   KycController,
   type KycControllerMessenger,
@@ -17,11 +21,26 @@ jest.mock('@metamask/kyc-controller', () => ({
   },
 }));
 
+const mockHandler = jest.fn();
+jest.mock(
+  '../../../../components/UI/Ramp/Views/VirtualBankAccount/registerMoneyAccountOnKycCompletion',
+  () => ({
+    createRegisterMoneyAccountOnKycCompletion: jest.fn(() => mockHandler),
+  }),
+);
+
+const createMockInitMessenger = (): KycControllerInitMessenger =>
+  ({
+    subscribe: jest.fn(),
+  }) as unknown as KycControllerInitMessenger;
+
 function getInitRequestMock(
   overrides: {
     persistedState?: Record<string, unknown>;
   } = {},
-): jest.Mocked<MessengerClientInitRequest<KycControllerMessenger>> {
+): jest.Mocked<
+  MessengerClientInitRequest<KycControllerMessenger, KycControllerInitMessenger>
+> {
   const { persistedState = {} } = overrides;
 
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
@@ -31,10 +50,16 @@ function getInitRequestMock(
   const requestMock = {
     ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getKycControllerMessenger(baseMessenger),
+    initMessenger: createMockInitMessenger(),
     persistedState,
   };
 
-  return requestMock;
+  return requestMock as jest.Mocked<
+    MessengerClientInitRequest<
+      KycControllerMessenger,
+      KycControllerInitMessenger
+    >
+  >;
 }
 
 describe('kycControllerInit', () => {
@@ -61,5 +86,17 @@ describe('kycControllerInit', () => {
     );
 
     expect(controller).toBeInstanceOf(KycController);
+  });
+
+  it('subscribes the Money Account registration orchestrator to statusChanged', () => {
+    const request = getInitRequestMock();
+
+    kycControllerInit(request);
+
+    expect(createRegisterMoneyAccountOnKycCompletion).toHaveBeenCalledTimes(1);
+    expect(request.initMessenger.subscribe).toHaveBeenCalledWith(
+      'KycController:statusChanged',
+      mockHandler,
+    );
   });
 });

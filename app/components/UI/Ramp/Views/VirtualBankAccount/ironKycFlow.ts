@@ -1,7 +1,5 @@
-import type { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import {
-  abbreviate,
   describeError,
   traceWhilePending,
   vbaTrace,
@@ -138,59 +136,4 @@ export async function startIronKycVerification(email: string): Promise<void> {
       idosTncSigned: true,
     }),
   );
-}
-
-/**
- * Registers the currently selected account as a Money Account wallet after KYC
- * succeeds (Sumsub complete). Signs an ownership proof via KeyringController
- * and posts through neobank-proxy.
- *
- * Callers should soft-fail: verification already succeeded, so a registration
- * error should not block the success screen.
- */
-export async function registerSelectedMoneyAccountWallet(): Promise<void> {
-  const selectedAccount =
-    Engine.context.AccountsController.getSelectedAccount();
-  const address = selectedAccount?.address as Hex | undefined;
-
-  if (!address) {
-    vbaTrace('wallet.register.noAccount', {});
-    throw new Error('No selected account available to register.');
-  }
-
-  const startedAt = Date.now();
-  vbaTrace('wallet.register.start', {
-    address: abbreviate(address),
-    accountId: selectedAccount?.id,
-    accountType: selectedAccount?.type,
-    accountScopes: selectedAccount?.scopes,
-    // Signing (EIP-191 ownership proof) and the registration POST both run
-    // inside RampsController; the `neobank.request` records emitted between
-    // this line and the outcome below bracket the signing window.
-    signing: 'KeyringController:signPersonalMessage via RampsController',
-  });
-  const stopPendingReports = traceWhilePending('wallet.register.pending', {
-    address: abbreviate(address),
-  });
-
-  try {
-    const result =
-      await Engine.context.RampsController.registerMoneyAccountWallet({
-        address,
-      });
-    vbaTrace('wallet.register.success', {
-      address: abbreviate(address),
-      durationMs: Date.now() - startedAt,
-      result,
-    });
-  } catch (error) {
-    vbaTrace('wallet.register.failed', {
-      address: abbreviate(address),
-      durationMs: Date.now() - startedAt,
-      error: describeError(error),
-    });
-    throw error;
-  } finally {
-    stopPendingReports();
-  }
 }

@@ -3,7 +3,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { KycControllerMessenger } from '@metamask/kyc-controller';
+import type {
+  KycControllerMessenger,
+  KycControllerStatusChangedEvent,
+} from '@metamask/kyc-controller';
 import type { RootMessenger } from '../../types';
 
 /**
@@ -48,5 +51,36 @@ export function getKycControllerMessenger(
     ],
     messenger,
   });
+  return messenger;
+}
+
+export type KycControllerInitMessenger = ReturnType<
+  typeof getKycControllerInitMessenger
+>;
+
+/**
+ * Get the init messenger for the KycController. Scoped to the
+ * `KycController:statusChanged` event that the Engine-level Money Account
+ * registration / autoramp orchestrator subscribes to.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The KycControllerInitMessenger.
+ */
+export function getKycControllerInitMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'KycControllerInit',
+    never,
+    KycControllerStatusChangedEvent,
+    RootMessenger
+  >({
+    namespace: 'KycControllerInit',
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    events: ['KycController:statusChanged'],
+    messenger,
+  });
+
   return messenger;
 }
