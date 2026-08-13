@@ -94,11 +94,23 @@ jest.mock('../../UI/Money/selectors/eligibility', () => ({
     mockSelectIsMoneyAccountGeoEligible(state),
 }));
 
+const mockUseIsQuickBuyOpen = jest.fn().mockReturnValue(false);
+jest.mock('../../UI/QuickBuy/QuickBuyTabBarVisibilityContext', () => {
+  const actual = jest.requireActual(
+    '../../UI/QuickBuy/QuickBuyTabBarVisibilityContext',
+  );
+  return {
+    ...actual,
+    useIsQuickBuyOpen: () => mockUseIsQuickBuyOpen(),
+  };
+});
+
 describe('MainNavigator', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseIsQuickBuyOpen.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -175,6 +187,24 @@ describe('MainNavigator', () => {
 
       // Then the tab bar should be visible
       expect(result).not.toBeNull();
+    });
+
+    it('hides tab bar when Quick Buy sheet is open', () => {
+      mockUseIsQuickBuyOpen.mockReturnValue(true);
+
+      const HomeTabs = getHomeTabsComponent();
+      const renderTabBar = getTabBarFn(HomeTabs);
+
+      const result = renderTabBar({
+        state: {
+          routes: [{ name: Routes.WALLET.HOME }],
+          index: 0,
+        },
+        descriptors: {},
+        navigation: {},
+      });
+
+      expect(result).toBeNull();
     });
 
     it('sets the wallet tab stack background to the theme background', () => {

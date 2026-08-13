@@ -42,6 +42,7 @@ import type {
   QuickBuyScreen,
   QuickBuyTarget,
 } from './types';
+import { useQuickBuyTabBarVisibility } from './QuickBuyTabBarVisibilityContext';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -89,6 +90,8 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
+  const { registerQuickBuyOpen, unregisterQuickBuyOpen } =
+    useQuickBuyTabBarVisibility();
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
   // Baseline height for locked sub-screens (pay with / quotes / …). Refreshed
@@ -132,6 +135,11 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
         analyticsContext.traderTradeType ?? QuickBuyEventValues.TRADE_TYPE.BUY,
     });
   }, [analyticsContext, target.tokenSymbol, track]);
+
+  useEffect(() => {
+    registerQuickBuyOpen();
+    return () => unregisterQuickBuyOpen();
+  }, [registerQuickBuyOpen, unregisterQuickBuyOpen]);
 
   useEffect(() => {
     bottomSheetRef.current?.onOpenDialog(() => {

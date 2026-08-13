@@ -33,6 +33,17 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
+const mockRegisterQuickBuyOpen = jest.fn();
+const mockUnregisterQuickBuyOpen = jest.fn();
+
+jest.mock('./QuickBuyTabBarVisibilityContext', () => ({
+  useQuickBuyTabBarVisibility: jest.fn(() => ({
+    registerQuickBuyOpen: mockRegisterQuickBuyOpen,
+    unregisterQuickBuyOpen: mockUnregisterQuickBuyOpen,
+    isQuickBuyOpen: false,
+  })),
+}));
+
 const mockTrack = jest.fn();
 
 jest.mock('../../Views/SocialLeaderboard/analytics', () => {
@@ -314,6 +325,24 @@ describe('QuickBuyRoot', () => {
       isLoading: false,
       isUnsupportedChain: false,
     });
+  });
+
+  it('registers tab bar hide while the sheet is mounted', () => {
+    const { unmount } = renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(mockRegisterQuickBuyOpen).toHaveBeenCalledTimes(1);
+    expect(mockUnregisterQuickBuyOpen).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(mockUnregisterQuickBuyOpen).toHaveBeenCalledTimes(1);
   });
 
   it('renders default AmountScreen content when no children are passed', () => {

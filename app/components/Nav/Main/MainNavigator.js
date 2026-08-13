@@ -147,6 +147,10 @@ import {
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
 import {
+  QuickBuyTabBarVisibilityProvider,
+  useIsQuickBuyOpen,
+} from '../../UI/QuickBuy/QuickBuyTabBarVisibilityContext';
+import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
@@ -581,9 +585,10 @@ const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
-const HomeTabs = () => {
+const HomeTabsContent = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
+  const isQuickBuyOpen = useIsQuickBuyOpen();
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountGeoEligible = useSelector(
@@ -762,6 +767,10 @@ const HomeTabs = () => {
       }
     }
 
+    if (isQuickBuyOpen) {
+      return null;
+    }
+
     if (isKeyboardHidden) {
       return (
         <TabBar
@@ -858,6 +867,12 @@ const HomeTabs = () => {
     </PredictPreviewSheetProvider>
   );
 };
+
+const HomeTabs = () => (
+  <QuickBuyTabBarVisibilityProvider>
+    <HomeTabsContent />
+  </QuickBuyTabBarVisibilityProvider>
+);
 
 const Webview = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
