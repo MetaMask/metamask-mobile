@@ -159,6 +159,14 @@ describe('Feature Flag Registry', () => {
       expect(defaults.moneyAccountBalanceSource).toBe('rpc');
     });
 
+    it('keeps Stellar disabled in production defaults', () => {
+      const defaults = getProductionRemoteFlagDefaults();
+      expect(defaults.stellarAccounts).toStrictEqual({
+        minimumVersion: '0.0.1',
+        enabled: false,
+      });
+    });
+
     it('only includes remote production flags', () => {
       const defaults = getProductionRemoteFlagDefaults();
       for (const name of Object.keys(defaults)) {
