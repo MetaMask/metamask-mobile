@@ -4990,6 +4990,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'FREEZE_CARD_BUTTON',
         });
       });
@@ -5228,6 +5229,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'UNFREEZE_CARD_BUTTON',
         });
       });
@@ -5313,6 +5315,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'UNFREEZE_CARD_BUTTON',
         });
       });

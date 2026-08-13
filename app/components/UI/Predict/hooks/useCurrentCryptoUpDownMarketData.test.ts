@@ -147,6 +147,35 @@ describe('useCurrentCryptoUpDownMarketData', () => {
     expect(result.current.priceToBeat).toBe(77123);
   });
 
+  it('returns the first TWAP observation while the chart is still loading', () => {
+    const twapMarket = {
+      ...MARKET,
+      twapWindowSeconds: 30 as const,
+      priceToBeat: 93000,
+    };
+    mockUseCurrentPredictMarketFromSeries.mockReturnValue({
+      market: twapMarket,
+      marketId: twapMarket.id,
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 93025 }],
+      value: 93025,
+      loading: true,
+      isLive: true,
+      window: 300,
+      connectionError: false,
+    });
+
+    const { result } = renderHook(() =>
+      useCurrentCryptoUpDownMarketData({ series: SERIES }),
+    );
+
+    expect(result.current.currentPrice).toBe(93025);
+  });
+
   it('keeps downstream price hooks disabled until the series market resolves', () => {
     mockUseCurrentPredictMarketFromSeries.mockReturnValue({
       market: undefined,
