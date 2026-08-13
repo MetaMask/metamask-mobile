@@ -44,7 +44,12 @@ import {
   selectImmersveOnboardingEnabled,
 } from '../../../../../selectors/featureFlagController/card';
 import { CardMessageBoxType, type CardLocation } from '../../types';
-import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  withCardProvider,
+} from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import SelectField from '../../components/Onboarding/SelectField';
@@ -400,7 +405,7 @@ const CardAuthentication = () => {
         address: immersveAddress,
         showAccountExistsToast: false,
         navigateFromRoot: true,
-        entrypoint: 'authentication',
+        entrypoint: CardEntryPoint.AUTHENTICATION,
       });
     } catch (err) {
       setUkError(getCardProviderErrorMessage(err));

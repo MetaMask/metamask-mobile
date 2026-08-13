@@ -9,7 +9,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { KYC_REDIRECT_URL } from '../constants';
 import { deriveNextImmersveAction } from '../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../util/immersveResume';
-import { CardActions, withCardProvider } from '../util/metrics';
+import { CardActions, CardEntryPoint, withCardProvider } from '../util/metrics';
 import { getSiweErrorType, useImmersveSiweAuth } from './useImmersveSiweAuth';
 import { useImmersveOnboardingRouter } from './useImmersveOnboardingRouter';
 
@@ -20,8 +20,8 @@ interface ResumeParams {
   phone?: string;
   showAccountExistsToast?: boolean;
   navigateFromRoot?: boolean;
-  /** Analytics entrypoint for the resume funnel (`sign_up` | `authentication`). */
-  entrypoint?: 'sign_up' | 'authentication';
+  /** Analytics entrypoint for the resume funnel (SIGN_UP | AUTHENTICATION). */
+  entrypoint?: CardEntryPoint.SIGN_UP | CardEntryPoint.AUTHENTICATION;
 }
 
 export const useImmersveResumeOnboarding = () => {
@@ -39,7 +39,7 @@ export const useImmersveResumeOnboarding = () => {
       phone,
       showAccountExistsToast,
       navigateFromRoot,
-      entrypoint = 'sign_up',
+      entrypoint = CardEntryPoint.SIGN_UP,
     }: ResumeParams): Promise<void> => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)

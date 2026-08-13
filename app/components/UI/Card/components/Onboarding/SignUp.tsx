@@ -41,7 +41,12 @@ import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboar
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  withCardProvider,
+} from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import {
@@ -313,7 +318,7 @@ const SignUp = () => {
         address: immersveAddress,
         email,
         phone: `+${phoneRegion.areaCode}${phoneNumber}`,
-        entrypoint: 'sign_up',
+        entrypoint: CardEntryPoint.SIGN_UP,
       });
     } catch (e) {
       setImmersveError(getCardProviderErrorMessage(e));

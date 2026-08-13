@@ -1212,7 +1212,7 @@ describe('CardAuthentication Component', () => {
         address: IMMERSVE_TEST_ADDRESS,
         showAccountExistsToast: false,
         navigateFromRoot: true,
-        entrypoint: 'authentication',
+        entrypoint: 'AUTHENTICATION',
       });
       expect(mockInitiateMutateAsync).not.toHaveBeenCalled();
       expect(mockSubmitMutateAsync).not.toHaveBeenCalled();
