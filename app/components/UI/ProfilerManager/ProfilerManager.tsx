@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 1,
     height: 1,
-    opacity: 0,
+    opacity: 0.01,
   },
 });
 
@@ -127,6 +127,8 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
         <Pressable
           testID="e2e-profiler-toggle"
           accessibilityLabel="e2e-profiler-toggle"
+          accessible
+          importantForAccessibility="yes"
           onPress={handleShake}
           style={styles.e2eToggle}
         />
