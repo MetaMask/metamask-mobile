@@ -61,6 +61,9 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { startHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { getLoginAppStartType } from '../Login/loginPerformanceTags';
 import { useNetInfo } from '@react-native-community/netinfo';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
@@ -562,6 +565,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     try {
       if (finalLoading) return;
 
+      startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: getLoginAppStartType(),
+      });
       setLoading(true);
 
       // Start on submit (not mount) so duration is unlock work, not typing/dwell.
@@ -666,6 +673,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     try {
       if (finalLoading) return;
 
+      startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: getLoginAppStartType(),
+      });
       setLoading(true);
 
       // biometrics/passcode preference is applied only after sync succeeds

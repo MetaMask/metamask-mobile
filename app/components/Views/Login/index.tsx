@@ -99,6 +99,7 @@ import {
   getLoginPerformanceTags,
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
+import { startHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -308,6 +309,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    startHomepageReadyTrace({
+      source: 'unlock',
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -371,6 +376,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    startHomepageReadyTrace({
+      source: 'unlock',
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),

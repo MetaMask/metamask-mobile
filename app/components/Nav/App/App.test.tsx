@@ -31,6 +31,12 @@ import { TraceName } from '../../../util/trace';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import Logger from '../../../util/Logger';
 
+const mockStartHomepageReadyTrace = jest.fn();
+jest.mock('../../../core/Performance/HomepageReady', () => ({
+  startHomepageReadyTrace: (...args: unknown[]) =>
+    mockStartHomepageReadyTrace(...args),
+}));
+
 const initialState: DeepPartial<RootState> = {
   user: {
     userLoggedIn: true,
@@ -1414,9 +1420,9 @@ describe('App', () => {
   });
 
   describe('Performance tracing', () => {
-    const renderApp = () => {
+    const renderApp = (state: DeepPartial<RootState> = initialState) => {
       const mockStore = configureMockStore();
-      const store = mockStore(initialState);
+      const store = mockStore(state);
 
       const Providers = ({ children }: { children: React.ReactElement }) => (
         <NavigationContainer>
@@ -1439,6 +1445,59 @@ describe('App', () => {
           name: TraceName.UIStartup,
         });
       });
+    });
+
+    it('starts Homepage Ready at app open for an unlocked existing user', () => {
+      const state: DeepPartial<RootState> = {
+        ...initialState,
+        user: {
+          ...initialState.user,
+          existingUser: true,
+        },
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine?.backgroundState,
+            KeyringController: {
+              ...backgroundState.KeyringController,
+              isUnlocked: true,
+            },
+          },
+        },
+      };
+
+      renderApp(state);
+
+      expect(mockStartHomepageReadyTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'app_open',
+          appStartType: 'cold',
+        }),
+      );
+    });
+
+    it('does not start Homepage Ready before credentials for a locked user', () => {
+      const state: DeepPartial<RootState> = {
+        ...initialState,
+        user: {
+          ...initialState.user,
+          existingUser: true,
+        },
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine?.backgroundState,
+            KeyringController: {
+              ...backgroundState.KeyringController,
+              isUnlocked: false,
+            },
+          },
+        },
+      };
+
+      renderApp(state);
+
+      expect(mockStartHomepageReadyTrace).not.toHaveBeenCalled();
     });
   });
 

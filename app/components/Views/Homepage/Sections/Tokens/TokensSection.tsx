@@ -41,6 +41,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useHomepageReady } from '../../hooks/useHomepageReady';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -179,6 +180,13 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
     const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
+    const contentReady =
+      showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0;
+    const contentState = showTokensError
+      ? ('error' as const)
+      : isZeroBalanceAccount
+        ? ('empty' as const)
+        : ('filled' as const);
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
@@ -192,8 +200,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.TOKENS,
-      contentReady:
-        showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0,
+      contentReady,
       isEmpty: isZeroBalanceAccount || showTokensError,
       contentStateForTrace: showTokensError ? 'error' : undefined,
       isLoading:
@@ -201,6 +208,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         sortedTokenKeys.length === 0 &&
         !showTokensError,
     });
+    useHomepageReady({ contentReady, contentState });
 
     const handleViewAllTokens = useCallback(() => {
       navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
