@@ -5,6 +5,7 @@ import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventDetailTestIds } from '../PredictEventDetail/PredictEventDetail.testIds';
 import type { PredictEvent } from '../../types';
+import { PredictEventValues } from '../../../Predict/constants/eventNames';
 
 const event: PredictEvent = {
   venueId: 'kalshi' as PredictEvent['venueId'],
@@ -61,6 +62,20 @@ describe('PredictHome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     configureQueries();
+  });
+
+  it('tracks the homepage balance breakdown entry point', async () => {
+    renderPredictNext({
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMESCREEN_BALANCE_BREAKDOWN,
+    });
+
+    await waitFor(() =>
+      expect(
+        Engine.context.PredictController.trackHomeViewed,
+      ).toHaveBeenCalledWith({
+        entryPoint: 'homescreen_balance_breakdown',
+      }),
+    );
   });
 
   it('loads complete Event data through the Engine messenger', async () => {

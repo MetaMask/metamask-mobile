@@ -52,7 +52,7 @@ const HomepageBalanceBreakdown = ({
             <HomepageBalanceBreakdownRow
               key={key}
               layout={layout}
-              onPress={() => openSlice(key)}
+              onPress={() => openSlice(key, SLICE_ORDER.indexOf(key))}
               slice={slices[key]}
               userCurrency={hero.userCurrency}
             />

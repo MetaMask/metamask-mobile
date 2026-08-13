@@ -12,6 +12,7 @@ import type {
   SliceKey,
 } from '../../BalanceBreakdown/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
@@ -23,9 +24,14 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
 const mockHandleViewAllPerps = jest.fn();
+const mockUsePerpsNavigationHandlers = jest.fn((_options?: unknown) => ({
+  handleViewAllPerps: mockHandleViewAllPerps,
+}));
 const mockTrackEvent = jest.fn();
-const mockBuild = jest.fn(() => ({ name: 'Balance Breakdown Slice Tapped' }));
-const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockBuild = jest.fn(() => ({ name: 'Home Viewed' }));
+const mockAddProperties = jest.fn((_properties?: Record<string, unknown>) => ({
+  build: mockBuild,
+}));
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
 }));
@@ -56,6 +62,14 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../../context/HomepageScrollContext', () => ({
+  useHomepageScrollContext: () => ({
+    entryPoint: 'home_tab',
+    appSessionId: 'app-session-id',
+    visitId: 2,
+  }),
+}));
+
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
@@ -63,9 +77,8 @@ jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
 }));
 
 jest.mock('../../Sections/Perpetuals/hooks/usePerpsNavigationHandlers', () => ({
-  usePerpsNavigationHandlers: () => ({
-    handleViewAllPerps: mockHandleViewAllPerps,
-  }),
+  usePerpsNavigationHandlers: (options: unknown) =>
+    mockUsePerpsNavigationHandlers(options),
 }));
 
 jest.mock('../../BalanceBreakdown/hooks/useBalanceBreakdown');
@@ -510,27 +523,67 @@ describe('HomepageBalanceBreakdown', () => {
     );
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('defi')));
 
-    expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith(
+      'homescreen_balance_breakdown',
+    );
     expect(mockNavigate).toHaveBeenNthCalledWith(
       1,
       Routes.WALLET.TOKENS_FULL_VIEW,
     );
+    expect(mockUsePerpsNavigationHandlers).toHaveBeenCalledWith({
+      source: 'homescreen_balance_breakdown',
+    });
     expect(mockHandleViewAllPerps).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
-        entryPoint: 'homepage_balance',
+        entryPoint: 'homescreen_balance_breakdown',
       },
     });
     expect(mockNavigate).toHaveBeenNthCalledWith(
       3,
       Routes.WALLET.DEFI_FULL_VIEW,
     );
-    expect(mockTrackEvent).toHaveBeenCalledTimes(5);
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(5);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.HOME_VIEWED,
+    );
     expect(mockAddProperties).toHaveBeenNthCalledWith(1, {
-      slice: 'money',
-      source: 'homepage',
+      interaction_type: 'balance_breakdown_row_tapped',
+      location: 'home',
+      section_name: 'money',
+      position: 0,
+      entry_point: 'home_tab',
+      app_session_id: 'app-session-id',
+      visit_number: 2,
     });
+    expect(mockAddProperties).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        section_name: 'perpetuals',
+        position: 2,
+      }),
+    );
+    expect(mockAddProperties).toHaveBeenNthCalledWith(
+      4,
+      expect.objectContaining({
+        section_name: 'predictions',
+        position: 3,
+      }),
+    );
+    expect(
+      mockAddProperties.mock.calls.map(([properties = {}]) => ({
+        section_name: properties.section_name,
+        position: properties.position,
+      })),
+    ).toEqual([
+      { section_name: 'money', position: 0 },
+      { section_name: 'tokens', position: 1 },
+      { section_name: 'perpetuals', position: 2 },
+      { section_name: 'predictions', position: 3 },
+      { section_name: 'defi', position: 4 },
+    ]);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(5);
   });
 
   it('renders skeletons while loading and em dashes for failed rows', () => {

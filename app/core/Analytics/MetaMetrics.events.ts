@@ -781,9 +781,6 @@ enum EVENT_NAME {
   MONEY_ONBOARDING_EVENT = 'Money Onboarding Event',
   MONEY_TOOLTIP_CLICKED = 'Money Tooltip Clicked',
 
-  // Balance Breakdown
-  BALANCE_BREAKDOWN_SLICE_TAPPED = 'Balance Breakdown Slice Tapped',
-
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 
@@ -2164,10 +2161,6 @@ const events = {
     EVENT_NAME.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
   ),
 
-  // Balance Breakdown
-  BALANCE_BREAKDOWN_SLICE_TAPPED: generateOpt(
-    EVENT_NAME.BALANCE_BREAKDOWN_SLICE_TAPPED,
-  ),
   SOCIAL_TRADER_LEADERBOARD_VISIBILITY_TOGGLED: generateOpt(
     EVENT_NAME.SOCIAL_TRADER_LEADERBOARD_VISIBILITY_TOGGLED,
   ),
