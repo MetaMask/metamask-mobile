@@ -59,12 +59,10 @@ import {
 import Logger from '../../../../util/Logger';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
-import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
-import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
-import { useNotificationPreferences } from '../NotificationPreferences/hooks';
-import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
-import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
+import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
+import { useOpenSocialNotificationPreferences } from '../hooks/useOpenSocialNotificationPreferences';
+import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TraderRow,
@@ -202,21 +200,10 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
-  const {
-    hasNotificationPreferences,
-    isLoading: isLoadingNotificationPreferences,
-  } = useNotificationStoragePreferences();
-  const {
-    preferences: notificationPreferences,
-    hasNotificationPreferences: hasSocialAiPreferences,
-    isTraderNotificationEnabled,
-    toggleTraderNotification,
-  } = useNotificationPreferences();
-  const showMuteChip = hasSocialAiPreferences;
-  const needsNotificationSetup =
-    hasSocialAiPreferences &&
-    areTradingSignalsChannelsDisabled(notificationPreferences);
-  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+  const { openNotificationPreferences } =
+    useOpenSocialNotificationPreferences();
+  const { showMuteChip, isChipMuted, onMutePress } = useTraderMuteActions();
+  const { followWithSetup } = useFollowWithNotificationSetup();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
   const title = strings('social_leaderboard.top_traders_view.title');
@@ -436,21 +423,17 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const handleFollowPress = useCallback(
     async (traderId: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      const wasFollowing = trader?.isFollowing ?? false;
-      const performFollow = () =>
+      await followWithSetup(trader?.isFollowing ?? false, () =>
         toggleFollow(traderId, {
           source: 'leaderboard',
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
           traderAvatarUri: trader?.avatarUri,
-        });
-      if (!wasFollowing && openSetupIfNeeded(performFollow)) {
-        return;
-      }
-      await performFollow();
+        }),
+      );
     },
-    [traders, toggleFollow, openSetupIfNeeded],
+    [traders, toggleFollow, followWithSetup],
   );
 
   const {
@@ -504,32 +487,6 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     setShowNotificationsBanner(false);
     NotificationService.openSystemSettings();
   }, []);
-
-  const handleNotificationPreferencesPress = useCallback(() => {
-    if (isLoadingNotificationPreferences) {
-      return;
-    }
-
-    if (!hasNotificationPreferences) {
-      navigation.navigate(Routes.SETTINGS_VIEW, {
-        screen: Routes.SETTINGS.NOTIFICATIONS,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-      params: {
-        type: 'socialAI',
-        title: strings('app_settings.notifications_opts.social_ai_title'),
-        description: strings('app_settings.notifications_opts.social_ai_desc'),
-      },
-    });
-  }, [
-    hasNotificationPreferences,
-    isLoadingNotificationPreferences,
-    navigation,
-  ]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -588,26 +545,6 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [navigation, traders, activeTab, track],
   );
 
-  const handleMuteToggle = useCallback(
-    (traderId: string) => {
-      // Tapping a bell that only looks disabled because notifications are off
-      // means "enable"; forward an idempotent unmute rather than a toggle.
-      const ensureUnmuted = () => {
-        if (!isTraderNotificationEnabled(traderId)) {
-          // Symmetric with the Follow button: same Light impact on any real toggle.
-          playImpact(ImpactMoment.FollowToggle);
-          toggleTraderNotification(traderId);
-        }
-      };
-      if (openSetupIfNeeded(ensureUnmuted)) {
-        return;
-      }
-      playImpact(ImpactMoment.FollowToggle);
-      toggleTraderNotification(traderId);
-    },
-    [openSetupIfNeeded, toggleTraderNotification, isTraderNotificationEnabled],
-  );
-
   const renderTraderRow = useCallback(
     ({ item }: { item: RankedTrader }) => (
       <TraderRow
@@ -616,19 +553,16 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
         showMute={showMuteChip}
-        isMuted={
-          !isTraderNotificationEnabled(item.id) || needsNotificationSetup
-        }
-        onMuteToggle={handleMuteToggle}
+        isMuted={isChipMuted(item.id)}
+        onMuteToggle={onMutePress}
       />
     ),
     [
       handleFollowPress,
       handleTraderPress,
       showMuteChip,
-      needsNotificationSetup,
-      isTraderNotificationEnabled,
-      handleMuteToggle,
+      isChipMuted,
+      onMutePress,
     ],
   );
 
@@ -843,7 +777,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         endButtonIconProps={[
           {
             iconName: IconName.Notification,
-            onPress: handleNotificationPreferencesPress,
+            onPress: openNotificationPreferences,
             testID: TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON,
           },
         ]}
