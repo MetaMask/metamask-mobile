@@ -9,7 +9,7 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getMultiChainAssetsControllerAccountsAssets } from '../../../selectors/assets/assets-migration';
 import Engine from '../../../core/Engine';
 
-export const ARC_USDC_ASSET_ID: CaipAssetType =
+export const ARC_ERC20_USDC_ASSET_ID: CaipAssetType =
   'eip155:5042/erc20:0x3600000000000000000000000000000000000000';
 
 export const ARC_NATIVE_ASSET_ID: CaipAssetType = 'eip155:5042/slip44:5042';
@@ -55,7 +55,7 @@ export function useArcDefaultTokens() {
 
       const existingAssets: string[] = accountsAssets?.[account.id] ?? [];
       const alreadyPresent = existingAssets.some(
-        (id) => id.toLowerCase() === ARC_USDC_ASSET_ID.toLowerCase(),
+        (id) => id.toLowerCase() === ARC_ERC20_USDC_ASSET_ID.toLowerCase(),
       );
 
       if (alreadyPresent) {
@@ -65,7 +65,7 @@ export function useArcDefaultTokens() {
 
       dispatchedRef.current.add(account.id);
       Engine.context.MultichainAssetsController.addAssets(
-        [ARC_USDC_ASSET_ID],
+        [ARC_ERC20_USDC_ASSET_ID],
         account.id,
       ).catch((err: unknown) => {
         console.error('useArcDefaultTokens: failed to add Arc USDC', err);
