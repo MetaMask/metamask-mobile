@@ -20,12 +20,29 @@ import {
   selectTokenSelectorNetworkFilter,
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
+import { useABTest } from '../../../../../hooks';
+import { useChainValueOrder } from '../../hooks/useChainValueOrder';
+import {
+  CHAIN_VALUE_ORDER_AB_KEY,
+  CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
+  CHAIN_VALUE_ORDER_VARIANTS,
+} from './abTestConfig';
 
-const NetworkListModal: React.FC = () => {
+interface ChainRankingEntry {
+  chainId: CaipChainId;
+  name: string;
+}
+
+interface NetworkListModalContentProps {
+  chainRanking: ChainRankingEntry[];
+}
+
+const NetworkListModalContent: React.FC<NetworkListModalContentProps> = ({
+  chainRanking,
+}) => {
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const chainRanking = useSelector(selectAllowedChainRanking);
   const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
 
   const handleClose = useCallback(() => {
@@ -90,6 +107,31 @@ const NetworkListModal: React.FC = () => {
       </ScrollView>
     </BottomSheet>
   );
+};
+
+const NetworkValueOrderedListModal: React.FC<NetworkListModalContentProps> = ({
+  chainRanking,
+}) => {
+  const orderedChainRanking = useChainValueOrder(chainRanking);
+
+  return <NetworkListModalContent chainRanking={orderedChainRanking} />;
+};
+
+const NetworkListModal: React.FC = () => {
+  const chainRanking: ChainRankingEntry[] = useSelector(
+    selectAllowedChainRanking,
+  );
+  const { variant } = useABTest(
+    CHAIN_VALUE_ORDER_AB_KEY,
+    CHAIN_VALUE_ORDER_VARIANTS,
+    CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
+  );
+
+  if (variant.orderByValue) {
+    return <NetworkValueOrderedListModal chainRanking={chainRanking} />;
+  }
+
+  return <NetworkListModalContent chainRanking={chainRanking} />;
 };
 
 export default NetworkListModal;

@@ -18,7 +18,10 @@ import {
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { element as detoxElement, by as detoxBy } from 'detox';
+import {
+  element as detoxElement,
+  by as detoxBy,
+} from '../../framework/legacy-detox-shim';
 import {
   encapsulatedAction,
   PlatformDetector,
@@ -37,6 +40,29 @@ class PerpsOrderView {
           PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
           { exact: true },
         ),
+    });
+  }
+
+  /**
+   * Fees row value — only mounted after fee loading finishes
+   * Useful readiness signal before tapping Long/Short on Appium.
+   */
+  get feesValue(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsOrderViewSelectorsIDs.FEES_VALUE,
+          { exact: true },
+        ),
+    });
+  }
+
+  async waitForFeesReady(timeout = 30_000): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.feesValue, {
+      timeout,
+      description: 'Perps order fees value (fees finished loading)',
     });
   }
 
@@ -554,8 +580,9 @@ class PerpsOrderView {
         const leverageSelector = `${leverageX}x`;
         let optionEl: PlaywrightElement;
         if (PlatformDetector.isAndroid()) {
-          optionEl = await PlaywrightMatchers.getElementByXPath(
-            `//android.view.ViewGroup[@content-desc="${leverageSelector}"]`,
+          optionEl = await PlaywrightMatchers.getElementById(
+            `leverage-quick-select-${leverageX}`,
+            { exact: true },
           );
         } else {
           optionEl = await PlaywrightMatchers.getElementByAccessibilityId(

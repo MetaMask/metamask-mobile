@@ -1845,15 +1845,23 @@ describe('ChoosePassword', () => {
       });
     });
 
-    it('skips tracing entirely when no onboardingTraceCtx is provided', async () => {
+    it('skips journey tracing when no onboardingTraceCtx is provided', async () => {
       const { unmount } = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          op: TraceOperation.OnboardingUserJourney,
+        }),
+      );
 
       unmount();
 
-      expect(mockEndTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingPasswordSetupAttempt,
+        }),
+      );
     });
 
     it('emits an error trace when password creation fails', async () => {

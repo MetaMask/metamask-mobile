@@ -33,9 +33,10 @@ import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balanc
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import {
-  selectIconSeedAddressByAccountGroupId,
+  selectAllAccountGroupIconSeedAddresses,
   selectInternalAccountByAccountGroupAndScope,
 } from '../../../../selectors/multichainAccounts/accounts';
+import { RootState } from '../../../../reducers';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
@@ -141,6 +142,49 @@ const BalanceEndContainer = ({
   );
 };
 
+// The network-specific address sub-row is only shown when a chainId is
+// provided. Isolating it in its own component means the deep-equal
+// `selectInternalAccountByAccountGroupAndScope` subscription only exists on that
+// path — not on every cell of the (chainId-less) account list.
+const AccountNetworkAddressRow = ({
+  accountGroupId,
+  chainId,
+}: {
+  accountGroupId: string;
+  chainId: string;
+}) => {
+  const { styles } = useStyles(styleSheet, {});
+  const getInternalAccountByAccountGroupAndScope = useSelector(
+    selectInternalAccountByAccountGroupAndScope,
+  );
+
+  const caipChainId = formatChainIdToCaip(chainId);
+  const internalAccount = getInternalAccountByAccountGroupAndScope(
+    caipChainId,
+    accountGroupId,
+  );
+  const networkAccountAddress = internalAccount?.address
+    ? renderShortAddress(internalAccount.address, 4)
+    : undefined;
+
+  if (!networkAccountAddress) {
+    return null;
+  }
+
+  return (
+    <View style={styles.accountSubRow}>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        numberOfLines={1}
+        style={styles.accountSubText}
+      >
+        {networkAccountAddress}
+      </Text>
+    </View>
+  );
+};
+
 const AccountCell = ({
   accountGroup,
   avatarAccountType,
@@ -153,27 +197,18 @@ const AccountCell = ({
   const { styles } = useStyles(styleSheet, {});
   const avatarAccountVariant = getAvatarAccountVariant(avatarAccountType);
 
-  const selectEvmAddress = useMemo(
-    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
-    [accountGroup.id],
+  // Read this cell's icon seed address from the shared map selector (O(1))
+  // instead of instantiating a per-cell deep-equal selector. `useSelector`
+  // re-renders only when this group's primitive address changes.
+  const evmAddress = useSelector(
+    (state: RootState) =>
+      selectAllAccountGroupIconSeedAddresses(state)[accountGroup.id] ?? '',
   );
-  const evmAddress = useSelector(selectEvmAddress);
 
-  // Determine which account address and network avatar to display based on the chainId
-  let networkAccountAddress;
-  let networkImageSource;
-  const getInternalAccountByAccountGroupAndScope = useSelector(
-    selectInternalAccountByAccountGroupAndScope,
-  );
-  if (chainId) {
-    const caipChainId = formatChainIdToCaip(chainId);
-    const internalAccountFromAccountGroupForChainId =
-      getInternalAccountByAccountGroupAndScope(caipChainId, accountGroup.id);
-    networkAccountAddress = internalAccountFromAccountGroupForChainId?.address
-      ? renderShortAddress(internalAccountFromAccountGroupForChainId.address, 4)
-      : undefined;
-    networkImageSource = getNetworkImageSource({ chainId });
-  }
+  // Network avatar derives purely from chainId — no store subscription needed.
+  const networkImageSource = chainId
+    ? getNetworkImageSource({ chainId })
+    : undefined;
 
   return (
     <Box
@@ -208,18 +243,12 @@ const AccountCell = ({
               {accountGroup.metadata.name}
             </Text>
           </View>
-          {networkAccountAddress && (
-            <View style={styles.accountSubRow}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                style={styles.accountSubText}
-              >
-                {networkAccountAddress}
-              </Text>
-            </View>
-          )}
+          {chainId ? (
+            <AccountNetworkAddressRow
+              accountGroupId={accountGroup.id}
+              chainId={chainId}
+            />
+          ) : null}
         </View>
       </TouchableOpacity>
       <View style={styles.endContainer}>

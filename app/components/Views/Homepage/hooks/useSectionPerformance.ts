@@ -1,7 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { addBreadcrumb } from '@sentry/react-native';
-import performance from 'react-native-performance';
 import {
   endTrace,
   trace,
@@ -9,6 +7,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import type { HomeSectionName } from './useHomeViewedEvent';
+import { useRenderStormMonitor } from '../../../../hooks/performance/useRenderStormMonitor';
 
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
@@ -74,12 +73,18 @@ export const useSectionPerformance = ({
   const fetchEnded = useRef(false);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
 
-  // --- Re-render monitoring refs ---
-  const renderTimestamps = useRef<number[]>([]);
-  const hasLoggedExcessiveRenders = useRef(false);
-
   const traceContentState =
     contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
+
+  useRenderStormMonitor({
+    id: sectionId,
+    category: TraceOperation.HomepageSectionPerformance,
+    entityLabel: 'section',
+    breadcrumbData: { section_id: sectionId },
+    enabled,
+    reRenderThreshold,
+    reRenderWindowMs,
+  });
 
   // ──────────────────────────────────────────────
   // 1. Time to Content — start span on mount
@@ -174,46 +179,4 @@ export const useSectionPerformance = ({
       fetchEnded.current = true;
     }
   }, [enabled, isLoading, sectionId, traceContentState]);
-
-  // ──────────────────────────────────────────────
-  // 3. Re-render Monitoring — runs after every commit (no dep array)
-  //
-  // In development, React 18 Strict Mode runs mount effects twice (setup → cleanup
-  // → setup), which records one extra sample vs a single logical mount. Bump the
-  // effective threshold in __DEV__ so dev builds match production sensitivity.
-  // ──────────────────────────────────────────────
-  useEffect(() => {
-    if (!enabled) return;
-
-    const effectiveReRenderThreshold = __DEV__
-      ? reRenderThreshold + 1
-      : reRenderThreshold;
-
-    const now = performance.now();
-    const timestamps = renderTimestamps.current;
-    timestamps.push(now);
-
-    const windowStart = now - reRenderWindowMs;
-    while (timestamps.length > 0 && timestamps[0] < windowStart) {
-      timestamps.shift();
-    }
-
-    if (
-      timestamps.length > effectiveReRenderThreshold &&
-      !hasLoggedExcessiveRenders.current
-    ) {
-      hasLoggedExcessiveRenders.current = true;
-      addBreadcrumb({
-        category: TraceOperation.HomepageSectionPerformance,
-        message: `Excessive re-renders detected in section "${sectionId}": ${timestamps.length} renders in ${reRenderWindowMs}ms`,
-        level: 'warning',
-        data: {
-          section_id: sectionId,
-          render_count: timestamps.length,
-          window_ms: reRenderWindowMs,
-          threshold: reRenderThreshold,
-        },
-      });
-    }
-  });
 };

@@ -1,12 +1,14 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { PerpsMode } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsTutorialCarousel, {
   PERPS_RIVE_ARTBOARD_NAMES,
 } from './PerpsTutorialCarousel';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
+import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
 
 // Mock .riv file to prevent Jest parsing binary data
 jest.mock(
@@ -87,6 +89,11 @@ const mockTrack = jest.fn();
 // Mock the selector module first
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
+  selectPerpsMode: jest.fn(),
+}));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPerpsProModeEnabledFlag: jest.fn(),
 }));
 
 // Mock react-redux
@@ -430,6 +437,86 @@ describe('PerpsTutorialCarousel', () => {
         payload: {
           name: Routes.PERPS.ROOT,
           params: { screen: Routes.PERPS.PERPS_HOME },
+        },
+      });
+    });
+
+    it('falls back to the default Pro market instead of Perps home when no redirect is provided and Pro mode is active (TAT-3612)', async () => {
+      (useRoute as jest.Mock).mockReturnValue({ params: {} });
+
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      const mockSelectPerpsMode = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsMode;
+      const mockSelectPerpsProModeEnabledFlag = jest.requireMock(
+        '../../selectors/featureFlags',
+      ).selectPerpsProModeEnabledFlag;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) return true;
+        if (selector === mockSelectPerpsMode) return PerpsMode.Pro;
+        if (selector === mockSelectPerpsProModeEnabledFlag) return true;
+        return undefined;
+      });
+
+      render(<PerpsTutorialCarousel />);
+      await navigateToScreen(5);
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('perps-tutorial-continue-button'));
+      });
+
+      expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+        type: 'REPLACE',
+        payload: {
+          name: Routes.PERPS.ROOT,
+          params: {
+            screen: Routes.PERPS.MARKET_DETAILS,
+            params: { market: buildDefaultProMarket() },
+          },
+        },
+      });
+    });
+
+    it('still honors an explicit redirectScreen even when Pro mode is active', async () => {
+      const redirectParams = { source: 'home_section' };
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          source: 'home_section',
+          redirectScreen: Routes.PERPS.MARKET_LIST,
+          redirectParams,
+        },
+      });
+
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsMode = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsMode;
+      const mockSelectPerpsProModeEnabledFlag = jest.requireMock(
+        '../../selectors/featureFlags',
+      ).selectPerpsProModeEnabledFlag;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsMode) return PerpsMode.Pro;
+        if (selector === mockSelectPerpsProModeEnabledFlag) return true;
+        return undefined;
+      });
+
+      render(<PerpsTutorialCarousel />);
+
+      act(() => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
+      });
+
+      expect(mockNavigationServiceMethods.dispatch).toHaveBeenCalledWith({
+        type: 'REPLACE',
+        payload: {
+          name: Routes.PERPS.ROOT,
+          params: {
+            screen: Routes.PERPS.MARKET_LIST,
+            params: redirectParams,
+          },
         },
       });
     });

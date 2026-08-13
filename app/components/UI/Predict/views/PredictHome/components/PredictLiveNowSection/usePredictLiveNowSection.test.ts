@@ -2,7 +2,11 @@ import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { usePredictMarketList } from '../../../../hooks/usePredictMarketList';
 import { useCurrentPredictMarketFromSeries } from '../../../../hooks/useCurrentPredictMarketFromSeries';
-import { selectPredictUpDownEnabledFlag } from '../../../../selectors/featureFlags';
+import {
+  selectPredictFeedCarouselConfig,
+  selectPredictUpDownEnabledFlag,
+} from '../../../../selectors/featureFlags';
+import { DEFAULT_PREDICT_FEED_CAROUSEL_FLAG } from '../../../../constants/flags';
 import {
   BTC_UP_OR_DOWN_5M_SERIES,
   ETH_UP_OR_DOWN_5M_SERIES,
@@ -14,6 +18,7 @@ import {
   usePredictLiveNowSection,
   LIVE_NOW_FETCH_LIMIT,
   LIVE_NOW_LIVE_LIMIT,
+  CUSTOM_FEED_CAROUSEL_LIMIT,
 } from './usePredictLiveNowSection';
 
 jest.mock('react-redux', () => ({
@@ -84,16 +89,48 @@ const setCryptoMarketsBySeries = (
   );
 };
 
-const setUpDownEnabled = (enabled: boolean) => {
+let upDownEnabled = false;
+let feedCarouselConfig = DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+
+const syncSelectors = () => {
   mockUseSelector.mockImplementation((selector) =>
-    selector === selectPredictUpDownEnabledFlag ? enabled : false,
+    selector === selectPredictUpDownEnabledFlag
+      ? upDownEnabled
+      : selector === selectPredictFeedCarouselConfig
+        ? feedCarouselConfig
+        : false,
   );
+};
+
+const setUpDownEnabled = (enabled: boolean) => {
+  upDownEnabled = enabled;
+  syncSelectors();
+};
+
+const setCustomConfig = (
+  queryParams = '',
+  excludedMarketIds: string[] = [],
+  composition: 'query-results' | 'live-now' = 'query-results',
+) => {
+  feedCarouselConfig = {
+    enabled: true,
+    minimumVersion: '1.0.0',
+    mode: 'custom',
+    title: 'Wimbledon',
+    contentSource: {
+      composition,
+      queryParams,
+      excludedMarketIds,
+    },
+  };
+  syncSelectors();
 };
 
 const ids = (markets: PredictMarket[]) => markets.map((market) => market.id);
 
 describe('usePredictLiveNowSection', () => {
   beforeEach(() => {
+    feedCarouselConfig = DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
     setUpDownEnabled(false);
     setLiveMarketList();
     setNoCrypto();
@@ -114,7 +151,67 @@ describe('usePredictLiveNowSection', () => {
     } as PredictMarketListParams);
   });
 
-  it('keeps scoreboard markets and drops regular markets without a game', () => {
+  it('requests top open markets when custom mode has no query override', () => {
+    setCustomConfig();
+
+    renderHook(() => usePredictLiveNowSection());
+
+    expect(mockUsePredictMarketList).toHaveBeenCalledWith({
+      order: 'volume24hr',
+      status: 'open',
+      limit: LIVE_NOW_FETCH_LIMIT,
+    } as PredictMarketListParams);
+  });
+
+  it('passes the configured Polymarket query in custom mode', () => {
+    setCustomConfig('tag_slug=tennis&title_search=Wimbledon');
+
+    renderHook(() => usePredictLiveNowSection());
+
+    expect(mockUsePredictMarketList).toHaveBeenCalledWith({
+      order: 'volume24hr',
+      status: 'open',
+      limit: LIVE_NOW_FETCH_LIMIT,
+      customQueryParams: 'tag_slug=tennis&title_search=Wimbledon',
+    } as PredictMarketListParams);
+  });
+
+  it('updates the active query when remote configuration changes', () => {
+    const { rerender, result } = renderHook(() => usePredictLiveNowSection());
+    expect(mockUsePredictMarketList).toHaveBeenLastCalledWith(
+      expect.objectContaining({ live: true }),
+    );
+
+    setCustomConfig('tag_slug=tennis');
+    rerender({});
+
+    expect(mockUsePredictMarketList).toHaveBeenLastCalledWith(
+      expect.objectContaining({ customQueryParams: 'tag_slug=tennis' }),
+    );
+    expect(result.current.config.title).toBe('Wimbledon');
+
+    feedCarouselConfig = {
+      ...feedCarouselConfig,
+      title: 'NFL Playoffs',
+      contentSource: {
+        composition: 'query-results',
+        queryParams: 'tag_slug=football',
+        excludedMarketIds: ['market-2'],
+      },
+    };
+    syncSelectors();
+    rerender({});
+
+    expect(mockUsePredictMarketList).toHaveBeenLastCalledWith(
+      expect.objectContaining({ customQueryParams: 'tag_slug=football' }),
+    );
+    expect(result.current.config.title).toBe('NFL Playoffs');
+    expect(result.current.config.contentSource.excludedMarketIds).toEqual([
+      'market-2',
+    ]);
+  });
+
+  it('keeps sports game markets and drops regular markets without game data', () => {
     setLiveMarketList({
       markets: [createLiveMarket('L1'), createRegularMarket('R1')],
     });
@@ -124,7 +221,7 @@ describe('usePredictLiveNowSection', () => {
     expect(ids(result.current.items)).toEqual(['L1']);
   });
 
-  it('caps scoreboard markets at the display limit', () => {
+  it('caps sports game markets at the display limit', () => {
     const live = Array.from({ length: LIVE_NOW_LIVE_LIMIT + 4 }, (_, i) =>
       createLiveMarket(`L${i}`),
     );
@@ -133,6 +230,70 @@ describe('usePredictLiveNowSection', () => {
     const { result } = renderHook(() => usePredictLiveNowSection());
 
     expect(result.current.items).toHaveLength(LIVE_NOW_LIVE_LIMIT);
+  });
+
+  it('keeps query-result markets and caps cards in custom mode', () => {
+    setCustomConfig('tag_slug=tennis');
+    setUpDownEnabled(true);
+    const markets = Array.from(
+      { length: CUSTOM_FEED_CAROUSEL_LIMIT + 2 },
+      (_, index) => createRegularMarket(`R${index}`),
+    );
+    setLiveMarketList({ markets });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('BTC5M'),
+    });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(result.current.items).toEqual(
+      markets.slice(0, CUSTOM_FEED_CAROUSEL_LIMIT),
+    );
+    expect(mockUseCurrentPredictMarketFromSeries).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('removes excluded markets before applying the custom card limit', () => {
+    setCustomConfig('live=true&order=volume24hr', ['R0', 'R1']);
+    const markets = Array.from(
+      { length: CUSTOM_FEED_CAROUSEL_LIMIT + 2 },
+      (_, index) => createRegularMarket(`R${index}`),
+    );
+    setLiveMarketList({ markets });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual(
+      Array.from(
+        { length: CUSTOM_FEED_CAROUSEL_LIMIT },
+        (_, index) => `R${index + 2}`,
+      ),
+    );
+  });
+
+  it('reuses Live Now sports-card and crypto composition after exclusions', () => {
+    setCustomConfig('live=true&order=volume24hr', ['L1', 'BTC5M'], 'live-now');
+    setUpDownEnabled(true);
+    setLiveMarketList({
+      markets: [
+        createLiveMarket('L1'),
+        createRegularMarket('R1'),
+        createLiveMarket('L2'),
+        createLiveMarket('L3'),
+      ],
+    });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('BTC5M'),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('ETH5M'),
+    });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual(['L2', 'L3', 'ETH5M']);
+    expect(mockUseCurrentPredictMarketFromSeries).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
   });
 
   it('omits crypto markets when the Up/Down flag is off', () => {

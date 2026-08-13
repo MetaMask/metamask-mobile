@@ -27,8 +27,8 @@ jest.mock('../../../../../../selectors/cardController', () => ({
   selectCardSelectedCountry: () => mockSelectedCountry,
 }));
 jest.mock('../../../../../../selectors/featureFlagController/card', () => ({
-  selectCardFeatureFlag: () => ({
-    immersve: { fundingChannelId: mockFundingChannelId },
+  selectCardImmersveConfig: () => ({
+    fundingChannelId: mockFundingChannelId,
   }),
 }));
 jest.mock('../../../../../../core/redux/slices/card', () => ({
@@ -119,6 +119,9 @@ describe('useImmersveCardProvisioning', () => {
         jest.advanceTimersByTime(10000);
       });
       expect(controller.fetchCardHomeData).toHaveBeenCalledTimes(2);
+      expect(controller.fetchCardHomeData).toHaveBeenCalledWith({
+        force: true,
+      });
       jest.useRealTimers();
     });
 

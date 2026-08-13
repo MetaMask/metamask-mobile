@@ -168,25 +168,25 @@ function buildTransactionGroups(
 }
 
 /**
- * Returns bridge activity status override for a local bridge transaction.
+ * Status override for a local bridge transaction.
+ *
+ * A bridge is only done once the destination leg lands, which the local
+ * `TransactionMeta` can't know — it goes `confirmed` as soon as the source tx
+ * confirms. Takes an already-resolved history entry so every caller shares the
+ * single `findBridgeHistoryItem` lookup.
+ *
+ * Exported for the per-asset activity lists, which build the same
+ * {@link TransactionGroup} enrichment from a single transaction.
  */
-function getBridgeActivityStatus(
+export function getBridgeActivityStatus(
   tx: TransactionMeta,
-  bridgeHistory: ReturnType<typeof selectBridgeHistoryForAccount>,
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
 ): Status | undefined {
-  if (tx.type !== TransactionType.bridge) return undefined;
-  const historyItem =
-    bridgeHistory[tx.id] ??
-    (tx.actionId ? bridgeHistory[tx.actionId] : undefined) ??
-    Object.values(bridgeHistory).find(
-      (item) =>
-        (item as unknown as { originalTransactionId?: string })
-          .originalTransactionId === tx.id,
-    );
+  if (tx.type !== TransactionType.bridge || !bridgeHistoryItem) {
+    return undefined;
+  }
 
-  if (!historyItem) return undefined;
-
-  if (historyItem.status?.destChain?.txHash) {
+  if (bridgeHistoryItem.status?.destChain?.txHash) {
     return 'success';
   }
 
@@ -230,8 +230,12 @@ function tokenFromQuoteAsset(
  * quote (symbol always, amount/decimals/assetId when present) so the row resolves
  * to a complete swap immediately and reactively; fall back to the legacy
  * on-device fields for older SwapsController transactions with no bridge quote.
+ *
+ * Exported for the per-asset activity lists, which would otherwise re-derive
+ * this and drift — an asset page that skips it renders every unified swap as
+ * `swapIncomplete`.
  */
-function getSwapTokenEnrichment(
+export function getSwapTokenEnrichment(
   tx: TransactionMeta,
   nativeSymbol: string | undefined,
   bridgeHistoryItem: BridgeHistoryItem | undefined,
@@ -348,7 +352,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
       });
 
       // Bridge activity status override
-      const activityStatus = getBridgeActivityStatus(tx, bridgeHistory);
+      const activityStatus = getBridgeActivityStatus(tx, bridgeHistoryItem);
 
       // Swap token enrichment
       const { sourceToken, destinationToken } = getSwapTokenEnrichment(

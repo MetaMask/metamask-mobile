@@ -1,6 +1,6 @@
 'use strict';
 import SampleFeatureView from '../pages/SampleFeatureView';
-import { RegressionSampleFeature } from '../../../../../tests/tags';
+import { SampleFeature } from '../../../../../tests/tags';
 import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import { navigateToSampleFeature } from '../utils';
@@ -28,7 +28,7 @@ const TEST_ADDRESSES: Record<string, TestAddress> = {
   },
 };
 
-describe(RegressionSampleFeature('Sample Feature - Pet Names'), () => {
+describe(SampleFeature('Sample Feature - Pet Names'), () => {
   it('displays pet names section', async () => {
     await withFixtures(
       {

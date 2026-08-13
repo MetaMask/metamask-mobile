@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -13,10 +13,20 @@ interface AlertPeriodToggleProps {
   onChange: (value: AlertPeriod) => void;
 }
 
-const periodTestId = (period: AlertPeriod) =>
-  period === '24h'
-    ? CreatePriceAlertTestIds.PERIOD_SEGMENT_24H
-    : CreatePriceAlertTestIds.PERIOD_SEGMENT_1H;
+const [firstPeriod, secondPeriod] = ALERT_PERIODS;
+
+const options = [
+  {
+    value: firstPeriod,
+    label: strings(`price_alerts.period_${firstPeriod}`),
+    testID: CreatePriceAlertTestIds.PERIOD_SEGMENT_24H,
+  },
+  {
+    value: secondPeriod,
+    label: strings(`price_alerts.period_${secondPeriod}`),
+    testID: CreatePriceAlertTestIds.PERIOD_SEGMENT_1H,
+  },
+] as const;
 
 /**
  * Small animated sliding-pill toggle for the percent-change rolling window
@@ -27,23 +37,6 @@ const AlertPeriodToggle: React.FC<AlertPeriodToggleProps> = ({
   onChange,
 }) => {
   const { colors } = useTheme();
-  const [firstPeriod, secondPeriod] = ALERT_PERIODS;
-  const options = useMemo(
-    () =>
-      [
-        {
-          value: firstPeriod,
-          label: strings(`price_alerts.period_${firstPeriod}`),
-          testID: periodTestId(firstPeriod),
-        },
-        {
-          value: secondPeriod,
-          label: strings(`price_alerts.period_${secondPeriod}`),
-          testID: periodTestId(secondPeriod),
-        },
-      ] as const,
-    [firstPeriod, secondPeriod],
-  );
 
   return (
     <SlidingPillToggle
@@ -51,10 +44,13 @@ const AlertPeriodToggle: React.FC<AlertPeriodToggleProps> = ({
       options={options}
       onChange={onChange}
       testID={CreatePriceAlertTestIds.PERIOD_SEGMENT}
-      containerTwClassName="border border-muted rounded-full p-1 self-center"
-      pillTwClassName="rounded-full px-3 py-0.5"
+      inset={4}
+      containerBorderRadius={999}
+      pillBorderRadius={999}
+      containerBorderColor={colors.border.muted}
       sliderBackgroundColor={colors.background.defaultPressed}
-      sliderBorderRadius={999}
+      pillPaddingHorizontal={12}
+      pillPaddingVertical={2}
     />
   );
 };

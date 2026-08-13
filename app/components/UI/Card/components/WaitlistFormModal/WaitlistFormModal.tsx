@@ -93,6 +93,11 @@ const WaitlistFormModal: React.FC = () => {
                 ),
               },
             ],
+            descriptionOptions: {
+              description: strings(
+                'card.card_onboarding.waitlist_form.success_toast_description',
+              ),
+            },
             iconName: IconName.Confirmation,
             iconColor: colors.success.default,
             hasNoTimeout: true,

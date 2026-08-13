@@ -47,6 +47,7 @@ import {
   getCaip25PermissionFromLegacyPermissions,
   requestPermittedChainsPermissionIncremental,
 } from '@metamask/chain-agnostic-permission';
+import { preprocessTypedSignRequest } from '../../components/Views/confirmations/utils/typed-sign-security';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,27 +213,6 @@ const withRemoteSessionId = (
     ? { remote_session_id: analytics.remote_session_id }
     : {};
 
-/**
- * Round-trips a typed-data JSON string through JSON.parse / JSON.stringify to
- * produce a canonical representation.  JSON.parse silently drops duplicate keys
- * (keeping the last value per key), so the canonical string can never contain
- * duplicates that let a regex-based extraction diverge from the parsed object
- * used at signing time.
- *
- * This mirrors the normalizeTypedMessage step that the extension performs via
- * @metamask/eth-json-rpc-middleware before data reaches SignatureController.
- */
-function canonicalizeTypedMessageData(data: string): string {
-  if (typeof data !== 'string') {
-    return data;
-  }
-  try {
-    return JSON.stringify(JSON.parse(data));
-  } catch {
-    return data;
-  }
-}
-
 const generateRawSignature = async ({
   version,
   req,
@@ -296,7 +276,7 @@ const generateRawSignature = async ({
 
   const rawSig = await signatureController.newUnsignedTypedMessage(
     {
-      data: canonicalizeTypedMessageData(req.params[1]),
+      data: preprocessTypedSignRequest(req.params[1]),
       from: req.params[0],
       requestId: req.id,
       ...pageMeta,

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -51,7 +52,7 @@ interface StakeButtonContentProps {
 // TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const chainId = useSelector(selectEvmChainId);
   const { isStakingSupportedChain } = useStakingChain();

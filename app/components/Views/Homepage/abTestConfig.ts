@@ -3,39 +3,6 @@ import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnaly
 import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
-// ─── Hub Page Discovery Tabs ────────────────────────────────────────────────
-
-/**
- * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
- * sync with the flag in LD (team `core`, ticket MCU-589).
- */
-export const HUB_PAGE_DISCOVERY_TABS_AB_KEY =
-  'coreMCU589AbtestHubPageDiscoveryTabs';
-
-export enum HubPageDiscoveryTabsVariant {
-  Control = 'control',
-  Treatment = 'treatment',
-}
-
-interface HubPageDiscoveryTabsVariantConfig {
-  discoveryTabsEnabled: boolean;
-}
-
-export const HUB_PAGE_DISCOVERY_TABS_VARIANTS: Record<
-  HubPageDiscoveryTabsVariant,
-  HubPageDiscoveryTabsVariantConfig
-> = {
-  [HubPageDiscoveryTabsVariant.Control]: { discoveryTabsEnabled: false },
-  [HubPageDiscoveryTabsVariant.Treatment]: { discoveryTabsEnabled: true },
-};
-
-export const HUB_PAGE_DISCOVERY_TABS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
-  {
-    flagKey: HUB_PAGE_DISCOVERY_TABS_AB_KEY,
-    validVariants: Object.values(HubPageDiscoveryTabsVariant),
-    eventNames: [EVENT_NAME.HOME_VIEWED],
-  };
-
 // ─── Homepage Perps empty state — Explore-style pills (TMCU-725) ─────────────
 
 /**
@@ -288,4 +255,55 @@ export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnaly
     flagKey: HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
     validVariants: Object.values(HomepageActionButtonsGridVariant),
     eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACTION_BUTTON_CLICKED],
+  };
+
+// ─── Homepage balance breakdown ──────────────────────────────────────────────
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY =
+  'homeTMCU1209AbtestHomepageBalanceBreakdown';
+
+export enum HomepageBalanceBreakdownVariant {
+  Control = 'control',
+  Icons = 'icons',
+  Allocation = 'allocation',
+}
+
+export type HomepageBalanceBreakdownLayout = 'icons' | 'allocation';
+
+interface HomepageBalanceBreakdownVariantConfig {
+  layout: HomepageBalanceBreakdownLayout | null;
+}
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
+  HomepageBalanceBreakdownVariant,
+  HomepageBalanceBreakdownVariantConfig
+> = {
+  [HomepageBalanceBreakdownVariant.Control]: {
+    layout: null,
+  },
+  [HomepageBalanceBreakdownVariant.Icons]: {
+    layout: 'icons',
+  },
+  [HomepageBalanceBreakdownVariant.Allocation]: {
+    layout: 'allocation',
+  },
+};
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage balance breakdown',
+  variationNames: {
+    control: 'Current homepage without balance breakdown',
+    icons: 'Primitive breakdown with icons',
+    allocation: 'Primitive allocation breakdown',
+  },
+} as const;
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+    validVariants: Object.values(HomepageBalanceBreakdownVariant),
+    eventNames: [
+      EVENT_NAME.HOME_VIEWED,
+      EVENT_NAME.BALANCE_BREAKDOWN_SLICE_TAPPED,
+    ],
   };

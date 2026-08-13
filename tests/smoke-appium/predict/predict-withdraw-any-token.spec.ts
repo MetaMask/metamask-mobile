@@ -23,6 +23,7 @@ import { openPredictWithdrawPayConfirmation } from '../../flows/predict.flow.js'
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import {
   loginForPredictTests,
+  remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 
@@ -51,19 +52,11 @@ const setupPredictWithdrawAnyTokenMocks = async (mockServer: Mockttp) => {
   await POLYMARKET_POLYGON_RELAY_POLLING_MOCKS(mockServer);
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
+    ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
     ...ENABLE_PREDICT_WITHDRAW_ANY_TOKEN,
     carouselBanners: false,
-    predictExtendedSportsMarkets: {
-      versions: {
-        '7.82.0': {
-          enabled: false,
-          leagues: [],
-          enabledSportsMarketTypes: [],
-        },
-      },
-    },
   });
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer);
   await POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS(mockServer);

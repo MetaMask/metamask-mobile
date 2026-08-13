@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { formatEther } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { View } from 'react-native';
 
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -42,7 +43,7 @@ const GasImpactModal = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 

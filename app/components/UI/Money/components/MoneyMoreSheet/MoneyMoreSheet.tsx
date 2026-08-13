@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -40,7 +41,7 @@ interface MenuOption {
 
 const MoneyMoreSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
@@ -86,12 +87,10 @@ const MoneyMoreSheet = () => {
       redirect_target: MONEY_URLS.METAMASK_SUPPORT,
     });
 
-    closeAndNavigate(() => {
-      openSupportWithConsent(
-        (url) => openInAppBrowser(navigation, url),
-        METAMASK_SUPPORT_URL,
-      );
-    });
+    openSupportWithConsent(
+      (url) => closeAndNavigate(() => openInAppBrowser(navigation, url)),
+      METAMASK_SUPPORT_URL,
+    );
   }, [
     closeAndNavigate,
     navigation,

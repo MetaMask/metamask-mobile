@@ -91,6 +91,9 @@ import {
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
@@ -197,6 +200,19 @@ const ChoosePassword = () => {
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
+
+  // The form renders synchronously; geolocation is the only async dependency.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+    contentReady: true,
+    isEmpty: false,
+    isLoading: isSocialLoginUser && !isGeolocationResolved,
+  });
+
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.CHOOSE_PASSWORD,
+    destinationReady: true,
+  });
 
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
   const confirmPasswordInputRef = useRef<TextInput | null>(null);

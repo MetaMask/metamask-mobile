@@ -32,7 +32,6 @@ interface PushNotificationOnboardingProps {
 const styles = StyleSheet.create({
   toastAccessory: {
     alignSelf: 'flex-start',
-    marginRight: 12,
     paddingTop: 4,
   },
 });
@@ -95,7 +94,7 @@ const PushNotificationOnboarding = ({
       title: string;
       description: string;
     }) => {
-      const iconColor = isEnabled ? IconColor.Success : IconColor.Alternative;
+      const iconColor = isEnabled ? IconColor.Success : IconColor.Default;
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
@@ -111,7 +110,7 @@ const PushNotificationOnboarding = ({
         startAccessory: (
           <View style={styles.toastAccessory}>
             <Icon
-              name={isEnabled ? IconName.CheckBold : IconName.Info}
+              name={isEnabled ? IconName.Confirmation : IconName.Info}
               size={IconSize.Lg}
               color={iconColor}
             />

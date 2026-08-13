@@ -1,8 +1,9 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { PredictSportsLeague } from '../../types';
-import { PolymarketApiTeam } from './types';
+import type { PredictSportsLeague } from '../../types';
+import { getPolymarketTeamLeague } from '../../utils/gameParser';
+import type { PolymarketApiTeam } from './types';
 import { getPolymarketEndpoints } from './utils';
 
 import { POLYMARKET_PROVIDER_ID } from './constants';
@@ -45,7 +46,8 @@ export class TeamsCache {
     }
 
     const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-    const url = `${GAMMA_API_ENDPOINT}/teams?league=${league}`;
+    const teamLeague = getPolymarketTeamLeague(league);
+    const url = `${GAMMA_API_ENDPOINT}/teams?league=${teamLeague}`;
 
     const loadPromise = this.fetchAndCacheFromUrl(
       league,
@@ -89,7 +91,8 @@ export class TeamsCache {
     }
 
     const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-    const params = new URLSearchParams({ league });
+    const teamLeague = getPolymarketTeamLeague(league);
+    const params = new URLSearchParams({ league: teamLeague });
     uncached.forEach((abbr) => params.append('abbreviation', abbr));
     const url = `${GAMMA_API_ENDPOINT}/teams?${params.toString()}`;
 

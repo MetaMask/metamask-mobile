@@ -593,6 +593,7 @@ const MarketInsightsView: React.FC = () => {
           newTabUrl: url,
           timestamp: Date.now(),
           fromTrending: true,
+          fromMarketInsights: true,
         },
       });
     },

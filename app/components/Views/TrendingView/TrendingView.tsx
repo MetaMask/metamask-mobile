@@ -48,6 +48,7 @@ import DappsTab from './tabs/DappsTab';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   trackExploreInteracted,
+  trackExploreSearchOpened,
   type ExploreTabName,
 } from './search/analytics';
 import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
@@ -256,6 +257,7 @@ export const ExploreFeed: React.FC = () => {
   }, [navigation, portfolioUrl.href, browserTabsCount]);
 
   const handleSearchPress = useCallback(() => {
+    trackExploreSearchOpened('explore');
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 

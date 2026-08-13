@@ -28,4 +28,8 @@ export const MoneyAccountApiDataServiceQueryKeys = {
    * the address in the query key.
    */
   FETCH_POSITIONS: `${MoneyAccountApiDataService.name}:fetchPositions`,
+  /**
+   * Interest earned by a Money Account position for a requested time window.
+   */
+  FETCH_INTEREST: `${MoneyAccountApiDataService.name}:fetchInterest`,
 } as const;

@@ -14,7 +14,11 @@ import {
   type WatchlistBlob,
 } from '../../../app/components/UI/Assets/watchlist/storage';
 import { TOKEN_API_BASE_URL } from '../../../app/components/UI/Assets/watchlist/utils/getTokens';
-import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import {
+  clearAllNockMocks,
+  disableNetConnect,
+  teardownNock,
+} from './nockHelpers';
 import {
   mockRwaTokensData,
   mockTrendingTokensData,
@@ -236,5 +240,5 @@ export function clearWatchlistStorageMock(): void {
 export function clearWatchlistApiMocks(): void {
   clearWatchlistStorageMock();
   jest.clearAllMocks();
-  clearAllNockMocks();
+  teardownNock();
 }

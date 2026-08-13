@@ -78,6 +78,11 @@ const mockAddress = '0x1234567890abcdef';
 const mockMnemonicPhraseToBytes = jest
   .fn()
   .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+const mockClearBrazeUser = jest.fn();
+
+jest.mock('../Braze', () => ({
+  clearBrazeUser: () => mockClearBrazeUser(),
+}));
 
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
@@ -1375,6 +1380,20 @@ describe('Authentication', () => {
         expect(fallbackMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
+      it('clears stored Transak provider token when creating a new wallet', async () => {
+        const createWalletDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: createWalletDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+
+        expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
+      });
+
       it('falls back to PASSWORD when biometric storePassword fails in newWalletAndRestore', async () => {
         const restoreMockDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -1416,9 +1435,29 @@ describe('Authentication', () => {
         expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
+      it('clears stored Transak provider token when restoring a wallet', async () => {
+        const restoreWalletDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: restoreWalletDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+          'test seed phrase',
+          true,
+        );
+
+        expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
+      });
+
       it('imports remaining QR sync secrets after primary vault restore', async () => {
         const Engine = jest.requireMock('../Engine');
         const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
+        Engine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
+          PRIMARY_ENTROPY_SOURCE,
+        );
 
         await Authentication.newWalletAndRestore(
           'password',
@@ -4427,10 +4466,14 @@ describe('Authentication', () => {
       await Authentication.deleteWallet();
 
       // Assert
+      expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
       expect(resetWalletStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteUserSpy).toHaveBeenCalledTimes(1);
+      const clearBrazeCallOrder =
+        mockClearBrazeUser.mock.invocationCallOrder[0];
       const resetCallOrder = resetWalletStateSpy.mock.invocationCallOrder[0];
       const deleteCallOrder = deleteUserSpy.mock.invocationCallOrder[0];
+      expect(clearBrazeCallOrder).toBeLessThan(resetCallOrder);
       expect(resetCallOrder).toBeLessThan(deleteCallOrder);
     });
 

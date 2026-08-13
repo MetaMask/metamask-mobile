@@ -5,14 +5,20 @@ import {
   selectTransactionPayFiatPaymentByTransactionId,
   selectTransactionPayIsMaxAmountByTransactionId,
   selectTransactionPayIsPostQuoteByTransactionId,
+  selectTransactionPayQuoteErrorByTransactionId,
   selectTransactionPayQuotesByTransactionId,
   selectTransactionPayQuotesLastUpdatedByTransactionId,
+  selectTransactionPayRawQuotesByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
   selectTransactionPayTokensByTransactionId,
   selectTransactionPayTotalsByTransactionId,
 } from '../../../../../selectors/transactionPayController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useConfirmationContext } from '../../context/confirmation-context';
+
+export function useTransactionPayQuotesRaw() {
+  return useTransactionPayData(selectTransactionPayRawQuotesByTransactionId);
+}
 
 export function useTransactionPayQuotes() {
   return useTransactionPayData(selectTransactionPayQuotesByTransactionId);
@@ -26,6 +32,11 @@ export function useTransactionPayQuotesLastUpdated() {
 
 export function useTransactionPayRequiredTokens() {
   return useTransactionPayData(selectTransactionPayTokensByTransactionId);
+}
+
+export function useTransactionPayPrimaryRequiredToken() {
+  const requiredTokens = useTransactionPayRequiredTokens();
+  return requiredTokens?.[0];
 }
 
 export function useTransactionPaySourceAmounts() {
@@ -58,6 +69,10 @@ export function useTransactionPayIsPostQuote() {
 
 export function useTransactionPayFiatPayment() {
   return useTransactionPayData(selectTransactionPayFiatPaymentByTransactionId);
+}
+
+export function useTransactionPayQuoteError() {
+  return useTransactionPayData(selectTransactionPayQuoteErrorByTransactionId);
 }
 
 function useTransactionPayData<T>(

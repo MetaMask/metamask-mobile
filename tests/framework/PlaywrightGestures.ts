@@ -6,6 +6,7 @@ import { boxedStep, getDriver } from './PlaywrightUtilities';
 import {
   createPlaywrightLogger,
   debugElementAction,
+  formatSelector,
 } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('PlaywrightGestures');
@@ -19,6 +20,42 @@ export interface ScrollOptions {
   duration?: number;
   /** WDIO native scrollIntoView limit; default is 10. */
   maxScrolls?: number;
+}
+
+/**
+ * Ensures a Appium element has a resolved `elementId` before any call that
+ * would invoke `getElementRect` (`scrollIntoView`, `getLocation`, `getSize`).
+ */
+export async function assertResolvedElementId(
+  elem: PlaywrightElement,
+  action: string,
+  role: 'target' | 'scrollableElement' = 'target',
+): Promise<string> {
+  const unwrapped = elem.unwrap();
+  let elementId: unknown;
+  try {
+    elementId = await unwrapped.elementId;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Cannot ${action}: failed to read ${role} elementId (${detail})`,
+    );
+  }
+
+  if (elementId === undefined || elementId === null || elementId === '') {
+    let selectorLabel = '';
+    try {
+      selectorLabel = formatSelector(await unwrapped.selector);
+    } catch {
+      // Selector may be unavailable for unresolved/stale elements.
+    }
+    const selectorPart = selectorLabel ? ` (selector: ${selectorLabel})` : '';
+    throw new Error(
+      `Cannot ${action}: ${role} has no valid Appium elementId${selectorPart}. Element was not found or is stale — refusing to call getElementRect.`,
+    );
+  }
+
+  return String(elementId);
 }
 
 /**
@@ -188,6 +225,7 @@ export default class PlaywrightGestures {
       checkForStable?: boolean;
       enabledStableReads?: number;
       postEnabledSettleMs?: number;
+      elemDescription?: string;
     },
   ): Promise<void> {
     const {
@@ -199,6 +237,7 @@ export default class PlaywrightGestures {
       checkForStable = false,
       enabledStableReads = 3,
       postEnabledSettleMs,
+      elemDescription,
     } = options || {};
 
     if (checkForDisplayed) {
@@ -227,7 +266,13 @@ export default class PlaywrightGestures {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
-    await debugElementAction(logger, 'Wait and tap element', elem);
+    await debugElementAction(
+      logger,
+      elemDescription
+        ? `Wait and tap element: ${elemDescription}`
+        : 'Wait and tap element',
+      elem,
+    );
     await elem.unwrap().click();
   }
 
@@ -285,27 +330,36 @@ export default class PlaywrightGestures {
   }
 
   /**
-   * Long press an element
+   * Long press an element via W3C pointer actions.
+   *
+   * Avoid `touchAction` — some WDIO/Appium combinations still route that call
+   * through the legacy `touch/perform` endpoint, which can fail for native
+   * mobile sessions (GET with body).
    */
   @boxedStep
   static async longPress(
     elem: PlaywrightElement,
     duration = 1000,
   ): Promise<void> {
+    await assertResolvedElementId(elem, 'longPress', 'target');
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
-
-    const x = location.x + size.width / 2;
-    const y = location.y + size.height / 2;
+    const x = Math.floor(location.x + size.width / 2);
+    const y = Math.floor(location.y + size.height / 2);
 
     await debugElementAction(logger, 'Long pressing element', elem);
-    await elem
-      .unwrap()
-      .touchAction([
-        { action: 'press', x, y },
-        { action: 'wait', ms: duration },
-        'release',
-      ]);
+    await drv
+      .action('pointer', {
+        parameters: { pointerType: 'touch' },
+      })
+      .move({ x, y })
+      .down()
+      .pause(duration)
+      .up()
+      .perform();
   }
 
   /**
@@ -346,6 +400,15 @@ export default class PlaywrightGestures {
       duration,
       maxScrolls = 30,
     } = options || {};
+    // Only guard scrollableElement here. The target may be off-screen / not yet
+    // in the hierarchy; WDIO scrolls until it becomes visible.
+    if (scrollableElement) {
+      await assertResolvedElementId(
+        scrollableElement,
+        'scrollIntoView',
+        'scrollableElement',
+      );
+    }
     await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
       direction: scrollParams.direction,
@@ -377,6 +440,8 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) return;
 
+    // Re-check before getLocation/getSize — element may have gone stale after scroll.
+    await assertResolvedElementId(elem, 'scrollIntoViewFullyVisible', 'target');
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
     const windowSize = getWindowSize();
@@ -509,6 +574,79 @@ export default class PlaywrightGestures {
   }
 
   /**
+   * Tap a single iOS soft-keyboard key by accessibility id (e.g. "Delete", "1").
+   */
+  @boxedStep
+  static async tapIosKeyboardKey(keyName: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const key = await drv.$(`~${keyName}`);
+    await key.waitForExist({ timeout: 5000 });
+    await key.click();
+  }
+
+  /**
+   * Type into the focused iOS soft keyboard by tapping keys.
+   * Supports lowercase letters, digits 0-9, '.', and space only.
+   *
+   * @param options.numberPad - When true, skip QWERTY `~more` switching
+   * (digits are already on the pad). Use for `keyboardType="numeric"` fields.
+   */
+  @boxedStep
+  static async typeViaIosKeyboard(
+    text: string,
+    options?: { numberPad?: boolean },
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    if (options?.numberPad) {
+      for (const ch of text) {
+        await this.tapIosKeyboardKey(ch);
+      }
+      return;
+    }
+
+    await drv
+      .$('//XCUIElementTypeKeyboard')
+      .waitForDisplayed({ timeout: 10000 });
+
+    let onNumbers = false;
+    const ensureLetters = async (): Promise<void> => {
+      if (onNumbers) {
+        await this.tapIosKeyboardKey('more');
+        onNumbers = false;
+      }
+    };
+    const ensureNumbers = async (): Promise<void> => {
+      if (!onNumbers) {
+        await this.tapIosKeyboardKey('more');
+        onNumbers = true;
+      }
+    };
+
+    for (const ch of text) {
+      if (ch === '.' || (ch >= '0' && ch <= '9')) {
+        await ensureNumbers();
+        await this.tapIosKeyboardKey(ch);
+      } else if (ch === ' ') {
+        await ensureLetters();
+        await this.tapIosKeyboardKey('space');
+      } else {
+        const letter = ch.toLowerCase();
+        if (letter < 'a' || letter > 'z') {
+          throw new Error(
+            `typeViaIosKeyboard: unsupported character "${ch}". Only letters, digits, "." and space are supported.`,
+          );
+        }
+        await ensureLetters();
+        await this.tapIosKeyboardKey(letter);
+      }
+    }
+  }
+
+  /**
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
@@ -518,7 +656,13 @@ export default class PlaywrightGestures {
 
     logger.debug('Hiding keyboard');
     if (PlatformDetector.isAndroid()) {
-      await drv.hideKeyboard();
+      try {
+        if (await drv.isKeyboardShown()) {
+          await drv.hideKeyboard();
+        }
+      } catch {
+        // Keyboard already hidden
+      }
     } else {
       // iOS — use 'tapOutside' to dismiss the keyboard without pressing a
       // return key. 'pressKey: Done' would trigger onSubmitEditing on inputs

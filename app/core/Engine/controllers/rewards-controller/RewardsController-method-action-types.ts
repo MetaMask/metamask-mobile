@@ -681,6 +681,16 @@ export type RewardsControllerGetVIPDashboardAction = {
 };
 
 /**
+ * Display-only equity multiplier estimate from client-supplied holdings.
+ * Must never be persisted as program truth or feed warrant settlement
+ * (RWDS-1485). Client balance is untrusted; cache is holdings-keyed TTL only.
+ */
+export type RewardsControllerGetVipEquityMultiplierAction = {
+  type: `RewardsController:getVipEquityMultiplier`;
+  handler: RewardsController['getVipEquityMultiplier'];
+};
+
+/**
  * Get the VIP referee stats with caching.
  * @param subscriptionId - The subscription ID for authentication
  * @returns Promise<VipRefereeMeState | null> - The referee stats, or null when the user is not a VIP referee
@@ -913,6 +923,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerHasVipTransactionsChangedAction
   | RewardsControllerLookupVipTransactionAction
   | RewardsControllerGetVIPDashboardAction
+  | RewardsControllerGetVipEquityMultiplierAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction

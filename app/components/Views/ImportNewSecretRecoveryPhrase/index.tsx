@@ -49,13 +49,18 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
+import {
+  getTrimmedSeedPhraseWords,
+  isSRPLengthValid,
+  SPACE_CHAR,
+} from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
   validateCompleteness,
@@ -104,6 +109,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     [insets, tw],
   );
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
   // State
@@ -189,16 +195,14 @@ const ImportNewSecretRecoveryPhrase = () => {
   );
 
   const onSubmit = useCallback(async () => {
-    const phrase = seedPhrase
-      .map((item) => item.trim())
-      .filter((item) => item !== '')
-      .join(SPACE_CHAR);
+    const trimmedWords = getTrimmedSeedPhraseWords(seedPhrase);
+    const phrase = trimmedWords.join(SPACE_CHAR);
 
     setError('');
 
-    const invalidWords = Array(seedPhrase.length).fill(false);
-    let validationResult = validateSRP(seedPhrase, invalidWords);
-    validationResult = validateCompleteness(validationResult, seedPhrase);
+    const invalidWords = Array(trimmedWords.length).fill(false);
+    let validationResult = validateSRP(trimmedWords, invalidWords);
+    validationResult = validateCompleteness(validationResult, trimmedWords);
     validationResult = validateCase(validationResult, phrase);
     validationResult = validateWords(validationResult);
     validationResult = validateMnemonic(validationResult, phrase);
@@ -251,7 +255,8 @@ const ImportNewSecretRecoveryPhrase = () => {
           } ${strings('import_new_secret_recovery_phrase.success_2')}`,
         },
       ],
-      iconName: ComponentIconName.Check,
+      iconName: ComponentIconName.Confirmation,
+      iconColor: colors.success.default,
       hasNoTimeout: false,
     });
 
@@ -262,6 +267,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     seedPhrase,
     trackDiscoveryEvent,
     toastRef,
+    colors.success.default,
     hdKeyrings.length,
     fetchAccountsWithActivity,
     navigation,

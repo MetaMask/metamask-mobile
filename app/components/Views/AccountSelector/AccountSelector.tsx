@@ -87,6 +87,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
 
+  // Stable array reference so the memoized list isn't re-rendered (and its
+  // selectedIdSet / renderItem rebuilt) on every parent render.
+  const selectedAccountGroups = useMemo(
+    () => (selectedAccountGroup ? [selectedAccountGroup] : []),
+    [selectedAccountGroup],
+  );
+
   const {
     isAccountSyncingInProgress,
     loadingMessage: accountOperationLoadingMessage,
@@ -215,7 +222,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         {selectedAccountGroup ? (
           <MultichainAccountSelectorList
             onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroups={[selectedAccountGroup]}
+            selectedAccountGroups={selectedAccountGroups}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
             showFooter={!disableAddAccountButton}
@@ -259,6 +266,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     ),
     [
       selectedAccountGroup,
+      selectedAccountGroups,
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,

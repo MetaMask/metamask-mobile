@@ -8,11 +8,9 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
-import {
-  balanceToFiatNumber,
-  renderFiat,
-} from '../../../../util/number/bigint';
+import { balanceToFiatNumber } from '../../../../util/number/bigint';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { useFormatters } from '../../../hooks/useFormatters';
 import { getMaybeHexChainId } from '../../../../util/bridge';
 import {
   GAS_FEE_SPONSORED,
@@ -24,7 +22,6 @@ import {
   type TokenAmount,
 } from '../../../../util/activity-adapters';
 
-type FiatCurrency = Parameters<typeof renderFiat>[1];
 type MultichainAssetRates = Record<
   string,
   { rate?: string | number | null } | undefined
@@ -40,8 +37,6 @@ export interface ActivityAmountsFiat {
   feeRows: ActivityFeeFiatRow[];
   totalFiat?: string;
 }
-
-const FIAT_DECIMALS = 2;
 
 /** A CAIP asset id refers to the chain's native token (e.g. `slip44`/`native`). */
 function isNativeAssetId(assetId: string | undefined): boolean {
@@ -264,6 +259,7 @@ export function useActivityAmountsFiat(
 ): ActivityAmountsFiat {
   const hexChainId = getMaybeHexChainId(item.chainId);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const { formatCurrencyWithMinThreshold } = useFormatters();
   const conversionRate = useSelector((state: RootState) =>
     hexChainId
       ? selectConversionRateByChainId(state, hexChainId, true)
@@ -325,7 +321,7 @@ export function useActivityAmountsFiat(
 
     const feeValue =
       feeFiat !== undefined && currentCurrency
-        ? renderFiat(feeFiat, currentCurrency as FiatCurrency, FIAT_DECIMALS)
+        ? formatCurrencyWithMinThreshold(feeFiat, currentCurrency)
         : feeToTokenAmount(fee);
 
     if (feeValue) {
@@ -340,10 +336,9 @@ export function useActivityAmountsFiat(
   const canShowTotal =
     Boolean(currentCurrency) && (tokenFiat !== undefined || hasFee);
   const totalFiat = canShowTotal
-    ? renderFiat(
+    ? formatCurrencyWithMinThreshold(
         (tokenFiat ?? 0) + feeFiatTotal,
-        currentCurrency as FiatCurrency,
-        FIAT_DECIMALS,
+        currentCurrency,
       )
     : undefined;
 

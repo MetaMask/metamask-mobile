@@ -33,10 +33,15 @@ export {
   ActivityDetailsTotalRow,
 } from './ActivityDetailsFees';
 export {
+  ActivityDetailsPayFeesAndTotal,
+  useActivityPayFiat,
+} from './ActivityDetailsPayFees';
+export { ActivityDetailsPayNetworkRow } from './ActivityDetailsPayNetworkRow';
+export {
   ActivityDetailsFooter,
   ActivityDetailsBlockExplorerButton,
   ActivityDetailsBridgeExplorerButtons,
   ActivityDetailsDoItAgainButton,
   ActivityDetailsWebviewButton,
 } from './ActivityDetailsFooter';
-export { formatActivityTokenAmount } from './activityTokenFormat';
+export { useFormatActivityTokenAmount } from './activityTokenFormat';

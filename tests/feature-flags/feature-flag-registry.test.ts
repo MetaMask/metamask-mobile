@@ -43,6 +43,67 @@ describe('Feature Flag Registry', () => {
         expect(entry.productionDefault).toBeDefined();
       }
     });
+
+    it('enables curated event pages for the extended sports leagues', () => {
+      const extendedSportsLeagues = [
+        'nba',
+        'wnba',
+        'mlb',
+        'nhl',
+        'fifwc',
+        'ucl',
+        'epl',
+        'lal',
+        'sea',
+        'bun',
+        'mls',
+        'fif',
+        'atp',
+        'wta',
+        'itf',
+        'uel',
+        'col',
+        'fl1',
+        'ere',
+        'bra',
+        'por',
+        'bel1',
+        'elc',
+        'lib',
+        'kbo',
+        'npb',
+        'cpbl',
+        'shl',
+        'khl',
+        'cehl',
+        'dehl',
+        'nfl',
+        'cfb',
+        'cfl',
+      ];
+
+      const extendedSportsFlag =
+        FEATURE_FLAG_REGISTRY.predictExtendedSportsMarkets.productionDefault;
+
+      expect(extendedSportsFlag).toEqual(
+        expect.objectContaining({
+          versions: expect.objectContaining({
+            '8.6.0': expect.objectContaining({
+              enabledSportsMarketTypes: expect.arrayContaining([
+                'first_half_moneyline',
+              ]),
+              leagues: expect.arrayContaining(extendedSportsLeagues),
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('keeps the Predict sports feed enabled by default', () => {
+      expect(getRegistryEntry('predictSportsFeed')?.productionDefault).toEqual(
+        expect.objectContaining({ enabled: true }),
+      );
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
@@ -78,6 +139,7 @@ describe('Feature Flag Registry', () => {
 
       expect(flagNames).toContain('bridgeConfigV2');
       expect(flagNames).toContain('bitcoinAccounts');
+      expect(flagNames).toContain('stellarAccounts');
       expect(flagNames).toContain('tronAccounts');
       expect(flagNames).toContain('tronClaimUnstakedTrxButtonEnabled');
     });
@@ -94,6 +156,7 @@ describe('Feature Flag Registry', () => {
       const defaults = getProductionRemoteFlagDefaults();
       expect(defaults.assetsDefiPositionsEnabled).toBe(true);
       expect(defaults.bitcoinTestnetsEnabled).toBe(false);
+      expect(defaults.moneyAccountBalanceSource).toBe('rpc');
     });
 
     it('only includes remote production flags', () => {

@@ -66,6 +66,16 @@ const ERC20_APPROVE_ABI = [
   },
 ] as const;
 
+const ERC20_BALANCE_OF_ABI = [
+  {
+    name: 'balanceOf',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'account', type: 'address' }],
+    outputs: [{ type: 'uint256' }],
+  },
+] as const;
+
 const AAVE_SUPPLY_ABI = [
   {
     name: 'supply',
@@ -98,18 +108,27 @@ async function seedAethUsdcViaDeposit(
   await testClient.impersonateAccount({ address: account });
 
   try {
-    const approveTx = await walletClient.writeContract({
-      account,
-      address: USDC_MAINNET as Hex,
-      abi: ERC20_APPROVE_ABI,
-      functionName: 'approve',
-      args: [AAVE_POOL as Hex, amount],
-    });
-    await publicClient.waitForTransactionReceipt({ hash: approveTx });
-
+    // Each supply attempt must be preceded by a fresh approve — a successful
+    // first supply consumes allowance, so bare supply retries would fail.
     let lastError: unknown;
     for (let attempt = 1; attempt <= AAVE_SUPPLY_MAX_ATTEMPTS; attempt++) {
       try {
+        const approveTx = await walletClient.writeContract({
+          account,
+          address: USDC_MAINNET as Hex,
+          abi: ERC20_APPROVE_ABI,
+          functionName: 'approve',
+          args: [AAVE_POOL as Hex, amount],
+        });
+        const approveReceipt = await publicClient.waitForTransactionReceipt({
+          hash: approveTx,
+        });
+        if (approveReceipt.status !== 'success') {
+          throw new Error(
+            `Aave seed approve reverted (status=${approveReceipt.status}, hash=${approveTx}, attempt=${attempt})`,
+          );
+        }
+
         const supplyTx = await walletClient.writeContract({
           account,
           address: AAVE_POOL as Hex,
@@ -117,7 +136,26 @@ async function seedAethUsdcViaDeposit(
           functionName: 'supply',
           args: [USDC_MAINNET as Hex, amount, account, 0],
         });
-        await publicClient.waitForTransactionReceipt({ hash: supplyTx });
+        const supplyReceipt = await publicClient.waitForTransactionReceipt({
+          hash: supplyTx,
+        });
+        if (supplyReceipt.status !== 'success') {
+          throw new Error(
+            `Aave seed supply reverted (status=${supplyReceipt.status}, hash=${supplyTx}, attempt=${attempt})`,
+          );
+        }
+
+        const aTokenBalance = await publicClient.readContract({
+          address: AAVE_USDC_OUTPUT_TOKEN as Hex,
+          abi: ERC20_BALANCE_OF_ABI,
+          functionName: 'balanceOf',
+          args: [account],
+        });
+        if (aTokenBalance <= 0n) {
+          throw new Error(
+            `Aave seed supply mined but aEthUSDC balanceOf(${account}) is ${aTokenBalance} (hash=${supplyTx})`,
+          );
+        }
         return;
       } catch (error) {
         lastError = error;
@@ -126,7 +164,11 @@ async function seedAethUsdcViaDeposit(
         }
       }
     }
-    throw lastError;
+    throw new Error(
+      `Aave seed failed after ${AAVE_SUPPLY_MAX_ATTEMPTS} attempt(s): ${
+        lastError instanceof Error ? lastError.message : String(lastError)
+      }`,
+    );
   } finally {
     await testClient.stopImpersonatingAccount({ address: account });
   }

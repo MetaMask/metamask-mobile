@@ -7,7 +7,7 @@ import {
   selectCardActiveProviderId,
   selectCardSelectedCountry,
 } from '../../../../../../selectors/cardController';
-import { selectCardFeatureFlag } from '../../../../../../selectors/featureFlagController/card';
+import { selectCardImmersveConfig } from '../../../../../../selectors/featureFlagController/card';
 import {
   selectImmersveFundingSourceId,
   setImmersveFundingSourceId,
@@ -39,8 +39,9 @@ export function useImmersveCardProvisioning(
 
   const reduxFundingSourceId = useSelector(selectImmersveFundingSourceId);
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
-  const fundingChannelId = useSelector(selectCardFeatureFlag).immersve
-    ?.fundingChannelId;
+  const fundingChannelId = useSelector(
+    selectCardImmersveConfig,
+  ).fundingChannelId;
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const handled = useRef(false);
@@ -69,7 +70,9 @@ export function useImmersveCardProvisioning(
     }
 
     const interval = setInterval(() => {
-      Engine.context.CardController.fetchCardHomeData().catch(() => undefined);
+      Engine.context.CardController.fetchCardHomeData({ force: true }).catch(
+        () => undefined,
+      );
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);

@@ -193,23 +193,6 @@ export const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
-export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
-  [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
-  [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
-  [NETWORKS_CHAIN_ID.BASE]: 'Base',
-  [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
-  [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
-  [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
-  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
-  [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
-  [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
-  [NETWORKS_CHAIN_ID.ZKSYNC_ERA]: 'zkSync Era Mainnet',
-  [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
-  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain',
-  [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
-  [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
-};
-
 export default NetworkList;
 
 export const getAllNetworks = () =>

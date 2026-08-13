@@ -16,6 +16,7 @@ import MoneyNextBestActionParallax, {
 } from '../MoneyNextBestActionParallax';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -28,6 +29,7 @@ import { useSelector } from 'react-redux';
 import {
   selectIsCardholder,
   selectCardHomeDataStatus,
+  selectIsCardStateResolved,
 } from '../../../../../selectors/cardController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -53,7 +55,8 @@ const MoneyOnboardingCard = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { tokenTotal, isBalanceLoading, apyPercent } = useMoneyAccountBalance();
+  const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
   const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
@@ -70,6 +73,7 @@ const MoneyOnboardingCard = () => {
   } = useMoneyAccountCardLinkage();
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardStateResolved = useSelector(selectIsCardStateResolved);
 
   const isMoneyAccountFunded = Boolean(
     !isBalanceLoading && tokenTotal?.isGreaterThan(0),
@@ -366,7 +370,15 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
-  if (isBalanceLoading || !isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
+  const isWaitingForCardState =
+    !isCardStateResolved && effectiveCurrentStep > 0;
+
+  if (
+    isBalanceLoading ||
+    isWaitingForCardState ||
+    !isOnboardingCardVisible ||
+    !isVisibleAfterAutoSkip
+  ) {
     return null;
   }
 

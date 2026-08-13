@@ -177,14 +177,18 @@ const renderComponent = (routeParams: SetupOptions = {}) => {
 const revealSeedPhrase = async (
   wrapper: ReturnType<typeof renderWithProvider>,
 ) => {
-  fireEvent.press(
-    wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
-  );
-  await waitFor(() => {
-    expect(
-      wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
-    ).toBeOnTheScreen();
+  // Wrap in act so the seedPhraseHidden state update flushes before assert.
+  // waitFor is unsafe here: testSetup mocks Date.now to a constant, so
+  // waitFor's timeout never elapses and a missed update hangs until Jest's
+  // test timeout (seen as flaky 15s failures in CI).
+  await act(async () => {
+    fireEvent.press(
+      wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+    );
   });
+  expect(
+    wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
+  ).toBeOnTheScreen();
 };
 
 const renderPasswordView = async () => {
@@ -242,7 +246,7 @@ describe('ManualBackupStep1', () => {
       ).toBeOnTheScreen();
 
       await revealSeedPhrase(wrapper);
-    }, 15000);
+    });
 
     it('displays the concealer with blur overlay before reveal', () => {
       const { wrapper } = renderComponent();

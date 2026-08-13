@@ -1,5 +1,6 @@
 import {
   PerpsHomeViewSelectorsIDs,
+  PerpsMarketBalanceActionsSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsMarketRowItemSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
@@ -139,6 +140,12 @@ class PerpsMarketListView {
 
   get closeTokenSelector() {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CLOSE_BUTTON);
+  }
+
+  get withdrawButton() {
+    return Matchers.getElementByID(
+      PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
+    );
   }
 
   // Actions

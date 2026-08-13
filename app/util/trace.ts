@@ -8,6 +8,8 @@ import {
   type StartSpanOptions,
   type Span,
   withIsolationScope,
+  startNewTrace,
+  SPAN_STATUS_ERROR,
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
@@ -58,6 +60,9 @@ export enum TraceName {
   LoadDepositExperience = 'Load Deposit Experience',
   DepositContinueFlow = 'Deposit Continue Flow',
   DepositInputOtp = 'Deposit Input OTP',
+  RampBuyToOrderDetails = 'Ramp Buy To Order Details',
+  RampBuyContinueToCheckout = 'Ramp Buy Continue To Checkout',
+  RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -108,8 +113,15 @@ export enum TraceName {
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
   OnboardingSRPAccountCreationTime = 'Onboarding SRP Account Creation Time',
   OnboardingSRPAccountImportTime = 'Onboarding SRP Account Import Time',
+  // Onboarding screen / Rive / navigation performance
+  OnboardingScreenTimeToContent = 'Onboarding Screen Time To Content',
+  OnboardingScreenDataFetch = 'Onboarding Screen Data Fetch',
+  OnboardingRiveReady = 'Onboarding Rive Ready',
+  OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  SwapQuoteFetch = 'Swap Quote Fetch',
+  SwapTokenSearch = 'Swap Token Search',
   Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
@@ -258,6 +270,8 @@ export enum TraceName {
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
+  MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
+  MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
 }
 
 export enum TraceOperation {
@@ -290,6 +304,9 @@ export enum TraceOperation {
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
+  OnboardingScreenPerformance = 'onboarding.screen.performance',
+  OnboardingRivePerformance = 'onboarding.rive.performance',
+  OnboardingNavigationPerformance = 'onboarding.navigation.performance',
   // Accounts
   AccountCreate = 'account.create',
   AccountDiscover = 'account.discover',
@@ -320,6 +337,7 @@ export enum TraceOperation {
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
+  RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
@@ -333,6 +351,81 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
 const localBufferedTraces: BufferedTrace[] = [];
+
+/**
+ * Summed machine/app wait time on `Onboarding - Overall Journey`, excluding human
+ * interaction (browser OAuth, password typing). See `MACHINE_TIME_TRACE_NAMES`.
+ */
+export const ONBOARDING_MACHINE_TIME_ATTRIBUTE = 'onboarding.machine.ms';
+
+/** Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap. */
+const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
+  TraceName.OnboardingScreenTimeToContent,
+  TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+  TraceName.OnboardingOAuthSeedlessAuthenticate,
+  TraceName.OnboardingPasswordLoginAttempt,
+  TraceName.OnboardingSRPAccountCreationTime,
+  TraceName.OnboardingSRPAccountImportTime,
+]);
+
+let onboardingMachineTimeMs = 0;
+/** Harvested from buffered spans on social opt-in discard; applied on journey start/reuse. */
+let pendingOnboardingMachineTimeMs = 0;
+
+const ACCOUNT_TYPE_ATTRIBUTE = 'account_type';
+const ONBOARDING_OP_PREFIX = 'onboarding.';
+
+/** Journey account type inherited by onboarding child spans (see `rememberOnboardingAccountType`). */
+let onboardingAccountType: string | undefined;
+
+/**
+ * Record the journey's account type when the given tags carry one.
+ *
+ * @param tags - Tags from a journey trace request or annotation.
+ */
+function rememberOnboardingAccountType(
+  tags?: Record<string, TraceValue>,
+): void {
+  const accountType = tags?.[ACCOUNT_TYPE_ATTRIBUTE];
+
+  if (typeof accountType === 'string') {
+    onboardingAccountType = accountType;
+  }
+}
+
+/**
+ * Resolve the attributes a span starts with. Tags are mirrored into attributes,
+ * with data taking precedence, and onboarding spans inherit the journey's account
+ * type when they do not set one of their own.
+ *
+ * @param request - The trace request being started.
+ * @returns The attributes to open the span with.
+ */
+function getSpanAttributes(
+  request: TraceRequest,
+): Record<string, TraceValue> | undefined {
+  const { data, op, tags } = request;
+  const attributes =
+    data || tags
+      ? {
+          ...tags,
+          ...data,
+        }
+      : undefined;
+
+  if (
+    !op?.startsWith(ONBOARDING_OP_PREFIX) ||
+    onboardingAccountType === undefined ||
+    attributes?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
+  ) {
+    return attributes;
+  }
+
+  return {
+    ...attributes,
+    [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType,
+  };
+}
 
 export interface PendingTrace {
   end: (timestamp?: number) => void;
@@ -381,6 +474,9 @@ export interface TraceRequest {
    * If provided, the trace will be nested under the parent trace.
    */
   parentContext?: TraceContext;
+
+  /** Root transaction; without parentContext also starts a fresh Sentry trace ID. */
+  forceTransaction?: boolean;
 
   /**
    * Override the start time of the trace.
@@ -544,9 +640,69 @@ export function annotateTrace(
     return;
   }
 
+  rememberOnboardingAccountType(tags);
+
   for (const [key, value] of Object.entries(tags)) {
     context.setAttribute(key, value);
   }
+}
+
+/** Skip failed spans; capped unmount durations are not real user waits. */
+function addOnboardingMachineTime(
+  request: EndTraceRequest,
+  duration: number,
+): void {
+  if (!MACHINE_TIME_TRACE_NAMES.has(request.name)) {
+    return;
+  }
+
+  if (request.data?.success === false || !Number.isFinite(duration)) {
+    return;
+  }
+
+  onboardingMachineTimeMs += Math.max(duration, 0);
+}
+
+/** Credit open machine-time spans on successful journey end (e.g. SRP create path). */
+function addOpenOnboardingMachineTime(
+  request: EndTraceRequest,
+  journeyEndTime: number,
+): void {
+  if (request.data?.success === false) {
+    return;
+  }
+
+  for (const pendingTrace of tracesByKey.values()) {
+    if (!MACHINE_TIME_TRACE_NAMES.has(pendingTrace.request.name)) {
+      continue;
+    }
+
+    const { startTime } = pendingTrace;
+    const cappedEndTime = Math.min(
+      journeyEndTime,
+      startTime + TRACES_CLEANUP_INTERVAL,
+    );
+
+    if (!Number.isFinite(cappedEndTime - startTime)) {
+      continue;
+    }
+
+    onboardingMachineTimeMs += Math.max(cappedEndTime - startTime, 0);
+  }
+}
+
+/** Write `onboarding.machine.ms` before the journey span finishes. */
+function finalizeOnboardingMachineTime(span?: Span): void {
+  // Mirrors the guard around span.end(): the tracing layer must never throw into
+  // an onboarding flow because a span implementation is incomplete.
+  if (span?.setAttribute !== undefined) {
+    span.setAttribute(
+      ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+      Math.round(onboardingMachineTimeMs),
+    );
+  }
+
+  onboardingMachineTimeMs = 0;
 }
 
 export function endTrace(request: EndTraceRequest): void {
@@ -576,10 +732,23 @@ export function endTrace(request: EndTraceRequest): void {
     }
   }
 
-  const endTime = finishPendingTrace(key, pendingTrace, timestamp);
+  let endTimeRequest = timestamp;
+
+  if (name === TraceName.OnboardingJourneyOverall) {
+    // Resolved here because the machine-time total needs the journey's end before
+    // the span is finished. Capping is idempotent, so handing the resolved value
+    // to finishPendingTrace records the same timestamp without re-reading the clock.
+    endTimeRequest = getEffectiveEndTime(pendingTrace, timestamp);
+    addOpenOnboardingMachineTime(request, endTimeRequest);
+    finalizeOnboardingMachineTime(pendingTrace.span);
+  }
+
+  const endTime = finishPendingTrace(key, pendingTrace, endTimeRequest);
 
   const { request: pendingRequest, startTime } = pendingTrace;
   const duration = endTime - startTime;
+
+  addOnboardingMachineTime(request, duration);
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
 }
@@ -596,7 +765,7 @@ function createBufferedStartTrace(
     request: {
       ...request,
       parentContext: undefined, // Remove original parentContext to avoid invalid references
-      startTime: request.startTime ?? Date.now(),
+      startTime: request.startTime ?? getPerformanceTimestamp(),
     },
     parentTraceName,
   } as BufferedTrace;
@@ -610,7 +779,7 @@ function createBufferedEndTrace(request: EndTraceRequest): BufferedTrace {
     type: 'end',
     request: {
       ...request,
-      timestamp: request.timestamp ?? Date.now(),
+      timestamp: request.timestamp ?? getPerformanceTimestamp(),
     },
   } as BufferedTrace;
 }
@@ -731,8 +900,66 @@ export function updateCachedConsent(consent: boolean) {
   cachedConsent = consent;
 }
 
+/** Pair buffered start/end machine-time spans before social opt-in discard. */
+function harvestBufferedOnboardingMachineTime(): number {
+  const startsByKey = new Map<string, number>();
+  let harvestedMs = 0;
+
+  for (const bufferedItem of localBufferedTraces) {
+    if (bufferedItem.type !== 'start') {
+      continue;
+    }
+
+    const request = bufferedItem.request as TraceRequest;
+    const { name, startTime } = request;
+    if (!MACHINE_TIME_TRACE_NAMES.has(name)) {
+      continue;
+    }
+
+    startsByKey.set(getTraceKey(request), startTime ?? Date.now());
+  }
+
+  for (const bufferedItem of localBufferedTraces) {
+    if (bufferedItem.type !== 'end') {
+      continue;
+    }
+
+    const request = bufferedItem.request as EndTraceRequest;
+    const { name, timestamp, data } = request;
+    if (!MACHINE_TIME_TRACE_NAMES.has(name) || data?.success === false) {
+      continue;
+    }
+
+    const startTime = startsByKey.get(getTraceKey(request));
+    if (startTime === undefined) {
+      continue;
+    }
+
+    const endTime = timestamp ?? Date.now();
+    const duration = endTime - startTime;
+
+    if (Number.isFinite(duration)) {
+      harvestedMs += Math.max(duration, 0);
+    }
+  }
+
+  return harvestedMs;
+}
+
+/** Apply pending machine time when the journey span is reused after social opt-in. */
+export function applyPendingOnboardingMachineTime(): void {
+  onboardingMachineTimeMs += pendingOnboardingMachineTimeMs;
+  pendingOnboardingMachineTimeMs = 0;
+}
+
+export function _resetOnboardingMachineTimeForTesting(): void {
+  onboardingMachineTimeMs = 0;
+  pendingOnboardingMachineTimeMs = 0;
+}
+
 export function discardBufferedTraces() {
-  localBufferedTraces.length = 0; // Clear local buffer as well
+  pendingOnboardingMachineTimeMs += harvestBufferedOnboardingMachineTime();
+  localBufferedTraces.length = 0;
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
@@ -790,6 +1017,13 @@ function startTrace(request: TraceRequest): TraceContext {
   const startTime = requestStartTime ?? getPerformanceTimestamp();
   const id = getTraceId(request);
 
+  if (name === TraceName.OnboardingJourneyOverall) {
+    onboardingMachineTimeMs = pendingOnboardingMachineTimeMs;
+    pendingOnboardingMachineTimeMs = 0;
+    onboardingAccountType = undefined;
+    rememberOnboardingAccountType(request.tags);
+  }
+
   if (getCachedConsent() !== true) {
     // Extract parent trace name if parentContext exists
     let parentTraceName: string | undefined;
@@ -805,7 +1039,7 @@ function startTrace(request: TraceRequest): TraceContext {
   const callback = (span: Span | undefined) => {
     const end = (timestamp?: number) => {
       if (span?.end !== undefined) {
-        span?.end(timestamp);
+        span?.end(timestamp ?? getPerformanceTimestamp());
       }
     };
 
@@ -832,7 +1066,13 @@ function startTrace(request: TraceRequest): TraceContext {
       }
 
       log('Trace cleanup due to timeout', name, id);
-
+      if (span) {
+        span.setStatus({
+          code: SPAN_STATUS_ERROR,
+          message: 'deadline_exceeded',
+        });
+        span.setAttribute('trace.timed_out', true);
+      }
       // The timer only fires at or after the maximum lifetime (possibly hours
       // late when the app was backgrounded), so record the capped timestamp
       // rather than the current time.
@@ -868,19 +1108,24 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { data: attributes, name, parentContext, startTime, op } = request;
+  const { name, parentContext, startTime, op, forceTransaction } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
-    attributes,
+    attributes: getSpanAttributes(request),
     name,
     op: op || OP_DEFAULT,
     parentSpan,
     startTime,
+    forceTransaction,
   };
 
   return withIsolationScope((scope) => {
     setScopeTags(scope, request);
+
+    if (forceTransaction && !parentSpan) {
+      return startNewTrace(() => callback(spanOptions));
+    }
 
     return callback(spanOptions);
   }) as T;

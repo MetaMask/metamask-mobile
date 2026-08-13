@@ -10,7 +10,11 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock, { type Scope } from 'nock';
-import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import {
+  clearAllNockMocks,
+  disableNetConnect,
+  teardownNock,
+} from './nockHelpers';
 import type {
   AbsolutePriceAlert,
   PercentChangeAlert,
@@ -176,5 +180,5 @@ export function setupPriceAlertsSupportedChainsMock(
  */
 export function clearPriceAlertsApiMocks(): void {
   jest.clearAllMocks();
-  clearAllNockMocks();
+  teardownNock();
 }

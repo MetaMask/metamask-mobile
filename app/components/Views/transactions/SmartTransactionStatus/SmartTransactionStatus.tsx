@@ -16,8 +16,10 @@ import {
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import TransactionBackgroundTop from '../../../../images/transaction-background-top.svg';
 import TransactionBackgroundBottom from '../../../../images/transaction-background-bottom.svg';
 import LoopingScrollAnimation from './LoopingScrollAnimation';
@@ -270,7 +272,7 @@ const SmartTransactionStatus = ({
 
   const chainId = useSelector(selectEvmChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -300,7 +302,8 @@ const SmartTransactionStatus = ({
 
   const createNewSend = () => {
     onConfirm();
-    navigation.navigate('SendFlowView');
+    // Legacy runtime route name not in RootStackParamList.
+    navigateWithDetails(navigation, ['SendFlowView']);
   };
 
   const {

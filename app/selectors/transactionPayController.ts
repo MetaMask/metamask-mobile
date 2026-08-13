@@ -38,14 +38,14 @@ export const selectIsTransactionPayLoadingByTransactionId = createSelector(
   (transactionData) => transactionData?.isLoading ?? false,
 );
 
-// Executable quotes only. No-op quotes mark direct routes and must not
-// surface in fee, duration, or step UI, so they are filtered here for all
-// consumers.
-export const selectTransactionPayQuotesByTransactionId = createSelector(
+export const selectTransactionPayRawQuotesByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  (transactionData) =>
-    transactionData?.quotes &&
-    transactionData.quotes.filter((quote) => !isNoOpQuote(quote)),
+  (transactionData) => transactionData?.quotes,
+);
+
+export const selectTransactionPayQuotesByTransactionId = createSelector(
+  selectTransactionPayRawQuotesByTransactionId,
+  (quotes) => quotes?.filter((quote) => !isNoOpQuote(quote)),
 );
 
 export const selectTransactionPayQuotesLastUpdatedByTransactionId =
@@ -99,4 +99,9 @@ export const selectPaymentOverrideByTransactionId = createSelector(
   (transactionData) =>
     (transactionData as Record<string, unknown> | undefined)
       ?.paymentOverride as string | undefined,
+);
+
+export const selectTransactionPayQuoteErrorByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.quoteError,
 );

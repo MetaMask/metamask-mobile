@@ -8,7 +8,9 @@ export default defineConfig({
     ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
     : 3,
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
-  grep: /@Performance/,
+  // Bare @Performance only — excludes @System-only specs that use area tags
+  // like @PerformanceSwaps without the @Performance type tag.
+  grep: /@Performance\b/,
   reporter: [
     [
       'html',
@@ -47,8 +49,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can changed
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0', // this can changed
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
         },
         app: {
           packageName: 'io.metamask',
@@ -100,8 +102,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
         },
         app: {
           packageName: 'io.metamask',
@@ -138,8 +140,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
         },
         app: {
           packageName: 'io.metamask',

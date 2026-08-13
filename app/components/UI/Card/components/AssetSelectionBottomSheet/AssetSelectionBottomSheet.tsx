@@ -1,5 +1,7 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, type ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
@@ -8,28 +10,16 @@ import { FundingStatus, CardFundingToken } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   Text,
+  TextColor,
   TextVariant,
-  AvatarToken,
-  AvatarTokenSize,
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import { getCardTokenDisplay } from '../../util/getCardTokenDisplay';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { FlatList } from 'react-native-gesture-handler';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import {
   ToastContext,
@@ -38,9 +28,7 @@ import {
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
-import { truncateAddress } from '../../util/truncateAddress';
 import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
-import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
 import {
   createNavigationDetails,
@@ -48,7 +36,9 @@ import {
   navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
-import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
+import AssetSelectionRow, {
+  type AssetSelectionRowItem,
+} from './AssetSelectionRow';
 
 export interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
@@ -174,7 +164,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       labelOptions: [{ label: strings('card.asset_selection.update_success') }],
       iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.success.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -185,7 +174,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       labelOptions: [{ label: strings('card.asset_selection.update_error') }],
       iconName: IconName.Danger,
       iconColor: theme.colors.error.default,
-      backgroundColor: theme.colors.error.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -306,198 +294,82 @@ const AssetSelectionBottomSheet: React.FC = () => {
     ],
   );
 
-  // Helper: Get funding status text
-  const getFundingStatusText = useCallback((state: FundingStatus): string => {
-    if (state === FundingStatus.Enabled) {
-      return strings('card.asset_selection.enabled');
-    }
-    if (state === FundingStatus.Limited) {
-      return strings('card.asset_selection.limited');
-    }
-    return strings('card.asset_selection.not_enabled');
-  }, []);
+  const renderItem: ListRenderItem<AssetSelectionRowItem> = useCallback(
+    ({ item }) => (
+      <AssetSelectionRow
+        item={item}
+        isPriority={Boolean(isPriorityToken(item))}
+        onPress={handleTokenPress}
+      />
+    ),
+    [isPriorityToken, handleTokenPress],
+  );
 
-  // Helper: Render bottom sheet content based on state
+  const keyExtractor = useCallback(
+    (item: AssetSelectionRowItem) =>
+      `${item.address}-${item.symbol}-${
+        item.walletAddress
+      }-${safeFormatChainIdToHex(item.caipChainId)}`,
+    [],
+  );
+
   const renderBottomSheetContent = useCallback(() => {
-    // Loading state
     if (!cardHomeData?.delegationSettings) {
       return (
-        <View style={tw.style('items-center justify-center py-8')}>
+        <Box twClassName="items-center justify-center py-8">
           <ActivityIndicator
             size="large"
             color={theme.colors.primary.default}
           />
-        </View>
+        </Box>
       );
     }
 
-    // Empty state
     if (supportedTokensWithBalances.length === 0) {
       return (
-        <View style={tw.style('items-center justify-center py-8')}>
+        <Box twClassName="items-center justify-center py-8">
           <Text
             variant={TextVariant.BodySm}
-            style={tw.style('text-center text-text-alternative')}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
           >
             {strings('card.no_tokens_available')}
           </Text>
-        </View>
+        </Box>
       );
     }
 
-    // Token list
     return (
-      <FlatList
-        scrollEnabled
-        showsVerticalScrollIndicator={false}
+      <FlashList
         data={supportedTokensWithBalances}
-        renderItem={({ item }) => {
-          const isCurrentPriority = isPriorityToken(item);
-          const { symbol: displaySymbol, iconSource } =
-            getCardTokenDisplay(item);
-          const titleText = item.isMoneyAccountEntry
-            ? strings('card.card_spending_limit.money_account_label')
-            : `${displaySymbol} on ${mapCaipChainIdToChainName(
-                item.caipChainId,
-              )}`;
-          return (
-            <Box
-              twClassName={
-                isCurrentPriority
-                  ? 'border-l-4 border-primary-default bg-background-muted'
-                  : ''
-              }
-            >
-              <ListItemSelect
-                onPress={() => handleTokenPress(item)}
-                testID={`asset-select-item-${displaySymbol}-${item.caipChainId}`}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName="flex-1"
-                >
-                  {/* Token Info */}
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="flex-1"
-                  >
-                    {item.isMoneyAccountEntry ? (
-                      <MoneyBalanceIcon
-                        style={tw.style('mr-3')}
-                        width={32}
-                        height={32}
-                        name="money-balance"
-                      />
-                    ) : (
-                      <BadgeWrapper
-                        style={tw.style('mr-3')}
-                        position={BadgeWrapperPosition.BottomRight}
-                        badge={
-                          item.caipChainId ? (
-                            <BadgeNetwork
-                              src={getNetworkImageSource({
-                                chainId: safeFormatChainIdToHex(
-                                  item.caipChainId,
-                                ) as `0x${string}`,
-                              })}
-                            />
-                          ) : null
-                        }
-                      >
-                        <AvatarToken
-                          name={displaySymbol}
-                          src={iconSource as { uri?: string } | number}
-                          size={AvatarTokenSize.Md}
-                        />
-                      </BadgeWrapper>
-                    )}
-
-                    <Box
-                      twClassName="flex-1"
-                      justifyContent={BoxJustifyContent.Center}
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        style={tw.style('font-semibold')}
-                      >
-                        {titleText}
-                      </Text>
-                      <Text
-                        variant={TextVariant.BodySm}
-                        style={tw.style('font-medium text-text-alternative')}
-                      >
-                        {getFundingStatusText(item.fundingStatus)}
-                      </Text>
-                      {!item.isMoneyAccountEntry && item.walletAddress && (
-                        <Text
-                          variant={TextVariant.BodyXs}
-                          style={tw.style(
-                            'font-normal text-text-alternative mt-1',
-                          )}
-                          numberOfLines={1}
-                        >
-                          {truncateAddress(item.walletAddress, 6)}
-                        </Text>
-                      )}
-                    </Box>
-                  </Box>
-
-                  {/* Balance */}
-                  <Box twClassName="items-end">
-                    <Text
-                      variant={TextVariant.BodySm}
-                      style={tw.style('text-text-default font-medium')}
-                    >
-                      {item.balanceFiat}
-                    </Text>
-                    {!item.isMoneyAccountEntry && (
-                      <Text
-                        variant={TextVariant.BodyXs}
-                        style={tw.style('text-text-alternative mt-1')}
-                      >
-                        {item.balance} {displaySymbol}
-                      </Text>
-                    )}
-                  </Box>
-                </Box>
-              </ListItemSelect>
-            </Box>
-          );
-        }}
-        keyExtractor={(item) =>
-          `${item.address}-${item.symbol}-${
-            item.walletAddress
-          }-${safeFormatChainIdToHex(item.caipChainId)}`
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        showsVerticalScrollIndicator={false}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
         }
       />
     );
   }, [
     cardHomeData?.delegationSettings,
     supportedTokensWithBalances,
-    tw,
     theme,
-    isPriorityToken,
-    handleTokenPress,
-    getFundingStatusText,
+    renderItem,
+    keyExtractor,
   ]);
 
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('card.select_asset')}
-        </Text>
+        {strings('card.select_asset')}
       </BottomSheetHeader>
-      <View style={tw.style('max-h-[400px]')}>
+      <Box style={tw.style('grow shrink flex-row min-h-[200px] max-h-[400px]')}>
         {renderBottomSheetContent()}
-      </View>
+      </Box>
     </BottomSheet>
   );
 };

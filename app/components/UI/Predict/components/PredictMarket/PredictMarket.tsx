@@ -24,9 +24,9 @@ interface PredictMarketProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: PredictMarketBuyButtonPress;
-  /** Active feed tab key forwarded to trade analytics (e.g. "trending", "world-cup"). */
+  /** Active feed tab key forwarded to trade analytics (e.g. "trending"). */
   predictFeedTab?: string;
-  /** Screen context forwarded to trade analytics (e.g. "world_cup"). */
+  /** Screen context forwarded to trade analytics. */
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }

@@ -8,7 +8,10 @@ import {
   ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -16,8 +19,14 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { AnimationDuration } from '@metamask/design-tokens';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
@@ -34,15 +43,18 @@ import {
   calculateAggregationParams,
   calculateGroupingOptions,
   formatColumnValue,
+  formatOrderBookPrice,
   formatSpreadPercent,
   getDepthRatio,
   getDepthWidth,
+  getOrderBookPriceFormat,
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
   ORDER_BOOK_AGGREGATED_LEVELS,
   selectDefaultGrouping,
   type OrderBookListCurrency,
   type OrderBookListMetric,
+  type OrderBookPriceFormat,
 } from '../../../utils/orderBookGrouping';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import styles from './PerpsProOrderBookPanel.styles';
@@ -67,6 +79,14 @@ export interface PerpsProOrderBookPanelProps {
   onCollapse?: () => void;
 }
 
+/**
+ * Price and value share the row equally (Figma: two 62px columns with an 8px
+ * gutter). Fixed halves plus single-line text are what keep the two from
+ * running into each other once either side grows.
+ */
+const COLUMN_CLASS = 'relative z-10 flex-1';
+const VALUE_COLUMN_CLASS = `${COLUMN_CLASS} text-right`;
+
 interface OrderBookRowProps {
   level: OrderBookLevel;
   side: 'bid' | 'ask';
@@ -75,6 +95,7 @@ interface OrderBookRowProps {
   maxTotal: number;
   depthBarColor: string;
   szDecimals?: number;
+  priceFormat: OrderBookPriceFormat | null;
   onSelectPrice?: (price: string) => void;
   testID: string;
 }
@@ -87,6 +108,7 @@ const OrderBookRow = ({
   maxTotal,
   depthBarColor,
   szDecimals,
+  priceFormat,
   onSelectPrice,
   testID,
 }: OrderBookRowProps) => {
@@ -94,14 +116,29 @@ const OrderBookRow = ({
   const isBid = side === 'bid';
   const sideColor = isBid ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
+  // Ladder rows are reused positionally across live ticks (see key comment
+  // below), so this same instance's width target changes as new data
+  // arrives — animate that change instead of snapping the bar.
+  const depthWidthSv = useSharedValue(depthWidth);
+  useEffect(() => {
+    depthWidthSv.value = withTiming(depthWidth, {
+      duration: AnimationDuration.Fast,
+    });
+  }, [depthWidth, depthWidthSv]);
+  const depthBarAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${depthWidthSv.value}%`,
+  }));
+
+  const priceLabel = formatOrderBookPrice(level.price, priceFormat);
+
   const content = (
     <>
-      <View
+      <Animated.View
         pointerEvents="none"
         style={[
           styles.depthBar,
+          depthBarAnimatedStyle,
           {
-            width: `${depthWidth}%`,
             backgroundColor: depthBarColor,
             opacity: DEPTH_BAR_OPACITY,
           },
@@ -111,16 +148,18 @@ const OrderBookRow = ({
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}
         color={sideColor}
-        twClassName="relative z-10"
+        numberOfLines={1}
+        twClassName={COLUMN_CLASS}
         testID={`${testID}-price`}
       >
-        {formatPerpsFiat(level.price, { ranges: PRICE_RANGES_UNIVERSAL })}
+        {priceLabel}
       </Text>
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}
         color={sideColor}
-        twClassName="relative z-10"
+        numberOfLines={1}
+        twClassName={VALUE_COLUMN_CLASS}
         testID={`${testID}-value`}
       >
         {formatColumnValue(level, currency, metric, szDecimals)}
@@ -134,9 +173,7 @@ const OrderBookRow = ({
         onPress={() => onSelectPrice(level.price)}
         accessibilityRole="button"
         accessibilityLabel={strings('perps.order_book.use_price', {
-          price: formatPerpsFiat(level.price, {
-            ranges: PRICE_RANGES_UNIVERSAL,
-          }),
+          price: priceLabel,
         })}
         testID={testID}
         style={styles.interactiveRow}
@@ -144,8 +181,7 @@ const OrderBookRow = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="relative h-full px-1"
+          twClassName="relative h-full gap-2"
         >
           {content}
         </Box>
@@ -157,12 +193,57 @@ const OrderBookRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="relative h-8 px-1"
+      twClassName="relative h-8 gap-2"
       testID={testID}
     >
       {content}
     </Box>
+  );
+};
+
+/**
+ * Buy/sell depth-ratio bars. Widths animate on change instead of snapping,
+ * since the ratio recomputes on every live order-book tick.
+ */
+const DepthRatioBars = ({
+  buyPercent,
+  sellPercent,
+  buyColor,
+  sellColor,
+}: {
+  buyPercent: number;
+  sellPercent: number;
+  buyColor: string;
+  sellColor: string;
+}) => {
+  const buyPercentSv = useSharedValue(buyPercent);
+  const sellPercentSv = useSharedValue(sellPercent);
+
+  useEffect(() => {
+    buyPercentSv.value = withTiming(buyPercent, {
+      duration: AnimationDuration.Fast,
+    });
+    sellPercentSv.value = withTiming(sellPercent, {
+      duration: AnimationDuration.Fast,
+    });
+  }, [buyPercent, sellPercent, buyPercentSv, sellPercentSv]);
+
+  const buyBarStyle = useAnimatedStyle(() => ({
+    width: `${buyPercentSv.value}%`,
+  }));
+  const sellBarStyle = useAnimatedStyle(() => ({
+    width: `${sellPercentSv.value}%`,
+  }));
+
+  return (
+    <>
+      <Animated.View
+        style={[styles.ratioBar, buyBarStyle, { backgroundColor: buyColor }]}
+      />
+      <Animated.View
+        style={[styles.ratioBar, sellBarStyle, { backgroundColor: sellColor }]}
+      />
+    </>
   );
 };
 
@@ -231,20 +312,19 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
           style={styles.interactiveRow}
-          twClassName="px-1"
         >
           <Skeleton height={12} width="42%" />
           <Skeleton height={12} width="32%" />
         </Box>
       ))}
 
+      {/* Spread row: value only, right-aligned (no label). */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="h-8 px-1"
+        justifyContent={BoxJustifyContent.End}
+        twClassName="h-8"
       >
-        <Skeleton height={12} width="28%" />
         <Skeleton height={12} width="48%" />
       </Box>
 
@@ -256,7 +336,6 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
           style={styles.interactiveRow}
-          twClassName="px-1"
         >
           <Skeleton height={12} width="42%" />
           <Skeleton height={12} width="32%" />
@@ -265,7 +344,7 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
 
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="gap-1 px-1 pt-2 pb-1"
+        twClassName="gap-1 pt-2 pb-1"
       >
         <Skeleton height={4} width="100%" twClassName="rounded-full" />
         <Box
@@ -390,6 +469,14 @@ const PerpsProOrderBookPanel = ({
     return calculateAggregationParams(currentGrouping, midPriceValue);
   }, [currentGrouping, midPriceValue]);
 
+  // One shared price format for the whole ladder, derived from the grouping
+  // step — see `getOrderBookPriceFormat` for why per-row magnitude formatting
+  // is not usable here.
+  const priceFormat = useMemo(
+    () => getOrderBookPriceFormat(currentGrouping, midPriceValue, szDecimals),
+    [currentGrouping, midPriceValue, szDecimals],
+  );
+
   // Server-aggregated book on its own dedicated socket (does not disturb raw).
   const {
     orderBook: aggregatedOrderBook,
@@ -417,6 +504,9 @@ const PerpsProOrderBookPanel = ({
     [aggregatedOrderBook],
   );
 
+  // Asks render above the spread, farthest-to-closest top to bottom (highest
+  // ask first) — the standard order-book convention, with the ask nearest
+  // the spread sitting right above it.
   const reversedAsks = useMemo(
     () => (grouped ? [...grouped.asks].reverse() : []),
     [grouped],
@@ -483,35 +573,42 @@ const PerpsProOrderBookPanel = ({
     <Box
       testID={testID}
       flexDirection={BoxFlexDirection.Column}
-      twClassName="flex-1 py-2"
+      collapsable={false}
+      twClassName="w-full py-2"
     >
-      {/* Header: left inset matches rows; settings sit flush on the right */}
+      {/* Header: collapse stays on the leading edge while settings stays flush
+          with the ladder's trailing edge. */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="pb-1 pl-1"
+        twClassName="pb-1"
+        testID={`${testID}-header`}
+        accessible={false}
       >
-        <Pressable
-          onPress={handleCycleViewMode}
-          accessibilityRole="button"
-          accessibilityLabel={strings('perps.order_book.view_toggle')}
-          accessibilityValue={{ text: viewModeAccessibilityValue }}
-          testID={`${testID}-view-toggle`}
-          hitSlop={8}
-          style={styles.viewToggleButton}
-        >
-          <OrderBookViewIcon
-            mode={viewMode}
-            buyColor={buyColor}
-            sellColor={sellColor}
-          />
-        </Pressable>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="-mr-1 gap-1"
-        >
+        {/* Buy/sell-only view-toggle hidden for now (2026-07-30): the ladder
+            only ever shows ~5 rows/side today, so filtering to one side adds
+            little value. Logic (viewMode/handleCycleViewMode/showBids/
+            showAsks) is kept as-is so the button can be restored later by
+            un-gating this block. */}
+        {false && (
+          <Pressable
+            onPress={handleCycleViewMode}
+            accessibilityRole="button"
+            accessibilityLabel={strings('perps.order_book.view_toggle')}
+            accessibilityValue={{ text: viewModeAccessibilityValue }}
+            testID={`${testID}-view-toggle`}
+            hitSlop={8}
+            style={styles.viewToggleButton}
+          >
+            <OrderBookViewIcon
+              mode={viewMode}
+              buyColor={buyColor}
+              sellColor={sellColor}
+            />
+          </Pressable>
+        )}
+        <Box testID={`${testID}-header-leading`} accessible={false}>
           {onCollapse ? (
             <ButtonIcon
               iconName={IconName.Collapse}
@@ -521,6 +618,12 @@ const PerpsProOrderBookPanel = ({
               testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON}
             />
           ) : null}
+        </Box>
+        <Box
+          twClassName="-mr-1"
+          testID={`${testID}-header-trailing`}
+          accessible={false}
+        >
           <ButtonIcon
             iconName={IconName.Setting}
             accessibilityLabel={strings('perps.order_book.config_title')}
@@ -532,15 +635,13 @@ const PerpsProOrderBookPanel = ({
       </Box>
 
       {/* Column headers */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-1 pb-1"
-      >
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 pb-1">
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
+          numberOfLines={1}
+          twClassName="flex-1"
         >
           {strings('perps.order_book.price')}
         </Text>
@@ -548,6 +649,8 @@ const PerpsProOrderBookPanel = ({
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
+          numberOfLines={1}
+          twClassName="flex-1 text-right"
         >
           {`${metricLabel} (${unitLabel})`}
         </Text>
@@ -561,7 +664,7 @@ const PerpsProOrderBookPanel = ({
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 gap-3 px-2"
+          twClassName="gap-3 px-2 py-8"
           testID={hasConnectionError ? `${testID}-connection-error` : undefined}
         >
           <Text
@@ -599,6 +702,7 @@ const PerpsProOrderBookPanel = ({
                   maxTotal={grouped.maxTotal}
                   depthBarColor={sellColor}
                   szDecimals={szDecimals}
+                  priceFormat={priceFormat}
                   onSelectPrice={onSelectPrice}
                   testID={`${testID}-ask-row-${index}`}
                 />
@@ -606,25 +710,26 @@ const PerpsProOrderBookPanel = ({
             </Box>
           )}
 
+          {/* Figma drops the "Spread" label and right-aligns the value on its
+              own, giving the figures the full column width. The row still
+              carries the label for screen readers, which would otherwise get
+              a bare amount with no indication of what it measures. */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="h-8 px-1"
+            twClassName="h-8"
             testID={`${testID}-spread`}
           >
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {strings('perps.order_book.spread')}
-            </Text>
             {spreadDisplay ? (
               <Text
                 variant={TextVariant.BodyXs}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="flex-1 text-right"
+                accessibilityLabel={strings('perps.order_book.spread_value', {
+                  value: spreadDisplay,
+                })}
               >
                 {spreadDisplay}
               </Text>
@@ -644,6 +749,7 @@ const PerpsProOrderBookPanel = ({
                   maxTotal={grouped.maxTotal}
                   depthBarColor={buyColor}
                   szDecimals={szDecimals}
+                  priceFormat={priceFormat}
                   onSelectPrice={onSelectPrice}
                   testID={`${testID}-bid-row-${index}`}
                 />
@@ -657,7 +763,7 @@ const PerpsProOrderBookPanel = ({
       {depthRatio ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
-          twClassName="gap-1 px-1 pt-2 pb-1"
+          twClassName="gap-1 pt-2 pb-1"
           testID={`${testID}-ratio`}
         >
           <Box
@@ -669,48 +775,68 @@ const PerpsProOrderBookPanel = ({
               sell: String(depthRatio.sellPercent),
             })}
           >
-            <View
-              style={[
-                styles.ratioBar,
-                {
-                  width: `${depthRatio.buyPercent}%`,
-                  backgroundColor: buyColor,
-                },
-              ]}
-            />
-            <View
-              style={[
-                styles.ratioBar,
-                {
-                  width: `${depthRatio.sellPercent}%`,
-                  backgroundColor: sellColor,
-                },
-              ]}
+            <DepthRatioBars
+              buyPercent={depthRatio.buyPercent}
+              sellPercent={depthRatio.sellPercent}
+              buyColor={buyColor}
+              sellColor={sellColor}
             />
           </Box>
+          {/* Figma renders the buy/sell sides as "+ 80%" / "− 20%" rather than
+              spelled-out labels, to reduce clutter in the narrow column. The
+              sign glyph carries no meaning to a screen reader, so each side
+              keeps the spelled-out label as its accessibility label. */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
             twClassName="w-full"
           >
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-            >
-              {strings('perps.order_book.buy_percent', {
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-0.5"
+              accessible
+              accessibilityLabel={strings('perps.order_book.buy_percent', {
                 percent: String(depthRatio.buyPercent),
               })}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.ErrorDefault}
+              testID={`${testID}-buy-percent`}
             >
-              {strings('perps.order_book.sell_percent', {
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Xs}
+                color={IconColor.SuccessDefault}
+              />
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                {`${depthRatio.buyPercent}%`}
+              </Text>
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-0.5"
+              accessible
+              accessibilityLabel={strings('perps.order_book.sell_percent', {
                 percent: String(depthRatio.sellPercent),
               })}
-            </Text>
+              testID={`${testID}-sell-percent`}
+            >
+              <Icon
+                name={IconName.Minus}
+                size={IconSize.Xs}
+                color={IconColor.ErrorDefault}
+              />
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.ErrorDefault}
+              >
+                {`${depthRatio.sellPercent}%`}
+              </Text>
+            </Box>
           </Box>
         </Box>
       ) : null}

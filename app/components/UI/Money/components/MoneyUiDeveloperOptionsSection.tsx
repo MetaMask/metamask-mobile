@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import { useTheme } from '../../../../util/theme';
 import {
@@ -33,7 +34,7 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const isOnboardingEnabled = useSelector(

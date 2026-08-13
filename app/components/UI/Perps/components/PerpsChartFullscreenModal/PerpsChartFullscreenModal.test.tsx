@@ -533,6 +533,8 @@ describe('PerpsChartFullscreenModal', () => {
         stopLossPrice: '90',
       };
 
+      const mockFallbackFetchMoreHistory = jest.fn();
+
       const { getByTestId } = render(
         <PerpsChartFullscreenModal
           {...defaultProps}
@@ -543,6 +545,7 @@ describe('PerpsChartFullscreenModal', () => {
           tpslLines={mockTpslLines}
           positionSize="0.5"
           szDecimals={2}
+          fallbackFetchMoreHistory={mockFallbackFetchMoreHistory}
         />,
       );
 
@@ -557,6 +560,7 @@ describe('PerpsChartFullscreenModal', () => {
           szDecimals: 2,
           surface: 'full_screen_chart',
           fallbackCandleData: mockCandleData,
+          fallbackFetchMoreHistory: mockFallbackFetchMoreHistory,
         }),
       );
       expect(mockTradingViewChart).not.toHaveBeenCalled();

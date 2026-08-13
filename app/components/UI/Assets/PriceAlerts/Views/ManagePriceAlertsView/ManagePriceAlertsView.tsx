@@ -66,12 +66,12 @@ const styles = StyleSheet.create({
 });
 
 /** Analytics `alert_type` + `alert_period`/`alert_direction` for a given alert. */
-const analyticsPropsForAlert = (alert: Alert) =>
-  alert.type === 'percent_change'
+const analyticsPropsForAlert = (priceAlert: Alert) =>
+  priceAlert.type === 'percent_change'
     ? {
         alert_type: PriceAlertAnalytics.TYPE.PERCENT,
-        alert_period: alert.period,
-        alert_direction: alert.direction,
+        alert_period: priceAlert.period,
+        alert_direction: priceAlert.direction,
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 

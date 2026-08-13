@@ -19,6 +19,7 @@ import {
   selectAccountGroupsByAddress,
   selectIconSeedAddressByAccountGroupId,
   selectIconSeedAddressesByAccountGroupIds,
+  selectAllAccountGroupIconSeedAddresses,
 } from './accounts';
 import {
   AccountWalletType,
@@ -1741,6 +1742,167 @@ describe('accounts selectors', () => {
       const selector = selectIconSeedAddressByAccountGroupId(unresolvedGroupId);
       const result = selector(state);
       expect(result).toBe('');
+    });
+  });
+
+  describe('selectAllAccountGroupIconSeedAddresses', () => {
+    it('prefers the EVM address for a group with an EVM account', () => {
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
+                type: AccountWalletType.Entropy,
+                groups: {
+                  [ENTROPY_GROUP_ID]: {
+                    type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+                    accounts: [
+                      ENTROPY_SOLANA_ACCOUNT_ID,
+                      ENTROPY_EVM_ACCOUNT_ID,
+                    ] as [AccountId, ...AccountId[]],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result).toEqual({
+        [ENTROPY_GROUP_ID]: mockEntropyEvmAccount.address,
+      });
+    });
+
+    it('falls back to the first internal account when a group has no EVM account', () => {
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
+                groups: {
+                  [ENTROPY_GROUP_ID]: {
+                    accounts: [ENTROPY_SOLANA_ACCOUNT_ID],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result[ENTROPY_GROUP_ID]).toBe(mockEntropySolanaAccount.address);
+    });
+
+    it('builds the map across every wallet and group in a single pass', () => {
+      const groupAId = 'entropy:walletA/0';
+      const groupBId = 'keyring:walletB/0';
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              'entropy:walletA': {
+                id: 'entropy:walletA',
+                groups: {
+                  [groupAId]: { accounts: [ENTROPY_EVM_ACCOUNT_ID] },
+                },
+              },
+              'keyring:walletB': {
+                id: 'keyring:walletB',
+                groups: {
+                  [groupBId]: { accounts: [ENTROPY_SOLANA_ACCOUNT_ID] },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result).toEqual({
+        [groupAId]: mockEntropyEvmAccount.address,
+        [groupBId]: mockEntropySolanaAccount.address,
+      });
+    });
+
+    it('maps a group with no accounts to an empty string', () => {
+      const emptyGroupId = 'entropy:empty/0';
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              'entropy:empty': {
+                id: 'entropy:empty',
+                groups: {
+                  [emptyGroupId]: { accounts: [] },
+                },
+              },
+            },
+          },
+        },
+        {},
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result[emptyGroupId]).toBe('');
+    });
+
+    it('maps a group whose account ids do not resolve to an empty string', () => {
+      const unresolvedGroupId = 'entropy:unresolved/0';
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              'entropy:unresolved': {
+                id: 'entropy:unresolved',
+                groups: {
+                  [unresolvedGroupId]: {
+                    accounts: ['ghost1', 'ghost2'] as [
+                      AccountId,
+                      ...AccountId[],
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {},
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result[unresolvedGroupId]).toBe('');
+    });
+
+    it('returns an empty map when there are no wallets', () => {
+      const state = createMockState({ accountTree: { wallets: {} } }, {});
+
+      expect(selectAllAccountGroupIconSeedAddresses(state)).toEqual({});
+    });
+
+    it('returns an empty map when the account tree is missing', () => {
+      const state = createMockState({}, {});
+
+      expect(selectAllAccountGroupIconSeedAddresses(state)).toEqual({});
     });
   });
 

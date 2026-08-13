@@ -59,6 +59,26 @@ jest.mock('@metamask/design-system-react-native', () => ({
   },
 }));
 
+let mockTransactionsRedesignEnabled = false;
+let mockDepositMeta: { chainId: string } | undefined;
+
+jest.mock(
+  '../../../../selectors/featureFlagController/activityRedesign',
+  () => ({
+    selectIsTransactionsRedesignEnabled: jest.fn(
+      () => mockTransactionsRedesignEnabled,
+    ),
+  }),
+);
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataById: jest.fn(() => mockDepositMeta),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+
 jest.mock('../utils/translatePerpsError', () => ({
   handlePerpsError: ({
     error,
@@ -82,6 +102,8 @@ describe('usePerpsToasts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockTransactionsRedesignEnabled = false;
+    mockDepositMeta = undefined;
     mockShowToast = jest.fn();
     mockCloseToast = jest.fn();
     mockNavigate = jest.fn();
@@ -193,6 +215,48 @@ describe('usePerpsToasts', () => {
           variant: ButtonVariants.Link,
         });
         expect(typeof config.closeButtonOptions?.onPress).toBe('function');
+      });
+
+      it('tracks to the redesigned details screen when the redesign is enabled', () => {
+        mockTransactionsRedesignEnabled = true;
+        mockDepositMeta = { chainId: '0xa4b1' };
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
+            60,
+            mockTransactionId,
+          );
+
+        act(() => {
+          config.closeButtonOptions?.onPress?.();
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+          chainId: 'eip155:42161',
+          txIdentifier: mockTransactionId,
+        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.TRANSACTION_DETAILS,
+          expect.anything(),
+        );
+      });
+
+      it('tracks to the legacy details screen when the redesign is disabled', () => {
+        mockDepositMeta = { chainId: '0xa4b1' };
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
+            60,
+            mockTransactionId,
+          );
+
+        act(() => {
+          config.closeButtonOptions?.onPress?.();
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+          transactionId: mockTransactionId,
+        });
       });
 
       it('returns in progress configuration without processing time', () => {
@@ -1278,6 +1342,83 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toEqual([
           { label: 'Failed to export image', isBold: true },
         ]);
+      });
+    });
+
+    describe('watchlist', () => {
+      it('returns added configuration for the given symbol', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.added('BTC');
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Added BTC to watchlist', isBold: true },
+        ]);
+      });
+
+      it('returns removed configuration for the given symbol', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.watchlist.removed('ETH');
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Info,
+          hapticsType: NotificationMoment.Warning,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Removed ETH from watchlist', isBold: true },
+        ]);
+      });
+
+      it('strips the dex prefix from HIP-3 market symbols', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        expect(
+          result.current.PerpsToastOptions.watchlist.added('somedex:BTC')
+            .labelOptions,
+        ).toEqual([{ label: 'Added BTC to watchlist', isBold: true }]);
+        expect(
+          result.current.PerpsToastOptions.watchlist.removed('somedex:ETH')
+            .labelOptions,
+        ).toEqual([{ label: 'Removed ETH from watchlist', isBold: true }]);
+      });
+
+      it('returns add error configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.addError;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to add market to watchlist', isBold: true },
+        ]);
+      });
+
+      it('returns limit reached configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.limitReached;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Info,
+        });
+        expect(config.labelOptions?.[0].label).toContain(
+          'Watchlist limit reached',
+        );
       });
     });
   });

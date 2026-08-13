@@ -389,6 +389,18 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().enabledSportsMarketTypes;
   }
 
+  #canGroupAllActiveMarkets(event: PolymarketApiEvent): boolean {
+    const enabledMarketTypes = new Set(this.#getEnabledSportsMarketTypes());
+
+    return event.markets
+      .filter((market) => market.active !== false)
+      .every(
+        (market) =>
+          Boolean(market.sportsMarketType) &&
+          enabledMarketTypes.has(market.sportsMarketType?.toLowerCase() ?? ''),
+      );
+  }
+
   #createTeamLookup(
     enabled: boolean,
   ):
@@ -474,6 +486,16 @@ export class PolymarketProvider implements PredictProvider {
   }> {
     const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
     if (!eventLeague || !extendedSportsMarketsLeagues.includes(eventLeague)) {
+      return { resolvedEvent: event };
+    }
+
+    // Preserve direct child pages until every active market can render in the
+    // curated parent view. Remove this guard once all sports types are grouped.
+    if (
+      event.parentEventId !== undefined &&
+      event.parentEventId !== null &&
+      !this.#canGroupAllActiveMarkets(event)
+    ) {
       return { resolvedEvent: event };
     }
 

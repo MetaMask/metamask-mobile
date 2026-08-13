@@ -67,7 +67,7 @@ const AlertFormShell: React.FC<AlertFormShellProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="mb-3 px-2"
+          twClassName="mb-4 px-2"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('price_alerts.recurring')}

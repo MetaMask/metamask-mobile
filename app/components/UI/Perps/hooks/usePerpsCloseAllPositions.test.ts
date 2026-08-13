@@ -26,6 +26,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
+const mockNavigateToPerpsHome = jest.fn();
+jest.mock('../utils/perpsModeSwitch', () => ({
+  useNavigateToPerpsHome: () => mockNavigateToPerpsHome,
+}));
+
 const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
   symbol: 'BTC',
   size: '0.5',
@@ -58,6 +63,7 @@ describe('usePerpsCloseAllPositions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigation.canGoBack.mockReturnValue(true);
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
 
@@ -122,7 +128,7 @@ describe('usePerpsCloseAllPositions', () => {
       expect(result.current.isClosing).toBe(false);
     });
     expect(Engine.context.PerpsController.closePositions).toHaveBeenCalledWith({
-      closeAll: true,
+      symbols: positions.map((p) => p.symbol),
     });
     expect(mockNavigation.goBack).toHaveBeenCalled();
     expect(result.current.error).toBeNull();
@@ -343,6 +349,23 @@ describe('usePerpsCloseAllPositions', () => {
 
     // Assert
     expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
+
+  it('falls back to the mode-aware Perps home when there is nothing to go back to', () => {
+    // Arrange - a hardcoded Perps Home fallback would drop Pro-mode users into
+    // the Lite hub.
+    mockNavigation.canGoBack.mockReturnValue(false);
+    const positions = [createMockPosition()];
+    const { result } = renderHook(() => usePerpsCloseAllPositions(positions));
+
+    // Act
+    act(() => {
+      result.current.handleKeepPositions();
+    });
+
+    // Assert
+    expect(mockNavigateToPerpsHome).toHaveBeenCalled();
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
   it('does nothing when handleCloseAll called with no positions', async () => {

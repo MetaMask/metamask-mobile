@@ -6,6 +6,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../../../UI/Perps/utils/perpsModeSwitch';
 import type { HomepageDiscoveryPillId } from './homepageDiscoveryPills.constants';
 
 export const HOMESCREEN_PILL_SOURCE =
@@ -25,16 +29,21 @@ const trackDiscoveryPillExploreNavigate = (
 
 export function useHomepageDiscoveryPillsNavigation() {
   const navigation = useNavigation<AppNavigationProp>();
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const navigateToPill = useCallback(
     (pillId: HomepageDiscoveryPillId) => {
       switch (pillId) {
-        case 'perpetuals':
-          navigation.navigate(Routes.PERPS.ROOT, {
-            screen: Routes.PERPS.PERPS_HOME,
-            params: { source: HOMESCREEN_PILL_SOURCE },
+        case 'perpetuals': {
+          const target = getPerpsHomeNavigationTarget({
+            source: HOMESCREEN_PILL_SOURCE,
           });
+          navigation.navigate(
+            Routes.PERPS.ROOT,
+            toPerpsNavigatorScreenParams(target),
+          );
           break;
+        }
         case 'predictions':
           navigation.navigate(Routes.PREDICT.ROOT, {
             screen: Routes.PREDICT.MARKET_LIST,
@@ -67,7 +76,7 @@ export function useHomepageDiscoveryPillsNavigation() {
         }
       }
     },
-    [navigation],
+    [navigation, getPerpsHomeNavigationTarget],
   );
 
   return { navigateToPill };

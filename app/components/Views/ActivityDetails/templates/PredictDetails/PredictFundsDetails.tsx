@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { SectionDivider } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import {
@@ -8,13 +9,14 @@ import {
   ActivityDetailsAccountValue,
   ActivityDetailsBlockExplorerButton,
   ActivityDetailsDoItAgainButton,
-  ActivityDetailsNetworkValue,
+  ActivityDetailsPayFeesAndTotal,
+  ActivityDetailsPayNetworkRow,
   ActivityDetailsStepTimeline,
   ActivityDetailsTemplateFrame,
-  formatActivityTokenAmount,
+  useActivityPayFiat,
+  useFormatActivityTokenAmount,
 } from '../../components';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
-import { useActivityNetworkName } from '../../hooks/useActivityNetworkName';
 import {
   getPredictFundsCtaLabel,
   type PredictActivityListItem,
@@ -26,8 +28,13 @@ import {
 } from './PredictDetails.utils';
 import { useOpenPredictHome } from './useOpenPredictHome';
 
-function PredictFundsMetadata({ item }: { item: PredictActivityListItem }) {
-  const networkName = useActivityNetworkName(item.chainId);
+function PredictFundsMetadata({
+  item,
+  isDeposit,
+}: {
+  item: PredictActivityListItem;
+  isDeposit: boolean;
+}) {
   const selectedAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
   );
@@ -47,16 +54,7 @@ function PredictFundsMetadata({ item }: { item: PredictActivityListItem }) {
         }
         testID={ActivityDetailsSelectorsIDs.ACCOUNT_ROW}
       />
-      <ActivityDetailRow
-        label={strings('activity_details.network')}
-        value={
-          <ActivityDetailsNetworkValue
-            chainId={item.chainId}
-            name={networkName}
-          />
-        }
-        testID={ActivityDetailsSelectorsIDs.NETWORK_ROW}
-      />
+      <ActivityDetailsPayNetworkRow item={item} isDeposit={isDeposit} />
     </ActivityDetailSection>
   );
 }
@@ -67,18 +65,18 @@ export function PredictFundsDetails({
   item: PredictActivityListItem;
 }) {
   const openPredictHome = useOpenPredictHome();
+  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const isDeposit = item.type === 'predictionsAddFunds';
   const amount = formatActivityTokenAmount(item.data.token);
-  // The step timeline is deposit-only by design: the Predict step builder and
-  // locale keys (`steps.bridge_funds` / `steps.add_funds`) describe the
-  // bridge-deposit flow. Withdrawals have no defined step semantics or copy yet,
-  // so their timeline is intentionally omitted — the amount, account/network
-  // metadata and the withdraw CTA still render.
+
   const steps =
     isDeposit && item.status !== 'cancelled'
       ? getPredictFundsSteps(item.status, item.timestamp)
       : undefined;
   const completedCount = item.status === 'success' ? 2 : 1;
+  const pay = useActivityPayFiat(item);
+  const showPaySection = isDeposit && Boolean(pay);
+  const showDetails = showPaySection || Boolean(steps);
 
   return (
     <ActivityDetailsTemplateFrame
@@ -89,20 +87,32 @@ export function PredictFundsDetails({
           showTokenIcon
         />
       }
-      metadata={<PredictFundsMetadata item={item} />}
+      metadata={<PredictFundsMetadata item={item} isDeposit={isDeposit} />}
       details={
-        steps ? (
-          <ActivityDetailsStepTimeline
-            explorerTarget={
-              item.hash ? { chainId: item.chainId, hash: item.hash } : undefined
-            }
-            steps={steps}
-            title={getPredictFundsStepTitle(
-              item.status,
-              completedCount,
-              steps.length,
-            )}
-          />
+        showDetails ? (
+          <>
+            {showPaySection && pay ? (
+              <ActivityDetailsPayFeesAndTotal pay={pay} />
+            ) : null}
+            {showPaySection && steps ? (
+              <SectionDivider marginVertical={3} />
+            ) : null}
+            {steps ? (
+              <ActivityDetailsStepTimeline
+                explorerTarget={
+                  item.hash
+                    ? { chainId: item.chainId, hash: item.hash }
+                    : undefined
+                }
+                steps={steps}
+                title={getPredictFundsStepTitle(
+                  item.status,
+                  completedCount,
+                  steps.length,
+                )}
+              />
+            ) : null}
+          </>
         ) : undefined
       }
       footer={

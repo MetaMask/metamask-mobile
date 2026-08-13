@@ -1,8 +1,28 @@
-import React, { useMemo } from 'react';
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { AlertType, CreatePriceAlertTestIds } from '../constants';
 import SlidingPillToggle from './SlidingPillToggle';
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 16,
+  },
+});
+
+const options = [
+  {
+    value: 'absolute_price' as const,
+    label: strings('price_alerts.price_target'),
+    testID: CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET,
+  },
+  {
+    value: 'percent_change' as const,
+    label: strings('price_alerts.price_change'),
+    testID: CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE,
+  },
+] as const;
 
 interface AlertTypeToggleProps {
   value: AlertType;
@@ -20,22 +40,6 @@ const AlertTypeToggle: React.FC<AlertTypeToggleProps> = ({
   isDisabled = false,
 }) => {
   const { colors } = useTheme();
-  const options = useMemo(
-    () =>
-      [
-        {
-          value: 'absolute_price' as const,
-          label: strings('price_alerts.price_target'),
-          testID: CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET,
-        },
-        {
-          value: 'percent_change' as const,
-          label: strings('price_alerts.price_change'),
-          testID: CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE,
-        },
-      ] as const,
-    [],
-  );
 
   return (
     <SlidingPillToggle
@@ -44,12 +48,16 @@ const AlertTypeToggle: React.FC<AlertTypeToggleProps> = ({
       onChange={onChange}
       isDisabled={isDisabled}
       testID={CreatePriceAlertTestIds.TYPE_SEGMENT}
-      containerTwClassName="mx-4 border border-muted rounded-xl p-1"
-      pillTwClassName="rounded-[10px] px-3 py-2"
+      inset={4}
+      containerBorderRadius={12}
+      pillBorderRadius={10}
+      containerBorderColor={colors.border.muted}
       sliderBackgroundColor={colors.background.muted}
-      sliderBorderRadius={10}
-      equalWidthPills
+      pillPaddingHorizontal={12}
+      pillPaddingVertical={8}
       weightBySelection
+      stretchPills
+      style={styles.container}
     />
   );
 };

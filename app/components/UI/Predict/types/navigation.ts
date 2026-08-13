@@ -14,7 +14,6 @@ import {
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import type { PredictWorldCupTabKey } from '../constants/worldCupTabs';
 import type { PredictFeedId } from '../constants/feedConfig';
 
 export type PredictEntryPoint =
@@ -30,7 +29,6 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
   | typeof PredictEventValues.ENTRY_POINT.HOMESCREEN_PILL
   | typeof PredictEventValues.ENTRY_POINT.REWARDS
-  | typeof PredictEventValues.ENTRY_POINT.GTM_MODAL
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
@@ -43,7 +41,7 @@ export interface PredictMarketListRouteParams {
   entryPoint?: PredictEntryPoint;
   feedId?: PredictFeedId;
   /**
-   * Legacy top-level Predict feed tab key (hot / world-cup / base tabs).
+   * Legacy top-level Predict feed tab key (hot / base tabs).
    * Consumed by `usePredictTabs`. Not interchangeable with `tabId`.
    */
   tab?: PredictCategory;
@@ -82,24 +80,18 @@ export interface PredictFeedRouteParams {
 /** Predict market details parameters */
 export interface PredictMarketDetailsParams {
   marketId?: string;
+  providerId?: string;
   series?: PredictSeries;
   seriesId?: string;
   seriesRecurrence?: string;
   entryPoint?: PredictEntryPoint;
-  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending"). */
   predictFeedTab?: string;
-  /** Screen context the trade originated from (e.g. "world_cup"). */
+  /** Screen context the trade originated from. */
   predictScreen?: string;
   title?: string;
   image?: string;
   isGame?: boolean;
-  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-}
-
-/** Predict World Cup feed parameters */
-export interface PredictWorldCupParams {
-  entryPoint?: string;
-  initialTab?: PredictWorldCupTabKey;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -128,19 +120,11 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
-  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending"). */
   predictFeedTab?: string;
-  /** Screen context the trade originated from (e.g. "world_cup"). */
+  /** Screen context the trade originated from. */
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /**
-   * When true, the beforeRemove listener in PredictBuyPreview will fire
-   * trackBetslipDismissed for swipe/hardware-back dismissals. Only set by
-   * PredictPreviewSheetProvider when disableBottomSheet is active — keeps the
-   * analytics change scoped to the new HomepageDiscoveryTabs flow and avoids
-   * changing event volume for the pre-existing flagless screen-mode path.
-   */
-  trackSwipeDismiss?: boolean;
 }
 
 /** Predict sell preview parameters */
@@ -176,7 +160,6 @@ export type PredictSellPreviewProps =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictModalsNavigationParamList = {
   PredictUnavailable: undefined;
-  PredictGTMModal: undefined;
   PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
   PredictActivityDetail: PredictActivityDetailParams;
   RedesignedConfirmations: undefined;
@@ -190,7 +173,6 @@ export type PredictStackParamList = {
   PredictFeed: PredictFeedRouteParams | undefined;
   PredictMarketDetails: PredictMarketDetailsParams | undefined;
   PredictPositions: PredictPositionsParams | undefined;
-  PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
   RedesignedConfirmations: undefined;

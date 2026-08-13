@@ -10,10 +10,13 @@
  * MetaMetrics opt-in, and wallet home — keep those specs active.
  *
  * Not migratable to CV (keep E2E):
- * - google-login-add-srp.spec.ts — full onboarding + wallet + SRP import
  * - google-login-lock-unlock.spec.ts — native Keychain lock/unlock
  * - google-login-reset-wallet.spec.ts — native Keychain reset from login
+ * - qr-sync-srp.spec.ts — mobile ↔ extension device sync
  *
+ * Former google-login-add-srp Appium smoke removed: Import SRP UI is
+ * covered by ImportNewSecretRecoveryPhrase.view.test.tsx; successful import by
+ * SmokeAccounts import-srp.
  * Run:
  * yarn jest -c jest.config.view.js SocialLoginIosUser.view.test.tsx --runInBand
  */

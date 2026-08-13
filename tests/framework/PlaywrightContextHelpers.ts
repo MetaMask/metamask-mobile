@@ -199,7 +199,10 @@ export default class PlaywrightContextHelpers {
     }
     const title = ctx.title ?? '';
     // Playground title is stable when Chrome URL metadata is empty on CI.
-    if (/multichain api test dapp/i.test(title) && /:8090\b/.test(dappUrl)) {
+    if (
+      /multichain api test dapp/i.test(title) &&
+      dappUrl.includes('localhost')
+    ) {
       return true;
     }
     return false;

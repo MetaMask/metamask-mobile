@@ -1,6 +1,8 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
+import type { AssetType } from '../../../Views/confirmations/types/token';
 import type { EarnMusdConversionEducationViewRouteParams } from '../Views/EarnMusdConversionEducationView';
+import type { EarnTokenDetails } from './lending.types';
 import type {
   LendingDepositConfirmationParams,
   LendingMaxWithdrawalModalParams,
@@ -30,8 +32,10 @@ export type EarnScreensStackParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarnModalsNavigationParamList = {
   EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
-  EarnLendingLearnMoreModal: undefined;
-  RedesignedConfirmations: ConfirmationParams | undefined;
+  EarnLendingLearnMoreModal: { asset?: EarnTokenDetails } | undefined;
+  RedesignedConfirmations:
+    | (ConfirmationParams & { token?: AssetType })
+    | undefined;
 };
 
 /**

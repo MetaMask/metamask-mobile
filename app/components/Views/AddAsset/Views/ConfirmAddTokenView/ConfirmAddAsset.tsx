@@ -16,7 +16,7 @@ import BottomSheetFooter, {
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
   Box,
   HeaderStandard,
@@ -26,6 +26,29 @@ import {
 import { ImportAsset } from '../../utils/utils';
 import AddAssetTokenRow from '../../components/AddAssetTokenRow/AddAssetTokenRow';
 import Logger from '../../../../../util/Logger';
+
+interface ConfirmAddAssetRowProps {
+  asset: ImportAsset;
+  networkName: string;
+}
+
+const getAssetRowKey = (asset: ImportAsset) =>
+  `${asset.chainId}-${asset.address.toLowerCase()}`;
+
+function ConfirmAddAssetRowComponent({
+  asset,
+  networkName,
+}: ConfirmAddAssetRowProps) {
+  const tw = useTailwind();
+
+  return (
+    <ListItem gap={20} style={tw.style('p-0')}>
+      <AddAssetTokenRow asset={asset} networkName={networkName} />
+    </ListItem>
+  );
+}
+
+const ConfirmAddAssetRow = React.memo(ConfirmAddAssetRowComponent);
 
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
@@ -39,15 +62,10 @@ const ConfirmAddAsset = () => {
   const [isImporting, setIsImporting] = useState(false);
 
   /**
-   * Go to wallet page
+   * Return to the View all tokens screen after a successful import.
    */
-  const goToWalletPage = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+  const goToTokensFullView = useCallback(() => {
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
   }, [navigation]);
 
   const handleImport = useCallback(async () => {
@@ -59,12 +77,17 @@ const ConfirmAddAsset = () => {
 
     try {
       await addTokenList();
-      goToWalletPage();
+      goToTokensFullView();
     } catch (error) {
       Logger.error(error as Error, 'ConfirmAddAsset: failed to import tokens');
       setIsImporting(false);
     }
-  }, [addTokenList, goToWalletPage, isImporting]);
+  }, [addTokenList, goToTokensFullView, isImporting]);
+
+  const renderItem = useCallback<ListRenderItem<ImportAsset>>(
+    ({ item }) => <ConfirmAddAssetRow asset={item} networkName={networkName} />,
+    [networkName],
+  );
 
   return (
     <SafeAreaView
@@ -89,12 +112,8 @@ const ConfirmAddAsset = () => {
           data={selectedAsset}
           style={tw.style('flex-1 bg-default')}
           contentContainerStyle={tw.style('pt-6 px-6 pb-4')}
-          renderItem={({ item: asset, index }) => (
-            <ListItem key={index} gap={20} style={tw.style('p-0')}>
-              <AddAssetTokenRow asset={asset} networkName={networkName} />
-            </ListItem>
-          )}
-          keyExtractor={(_, index) => `token-search-row-${index}`}
+          renderItem={renderItem}
+          keyExtractor={getAssetRowKey}
         />
       </Box>
 
@@ -122,4 +141,5 @@ const ConfirmAddAsset = () => {
     </SafeAreaView>
   );
 };
+
 export default ConfirmAddAsset;

@@ -37,11 +37,11 @@ export { getLabelKeys } from './label-keys';
 export {
   calculateFiatFromMarketRates,
   getHumanReadableTokenAmount,
-  formatTokenQuantity,
   getDisplaySignPrefix,
   applyDisplaySign,
   toMarketRateLookupToken,
 } from './fiat';
+export { formatTokenDisplayAmount } from './token-display';
 export {
   activityMatchesAssetId,
   enrichTokenFromApi,

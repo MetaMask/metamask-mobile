@@ -21,6 +21,7 @@ export enum CardProviderErrorCode {
   ServerError = 'server_error',
   Timeout = 'timeout',
   Network = 'network',
+  MoneyAccountLinkedToDifferentCard = 'money_account_linked_to_different_card',
   Unknown = 'unknown',
 }
 
@@ -59,7 +60,13 @@ export class CardLinkageInProgressError extends Error {
 
 // -- Provider Identity --
 
-export type CardProviderId = string;
+export const CardProviderIds = {
+  Baanx: 'baanx',
+  Immersve: 'immersve',
+} as const;
+
+export type CardProviderId =
+  (typeof CardProviderIds)[keyof typeof CardProviderIds];
 
 export type CardAuthMethod = 'email_password' | 'siwe';
 
@@ -71,6 +78,8 @@ export interface CardAuthTokens {
   accessTokenExpiresAt: number;
   refreshTokenExpiresAt?: number;
   location: string;
+  /** Stable user identifier issued by the active card provider. */
+  providerUserId?: string;
   cardholderAccountId?: string;
   accountAddress?: string;
   keyringId?: string;
@@ -128,10 +137,12 @@ export interface CardProviderCapabilities {
   supportsPushProvisioning: boolean;
   onboarding: CardOnboardingCapability;
   supportsPinView: boolean;
+  supportsPinSet: boolean;
   supportsCashback: boolean;
   supportsCredit: boolean;
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
+  supportsTransactionHistory: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -169,6 +180,10 @@ export interface CardDetails {
   lastFour: string;
   holderName?: string;
   isFreezable?: boolean;
+  /** ISO region code from Immersve LIST/detail (e.g. "GB"). */
+  regionCode?: string;
+  /** False when the card is issued without a PIN, e.g. Baanx virtual cards outside the US. */
+  hasPin?: boolean;
 }
 
 export interface CardSecureViewParams {
@@ -421,6 +436,112 @@ export interface CardCreateResult {
   cardId: string;
 }
 
+// -- Transactions --
+
+export enum CardTransactionStatus {
+  Pending = 'pending',
+  Completed = 'completed',
+  Failed = 'failed',
+  Reversed = 'reversed',
+}
+
+export enum CardTransactionType {
+  Purchase = 'purchase',
+  Refund = 'refund',
+  Withdrawal = 'withdrawal',
+  Deposit = 'deposit',
+  Transfer = 'transfer',
+  Adjustment = 'adjustment',
+}
+
+export enum CardMerchantCategory {
+  Subscriptions = 'subscriptions',
+  Food = 'food',
+  Travel = 'travel',
+  Entertainment = 'entertainment',
+  Health = 'health',
+  Atm = 'atm',
+  Utilities = 'utilities',
+  Misc = 'misc',
+}
+
+export interface CardTransactionAmount {
+  /** Decimal string, e.g. "0.79". */
+  value: string;
+  /** ISO currency code, e.g. "EUR". */
+  currency: string;
+}
+
+export interface CardTransactionMerchant {
+  name: string;
+  city?: string;
+  countryCode?: string;
+  id?: string;
+  mcc?: string;
+  category?: CardMerchantCategory;
+}
+
+/**
+ * A crypto wallet debit that funded (settled) a card transaction. `txHash`
+ * is the on-chain settlement hash, present for successful transactions —
+ * consumers can use it to match/enrich Accounts API rows.
+ */
+export interface CardTransactionFundingSource {
+  txHash?: string;
+  /** Wallet address that funded the transaction. */
+  address?: string;
+  network?: string;
+  chainId?: CaipChainId;
+  amount?: string;
+  currency?: string;
+  fees?: string;
+  swapFee?: string;
+}
+
+export interface CardTransaction {
+  id: string;
+  providerId: CardProviderId;
+  /** Epoch ms. */
+  timestamp: number;
+  status: CardTransactionStatus;
+  type: CardTransactionType;
+  isDebit: boolean;
+  /** Amount charged to the card, in the card's currency. */
+  billingAmount: CardTransactionAmount;
+  /** Merchant-side amount when it differs from the billing currency. */
+  originalAmount?: CardTransactionAmount;
+  feeAmount?: CardTransactionAmount;
+  conversionRate?: string;
+  merchant?: CardTransactionMerchant;
+  /** Raw provider description (e.g. unparsed merchant name + location). */
+  description?: string;
+  /** Provider-side transaction reference. */
+  reference?: string;
+  cardLastFour?: string;
+  declineReason?: { code?: string; message?: string };
+  fundingSources: CardTransactionFundingSource[];
+}
+
+/** Opaque pagination cursor; only meaningful to the provider that issued it. */
+export type CardTransactionCursor = string;
+
+export interface CardTransactionListParams {
+  limit?: number;
+  cursor?: CardTransactionCursor;
+  /** Case-insensitive merchant-name search (server-side). */
+  searchQuery?: string;
+  /** Epoch ms. Must be paired with `toDate`. */
+  fromDate?: number;
+  /** Epoch ms. Must be paired with `fromDate`. */
+  toDate?: number;
+}
+
+export interface CardTransactionPage {
+  items: CardTransaction[];
+  /** Absent when there are no further pages. */
+  nextCursor?: CardTransactionCursor;
+}
+
 // -- Provider Interface --
 
 export interface ICardProvider {
@@ -455,6 +576,11 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
   ): Promise<CardSecureView>;
+  setCardPin?(
+    cardId: string,
+    newPin: string,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
   getCardSensitiveDetails?(
     tokens: CardAuthTokens,
   ): Promise<CardSensitiveDetails>;
@@ -531,6 +657,11 @@ export interface ICardProvider {
     fundingSourceId: string,
     tokens: CardAuthTokens,
   ): Promise<CardCreateResult>;
+
+  listTransactions?(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage>;
 
   getOnChainAssets?(address: string): Promise<CardHomeData>;
 }

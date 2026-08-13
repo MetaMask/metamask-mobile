@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   HeaderStandard,
   Text,
@@ -39,6 +45,9 @@ import { selectTokens } from '../../../../../selectors/rampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useSelector } from 'react-redux';
+import { endOpenRampsBuyCufChildrenByName } from '../../utils/rampsBuyCufTrace';
+import { RAMPS_BUY_CUF_TAG } from '../../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../../util/trace';
 import { BANK_DETAILS_TEST_IDS } from './BankDetails.testIds';
 import { isHttpUnauthorized } from '../../utils/isHttpUnauthorized';
 
@@ -132,12 +141,19 @@ const V2BankDetails = () => {
     }
   }, [order, getDepositOrder, refreshOrder, handleLogoutError]);
 
+  // Preserve prior mount-only semantics: evaluate once on first effect run so
+  // later status/shouldUpdate changes cannot trigger a second auto-refresh.
+  const hasAttemptedInitialCreatedRefreshRef = useRef(false);
+
   useEffect(() => {
+    if (hasAttemptedInitialCreatedRefreshRef.current) {
+      return;
+    }
+    hasAttemptedInitialCreatedRefreshRef.current = true;
     if (order?.status === RampsOrderStatus.Created && shouldUpdate) {
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [order?.status, shouldUpdate, handleOnRefresh]);
 
   useEffect(() => {
     if (!order?.status) return;
@@ -145,6 +161,10 @@ const V2BankDetails = () => {
       TERMINAL_STATUSES.has(order.status) ||
       order.status === RampsOrderStatus.Pending
     ) {
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId: order.providerOrderId,
+      });
       // @ts-expect-error navigation prop mismatch
       navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
         orderId: order.providerOrderId,

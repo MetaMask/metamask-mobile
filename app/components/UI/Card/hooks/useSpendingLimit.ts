@@ -48,6 +48,7 @@ import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import useMoneyAccountCardLinkage from './useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { useCardHomeData } from './useCardHomeData';
 import {
   ToastContext,
@@ -181,10 +182,9 @@ const useSpendingLimit = ({
     confirmLinkInBackground: confirmMoneyAccountLinkInBackground,
     canLink: canLinkMoneyAccount,
   } = useMoneyAccountCardLinkage();
-  const {
-    totalFiatFormatted: moneyAccountTotalFiatFormatted,
-    apyPercent: moneyAccountApyPercent,
-  } = useMoneyAccountBalance();
+  const { totalFiatFormatted: moneyAccountTotalFiatFormatted } =
+    useMoneyAccountBalance();
+  const { apyPercent: moneyAccountApyPercent } = useMoneyVaultApy();
 
   const { data: cardHomeData } = useCardHomeData();
   const hasMetalCard = cardHomeData?.card?.type === CardType.METAL;
@@ -574,7 +574,6 @@ const useSpendingLimit = ({
       ],
       iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.success.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -590,7 +589,6 @@ const useSpendingLimit = ({
         ],
         iconName: IconName.Danger,
         iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.error.muted,
         hasNoTimeout: false,
       });
     },
@@ -599,8 +597,12 @@ const useSpendingLimit = ({
 
   // Navigation helpers
   const navigateToCardHome = useCallback(() => {
-    navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
-  }, [navigation]);
+    navigation.dispatch(
+      StackActions.replace(Routes.CARD.HOME, {
+        fromCardOnboarding: isOnboardingFlow,
+      }),
+    );
+  }, [navigation, isOnboardingFlow]);
 
   // Actions
   const submit = useCallback(async () => {
@@ -618,7 +620,9 @@ const useSpendingLimit = ({
         });
         if (success) {
           try {
-            await Engine.context.CardController.fetchCardHomeData();
+            await Engine.context.CardController.fetchCardHomeData({
+              force: true,
+            });
           } catch (error) {
             Logger.error(
               error as Error,
@@ -674,7 +678,7 @@ const useSpendingLimit = ({
 
       // Wait for backend to process, then refresh card home data
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      await Engine.context.CardController.fetchCardHomeData();
+      await Engine.context.CardController.fetchCardHomeData({ force: true });
 
       if (!isOnboardingFlow) {
         showSuccessToast();

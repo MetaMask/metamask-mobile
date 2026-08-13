@@ -13,6 +13,7 @@ import {
   IconColor,
   IconName,
   ListItemSelect,
+  ListItemVariant,
   SegmentedControl,
   SelectButton,
   SelectButtonVariant,
@@ -48,7 +49,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
@@ -378,10 +379,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
     if (market) {
       return (
-        <PerpsMarketHeader
+        <PerpsMarketInlineHeader
           market={market}
-          onBackPress={handleBack}
           currentPrice={currentPrice}
+          onBackPress={handleBack}
           endAccessory={groupingSelectButton}
         />
       );
@@ -806,6 +807,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <ListItemSelect
               key={value}
               title={formatGroupingLabel(value)}
+              variant={ListItemVariant.OneLine}
               isSelected={currentGrouping === value}
               showSelectedIcon
               onPress={() => handleGroupingSelect(value)}

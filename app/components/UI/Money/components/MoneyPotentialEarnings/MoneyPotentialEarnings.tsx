@@ -52,7 +52,6 @@ interface MoneyPotentialEarningsProps {
     tokensCount: number,
   ) => void;
   onViewAllPress?: () => void;
-  onHeaderPress?: () => void;
   /**
    * Called when the inline info button next to the section title is pressed.
    * Typically navigates to the Earn-on-your-crypto info bottom sheet.
@@ -69,7 +68,6 @@ const MoneyPotentialEarnings = ({
   onTokenCardPress,
   onTokenButtonPress,
   onViewAllPress,
-  onHeaderPress,
   onInfoPress,
   privacyMode = false,
 }: MoneyPotentialEarningsProps) => {
@@ -121,10 +119,7 @@ const MoneyPotentialEarnings = ({
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
-        <MoneySectionHeader
-          title={strings('money.potential_earnings.title')}
-          onPress={hasMoreTokens ? onHeaderPress : undefined}
-        />
+        <MoneySectionHeader title={strings('money.potential_earnings.title')} />
 
         {isPositiveNumber(projectedAmount) &&
         isPositiveNumber(totalAssetsFiat) ? (

@@ -168,7 +168,7 @@ const env = {
 const UNIT_TEST_FILE_PATTERN = /\.(test|spec)\.(ts|tsx)$/;
 // Excludes component-view tests (separate CI job/suite) and Detox/Appium e2e
 // specs (separate workflows) — this workflow only reasons about Jest unit tests.
-const EXCLUDE_PATTERNS = [/\.view\.test\./, /^tests\/(smoke|regression)\//];
+const EXCLUDE_PATTERNS = [/\.view\.test\./, /^tests\/smoke\//];
 
 function sh(cmd: string, args: string[]): string {
   return execFileSync(cmd, args, { encoding: 'utf8' }).trim();

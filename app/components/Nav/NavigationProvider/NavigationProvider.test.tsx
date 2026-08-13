@@ -6,14 +6,12 @@ import { View, Text } from 'react-native';
 import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import {
+  DefaultTheme,
+  NavigationContainer,
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-
-const navigationContainerThemeCapture: {
-  theme?: { colors?: { background?: string } };
-} = {};
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -47,7 +45,6 @@ describe('NavigationProvider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    navigationContainerThemeCapture.theme = undefined;
     NavigationService.navigation =
       undefined as unknown as NavigationContainerRef<ParamListBase>;
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -85,6 +82,24 @@ describe('NavigationProvider', () => {
 
     expect(NavigationService.navigation).toBeDefined();
     expect(NavigationService.navigation).toHaveProperty('navigate');
+  });
+
+  it('uses DefaultTheme with a transparent background', () => {
+    const { UNSAFE_getByType } = render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    const container = UNSAFE_getByType(NavigationContainer);
+
+    expect(container.props.theme).toEqual({
+      ...DefaultTheme,
+      colors: {
+        ...DefaultTheme.colors,
+        background: 'transparent',
+      },
+    });
   });
 
   it('Measures performance trace order when navigation provider is initialized', () => {

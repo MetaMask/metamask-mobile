@@ -612,6 +612,7 @@ describe('MarketInsightsView', () => {
       params: expect.objectContaining({
         newTabUrl: 'https://www.coindesk.com/article',
         fromTrending: true,
+        fromMarketInsights: true,
       }),
     });
   });

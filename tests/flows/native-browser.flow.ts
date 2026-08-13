@@ -20,11 +20,14 @@ const CHROME_UI_SETTLE_MS = 800;
 const CHROME_VIEW_INTENT_SETTLE_MS = 3000;
 
 /**
- * Dismisses common Chrome first-run / privacy / default-browser dialogs if present.
- * Avoid "More" — it expands FRE options rather than dismissing them.
- * @returns void
+ * Best-effort dismissal of Chrome first-run / privacy dialogs, bounded by an
+ * absolute deadline. Avoid "More" — it expands FRE options rather than
+ * dismissing them.
+ * @param deadlineMs - Absolute time (Date.now() ms) after which to stop.
  */
-const dismissChromeAdPrivacyIfPresent = async () => {
+const dismissChromeAdPrivacyIfPresent = async (
+  deadlineMs: number = Date.now() + CHROME_DISMISS_TIMEOUT_MS,
+) => {
   const dismissTexts = [
     'Got it',
     'No thanks',
@@ -35,15 +38,21 @@ const dismissChromeAdPrivacyIfPresent = async () => {
     'Use without an account',
   ];
   for (const text of dismissTexts) {
+    if (Date.now() > deadlineMs) {
+      return;
+    }
     try {
+      if ((await PlaywrightMatchers.countElementsByText(text, true)) === 0) {
+        continue;
+      }
       const dismissControl = await PlaywrightMatchers.getElementByText(
         text,
         true,
       );
-      await PlaywrightGestures.waitAndTap(dismissControl);
+      await PlaywrightGestures.waitAndTap(dismissControl, { timeout: 1500 });
       return;
     } catch {
-      // This text not found, try next
+      // Try the next label.
     }
   }
 };
@@ -54,8 +63,11 @@ const dismissChromeAdPrivacyIfPresent = async () => {
  * @returns void
  */
 const dismissChromeNotificationsIfPresent = async () => {
+  if ((await PlaywrightMatchers.countElementsByText('No thanks')) === 0) {
+    return;
+  }
   const noThanks = await PlaywrightMatchers.getElementByText('No thanks');
-  await PlaywrightGestures.waitAndTap(noThanks);
+  await PlaywrightGestures.waitAndTap(noThanks, { timeout: 1500 });
 };
 
 /**
@@ -83,13 +95,9 @@ const safelyOnboardChromeBrowser = async () => {
     // No "No thanks" dialog or timed out
   }
   try {
-    await withTimeout(
-      dismissChromeAdPrivacyIfPresent(),
-      CHROME_DISMISS_TIMEOUT_MS,
-      'dismissChromeAdPrivacy',
-    );
+    await dismissChromeAdPrivacyIfPresent();
   } catch {
-    // No Enhanced ad privacy dialog or timed out — continue
+    // No Enhanced ad privacy dialog — continue
   }
   try {
     await withTimeout(
@@ -100,47 +108,6 @@ const safelyOnboardChromeBrowser = async () => {
   } catch {
     // No "Chrome notifications" modal or timed out — continue
   }
-};
-
-/**
- * Wait until Chrome NTP/omnibox is interactable, dismissing leftover dialogs.
- * google_apis emulator Chrome often uses placeholder text instead of stable IDs.
- * @throws If Chrome never becomes ready within the timeout
- */
-const waitForChromeNavigationReady = async () => {
-  const deadline = Date.now() + 20_000;
-  while (Date.now() < deadline) {
-    PlaywrightUtilities.collapseStatusBar();
-    try {
-      await withTimeout(
-        dismissChromeNotificationsIfPresent(),
-        2_000,
-        'dismissChromeNotificationsReady',
-      );
-    } catch {
-      // Modal not present
-    }
-
-    for (const probe of [
-      () => asPlaywrightElement(ChromeBrowserView.chromeHomePageSearchBox),
-      () => asPlaywrightElement(ChromeBrowserView.chromeUrlBar),
-      () =>
-        PlaywrightMatchers.getElementByText('Search or type web address', true),
-    ]) {
-      try {
-        const chromeTarget = await probe();
-        if (await chromeTarget.isVisible()) {
-          return;
-        }
-      } catch {
-        // Try next probe
-      }
-    }
-    await new Promise((r) => setTimeout(r, 500));
-  }
-  throw new Error(
-    'Chrome navigation UI (NTP/omnibox) did not become ready within 20s',
-  );
 };
 
 /**
@@ -190,7 +157,9 @@ export const launchMobileBrowser = async ({
   if (safelyOnboardChrome) {
     await safelyOnboardChromeBrowser();
   }
-  await waitForChromeNavigationReady();
+  // No omnibox/NTP readiness gate: newer Chrome restores to the tab switcher on
+  // warm launches, where the omnibox is absent. navigateToDapp() uses an adb VIEW
+  // intent that foregrounds Chrome on the target URL regardless of prior UI state.
   await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
 };
 
@@ -219,11 +188,7 @@ export const navigateToDappAndroid = async (url: string) => {
     PlaywrightUtilities.openUrlInChrome(url);
     await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
     try {
-      await withTimeout(
-        dismissChromeAdPrivacyIfPresent(),
-        CHROME_DISMISS_TIMEOUT_MS,
-        'dismissChromeAfterViewIntent',
-      );
+      await dismissChromeAdPrivacyIfPresent();
     } catch {
       // No post-navigation dialog
     }
@@ -263,16 +228,31 @@ export const navigateToDappAndroid = async (url: string) => {
       url,
     );
   } catch {
-    const editText = await PlaywrightMatchers.getElementByXPath(
-      '//android.widget.EditText',
-    );
-    await PlaywrightGestures.typeText(editText, url);
+    try {
+      const editText = await PlaywrightMatchers.getElementByXPath(
+        '//android.widget.EditText',
+      );
+      await PlaywrightGestures.typeText(editText, url);
+    } catch {
+      // No editable field (e.g. tab switcher) — VIEW-intent retry recovers below.
+    }
   }
   try {
     await ChromeBrowserView.tapSelectDappUrl();
   } catch {
     // Suggestion row resource IDs vary; Enter submits the omnibox URL.
     await PlaywrightGestures.submitAndroidUrlBar();
+  }
+
+  // Recover from the tab switcher (CDP downstream verifies the load).
+  if (!(await chromeUrlBarShowsTarget(url))) {
+    PlaywrightUtilities.openUrlInChrome(url);
+    await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
+    try {
+      await dismissChromeAdPrivacyIfPresent();
+    } catch {
+      // No post-navigation dialog
+    }
   }
 };
 

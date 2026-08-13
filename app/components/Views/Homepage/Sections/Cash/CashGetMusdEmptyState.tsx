@@ -28,6 +28,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../../UI/Earn/constants/musd';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RampIntent } from '../../../../UI/Ramp/types';
 import { useMusdConversion } from '../../../../UI/Earn/hooks/useMusdConversion';
 import { useMusdConversionFlowData } from '../../../../UI/Earn/hooks/useMusdConversionFlowData';
@@ -39,11 +40,10 @@ import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
-import { RootState } from '../../../../../reducers';
 import {
-  selectConversionRateByChainId,
+  makeSelectConversionRateByChainId,
+  makeSelectUSDConversionRateByChainId,
   selectCurrentCurrency,
-  selectUSDConversionRateByChainId,
 } from '../../../../../selectors/currencyRateController';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { formatWithThreshold } from '../../../../../util/assets';
@@ -60,6 +60,13 @@ interface CashGetMusdEmptyStateProps {
   isFullView?: boolean;
   hideClaimButton?: boolean;
 }
+
+const selectMainnetConversionRate = makeSelectConversionRateByChainId(
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+);
+const selectMainnetUsdConversionRate = makeSelectUSDConversionRateByChainId(
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+);
 
 /**
  * Empty state for the Cash (mUSD) full view when the user has no mUSD.
@@ -103,7 +110,7 @@ const CashGetMusdEmptyState = ({
     lastMerklClaimErrorToastRef.current = merklClaimError;
     toastRef?.current?.showToast({
       variant: ToastVariants.Plain,
-      labelOptions: [{ label: merklClaimError, isBold: false }],
+      labelOptions: [{ label: merklClaimError, isBold: true }],
       hasNoTimeout: false,
     });
   }, [merklClaimError, toastRef]);
@@ -119,12 +126,8 @@ const CashGetMusdEmptyState = ({
   const networkName = useNetworkName(MUSD_CONVERSION_DEFAULT_CHAIN_ID);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const mainnetConversionRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, MUSD_CONVERSION_DEFAULT_CHAIN_ID),
-  );
-  const mainnetUsdConversionRate = useSelector((state: RootState) =>
-    selectUSDConversionRateByChainId(state, MUSD_CONVERSION_DEFAULT_CHAIN_ID),
-  );
+  const mainnetConversionRate = useSelector(selectMainnetConversionRate);
+  const mainnetUsdConversionRate = useSelector(selectMainnetUsdConversionRate);
   const { navigateToCash } = useCashNavigation();
 
   /** USD → selected fiat (same basis as aggregated mUSD balance / price row). */
@@ -257,7 +260,7 @@ const CashGetMusdEmptyState = ({
       const rampIntent: RampIntent = {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
       };
-      goToBuy(rampIntent);
+      goToBuy(rampIntent, { surface: RAMPS_BUY_CUF_SURFACE.CASH });
     }
   }, [
     isMusdBuyableOnAnyChain,

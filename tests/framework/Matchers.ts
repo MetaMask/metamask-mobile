@@ -1,4 +1,5 @@
-import { web, system } from 'detox';
+import { web, system, element, by } from './legacy-detox-shim';
+import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import { resolve } from './Selector.ts';
@@ -184,6 +185,25 @@ export default class Matchers {
   }
 
   /**
+   * Get a browser WebView test element by data-testid.
+   * @param dataTestId - The data-testid of the element
+   * @param options.tag - The tag of the element having the data-testid attribute (e.g. 'div', 'input'). Defaults to 'div'
+   * @param options.extraXPath - Extra xpath suffix (e.g. '/div/button') for elements without a data-testid
+   */
+  static getTestElement(
+    dataTestId: string,
+    options: { extraXPath?: string; tag?: string } = {},
+  ): Promise<DetoxElement | WebElement | PlaywrightElement> {
+    const { tag = 'div', extraXPath = '' } = options;
+    const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
+
+    return this.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      xpath,
+    );
+  }
+
+  /**
    * Get element by href within a webview
    */
   static async getElementByHref(
@@ -249,5 +269,13 @@ export default class Matchers {
       );
     }
     return PlaywrightMatchers.getAllElementsByXPath(xpath);
+  }
+
+  /** Native app XPath (not WebView). */
+  static getElementByNativeXPath(
+    xpath: string,
+    options?: Parameters<typeof PlaywrightMatchers.getElementByXPath>[1],
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByXPath(xpath, options);
   }
 }
