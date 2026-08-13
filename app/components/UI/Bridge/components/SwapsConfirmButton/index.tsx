@@ -244,7 +244,7 @@ export const SwapsConfirmButton = ({
     // thus this check is not expected to be used, but we introduce
     // it regardless as a defensive mechanism.
     const priceImpact = parsePriceImpact(
-      activeQuote?.quote.priceData?.priceImpact,
+      activeQuote?.quote.priceData?.priceImpact?.amount,
     );
 
     if (
@@ -271,7 +271,7 @@ export const SwapsConfirmButton = ({
     if (Engine.context.BridgeController?.resetState) {
       Engine.context.BridgeController.resetState();
     }
-    updateQuoteParams();
+    updateQuoteParams({ isRefresh: true });
   };
 
   const buttonIsInLoadingState =

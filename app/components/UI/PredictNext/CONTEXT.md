@@ -41,7 +41,7 @@ _Avoid_: Venue Account, sub-wallet
 ### Core Data Model
 
 **Event**:
-A group of related binary Markets on a single topic, such as "2026 NBA Finals" or "Will ETH hit $5k?".
+A product grouping of one or more related binary Markets on a single topic, such as "2026 NBA Finals" or "Will ETH hit $5k?". A Venue's recurring series is a separate grouping and is not a canonical Event.
 _Avoid_: Market, PredictMarket
 
 **Market**:
@@ -49,7 +49,7 @@ A single binary question within an Event, resolved as Yes or No, such as "Lakers
 _Avoid_: Outcome, PredictOutcome, condition
 
 **Outcome**:
-One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label.
+One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome has a Venue-qualified identifier that may be native to the Venue or deterministically derived by the adapter when the Venue exposes only a side label; this identifier is not necessarily a token identifier.
 _Avoid_: OutcomeToken, token, share
 
 **Position**:
@@ -120,6 +120,14 @@ _Avoid_: UI request, transient loading state
 The Predict User's available settlement-currency amount in a Venue Account, ready for placing Orders.
 _Avoid_: Funds, wallet balance, raw token amount
 
+**Ask Price**:
+The lowest currently available per-share price to buy an Outcome, expressed in settlement currency. A missing Ask Price means no current buy quote; it does not mean zero.
+_Avoid_: Price, buy price, Yes ask
+
+**Bid Price**:
+The highest currently available per-share price to sell an Outcome, expressed in settlement currency. A missing Bid Price means no current sell quote; it does not mean zero.
+_Avoid_: Price, sell price, Yes bid
+
 **Volume**:
 Total settlement currency traded on a Market or Event across all users.
 _Avoid_: Liquidity
@@ -164,6 +172,14 @@ _Avoid_: Provider feature
 A dynamic availability projection for a Venue, such as available, degraded, or unavailable. It is distinct from static Venue Capabilities and from user-specific Account Readiness.
 _Avoid_: Capability, feature flag
 
+**Active Venue**:
+The Venue whose Predict experience is currently shown. The Active Venue may come from a regional default or a valid Venue Selection Preference.
+_Avoid_: Provider, selected provider, current market source
+
+**Venue Selection Preference**:
+A Predict User's explicit settings choice of Active Venue. It overrides regional defaulting only while that Venue remains selectable; it is not proof of eligibility or availability.
+_Avoid_: Provider toggle, eligibility, Venue Status
+
 **Remote Venue Adapter**:
 A mobile Venue Adapter implementation that translates canonical Predict calls into requests to a MetaMask Predict backend. The backend owns volatile Venue protocol logic and Venue credentials; mobile retains user intent, confirmation, and wallet signing.
 _Avoid_: New Venue, backend provider, opaque proxy
@@ -180,6 +196,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Account Setup can change Account Readiness from setup-required to ready.
 - Account Readiness is distinct from Balance and Venue Status; a Predict User can be ready with zero Balance, or funded while a Venue is unavailable.
 - Each Event originates from exactly one Venue and contains one or more Markets.
+- A Venue's recurring Series is distinct from the canonical Event grouping.
 - Each Market contains exactly two Outcomes, typically Yes and No.
 - Each Position is tied to exactly one Outcome.
 - Each Order targets exactly one Outcome and may produce zero or more Fills.
@@ -193,6 +210,9 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - A crypto up/down Market compares asset prices against a Reference Price.
 - A Live Update refreshes the current understanding of an existing domain object; it is not a separate Event or Order.
 - A Service Event is not a prediction-market Event; always use the qualifier for internal messages.
+- Exactly one Venue is the Active Venue for a rendered Predict experience.
+- Without a valid Venue Selection Preference, US geolocation defaults the Active Venue to Kalshi and non-US geolocation defaults it to Polymarket.
+- A valid Venue Selection Preference takes precedence over regional defaulting, but does not override eligibility, Venue Status, or rollout controls.
 - A sports Event may have one Game, and a Game has participating Teams.
 - Extended sports child Events are represented as additional Markets grouped under one canonical parent Event, with child provenance preserved in metadata.
 
@@ -208,6 +228,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - "target price" is legacy UI language for a crypto up/down Reference Price.
 - "event" is overloaded. Event is a product grouping of Markets; Service Event is an internal observation message.
 - "pending order" is ambiguous. Use Active Order for app workflow state and Resting Order for accepted order-book state.
+- "selected provider" conflates product choice with implementation language. Use Active Venue for the rendered Venue and Venue Selection Preference for an explicit settings choice.
 
 ## Venue Terminology Mapping
 

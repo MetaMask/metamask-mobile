@@ -53,7 +53,6 @@ const WatchlistStarButton = ({
       variant: ToastVariants.Icon,
       iconName: LegacyIconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.section,
       labelOptions: [
         {
           label: wasWatched
@@ -88,7 +87,6 @@ const WatchlistStarButton = ({
     assetType,
     hasBalance,
     theme.colors.success.default,
-    theme.colors.background.section,
   ]);
 
   if (!isWatchlistEnabled || !assetId) {

@@ -18,7 +18,10 @@ import {
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { element as detoxElement, by as detoxBy } from 'detox';
+import {
+  element as detoxElement,
+  by as detoxBy,
+} from '../../framework/legacy-detox-shim';
 import {
   encapsulatedAction,
   PlatformDetector,
@@ -577,8 +580,8 @@ class PerpsOrderView {
         const leverageSelector = `${leverageX}x`;
         let optionEl: PlaywrightElement;
         if (PlatformDetector.isAndroid()) {
-          optionEl = await PlaywrightMatchers.getElementById(
-            `leverage-quick-select-${leverageX}`,
+          optionEl = await PlaywrightMatchers.getElementByXPath(
+            `//android.view.ViewGroup[@content-desc="${leverageSelector}"]`,
             { exact: true },
           );
         } else {

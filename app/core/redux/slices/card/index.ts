@@ -13,14 +13,15 @@ export interface OnboardingState {
 }
 
 export interface CardSliceState {
-  hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
   pendingMoneyAccountCardLink: CardEntryPoint | null;
+  cardArrivalAnimationSeen: boolean;
+  /** Armed by the developer-options reset; consumed on arrival, not persisted. */
+  cardArrivalPreviewRequested: boolean;
 }
 
 export const initialState: CardSliceState = {
-  hasViewedCardButton: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -29,6 +30,8 @@ export const initialState: CardSliceState = {
   },
   isDaimoDemo: false,
   pendingMoneyAccountCardLink: null,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
 };
 
 const name = 'card';
@@ -38,9 +41,6 @@ const slice = createSlice({
   initialState,
   reducers: {
     resetCardState: () => initialState,
-    setHasViewedCardButton: (state, action: PayloadAction<boolean>) => {
-      state.hasViewedCardButton = action.payload;
-    },
     setIsDaimoDemo: (state, action: PayloadAction<boolean>) => {
       state.isDaimoDemo = action.payload;
     },
@@ -73,6 +73,12 @@ const slice = createSlice({
     ) => {
       state.pendingMoneyAccountCardLink = action.payload;
     },
+    setCardArrivalAnimationSeen: (state, action: PayloadAction<boolean>) => {
+      state.cardArrivalAnimationSeen = action.payload;
+    },
+    setCardArrivalPreviewRequested: (state, action: PayloadAction<boolean>) => {
+      state.cardArrivalPreviewRequested = action.payload;
+    },
   },
 });
 
@@ -82,11 +88,6 @@ export default reducer;
 
 // Base selectors
 const selectCardState = (state: RootState) => state[name];
-
-export const selectHasViewedCardButton = createSelector(
-  selectCardState,
-  (card) => card.hasViewedCardButton,
-);
 
 export const selectIsDaimoDemo = createSelector(
   selectCardState,
@@ -118,10 +119,19 @@ export const selectPendingMoneyAccountCardLink = createSelector(
   (card) => card.pendingMoneyAccountCardLink,
 );
 
+export const selectCardArrivalAnimationSeen = createSelector(
+  selectCardState,
+  (card) => card.cardArrivalAnimationSeen,
+);
+
+export const selectCardArrivalPreviewRequested = createSelector(
+  selectCardState,
+  (card) => card.cardArrivalPreviewRequested,
+);
+
 // Actions
 export const {
   resetCardState,
-  setHasViewedCardButton,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
@@ -129,4 +139,6 @@ export const {
   resetOnboardingState,
   setIsDaimoDemo,
   setPendingMoneyAccountCardLink,
+  setCardArrivalAnimationSeen,
+  setCardArrivalPreviewRequested,
 } = actions;

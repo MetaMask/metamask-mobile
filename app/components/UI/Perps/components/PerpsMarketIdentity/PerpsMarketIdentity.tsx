@@ -79,20 +79,22 @@ const PerpsMarketIdentity = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={gap}
-      twClassName={`self-start rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
+      twClassName={`rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
     >
       <PerpsTokenLogo symbol={symbol} size={size} testID={testIDs?.assetIcon} />
-      <Box flexDirection={BoxFlexDirection.Column}>
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
+          twClassName="min-w-0"
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            style={nameStyle}
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={[{ flexShrink: 1 }, nameStyle]}
             testID={testIDs?.assetName}
           >
             {displayTitle}

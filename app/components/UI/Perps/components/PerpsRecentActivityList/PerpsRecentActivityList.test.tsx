@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsRecentActivityList from './PerpsRecentActivityList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FillType } from '../../types/transactionHistory';
-import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { ACTIVITY_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 
 const mockTrackEvent = jest.fn();
@@ -703,14 +703,14 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks Transaction Detail List Item Clicked when a trade is pressed', () => {
+    it('tracks Activity Details Opened when a trade is pressed', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const transactionItem = screen.getByText('Opened long');
       fireEvent.press(transactionItem.parent?.parent || transactionItem);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
