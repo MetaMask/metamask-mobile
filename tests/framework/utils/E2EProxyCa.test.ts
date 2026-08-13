@@ -122,7 +122,22 @@ describe('ensureE2EProxyCa', () => {
 
     await expect(
       ensureE2EProxyCa({ caDirectory, execFileImpl }),
-    ).rejects.toThrow('Failed to generate iOS E2E proxy CA');
+    ).rejects.toThrow('Failed to generate E2E proxy CA');
+  });
+
+  it('refuses to regenerate when only some CA files are missing', async () => {
+    const paths = getE2EProxyCaFilePaths(caDirectory);
+    mkdirSync(caDirectory, { recursive: true });
+    writeFileSync(paths.keyPath, 'existing key');
+    // pem + cer intentionally absent — partial set must not mint a new CA
+    // while Android may still trust a previously bundled cert.
+    const execFileImpl: ExecFileImpl = () => {
+      throw new Error('OpenSSL should not run for a partial CA set');
+    };
+
+    await expect(
+      ensureE2EProxyCa({ caDirectory, execFileImpl }),
+    ).rejects.toThrow(/E2E proxy CA is incomplete/);
   });
 });
 

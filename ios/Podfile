@@ -256,7 +256,9 @@ def apply_e2e_socketrocket_proxy_patch(installer)
     raise 'SocketRocket E2E native proxy patch: expected _configureProxy block not found (SocketRocket source changed — update the patch invariants above)'
   end
 
-  system "chmod +w #{file}"
+  unless system("chmod +w #{file}")
+    raise "SocketRocket E2E native proxy patch: failed to chmod +w #{file}"
+  end
   File.write(file, modified)
   unless File.read(file).include?(marker)
     raise 'SocketRocket E2E native proxy patch: marker missing after write — patch did not stick'

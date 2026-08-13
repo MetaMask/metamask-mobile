@@ -88,9 +88,23 @@ export const ensureE2EProxyCa = async ({
   execFileImpl?: ExecFileImpl;
 } = {}): Promise<E2EProxyCaFilePaths> => {
   const paths = getE2EProxyCaFilePaths(caDirectory);
+  const missingFiles = getMissingFiles(paths);
 
-  if (getMissingFiles(paths).length === 0) {
+  if (missingFiles.length === 0) {
     return paths;
+  }
+
+  // Partial sets are unsafe: regenerating would mint a new CA while the
+  // Android APK may still trust the old bundled cert (Decision DA/A1).
+  const allFiles = [paths.keyPath, paths.certPemPath, paths.certDerPath];
+  if (missingFiles.length !== allFiles.length) {
+    throw new Error(
+      `E2E proxy CA is incomplete (missing: ${missingFiles.join(
+        ', ',
+      )}). Delete all three of ${allFiles.join(
+        ', ',
+      )} then re-run to regenerate, and re-copy proxy-ca.pem to android/app/src/main/res/raw/e2e_proxy_ca.pem.`,
+    );
   }
 
   mkdirSync(paths.caDirectory, { recursive: true });
@@ -127,10 +141,10 @@ export const ensureE2EProxyCa = async ({
     execFileImpl,
   );
 
-  const missingFiles = getMissingFiles(paths);
-  if (missingFiles.length > 0) {
+  const stillMissing = getMissingFiles(paths);
+  if (stillMissing.length > 0) {
     throw new Error(
-      `Failed to generate iOS E2E proxy CA. Missing files: ${missingFiles.join(
+      `Failed to generate E2E proxy CA. Missing files: ${stillMissing.join(
         ', ',
       )}`,
     );

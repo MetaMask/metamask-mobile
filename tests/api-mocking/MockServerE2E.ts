@@ -361,6 +361,7 @@ const redactNativeProxyUrl = (url: string): string => {
   try {
     const parsedUrl = new URL(url);
 
+    // Infura puts API keys in the path; strip path + query.
     if (parsedUrl.hostname.endsWith('infura.io')) {
       const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
       parsedUrl.pathname =
@@ -368,12 +369,30 @@ const redactNativeProxyUrl = (url: string): string => {
           ? `/${pathSegments.map(() => '<redacted>').join('/')}`
           : '/';
       parsedUrl.search = parsedUrl.search ? '?<redacted>' : '';
+    } else if (parsedUrl.search) {
+      // Drop query strings that may carry tokens (analytics, auth redirects).
+      parsedUrl.search = '?<redacted>';
     }
+
+    parsedUrl.username = '';
+    parsedUrl.password = '';
 
     return parsedUrl.toString();
   } catch {
-    return url;
+    return '<unparseable-url>';
   }
+};
+
+const redactDeviceProxyRequestBody = (bodyText: string): string => {
+  const truncated =
+    bodyText.length > 256 ? `${bodyText.slice(0, 256)}…<truncated>` : bodyText;
+  // Best-effort masking of common secret-shaped tokens in JSON/query bodies.
+  return truncated
+    .replace(
+      /("?(?:api[_-]?key|authorization|access[_-]?token|password|secret|private[_-]?key)"?\s*[:=]\s*")[^"]*(")/gi,
+      '$1<redacted>$2',
+    )
+    .replace(/\bBearer\s+[A-Za-z0-9._-]+\b/gi, 'Bearer <redacted>');
 };
 
 const parseJsonRpcMessages = (message: string): JsonRpcLikeMessage[] => {
@@ -899,11 +918,15 @@ const logDirectDeviceProxyMiss = (
 ): void => {
   if (!isUrlSuppressedFromLogs(targetUrl)) {
     logger.warn(
-      `[E2E_DEVICE_PROXY_UNMOCKED_REQUEST] source=device-proxy ${method} ${targetUrl} matchedMock=false liveRequestTracking=false`,
+      `[E2E_DEVICE_PROXY_UNMOCKED_REQUEST] source=device-proxy ${method} ${redactNativeProxyUrl(
+        targetUrl,
+      )} matchedMock=false liveRequestTracking=false`,
     );
     if (method === 'POST' && requestBodyText) {
       logger.warn(
-        `[E2E_DEVICE_PROXY_UNMOCKED_REQUEST_BODY] ${requestBodyText}`,
+        `[E2E_DEVICE_PROXY_UNMOCKED_REQUEST_BODY] ${redactDeviceProxyRequestBody(
+          requestBodyText,
+        )}`,
       );
     }
   }

@@ -1,9 +1,12 @@
 import Foundation
 
 #if METAMASK_E2E
-/// Routes all native HTTP/HTTPS traffic issued through React Native's shared
-/// `NSURLSession` (and, together with the SocketRocket patch in the Podfile,
-/// native WebSocket traffic) through a local HTTP proxy during E2E runs.
+/// Configures React Native's shared `NSURLSession` to use a local HTTP proxy
+/// during E2E runs (plus SocketRocket WebSockets via the Podfile patch).
+///
+/// Scope is intentionally not process-wide: Nitro/WKWebView/Firebase/Braze/
+/// Sentry and other stacks that use their own sessions bypass this path.
+/// Android uses OS-level `adb` global proxy instead.
 ///
 /// The proxy port is supplied via the `e2eIosProxyPort` launch argument (or
 /// environment variable) by the E2E test harness; when it is absent this type
@@ -37,6 +40,8 @@ enum E2ENativeAppProxy {
       configuration.httpShouldSetCookies = true
       configuration.httpCookieAcceptPolicy = .always
       configuration.httpCookieStorage = .shared
+      // ExcludeSimpleHostnames already bypasses bare hostnames (localhost);
+      // keep explicit loopback / mDNS exceptions for dotted forms.
       configuration.connectionProxyDictionary = [
         httpEnableKey: NSNumber(value: 1),
         httpProxyKey: proxyHost,
@@ -47,7 +52,6 @@ enum E2ENativeAppProxy {
         exceptionsListKey: [
           "localhost",
           "127.0.0.1",
-          "10.0.2.2",
           "*.local",
         ],
         excludeSimpleHostnamesKey: NSNumber(value: 1),
@@ -56,7 +60,7 @@ enum E2ENativeAppProxy {
       return configuration
     }
 
-    NSLog("[E2E_IOS_NATIVE_APP_PROXY_ENABLED] RN HTTP and SocketRocket WebSocket traffic will use \(proxyHost):\(proxyPort)")
+    NSLog("[E2E_IOS_NATIVE_APP_PROXY_ENABLED] RN NSURLSession + SocketRocket traffic will use \(proxyHost):\(proxyPort)")
   }
 
   private static func launchArgumentValue(_ name: String) -> String? {

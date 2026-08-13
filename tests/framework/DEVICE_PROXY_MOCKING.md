@@ -274,7 +274,7 @@ Future work is tracked on MMQA-1923 (Phase 0) and its parent MMQA-1775:
 
 - N1 — binary response handling on the device-proxy path (Buffer-safe bodies).
 - N2 — Android native WSS coverage (OkHttp client factory under `METAMASK_ENVIRONMENT=e2e`).
-- N3 — diagnostic canary spec under `tests/smoke-appium/network/`.
+- N3 — diagnostic canary spec under `tests/smoke-appium/networks/device-proxy-canary.spec.ts` (Android Appium).
 - N4 — warn-level `E2E_DEVICE_PROXY_MOCKED_REQUEST` log marker.
 - N5 — disambiguate the unlock/splash-screen failure pattern.
 - Decision DA — Android CA install strategy.
