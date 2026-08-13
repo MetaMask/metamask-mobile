@@ -21,6 +21,13 @@ export const STATIC_ASSETS_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: '',
     },
+    // Polymarket market/team thumbnails, prefetched by the Predict feed.
+    {
+      urlEndpoint:
+        /^https:\/\/polymarket-upload\.s3\.us-east-2\.amazonaws\.com\/.+$/u,
+      responseCode: 200,
+      response: '',
+    },
   ],
   GET: [
     {

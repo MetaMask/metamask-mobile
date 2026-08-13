@@ -134,7 +134,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           });
 
           await PredictMarketList.tapBackButton();
-          await TabBarComponent.tapActivity();
+          await TabBarComponent.tapActivityHeaderButton();
 
           await ActivitiesView.tapOnPredictionsTab();
           await Assertions.expectTextDisplayed('Cashed out');

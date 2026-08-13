@@ -55,6 +55,10 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
+  get tabBarActivityButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
+  }
+
   get tabBarRewardsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
@@ -203,7 +207,7 @@ class TabBarComponent {
   async tapActivity(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(WalletView.activityButton, { timeout: 2000 });
+        await Gestures.waitAndTap(this.tabBarActivityButton, { timeout: 2000 });
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
           description: 'Activity View Title',
           timeout: 500,
@@ -214,6 +218,28 @@ class TabBarComponent {
         maxRetries: 15,
         timeout: 45000,
         description: 'Tap Activity Button',
+      },
+    );
+  }
+
+  /**
+   * Opens Activity via the wallet header clock icon, which replaces the Activity
+   * tab when the Money tab is visible.
+   */
+  async tapActivityHeaderButton(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(WalletView.activityButton, { timeout: 2000 });
+        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+          description: 'Activity View Title',
+          timeout: 500,
+        });
+      },
+      {
+        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        maxRetries: 15,
+        timeout: 45000,
+        description: 'Tap Activity Header Button',
       },
     );
   }
