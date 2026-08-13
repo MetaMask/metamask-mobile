@@ -2,7 +2,11 @@ import { StakeViewSelectors } from '../../selectors/Stake/StakeView.selectors.js
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
-import { Assertions, EncapsulatedElementType } from '../../framework';
+import {
+  Assertions,
+  EncapsulatedElementType,
+  PlatformDetector,
+} from '../../framework';
 
 class StakeView {
   get stakeContainer(): EncapsulatedElementType {
@@ -28,9 +32,14 @@ class StakeView {
 
   async enterAmount(amount: string): Promise<void> {
     // Text match for "1"/"0" hits balances; use keypad testIDs.
+    // iOS: accessibility-id matching for these keys is unreliable — use name XPath
+    // (same pattern as QuoteView.enterAmount / RedesignedSendView.enterAmountViaNumpad).
+    const isAndroid = PlatformDetector.isAndroid();
     for (const digit of amount.split('')) {
       const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-      const el = Matchers.getElementByID(keyName);
+      const el = isAndroid
+        ? Matchers.getElementByID(keyName)
+        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
       await Assertions.expectElementToBeVisible(el, {
         timeout: 10000,
         description: `Keypad digit ${digit} should be visible`,

@@ -29,11 +29,10 @@ class ImportAccountView {
 
   async enterPrivateKey(privateKey: string): Promise<void> {
     if (PlatformDetector.isIOS()) {
-      // Multiline input blocks tapOutside keyboard dismiss; Return submits via goNext().
-      await Gestures.typeText(this.privateKeyField, `${privateKey}\n`, {
-        elemDescription: 'Private key input field',
-        hideKeyboard: false,
-        clearFirst: true,
+      // Multiline input: fill/setValue is unreliable; per-char addValue + Return
+      // submits via goNext() (tapOutside cannot dismiss this keyboard).
+      await Gestures.typeTextByCharacters(this.privateKeyField, privateKey, {
+        submitWithReturn: true,
       });
       return;
     }

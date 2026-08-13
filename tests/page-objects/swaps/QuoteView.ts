@@ -173,11 +173,14 @@ class QuoteView {
       if (PlatformDetector.isAndroid()) {
         try {
           tokenElement = this.getTokenElement(chainId, symbol);
+          // Gestures.scrollToElement uses Detox direction semantics and inverts
+          // for Appium scrollIntoView. Pass 'down' so Appium receives 'up'
+          // (matches prior PlaywrightGestures.scrollIntoView direction: 'up').
           await Gestures.scrollToElement(
             tokenElement,
             Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
             {
-              direction: 'up',
+              direction: 'down',
               elemDescription: `Scroll to token symbol ${symbol}`,
             },
           );
