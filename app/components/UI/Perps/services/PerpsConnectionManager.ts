@@ -1247,6 +1247,10 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Successfully reconnected with new context',
       );
 
+      // Candle subscriptions are screen-driven and are not part of the global
+      // preload. Restore mounted consumers only after the new context is ready.
+      streamManager.candles.reconnect();
+
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();
       await this.preloadSubscriptions();
