@@ -498,39 +498,43 @@ const PerpsTPSLView: React.FC = () => {
       : undefined;
 
     setIsUpdating(true);
-    try {
-      // Pass tracking data to avoid duplicate position fetch in controller
-      // Use appropriate source based on context:
-      // - POSITION_SCREEN when editing TP/SL on an existing position
-      // - TRADE_SCREEN when setting TP/SL for a new order
-      const riskSource = isEditingExistingPosition
-        ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
-        : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN;
-      const trackingData = {
-        direction: actualDirection,
-        source: riskSource,
-        ...toPerpsEntryAttribution({ source: riskSource }),
-        positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
-        takeProfitPercentage: formattedTakeProfitPercentage
-          ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
-          : undefined,
-        stopLossPercentage: formattedStopLossPercentage
-          ? parseFloat(formattedStopLossPercentage.replace('%', ''))
-          : undefined,
-        isEditingExistingPosition,
-        entryPrice: effectiveEntryPrice,
-      };
-      // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
-      await onConfirm(
-        position,
-        parseTakeProfitPrice,
-        parseStopLossPrice,
-        trackingData,
-      );
-      navigation.goBack();
-    } finally {
-      setIsUpdating(false);
-    }
+
+    // Pass tracking data to avoid duplicate position fetch in controller
+    // Use appropriate source based on context:
+    // - POSITION_SCREEN when editing TP/SL on an existing position
+    // - TRADE_SCREEN when setting TP/SL for a new order
+    const riskSource = isEditingExistingPosition
+      ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+      : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN;
+    const trackingData = {
+      direction: actualDirection,
+      source: riskSource,
+      ...toPerpsEntryAttribution({ source: riskSource }),
+      positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
+      takeProfitPercentage: formattedTakeProfitPercentage
+        ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
+        : undefined,
+      stopLossPercentage: formattedStopLossPercentage
+        ? parseFloat(formattedStopLossPercentage.replace('%', ''))
+        : undefined,
+      isEditingExistingPosition,
+      entryPrice: effectiveEntryPrice,
+    };
+
+    // Dismiss before updating, matching PerpsClosePositionView. The update
+    // optimistically re-renders the position screen underneath, and Android
+    // cannot reparent a view out of this screen while react-native-screens
+    // holds a removal transition open on it. `onConfirm` reports its own
+    // success and error toasts, so nothing here needs to stay mounted.
+    navigation.goBack();
+
+    // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
+    await onConfirm(
+      position,
+      parseTakeProfitPrice,
+      parseStopLossPrice,
+      trackingData,
+    );
   }, [
     focusedInput,
     takeProfitPrice,
