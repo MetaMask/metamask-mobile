@@ -1,16 +1,13 @@
 import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers';
 import { FrameworkDetector } from '../../../framework/FrameworkDetector';
 import Matchers from '../../../framework/Matchers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
-import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
 import PlaywrightWebMatchers from '../../../framework/PlaywrightWebMatchers';
-import {
-  EnsWebsiteSelectorsText,
-  EnsWebsiteSelectorsXPath,
-} from '../../../selectors/Browser/EnsWebsite.selectors';
+import { EnsWebsiteSelectorsXPath } from '../../../selectors/Browser/EnsWebsite.selectors';
+
+const ENS_GENERAL_LINK_ID = 'ens-general-link';
 
 class EnsWebsite {
   /**
@@ -27,28 +24,16 @@ class EnsWebsite {
 
       if (PlatformDetector.isAndroid()) {
         // Android Chromedriver context switch fails under LavaMoat ShadowRoot
-        // scuttling — tap via the native accessibility tree instead.
-        // WebView a11y nodes often report isDisplayed/isEnabled=false even when
-        // present, so wait on existence and tap without strict gating.
-        await PlaywrightContextHelpers.switchToNativeContext();
-        await PlaywrightAssertions.expectElementToBeVisible(
-          PlaywrightMatchers.getElementByAndroidUIAutomator(
-            EnsWebsiteSelectorsText.PAGE_HEADING,
-          ),
-          { timeout: 30_000 },
+        // scuttling — click the fixture link via CDP in the MetaMask WebView.
+        const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+          pageUrl,
+          ENS_GENERAL_LINK_ID,
         );
-
-        const generalLink =
-          await PlaywrightMatchers.getElementByAndroidUIAutomator(
-            EnsWebsiteSelectorsText.GENERAL_LINK,
+        if (!clicked) {
+          throw new Error(
+            `Failed to click #${ENS_GENERAL_LINK_ID} via CDP on ${pageUrl}`,
           );
-        await generalLink.unwrap().waitForExist({ timeout: 30_000 });
-        await PlaywrightGestures.waitAndTap(generalLink, {
-          checkForDisplayed: false,
-          checkForEnabled: false,
-          timeout: 30_000,
-          elemDescription: 'ENS General link (Android native WebView a11y)',
-        });
+        }
         return;
       }
 

@@ -74,9 +74,7 @@ const getEnsFixturePageUrl = (): string => {
 };
 
 appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
-  // ENS case: login + browser setup + up to 180s executeWithRetry must fit
-  // inside Playwright's per-test timeout (not just the retry budget alone).
-  appiumTest.describe.configure({ timeout: 360_000 });
+  appiumTest.describe.configure({ timeout: 150000 });
 
   appiumTest(
     'navigates back home after visiting an invalid URL',
@@ -142,10 +140,6 @@ appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
             },
             {
               description: 'wait for ENS page to load and tap General link',
-              // Android POM may spend ~30s on heading + ~30s on waitForExist
-              // (and tap) per attempt; outer budget must cover maxRetries of those.
-              timeout: 180_000,
-              maxRetries: 3,
             },
           );
         },
