@@ -375,7 +375,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Setup project dependencies with retry (native-build path)
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
