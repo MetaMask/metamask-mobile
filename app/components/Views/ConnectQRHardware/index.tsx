@@ -263,43 +263,81 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   );
 
   const onForget = useCallback(async () => {
-    const deviceName = await withQrKeyring(
-      async ({ keyring }) => await keyring.getName(),
-    );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
-        .addProperties({
-          device_type: HardwareDeviceTypes.QR,
-          device_model: deviceName,
-        })
-        .build(),
-    );
     resetError();
-    const remainingAccounts = KeyringController.state.keyrings
-      .filter((keyring) => keyring.type !== ExtendedKeyringTypes.qr)
-      .flatMap((keyring) => keyring.accounts);
-    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
-    await withQrKeyring(async ({ keyring }) => {
-      const existingQrAccounts = await keyring.getAccounts();
-      // Permissions need to be updated before the hardware wallet is forgotten.
-      // This is because `removeAccountsFromPermissions` relies on the account
-      // existing in AccountsController in order to resolve a hex address
-      // back into CAIP Account Id. Hex addresses are used in
-      // `removeAccountsFromPermissions` because too many places in the UI still
-      // operate on hex addresses rather than CAIP Account Id.
-      removeAccountsFromPermissions(
-        existingQrAccounts.map(({ address }) =>
-          getChecksumAddress(address as Hex),
-        ),
+    setBlockingModalVisible(true);
+    try {
+      let deviceName: string = HardwareDeviceTypes.QR;
+      try {
+        deviceName = await withQrKeyring(
+          async ({ keyring }) => await keyring.getName(),
+        );
+      } catch (err) {
+        Logger.log('Error: Getting QR hardware wallet name', err);
+      }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
+          .addProperties({
+            device_type: HardwareDeviceTypes.QR,
+            device_model: deviceName,
+          })
+          .build(),
       );
-      await keyring.forgetDevice();
-    });
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      }),
-    );
+
+      const remainingAccounts = KeyringController.state.keyrings
+        .filter((keyring) => keyring.type !== ExtendedKeyringTypes.qr)
+        .flatMap((keyring) => keyring.accounts);
+
+      await withQrKeyring(async ({ keyring }) => {
+        try {
+          const existingQrAccounts = await keyring.getAccounts();
+          // Permissions need to be updated before the hardware wallet is forgotten.
+          // This is because `removeAccountsFromPermissions` relies on the account
+          // existing in AccountsController in order to resolve a hex address
+          // back into CAIP Account Id. Hex addresses are used in
+          // `removeAccountsFromPermissions` because too many places in the UI still
+          // operate on hex addresses rather than CAIP Account Id.
+          removeAccountsFromPermissions(
+            existingQrAccounts.map(({ address }) =>
+              getChecksumAddress(address as Hex),
+            ),
+          );
+        } catch (err) {
+          Logger.log(
+            'Error: Removing QR hardware wallet permissions before forget',
+            err,
+          );
+        }
+        await keyring.forgetDevice();
+      });
+
+      const nextAddress = remainingAccounts[remainingAccounts.length - 1];
+      if (nextAddress) {
+        try {
+          Engine.setSelectedAddress(nextAddress);
+        } catch (err) {
+          Logger.log(
+            'Error: Selecting remaining account after forgetting QR device',
+            err,
+          );
+        }
+      }
+
+      // ConnectQRHardware is hosted in a nested native stack that does not
+      // contain HomeNav. Reset the parent AppFlow navigator when present.
+      const parentNavigation = navigation.getParent?.() ?? navigation;
+      parentNavigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+        }),
+      );
+    } catch (err) {
+      Logger.log('Error: Forgetting QR hardware wallet', err);
+      setErrorMsg(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBlockingModalVisible(false);
+    }
   }, [
     KeyringController.state.keyrings,
     createEventBuilder,
@@ -349,16 +387,19 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
             hideMarketingContent={hideMarketingContent}
           />
         ) : (
-          <AccountSelector
-            accounts={accounts}
-            selectedAccounts={existingAccounts}
-            nextPage={nextPage}
-            prevPage={prevPage}
-            onCheck={onCheck}
-            onUnlock={onUnlock}
-            onForget={onForget}
-            title={strings('connect_qr_hardware.select_accounts')}
-          />
+          <>
+            {renderAlert()}
+            <AccountSelector
+              accounts={accounts}
+              selectedAccounts={existingAccounts}
+              nextPage={nextPage}
+              prevPage={prevPage}
+              onCheck={onCheck}
+              onUnlock={onUnlock}
+              onForget={onForget}
+              title={strings('connect_qr_hardware.select_accounts')}
+            />
+          </>
         )}
       </SafeAreaView>
       <AnimatedQRScannerModal

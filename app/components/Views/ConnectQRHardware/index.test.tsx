@@ -122,6 +122,7 @@ const mockedNavigate = {
   dispatch: jest.fn(),
   pop: jest.fn(),
   goBack: jest.fn(),
+  getParent: jest.fn(),
 };
 
 interface MockAccount {
@@ -282,6 +283,10 @@ describe('ConnectQRHardware', () => {
     jest.clearAllMocks();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
+    mockedNavigate.getParent.mockReturnValue(undefined);
+    mockKeyringController.state.keyrings = [
+      { type: 'QR Hardware Wallet Device', accounts: [] },
+    ];
 
     // Re-establish QrKeyring spies each test. `testSetup.js` runs
     // `jest.restoreAllMocks()` in afterEach, which restores spied methods to
@@ -612,6 +617,99 @@ describe('ConnectQRHardware', () => {
     expect(mockedNavigate.navigate).not.toHaveBeenCalled();
     expect(mockedNavigate.goBack).not.toHaveBeenCalled();
     expect(mockedNavigate.pop).not.toHaveBeenCalled();
+  });
+
+  it('forgets the QR device when no remaining non-QR account can be selected', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+    MockEngine.setSelectedAddress.mockImplementation((address: string) => {
+      if (!address) {
+        throw new Error(`No account found for address: ${address}`);
+      }
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON),
+      );
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
+    });
+
+    expect(mockQrKeyring.forgetDevice).toHaveBeenCalled();
+    expect(mockedNavigate.dispatch).toHaveBeenCalledWith(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      }),
+    );
+  });
+
+  it('forgets the QR device when listing QR accounts throws', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+    mockKeyringController.state.keyrings = [
+      {
+        type: 'HD Key Tree',
+        accounts: ['0x71C7656EC7ab88b098defB751B7401B5f6d8976F'],
+      },
+      { type: 'QR Hardware Wallet Device', accounts: [] },
+    ];
+    jest
+      .spyOn(mockQrKeyring, 'getAccounts')
+      .mockRejectedValue(
+        new Error(
+          'Address not found in device indexes. This indicates an inconsistent keyring state.',
+        ),
+      );
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON),
+      );
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
+    });
+
+    expect(mockQrKeyring.forgetDevice).toHaveBeenCalled();
+  });
+
+  it('resets the parent navigator to the home screen after forgetting the QR device', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+    const parentNavigation = { dispatch: jest.fn() };
+    mockedNavigate.getParent.mockReturnValue(parentNavigation);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON),
+      );
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
+    });
+
+    expect(parentNavigation.dispatch).toHaveBeenCalledWith(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      }),
+    );
+    expect(mockedNavigate.dispatch).not.toHaveBeenCalled();
   });
 
   it('includes device type property in continue connection event', async () => {
