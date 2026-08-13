@@ -249,6 +249,7 @@ export const PerpsAmountDisplaySelectorsIDs = {
   AMOUNT_LABEL: 'perps-amount-display-amount',
   MAX_LABEL: 'perps-amount-display-max',
   TOUCHABLE: 'perps-amount-display-touchable',
+  WARNING: 'perps-amount-display-warning',
 };
 
 // ========================================
