@@ -75,10 +75,9 @@ export const MOCK_KYC_PROGRESS_STEPS = 4;
 
 // Demo-only autoramp payload. The Ramps Dev API forwards this to MoonPay
 // unchanged, so the vocabulary and casing are MoonPay's (PascalCase `type`,
-// uppercase currency codes). Destination token matches
-// `MUSD_CURRENCY` from `@metamask/money-account-utils` (`'MUSD'`), not the
-// branded display symbol (`'mUSD'`). `customer_id` is deliberately absent:
-// RampsController resolves and injects it.
+// currency codes). Destination token uses MoonPay's branded `mUSD` symbol
+// (autoramp create 400s on uppercase `MUSD`). `customer_id` is deliberately
+// absent: RampsController resolves and injects it.
 export const DEMO_AUTORAMP_SOURCE_CURRENCY_CODE = 'BRL';
 export const DEMO_AUTORAMP_DESTINATION_TOKEN = 'mUSD';
 export const DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN = 'Monad';
