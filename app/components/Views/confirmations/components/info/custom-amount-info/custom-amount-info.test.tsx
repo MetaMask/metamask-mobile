@@ -8,6 +8,7 @@ import {
   CustomAmountInfoProps,
   AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
+  PrefillCustomAmountInfoSkeleton,
 } from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
@@ -2562,6 +2563,29 @@ describe('CustomAmountInfoSkeleton', () => {
     });
 
     expect(queryByTestId('account-selector-skeleton')).toBeNull();
+  });
+});
+
+describe('PrefillCustomAmountInfoSkeleton', () => {
+  it('insets confirm button skeleton with same horizontal padding as loaded button', () => {
+    const { getByTestId } = renderWithProvider(
+      <PrefillCustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(
+      getByTestId(CustomAmountInfoTestIds.PREFILL_CONFIRM_BUTTON_SKELETON),
+    ).toHaveStyle({
+      paddingLeft: 16,
+      paddingRight: 16,
+    });
   });
 });
 

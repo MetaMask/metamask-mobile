@@ -570,7 +570,12 @@ export function PrefillCustomAmountInfoSkeleton() {
           <Skeleton height={16} width={100} />
           <Skeleton height={16} width={100} />
         </Box>
-        <Skeleton height={48} twClassName="rounded-full mt-4" />
+        <Box
+          twClassName="px-4"
+          testID={CustomAmountInfoTestIds.PREFILL_CONFIRM_BUTTON_SKELETON}
+        >
+          <Skeleton height={48} twClassName="rounded-full mt-4" />
+        </Box>
       </Box>
     </Box>
   );
