@@ -86,8 +86,8 @@ function resolveRegistrationAddress(address?: string): string {
  * concurrent callers for the same address await the same in-flight promise so
  * KYC-completion and the visible pipeline cannot both open a signing prompt.
  *
- * Limitation: the controller hardcodes blockchain `Monad`. A completed Monad
- * registration is not proof of an Ethereum registration.
+ * Limitation: the controller hardcodes blockchain `Monad`. Keep the demo
+ * autoramp destination on the same chain so MoonPay accepts the recipient.
  *
  * @param params - Source label and optional address override.
  * @returns Registration outcome metadata safe for UI/trace use.
@@ -183,7 +183,7 @@ export async function registerSelectedMoneyAccountWallet(
     reused: false,
     signing: 'KeyringController:signPersonalMessage via RampsController',
     chainLimitation:
-      'registerMoneyAccountWallet hardcodes MoonPay blockchain=Monad; autoramp destination is Ethereum',
+      'registerMoneyAccountWallet hardcodes MoonPay blockchain=Monad; autoramp destination is also Monad',
   });
   const stopPendingReports = traceWhilePending('wallet.register.pending', {
     source: params.source,

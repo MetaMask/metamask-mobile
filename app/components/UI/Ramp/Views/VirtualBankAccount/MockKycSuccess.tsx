@@ -47,6 +47,7 @@ import {
 } from '../../debug/vbaTrace';
 import { useVbaKycTrace } from './hooks/useVbaKycTrace';
 import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
+import { ensureMoneyAccountAutorampCreated } from './moneyAccountProvisioning';
 import { registerSelectedMoneyAccountWallet } from './registerSelectedMoneyAccountWallet';
 
 type StepId = 'identity' | 'customer' | 'signing' | 'autoramp' | 'live';
@@ -255,6 +256,13 @@ const StepRow = ({
  * surface the upstream message in place, which is what makes this useful while
  * the proxy routes are still being built out.
  *
+ * The signing stage reads `GET /kyc/status` on demand rather than waiting for
+ * `KycController:statusChanged`, because a status that was already `completed`
+ * before this screen mounted publishes no event. That read and the event
+ * subscriber share {@link registerSelectedMoneyAccountWallet} and
+ * {@link ensureMoneyAccountAutorampCreated}, so whichever arrives first does
+ * the work and the other reuses it: one signature prompt, one autoramp.
+ *
  * The MoonPay `customer_id` is never passed from here: `createAutoramp`
  * resolves it itself. Stage 2 performs the same lookup only so the mapping is
  * observable during the demo.
@@ -391,12 +399,19 @@ const MockKycSuccess = () => {
           : `customer_id = ${truncateId(customerId)}`,
       });
 
-      const registration = await timed('signing', async () =>
-        registerSelectedMoneyAccountWallet({
+      const registration = await timed('signing', async () => {
+        const { status: kycStatus } =
+          await Engine.context.KycController.refreshKycStatus();
+        if (kycStatus !== 'completed') {
+          throw new Error(
+            `KYC status is "${kycStatus}". The wallet can only be registered once it reads completed.`,
+          );
+        }
+        return registerSelectedMoneyAccountWallet({
           source: 'pipeline',
           address: walletAddress,
-        }),
-      );
+        });
+      });
       updateStep('signing', {
         status: 'success',
         detail: registration.reused
@@ -418,9 +433,7 @@ const MockKycSuccess = () => {
         });
         try {
           const created =
-            await Engine.context.RampsController.createAutoramp(
-              autorampRequest,
-            );
+            await ensureMoneyAccountAutorampCreated(walletAddress);
           vbaTrace('autoramp.create.success', {
             autorampId: created.id,
             status: created.status,
