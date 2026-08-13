@@ -119,6 +119,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed MetaMask Pay confirmation buttons remaining disabled until the required payment amount is ready and quotes can load (#33983)
 - Fixed the reduced native-token amount shown after selecting Send Max (#34150)
 
+## [8.6.1]
+
+### Fixed
+
+- Update translations (#34315)
+
 ## [8.6.0]
 
 ### Added
@@ -13293,7 +13299,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.7.0...HEAD
-[8.7.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.6.0...v8.7.0
+[8.7.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.6.1...v8.7.0
+[8.6.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.6.0...v8.6.1
 [8.6.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.5.0...v8.6.0
 [8.5.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.4.2...v8.5.0
 [8.4.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.4.1...v8.4.2
