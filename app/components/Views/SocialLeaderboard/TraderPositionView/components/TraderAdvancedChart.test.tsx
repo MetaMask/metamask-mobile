@@ -664,6 +664,151 @@ describe('TraderAdvancedChart', () => {
     expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xold');
   });
 
+  it('does not drop a newer older-trade focus while pagination is in flight', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const firstTradeTime = recentBars[0].time - intervalMs;
+    const secondTradeTime = firstTradeTime - intervalMs;
+    const olderBars = [
+      {
+        time: secondTradeTime,
+        open: 80,
+        high: 81,
+        low: 79,
+        close: 80,
+        volume: 10,
+      },
+      {
+        time: firstTradeTime,
+        open: 90,
+        high: 91,
+        low: 89,
+        close: 90,
+        volume: 10,
+      },
+    ];
+
+    let resolveFetch: (value: {
+      requestId: string;
+      seriesGeneration: number;
+      bars: typeof olderBars;
+      noData: boolean;
+    }) => void = () => undefined;
+    const mockFetchOlder = jest.fn(
+      () =>
+        new Promise<Parameters<typeof resolveFetch>[0]>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    const chartProps = {
+      ...defaultProps,
+      assetId: undefined,
+      isPerp: true,
+      perpSymbol: 'BTC',
+      selectedCandlePeriod: CandlePeriod.FifteenMinutes,
+      chartType: ChartType.Candles,
+      historicalPrices: [] as TokenPrice[],
+      trades: [
+        {
+          intent: 'enter' as const,
+          direction: 'buy' as const,
+          tokenAmount: 1,
+          usdCost: 100,
+          timestamp: firstTradeTime / 1000,
+          transactionHash: '0xfirst',
+        },
+        {
+          intent: 'enter' as const,
+          direction: 'buy' as const,
+          tokenAmount: 1,
+          usdCost: 100,
+          timestamp: secondTradeTime / 1000,
+          transactionHash: '0xsecond',
+        },
+      ],
+    };
+
+    const { rerender } = render(
+      <TraderAdvancedChart
+        {...chartProps}
+        focusRequest={{
+          id: '0xfirst',
+          timestamp: firstTradeTime / 1000,
+          nonce: 1,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockFetchOlder).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <TraderAdvancedChart
+        {...chartProps}
+        focusRequest={{
+          id: '0xsecond',
+          timestamp: secondTradeTime / 1000,
+          nonce: 2,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    expect(mockFocusTime).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveFetch({
+        requestId: 'focus-older',
+        seriesGeneration: 1,
+        bars: olderBars,
+        noData: false,
+      });
+    });
+
+    setPerpAdapter([...olderBars, ...recentBars], {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+    rerender(
+      <TraderAdvancedChart
+        {...chartProps}
+        focusRequest={{
+          id: '0xsecond',
+          timestamp: secondTradeTime / 1000,
+          nonce: 2,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    const lastChartProps = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      onChartLayoutSettled?: () => void;
+    };
+    act(() => {
+      lastChartProps.onChartLayoutSettled?.();
+    });
+
+    expect(mockFocusTime).toHaveBeenCalledWith(secondTradeTime, {
+      spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+    });
+    expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xsecond');
+  });
+
   it('falls back to the legacy chart for a perp with insufficient adapter data', () => {
     setOHLCV([]);
     setPerpAdapter(makeBars(2));

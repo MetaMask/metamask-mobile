@@ -111,6 +111,8 @@ export function usePerpsAdvancedChartAdapter({
   );
   const [isLoading, setIsLoading] = useState(true);
   const [cacheGeneration, setCacheGeneration] = useState(0);
+  /** Interval of the bars currently in `ohlcvData` — used for viewport/series key. */
+  const [appliedInterval, setAppliedInterval] = useState(interval);
 
   /** Always reflects the most recently received CandleData (unthrottled). */
   const latestCandleDataRef = useRef<CandleData | null>(null);
@@ -152,6 +154,7 @@ export function usePerpsAdvancedChartAdapter({
     if (!isIntervalRefresh) {
       setOhlcvData([]);
       hasLoadedBarsRef.current = false;
+      setAppliedInterval(interval);
     }
     setRealtimeBar(undefined);
     prevLastBarRef.current = null;
@@ -172,6 +175,7 @@ export function usePerpsAdvancedChartAdapter({
           setOhlcvData([]);
           setRealtimeBar(undefined);
           setIsLoading(true);
+          setAppliedInterval(interval);
           setCacheGeneration((generation) => generation + 1);
           return;
         }
@@ -204,6 +208,7 @@ export function usePerpsAdvancedChartAdapter({
         if (prev === null) {
           // First data for this symbol+interval — send full dataset.
           setOhlcvData(converted);
+          setAppliedInterval(interval);
           prevFirstBarTimeRef.current = converted[0]?.time ?? null;
           hasLoadedBarsRef.current = true;
           // realtimeBar stays undefined; AdvancedChart uses ohlcvData for initial render.
@@ -254,13 +259,13 @@ export function usePerpsAdvancedChartAdapter({
   const ohlcvSeriesKey = useMemo(
     () =>
       cacheGeneration === 0
-        ? `${symbol}|${interval}`
-        : `${symbol}|${interval}|${cacheGeneration}`,
-    [symbol, interval, cacheGeneration],
+        ? `${symbol}|${appliedInterval}`
+        : `${symbol}|${appliedInterval}|${cacheGeneration}`,
+    [symbol, appliedInterval, cacheGeneration],
   );
 
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
-  const intervalMs = INTERVAL_MS[interval as string];
+  const intervalMs = INTERVAL_MS[appliedInterval as string];
 
   const visibleToMs = lastBarTime;
   const visibleFromMs = useMemo(() => {

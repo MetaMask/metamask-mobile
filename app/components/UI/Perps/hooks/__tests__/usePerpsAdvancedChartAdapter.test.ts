@@ -339,6 +339,14 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.ohlcvData).toBe(previousBars);
 
+    const oneHourIntervalMs = INTERVAL_MS[INTERVAL];
+    if (oneHourIntervalMs === undefined) {
+      throw new Error('Expected 1h interval duration to be defined');
+    }
+    expect(result.current.ohlcvSeriesKey).toBe(`${SYMBOL}|${INTERVAL}`);
+    expect(result.current.visibleToMs).toBe(2000);
+    expect(result.current.visibleFromMs).toBe(2000 - oneHourIntervalMs * 45);
+
     act(() => {
       subscribeParams(1).callback({
         symbol: SYMBOL,
@@ -359,6 +367,9 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
 
     expect(result.current.visibleToMs).toBe(8000);
     expect(result.current.visibleFromMs).toBe(8000 - fourHourIntervalMs * 45);
+    expect(result.current.ohlcvSeriesKey).toBe(
+      `${SYMBOL}|${CandlePeriod.FourHours}`,
+    );
   });
 
   it('clears isLoading when the subscription reports an error', () => {

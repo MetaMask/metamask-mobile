@@ -396,6 +396,9 @@ const TraderPerpAdvancedChart = ({
   const chartRef = useRef<AdvancedChartRef>(null);
   const handledFocusNonceRef = useRef<number | null>(null);
   const paginationInFlightRef = useRef(false);
+  const focusRequestRef = useRef(focusRequest);
+  focusRequestRef.current = focusRequest;
+  const [paginationEpoch, setPaginationEpoch] = useState(0);
   const pendingFocusAfterSettleRef = useRef<{
     tradeTime: number;
     request: TradeFocusRequest;
@@ -539,20 +542,27 @@ const TraderPerpAdvancedChart = ({
       return;
     }
 
-    if (tradeTime < firstBarTime && !paginationInFlightRef.current) {
+    if (tradeTime < firstBarTime) {
+      if (paginationInFlightRef.current) {
+        return;
+      }
       paginationInFlightRef.current = true;
+      const requestedNonce = focusRequest.nonce;
       handleFetchOlderBarsRequest(
         buildPerpOlderBarsRequest({
           perpSymbol,
           selectedCandlePeriod,
-          focusNonce: focusRequest.nonce,
+          focusNonce: requestedNonce,
           tradeTimeMs: tradeTime,
           oldestLoadedTimeMs: firstBarTime,
         }),
       )
         .then((response) => {
+          if (focusRequestRef.current?.nonce !== requestedNonce) {
+            return;
+          }
           if (response.noData) {
-            handledFocusNonceRef.current = focusRequest.nonce;
+            handledFocusNonceRef.current = requestedNonce;
             return;
           }
           const expandedFirstTime = Math.min(
@@ -568,6 +578,14 @@ const TraderPerpAdvancedChart = ({
         })
         .finally(() => {
           paginationInFlightRef.current = false;
+          const latestNonce = focusRequestRef.current?.nonce;
+          if (
+            latestNonce != null &&
+            latestNonce !== requestedNonce &&
+            handledFocusNonceRef.current !== latestNonce
+          ) {
+            setPaginationEpoch((epoch) => epoch + 1);
+          }
         });
       return;
     }
@@ -579,6 +597,7 @@ const TraderPerpAdvancedChart = ({
     focusTradeOnChart,
     handleFetchOlderBarsRequest,
     ohlcvData,
+    paginationEpoch,
     perpSymbol,
     selectedCandlePeriod,
     shouldFallback,
