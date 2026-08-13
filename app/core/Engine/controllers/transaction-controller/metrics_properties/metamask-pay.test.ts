@@ -113,7 +113,6 @@ describe('Metamask Pay Metrics', () => {
         mm_pay: true,
         mm_pay_payment_method_selected: 'crypto',
         mm_pay_use_case: 'money_account_deposit',
-        mm_pay_amount_input_prefill_presented: false,
       },
       sensitiveProperties: {},
     });
@@ -147,7 +146,6 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_payment_method_selected: 'crypto',
         mm_pay_strategy: 'relay',
         mm_pay_use_case: 'money_account_deposit',
-        mm_pay_amount_input_prefill_presented: false,
       },
       sensitiveProperties: {},
     });
@@ -181,7 +179,6 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_use_case: 'money_account_deposit',
         mm_pay_transaction_step_total: 1,
         mm_pay_transaction_step: 1,
-        mm_pay_amount_input_prefill_presented: false,
       },
       sensitiveProperties: {},
     });
@@ -216,7 +213,6 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_use_case: 'money_account_deposit',
         mm_pay_transaction_step_total: 1,
         mm_pay_transaction_step: 1,
-        mm_pay_amount_input_prefill_presented: false,
       },
       sensitiveProperties: {},
     });
@@ -1732,6 +1728,46 @@ describe('Metamask Pay Metrics', () => {
           mm_pay_amount_input_prefill_presented: true,
         }),
       );
+    });
+
+    it('does not backfill presented from A/B when UI only recorded a manual/keypad type', () => {
+      resolveMoneyAccountDepositPrefillPresentedMock.mockReturnValue(true);
+      request.eventType = TRANSACTION_EVENTS.TRANSACTION_APPROVED;
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+      request.getUIMetrics = jest.fn().mockReturnValue({
+        properties: {
+          mm_pay_amount_input_type: 'manual',
+        },
+        sensitiveProperties: {},
+      });
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toEqual(
+        expect.objectContaining({
+          mm_pay_amount_input_type: 'manual',
+          mm_pay_amount_input_prefill_presented: false,
+        }),
+      );
+      expect(
+        resolveMoneyAccountDepositPrefillPresentedMock,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not apply intent-to-treat prefill tags on non-Added events', () => {
+      resolveMoneyAccountDepositPrefillPresentedMock.mockReturnValue(true);
+      request.eventType = TRANSACTION_EVENTS.TRANSACTION_APPROVED;
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty(
+        'mm_pay_amount_input_prefill_presented',
+      );
+      expect(result.properties).not.toHaveProperty('mm_pay_amount_input_type');
+      expect(
+        resolveMoneyAccountDepositPrefillPresentedMock,
+      ).not.toHaveBeenCalled();
     });
 
     it('copies parent amount input metrics to child bridge steps', () => {

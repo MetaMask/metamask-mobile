@@ -112,8 +112,9 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     }
 
     // mm_pay_amount_input_type, mm_pay_amount_input_prefill_presented
-    // UI fragment wins; otherwise intent-to-treat for money deposit (Added).
+    // UI fragment wins; intent-to-treat only on Transaction Added.
     addAmountInputProperties(properties, {
+      eventType,
       transaction: payTransaction,
       uiMetrics: getUIMetrics(payTransaction.id),
       state,
@@ -510,16 +511,19 @@ function addParentAmountInputUIMetrics(
  * Attaches amount-input metrics on every Transaction * event.
  *
  * Prefers the confirmation UI fragment (last edit + sticky prefill_presented).
- * When the fragment is empty (Transaction Added), money-account deposits get
- * intent-to-treat tags from the prefill kill-switch + A/B assignment.
+ * Intent-to-treat from the A/B / kill-switch assignment is only applied on
+ * Transaction Added when the UI has not recorded an amount input yet — never
+ * backfill `prefill_presented` on later events from assignment alone.
  */
 function addAmountInputProperties(
   properties: JsonMap,
   {
+    eventType,
     transaction,
     uiMetrics,
     state,
   }: {
+    eventType: Parameters<TransactionMetricsBuilder>[0]['eventType'];
     transaction: TransactionMeta;
     uiMetrics: TransactionMetrics | undefined;
     state: RootState;
@@ -536,9 +540,22 @@ function addAmountInputProperties(
     properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = uiPresented;
   }
 
+  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    return;
+  }
+
+  // Keypad / manual writes only set amount_input_type. That must not be treated
+  // as "prefill presented" via A/B assignment on later Transaction events.
+  if (uiType !== undefined) {
+    if (uiPresented === undefined) {
+      properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = false;
+    }
+    return;
+  }
+
   if (
-    !hasTransactionType(transaction, [TransactionType.moneyAccountDeposit]) ||
-    (uiType !== undefined && uiPresented !== undefined)
+    eventType !== TRANSACTION_EVENTS.TRANSACTION_ADDED ||
+    uiPresented !== undefined
   ) {
     return;
   }
@@ -547,11 +564,8 @@ function addAmountInputProperties(
     transaction,
     state,
   );
-
-  if (uiPresented === undefined) {
-    properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = presented;
-  }
-  if (uiType === undefined && presented) {
+  properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = presented;
+  if (presented) {
     properties[MM_PAY_AMOUNT_INPUT_TYPE_KEY] =
       MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED;
   }
