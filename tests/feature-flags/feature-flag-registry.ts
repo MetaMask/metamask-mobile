@@ -4051,7 +4051,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'perpsProTriggeredOrdersEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
-    productionDefault: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.8.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
