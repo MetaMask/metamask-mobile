@@ -9,28 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.6.1]
 
-### Uncategorized
-
-- chore(navigation): point React Navigation's global `RootParamList` at the app's real `RootStackParamList` (Phase 5) (#33745)
-- chore(money): opt in useNavigation to AppNavigationProp (Phase 4) (#33622)
-- chore(navigation): opt remaining small teams into AppNavigationProp (phase 4) (#33678)
-- chore(multichain accounts): opt in useNavigation to AppNavigationProp (Phase 4) (#33627)
-- chore(confirmation): opt in useNavigation to AppNavigationProp (Phase 4) (#33558)
-- chore(navigation): opt unowned surfaces into AppNavigationProp (Phase 4) (#33740)
-- chore(core): opt in useNavigation to AppNavigationProp (Phase 4) (#33666)
-- chore(assets): opt in useNavigation to AppNavigationProp (Phase 4) (#33628)
-
 ### Fixed
 
-- Polished toast styling for consistency in the 8.6.0 release (#33773)
-- Polished toast styling for consistency in the 8.6.0 release (#33769)
-- Polished toast styling for consistency in the 8.6.0 release (#33766)
-- Polished toast styling for consistency in the 8.6.0 release (#33771)
-- Polished toast styling for consistency in the 8.6.0 release (#33767)
-- Polished toast styling for consistency in the 8.6.0 release (#33772)
-- Polished toast styling for consistency in the 8.6.0 release (#33774)
-- Polished toast styling for consistency in the 8.6.0 release (#33775)
-- Polished toast styling for consistency in the 8.6.0 release (#33770)
+- Update translations (#34315)
 
 ## [8.6.0]
 
