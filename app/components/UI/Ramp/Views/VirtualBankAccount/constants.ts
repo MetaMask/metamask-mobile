@@ -80,3 +80,10 @@ export const MOCK_KYC_PROGRESS_STEPS = 4;
 export const DEMO_AUTORAMP_SOURCE_CURRENCY_CODE = 'BRL';
 export const DEMO_AUTORAMP_DESTINATION_TOKEN = 'USDC';
 export const DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN = 'Ethereum';
+
+// MoonPay self-hosted wallet registration via
+// `RampsController.registerMoneyAccountWallet` hardcodes this chain in
+// NeoBankService (`blockchain: 'Monad'`). There is no Ethereum registration
+// parameter today. The demo autoramp still pays out on Ethereum (above); the
+// ownership proof is EIP-191 over the same EVM address.
+export const MONEY_ACCOUNT_WALLET_REGISTRATION_BLOCKCHAIN = 'Monad';

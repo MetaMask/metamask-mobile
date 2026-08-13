@@ -1,13 +1,9 @@
 import type { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import {
-  abbreviate,
-  describeError,
-  traceWhilePending,
-  vbaTrace,
-} from '../../debug/vbaTrace';
+import { abbreviate, describeError, vbaTrace } from '../../debug/vbaTrace';
 import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
+import { registerSelectedMoneyAccountWallet } from './registerSelectedMoneyAccountWallet';
 
 /**
  * Payload published by `KycController:statusChanged`.
@@ -23,7 +19,7 @@ const asError = (value: unknown): Error =>
 
 /**
  * Builds the `KycController:statusChanged` subscriber that drives the demo
- * chain KYC `completed` → Money Account wallet registration → autoramp.
+ * chain KYC `completed` to Money Account wallet registration to autoramp.
  *
  * Wallet registration used to run eagerly right after the SumSub hand-off in
  * `MockKycEmail`; the real signal is the user-keyed status flipping to
@@ -32,10 +28,15 @@ const asError = (value: unknown): Error =>
  * "Create my account" pipeline runs is fired automatically, since the Iron
  * signing webhook that would do this server-side is not ready yet.
  *
+ * Registration is shared with the success-screen pipeline via
+ * {@link registerSelectedMoneyAccountWallet}, so a completed or in-flight
+ * signing for the same address does not open a second prompt.
+ *
  * The subscriber is:
- * - Idempotent: a given address is registered at most once per session, and
- * overlapping `completed` events are collapsed so registration never runs
- * twice concurrently. A rejected registration is retried on a later event.
+ * - Idempotent: a given address completes the register+autoramp chain at most
+ * once per session, and overlapping `completed` events are collapsed. A
+ * rejected registration or autoramp is retried on a later event (registration
+ * itself is also session-deduped by the shared helper).
  * - Soft-failing: verification already succeeded, so neither a registration nor
  * an autoramp error is surfaced to the user - they are logged, and the manual
  * "Create my account" button on the success screen stays as the fallback.
@@ -45,7 +46,7 @@ const asError = (value: unknown): Error =>
 export function createRegisterMoneyAccountOnKycCompletion(): (
   payload: KycStatusChangedPayload,
 ) => Promise<void> {
-  const registeredAddresses = new Set<string>();
+  const completedAddresses = new Set<string>();
   const inFlightAddresses = new Set<string>();
 
   return async function handleKycStatusChanged({
@@ -60,7 +61,9 @@ export function createRegisterMoneyAccountOnKycCompletion(): (
     const address = selectedAccount?.address as Hex | undefined;
 
     if (!address) {
-      vbaTrace('wallet.register.noAccount', {});
+      vbaTrace('wallet.register.noAccount', {
+        source: 'registerMoneyAccountOnKycCompletion',
+      });
       Logger.log(
         'Skipping Money Account wallet registration after KYC: no selected account.',
       );
@@ -69,78 +72,56 @@ export function createRegisterMoneyAccountOnKycCompletion(): (
 
     const addressKey = address.toLowerCase();
     if (
-      registeredAddresses.has(addressKey) ||
+      completedAddresses.has(addressKey) ||
       inFlightAddresses.has(addressKey)
     ) {
       return;
     }
     inFlightAddresses.add(addressKey);
 
-    const startedAt = Date.now();
-    vbaTrace('wallet.register.start', {
-      address: abbreviate(address),
-      accountId: selectedAccount?.id,
-      accountType: selectedAccount?.type,
-      accountScopes: selectedAccount?.scopes,
-      // Signing (EIP-191 ownership proof) and the registration POST both run
-      // inside RampsController; the `neobank.request` records emitted between
-      // this line and the outcome below bracket the signing window.
-      signing: 'KeyringController:signPersonalMessage via RampsController',
-    });
-    const stopPendingReports = traceWhilePending('wallet.register.pending', {
-      address: abbreviate(address),
-    });
-
     try {
-      const result =
-        await Engine.context.RampsController.registerMoneyAccountWallet({
+      try {
+        await registerSelectedMoneyAccountWallet({
+          source: 'kycCompletion',
           address,
         });
-      registeredAddresses.add(addressKey);
-      vbaTrace('wallet.register.success', {
-        address: abbreviate(address),
-        durationMs: Date.now() - startedAt,
-        result,
-      });
-    } catch (error) {
-      vbaTrace('wallet.register.failed', {
-        address: abbreviate(address),
-        durationMs: Date.now() - startedAt,
-        error: describeError(error),
-      });
-      Logger.error(asError(error), {
-        message: 'Money Account wallet registration failed after KYC completed',
-      });
-      return;
-    } finally {
-      stopPendingReports();
-      inFlightAddresses.delete(addressKey);
-    }
+      } catch (error) {
+        Logger.error(asError(error), {
+          message:
+            'Money Account wallet registration failed after KYC completed',
+        });
+        return;
+      }
 
-    try {
-      const autorampRequest = buildMoneyAccountAutorampParams(address);
-      vbaTrace('autoramp.create.start', {
-        route: 'POST /neobank/autoramps',
-        source: 'registerMoneyAccountOnKycCompletion',
-        request: autorampRequest,
-      });
-      const created =
-        await Engine.context.RampsController.createAutoramp(autorampRequest);
-      vbaTrace('autoramp.create.success', {
-        autorampId: created.id,
-        status: created.status,
-        source: 'registerMoneyAccountOnKycCompletion',
-      });
-    } catch (error) {
-      vbaTrace('autoramp.create.failed', {
-        source: 'registerMoneyAccountOnKycCompletion',
-        error: describeError(error),
-        bodySource: 'neobank.response.error',
-      });
-      Logger.error(asError(error), {
-        message:
-          'Autoramp creation failed after Money Account wallet registration',
-      });
+      try {
+        const autorampRequest = buildMoneyAccountAutorampParams(address);
+        vbaTrace('autoramp.create.start', {
+          route: 'POST /neobank/autoramps',
+          source: 'registerMoneyAccountOnKycCompletion',
+          request: autorampRequest,
+          recipientAddress: abbreviate(address),
+        });
+        const created =
+          await Engine.context.RampsController.createAutoramp(autorampRequest);
+        completedAddresses.add(addressKey);
+        vbaTrace('autoramp.create.success', {
+          autorampId: created.id,
+          status: created.status,
+          source: 'registerMoneyAccountOnKycCompletion',
+        });
+      } catch (error) {
+        vbaTrace('autoramp.create.failed', {
+          source: 'registerMoneyAccountOnKycCompletion',
+          error: describeError(error),
+          bodySource: 'neobank.response.error',
+        });
+        Logger.error(asError(error), {
+          message:
+            'Autoramp creation failed after Money Account wallet registration',
+        });
+      }
+    } finally {
+      inFlightAddresses.delete(addressKey);
     }
   };
 }

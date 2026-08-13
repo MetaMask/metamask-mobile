@@ -47,8 +47,9 @@ import {
 } from '../../debug/vbaTrace';
 import { useVbaKycTrace } from './hooks/useVbaKycTrace';
 import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
+import { registerSelectedMoneyAccountWallet } from './registerSelectedMoneyAccountWallet';
 
-type StepId = 'identity' | 'customer' | 'autoramp' | 'live';
+type StepId = 'identity' | 'customer' | 'signing' | 'autoramp' | 'live';
 
 type StepStatus = 'idle' | 'running' | 'waiting' | 'success' | 'failed';
 
@@ -59,9 +60,9 @@ interface StepState {
 }
 
 /**
- * The four stages the demo makes visible. `caller` is the actual code path or
- * HTTP route each stage exercises, shown verbatim so the audience can follow
- * along with the network tab / API logs.
+ * The stages the demo makes visible. `caller` is the actual code path or HTTP
+ * route each stage exercises, shown verbatim so the audience can follow along
+ * with the network tab / API logs.
  */
 const STEPS: { id: StepId; title: string; caller: string }[] = [
   {
@@ -75,6 +76,12 @@ const STEPS: { id: StepId; title: string; caller: string }[] = [
     caller: 'GET /neobank/customers/{externalId}/external',
   },
   {
+    id: 'signing',
+    title: 'Sign wallet ownership',
+    caller:
+      'RampsController.registerMoneyAccountWallet (EIP-191; MoonPay chain=Monad)',
+  },
+  {
     id: 'autoramp',
     title: 'Create the autoramp',
     caller: 'POST /neobank/autoramps',
@@ -82,13 +89,14 @@ const STEPS: { id: StepId; title: string; caller: string }[] = [
   {
     id: 'live',
     title: 'Listen for status updates',
-    caller: 'MoonPay webhook → API → WebSocket',
+    caller: 'MoonPay webhook -> API -> WebSocket',
   },
 ];
 
 const IDLE_STEPS: Record<StepId, StepState> = {
   identity: { status: 'idle' },
   customer: { status: 'idle' },
+  signing: { status: 'idle' },
   autoramp: { status: 'idle' },
   live: { status: 'idle' },
 };
@@ -241,10 +249,11 @@ const StepRow = ({
  *
  * Rather than hiding the work behind a single spinner, this screen runs the
  * autoramp creation pipeline stage by stage and reports each one: resolving the
- * wallet's Profile Sync identity, mapping it to a MoonPay customer, creating
- * the autoramp, then holding a websocket open so MoonPay webhook pushes land
- * live. Failures surface the upstream message in place, which is what makes
- * this useful while the proxy routes are still being built out.
+ * wallet's Profile Sync identity, mapping it to a MoonPay customer, signing
+ * wallet ownership (Money Account registration), creating the autoramp, then
+ * holding a websocket open so MoonPay webhook pushes land live. Failures
+ * surface the upstream message in place, which is what makes this useful while
+ * the proxy routes are still being built out.
  *
  * The MoonPay `customer_id` is never passed from here: `createAutoramp`
  * resolves it itself. Stage 2 performs the same lookup only so the mapping is
@@ -382,6 +391,19 @@ const MockKycSuccess = () => {
           : `customer_id = ${truncateId(customerId)}`,
       });
 
+      const registration = await timed('signing', async () =>
+        registerSelectedMoneyAccountWallet({
+          source: 'pipeline',
+          address: walletAddress,
+        }),
+      );
+      updateStep('signing', {
+        status: 'success',
+        detail: registration.reused
+          ? `reused ${registration.resultType} · chain = ${registration.registrationChain} (autoramp destination is ${DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN})`
+          : `${registration.resultType} · chain = ${registration.registrationChain} (autoramp destination is ${DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN})`,
+      });
+
       const autorampRequest = buildMoneyAccountAutorampParams(walletAddress);
 
       const account = await timed('autoramp', async () => {
@@ -503,7 +525,7 @@ const MockKycSuccess = () => {
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            Creating your account runs four real steps. Watch each one report
+            Creating your account runs five real steps. Watch each one report
             back below.
           </Text>
         </Box>

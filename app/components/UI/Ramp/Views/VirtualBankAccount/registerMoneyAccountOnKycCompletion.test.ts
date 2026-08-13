@@ -2,6 +2,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
 import { createRegisterMoneyAccountOnKycCompletion } from './registerMoneyAccountOnKycCompletion';
+import { __resetRegisterSelectedMoneyAccountWalletForTests } from './registerSelectedMoneyAccountWallet';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -37,11 +38,13 @@ const completedEvent = {
 
 const setUp = () => {
   jest.clearAllMocks();
+  __resetRegisterSelectedMoneyAccountWalletForTests();
   mockAccountsController.getSelectedAccount.mockReturnValue({
     address: '0xabc',
   });
   mockRampsController.registerMoneyAccountWallet.mockResolvedValue({
     type: 'registered',
+    registration: { id: 'reg-1', address: '0xabc', blockchain: 'Monad' },
   });
   mockRampsController.createAutoramp.mockResolvedValue({
     id: 'autoramp-1',
@@ -77,7 +80,7 @@ describe('createRegisterMoneyAccountOnKycCompletion', () => {
     );
   });
 
-  it('does not re-register once completed for the same address', async () => {
+  it('does not re-register or recreate once completed for the same address', async () => {
     const handle = setUp();
 
     await handle(completedEvent);
@@ -100,7 +103,10 @@ describe('createRegisterMoneyAccountOnKycCompletion', () => {
 
     const first = handle(completedEvent);
     const second = handle(completedEvent);
-    resolveRegister({ type: 'registered' });
+    resolveRegister({
+      type: 'registered',
+      registration: { id: 'reg-1', address: '0xabc', blockchain: 'Monad' },
+    });
     await Promise.all([first, second]);
 
     expect(
@@ -130,7 +136,10 @@ describe('createRegisterMoneyAccountOnKycCompletion', () => {
     const handle = setUp();
     mockRampsController.registerMoneyAccountWallet
       .mockRejectedValueOnce(new Error('registration failed'))
-      .mockResolvedValueOnce({ type: 'registered' });
+      .mockResolvedValueOnce({
+        type: 'registered',
+        registration: { id: 'reg-1', address: '0xabc', blockchain: 'Monad' },
+      });
 
     await handle(completedEvent);
     await handle(completedEvent);
@@ -154,6 +163,24 @@ describe('createRegisterMoneyAccountOnKycCompletion', () => {
         message: expect.stringContaining('Autoramp'),
       }),
     );
+  });
+
+  it('retries autoramp later without re-signing after an autoramp failure', async () => {
+    const handle = setUp();
+    mockRampsController.createAutoramp
+      .mockRejectedValueOnce(new Error('autoramp failed'))
+      .mockResolvedValueOnce({
+        id: 'autoramp-2',
+        status: 'created',
+      });
+
+    await handle(completedEvent);
+    await handle(completedEvent);
+
+    expect(
+      mockRampsController.registerMoneyAccountWallet,
+    ).toHaveBeenCalledTimes(1);
+    expect(mockRampsController.createAutoramp).toHaveBeenCalledTimes(2);
   });
 
   it('logs and skips when no account is selected', async () => {
