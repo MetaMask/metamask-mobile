@@ -773,6 +773,64 @@ describe('BaanxProvider', () => {
   });
 });
 
+describe('BaanxProvider — getCardDetails hasPin', () => {
+  const buildProvider = (get: jest.Mock) =>
+    new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+  const buildCardStatus = (overrides: Record<string, unknown> = {}) => ({
+    id: 'card-1',
+    status: CardStatus.ACTIVE,
+    type: CardType.VIRTUAL,
+    panLast4: '1234',
+    holderName: 'Jane Doe',
+    isFreezable: true,
+    ...overrides,
+  });
+
+  it('sets hasPin false for international virtual cards', async () => {
+    const get = jest.fn().mockResolvedValue(buildCardStatus());
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+      location: 'international',
+    };
+
+    const card = await buildProvider(get).getCardDetails(tokens);
+
+    expect(card.hasPin).toBe(false);
+  });
+
+  it('sets hasPin true for US virtual cards', async () => {
+    const get = jest.fn().mockResolvedValue(buildCardStatus());
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+      location: 'us',
+    };
+
+    const card = await buildProvider(get).getCardDetails(tokens);
+
+    expect(card.hasPin).toBe(true);
+  });
+
+  it('sets hasPin true for international physical cards', async () => {
+    const get = jest
+      .fn()
+      .mockResolvedValue(buildCardStatus({ type: CardType.PHYSICAL }));
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+      location: 'international',
+    };
+
+    const card = await buildProvider(get).getCardDetails(tokens);
+
+    expect(card.hasPin).toBe(true);
+  });
+});
+
 describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', () => {
   const MockStaticJsonRpcProvider = ethers.providers
     .StaticJsonRpcProvider as jest.MockedClass<

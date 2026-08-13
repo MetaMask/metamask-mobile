@@ -5,9 +5,10 @@ import Assertions from '../../../framework/Assertions';
 import { encapsulatedAction } from '../../../framework/encapsulatedAction';
 import { EncapsulatedElementType } from '../../../framework/EncapsulatedElement';
 import { FrameworkDetector } from '../../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
 import Utilities, { sleep } from '../../../framework/Utilities';
+import ToastModal from '../../wallet/ToastModal';
 
 class FooterActions {
   get confirmButton(): EncapsulatedElementType {
@@ -63,33 +64,31 @@ class FooterActions {
         });
       },
       appium: async () => {
-        // iOS BottomSheet confirmation containers often exist in the
-        // accessibility tree with isDisplayed=false. Click once by existence;
-        // if confirm is already gone after a prior click, treat as success
-        // (do not click again — avoids double-submit on retry).
-        const maxRetries = Math.max(5, Math.ceil((timeout ?? 30000) / 1000));
-        let didClick = false;
-        await PlaywrightAssertions.expectConditionWithRetry(
-          async () => {
-            const el = await PlaywrightMatchers.getElementById(
-              ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-            );
-            const exists = await el.unwrap().isExisting();
-            if (!exists) {
-              if (didClick) {
-                return;
-              }
-              throw new Error('confirm-button not in hierarchy yet');
-            }
-            if (didClick) {
-              throw new Error('confirm-button still present after click');
-            }
-            await sleep(300);
-            await el.unwrap().click();
-            didClick = true;
-          },
-          { maxRetries, interval: 1000 },
+        await ToastModal.waitForToastToDismiss({ appearTimeout: 2_000 });
+
+        const isAndroid = PlatformDetector.isAndroid();
+        const readyTimeout = timeout ?? 30_000;
+        const el = await PlaywrightMatchers.getElementById(
+          ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
         );
+
+        await Utilities.waitUntil(
+          async () => {
+            if (!(await el.unwrap().isExisting())) {
+              return false;
+            }
+            if (isAndroid && !(await el.unwrap().isEnabled())) {
+              return false;
+            }
+            return true;
+          },
+          { interval: 1_000, timeout: readyTimeout },
+        );
+
+        await sleep(300);
+        await el.unwrap().click();
+
+        await this.waitForConfirmButtonGone(readyTimeout);
       },
     });
   }

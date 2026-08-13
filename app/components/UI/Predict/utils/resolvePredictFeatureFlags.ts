@@ -5,6 +5,7 @@ import {
 import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
@@ -21,12 +22,14 @@ import {
 import {
   parse,
   PredictFeeCollectionSchema,
+  PredictHiddenMarketsSchema,
   PredictSportsFeedSchema,
   PredictWimbledonTabSchema,
 } from '../schemas';
 import {
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
+  PredictHiddenMarketsFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
   PredictWimbledonTabFlag,
@@ -82,6 +85,23 @@ export function resolvePredictFeatureFlags(
     )
       ? rawMarketHighlightsFlag
       : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
+  const rawHiddenMarketsFlag =
+    unwrapRemoteFeatureFlag<PredictHiddenMarketsFlag>(
+      flags.predictHiddenMarkets,
+    );
+  const parsedHiddenMarketsFlag = rawHiddenMarketsFlag
+    ? parse(
+        rawHiddenMarketsFlag,
+        PredictHiddenMarketsSchema,
+        DEFAULT_HIDDEN_MARKETS_FLAG,
+      )
+    : DEFAULT_HIDDEN_MARKETS_FLAG;
+  const hiddenMarketsFlag =
+    rawHiddenMarketsFlag &&
+    validatedVersionGatedFeatureFlag(parsedHiddenMarketsFlag)
+      ? parsedHiddenMarketsFlag
+      : DEFAULT_HIDDEN_MARKETS_FLAG;
 
   const feeCollection = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
@@ -164,6 +184,7 @@ export function resolvePredictFeatureFlags(
     enabledSportsMarketTypes,
     nonRegTimeSportsMarketTypes,
     marketHighlightsFlag,
+    hiddenMarketsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
