@@ -89,7 +89,7 @@ describe('PerpsMarketListView', () => {
       });
     });
 
-    it('shows empty search state when query does not match any market', async () => {
+    it('shows the search empty state when search matches nothing and no category filter is active', async () => {
       renderPerpsMarketListView({
         streamOverrides: { marketData: marketDataWithCategories },
       });
@@ -103,6 +103,34 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByText(
             strings('perps.no_tokens_found_description', {
+              searchQuery: 'ZZZ-NOT-FOUND',
+            }),
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    it('shows the filter-aware empty state when search matches nothing and a category filter is active', async () => {
+      renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+        initialParams: { defaultMarketTypeFilter: 'commodity' },
+      });
+
+      const searchInput = await screen.findByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
+      );
+      fireEvent.changeText(searchInput, 'ZZZ-NOT-FOUND');
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            strings('perps.no_markets_search_description', {
               searchQuery: 'ZZZ-NOT-FOUND',
             }),
           ),

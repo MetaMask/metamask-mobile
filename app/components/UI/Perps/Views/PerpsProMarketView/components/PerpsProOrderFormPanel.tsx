@@ -2,14 +2,17 @@ import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import React, { useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
-import PerpsOrderTypeBottomSheetView from '../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
+import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
+import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
+import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
@@ -81,6 +84,11 @@ const PerpsProOrderFormPanel = ({
   } = usePerpsProOrderForm({ market });
 
   const { styles } = useStyles(createStyles, {});
+  const isProModeActive = useIsPerpsProModeActive();
+  const isTriggeredOrdersEnabled = useSelector(
+    selectPerpsProTriggeredOrdersEnabledFlag,
+  );
+  const showTriggeredTypes = isProModeActive && isTriggeredOrdersEnabled;
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
   const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
@@ -137,13 +145,16 @@ const PerpsProOrderFormPanel = ({
           animationType="fade"
           onRequestClose={closeOrderType}
         >
-          <PerpsOrderTypeBottomSheetView
+          <PerpsOrderTypeBottomSheet
             isVisible
             onClose={closeOrderType}
             onSelect={onOrderTypeSelect}
             currentOrderType={orderType}
+            asset={market.symbol}
+            direction={direction}
             title={strings('perps.pro_order_form.choose_order_type')}
             showSelectedIcon
+            showTriggeredTypes={showTriggeredTypes}
           />
         </PerpsProModalPortal>
       )}
