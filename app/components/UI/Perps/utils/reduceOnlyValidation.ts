@@ -9,6 +9,12 @@ export type ReduceOnlyValidationCode =
   | 'wrong_side'
   | 'too_large';
 
+/** Size-independent reduce-only errors — the size field should stay empty. */
+export type ReduceOnlyPositionErrorCode = Extract<
+  ReduceOnlyValidationCode,
+  'no_position' | 'wrong_side'
+>;
+
 export type ReduceOnlyOrderDirection = 'long' | 'short';
 
 export interface ValidateReduceOnlyOrderParams {
@@ -98,4 +104,29 @@ export const validateReduceOnlyOrder = ({
     isValid: true,
     isFullClose,
   };
+};
+
+/**
+ * Size-independent reduce-only errors (`no_position`, `wrong_side`).
+ * `too_large` is excluded so callers can keep the typed/slid amount visible.
+ */
+export const getReduceOnlyPositionError = ({
+  reduceOnly,
+  direction,
+  position,
+}: Omit<ValidateReduceOnlyOrderParams, 'orderSize'>):
+  | ReduceOnlyPositionErrorCode
+  | undefined => {
+  const { errorCode } = validateReduceOnlyOrder({
+    reduceOnly,
+    direction,
+    orderSize: '0',
+    position,
+  });
+
+  if (errorCode === 'no_position' || errorCode === 'wrong_side') {
+    return errorCode;
+  }
+
+  return undefined;
 };

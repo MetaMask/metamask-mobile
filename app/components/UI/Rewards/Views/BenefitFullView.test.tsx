@@ -38,7 +38,7 @@ const mockBenefit: SubscriptionBenefitDto = {
   thumbnail: 'https://example.com/thumb.png',
   validFrom: '2026-01-01T00:00:00Z',
   validTo: '2026-12-31T23:59:59Z',
-  url: 'https://benefits.example.com/claim?wallet=0x1111111111111111111111111111111111111111',
+  url: 'https://benefits.example.com/claim?trackingWallet=0x1111111111111111111111111111111111111111',
   actionDate: '2026-12-30T00:00:00Z',
   companyName: 'Pudgy Penguins',
   chain: 'ethereum',
@@ -187,7 +187,7 @@ describe('BenefitFullView', () => {
     const otherWallet = '0x2222222222222222222222222222222222222222';
     mockRouteBenefit = {
       ...mockBenefit,
-      url: `https://benefits.example.com/claim?wallet=${otherWallet}&ref=abc`,
+      url: `https://benefits.example.com/claim?trackingWallet=${otherWallet}&ref=abc`,
     };
 
     render(<BenefitFullView />);
