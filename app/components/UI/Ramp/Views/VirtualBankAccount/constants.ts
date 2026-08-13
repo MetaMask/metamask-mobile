@@ -80,7 +80,7 @@ export const MOCK_KYC_PROGRESS_STEPS = 4;
 // branded display symbol (`'mUSD'`). `customer_id` is deliberately absent:
 // RampsController resolves and injects it.
 export const DEMO_AUTORAMP_SOURCE_CURRENCY_CODE = 'BRL';
-export const DEMO_AUTORAMP_DESTINATION_TOKEN = 'MUSD';
+export const DEMO_AUTORAMP_DESTINATION_TOKEN = 'mUSD';
 export const DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN = 'Monad';
 
 // MoonPay self-hosted wallet registration via
