@@ -529,6 +529,10 @@ function addAmountInputProperties(
     state: RootState;
   },
 ) {
+  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    return;
+  }
+
   const uiType = uiMetrics?.properties?.[MM_PAY_AMOUNT_INPUT_TYPE_KEY];
   const uiPresented =
     uiMetrics?.properties?.[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY];
@@ -538,10 +542,6 @@ function addAmountInputProperties(
   }
   if (uiPresented !== undefined) {
     properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = uiPresented;
-  }
-
-  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
-    return;
   }
 
   // Keypad / manual writes only set amount_input_type. That must not be treated

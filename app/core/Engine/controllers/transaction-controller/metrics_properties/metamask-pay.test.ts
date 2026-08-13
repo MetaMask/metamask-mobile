@@ -1754,6 +1754,28 @@ describe('Metamask Pay Metrics', () => {
       ).not.toHaveBeenCalled();
     });
 
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])('does not copy amount-input UI metrics onto %s', (transactionType) => {
+      request.transactionMeta.type = transactionType;
+      request.getUIMetrics = jest.fn().mockReturnValue({
+        properties: {
+          mm_pay_amount_input_type: 'manual',
+          mm_pay_amount_input_prefill_presented: true,
+        },
+        sensitiveProperties: {},
+      });
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty('mm_pay_amount_input_type');
+      expect(result.properties).not.toHaveProperty(
+        'mm_pay_amount_input_prefill_presented',
+      );
+    });
+
     it('does not apply intent-to-treat prefill tags on non-Added events', () => {
       resolveMoneyAccountDepositPrefillPresentedMock.mockReturnValue(true);
       request.eventType = TRANSACTION_EVENTS.TRANSACTION_APPROVED;
