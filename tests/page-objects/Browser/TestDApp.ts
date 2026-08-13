@@ -13,7 +13,6 @@ import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers';
 import { createPlaywrightLogger } from '../../framework/playwrightLogger';
@@ -704,19 +703,28 @@ class TestDApp {
   }
 
   async tapOpenNetworkPicker(): Promise<void> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
-      const picker = await PlaywrightMatchers.getElementById(
-        TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
+    // Prefer CDP / WebView DOM click — native UiAutomator scroll+tap on the
+    // picker button is flaky under Android Appium (off-screen WebView nodes).
+    const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+      testDappPageUrl(),
+      TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
+    );
+    if (clicked) {
+      await Utilities.executeWithRetry(
+        async () => {
+          const open = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+            testDappPageUrl(),
+            `(() => !!document.querySelector('.network-modal-body'))()`,
+          );
+          if (!open) {
+            throw new Error('Test-dapp network picker modal not open yet');
+          }
+        },
+        {
+          timeout: 15000,
+          description: 'Wait for test-dapp network picker modal',
+        },
       );
-      const webview = await PlaywrightMatchers.getElementById(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      );
-      await PlaywrightGestures.scrollIntoView(picker, {
-        scrollableElement: webview,
-        scrollParams: { direction: 'up' },
-        maxScrolls: 40,
-      });
-      await PlaywrightGestures.tap(picker);
       return;
     }
 
@@ -729,43 +737,45 @@ class TestDApp {
     networkName: string,
     { exactMatch = false }: { exactMatch?: boolean } = {},
   ): Promise<void> {
-    const networkItem = await PlaywrightMatchers.getElementByText(
-      networkName,
-      exactMatch,
-    );
-    // Picker list can populate after openNetworkPicker — wait before scroll
-    // (scrollIntoView fails immediately when the node is absent from the tree).
+    // Residual flake after wait+maxScrolls bump: native getElementByText +
+    // WebView page scrollIntoView does not target the modal list
+    // (.network-modal-body / .network-modal-item-name). Click via CDP/DOM
+    // instead — same approach as tapSwitchChainButton / tapDappConnectButton.
+    const matchMode = exactMatch ? 'exact' : 'includes';
     await Utilities.executeWithRetry(
       async () => {
-        const exists = await networkItem.unwrap().isExisting();
-        if (!exists) {
+        const clicked = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+          testDappPageUrl(),
+          `(() => {
+            const items = Array.from(
+              document.querySelectorAll('.network-modal-item-name'),
+            );
+            const target = ${JSON.stringify(networkName)};
+            const exact = ${exactMatch ? 'true' : 'false'};
+            const el = items.find((node) => {
+              const text = (node.textContent || '').trim();
+              return exact ? text === target : text.includes(target);
+            });
+            if (!el) return false;
+            const row = el.closest('.network-modal-item') || el;
+            if (typeof row.scrollIntoView === 'function') {
+              row.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }
+            row.click();
+            return true;
+          })()`,
+        );
+        if (!clicked) {
           throw new Error(
-            `Network option "${networkName}" not yet in dapp picker hierarchy`,
+            `Network option "${networkName}" (${matchMode}) not clickable in dapp picker modal`,
           );
         }
       },
       {
         timeout: 20000,
-        description: `Wait for network option "${networkName}" in dapp picker`,
+        description: `Tap network option "${networkName}" in dapp picker via CDP`,
       },
     );
-    const webview = await PlaywrightMatchers.getElementById(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-    );
-    try {
-      await PlaywrightGestures.scrollIntoView(networkItem, {
-        scrollableElement: webview,
-        scrollParams: { direction: 'up' },
-        maxScrolls: 40,
-      });
-    } catch {
-      await PlaywrightGestures.scrollIntoView(networkItem, {
-        scrollableElement: webview,
-        scrollParams: { direction: 'down' },
-        maxScrolls: 40,
-      });
-    }
-    await PlaywrightGestures.tap(networkItem);
   }
 }
 
