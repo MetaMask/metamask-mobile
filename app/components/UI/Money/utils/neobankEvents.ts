@@ -74,8 +74,7 @@ export function isCompletedNeobankDeposit(event: NeobankEvent): boolean {
  * last resort so the socket still opens when lookup fails. It is only consulted
  * while the neobank flag is on and the active vendor is Iron.
  */
-export const DEMO_NEOBANK_CUSTOMER_ID =
-  '019ff69c-3039-77b0-9d5d-e4a3baefd7b7';
+export const DEMO_NEOBANK_CUSTOMER_ID = '019ff69c-3039-77b0-9d5d-e4a3baefd7b7';
 
 /**
  * Reads the Iron/MoonPay customer UUID from a neo-bank proxy customer payload.
@@ -127,8 +126,10 @@ export function resolveNeobankDemoCustomerId(
  * @returns WebSocket URL for the demo proxy.
  */
 export function getNeobankEventsUrl(customerId: string): string {
+  // NEOBANK_WS_URL is the Money-demo env; MM_NEOBANK_WS_URL is used by VBA.
   const baseUrl =
     process.env.NEOBANK_WS_URL ??
+    process.env.MM_NEOBANK_WS_URL ??
     'wss://on-ramp.dev-api.cx.metamask.io/neobank/events';
   const separator = baseUrl.includes('?') ? '&' : '?';
   return `${baseUrl}${separator}userId=${encodeURIComponent(customerId)}`;

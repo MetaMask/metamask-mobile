@@ -23,6 +23,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectKycControllerState } from '../../../../../selectors/kycController';
 import { selectRampsAutoramps } from '../../../../../selectors/rampsController';
 import { VirtualBankAccountSelectorsIDs } from './VirtualBankAccount.testIds';
 import { NeobankWebSocket } from './neobank/NeobankWebSocket';
@@ -38,6 +39,7 @@ const VirtualBankAccount = () => {
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedInternalAccountAddress);
   const autoramps = useSelector(selectRampsAutoramps);
+  const kycState = useSelector(selectKycControllerState);
   const previousStatusesRef = useRef<Record<string, string>>({});
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -45,6 +47,9 @@ const VirtualBankAccount = () => {
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
   const [lastPushAt, setLastPushAt] = useState<number | null>(null);
   const [wsConnected, setWsConnected] = useState(false);
+
+  const customerId =
+    autoramps[0]?.customerId ?? kycState.moonpayCustomerId ?? null;
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -102,22 +107,27 @@ const VirtualBankAccount = () => {
 
   useFocusEffect(
     useCallback(() => {
+      catchUpFromRemote().catch(() => undefined);
+
+      if (!customerId) {
+        setWsConnected(false);
+        return undefined;
+      }
+
       const ws = NeobankWebSocket.getInstance();
-      ws.connect();
+      ws.connect(customerId);
       setWsConnected(true);
 
       const unsubscribe = ws.addListener(() => {
         setLastPushAt(Date.now());
       });
 
-      catchUpFromRemote().catch(() => undefined);
-
       return () => {
         unsubscribe();
         ws.disconnect();
         setWsConnected(false);
       };
-    }, [catchUpFromRemote]),
+    }, [catchUpFromRemote, customerId]),
   );
 
   useEffect(() => {

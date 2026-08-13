@@ -365,7 +365,7 @@ const MockKycSuccess = () => {
       });
 
       const socket = NeobankWebSocket.getInstance();
-      socket.connect();
+      socket.connect(customerId);
       updateStep('live', {
         status: 'waiting',
         detail:
