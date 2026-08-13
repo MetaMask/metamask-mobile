@@ -627,6 +627,7 @@ export default class Gestures {
           description: options.elemDescription,
           direction: options.direction,
           scrollAmount: options.scrollAmount,
+          maxScrolls: options.maxScrolls,
         },
       );
     }
@@ -910,6 +911,39 @@ export default class Gestures {
    * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
    */
   static async dismissKeyboardAfterTokenSearch(): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error(
+        'Gestures.dismissKeyboardAfterTokenSearch is Appium only',
+      );
+    }
     await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+  }
+
+  /**
+   * Dismiss the soft keyboard (Appium). Android skips when no keyboard is
+   * shown; iOS uses the tapOutside strategy so onSubmitEditing does not fire.
+   * Only needed after gestures that leave the keyboard up — typeText already
+   * dismisses it unless `hideKeyboard: false` is passed.
+   */
+  static async hideKeyboard(): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.hideKeyboard is Appium only');
+    }
+    await PlaywrightGestures.hideKeyboard();
+  }
+
+  /**
+   * Scroll an element into view and keep scrolling until it clears the bottom
+   * navigation bar (Appium). scrollToElement stops as soon as any pixel is on
+   * screen, which can leave the element clipped and untappable.
+   */
+  static async scrollIntoViewFullyVisible(
+    elem: EncapsulatedElementType,
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.scrollIntoViewFullyVisible is Appium only');
+    }
+    const target = await asPlaywrightElement(elem);
+    await PlaywrightGestures.scrollIntoViewFullyVisible(target);
   }
 }

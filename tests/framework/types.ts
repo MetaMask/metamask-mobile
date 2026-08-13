@@ -167,6 +167,8 @@ export interface ScrollOptions extends GestureOptions {
   delay?: number;
   startPositionX?: number;
   startPositionY?: number;
+  /** Scroll attempts before giving up — Appium only; Detox ignores this */
+  maxScrolls?: number;
 }
 
 // Assertions

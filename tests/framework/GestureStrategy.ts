@@ -32,6 +32,8 @@ export interface UnifiedGestureOptions {
   direction?: 'up' | 'down' | 'left' | 'right';
   /** Scroll amount in px — Detox only; used by scrollToElement */
   scrollAmount?: number;
+  /** Scroll attempts before giving up — Appium only; used by scrollToElement */
+  maxScrolls?: number;
   /** Delay before tapping (ms) */
   delay?: number;
   /** Wait for element position to stabilize before tapping — Detox only */
@@ -571,9 +573,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
 
     // Cap scrolls so a missing target fails in tens of seconds instead of
     // burning a 3-minute Playwright timeout (each miss is ~5s of findElement).
-    const maxScrolls = opts?.timeout
-      ? Math.max(3, Math.min(12, Math.ceil(opts.timeout / 5000)))
-      : 10;
+    // An explicit maxScrolls overrides the cap for long virtualized lists.
+    const maxScrolls =
+      opts?.maxScrolls ??
+      (opts?.timeout
+        ? Math.max(3, Math.min(12, Math.ceil(opts.timeout / 5000)))
+        : 10);
 
     await PlaywrightGestures.scrollIntoView(el, {
       scrollParams: {

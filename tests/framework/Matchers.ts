@@ -303,4 +303,26 @@ export default class Matchers {
   ): Promise<PlaywrightElement> {
     return PlaywrightMatchers.getElementByAndroidUIAutomator(selector, options);
   }
+
+  /**
+   * Match an identifier across every text-bearing attribute (Android
+   * resource-id / text / content-desc, iOS name / label / text) and, unlike
+   * getElementByText, default to the LAST match. Use for chips and pills whose
+   * label also appears in surrounding copy, where the target is rendered last.
+   */
+  static getElementByCatchAll(
+    identifier: string,
+    options?: Parameters<typeof PlaywrightMatchers.getElementByCatchAll>[1],
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByCatchAll(identifier, options);
+  }
+
+  /**
+   * Match a testID by substring instead of exactly. Android resource IDs are
+   * package-qualified (io.metamask:id/asset-0x1-ETH), so the exact
+   * resourceId matching used by getElementByID misses them.
+   */
+  static getElementByPartialID(testId: string): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementById(testId, { exact: false });
+  }
 }
