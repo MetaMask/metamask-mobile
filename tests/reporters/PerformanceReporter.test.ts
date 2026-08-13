@@ -235,6 +235,28 @@ describe('PerformanceReporter', () => {
       expect(metrics[0]?.failureReason).toBe('interrupted');
     });
 
+    it('marks tests with empty performance metrics as failed', () => {
+      const result = makeResult({
+        status: 'passed',
+        attachments: [
+          makeMetricsAttachment({
+            steps: [],
+            total: 0,
+          }),
+        ],
+      });
+
+      reporter.onTestEnd(makeTest() as never, result as never);
+
+      interface ReporterInternals {
+        metrics: { testFailed?: boolean; failureReason?: string }[];
+      }
+      const { metrics } = reporter as unknown as ReporterInternals;
+
+      expect(metrics[0]?.testFailed).toBe(true);
+      expect(metrics[0]?.failureReason).toBe('no_performance_metrics');
+    });
+
     it('creates basic entry for failed tests without metrics', () => {
       const result = makeResult({
         status: 'failed',

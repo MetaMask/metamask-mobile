@@ -291,6 +291,34 @@ class PerformanceReporter {
           metricsEntry.team = teamInfo;
         }
 
+        if (!metricsEntry.steps || metricsEntry.steps.length === 0) {
+          metricsEntry.testFailed = true;
+          metricsEntry.failureReason = 'no_performance_metrics';
+
+          const teamId = teamInfo.teamId;
+          if (!this.failedTestsByTeam[teamId]) {
+            this.failedTestsByTeam[teamId] = { team: teamInfo, tests: [] };
+          }
+          const alreadyTracked = this.failedTestsByTeam[teamId].tests.find(
+            (t) => t.testName === test.title && t.projectName === projectName,
+          );
+          if (!alreadyTracked) {
+            this.failedTestsByTeam[teamId].tests.push({
+              testName: test.title,
+              testFilePath,
+              tags: testTags,
+              status: 'failed',
+              duration: result.duration,
+              projectName,
+              sessionId:
+                result.annotations?.find((a) => a.type === 'sessionId')
+                  ?.description ?? null,
+              qualityGates: null,
+              failureReason: 'no_performance_metrics',
+            });
+          }
+        }
+
         // For fallback metrics, ensure proper structure
         if (isFallbackMetrics) {
           if (!metricsEntry.total && metricsEntry.testDuration) {
