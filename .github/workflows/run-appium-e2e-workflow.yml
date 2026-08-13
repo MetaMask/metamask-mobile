@@ -58,6 +58,11 @@ on:
         required: false
         type: boolean
         default: false
+      profiler-test-grep:
+        description: 'Optional grep pattern to limit profiled tests'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -272,7 +277,11 @@ jobs:
       - name: Resolve Appium test grep pattern
         id: appium-grep
         run: |
-          echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+          if [[ "${{ inputs.capture-profiler }}" == "true" && -n "${{ inputs.profiler-test-grep }}" ]]; then
+            echo "pattern=${{ inputs.profiler-test-grep }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+          fi
           # FixtureValidation must fail if no tests match; smoke shards keep the
           # flag because sharding can leave empty shards.
           if [[ "${{ inputs.test_suite_tag }}" == "FixtureValidation" ]]; then

@@ -39,15 +39,17 @@ container.
 
 ## CI run
 
-The reusable workflow accepts `capture-profiler: true`. Pass it from the
-selected caller job rather than enabling profiling for every smoke suite:
+The smoke workflows include a small dedicated profiler job for Android and
+iOS. It runs only the `Wallet details` and `Secret Recovery Phrase Reveal`
+tests and passes:
 
 ```yaml
 with:
   capture-profiler: true
 ```
 
-The workflow uploads `appium-profiler-<suite>` even when the test fails.
+The reusable workflow also accepts `profiler-test-grep` when a different
+subset is needed. It uploads `appium-profiler-<suite>` even when the test fails.
 BrowserStack is not supported because the runner does not expose `adb` or
 `simctl`.
 
