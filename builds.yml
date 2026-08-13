@@ -364,6 +364,7 @@ builds:
     code_fencing: *code_fencing_main
 
   # Experimental builds
+  # DEMO ONLY (demo/vba-kyc) — DO NOT MERGE: repoints main-exp at dev backends
   main-exp:
     github_environment: build-exp
     signing: *signing_uat
@@ -379,7 +380,9 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
-      RAMPS_ENVIRONMENT: 'staging'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+      MM_VBA_KYC_API_BASE_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+      RAMPS_ENVIRONMENT: 'development'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
