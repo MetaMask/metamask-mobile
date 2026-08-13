@@ -28,9 +28,10 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
 
       await WalletView.tapWalletSwapButton();
 
+      //await new Promise(resolve => setTimeout(resolve, 1000000));
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(QuoteView.amountInput),
+          asPlaywrightElement(QuoteView.badgeNetwork),
         );
       });
 
