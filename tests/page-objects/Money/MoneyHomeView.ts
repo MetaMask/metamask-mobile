@@ -3,10 +3,7 @@ import { MoneyBalanceSummaryTestIds } from '../../../app/components/UI/Money/com
 import { MoneyEarningsTestIds } from '../../../app/components/UI/Money/components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../../app/components/UI/Money/components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
 import Assertions from '../../framework/Assertions';
-import {
-  asPlaywrightElement,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 
@@ -180,13 +177,13 @@ class MoneyHomeView {
       throw error;
     }
 
-    return (await asPlaywrightElement(this.balance)).textContent();
+    return Utilities.getElementText(this.balance);
   }
 
   private async throwIfBalanceUnavailable(): Promise<void> {
     const [isUnavailable, hasNoAccount] = await Promise.all([
-      (await asPlaywrightElement(this.unavailableBalance)).isVisible(),
-      (await asPlaywrightElement(this.noAccountBalance)).isVisible(),
+      Utilities.isElementVisible(this.unavailableBalance),
+      Utilities.isElementVisible(this.noAccountBalance),
     ]);
 
     if (isUnavailable) {

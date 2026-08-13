@@ -4,10 +4,7 @@ import {
   asPlaywrightElement,
   PlaywrightAssertions,
 } from '../../../framework/index.js';
-import {
-  loginToAppPlaywright,
-  onboardingFlowImportSRPPlaywright,
-} from '../../../flows/wallet.flow.js';
+import { onboardingFlowImportSRPPlaywright } from '../../../flows/wallet.flow.js';
 import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import { Performance, PerformanceMoney } from '../../../tags.performance.js';
