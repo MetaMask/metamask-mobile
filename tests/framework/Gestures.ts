@@ -872,4 +872,12 @@ export default class Gestures {
     }
     await PlaywrightGestures.typeViaIosKeyboard(text, options);
   }
+
+  /**
+   * Dismiss soft keyboard after token search (tapOutside + iOS pills-strip tap).
+   * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
+   */
+  static async dismissKeyboardAfterTokenSearch(): Promise<void> {
+    await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+  }
 }

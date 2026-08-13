@@ -121,9 +121,9 @@ class QuoteView {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(testId);
     }
-    // Re-query via XPath each time — a fixed match can stay displayed:false
-    // on iOS after search/list virtualization.
-    return Matchers.getElementByNativeXPath(`//*[@name='${testId}']`);
+    // Lazy xpath re-queries each poll — a fixed $$ match can stay
+    // displayed:false on iOS after search/list virtualization.
+    return Matchers.getLazyElementByNativeXPath(`//*[@name='${testId}']`);
   }
 
   async enterAmount(amount: string): Promise<void> {
@@ -169,12 +169,7 @@ class QuoteView {
     } catch {
       // Keyboard / FlatList clipping can leave rows displayed:false even
       // after search — force blur again, then wait.
-      await Gestures.typeText(this.searchToken, '', {
-        hideKeyboard: true,
-        clearFirst: false,
-        elemDescription: 'Dismiss keyboard after token search',
-      }).catch(() => undefined);
-
+      await Gestures.dismissKeyboardAfterTokenSearch();
       if (PlatformDetector.isAndroid()) {
         try {
           tokenElement = this.getTokenElement(chainId, symbol);
@@ -207,10 +202,13 @@ class QuoteView {
   async typeSearchToken(symbol: string): Promise<void> {
     await Gestures.typeText(this.searchToken, symbol, {
       elemDescription: `Search Token with symbol ${symbol}`,
-      hideKeyboard: true,
+      hideKeyboard: false,
     });
     // Wait for BridgeTokenSelector debouncedSearch (300ms) + result settle.
     await sleep(TIMEOUT.TOKEN_SEARCH_SETTLE);
+    // iOS soft keyboard covers the list (rows stay displayed:false).
+    // tapOutside alone is flaky — also tap the pills strip to force blur.
+    await Gestures.dismissKeyboardAfterTokenSearch();
   }
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {

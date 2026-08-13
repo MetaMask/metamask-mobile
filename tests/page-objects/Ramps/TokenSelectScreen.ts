@@ -27,13 +27,26 @@ class TokenSelectScreen {
       timeout: 15000,
       description: 'Token search field should be visible',
     });
+    // Fill without hideKeyboard — iOS TextFieldSearch needs the dedicated
+    // dismiss helper (tapOutside + pills-strip tap) after settle.
     await Gestures.typeText(this.tokenSearchInput, token, {
       elemDescription: 'Token Search Input',
-      hideKeyboard: true,
+      hideKeyboard: false,
     });
     await sleep(TOKEN_SEARCH_SETTLE_MS);
+    await Gestures.dismissKeyboardAfterTokenSearch();
 
-    const tokenElement = Matchers.getElementByText(token, 1);
+    // Android: text "ETH" can hit balances; use exact UIAutomator at index 1.
+    // iOS: exact predicate excluding search/textfield (index 1 fails when only
+    // one match exists after search).
+    const tokenElement = PlatformDetector.isAndroid()
+      ? Matchers.getElementByAndroidUIAutomator(`.text("${token}")`, {
+          index: 1,
+        })
+      : Matchers.getElementByIOSPredicate(
+          `(label == "${token}" OR name == "${token}" OR label BEGINSWITH "${token} " OR name BEGINSWITH "${token} " OR label MATCHES ".*\\\\b${token}\\\\b.*" OR name MATCHES ".*\\\\b${token}\\\\b.*") AND NOT (name CONTAINS[c] "search") AND NOT (name CONTAINS[c] "textfield")`,
+        );
+
     await Assertions.expectElementToBeVisible(tokenElement, {
       timeout: 15000,
       description: `Token "${token}" in Token Select Screen`,
