@@ -162,7 +162,6 @@ describe('EventCard.OutcomeRow', () => {
     askPrice?: string,
     color: 'green' | 'indigo' | 'red' = 'green',
     onOrder?: () => void,
-    buttonWidth?: number,
   ) => {
     const value = event();
 
@@ -173,7 +172,6 @@ describe('EventCard.OutcomeRow', () => {
         outcome={outcome('yes', askPrice)}
         color={color}
         onOrder={onOrder}
-        buttonWidth={buttonWidth}
         testID="predict-next-outcome-event-1-yes"
       />,
     );
@@ -197,11 +195,11 @@ describe('EventCard.OutcomeRow', () => {
     ).toHaveStyle({ width: '42%' });
   });
 
-  it('applies a shared price button width', () => {
-    renderRow('0.42', 'green', undefined, 72);
+  it('uses a compact price button width', () => {
+    renderRow('0.42');
 
     expect(screen.getByTestId('predict-next-outcome-event-1-yes')).toHaveStyle({
-      width: 72,
+      width: 56,
     });
   });
 

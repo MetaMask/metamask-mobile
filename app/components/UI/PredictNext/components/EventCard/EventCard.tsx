@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Pressable as NativePressable,
-  type LayoutChangeEvent,
   type PressableProps,
 } from 'react-native';
 import {
@@ -100,8 +99,6 @@ interface OutcomeRowProps {
     market: PredictMarket,
     outcome: PredictOutcome,
   ) => void;
-  buttonWidth?: number;
-  onButtonLayout?: (width: number) => void;
   testID?: string;
 }
 
@@ -112,8 +109,6 @@ const OutcomeRow = ({
   color,
   label = outcome.label,
   onOrder,
-  buttonWidth,
-  onButtonLayout,
   testID,
 }: OutcomeRowProps) => {
   const price = formatAskPrice(outcome.askPrice);
@@ -147,20 +142,12 @@ const OutcomeRow = ({
       ) : null}
       <Button
         testID={testID}
-        size={ButtonSize.Lg}
         variant={ButtonVariant.Secondary}
         onPress={() => onOrder?.(event, market, outcome)}
-        onLayout={
-          onButtonLayout
-            ? (layoutEvent: LayoutChangeEvent) =>
-                onButtonLayout(layoutEvent.nativeEvent.layout.width)
-            : undefined
-        }
-        style={buttonWidth ? { width: buttonWidth } : undefined}
-        twClassName={fillClassName}
+        twClassName={`w-16 px-0 ${fillClassName}`}
       >
         <Text
-          variant={TextVariant.ButtonLabelMd}
+          variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={OUTCOME_ROW_TEXT[color]}
         >

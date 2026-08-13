@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { brandColor } from '@metamask/design-tokens';
+import { lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -96,10 +96,10 @@ describe('EventCardStandard', () => {
 
     expect(
       screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
-    ).toHaveStyle({ backgroundColor: brandColor.lime100 });
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.success.default });
     expect(
       screen.getByTestId('predict-next-outcome-event-1-no-bar'),
-    ).toHaveStyle({ backgroundColor: brandColor.red300 });
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.error.default });
   });
 
   it('shows three market rows with green, indigo, and red', () => {
@@ -122,13 +122,13 @@ describe('EventCardStandard', () => {
     expect(screen.queryByText('Question market-1')).toBeNull();
     expect(
       screen.getByTestId('predict-next-outcome-event-1-market-1-yes-bar'),
-    ).toHaveStyle({ backgroundColor: brandColor.lime100 });
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.success.default });
     expect(
       screen.getByTestId('predict-next-outcome-event-1-market-2-yes-bar'),
-    ).toHaveStyle({ backgroundColor: brandColor.indigo300 });
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.info.default });
     expect(
       screen.getByTestId('predict-next-outcome-event-1-market-3-yes-bar'),
-    ).toHaveStyle({ backgroundColor: brandColor.red300 });
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.error.default });
   });
 
   it('keeps card navigation independent from an Outcome action', () => {
