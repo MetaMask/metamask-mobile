@@ -94,7 +94,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Setup E2E environment (Android)
         if: ${{ inputs.platform == 'android' }}
@@ -132,7 +132,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Cache ffmpeg (Homebrew)
         if: ${{ inputs.platform == 'ios' }}
