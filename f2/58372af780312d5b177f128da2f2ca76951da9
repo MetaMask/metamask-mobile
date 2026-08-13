@@ -1,0 +1,47 @@
+tests/llm-workflow/android/platform-adapter.ts
+  s_730f613d16d859::t_003773bca869bc 21-22
+  s_730f613d16d859::t_41c64b201a9b60 205-206
+  s_730f613d16d859::t_11ce3905205871 84-85
+  s_730f613d16d859::t_f89828428f73da 58-61
+  s_730f613d16d859::t_ebca6e641d25d1 172-175,185-204,207-244
+  s_730f613d16d859::t_4b79fe7f25fe41 247,298-329,332-334,336,345,348-419,423-424
+  s_730f613d16d859::t_ef5417ae534eb8 117-118
+  s_730f613d16d859::t_f316e647338a88 245-246
+  s_730f613d16d859::t_32f4b168372d3a 425-426
+tests/llm-workflow/__tests__/android-platform-adapter.test.ts
+  s_730f613d16d859::t_dd9ce2ab70fb9a 512-540,550,637,662,694,719
+  s_730f613d16d859::t_3b1de7f1611ad7 14-15
+  s_730f613d16d859::t_4bbda7d2844c64 39-40
+  s_730f613d16d859::t_c14ced0954b301 117-124
+  s_730f613d16d859::t_df0faa9b591a90 140-141
+  s_730f613d16d859::t_69eb6e14237d87 454-511,541-549
+tests/llm-workflow/android/metro-watch-attach.ts
+  s_730f613d16d859::t_2c385329700e98 39,61-63,66-69,71,73,91-100
+  s_730f613d16d859::t_ba18e16b37cdc6 64-65
+  s_730f613d16d859::t_e00b16f4bc3be3 36-38
+  s_730f613d16d859::t_c4212bf59d2e23 101
+tests/llm-workflow/__tests__/android-metro-watch-attach.test.ts
+  s_730f613d16d859::t_cb60b1ede61fb9 78-116
+  s_730f613d16d859::t_d7c3c50aaf6c1e 8-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f258372af780312d5b177f128da2f2ca76951da9",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  },
+  "sessions": {
+    "s_730f613d16d859": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_006085923ffek1hrbFqBNJzPPw",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
