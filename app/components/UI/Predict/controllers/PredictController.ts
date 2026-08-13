@@ -79,6 +79,7 @@ import {
   ConnectionStatus,
   ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
+  CryptoPriceSubscriptionOptions,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
@@ -2991,12 +2992,15 @@ export class PredictController extends BaseController<
   public subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
     const provider = this.provider;
     if (!provider?.subscribeToCryptoPrices) {
       return () => undefined;
     }
-    return provider.subscribeToCryptoPrices(symbols, callback);
+    return options
+      ? provider.subscribeToCryptoPrices(symbols, callback, options)
+      : provider.subscribeToCryptoPrices(symbols, callback);
   }
 
   /**
