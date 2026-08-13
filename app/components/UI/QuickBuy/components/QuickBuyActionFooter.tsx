@@ -18,6 +18,7 @@ import { strings } from '../../../../../locales/i18n';
 import QuickBuyBanners from '../QuickBuyBanners';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
+import QuickBuyDisabledSection from './QuickBuyDisabledSection';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
@@ -39,6 +40,7 @@ const QuickBuyActionFooter: React.FC = () => {
     features,
     totalAmountFiat,
     isPriceImpactError,
+    hasNoPayWithFunds,
     setActiveScreen,
   } = useQuickBuyContext();
 
@@ -50,61 +52,16 @@ const QuickBuyActionFooter: React.FC = () => {
     <Box twClassName="px-4">
       <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 
-      {features.quickAmountPills ? (
-        <Box twClassName="pb-3">
-          <QuickBuyQuickAmounts />
-        </Box>
-      ) : null}
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="pb-5"
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {tradeMode === 'sell'
-            ? strings('social_leaderboard.quick_buy.receive')
-            : strings('social_leaderboard.quick_buy.pay_with')}
-        </Text>
-
-        <TouchableOpacity
-          disabled={!features.payWithSheet}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          testID="quick-buy-pay-with-button"
-          onPress={() => setActiveScreen('payWith')}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            {pickerToken ? (
-              <QuickBuyTokenIcon
-                token={pickerToken}
-                size={AvatarTokenSize.Sm}
-              />
-            ) : null}
-            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-              {pickerToken
-                ? pickerBalanceFiat
-                  ? `${pickerToken.symbol} (${pickerBalanceFiat})`
-                  : pickerToken.symbol
-                : '—'}
-            </Text>
-            {features.payWithSheet ? (
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconDefault}
-              />
-            ) : null}
+      {/* Everything between the banners and the CTA depends on a quote that can
+          never arrive without funds, so it is dimmed and inert as one block —
+          leaving the "Add funds" CTA below as the only live control. */}
+      <QuickBuyDisabledSection isDisabled={hasNoPayWithFunds}>
+        {features.quickAmountPills ? (
+          <Box twClassName="pb-3">
+            <QuickBuyQuickAmounts />
           </Box>
-        </TouchableOpacity>
-      </Box>
+        ) : null}
 
-      {totalAmountFiat || isPriceImpactError ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -112,20 +69,73 @@ const QuickBuyActionFooter: React.FC = () => {
           twClassName="pb-5"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.quick_buy.total')}
+            {tradeMode === 'sell'
+              ? strings('social_leaderboard.quick_buy.receive')
+              : strings('social_leaderboard.quick_buy.pay_with')}
           </Text>
 
-          <QuickBuyRateTag
-            label={totalAmountFiat}
-            onPress={
-              features.quoteDetails
-                ? () => setActiveScreen('quoteDetails')
-                : undefined
-            }
-            isHighPriceImpact={isPriceImpactError}
-          />
+          <TouchableOpacity
+            disabled={!features.payWithSheet || hasNoPayWithFunds}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            testID="quick-buy-pay-with-button"
+            onPress={() => setActiveScreen('payWith')}
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              {pickerToken ? (
+                <QuickBuyTokenIcon
+                  token={pickerToken}
+                  size={AvatarTokenSize.Sm}
+                />
+              ) : null}
+              <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+                {pickerToken
+                  ? pickerBalanceFiat
+                    ? `${pickerToken.symbol} (${pickerBalanceFiat})`
+                    : pickerToken.symbol
+                  : '—'}
+              </Text>
+              {features.payWithSheet ? (
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Sm}
+                  color={IconColor.IconDefault}
+                />
+              ) : null}
+            </Box>
+          </TouchableOpacity>
         </Box>
-      ) : null}
+
+        {totalAmountFiat || isPriceImpactError ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="pb-5"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('social_leaderboard.quick_buy.total')}
+            </Text>
+
+            <QuickBuyRateTag
+              label={totalAmountFiat}
+              onPress={
+                features.quoteDetails && !hasNoPayWithFunds
+                  ? () => setActiveScreen('quoteDetails')
+                  : undefined
+              }
+              isHighPriceImpact={isPriceImpactError}
+            />
+          </Box>
+        ) : null}
+      </QuickBuyDisabledSection>
 
       <QuickBuyConfirmButton
         state={confirmButtonState}
