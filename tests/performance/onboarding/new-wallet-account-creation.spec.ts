@@ -29,14 +29,18 @@ import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 
-const dismissProtectWalletModalIfPresent = async (): Promise<void> => {
+const dismissProtectWalletModalIfPresent = async (
+  timeoutMs = 1_000,
+): Promise<void> => {
   let backupAlertVisible = false;
   try {
-    backupAlertVisible = await withImplicitWait(0, async () =>
-      (
-        await asPlaywrightElement(ProtectYourWalletModal.collapseWalletModal)
-      ).isVisible(),
-    );
+    backupAlertVisible = await withImplicitWait(0, async () => {
+      const backupAlert = await asPlaywrightElement(
+        ProtectYourWalletModal.collapseWalletModal,
+      );
+      await backupAlert.unwrap().waitForDisplayed({ timeout: timeoutMs });
+      return true;
+    });
   } catch {
     return;
   }
@@ -49,11 +53,15 @@ const dismissProtectWalletModalIfPresent = async (): Promise<void> => {
 
   let skipAccountSecurityVisible = false;
   try {
-    skipAccountSecurityVisible = await withImplicitWait(0, async () =>
-      (
-        await asPlaywrightElement(SkipAccountSecurityModal.container)
-      ).isVisible(),
-    );
+    skipAccountSecurityVisible = await withImplicitWait(0, async () => {
+      const skipAccountSecurity = await asPlaywrightElement(
+        SkipAccountSecurityModal.container,
+      );
+      await skipAccountSecurity.unwrap().waitForDisplayed({
+        timeout: timeoutMs,
+      });
+      return true;
+    });
   } catch {
     return;
   }
@@ -131,7 +139,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
 
       await AccountListBottomSheet.tapCreateAccount(0);
-      await dismissProtectWalletModalIfPresent();
+      await dismissProtectWalletModalIfPresent(1_500);
       await screen2Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
