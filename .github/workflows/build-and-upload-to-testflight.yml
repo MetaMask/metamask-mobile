@@ -24,10 +24,12 @@ on:
         type: boolean
         default: true
       runner_provider:
-        description: Runner provider forwarded from the caller
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
         required: false
         type: string
-        default: current
+        default: ''
   workflow_dispatch:
     inputs:
       source_branch:
@@ -59,13 +61,14 @@ on:
         type: boolean
         default: true
       runner_provider:
-        description: Runner provider for this manual trial run
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
         type: choice
         options:
-          - current
+          - inherit
           - namespace
-        default: current
+          - current
+        default: inherit
 
 permissions:
   contents: read
