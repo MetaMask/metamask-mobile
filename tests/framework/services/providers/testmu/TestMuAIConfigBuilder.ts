@@ -72,7 +72,7 @@ export class TestMuAIConfigBuilder {
     const appiumVersion = process.env.TESTMU_APPIUM_VERSION?.trim() || '3.0.2';
 
     logger.info(
-      `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, appiumVersion=${appiumVersion}, isRealMobile=true` +
+      `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion || 'unspecified'}, appiumVersion=${appiumVersion}, isRealMobile=true` +
         // Bracket access prevents Babel from baking this environment variable at transform time.
         // eslint-disable-next-line dot-notation
         (process.env['TESTMU_DEVICE_EXACT']?.toLowerCase() === 'true'
@@ -84,7 +84,7 @@ export class TestMuAIConfigBuilder {
       w3c: true,
       platformName,
       deviceName,
-      platformVersion,
+      ...(platformVersion ? { platformVersion } : {}),
       isRealMobile: true,
       app: appUrl,
       appiumVersion,
@@ -140,7 +140,9 @@ export class TestMuAIConfigBuilder {
         platformName,
         'appium:app': appUrl,
         'appium:deviceName': deviceName,
-        'appium:platformVersion': platformVersion,
+        ...(platformVersion
+          ? { 'appium:platformVersion': platformVersion }
+          : {}),
         'appium:automationName':
           platformName === 'android' ? 'UiAutomator2' : 'XCUITest',
         'appium:autoGrantPermissions': true,

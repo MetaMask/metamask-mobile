@@ -44,6 +44,14 @@ describe('TestMuDeviceResolver', () => {
         platformVersion: '13',
       });
     });
+
+    it('leaves the OS version unspecified when no version is provided', () => {
+      delete process.env['TESTMU_DEVICE_EXACT'];
+      expect(applyTestMuAvailabilityRegex('Pixel 7|Pixel 7 Pro', '')).toEqual({
+        deviceName: 'Pixel 7|Pixel 7 Pro.*',
+        platformVersion: '',
+      });
+    });
   });
 
   describe('resolveTestMuCatalogDeviceName', () => {
