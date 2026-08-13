@@ -25,11 +25,16 @@ import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
+import { useSignatureAddressAlerts } from './useSignatureAddressAlerts';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
+  const signatureAddressAlerts = useSignatureAddressAlerts();
 
-  return useMemo(() => [...domainMismatchAlerts], [domainMismatchAlerts]);
+  return useMemo(
+    () => [...domainMismatchAlerts, ...signatureAddressAlerts],
+    [domainMismatchAlerts, signatureAddressAlerts],
+  );
 }
 
 function useTransactionAlerts(): Alert[] {

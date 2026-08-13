@@ -23,6 +23,7 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
 import { validateWithSecurityAlertsAPI } from './security-alerts-api';
+import { scanUnvalidatedSignatureAddresses } from '../address-scanning/scan-unvalidated-signature';
 import { Messenger } from '@metamask/messenger';
 import { SignatureStateChange } from '@metamask/signature-controller';
 import cloneDeep from 'lodash/cloneDeep';
@@ -167,6 +168,18 @@ async function validateRequest(
       updateControllerState: true,
       securityAlertId,
     });
+
+    const resultType = securityAlertResponse?.result_type;
+    if (
+      resultType !== ResultType.Malicious &&
+      resultType !== ResultType.Warning
+    ) {
+      scanUnvalidatedSignatureAddresses({
+        request: { method, params: req.params },
+        chainId,
+        phishingController: Engine.context.PhishingController,
+      });
+    }
   }
 }
 
