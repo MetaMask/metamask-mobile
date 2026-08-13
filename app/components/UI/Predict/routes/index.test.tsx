@@ -10,6 +10,14 @@ import PredictScreenStack, { PredictModalStack } from './index';
 let mockPayWithAnyTokenEnabled = false;
 let mockPredictPortfolioEnabled = true;
 let mockPredictHomeRedesignEnabled = false;
+const mockPredictConfig = {
+  enabled: false,
+  venues: {
+    polymarket: { enabled: true },
+    kalshi: { enabled: false },
+  },
+  venueSelection: { enabled: false },
+};
 
 const mockSelectPredictWithAnyTokenEnabledFlag = jest.fn(
   () => mockPayWithAnyTokenEnabled,
@@ -32,6 +40,10 @@ jest.mock('../selectors/featureFlags', () => ({
     mockSelectPredictPortfolioEnabledFlag(),
   selectPredictHomeRedesignEnabledFlag: () =>
     mockSelectPredictHomeRedesignEnabledFlag(),
+}));
+
+jest.mock('../../PredictNext/selectors/predictConfig', () => ({
+  selectPredictConfig: () => mockPredictConfig,
 }));
 
 jest.mock('../contexts', () => {
@@ -276,6 +288,9 @@ describe('PredictScreenStack', () => {
 describe('PredictModalStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPayWithAnyTokenEnabled = false;
+    mockPredictPortfolioEnabled = true;
+    mockPredictHomeRedesignEnabled = false;
     navigationRef = React.createRef();
   });
 

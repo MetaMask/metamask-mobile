@@ -109,6 +109,7 @@ export function usePerpsAdvancedChartAdapter({
     undefined,
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [cacheGeneration, setCacheGeneration] = useState(0);
 
   /** Always reflects the most recently received CandleData (unthrottled). */
   const latestCandleDataRef = useRef<CandleData | null>(null);
@@ -162,6 +163,18 @@ export function usePerpsAdvancedChartAdapter({
       interval,
       duration: TimeDuration.OneWeek,
       callback: (candleData: CandleData) => {
+        if (candleData.symbol === '' && candleData.candles.length === 0) {
+          latestCandleDataRef.current = null;
+          prevLastBarRef.current = null;
+          hasReceivedFirstUpdateRef.current = false;
+          hasLoadedBarsRef.current = false;
+          setOhlcvData([]);
+          setRealtimeBar(undefined);
+          setIsLoading(true);
+          setCacheGeneration((generation) => generation + 1);
+          return;
+        }
+
         // Reject stale deliveries from a previous symbol/interval subscription.
         if (
           candleData.symbol !== symbol ||
@@ -238,8 +251,11 @@ export function usePerpsAdvancedChartAdapter({
   }, [symbol, interval, stream]);
 
   const ohlcvSeriesKey = useMemo(
-    () => `${symbol}|${interval}`,
-    [symbol, interval],
+    () =>
+      cacheGeneration === 0
+        ? `${symbol}|${interval}`
+        : `${symbol}|${interval}|${cacheGeneration}`,
+    [symbol, interval, cacheGeneration],
   );
 
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
