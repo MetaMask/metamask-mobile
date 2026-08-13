@@ -53,6 +53,8 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
+import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 
 /**
  * The local row's activity status in the terms the step timeline speaks. A
@@ -476,7 +478,13 @@ export function PerpsDetails({ item }: { item: ActivityListItem }) {
   }
 
   if (transaction.type === 'order') {
-    return <OrderDetails item={perpsItem} transaction={transaction} />;
+    return (
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>
+          <OrderDetails item={perpsItem} transaction={transaction} />
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    );
   }
 
   if (transaction.type === 'funding') {

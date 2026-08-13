@@ -31,6 +31,12 @@ const mockTransaction = {
 
 const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
+const mockPerpsConnectionProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+);
+const mockPerpsStreamProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockUseNavigation(),
@@ -51,6 +57,16 @@ jest.mock('../../hooks', () => ({
   usePerpsNetwork: jest.fn(),
   usePerpsRecordedOrderFees: jest.fn(),
   usePerpsBlockExplorerUrl: jest.fn(),
+}));
+
+jest.mock('../../providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    mockPerpsConnectionProvider({ children }),
+}));
+
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    mockPerpsStreamProvider({ children }),
 }));
 
 describe('PerpsOrderTransactionView', () => {
@@ -122,6 +138,13 @@ describe('PerpsOrderTransactionView', () => {
     expect(getByText('Limit price')).toBeTruthy();
     expect(getByText('Filled')).toBeTruthy();
     expect(getByText('100%')).toBeTruthy();
+  });
+
+  it('provides connection and stream contexts without an external wrapper', () => {
+    render(<PerpsOrderTransactionView />);
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsStreamProvider).toHaveBeenCalledTimes(1);
   });
 
   it('renders one total fee row from recorded fills', () => {

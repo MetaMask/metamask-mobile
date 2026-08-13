@@ -33,8 +33,10 @@ import {
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 
-const PerpsOrderTransactionView: React.FC = () => {
+const PerpsOrderTransactionViewContent: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -220,5 +222,13 @@ const PerpsOrderTransactionView: React.FC = () => {
     </ScreenView>
   );
 };
+
+const PerpsOrderTransactionView: React.FC = () => (
+  <PerpsConnectionProvider suppressErrorView>
+    <PerpsStreamProvider>
+      <PerpsOrderTransactionViewContent />
+    </PerpsStreamProvider>
+  </PerpsConnectionProvider>
+);
 
 export default PerpsOrderTransactionView;

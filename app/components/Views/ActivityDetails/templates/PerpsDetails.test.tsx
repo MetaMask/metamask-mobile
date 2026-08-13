@@ -13,6 +13,13 @@ import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { PerpsDetails } from './PerpsDetails';
 
+const mockPerpsConnectionProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+);
+const mockPerpsStreamProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+);
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => {
@@ -28,6 +35,16 @@ jest.mock(
     };
   },
 );
+
+jest.mock('../../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    mockPerpsConnectionProvider({ children }),
+}));
+
+jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    mockPerpsStreamProvider({ children }),
+}));
 
 jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
@@ -156,6 +173,10 @@ function localPerpsFundsItem(
 }
 
 describe('PerpsDetails', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders trade rows and trade-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -192,6 +213,34 @@ describe('PerpsDetails', () => {
     ).toHaveTextContent('Confirmed');
   });
 
+  it('renders trade details without Perps provider contexts', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      type: 'trade',
+      fill: {
+        shortTitle: 'Closed short',
+        amount: '-$0.02',
+        amountNumber: -0.02,
+        isPositive: false,
+        size: '0.0001',
+        entryPrice: '92113',
+        points: '0',
+        pnl: '-$0.02',
+        fee: '0.02',
+        action: 'Closed',
+        feeToken: 'USDC',
+        fillType: FillType.Standard,
+      },
+    };
+
+    renderWithProvider(
+      <PerpsDetails item={perpsItem('perpsCloseShort', transaction)} />,
+    );
+
+    expect(mockPerpsConnectionProvider).not.toHaveBeenCalled();
+    expect(mockPerpsStreamProvider).not.toHaveBeenCalled();
+  });
+
   it('renders canceled order rows and try-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -221,6 +270,32 @@ describe('PerpsDetails', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('provides connection and stream contexts for order details', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'provider-backed-order',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Limit order',
+      order: {
+        orderId: 'provider-backed-order',
+        text: PerpsOrderTransactionStatus.Filled,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'limit',
+        size: '10',
+        limitPrice: '98023',
+        filled: '100%',
+      },
+    };
+
+    renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsStreamProvider).toHaveBeenCalledTimes(1);
   });
 
   it('renders the recorded fee for a partially filled canceled order', () => {
