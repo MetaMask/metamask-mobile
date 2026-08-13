@@ -796,6 +796,7 @@ export const usePerpsProOrderForm = ({
         stopLossPrice: undefined,
       });
       setReduceOnly(false);
+      setMaxPossibleAmountOverride(null);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -833,6 +834,7 @@ export const usePerpsProOrderForm = ({
     chartLibrary,
     vipTier,
     executeOrder,
+    setMaxPossibleAmountOverride,
     updateOrderForm,
     updatePositionTPSL,
     showToast,
@@ -1189,6 +1191,7 @@ export const usePerpsProOrderForm = ({
 
   useEffect(() => {
     if (!reduceOnly) {
+      setMaxPossibleAmountOverride(null);
       return;
     }
 

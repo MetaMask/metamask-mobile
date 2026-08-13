@@ -546,6 +546,25 @@ describe('usePerpsProOrderForm', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('clears the size max override after a successful Reduce Only order', async () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      mockSetMaxPossibleAmountOverride.mockClear();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.reduceOnly).toBe(false);
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(null);
+    });
+
     it('flushes a pending slider preview before allowing submission', async () => {
       // Arrange
       const { result, rerender } = renderProForm();
