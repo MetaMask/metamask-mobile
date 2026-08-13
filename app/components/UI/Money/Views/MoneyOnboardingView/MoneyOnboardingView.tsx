@@ -530,11 +530,14 @@ const MoneyOnboardingView = () => {
   );
 };
 
-// Used in E2E and performance tests to complete the onboarding and redirect to the money home screen.
+// Used in E2E and performance tests to complete onboarding without rendering Rive.
 const MoneyOnboardingViewE2E = () => {
   const dispatch = useDispatch();
 
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<MoneyOnboardingRouteProp>();
+  const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const { initiateDeposit } = useMoneyAccountDeposit();
 
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
@@ -543,10 +546,32 @@ const MoneyOnboardingViewE2E = () => {
     });
   }, [navigation]);
 
+  const navigateToPostOnboardingDestination = useCallback(async () => {
+    if (
+      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
+    ) {
+      navigateToMoneyHome();
+      return;
+    }
+
+    try {
+      await initiateDeposit({
+        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+        replaceConfirmation: true,
+        onDepositSetupFailure: navigateToMoneyHome,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
+    }
+  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+
   const completeOnboardingAndRedirect = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(true));
-    navigateToMoneyHome();
-  }, [dispatch, navigateToMoneyHome]);
+    navigateToPostOnboardingDestination();
+  }, [dispatch, navigateToPostOnboardingDestination]);
 
   useEffect(() => {
     completeOnboardingAndRedirect();
