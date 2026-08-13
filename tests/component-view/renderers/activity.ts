@@ -23,6 +23,7 @@ import {
   initialStateActivity,
   initialStateActivityWithRedesignEnabled,
 } from '../presets/activity';
+import type { ActivityDetailsParams } from '../../../app/components/Views/ActivityDetails/ActivityDetails.types';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
@@ -98,6 +99,13 @@ interface RenderActivityViewWithRoutesOptions
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[];
 }
 
+interface RenderActivityDetailsViewOptions {
+  overrides?: DeepPartial<RootState>;
+  state?: DeepPartial<RootState>;
+  params: ActivityDetailsParams;
+  extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
+}
+
 function ActivityViewWithProviders() {
   return React.createElement(
     HardwareWalletProvider,
@@ -119,6 +127,14 @@ function ActivityListWithProviders() {
     HardwareWalletProvider,
     null,
     React.createElement(ActivityList),
+  );
+}
+
+function ActivityDetailsWithProviders() {
+  return React.createElement(
+    HardwareWalletProvider,
+    null,
+    React.createElement(ActivityDetails),
   );
 }
 
@@ -287,38 +303,24 @@ export function renderActivityViewWithRoutes(
   );
 }
 
-interface RenderActivityDetailsViewOptions {
-  overrides?: DeepPartial<RootState>;
-  state?: DeepPartial<RootState>;
-  initialParams: {
-    chainId: string;
-    txIdentifier: string;
-    preloadKey?: string;
-  };
-  extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
-}
-
-function ActivityDetailsWithProviders() {
-  return React.createElement(
-    HardwareWalletProvider,
-    null,
-    React.createElement(ActivityDetails),
-  );
-}
-
-/**
- * Mounts redesigned ActivityDetails with route params.
- */
 export function renderActivityDetailsView(
   options: RenderActivityDetailsViewOptions,
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const state = buildActivityState(options);
+  const state = buildActivityState({
+    overrides: options.overrides,
+    state: options.state,
+    redesignEnabled: true,
+  });
 
   return renderScreenWithRoutes(
     ActivityDetailsWithProviders,
     { name: Routes.ACTIVITY_DETAILS },
-    options.extraRoutes ?? [],
+    [
+      { name: Routes.BRIDGE.MODALS.ROOT },
+      { name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER },
+      ...(options.extraRoutes ?? []),
+    ],
     { state },
-    options.initialParams,
+    options.params as unknown as Record<string, unknown>,
   );
 }
