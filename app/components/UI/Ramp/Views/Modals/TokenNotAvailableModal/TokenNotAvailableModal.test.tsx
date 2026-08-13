@@ -146,10 +146,11 @@ describe('TokenNotAvailableModal', () => {
     fireEvent.press(getByText('Change token'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
-      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-      pop: true,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.RAMP.TOKEN_SELECTION,
+      { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
+      { pop: true },
+    );
   });
 
   it('navigates to provider picker when Change provider is pressed', () => {
@@ -181,10 +182,11 @@ describe('TokenNotAvailableModal', () => {
 
     capturedOnClose?.(false);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
-      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-      pop: true,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.RAMP.TOKEN_SELECTION,
+      { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
+      { pop: true },
+    );
   });
 
   it('does not navigate on dismiss when there is a pending action', () => {

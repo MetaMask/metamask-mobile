@@ -90,10 +90,11 @@ function TokenNotAvailableModal() {
           { pop: true },
         );
       } else {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-          pop: true,
-        });
+        navigation.navigate(
+          Routes.RAMP.TOKEN_SELECTION,
+          { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
+          { pop: true },
+        );
       }
     });
   }, [
@@ -159,10 +160,11 @@ function TokenNotAvailableModal() {
             { pop: true },
           );
         } else {
-          navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-            screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-            pop: true,
-          });
+          navigation.navigate(
+            Routes.RAMP.TOKEN_SELECTION,
+            { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
+            { pop: true },
+          );
         }
       }
     },
