@@ -383,6 +383,11 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             dismissedDestinations,
           );
 
+          // The modal can appear while the measured destination is becoming
+          // visible. Close it after the timer as well, without adding another
+          // measurement for the modal.
+          await closePredictModal();
+
           transitionTimer.changeName(
             `Time since the user taps ${POST_ONBOARDING_SOURCE_LABELS[source]} until ${POST_ONBOARDING_DESTINATION_LABELS[destination]} is visible`,
           );
