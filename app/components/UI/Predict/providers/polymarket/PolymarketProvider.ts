@@ -177,6 +177,7 @@ import {
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -1050,7 +1051,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], nextCursor: null };
+      throw error;
     }
   }
 
@@ -1077,7 +1078,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], nextCursor: null };
+      throw error;
     }
   }
 
@@ -1143,7 +1144,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], totalResults: 0 };
+      throw error;
     }
   }
 
@@ -1163,7 +1164,7 @@ export class PolymarketProvider implements PredictProvider {
         ascending: 'true',
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
       );
 
@@ -1207,7 +1208,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return [];
+      throw error;
     }
   }
 
@@ -1294,7 +1295,7 @@ export class PolymarketProvider implements PredictProvider {
         searchParams.set('interval', interval);
       }
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${CLOB_ENDPOINT}/prices-history?${searchParams.toString()}`,
         {
           method: 'GET',
@@ -1363,7 +1364,7 @@ export class PolymarketProvider implements PredictProvider {
         limit: String(limit),
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${CHAINLINK_CANDLES_ENDPOINT}?${searchParams.toString()}`,
         { method: 'GET' },
       );
@@ -1458,7 +1459,7 @@ export class PolymarketProvider implements PredictProvider {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
       const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
 
-      const response = await fetch(url);
+      const response = await fetchWithTimeout(url);
       if (!response.ok) {
         throw new Error(`Crypto target price API returned ${response.status}`);
       }
@@ -1507,7 +1508,7 @@ export class PolymarketProvider implements PredictProvider {
         { token_id: query.outcomeTokenId, side: Side.SELL },
       ]);
 
-      const response = await fetch(`${CLOB_ENDPOINT}/prices`, {
+      const response = await fetchWithTimeout(`${CLOB_ENDPOINT}/prices`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1986,7 +1987,7 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     const positionsUrl = `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`;
-    const response = await fetch(positionsUrl, {
+    const response = await fetchWithTimeout(positionsUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -2057,7 +2058,7 @@ export class PolymarketProvider implements PredictProvider {
         offset: String(offset),
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
         {
           method: 'GET',
@@ -2109,7 +2110,7 @@ export class PolymarketProvider implements PredictProvider {
       this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${DATA_API_ENDPOINT}/upnl?user=${predictAddress}`,
       {
         method: 'GET',
@@ -2566,7 +2567,7 @@ export class PolymarketProvider implements PredictProvider {
     const result: GeoBlockResponse = { isEligible: false };
 
     try {
-      const res = await fetch(GEOBLOCK_API_ENDPOINT);
+      const res = await fetchWithTimeout(GEOBLOCK_API_ENDPOINT);
       const data = (await res.json()) as {
         blocked?: boolean;
         country?: string;
@@ -2752,7 +2753,7 @@ export class PolymarketProvider implements PredictProvider {
       user: address,
       limit: '1',
     });
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
     );
 
