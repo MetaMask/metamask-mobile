@@ -521,11 +521,9 @@ const PerpsTPSLView: React.FC = () => {
       entryPrice: effectiveEntryPrice,
     };
 
-    // Dismiss before updating, matching PerpsClosePositionView. The update
-    // optimistically re-renders the position screen underneath, and Android
-    // cannot reparent a view out of this screen while react-native-screens
-    // holds a removal transition open on it. `onConfirm` reports its own
-    // success and error toasts, so nothing here needs to stay mounted.
+    // Dismiss first (same as PerpsClosePositionView). Updating while this
+    // screen is still dismissing crashes Android Fabric under nav v7 —
+    // optimistic parent re-render races react-native-screens' transition.
     navigation.goBack();
 
     // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
