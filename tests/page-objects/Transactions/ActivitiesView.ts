@@ -13,14 +13,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class ActivitiesView {
   get title(): EncapsulatedElementType {
@@ -63,13 +56,13 @@ class ActivitiesView {
       },
     );
   }
+
   get predictionsTab(): EncapsulatedElementType {
-    const label = ActivitiesViewSelectorsText.PREDICTIONS_TAB;
-    return encapsulated({
-      detox: () => Matchers.getElementByLabel(label),
-      appium: () => PlaywrightMatchers.getElementByText(label),
-    });
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.PREDICTIONS_TAB,
+    );
   }
+
   get transferTab(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
   }
@@ -211,15 +204,15 @@ class ActivitiesView {
             });
             break;
           } catch {
-            await UnifiedGestures.swipe(this.tabsBar, 'left', {
+            await Gestures.swipe(this.tabsBar, 'left', {
               percentage: 0.5,
               speed: 'slow',
-              description: `Swipe activity tabs to reveal Predictions (attempt ${attempt + 1})`,
+              elemDescription: `Swipe activity tabs to reveal Predictions (attempt ${attempt + 1})`,
             });
           }
         }
-        await UnifiedGestures.waitAndTap(this.predictionsTab, {
-          description: 'Predictions Tab in Activity View',
+        await Gestures.waitAndTap(this.predictionsTab, {
+          elemDescription: 'Predictions Tab in Activity View',
           timeout: 10_000,
         });
       },
@@ -314,7 +307,6 @@ class ActivitiesView {
 
   /**
    * Wait for a transaction to show "Confirmed" status in the activity list.
-   * Works in both Detox and Playwright/Appium contexts.
    * For real on-chain transactions, polls with a longer timeout.
    * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
    */
@@ -322,37 +314,22 @@ class ActivitiesView {
     rowIndex = 0,
     timeoutMs = 120_000,
   ): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToHaveText(
           this.transactionStatus(rowIndex),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
           {
+            timeout: 3_000,
             description: `Transaction row ${rowIndex} should be confirmed`,
           },
         );
       },
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(
-          async () => {
-            const statusEl = await PlaywrightMatchers.getElementById(
-              `transaction-status-${rowIndex}`,
-              { exact: true },
-            );
-            const label = await statusEl.textContent();
-            if (label !== ActivitiesViewSelectorsText.CONFIRM_TEXT) {
-              throw new Error(
-                `Row ${rowIndex} status: "${label}" (waiting for "${ActivitiesViewSelectorsText.CONFIRM_TEXT}")`,
-              );
-            }
-          },
-          {
-            maxRetries: Math.ceil(timeoutMs / 3_000),
-            interval: 3_000,
-            description: `Transaction row ${rowIndex} should be confirmed`,
-          },
-        );
+      {
+        timeout: timeoutMs,
+        description: `Transaction row ${rowIndex} should be confirmed`,
       },
-    });
+    );
   }
 }
 
