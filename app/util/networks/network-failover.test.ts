@@ -16,21 +16,25 @@ describe('getFailoverUrlsForChainId', () => {
 
   it('returns the QuickNode failover url for a mapped chain when the env is set', () => {
     process.env.QUICKNODE_BSC_URL = 'https://failover.example/bsc';
-    expect(getFailoverUrlsForChainId(ChainId['bsc-mainnet'])).toStrictEqual([
-      'https://failover.example/bsc',
-    ]);
+
+    const failoverUrls = getFailoverUrlsForChainId(ChainId['bsc-mainnet']);
+
+    expect(failoverUrls).toStrictEqual(['https://failover.example/bsc']);
   });
 
   it('returns an empty array for a mapped chain when the env is unset', () => {
     delete process.env.QUICKNODE_MEGAETH_URL;
-    expect(getFailoverUrlsForChainId(ChainId['megaeth-mainnet'])).toStrictEqual(
-      [],
-    );
+
+    const failoverUrls = getFailoverUrlsForChainId(ChainId['megaeth-mainnet']);
+
+    expect(failoverUrls).toStrictEqual([]);
   });
 
   it('returns an empty array for a chain that has no mapped failover', () => {
     // Sepolia is not in the failover map.
-    expect(getFailoverUrlsForChainId(ChainId.sepolia)).toStrictEqual([]);
+    const failoverUrls = getFailoverUrlsForChainId(ChainId.sepolia);
+
+    expect(failoverUrls).toStrictEqual([]);
   });
 });
 
@@ -44,7 +48,6 @@ describe('getFailoverUrlsByChainId', () => {
   });
 
   it('includes every chain that has a mapped QuickNode failover', () => {
-    const failoverUrlsByChainId = getFailoverUrlsByChainId();
     const mappedChainIds = [
       ChainId.mainnet,
       ChainId['linea-mainnet'],
@@ -62,6 +65,9 @@ describe('getFailoverUrlsByChainId', () => {
       toHex(5042), // Arc
       toHex(4663), // Robinhood
     ];
+
+    const failoverUrlsByChainId = getFailoverUrlsByChainId();
+
     expect(Object.keys(failoverUrlsByChainId).sort()).toStrictEqual(
       [...mappedChainIds].sort(),
     );
@@ -69,9 +75,10 @@ describe('getFailoverUrlsByChainId', () => {
 
   it('resolves a mapped chain to its QuickNode failover url from env', () => {
     process.env.QUICKNODE_BSC_URL = 'https://failover.example/bsc';
-    expect(getFailoverUrlsByChainId()[ChainId['bsc-mainnet']]).toStrictEqual([
-      'https://failover.example/bsc',
-    ]);
+
+    const failoverUrls = getFailoverUrlsByChainId()[ChainId['bsc-mainnet']];
+
+    expect(failoverUrls).toStrictEqual(['https://failover.example/bsc']);
   });
 });
 
@@ -86,18 +93,25 @@ describe('getIsQuicknodeEndpointUrl', () => {
 
   it('returns true for a known Quicknode URL', () => {
     process.env.QUICKNODE_MAINNET_URL = 'https://mainnet.quiknode.pro/test';
-    expect(getIsQuicknodeEndpointUrl('https://mainnet.quiknode.pro/test')).toBe(
-      true,
+
+    const isQuicknode = getIsQuicknodeEndpointUrl(
+      'https://mainnet.quiknode.pro/test',
     );
+
+    expect(isQuicknode).toBe(true);
   });
 
   it('returns false for unknown URLs', () => {
-    expect(getIsQuicknodeEndpointUrl('https://unknown.example.com')).toBe(
-      false,
+    const isQuicknode = getIsQuicknodeEndpointUrl(
+      'https://unknown.example.com',
     );
+
+    expect(isQuicknode).toBe(false);
   });
 
   it('returns false for an empty URL', () => {
-    expect(getIsQuicknodeEndpointUrl('')).toBe(false);
+    const isQuicknode = getIsQuicknodeEndpointUrl('');
+
+    expect(isQuicknode).toBe(false);
   });
 });
