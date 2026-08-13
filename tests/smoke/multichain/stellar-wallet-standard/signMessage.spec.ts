@@ -1,3 +1,4 @@
+import type { Mockttp } from 'mockttp';
 import { SmokeNetworkExpansion } from '../../../tags';
 import StellarTestDapp from '../../../page-objects/Browser/StellarTestDapp';
 import {
@@ -9,6 +10,15 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { DappVariants } from '../../../framework/Constants';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagStellarAccounts } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+
+const mockStellarAccountsEnabled = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    remoteFeatureFlagStellarAccounts(true),
+  );
+};
 
 // Skipped: wallet_createSession for stellar:pubnet returns 5100 until a Stellar
 // snap account exists. Unlike Solana there is no create-account prompt, and
@@ -31,6 +41,7 @@ describe.skip(
               dappVariant: DappVariants.STELLAR_TEST_DAPP,
             },
           ],
+          testSpecificMock: mockStellarAccountsEnabled,
         },
         async () => {
           await loginToApp();
