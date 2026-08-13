@@ -129,7 +129,7 @@ export async function handleAgenticCliConnectDeeplink(
         ...connReq.metadata,
         dapp: {
           ...connReq.metadata.dapp,
-          // The Agent CLI is a known first-party flow, so do not surface the
+          // The Agent wallet is a known first-party flow, so do not surface the
           // self-reported "MM CLI" name in product UI.
           name: AGENTIC_CLI_DISPLAY_NAME,
         },
