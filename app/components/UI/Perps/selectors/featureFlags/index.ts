@@ -415,6 +415,22 @@ export const selectPerpsProModeEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for triggered order types in the Perps Pro order form.
+ * Defaults to false so triggered types can be rolled out independently.
+ *
+ * @returns boolean - true if triggered order types can be shown, false otherwise
+ */
+export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProTriggeredOrdersEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Terminal Backend feature flag.
  * Controls whether market-data calls route through the MetaMask Terminal API
  * (with HyperLiquid fallback) or go directly to HyperLiquid.
