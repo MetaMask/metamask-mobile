@@ -11,11 +11,13 @@ jest.mock('child_process', () => ({
 jest.mock('fs/promises', () => ({
   mkdir: jest.fn(),
   copyFile: jest.fn(),
+  writeFile: jest.fn(),
 }));
 
 const execFileMock = execFile as unknown as jest.Mock;
 const mkdirMock = fs.mkdir as jest.Mock;
 const copyFileMock = fs.copyFile as jest.Mock;
+const writeFileMock = fs.writeFile as jest.Mock;
 
 function createTestInfo(): TestInfo {
   return {
@@ -51,10 +53,11 @@ describe('copyProfilerResult', () => {
     jest.clearAllMocks();
     mkdirMock.mockResolvedValue(undefined);
     copyFileMock.mockResolvedValue(undefined);
+    writeFileMock.mockResolvedValue(undefined);
   });
 
-  it('pulls the newest Android profile and attaches it to the test', async () => {
-    mockCommandOutputs('/sdcard/Download/profile.cpuprofile', '1 file pulled');
+  it('extracts the newest Android profile from the app cache', async () => {
+    mockCommandOutputs('profile.cpuprofile', 'profile contents');
     const testInfo = createTestInfo();
 
     const result = await copyProfilerResult({
@@ -63,6 +66,7 @@ describe('copyProfilerResult', () => {
       device: {
         platform: 'android',
         udid: 'emulator-5554',
+        packageName: 'io.metamask',
       },
     });
 
@@ -76,9 +80,12 @@ describe('copyProfilerResult', () => {
         '-s',
         'emulator-5554',
         'shell',
+        'run-as',
+        'io.metamask',
         'ls',
         '-t',
-        '/sdcard/Download/*.cpuprofile',
+        '-p',
+        'cache/',
       ],
       expect.any(Object),
       expect.any(Function),
@@ -89,13 +96,16 @@ describe('copyProfilerResult', () => {
       [
         '-s',
         'emulator-5554',
-        'pull',
-        '/sdcard/Download/profile.cpuprofile',
-        result,
+        'exec-out',
+        'run-as',
+        'io.metamask',
+        'cat',
+        'cache/profile.cpuprofile',
       ],
       expect.any(Object),
       expect.any(Function),
     );
+    expect(writeFileMock).toHaveBeenCalledWith(result, 'profile contents');
     expect(testInfo.attach).toHaveBeenCalledWith(
       expect.stringContaining('.cpuprofile'),
       expect.objectContaining({
