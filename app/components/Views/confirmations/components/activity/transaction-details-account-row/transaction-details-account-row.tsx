@@ -9,16 +9,13 @@ import {
 import {
   AvatarAccount,
   AvatarAccountSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
@@ -170,13 +167,15 @@ export function TransactionDetailsAccountRow() {
     </View>
   ) : (
     <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImage}
-          name={networkName}
-        />
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        networkImage ? (
+          <BadgeNetwork
+            src={networkImage}
+            name={networkName}
+            testID="transaction-details-account-network-badge"
+          />
+        ) : null
       }
     >
       <AvatarAccount

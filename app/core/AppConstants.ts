@@ -273,6 +273,10 @@ export default {
     DEV: 'https://test.immersve.com',
     PRD: 'https://api.immersve.com',
   },
+  IMMERSVE_SECURE_API_URL: {
+    DEV: 'https://test-sec.immersve.com',
+    PRD: 'https://api-sec.immersve.com',
+  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

@@ -15,14 +15,16 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
 import Engine from '../../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
+import { selectSelectedInternalAccountAddress } from '../../../../../../../selectors/accountsController';
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
+import { useComplianceGate } from '../../../../../Compliance';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { bpsToPercent } from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
@@ -58,10 +60,14 @@ import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
 } from '../../../../utils/orderParams';
-import { deriveOrderSizing } from '../../../../utils/orderSizing';
+import {
+  deriveOrderSizing,
+  getReduceOnlyMaxUsdAmount,
+} from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
 import {
   validateReduceOnlyOrder,
+  getReduceOnlyPositionError,
   type ReduceOnlyValidationCode,
 } from '../../../../utils/reduceOnlyValidation';
 import {
@@ -318,6 +324,7 @@ export const usePerpsProOrderForm = ({
     setLimitPrice,
     setOrderType,
     maxPossibleAmount,
+    setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
   } = usePerpsOrderContext();
 
@@ -335,10 +342,18 @@ export const usePerpsProOrderForm = ({
   const { isAtCap } = usePerpsOICap(symbol);
   const vipTier = useVipTier();
 
-  const { handleAddFunds, isEligibilityModalVisible, closeEligibilityModal } =
-    usePerpsHomeActions({
-      buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
-    });
+  const {
+    handleAddFunds,
+    isEligible,
+    isEligibilityModalVisible,
+    closeEligibilityModal,
+    showEligibilityModal,
+  } = usePerpsHomeActions({
+    buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
+  });
+
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const { gate } = useComplianceGate(selectedAddress ?? '');
 
   const { marketData, isLoading: isMarketDataLoading } = usePerpsMarketData({
     asset: symbol,
@@ -357,6 +372,7 @@ export const usePerpsProOrderForm = ({
     asset: symbol,
     loadOnMount: true,
   });
+  const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -384,6 +400,41 @@ export const usePerpsProOrderForm = ({
     return parsedLimitPrice > 0 ? parsedLimitPrice : assetData.price;
   }, [assetData.price, orderForm.limitPrice, orderForm.type]);
 
+  const reduceOnlyPositionError = useMemo(
+    () =>
+      getReduceOnlyPositionError({
+        reduceOnly,
+        direction: orderForm.direction,
+        position: currentMarketPosition,
+      }),
+    [currentMarketPosition, orderForm.direction, reduceOnly],
+  );
+  const keepReduceOnlySizeEmpty =
+    Boolean(reduceOnlyPositionError) && !isReduceOnlyPositionLoading;
+
+  // Reduce-only orders close existing size; slider 100% is the open position,
+  // not available-margin × leverage. Position errors keep the margin-based
+  // range so the slider stays movable while the size field stays empty.
+  // While the position stream is unresolved, keep the margin-based range and
+  // typed size — same as notices skipping until the snapshot can be evaluated.
+  const sizeSliderMaxAmount = useMemo(() => {
+    if (!reduceOnly || isReduceOnlyPositionLoading || keepReduceOnlySizeEmpty) {
+      return maxPossibleAmount;
+    }
+
+    return getReduceOnlyMaxUsdAmount({
+      positionSize: currentMarketPosition?.size,
+      price: effectiveInputPrice,
+    });
+  }, [
+    currentMarketPosition?.size,
+    effectiveInputPrice,
+    isReduceOnlyPositionLoading,
+    keepReduceOnlySizeEmpty,
+    maxPossibleAmount,
+    reduceOnly,
+  ]);
+
   const {
     sizeInput,
     sizeSlider,
@@ -395,8 +446,9 @@ export const usePerpsProOrderForm = ({
     assetSymbol: symbol,
     effectivePrice: effectiveInputPrice,
     szDecimals,
-    maxPossibleAmount,
+    maxPossibleAmount: sizeSliderMaxAmount,
     maxDigits: MAX_PERPS_INPUT_DIGITS,
+    keepSizeEmpty: keepReduceOnlySizeEmpty,
   });
 
   const feeResults = usePerpsOrderFees({
@@ -487,8 +539,6 @@ export const usePerpsProOrderForm = ({
     () => ({ ...orderForm, amount: effectiveUsdAmount }),
     [effectiveUsdAmount, orderForm],
   );
-
-  const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
 
   const reduceOnlyValidation = useMemo(
     () =>
@@ -843,7 +893,7 @@ export const usePerpsProOrderForm = ({
 
       const currentAmount = Number.parseFloat(effectiveUsdAmount || '0');
       const newMaxAmount = spendableBalance * leverage;
-      if (currentAmount > newMaxAmount) {
+      if (!reduceOnly && currentAmount > newMaxAmount) {
         setAmount(Math.floor(newMaxAmount).toString());
       }
 
@@ -879,6 +929,7 @@ export const usePerpsProOrderForm = ({
       orderForm.asset,
       orderForm.direction,
       orderForm.leverage,
+      reduceOnly,
       spendableBalance,
       track,
     ],
@@ -1082,8 +1133,22 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
-    handlePlaceOrder();
-  }, [commitPendingSliderPreview, handlePlaceOrder]);
+    // Compliance first, then geographic eligibility — matches Lite trade entry
+    // and the canonical compliance gate ordering (docs/compliance.md).
+    return gate(async () => {
+      if (!isEligible) {
+        showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
+        return;
+      }
+      await handlePlaceOrder();
+    });
+  }, [
+    commitPendingSliderPreview,
+    gate,
+    handlePlaceOrder,
+    isEligible,
+    showEligibilityModal,
+  ]);
 
   const onReduceOnlyChange = useCallback(
     (value: boolean) => {
@@ -1095,6 +1160,52 @@ export const usePerpsProOrderForm = ({
     },
     [setTakeProfitPrice, setStopLossPrice],
   );
+
+  // Single owner for the Reduce Only size-max override. Toggle and submit only
+  // flip `reduceOnly`; this effect applies or clears the cap.
+  useEffect(() => {
+    if (!reduceOnly) {
+      setMaxPossibleAmountOverride(null);
+      return;
+    }
+
+    if (isReduceOnlyPositionLoading) {
+      return;
+    }
+
+    if (keepReduceOnlySizeEmpty) {
+      setMaxPossibleAmountOverride(null);
+      return;
+    }
+
+    setMaxPossibleAmountOverride(
+      getReduceOnlyMaxUsdAmount({
+        positionSize: currentMarketPosition?.size,
+        price: effectiveInputPrice,
+      }),
+    );
+  }, [
+    currentMarketPosition?.size,
+    effectiveInputPrice,
+    isReduceOnlyPositionLoading,
+    keepReduceOnlySizeEmpty,
+    reduceOnly,
+    setMaxPossibleAmountOverride,
+  ]);
+
+  const orderAmountRef = useRef(orderForm.amount);
+  orderAmountRef.current = orderForm.amount;
+
+  useEffect(() => {
+    if (!keepReduceOnlySizeEmpty) {
+      return;
+    }
+
+    const amount = orderAmountRef.current;
+    if (amount !== '0' && amount !== '') {
+      setAmount('0');
+    }
+  }, [keepReduceOnlySizeEmpty, setAmount]);
 
   return {
     direction: orderForm.direction,

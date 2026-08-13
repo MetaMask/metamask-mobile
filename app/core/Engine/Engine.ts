@@ -134,6 +134,7 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
+import { predictNextControllerInit } from './controllers/predict-next-controller-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
@@ -381,6 +382,7 @@ export class Engine {
         ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        PredictNextController: predictNextControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -436,6 +438,7 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
+    const predictNextController = messengerClientsByName.PredictNextController;
     const rewardsController = messengerClientsByName.RewardsController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
@@ -449,6 +452,11 @@ export class Engine {
     const connectivityController = this.#wallet.getInstance(
       'ConnectivityController',
     );
+    const subscriptionController = this.#wallet.getInstance(
+      'SubscriptionController',
+    );
+    const shieldController = this.#wallet.getInstance('ShieldController');
+    const claimsController = this.#wallet.getInstance('ClaimsController');
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -597,6 +605,9 @@ export class Engine {
       TransactionController: this.transactionController,
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
+      SubscriptionController: subscriptionController,
+      ShieldController: shieldController,
+      ClaimsController: claimsController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
@@ -651,6 +662,7 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
+      PredictNextController: predictNextController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
@@ -1287,6 +1299,9 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
       MoneyAccountController,
+      SubscriptionController,
+      ShieldController,
+      ClaimsController,
     } = this.context;
 
     // Remove all permissions.
@@ -1320,6 +1335,15 @@ export class Engine {
 
     // Accounts:
     MoneyAccountController.clearState();
+
+    // Subscriptions:
+    SubscriptionController.clearState();
+
+    // Shield:
+    ShieldController.clearState();
+
+    // Claims:
+    ClaimsController.clearState();
   };
 
   removeAllListeners() {
@@ -1497,6 +1521,9 @@ export default {
       SelectedNetworkController,
       SignatureController,
       SmartTransactionsController,
+      SubscriptionController,
+      ShieldController,
+      ClaimsController,
       TokenBalancesController,
       TokenRatesController,
       TokensController,
@@ -1572,6 +1599,9 @@ export default {
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
+      SubscriptionController: SubscriptionController.state,
+      ShieldController: ShieldController.state,
+      ClaimsController: ClaimsController.state,
       TokenBalancesController: TokenBalancesController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,

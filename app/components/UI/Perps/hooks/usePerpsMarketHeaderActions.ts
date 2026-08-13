@@ -28,7 +28,9 @@ export interface UsePerpsMarketHeaderActionsResult {
   handleBackPress: () => void;
   handleMarketListPress: () => void;
   handleFavoritePress: () => void;
-  handlePerpsModeChange: (nextMode: PerpsMode) => void | Promise<void>;
+  handlePerpsModeChange: (
+    nextMode: PerpsMode,
+  ) => boolean | void | Promise<boolean | void>;
 }
 
 /**
@@ -112,7 +114,7 @@ export const usePerpsMarketHeaderActions = ({
   }, [symbol, isWatchlist, addToWatchlist, removeFromWatchlist]);
 
   const handlePerpsModeChange = useCallback(
-    async (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode): Promise<boolean> => {
       // The market-header pill owns the shimmer delay; this fires once it ends.
       // The chooser gates every header toggle, so a user who reaches a market
       // without ever seeing it gets the sheet here and it owns the switch.
@@ -121,7 +123,7 @@ export const usePerpsMarketHeaderActions = ({
         source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       });
       if (openedChooser) {
-        return;
+        return false;
       }
 
       // Chooser already completed — flip immediately without the sheet.
@@ -131,6 +133,7 @@ export const usePerpsMarketHeaderActions = ({
       if (nextMode === PerpsMode.Pro) {
         dropPerpsHomeFromStackHistory();
       }
+      return true;
     },
     [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );

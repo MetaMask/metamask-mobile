@@ -111,6 +111,9 @@ describe('TransactionDetailsAccountRow', () => {
 
     const { getByTestId } = render();
     expect(getByTestId('transaction-details-account-avatar')).toBeOnTheScreen();
+    expect(
+      getByTestId('transaction-details-account-network-badge'),
+    ).toBeOnTheScreen();
   });
 
   it('renders "From" row with money account label for moneyAccountWithdraw', () => {

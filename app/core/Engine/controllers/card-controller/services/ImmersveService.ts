@@ -37,10 +37,12 @@ export class ImmersveService {
     }
 
     if (__DEV__) {
+      const isSetPin = path.includes('/set-pin');
       Logger.log('[ImmersveService]', 'request', path, {
         method: opts.method ?? 'GET',
         headers,
-        body: opts.body,
+        // Never log PIN or other sensitive set-pin body fields.
+        body: isSetPin ? '[redacted]' : opts.body,
       });
     }
 

@@ -33,6 +33,9 @@ const styleSheet = (params: { theme: Theme }) =>
     setting: {
       marginTop: 16,
     },
+    disabledContent: {
+      opacity: 0.5,
+    },
     productAnnouncementContainer: {
       marginTop: 16,
     },
