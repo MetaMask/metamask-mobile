@@ -7,7 +7,7 @@ import {
   selectCardActiveProviderId,
   selectCardSelectedCountry,
 } from '../../../../../../selectors/cardController';
-import { selectCardFeatureFlag } from '../../../../../../selectors/featureFlagController/card';
+import { selectCardImmersveConfig } from '../../../../../../selectors/featureFlagController/card';
 import {
   selectImmersveFundingSourceId,
   setImmersveFundingSourceId,
@@ -39,8 +39,9 @@ export function useImmersveCardProvisioning(
 
   const reduxFundingSourceId = useSelector(selectImmersveFundingSourceId);
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
-  const fundingChannelId = useSelector(selectCardFeatureFlag).immersve
-    ?.fundingChannelId;
+  const fundingChannelId = useSelector(
+    selectCardImmersveConfig,
+  ).fundingChannelId;
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const handled = useRef(false);

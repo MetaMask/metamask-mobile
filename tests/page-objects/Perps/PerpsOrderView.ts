@@ -18,7 +18,10 @@ import {
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { element as detoxElement, by as detoxBy } from 'detox';
+import {
+  element as detoxElement,
+  by as detoxBy,
+} from '../../framework/legacy-detox-shim';
 import {
   encapsulatedAction,
   PlatformDetector,

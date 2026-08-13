@@ -11,7 +11,7 @@ import {
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import useMoneyAccountBalance from './useMoneyAccountBalance';
+import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
@@ -23,7 +23,7 @@ jest.mock('../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 jest.mock('./useMoneyAccount');
-jest.mock('./useMoneyAccountBalance');
+jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
 jest.mock('./useMoneyNavigation');
@@ -34,7 +34,7 @@ const mockTrackTokenButtonClicked = jest.fn();
 const mockShouldShowMoneyTokenListItemCta = jest.fn();
 
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
 const mockUseMoneyOnboardingNavigation = jest.mocked(
@@ -62,9 +62,9 @@ describe('useMoneyTokenListCta', () => {
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4,
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyAnalytics.mockReturnValue({
       trackTokenButtonClicked: mockTrackTokenButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
@@ -81,9 +81,9 @@ describe('useMoneyTokenListCta', () => {
   });
 
   it('returns undefined when APY is unavailable', () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: undefined,
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
 
     const { result } = renderHook(() =>
       useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),

@@ -4,7 +4,7 @@ import type { TransactionActiveAbTestEntry } from '../../../../../../util/transa
 import type { UseHomepagePredictMarketSlotsResult } from '../hooks/useHomepagePredictMarketSlots';
 import type { PredictionsTrendingHeaderTestId } from '../predictionsSectionTypes';
 import type { PredictEmptyStateCtaName } from '../../../abTestConfig';
-import HomepagePredictWorldCupDiscovery from './HomepagePredictWorldCupDiscovery';
+import HomepagePredictDiscovery from './HomepagePredictDiscovery';
 import HomepagePredictTrendingCarousel from './HomepagePredictTrendingCarousel';
 
 export interface HomepagePredictTrendingMarketsProps {
@@ -56,7 +56,7 @@ const HomepagePredictTrendingMarkets = ({
   }
 
   return (
-    <HomepagePredictWorldCupDiscovery
+    <HomepagePredictDiscovery
       title={title}
       onViewAll={onViewAll}
       headerTestIdKey={headerTestIdKey}

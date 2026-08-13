@@ -429,7 +429,6 @@ const Routes = {
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
-      GTM_MODAL: 'PredictGTMModal',
     },
   },
   LOCK_SCREEN: 'LockScreen',
@@ -545,6 +544,8 @@ const Routes = {
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
     CREDIT_REDEEM: 'CardCreditRedeem',
+    SET_PIN: 'CardSetPin',
+    CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',

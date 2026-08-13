@@ -615,7 +615,7 @@ describe('PerpsHomeView', () => {
     // Act
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Assert - back/search remain and the toggle is shown centered
+    // Assert - back/search remain and the active-mode pill sits in endAccessory
     expect(
       getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
     ).toBeTruthy();
