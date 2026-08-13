@@ -74,7 +74,9 @@ const getEnsFixturePageUrl = (): string => {
 };
 
 appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
-  appiumTest.describe.configure({ timeout: 150000 });
+  // ENS case: login + browser setup + up to 180s executeWithRetry must fit
+  // inside Playwright's per-test timeout (not just the retry budget alone).
+  appiumTest.describe.configure({ timeout: 360_000 });
 
   appiumTest(
     'navigates back home after visiting an invalid URL',
