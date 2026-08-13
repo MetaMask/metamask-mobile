@@ -6,6 +6,7 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 import RNFS from 'react-native-fs';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconName,
@@ -77,12 +78,29 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
     if (!sessionId) return;
 
     try {
-      const path = await stopProfiling(true);
+      const path = await stopProfiling(
+        Platform.OS === 'android' && process.env.METAMASK_ENVIRONMENT !== 'e2e',
+      );
       // Nested ifs (rather than a single `&&` expression) avoid a "value block
       // inside try/catch", which the React Compiler cannot yet optimize.
       if (typeof path === 'string') {
         if (path.length > 0) {
           setLastProfilePath(path);
+          if (
+            Platform.OS === 'android' &&
+            process.env.METAMASK_ENVIRONMENT === 'e2e'
+          ) {
+            const fileName = path.split('/').pop() || 'profile.cpuprofile';
+            await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
+              {
+                name: fileName,
+                parentFolder: '',
+                mimeType: 'application/json',
+              },
+              'Download',
+              path,
+            );
+          }
         }
       }
     } catch (error) {

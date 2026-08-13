@@ -109,9 +109,13 @@ async function getAndroidProfile(
     '-s',
     serial,
     'shell',
-    'ls',
-    '-t',
-    `/sdcard/Download/*${PROFILE_EXTENSION}`,
+    'find',
+    '/sdcard/Download',
+    '-type',
+    'f',
+    '-name',
+    `*${PROFILE_EXTENSION}`,
+    '-print',
   ]);
   const downloadFile = downloadsOutput
     .split(/\r?\n/)
