@@ -562,19 +562,24 @@ class QuoteView {
         );
       },
       appium: async () => {
-        const el = await asPlaywrightElement(this.destinationTokenInput);
         const interval = 300;
         const start = Date.now();
+        let lastSeen = '<element not found>';
         while (Date.now() - start < timeout) {
-          const text = await el.textContent();
-          if (text && /\d/.test(text) && parseFloat(text) > 0) {
-            return;
+          try {
+            const el = await asPlaywrightElement(this.destinationTokenInput);
+            const text = await el.textContent();
+            lastSeen = text ?? '';
+            if (text && /\d/.test(text) && parseFloat(text) > 0) {
+              return;
+            }
+          } catch {
+            lastSeen = '<element not found>';
           }
           await sleep(interval);
         }
-        const finalText = await el.textContent();
         throw new Error(
-          `Destination token input does not contain a numeric value after ${timeout}ms, got: "${finalText}"`,
+          `Destination token input does not contain a numeric value after ${timeout}ms, got: "${lastSeen}"`,
         );
       },
     });
