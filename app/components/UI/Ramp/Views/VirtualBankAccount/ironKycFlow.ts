@@ -4,7 +4,6 @@ import {
   traceWhilePending,
   vbaTrace,
 } from '../../debug/vbaTrace';
-import { resolveVbaKycSkipEligibility } from './resolveVbaKycSkipEligibility';
 
 // Demo Iron -> Sumsub helpers for the VBA Get Pix Key flow.
 // Local run requirements (demo/vba-kyc):
@@ -110,24 +109,9 @@ export async function startIronKycFlow(): Promise<void> {
  * Creates the Iron customer for `email`, posts the terms consents, and hands
  * off to the native SumSub SDK for document verification.
  *
- * Skips Iron/SumSub entirely when {@link resolveVbaKycSkipEligibility} finds
- * UKYC `completed` or a neobank customer with `status: Active`.
- *
  * @param email - The email the Iron customer is keyed by.
  */
 export async function startIronKycVerification(email: string): Promise<void> {
-  const eligibility = await resolveVbaKycSkipEligibility();
-  if (eligibility.skip) {
-    vbaTrace('kyc.verification.skip', {
-      reason: eligibility.reason,
-      ukycStatus: eligibility.ukycStatus,
-      customerStatus: eligibility.customerStatus,
-      customerId: eligibility.customerId,
-      externalId: eligibility.externalId,
-    });
-    return;
-  }
-
   // `POST /vendors/iron/customers` creates or resumes, so re-running this step
   // for an email that already has a customer is safe.
   await runKycStep('createIronCustomer', () =>

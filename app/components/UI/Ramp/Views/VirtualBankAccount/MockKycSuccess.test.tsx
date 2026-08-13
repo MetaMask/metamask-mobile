@@ -153,29 +153,6 @@ describe('MockKycSuccess', () => {
     expect(getByText(/registered · chain = Monad/)).toBeTruthy();
   });
 
-  it('signs wallet ownership when neobank customer is Active even if UKYC is not completed', async () => {
-    setUp();
-    mockKycController.refreshKycStatus.mockResolvedValue({
-      status: 'not-started',
-      sumsubSessionId: null,
-      errorCode: null,
-    });
-    mockNeoBankService.getCustomerByExternalId.mockResolvedValue({
-      id: 'cus_1',
-      status: 'Active',
-    });
-
-    const { getByTestId, getByText } = renderWithProvider(<MockKycSuccess />);
-
-    fireEvent.press(getByTestId(MockKycSuccessSelectorsIDs.FINISH_BUTTON));
-
-    await waitFor(() => {
-      expect(mockRampsController.createAutoramp).toHaveBeenCalled();
-    });
-    expect(mockRampsController.registerMoneyAccountWallet).toHaveBeenCalled();
-    expect(getByText(/registered · chain = Monad/)).toBeTruthy();
-  });
-
   it('stops before autoramp creation when wallet signing fails', async () => {
     setUp();
     mockRampsController.registerMoneyAccountWallet.mockRejectedValue(
@@ -194,25 +171,18 @@ describe('MockKycSuccess', () => {
     expect(getByText('Pipeline stopped')).toBeTruthy();
   });
 
-  it('stops before the autoramp when neither UKYC completed nor neobank Active', async () => {
+  it('stops before the autoramp when the pulled status is not completed', async () => {
     setUp();
     mockKycController.refreshKycStatus.mockResolvedValue({
-      status: 'not-started',
+      status: 'pending',
       sumsubSessionId: null,
       errorCode: null,
-    });
-    mockNeoBankService.getCustomerByExternalId.mockResolvedValue({
-      id: 'cus_1',
-      status: 'Pending',
     });
     const { getByTestId, findByText } = renderWithProvider(<MockKycSuccess />);
 
     fireEvent.press(getByTestId(MockKycSuccessSelectorsIDs.FINISH_BUTTON));
 
-    expect(await findByText(/UKYC status "not-started"/u)).toBeOnTheScreen();
-    expect(
-      await findByText(/neobank customer status "Pending"/u),
-    ).toBeOnTheScreen();
+    expect(await findByText(/KYC status is "pending"/u)).toBeOnTheScreen();
     expect(
       mockRampsController.registerMoneyAccountWallet,
     ).not.toHaveBeenCalled();
