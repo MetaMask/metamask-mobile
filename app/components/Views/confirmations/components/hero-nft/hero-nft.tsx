@@ -3,13 +3,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import CollectibleMedia from '../../../../UI/CollectibleMedia';
 import { useNft } from '../../hooks/nft/useNft';
@@ -17,7 +18,6 @@ import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmat
 import useNetworkInfo from '../../hooks/useNetworkInfo';
 import { Hero } from '../UI/hero';
 import styleSheet from './hero-nft.styles';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const NftImageAndNetworkBadge = ({
   chainId,
@@ -64,14 +64,15 @@ const NftImageAndNetworkBadge = ({
   return (
     <TouchableOpacity onPress={onPress} style={styles.touchableOpacity}>
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            imageSource={networkImage}
-            name={networkName}
-            variant={BadgeVariant.Network}
-            testID="hero-nft-badge-network"
-          />
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          networkImage ? (
+            <BadgeNetwork
+              src={networkImage}
+              name={networkName}
+              testID="hero-nft-badge-network"
+            />
+          ) : null
         }
       >
         <CollectibleMedia
