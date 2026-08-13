@@ -60,7 +60,7 @@ import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
 
 /**
- * PerpsSection — single "Perpetuals" section on the homepage.
+ * PerpsSection — single "Perps" section on the homepage.
  *
  * Shows open positions + limit orders when the user has any,
  * otherwise shows the configured empty state content.
@@ -78,7 +78,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const baseTitle = strings('homepage.sections.perpetuals');
+    const baseTitle = strings('homepage.sections.perps');
     const usesPillsEmptyState = emptyStateContent === 'pills';
     const { error: connectionError, reconnectWithNewContext } =
       usePerpsConnection();
