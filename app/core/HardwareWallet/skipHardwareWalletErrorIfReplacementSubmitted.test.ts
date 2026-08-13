@@ -158,4 +158,76 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
 
     expect(onError(createDisconnectError())).toBe(false);
   });
+
+  it('returns false from onError when a same-nonce retry exists but is still unapproved', () => {
+    setTransactions([
+      createTransaction({
+        id: ORIGINAL_ID,
+        type: TransactionType.simpleSend,
+      }),
+      createTransaction({
+        id: 'replacement-tx',
+        type: TransactionType.retry,
+        status: TransactionStatus.unapproved,
+      }),
+    ]);
+
+    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
+
+    expect(onError(createDisconnectError())).toBe(false);
+  });
+
+  it('returns false from onError when a same-nonce retry exists but is only signed', () => {
+    setTransactions([
+      createTransaction({
+        id: ORIGINAL_ID,
+        type: TransactionType.simpleSend,
+      }),
+      createTransaction({
+        id: 'replacement-tx',
+        type: TransactionType.retry,
+        status: TransactionStatus.signed,
+      }),
+    ]);
+
+    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
+
+    expect(onError(createDisconnectError())).toBe(false);
+  });
+
+  it('returns false from onError when a leftover same-nonce retry failed', () => {
+    setTransactions([
+      createTransaction({
+        id: ORIGINAL_ID,
+        type: TransactionType.simpleSend,
+      }),
+      createTransaction({
+        id: 'replacement-tx',
+        type: TransactionType.retry,
+        status: TransactionStatus.failed,
+      }),
+    ]);
+
+    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
+
+    expect(onError(createDisconnectError())).toBe(false);
+  });
+
+  it('returns true from onError when a same-nonce retry is confirmed', () => {
+    setTransactions([
+      createTransaction({
+        id: ORIGINAL_ID,
+        type: TransactionType.simpleSend,
+      }),
+      createTransaction({
+        id: 'replacement-tx',
+        type: TransactionType.retry,
+        status: TransactionStatus.confirmed,
+      }),
+    ]);
+
+    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
+
+    expect(onError(createDisconnectError())).toBe(true);
+  });
 });

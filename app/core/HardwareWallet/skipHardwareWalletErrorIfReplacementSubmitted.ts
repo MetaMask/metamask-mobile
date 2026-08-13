@@ -1,5 +1,6 @@
 import { ErrorCode, HardwareWalletError } from '@metamask/hw-wallet-sdk';
 import {
+  TransactionStatus,
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
@@ -9,6 +10,11 @@ import { isDisconnectError } from '../Ledger/ledgerErrors';
 function getTransactions(): TransactionMeta[] {
   return Engine.context.TransactionController.state.transactions ?? [];
 }
+
+const SUBMITTED_OR_LATER_STATUSES = new Set<TransactionStatus>([
+  TransactionStatus.submitted,
+  TransactionStatus.confirmed,
+]);
 
 function hasSubmittedReplacementTransaction(
   originalTransactionId: string,
@@ -24,6 +30,7 @@ function hasSubmittedReplacementTransaction(
       tx.id !== originalTransactionId &&
       (tx.type === TransactionType.retry ||
         tx.type === TransactionType.cancel) &&
+      SUBMITTED_OR_LATER_STATUSES.has(tx.status) &&
       tx.txParams?.nonce === original.txParams?.nonce &&
       tx.chainId === original.chainId,
   );
@@ -66,8 +73,10 @@ function isEphemeralDisconnectError(error: unknown): boolean {
  *
  * After confirm, Ledger BLE often drops (`DisconnectedDevice`). The keyring
  * wraps that as `HardwareWalletError` Unknown, so `execute()` rejects even
- * when a `retry`/`cancel` with the original nonce is already in
- * TransactionController. Skip the Unknown sheet only for that disconnect.
+ * when a `retry`/`cancel` with the original nonce is already submitted
+ * (or confirmed). Skip the Unknown sheet only for that disconnect.
+ * Unapproved/signed/failed replacements are not proof of success —
+ * TransactionController adds the replacement before signing finishes.
  * Real device errors still show.
  */
 export function skipHardwareWalletErrorIfReplacementSubmitted(
