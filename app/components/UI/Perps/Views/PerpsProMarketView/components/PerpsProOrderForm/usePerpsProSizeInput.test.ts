@@ -823,4 +823,39 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.value).toBe('');
     expect(mockSetAmount).not.toHaveBeenCalled();
   });
+
+  it('does not commit a stale draft on blur after size is kept empty', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ usdAmount: '100' }) },
+    );
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+    });
+    rerender(createParams({ usdAmount: '0', keepSizeEmpty: true }));
+
+    act(() => {
+      result.current.sizeInput.onBlur();
+    });
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(mockSetAmount).not.toHaveBeenCalled();
+  });
+
+  it('does not commit on denomination toggle while the size field is kept empty', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '100', keepSizeEmpty: true }),
+      ),
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+    expect(mockSetAmount).not.toHaveBeenCalled();
+  });
 });

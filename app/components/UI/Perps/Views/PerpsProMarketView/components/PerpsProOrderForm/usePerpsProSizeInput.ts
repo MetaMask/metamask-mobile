@@ -292,6 +292,9 @@ export const usePerpsProSizeInput = ({
 
   const onBlur = useCallback(() => {
     setIsSizeFocused(false);
+    if (keepSizeEmpty) {
+      return;
+    }
 
     if (denominationUnit === 'usd') {
       const finalizedDraft = finalizeNumericTextInput(usdDraft);
@@ -340,6 +343,7 @@ export const usePerpsProSizeInput = ({
     commitUsdAmount,
     denominationUnit,
     effectivePrice,
+    keepSizeEmpty,
     szDecimals,
     usdDraft,
   ]);
@@ -350,7 +354,7 @@ export const usePerpsProSizeInput = ({
   }, [clearSliderPreview]);
 
   const onToggleDenomination = useCallback(() => {
-    if (!canToggleDenomination) {
+    if (!canToggleDenomination || keepSizeEmpty) {
       return;
     }
 
@@ -377,6 +381,7 @@ export const usePerpsProSizeInput = ({
     commitUsdAmount,
     denominationUnit,
     effectivePrice,
+    keepSizeEmpty,
     szDecimals,
     usdDraft,
   ]);

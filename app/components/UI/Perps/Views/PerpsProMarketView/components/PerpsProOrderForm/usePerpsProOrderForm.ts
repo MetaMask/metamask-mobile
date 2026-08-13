@@ -372,6 +372,7 @@ export const usePerpsProOrderForm = ({
     asset: symbol,
     loadOnMount: true,
   });
+  const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -408,13 +409,16 @@ export const usePerpsProOrderForm = ({
       }),
     [currentMarketPosition, orderForm.direction, reduceOnly],
   );
-  const keepReduceOnlySizeEmpty = Boolean(reduceOnlyPositionError);
+  const keepReduceOnlySizeEmpty =
+    Boolean(reduceOnlyPositionError) && !isReduceOnlyPositionLoading;
 
   // Reduce-only orders close existing size; slider 100% is the open position,
   // not available-margin × leverage. Position errors keep the margin-based
   // range so the slider stays movable while the size field stays empty.
+  // While the position stream is unresolved, keep the margin-based range and
+  // typed size — same as notices skipping until the snapshot can be evaluated.
   const sizeSliderMaxAmount = useMemo(() => {
-    if (!reduceOnly || keepReduceOnlySizeEmpty) {
+    if (!reduceOnly || isReduceOnlyPositionLoading || keepReduceOnlySizeEmpty) {
       return maxPossibleAmount;
     }
 
@@ -425,6 +429,7 @@ export const usePerpsProOrderForm = ({
   }, [
     currentMarketPosition?.size,
     effectiveInputPrice,
+    isReduceOnlyPositionLoading,
     keepReduceOnlySizeEmpty,
     maxPossibleAmount,
     reduceOnly,
@@ -534,8 +539,6 @@ export const usePerpsProOrderForm = ({
     () => ({ ...orderForm, amount: effectiveUsdAmount }),
     [effectiveUsdAmount, orderForm],
   );
-
-  const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
 
   const reduceOnlyValidation = useMemo(
     () =>
@@ -796,7 +799,6 @@ export const usePerpsProOrderForm = ({
         stopLossPrice: undefined,
       });
       setReduceOnly(false);
-      setMaxPossibleAmountOverride(null);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -834,7 +836,6 @@ export const usePerpsProOrderForm = ({
     chartLibrary,
     vipTier,
     executeOrder,
-    setMaxPossibleAmountOverride,
     updateOrderForm,
     updatePositionTPSL,
     showToast,
@@ -1152,54 +1153,28 @@ export const usePerpsProOrderForm = ({
   const onReduceOnlyChange = useCallback(
     (value: boolean) => {
       setReduceOnly(value);
-      if (!value) {
-        setMaxPossibleAmountOverride(null);
-        return;
+      if (value) {
+        setTakeProfitPrice(undefined);
+        setStopLossPrice(undefined);
       }
-
-      setTakeProfitPrice(undefined);
-      setStopLossPrice(undefined);
-
-      const positionError = getReduceOnlyPositionError({
-        reduceOnly: true,
-        direction: orderForm.direction,
-        position: currentMarketPosition,
-      });
-      if (positionError) {
-        setMaxPossibleAmountOverride(null);
-        setAmount('0');
-        return;
-      }
-
-      setMaxPossibleAmountOverride(
-        getReduceOnlyMaxUsdAmount({
-          positionSize: currentMarketPosition?.size,
-          price: effectiveInputPrice,
-        }),
-      );
     },
-    [
-      currentMarketPosition,
-      effectiveInputPrice,
-      orderForm.direction,
-      setAmount,
-      setMaxPossibleAmountOverride,
-      setTakeProfitPrice,
-      setStopLossPrice,
-    ],
+    [setTakeProfitPrice, setStopLossPrice],
   );
 
+  // Single owner for the Reduce Only size-max override. Toggle and submit only
+  // flip `reduceOnly`; this effect applies or clears the cap.
   useEffect(() => {
     if (!reduceOnly) {
       setMaxPossibleAmountOverride(null);
       return;
     }
 
+    if (isReduceOnlyPositionLoading) {
+      return;
+    }
+
     if (keepReduceOnlySizeEmpty) {
       setMaxPossibleAmountOverride(null);
-      if (orderForm.amount !== '0' && orderForm.amount !== '') {
-        setAmount('0');
-      }
       return;
     }
 
@@ -1212,12 +1187,25 @@ export const usePerpsProOrderForm = ({
   }, [
     currentMarketPosition?.size,
     effectiveInputPrice,
+    isReduceOnlyPositionLoading,
     keepReduceOnlySizeEmpty,
-    orderForm.amount,
     reduceOnly,
-    setAmount,
     setMaxPossibleAmountOverride,
   ]);
+
+  const orderAmountRef = useRef(orderForm.amount);
+  orderAmountRef.current = orderForm.amount;
+
+  useEffect(() => {
+    if (!keepReduceOnlySizeEmpty) {
+      return;
+    }
+
+    const amount = orderAmountRef.current;
+    if (amount !== '0' && amount !== '') {
+      setAmount('0');
+    }
+  }, [keepReduceOnlySizeEmpty, setAmount]);
 
   return {
     direction: orderForm.direction,
