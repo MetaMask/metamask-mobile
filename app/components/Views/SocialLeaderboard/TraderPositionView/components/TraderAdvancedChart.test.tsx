@@ -12,6 +12,7 @@ import { CandlePeriod } from '@metamask/perps-controller';
 import TraderAdvancedChart, {
   getRecommendedTradeFocusPeriod,
   getTradeFocusSpanMs,
+  getPerpTradeFocusSpanMs,
   mapTradesToAdvancedMarkers,
 } from './TraderAdvancedChart';
 
@@ -565,6 +566,77 @@ describe('TraderAdvancedChart', () => {
       percentChange: 10,
       currentPrice: 110,
     });
+  });
+
+  it('paginates and focuses an older perp trade outside the loaded window', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const oldTradeTime = recentBars[0].time - intervalMs;
+    const olderBar = {
+      time: oldTradeTime,
+      open: 90,
+      high: 91,
+      low: 89,
+      close: 90,
+      volume: 10,
+    };
+
+    const mockFetchOlder = jest.fn().mockResolvedValue({
+      requestId: 'focus-older',
+      seriesGeneration: 1,
+      bars: [olderBar],
+      noData: false,
+    });
+
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        trades={[
+          {
+            intent: 'enter',
+            direction: 'buy',
+            tokenAmount: 1,
+            usdCost: 100,
+            timestamp: oldTradeTime / 1000,
+            transactionHash: '0xold',
+          },
+        ]}
+        focusRequest={{
+          id: '0xold',
+          timestamp: oldTradeTime / 1000,
+          nonce: 1,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchOlder).toHaveBeenCalled();
+    expect(mockFocusTime).toHaveBeenCalledWith(oldTradeTime, {
+      spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+    });
+    expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xold');
   });
 
   it('falls back to the legacy chart for a perp with insufficient adapter data', () => {

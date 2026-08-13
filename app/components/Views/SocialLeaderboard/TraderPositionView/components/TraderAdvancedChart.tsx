@@ -483,6 +483,20 @@ const TraderPerpAdvancedChart = ({
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || ohlcvData.length === 0);
 
+  const focusTradeOnChart = useCallback(
+    (tradeTime: number, request: TradeFocusRequest): boolean => {
+      const chart = chartRef.current;
+      if (!chart) return false;
+      chart.focusTime(tradeTime, {
+        spanMs: request.spanMs ?? getPerpTradeFocusSpanMs(selectedCandlePeriod),
+      });
+      chart.pulseTradeMarker(request.id);
+      handledFocusNonceRef.current = request.nonce;
+      return true;
+    },
+    [selectedCandlePeriod],
+  );
+
   useEffect(() => {
     if (!focusRequest || chartLoading || shouldFallback) return;
     if (handledFocusNonceRef.current === focusRequest.nonce) return;
@@ -500,14 +514,7 @@ const TraderPerpAdvancedChart = ({
     }
 
     if (tradeTime >= firstBarTime && tradeTime <= latestBarTime) {
-      const chart = chartRef.current;
-      if (!chart) return;
-      chart.focusTime(tradeTime, {
-        spanMs:
-          focusRequest.spanMs ?? getPerpTradeFocusSpanMs(selectedCandlePeriod),
-      });
-      chart.pulseTradeMarker(focusRequest.id);
-      handledFocusNonceRef.current = focusRequest.nonce;
+      focusTradeOnChart(tradeTime, focusRequest);
       return;
     }
 
@@ -521,9 +528,23 @@ const TraderPerpAdvancedChart = ({
           tradeTimeMs: tradeTime,
           oldestLoadedTimeMs: firstBarTime,
         }),
-      ).finally(() => {
-        paginationInFlightRef.current = false;
-      });
+      )
+        .then((response) => {
+          if (response.noData) {
+            handledFocusNonceRef.current = focusRequest.nonce;
+            return;
+          }
+          const expandedFirstTime = Math.min(
+            firstBarTime,
+            ...response.bars.map((bar) => bar.time),
+          );
+          if (tradeTime >= expandedFirstTime && tradeTime <= latestBarTime) {
+            focusTradeOnChart(tradeTime, focusRequest);
+          }
+        })
+        .finally(() => {
+          paginationInFlightRef.current = false;
+        });
       return;
     }
 
@@ -531,6 +552,7 @@ const TraderPerpAdvancedChart = ({
   }, [
     chartLoading,
     focusRequest,
+    focusTradeOnChart,
     handleFetchOlderBarsRequest,
     ohlcvData,
     perpSymbol,
