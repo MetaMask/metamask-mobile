@@ -19,11 +19,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { MOCK_KYC_PREFILLED_EMAIL } from './constants';
-import {
-  registerSelectedMoneyAccountWallet,
-  startIronKycVerification,
-} from './ironKycFlow';
-import Logger from '../../../../../util/Logger';
+import { startIronKycVerification } from './ironKycFlow';
 import MockKycProgressBar from './MockKycProgressBar';
 import { MockKycEmailSelectorsIDs } from './MockKycEmail.testIds';
 
@@ -49,25 +45,9 @@ const MockKycEmail = () => {
     setIsVerifying(true);
     try {
       await startIronKycVerification(trimmedEmail);
-      try {
-        await registerSelectedMoneyAccountWallet();
-      } catch (registerError) {
-        // KYC already succeeded — soft-fail so the demo can continue.
-        Logger.error(
-          registerError instanceof Error
-            ? registerError
-            : new Error(String(registerError)),
-          { message: 'Money Account wallet registration failed after KYC' },
-        );
-        Alert.alert(
-          strings('virtual_bank_account.kyc_error.title'),
-          registerError instanceof Error
-            ? registerError.message
-            : strings(
-                'virtual_bank_account.kyc_error.wallet_registration_failed',
-              ),
-        );
-      }
+      // Wallet registration + autoramp now run off `KycController:statusChanged`
+      // (see registerMoneyAccountOnKycCompletion), so this screen only drives
+      // the SumSub hand-off and navigates on to the success screen.
       navigation.navigate(Routes.RAMP.VBA_MOCK_KYC_SUCCESS);
     } catch (error) {
       Alert.alert(
