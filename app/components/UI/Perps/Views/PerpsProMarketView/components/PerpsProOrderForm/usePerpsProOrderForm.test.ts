@@ -507,7 +507,7 @@ describe('usePerpsProOrderForm', () => {
 
       let firstSubmission: Promise<unknown> | undefined;
       await act(async () => {
-        firstSubmission = result.current.onPlaceOrderPress();
+        firstSubmission = Promise.resolve(result.current.onPlaceOrderPress());
         await Promise.resolve();
         await result.current.onPlaceOrderPress();
       });
