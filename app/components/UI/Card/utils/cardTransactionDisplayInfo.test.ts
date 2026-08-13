@@ -7,6 +7,8 @@ import {
 import {
   cardTransactionDisplayInfo,
   formatCardTransactionDate,
+  formatCardTransactionStatus,
+  getCardTransactionTypeLabel,
 } from './cardTransactionDisplayInfo';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -167,6 +169,70 @@ describe('cardTransactionDisplayInfo', () => {
       );
 
       expect(display.description).toBe('card.transactions.today');
+    });
+
+    it('falls back to provider description when merchant name is missing', () => {
+      const display = cardTransactionDisplayInfo(
+        createTransaction({
+          description: 'Provider note',
+          merchant: undefined,
+        }),
+      );
+
+      expect(display.description).toBe('Provider note');
+    });
+
+    it('marks credit transactions as incoming with a plus sign', () => {
+      const display = cardTransactionDisplayInfo(
+        createTransaction({
+          type: CardTransactionType.Refund,
+          isDebit: false,
+          billingAmount: { value: '5.00', currency: 'USD' },
+        }),
+      );
+
+      expect(display.label).toBe('money.transaction.refund');
+      expect(display.isIncoming).toBe(true);
+      expect(display.primaryAmount).toBe('+$5.00');
+      expect(display.status).toBe('confirmed');
+    });
+
+    it('maps reversed status to confirmed for activity rows', () => {
+      const display = cardTransactionDisplayInfo(
+        createTransaction({
+          status: CardTransactionStatus.Reversed,
+        }),
+      );
+
+      expect(display.status).toBe('confirmed');
+    });
+  });
+
+  describe('getCardTransactionTypeLabel', () => {
+    it('maps deposit and adjustment types to their i18n keys', () => {
+      expect(getCardTransactionTypeLabel(CardTransactionType.Deposit)).toBe(
+        'money.transaction.deposited',
+      );
+      expect(getCardTransactionTypeLabel(CardTransactionType.Adjustment)).toBe(
+        'money.transaction.card_transaction',
+      );
+    });
+  });
+
+  describe('formatCardTransactionStatus', () => {
+    it('localizes each card transaction status', () => {
+      expect(formatCardTransactionStatus(CardTransactionStatus.Pending)).toBe(
+        'card.transactions.pending',
+      );
+      expect(formatCardTransactionStatus(CardTransactionStatus.Failed)).toBe(
+        'money.transaction.failed',
+      );
+      expect(formatCardTransactionStatus(CardTransactionStatus.Reversed)).toBe(
+        'card.transactions.reversed',
+      );
+      expect(formatCardTransactionStatus(CardTransactionStatus.Completed)).toBe(
+        'card.transactions.completed',
+      );
     });
   });
 });

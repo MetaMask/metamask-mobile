@@ -137,6 +137,22 @@ describe('isMoneyAccountCardTransaction', () => {
       ),
     ).toBe(true);
   });
+
+  it('returns false when funding sources omit currency', () => {
+    expect(
+      isMoneyAccountCardTransaction(
+        createTransaction({
+          status: CardTransactionStatus.Completed,
+          fundingSources: [
+            {
+              chainId: MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
+              txHash: '0xabc',
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+  });
 });
 
 describe('getCardDeclineReasonLabel', () => {

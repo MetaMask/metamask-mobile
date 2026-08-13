@@ -29,4 +29,22 @@ describe('getMerchantCategoryLabel', () => {
 
     expect(result).toBe('card.transactions.categories.travel');
   });
+
+  it('maps remaining categories to their i18n keys', () => {
+    expect(getMerchantCategoryLabel(CardMerchantCategory.Subscriptions)).toBe(
+      'card.transactions.categories.subscriptions',
+    );
+    expect(getMerchantCategoryLabel(CardMerchantCategory.Entertainment)).toBe(
+      'card.transactions.categories.entertainment',
+    );
+    expect(getMerchantCategoryLabel(CardMerchantCategory.Health)).toBe(
+      'card.transactions.categories.health',
+    );
+    expect(getMerchantCategoryLabel(CardMerchantCategory.Atm)).toBe(
+      'card.transactions.categories.atm',
+    );
+    expect(getMerchantCategoryLabel(CardMerchantCategory.Utilities)).toBe(
+      'card.transactions.categories.utilities',
+    );
+  });
 });

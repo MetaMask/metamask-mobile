@@ -9428,6 +9428,8 @@
     },
     "transactions": {
       "pending": "Pending",
+      "completed": "Completed",
+      "reversed": "Reversed",
       "today": "Today",
       "yesterday": "Yesterday",
       "details_title": "Transaction",

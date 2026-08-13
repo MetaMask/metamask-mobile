@@ -84,4 +84,49 @@ describe('getCardTransactionHeroToken', () => {
       uri: 'https://example.com/token.png',
     });
   });
+
+  it('returns mUSD for musd funding currency', () => {
+    const result = getCardTransactionHeroToken(
+      createTransaction({
+        fundingSources: [{ currency: 'musd' }],
+      }),
+    );
+
+    expect(result.symbol).toBe(MONEY_ACCOUNT_DISPLAY_SYMBOL);
+  });
+
+  it('returns the fallback token when funding has currency but no address or chain', () => {
+    const result = getCardTransactionHeroToken(
+      createTransaction({
+        fundingSources: [{ currency: 'eure' }],
+      }),
+      {
+        address: '0xusdc',
+        caipChainId: 'eip155:8453',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        fundingStatus: 'enabled',
+        spendableBalance: '10',
+      } as never,
+    );
+
+    expect(result.symbol).toBe('USDC');
+  });
+
+  it('uppercases funding currency when there is no address, chain, or fallback', () => {
+    const result = getCardTransactionHeroToken(
+      createTransaction({
+        fundingSources: [{ currency: 'eure' }],
+      }),
+    );
+
+    expect(result.symbol).toBe('EURE');
+  });
+
+  it('returns mUSD when the transaction is undefined and no fallback is provided', () => {
+    const result = getCardTransactionHeroToken(undefined);
+
+    expect(result.symbol).toBe(MONEY_ACCOUNT_DISPLAY_SYMBOL);
+  });
 });

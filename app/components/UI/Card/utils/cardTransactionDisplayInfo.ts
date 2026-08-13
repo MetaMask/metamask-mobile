@@ -110,9 +110,9 @@ export function formatCardTransactionStatus(
     case CardTransactionStatus.Failed:
       return strings('money.transaction.failed');
     case CardTransactionStatus.Reversed:
-      return 'Reversed';
+      return strings('card.transactions.reversed');
     case CardTransactionStatus.Completed:
     default:
-      return 'Completed';
+      return strings('card.transactions.completed');
   }
 }

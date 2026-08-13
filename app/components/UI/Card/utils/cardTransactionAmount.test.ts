@@ -57,4 +57,22 @@ describe('formatCardAmount', () => {
 
     expect(result).toBe('-10.00 INVALID');
   });
+
+  it('omits a sign when isDebit is omitted', () => {
+    const result = formatCardAmount({ value: '3.00', currency: 'USD' });
+
+    expect(result).toBe('$3.00');
+  });
+
+  it('formats non-numeric values without coercing them to zero', () => {
+    const result = formatCardAmount({ value: 'n/a', currency: 'USD' }, true);
+
+    expect(result).toBe('-$NaN');
+  });
+
+  it('keeps the unsigned fallback when Intl rejects the currency and isDebit is omitted', () => {
+    const result = formatCardAmount({ value: '10.00', currency: 'INVALID' });
+
+    expect(result).toBe('10.00 INVALID');
+  });
 });

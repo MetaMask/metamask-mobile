@@ -1,14 +1,20 @@
 import { useEffect, useMemo } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { MONEY_ACCOUNT_LAUNCH_MS } from '../../../../core/Engine/controllers/card-controller/types';
 import type {
   CardTransaction,
   CardTransactionPage,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  selectCardActiveProviderId,
+  selectCardProviderUserId,
+  selectIsCardAuthenticated,
+} from '../../../../selectors/cardController';
 import { isMoneyAccountCardTransaction } from '../utils/moneyAccountCardTransaction';
+import { cardQueries } from '../queries';
 
-const CARD_TX_INDEX_QUERY_KEY = 'cardTransactionIndex';
 export const CARD_TX_INDEX_MAX_PAGES = 5;
 export const CARD_TX_INDEX_MAX_ITEMS = 300;
 const CLOCK_SKEW_MS = 5 * 60 * 1000;
@@ -61,11 +67,31 @@ export function useCardTransactionIndex({
   oldestVisibleTime,
   enabled = true,
 }: UseCardTransactionIndexOptions = {}): UseCardTransactionIndexResult {
+  const queryClient = useQueryClient();
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const providerId = useSelector(selectCardActiveProviderId);
+  const providerUserId = useSelector(selectCardProviderUserId);
+  // Existing production Card auth tokens predate providerUserId. Keep those
+  // users isolated by provider until their next login stores the stable ID.
+  const transactionCacheUserId = providerUserId ?? 'legacy';
   const cardController = Engine.context?.CardController;
-  const queryEnabled = Boolean(enabled && cardController);
+  const queryEnabled = Boolean(
+    enabled && cardController && isAuthenticated && providerId,
+  );
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      queryClient.removeQueries({
+        queryKey: cardQueries.transactions.keys.all(),
+      });
+    }
+  }, [isAuthenticated, queryClient]);
 
   const query = useInfiniteQuery({
-    queryKey: [CARD_TX_INDEX_QUERY_KEY],
+    queryKey: cardQueries.transactions.keys.index(
+      providerId,
+      transactionCacheUserId,
+    ),
     queryFn: async ({ pageParam }: { pageParam?: string }) => {
       if (!cardController) {
         throw new Error('CardController not available');
@@ -82,8 +108,11 @@ export function useCardTransactionIndex({
   });
 
   const allItems = useMemo(
-    () => query.data?.pages.flatMap((page) => page.items) ?? [],
-    [query.data],
+    () =>
+      queryEnabled
+        ? (query.data?.pages.flatMap((page) => page.items) ?? [])
+        : [],
+    [queryEnabled, query.data],
   );
 
   const oldestFetchedTime = useMemo(() => {
@@ -100,7 +129,7 @@ export function useCardTransactionIndex({
 
   const pageCount = query.data?.pages.length ?? 0;
   const hasMore = Boolean(
-    query.data?.pages[query.data.pages.length - 1]?.nextCursor,
+    queryEnabled && query.data?.pages[query.data.pages.length - 1]?.nextCursor,
   );
   const wantsMore =
     queryEnabled &&
@@ -109,12 +138,13 @@ export function useCardTransactionIndex({
     pageCount < CARD_TX_INDEX_MAX_PAGES &&
     allItems.length < CARD_TX_INDEX_MAX_ITEMS &&
     oldestFetchedTime > targetFloor;
+  const { fetchNextPage } = query;
 
   useEffect(() => {
     if (wantsMore) {
-      query.fetchNextPage();
+      fetchNextPage();
     }
-  }, [wantsMore, query]);
+  }, [wantsMore, fetchNextPage]);
 
   const moneyAccountItems = useMemo(
     () => allItems.filter(isMoneyAccountCardTransaction),
@@ -133,7 +163,7 @@ export function useCardTransactionIndex({
       oldestFetchedTime === Number.POSITIVE_INFINITY
         ? Number.NEGATIVE_INFINITY
         : oldestFetchedTime,
-    isFetching: query.isFetching || query.isFetchingNextPage,
+    isFetching: queryEnabled && (query.isFetching || query.isFetchingNextPage),
     isSettling:
       queryEnabled &&
       !query.isError &&
