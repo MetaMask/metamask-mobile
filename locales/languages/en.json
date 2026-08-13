@@ -10445,7 +10445,7 @@
       "description": "Return to the app to continue."
     },
     "show_cli_link_success": {
-      "title": "Agent CLI successfully linked",
+      "title": "Agent wallet successfully linked",
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
@@ -10459,8 +10459,8 @@
     "show_otp": {
       "title": "Enter this code",
       "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
-      "modal_title": "Link MetaMask Agent CLI",
-      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
+      "modal_title": "Link MetaMask Agent wallet",
+      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent wallet.",
       "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Expires in {{time}}",
       "expired": "Code expired",

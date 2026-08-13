@@ -27,7 +27,7 @@ import {
   waitForKeyringUnlock,
 } from './AgenticCliQrLoginService';
 
-const AGENTIC_CLI_DISPLAY_NAME = 'Agent CLI';
+const AGENTIC_CLI_DISPLAY_NAME = 'Agent wallet';
 
 export interface AgenticCliMwpConnectionDeps {
   relayURL: string;
