@@ -733,14 +733,38 @@ class TestDApp {
       networkName,
       exactMatch,
     );
+    // Picker list can populate after openNetworkPicker — wait before scroll
+    // (scrollIntoView fails immediately when the node is absent from the tree).
+    await Utilities.executeWithRetry(
+      async () => {
+        const exists = await networkItem.unwrap().isExisting();
+        if (!exists) {
+          throw new Error(
+            `Network option "${networkName}" not yet in dapp picker hierarchy`,
+          );
+        }
+      },
+      {
+        timeout: 20000,
+        description: `Wait for network option "${networkName}" in dapp picker`,
+      },
+    );
     const webview = await PlaywrightMatchers.getElementById(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
     );
-    await PlaywrightGestures.scrollIntoView(networkItem, {
-      scrollableElement: webview,
-      scrollParams: { direction: 'up' },
-      maxScrolls: 20,
-    });
+    try {
+      await PlaywrightGestures.scrollIntoView(networkItem, {
+        scrollableElement: webview,
+        scrollParams: { direction: 'up' },
+        maxScrolls: 40,
+      });
+    } catch {
+      await PlaywrightGestures.scrollIntoView(networkItem, {
+        scrollableElement: webview,
+        scrollParams: { direction: 'down' },
+        maxScrolls: 40,
+      });
+    }
     await PlaywrightGestures.tap(networkItem);
   }
 }

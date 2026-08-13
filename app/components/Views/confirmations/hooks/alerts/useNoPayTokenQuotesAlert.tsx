@@ -53,10 +53,15 @@ export function useNoPayTokenQuotesAlert() {
 
   // Deposits set isMaxAmount synchronously (Max / uncapped 100% prefill) before
   // the debounced amount update pushes amountRaw, and a pre-quote max with a
-  // zero amount never starts quote loading. Gating the non-fiat branch on
-  // amountRaw alone — not isMaxAmount — keeps the alert quiet through that
-  // in-flight window; once the amount lands amountRaw is positive and a genuine
-  // no-quote case still fires.
+  // zero amount never starts quote loading. Gating empty-quote branches that
+  // apply to deposits on amountRaw alone — not isMaxAmount — keeps the alert
+  // quiet through that in-flight window; once the amount lands amountRaw is
+  // positive and a genuine no-quote case still fires.
+  //
+  // Do not latch on isQuotesLoading pulses to infer "settled": the pay
+  // controller briefly pulses loading for an empty pre-fetch before the real
+  // fetch (see useCustomAmountStage), and a latch would treat that gap as a
+  // finished empty result and flash this alert again.
   const hasPositiveRequiredTokenAmount = (requiredTokens ?? []).some(
     (t) => !t.skipIfBalance && Boolean(t.amountRaw) && t.amountRaw !== '0',
   );
@@ -81,11 +86,13 @@ export function useNoPayTokenQuotesAlert() {
     !quotes?.length &&
     hasPositiveRequiredAmount;
 
+  // Same amountRaw gate as the non-fiat branch: moneyAccountDeposit is the only
+  // quote-required type, and Max sets isMaxAmount before amountRaw / loading.
   const shouldShowQuoteRequiredNoQuotesAlert =
     hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES) &&
     !isQuotesLoading &&
     !quotes?.length &&
-    hasPositiveRequiredAmount;
+    hasPositiveRequiredTokenAmount;
 
   // Withdraws with token selection enabled must have the pay config
   // (isPostQuote) set on the controller before confirming. Blocks the
