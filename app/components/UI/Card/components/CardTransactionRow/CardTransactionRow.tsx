@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import ActivityRowView from '../../../Money/components/MoneyActivityItem/ActivityRowView';
 import { cardTransactionDisplayInfo } from '../../utils/cardTransactionDisplayInfo';
@@ -19,12 +19,16 @@ const CardTransactionRow = ({
     [transaction],
   );
 
+  const handlePress = useCallback(() => {
+    onPress?.(transaction);
+  }, [onPress, transaction]);
+
   return (
     <ActivityRowView
       id={transaction.id}
       display={display}
       privacyMode={privacyMode}
-      onPress={onPress ? () => onPress(transaction) : undefined}
+      onPress={onPress ? handlePress : undefined}
     />
   );
 };

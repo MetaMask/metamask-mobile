@@ -54,6 +54,12 @@ let mockProviderId: string | null = 'baanx';
 let mockProviderUserId: string | null = 'user-1';
 let activeQueryClient: QueryClient | null = null;
 
+beforeEach(() => {
+  mockIsAuthenticated = true;
+  mockProviderId = 'baanx';
+  mockProviderUserId = 'user-1';
+});
+
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -259,14 +265,46 @@ describe('classifyCardTransactionsForIndex', () => {
     expect(result.bySettlementHash.get('0xtwo')).toBe(tx);
     expect(result.declined).toEqual([]);
   });
+
+  it('excludes pending Money Account auths without a settlement hash from declined', () => {
+    const pendingAuth = createTx({
+      id: 'pending-ma',
+      status: CardTransactionStatus.Pending,
+      fundingSources: [
+        {
+          currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+          chainId: MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
+        },
+      ],
+    });
+
+    const result = classifyCardTransactionsForIndex([pendingAuth]);
+
+    expect(result.bySettlementHash.size).toBe(0);
+    expect(result.declined).toEqual([]);
+  });
+
+  it('excludes completed and reversed txs without a settlement hash from declined', () => {
+    const completed = createTx({
+      id: 'completed-no-hash',
+      status: CardTransactionStatus.Completed,
+      fundingSources: [],
+    });
+    const reversed = createTx({
+      id: 'reversed-no-hash',
+      status: CardTransactionStatus.Reversed,
+      fundingSources: [],
+    });
+
+    const result = classifyCardTransactionsForIndex([completed, reversed]);
+
+    expect(result.declined).toEqual([]);
+  });
 });
 
 describe('useCardTransactionIndex', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsAuthenticated = true;
-    mockProviderId = 'baanx';
-    mockProviderUserId = 'user-1';
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsCardAuthenticated) {
         return mockIsAuthenticated;

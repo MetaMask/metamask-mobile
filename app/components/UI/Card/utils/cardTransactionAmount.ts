@@ -7,10 +7,14 @@ export function formatCardAmount(
   isDebit?: boolean,
 ): string {
   const numericValue = Number(amount.value);
-  const absValue = Number.isFinite(numericValue)
-    ? Math.abs(numericValue)
-    : amount.value;
   const sign = isDebit === undefined ? '' : isDebit ? '-' : '+';
+
+  if (!Number.isFinite(numericValue)) {
+    const fallback = `${amount.value} ${amount.currency}`;
+    return isDebit === undefined ? fallback : `${sign}${fallback}`;
+  }
+
+  const absValue = Math.abs(numericValue);
 
   let formatted: string;
   try {
@@ -18,7 +22,7 @@ export function formatCardAmount(
       style: 'currency',
       currency: amount.currency,
       currencyDisplay: 'narrowSymbol',
-    }).format(typeof absValue === 'number' ? absValue : Number(absValue));
+    }).format(absValue);
   } catch {
     formatted = `${amount.value} ${amount.currency}`;
     return isDebit === undefined ? formatted : `${sign}${formatted}`;

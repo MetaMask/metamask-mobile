@@ -64,10 +64,10 @@ describe('formatCardAmount', () => {
     expect(result).toBe('$3.00');
   });
 
-  it('formats non-numeric values without coercing them to zero', () => {
+  it('falls back to raw value and currency for non-numeric amounts', () => {
     const result = formatCardAmount({ value: 'n/a', currency: 'USD' }, true);
 
-    expect(result).toBe('-$NaN');
+    expect(result).toBe('-n/a USD');
   });
 
   it('keeps the unsigned fallback when Intl rejects the currency and isDebit is omitted', () => {

@@ -5,6 +5,11 @@ import {
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
 } from '../util/vedaToken';
 
+/**
+ * Baanx insufficient-funds decline copy only. Immersve (and future providers)
+ * do not use this template yet — extend with structured decline fields when
+ * available. This regex can break if Baanx changes the message wording.
+ */
 const DECLINE_ATTEMPT_PATTERN =
   /you attempted this\s+([A-Z0-9-]+)\s+transaction with a balance of\s+[\d.,]+\s+([A-Z0-9]+)/i;
 

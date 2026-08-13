@@ -3,9 +3,10 @@ import { useSelector } from 'react-redux';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { MONEY_ACCOUNT_LAUNCH_MS } from '../../../../core/Engine/controllers/card-controller/types';
-import type {
-  CardTransaction,
-  CardTransactionPage,
+import {
+  CardTransactionStatus,
+  type CardTransaction,
+  type CardTransactionPage,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   selectCardActiveProviderId,
@@ -56,7 +57,11 @@ export function classifyCardTransactionsForIndex(items: CardTransaction[]): {
       for (const hash of settlementHashesForCardTransaction(tx)) {
         bySettlementHash.set(hash, tx);
       }
-    } else {
+      continue;
+    }
+    // Only failed txs are declines. Pending/completed/reversed without a hash
+    // must not enter the declined feed (e.g. pending Money Account auths).
+    if (tx.status === CardTransactionStatus.Failed) {
       declined.push(tx);
     }
   }
