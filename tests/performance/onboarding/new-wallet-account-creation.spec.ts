@@ -12,7 +12,6 @@ import {
   asPlaywrightElement,
   PlaywrightAssertions,
   PlaywrightGestures,
-  PlaywrightMatchers,
 } from '../../framework/index.js';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet.js';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView.js';
@@ -20,35 +19,13 @@ import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWall
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import {
   closePredictModal,
+  dismissProtectYourWalletModal,
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import ProtectYourWalletModal from '../../page-objects/Onboarding/ProtectYourWalletModal.js';
-
-const dismissProtectWalletModalIfPresent = async (): Promise<void> => {
-  const modal = await asPlaywrightElement(ProtectYourWalletModal.container);
-
-  try {
-    if (!(await modal.isVisible())) {
-      return;
-    }
-  } catch {
-    return;
-  }
-
-  await PlaywrightGestures.waitAndTap(
-    await asPlaywrightElement(
-      PlaywrightMatchers.getElementByText('Protect wallet', true),
-    ),
-  );
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(ProtectYourWalletView.remindMeLaterButton),
-  );
-  await ProtectYourWalletView.tapRemindMeLater();
-};
 
 /* Scenario 2: Account creation after fresh install */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
@@ -83,7 +60,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await dismissOnboardingInterestQuestionnaire();
       await dismissPushNotificationExistingUserSheet();
       await closePredictModal();
-      await dismissProtectWalletModalIfPresent();
+      await dismissProtectYourWalletModal();
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
@@ -118,7 +95,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
 
       await AccountListBottomSheet.tapCreateAccount(0);
-      await dismissProtectWalletModalIfPresent();
+      await dismissProtectYourWalletModal();
       await screen2Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(

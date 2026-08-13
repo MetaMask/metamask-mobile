@@ -746,6 +746,11 @@ export const dismissPushNotificationExistingUserSheet =
  */
 export const closePredictModal = async (): Promise<boolean> => {
   try {
+    const predictTitle = await asPlaywrightElement(
+      PlaywrightMatchers.getElementByText('PREDICT AND WIN', true),
+    );
+    await predictTitle.unwrap().waitForDisplayed({ timeout: 2_000 });
+
     const notNow = await asPlaywrightElement(
       PlaywrightMatchers.getElementByText('Not now', true),
     );
