@@ -223,22 +223,6 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
-  # RC JS/env/secrets with Apple Development signing (development-metamask).
-  # Used by build-rc-fingerprint.yml so @expo/repack-app can re-sign device IPAs
-  # (App Store signing is not supported by repack). script_name keeps
-  # yarn build:ios:main:rc. Do not use for TestFlight.
-  main-rc-development:
-    script_name: main-rc
-    github_environment: build-rc
-    signing: *signing_dev
-    env:
-      <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
-      METAMASK_BUILD_TYPE: 'main'
-      PROFILE: 'development'
-    secrets: *secrets
-    code_fencing: *code_fencing_main
-
   # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works

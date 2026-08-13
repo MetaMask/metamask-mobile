@@ -2,17 +2,15 @@
 #
 # Build RC with fingerprint reuse
 #
-# Builds iOS + Android using Auto RC's main-rc JS/env/secrets. When reuse_run_id is set,
-# the Expo OTA fingerprint of the current tree is compared to the fingerprint of the
-# source that produced that run's native binaries. Match → JS-repack those binaries.
-# Mismatch, empty reuse_run_id, or force_native_build → full native build.yml.
+# Builds iOS + Android with main-dev (build-dev GitHub Environment) so this can
+# run on feature branches. When reuse_run_id is set, the Expo OTA fingerprint of
+# the current tree is compared to the fingerprint of the source that produced
+# that run's native binaries. Match → JS-repack those binaries. Mismatch, empty
+# reuse_run_id, or force_native_build → full native build.yml.
 #
-# iOS is signed with PROFILE=development (development-metamask / Apple Development) because
-# @expo/repack-app cannot re-sign App Store IPAs. Do not upload these IPAs to TestFlight.
-# Android uses the same RC keystore as Auto RC.
-#
-# Auto RC is not wired to this workflow yet — workflow_call outputs match build.yml so it
-# can be adopted later.
+# iOS is signed with PROFILE=development (development-metamask / Apple Development)
+# because @expo/repack-app cannot re-sign App Store IPAs. Android uses the dev
+# debug.keystore. This is not an Auto RC / TestFlight build.
 #
 ##############################################################################################
 name: Build RC (fingerprint reuse)
@@ -59,8 +57,8 @@ on:
         default: current
     outputs:
       build_name:
-        description: 'Android build_name (main-rc). iOS uses main-rc-development.'
-        value: main-rc
+        description: 'build_name used for iOS and Android (main-dev)'
+        value: main-dev
       platform:
         description: 'platform input (android, ios, or both)'
         value: ${{ inputs.platform }}
@@ -140,10 +138,10 @@ permissions:
   id-token: write
 
 env:
-  IOS_BUILD_NAME: main-rc-development
-  ANDROID_BUILD_NAME: main-rc
-  IOS_IPA_ARTIFACT: ios-ipa-main-rc-development
-  ANDROID_APK_ARTIFACT: android-apk-main-rc
+  IOS_BUILD_NAME: main-dev
+  ANDROID_BUILD_NAME: main-dev
+  IOS_IPA_ARTIFACT: ios-ipa-main-dev
+  ANDROID_APK_ARTIFACT: android-apk-main-dev
   IOS_METADATA_ARTIFACT: rc-fingerprint-ios-build-metadata
   ANDROID_METADATA_ARTIFACT: rc-fingerprint-android-build-metadata
   STATUS_CONTEXT: rc-fingerprint-build-source-hash
@@ -547,7 +545,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   native-ios:
-    name: Full native iOS (main-rc-development)
+    name: Full native iOS (main-dev)
     needs: [prepare]
     if: >-
       always() &&
@@ -557,7 +555,7 @@ jobs:
       (inputs.force_native_build == true || needs.prepare.outputs.ios_reuse != 'true')
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-rc-development
+      build_name: main-dev
       platform: ios
       source_branch: ${{ needs.prepare.outputs.source_branch }}
       build_number: ${{ inputs.build_number }}
@@ -566,7 +564,7 @@ jobs:
     secrets: inherit
 
   native-android:
-    name: Full native Android (main-rc)
+    name: Full native Android (main-dev)
     needs: [prepare]
     if: >-
       always() &&
@@ -576,7 +574,7 @@ jobs:
       (inputs.force_native_build == true || needs.prepare.outputs.android_reuse != 'true')
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-rc
+      build_name: main-dev
       platform: android
       source_branch: ${{ needs.prepare.outputs.source_branch }}
       build_number: ${{ inputs.build_number }}
@@ -609,13 +607,13 @@ jobs:
             --arg headSha "$HEAD_SHA" \
             --arg checkoutSha "$CHECKOUT_SHA" \
             --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            --argjson artifactNames '["ios-ipa-main-rc-development"]' \
+            --argjson artifactNames '["ios-ipa-main-dev"]' \
             '{
               schemaVersion: 1,
               fingerprint: $fingerprint,
               platform: "ios",
-              buildName: "main-rc-development",
-              metamaskEnvironment: "rc",
+              buildName: "main-dev",
+              metamaskEnvironment: "dev",
               workflowRunId: $workflowRunId,
               headSha: $headSha,
               checkoutSha: $checkoutSha,
@@ -647,13 +645,13 @@ jobs:
             --arg headSha "$HEAD_SHA" \
             --arg checkoutSha "$CHECKOUT_SHA" \
             --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            --argjson artifactNames '["android-apk-main-rc"]' \
+            --argjson artifactNames '["android-apk-main-dev"]' \
             '{
               schemaVersion: 1,
               fingerprint: $fingerprint,
               platform: "android",
-              buildName: "main-rc",
-              metamaskEnvironment: "rc",
+              buildName: "main-dev",
+              metamaskEnvironment: "dev",
               workflowRunId: $workflowRunId,
               headSha: $headSha,
               checkoutSha: $checkoutSha,
@@ -679,7 +677,7 @@ jobs:
       inputs.force_native_build != true &&
       needs.prepare.outputs.ios_reuse == 'true'
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' }}
-    environment: build-rc
+    environment: build-dev
     env:
       PLATFORM: ios
       CI: 'true'
@@ -724,14 +722,14 @@ jobs:
           const yaml = require('js-yaml');
           const fs = require('fs');
           const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
-          const build = config.builds['main-rc-development'];
+          const build = config.builds['main-dev'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           const signing = build.signing;
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           "
-          node scripts/apply-build-config.js main-rc-development --export-github-env >> "$GITHUB_ENV"
-          node scripts/apply-build-config.js main-rc-development --write-build-env || true
+          node scripts/apply-build-config.js main-dev --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js main-dev --write-build-env || true
 
       - name: Set secrets
         env:
@@ -846,13 +844,13 @@ jobs:
             --arg headSha "$HEAD_SHA" \
             --arg checkoutSha "$CHECKOUT_SHA" \
             --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            --argjson artifactNames '["ios-ipa-main-rc-development"]' \
+            --argjson artifactNames '["ios-ipa-main-dev"]' \
             '{
               schemaVersion: 1,
               fingerprint: $fingerprint,
               platform: "ios",
-              buildName: "main-rc-development",
-              metamaskEnvironment: "rc",
+              buildName: "main-dev",
+              metamaskEnvironment: "dev",
               workflowRunId: $workflowRunId,
               headSha: $headSha,
               checkoutSha: $checkoutSha,
@@ -878,7 +876,7 @@ jobs:
       inputs.force_native_build != true &&
       needs.prepare.outputs.android_reuse == 'true'
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
-    environment: build-rc
+    environment: build-dev
     env:
       PLATFORM: android
       CI: 'true'
@@ -923,15 +921,15 @@ jobs:
           const yaml = require('js-yaml');
           const fs = require('fs');
           const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
-          const build = config.builds['main-rc'];
+          const build = config.builds['main-dev'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           const signing = build.signing;
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           "
-          node scripts/apply-build-config.js main-rc --export-github-env >> "$GITHUB_ENV"
-          node scripts/apply-build-config.js main-rc --write-build-env || true
+          node scripts/apply-build-config.js main-dev --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js main-dev --write-build-env || true
 
       - name: Set secrets
         env:
@@ -1045,13 +1043,13 @@ jobs:
             --arg headSha "$HEAD_SHA" \
             --arg checkoutSha "$CHECKOUT_SHA" \
             --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            --argjson artifactNames '["android-apk-main-rc"]' \
+            --argjson artifactNames '["android-apk-main-dev"]' \
             '{
               schemaVersion: 1,
               fingerprint: $fingerprint,
               platform: "android",
-              buildName: "main-rc",
-              metamaskEnvironment: "rc",
+              buildName: "main-dev",
+              metamaskEnvironment: "dev",
               workflowRunId: $workflowRunId,
               headSha: $headSha,
               checkoutSha: $checkoutSha,

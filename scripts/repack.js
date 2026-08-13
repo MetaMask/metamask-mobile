@@ -36,29 +36,43 @@ const logger = {
 
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
+  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
   const useRc =
-    process.env.METAMASK_ENVIRONMENT === 'rc' ||
+    metamaskEnvironment === 'rc' ||
     !!process.env.BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD;
+  const useDev = metamaskEnvironment === 'dev';
 
-  const keystorePath =
-    process.env.ANDROID_KEYSTORE_PATH ||
-    (useRc ? 'android/keystores/rc.keystore' : undefined);
-  const keystorePassword = useRc
-    ? process.env.BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD
-    : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-  const keyAlias = useRc
-    ? process.env.BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS
-    : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-  const keyPassword = useRc
-    ? process.env.BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD
-    : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  let keystorePath = process.env.ANDROID_KEYSTORE_PATH;
+  let keystorePassword;
+  let keyAlias;
+  let keyPassword;
+  let missingHint =
+    'Please check that setup-e2e-env action has configure-keystores: true';
+
+  if (useRc) {
+    keystorePath = keystorePath || 'android/keystores/rc.keystore';
+    keystorePassword = process.env.BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD;
+    keyAlias = process.env.BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS;
+    keyPassword = process.env.BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD;
+    missingHint =
+      'Expected BITRISEIO_ANDROID_RC_KEYSTORE_* from configure-signing (RC signer).';
+  } else if (useDev) {
+    keystorePath = keystorePath || 'android/keystores/debug.keystore';
+    keystorePassword = process.env.ANDROID_SIGNING_KEYSTORE_PASSWORD;
+    keyAlias = process.env.BITRISEIO_ANDROID_MAIN_KEYSTORE_ALIAS;
+    keyPassword = process.env.BITRISEIO_ANDROID_MAIN_KEYSTORE_PRIVATE_KEY_PASSWORD;
+    missingHint =
+      'Expected ANDROID_SIGNING_KEYSTORE_PASSWORD and BITRISEIO_ANDROID_MAIN_KEYSTORE_* from configure-signing (dev signer).';
+  } else {
+    keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+    keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+    keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  }
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
     logger.error(
       'Missing required Android keystore environment variables in CI. ' +
-      (useRc
-        ? 'Expected BITRISEIO_ANDROID_RC_KEYSTORE_* from configure-signing (RC signer).'
-        : 'Please check that setup-e2e-env action has configure-keystores: true')
+        missingHint,
     );
     process.exit(1);
   }
