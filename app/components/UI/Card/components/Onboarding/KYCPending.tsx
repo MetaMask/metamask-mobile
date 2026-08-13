@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -13,7 +13,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens, withCardProvider } from '../../util/metrics';
-import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import WaitingKYCImage from '../../../../../images/waiting-kyc-card.png';
 import {
@@ -39,6 +38,7 @@ const KYCPending = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
+  const hasTrackedView = useRef(false);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   // Responsive image dimensions based on current window dimensions
@@ -51,10 +51,16 @@ const KYCPending = () => {
   }, [screenWidth, screenHeight]);
 
   useEffect(() => {
+    // Wait for a known provider so we don't fire with a Baanx fallback then
+    // again when Immersve resolves (duplicate / misattributed views).
+    if (hasTrackedView.current || !activeProviderId) {
+      return;
+    }
+    hasTrackedView.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties(
-          withCardProvider(activeProviderId ?? CardProviderIds.Baanx, {
+          withCardProvider(activeProviderId, {
             screen: CardScreens.KYC_PENDING,
           }),
         )

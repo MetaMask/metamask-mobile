@@ -14,6 +14,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => 'baanx'),
 }));
 
+import { useSelector } from 'react-redux';
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
@@ -228,6 +232,7 @@ describe('KYCPending Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue('baanx');
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
@@ -390,6 +395,32 @@ describe('KYCPending Component', () => {
         mockCreateEventBuilder.mock.results[0].value.addProperties;
       expect(addPropertiesCall).toHaveBeenCalledWith({
         provider: 'baanx',
+        screen: 'KYC_PENDING',
+      });
+    });
+
+    it('does not track while activeProviderId is null', () => {
+      mockUseSelector.mockReturnValue(null);
+
+      render(<KYCPending />);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('tracks once when provider resolves after a null provider render', () => {
+      mockUseSelector.mockReturnValue(null);
+      const { rerender } = render(<KYCPending />);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      mockUseSelector.mockReturnValue('immersve');
+      rerender(<KYCPending />);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const addPropertiesCall =
+        mockCreateEventBuilder.mock.results[0].value.addProperties;
+      expect(addPropertiesCall).toHaveBeenCalledWith({
+        provider: 'immersve',
         screen: 'KYC_PENDING',
       });
     });
