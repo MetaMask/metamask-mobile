@@ -233,6 +233,21 @@ describe('PredictHome', () => {
       });
     });
 
+    it('clears the balance breakdown entry point when focus is lost', () => {
+      const setParams = jest.fn();
+      const view = renderPredictHomeView({
+        initialParams: {
+          entryPoint:
+            PredictEventValues.ENTRY_POINT.HOMESCREEN_BALANCE_BREAKDOWN,
+        },
+        setParams,
+      });
+
+      view.unmount();
+
+      expect(setParams).toHaveBeenCalledWith({ entryPoint: undefined });
+    });
+
     it('tracks a section-viewed impression once it dwells in the viewport', async () => {
       const { findByTestId, getByTestId } = renderPredictHomeView();
 

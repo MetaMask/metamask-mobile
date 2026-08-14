@@ -1964,6 +1964,13 @@ describe('Homepage balance breakdown ABC test', () => {
           children: expect.anything(),
           hideRows: false,
           layout,
+          transactionActiveAbTests: [
+            {
+              key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+              value: variantName,
+              key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown:${variantName}`,
+            },
+          ],
         }),
       }),
     );

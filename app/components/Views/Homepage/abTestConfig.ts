@@ -300,6 +300,22 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
   },
 } as const;
 
+export function getHomepageBalanceBreakdownTransactionActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+
+  return [
+    createActiveABTestAssignment(
+      HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+      variantName,
+    ),
+  ];
+}
+
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
     flagKey: HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,

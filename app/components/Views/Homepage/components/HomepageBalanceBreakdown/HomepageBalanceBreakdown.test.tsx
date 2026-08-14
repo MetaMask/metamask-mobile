@@ -20,6 +20,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { mockTheme } from '../../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -513,7 +514,18 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('opens the canonical primitive destinations from each row', () => {
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU1209AbtestHomepageBalanceBreakdown',
+        'icons',
+      ),
+    ];
+    const { getByTestId } = render(
+      <HomepageBalanceBreakdown
+        layout="icons"
+        transactionActiveAbTests={transactionActiveAbTests}
+      />,
+    );
 
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')));
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')));
@@ -533,12 +545,14 @@ describe('HomepageBalanceBreakdown', () => {
     );
     expect(mockUsePerpsNavigationHandlers).toHaveBeenCalledWith({
       source: 'homescreen_balance_breakdown',
+      transactionActiveAbTests,
     });
     expect(mockHandleViewAllPerps).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
         entryPoint: 'homescreen_balance_breakdown',
+        transactionActiveAbTests,
       },
     });
     expect(mockNavigate).toHaveBeenNthCalledWith(

@@ -8,6 +8,7 @@ import { usePerpsNavigationHandlers } from '../../Sections/Perpetuals/hooks/useP
 import type { SliceKey } from '../../BalanceBreakdown/types';
 import { useHomepageScrollContext } from '../../context/HomepageScrollContext';
 import { HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT } from '../../abTestConfig';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const BALANCE_BREAKDOWN_SECTION_NAMES: Record<SliceKey, string> = {
   money: 'money',
@@ -17,12 +18,19 @@ const BALANCE_BREAKDOWN_SECTION_NAMES: Record<SliceKey, string> = {
   defi: 'defi',
 };
 
-export function useHomepageBalanceBreakdownNavigation() {
+interface UseHomepageBalanceBreakdownNavigationArgs {
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+export function useHomepageBalanceBreakdownNavigation({
+  transactionActiveAbTests,
+}: UseHomepageBalanceBreakdownNavigationArgs = {}) {
   const navigation = useNavigation();
   const { entryPoint, appSessionId, visitId } = useHomepageScrollContext();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const { handleViewAllPerps } = usePerpsNavigationHandlers({
     source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+    transactionActiveAbTests,
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -59,6 +67,9 @@ export function useHomepageBalanceBreakdownNavigation() {
             screen: Routes.PREDICT.MARKET_LIST,
             params: {
               entryPoint: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+              ...(transactionActiveAbTests?.length
+                ? { transactionActiveAbTests }
+                : {}),
             },
           });
           break;
@@ -77,6 +88,7 @@ export function useHomepageBalanceBreakdownNavigation() {
       navigateToMoneyHome,
       navigation,
       trackEvent,
+      transactionActiveAbTests,
       visitId,
     ],
   );

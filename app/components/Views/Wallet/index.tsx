@@ -120,6 +120,7 @@ import {
   HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
   HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
+  getHomepageBalanceBreakdownTransactionActiveAbTests,
   HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
@@ -749,6 +750,7 @@ const Wallet = ({
 
   const {
     variant: balanceBreakdownVariant,
+    variantName: balanceBreakdownVariantName,
     isActive: isBalanceBreakdownExperimentActive,
   } = useABTest(
     HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
@@ -759,6 +761,11 @@ const Wallet = ({
   const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
     ? balanceBreakdownVariant.layout
     : null;
+  const balanceBreakdownTransactionActiveAbTests =
+    getHomepageBalanceBreakdownTransactionActiveAbTests(
+      isBalanceBreakdownExperimentActive && balanceBreakdownLayout !== null,
+      balanceBreakdownVariantName,
+    );
 
   const discoveryPillsIconStyle = discoveryPillsVariant.iconStyle;
   const showDiscoveryPills =
@@ -1070,6 +1077,7 @@ const Wallet = ({
         accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
         hideRows: inWalletHomePostOnboardingFlow,
         layout: balanceBreakdownLayout,
+        transactionActiveAbTests: balanceBreakdownTransactionActiveAbTests,
         children: contentBeforeBalanceBreakdown,
       }
     : undefined;
