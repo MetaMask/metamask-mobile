@@ -5,6 +5,7 @@ import {
   ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
+  CryptoPriceSubscriptionOptions,
   GameUpdateCallback,
   GeoBlockResponse,
   GetActivityParams,
@@ -247,6 +248,7 @@ export interface PredictProvider {
   subscribeToCryptoPrices?(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void;
 
   getMarketSeries?(params: GetSeriesParams): Promise<PredictMarket[]>;

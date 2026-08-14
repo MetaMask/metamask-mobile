@@ -65,21 +65,22 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   const controller = useQuickBuyController(target, onClose, analyticsContext);
   // Open the keypad by default so the sheet matches the taller Figma layout
   // (footer + keypad visible together).
-  const [isKeypadRequestedOpen, setIsKeypadOpen] = useState(true);
+  //
+  // Deliberately independent of `hasNoPayWithFunds`: gating it on funds made the
+  // sheet's height depend on a flag that is not settled on the first render
+  // (`usePayWithTokens` options come from several redux slices that can each lag
+  // a render), so a funded account opened with the keypad collapsed and then
+  // expanded — a visible flash. With no funds the keypad stays expanded and is
+  // dimmed/inert alongside the rest of the sheet instead, which keeps the height
+  // constant no matter when the flag settles.
+  const [isKeypadOpen, setIsKeypadOpen] = useState(true);
   const {
     currentCurrency,
     usdToCurrentCurrencyRate,
     isPriceImpactError,
     isPresetAddFundsMode,
-    hasNoPayWithFunds,
     handleConfirm,
   } = controller;
-
-  // With nothing to pay with there is no amount to enter and no quote to fetch,
-  // so the keypad is force-collapsed regardless of what any caller requested
-  // (TSA-984). Deriving it here rather than no-oping the setter keeps this the
-  // single gate — no screen can reopen the keypad into a dead state.
-  const isKeypadOpen = isKeypadRequestedOpen && !hasNoPayWithFunds;
 
   const {
     buyAmounts: buyQuickAmounts,

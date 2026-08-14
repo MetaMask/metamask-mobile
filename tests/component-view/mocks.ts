@@ -116,6 +116,8 @@ jest.mock('../../app/core/Engine', () => {
           supportsCredit: true,
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
+          supportsTransactionHistory: false,
+          supportsMoneyAccountLinking: false,
         }),
       },
       PhishingController: {
@@ -296,6 +298,7 @@ jest.mock('../../app/core/Engine', () => {
       NetworkController: {
         state: { networksMetadata: {}, networkConfigurationsByChainId: {} },
         addNetwork: jest.fn().mockResolvedValue(undefined),
+        removeNetwork: jest.fn(),
         getProviderAndBlockTracker() {
           return {
             provider: {
@@ -512,6 +515,8 @@ jest.mock('../../app/core/Engine', () => {
         resetFirstTimeUserState: jest.fn(),
         clearPendingTransactionRequests: jest.fn(),
         recordMarketViewed: jest.fn(),
+        getWatchlistMarkets: jest.fn(() => []),
+        toggleWatchlistMarket: jest.fn().mockResolvedValue(undefined),
       },
     },
     controllerMessenger: {

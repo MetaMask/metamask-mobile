@@ -43,6 +43,7 @@ describe('useBridgeQuoteEvents', () => {
     quoted_time_minutes: 0.08333333333333333,
     token_symbol_destination: 'USDC',
     token_symbol_source: 'SOL',
+    usd_amount_source: 0,
     usd_balance_source: 0,
     usd_quoted_gas: 0,
     usd_quoted_return: 0,
