@@ -49,7 +49,12 @@ includeBuild('../node_modules/@react-native') {}
 if (System.getenv("METAMASK_ENVIRONMENT") == "e2e") {
   // Build react-android from the patched RN source for E2E profiling.
   // Production-like builds continue to consume the prebuilt Maven artifact.
-  includeBuild('../node_modules/react-native') {}
+  includeBuild('../node_modules/react-native') {
+    dependencySubstitution {
+      substitute module('com.facebook.react:react-android') using project(':packages:react-native:ReactAndroid')
+      substitute module('com.facebook.react:hermes-android') using project(':packages:react-native:ReactAndroid:hermes-engine')
+    }
+  }
 }
 include ':react-native-gesture-handler'
 project(':react-native-gesture-handler').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gesture-handler/android')
