@@ -23,19 +23,19 @@ describe('Success', () => {
     it('renders the container', () => {
       const { getByTestId } = renderSuccess();
 
-      expect(getByTestId(SuccessTestIds.CONTAINER)).toBeTruthy();
+      expect(getByTestId(SuccessTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders the icon placeholder box', () => {
       const { getByTestId } = renderSuccess();
 
-      expect(getByTestId(SuccessTestIds.ICON_PLACEHOLDER)).toBeTruthy();
+      expect(getByTestId(SuccessTestIds.ICON_PLACEHOLDER)).toBeOnTheScreen();
     });
 
     it('renders the title from i18n', () => {
       const { getByTestId } = renderSuccess();
 
-      expect(getByTestId(SuccessTestIds.TITLE)).toBeTruthy();
+      expect(getByTestId(SuccessTestIds.TITLE)).toBeOnTheScreen();
     });
 
     it('renders the description from i18n', () => {

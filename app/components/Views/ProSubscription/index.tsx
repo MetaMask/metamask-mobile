@@ -13,6 +13,7 @@ import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnab
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
+import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
@@ -61,6 +62,7 @@ const ProSubscription = () => {
           iconName={IconName.Close}
           size={ButtonIconSize.Md}
           onPress={handleClose}
+          testID={ProSubscriptionTestIds.CLOSE_BUTTON}
         />
       </Box>
 
