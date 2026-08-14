@@ -65,7 +65,7 @@ describe('PredictHome', () => {
   });
 
   it('tracks the homepage balance breakdown entry point', async () => {
-    renderPredictNext({
+    const view = renderPredictNext({
       entryPoint: PredictEventValues.ENTRY_POINT.HOMESCREEN_BALANCE_BREAKDOWN,
     });
 
@@ -74,6 +74,22 @@ describe('PredictHome', () => {
         Engine.context.PredictController.trackHomeViewed,
       ).toHaveBeenCalledWith({
         entryPoint: 'homescreen_balance_breakdown',
+      }),
+    );
+
+    fireEvent.press(
+      await view.findByTestId(
+        PredictHomeTestIds.eventContent('kalshi', 'event-1'),
+      ),
+    );
+    await view.findByTestId(PredictEventDetailTestIds.VIEW);
+    fireEvent.press(view.getByTestId(PredictEventDetailTestIds.BACK));
+
+    await waitFor(() =>
+      expect(
+        Engine.context.PredictController.trackHomeViewed,
+      ).toHaveBeenLastCalledWith({
+        entryPoint: undefined,
       }),
     );
   });

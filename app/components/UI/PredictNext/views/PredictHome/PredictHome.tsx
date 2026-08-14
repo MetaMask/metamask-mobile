@@ -38,7 +38,13 @@ export const PredictHome = () => {
   useFocusEffect(
     useCallback(() => {
       Engine.context.PredictController.trackHomeViewed({ entryPoint });
-    }, [entryPoint]),
+
+      return () => {
+        if (entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [entryPoint, navigation]),
   );
 
   const events = useMemo(
