@@ -13,7 +13,6 @@ import { selectTransactions } from '../../../../../selectors/transactionControll
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
-import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { isHardwareAccount } from '../../../../../util/address';
 
 export const PAY_TYPES = [
@@ -32,7 +31,6 @@ export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
   const isHardwarePayEnabled = useIsMMPayHardwareEnabled();
   const transactionMetadata = useTransactionMetadataRequest();
-  const payingAccount = useTransactionPayingAccount();
   const { payToken } = useTransactionPayToken();
 
   const { chainId, id: transactionId, txParams } = transactionMetadata || {};
@@ -73,7 +71,7 @@ export const useSignedOrSubmittedAlert = () => {
     existingTransaction || hasExistingTransactionOnPayChain,
   );
 
-  const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
+  const isHardwareWallet = isHardwareAccount(from ?? '');
 
   return useMemo(() => {
     if (!showAlert || (isHardwarePayEnabled && isHardwareWallet)) {
