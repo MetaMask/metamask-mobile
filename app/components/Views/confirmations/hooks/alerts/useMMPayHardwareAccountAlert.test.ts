@@ -29,15 +29,8 @@ const useSelectorMock = jest.mocked(useSelector);
 const HARDWARE_ADDRESS = '0xabc';
 const OVERRIDE_ADDRESS = '0xdef';
 
-const FLAGS_DISABLED = { enabled: false, enabledTransactionTypes: [] };
-const FLAGS_ENABLED_MUSD = {
-  enabled: true,
-  enabledTransactionTypes: [TransactionType.musdConversion],
-};
-const FLAGS_ENABLED_DEPOSIT = {
-  enabled: true,
-  enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
-};
+const HARDWARE_PAY_DISABLED = { enabled: false };
+const HARDWARE_PAY_ENABLED = { enabled: true };
 
 function runHook() {
   return renderHook(() => useMMPayHardwareAccountAlert());
@@ -68,7 +61,7 @@ describe('useMMPayHardwareAccountAlert', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useSelectorMock.mockReturnValue(FLAGS_DISABLED);
+    useSelectorMock.mockReturnValue(HARDWARE_PAY_DISABLED);
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
 
@@ -161,7 +154,7 @@ describe('useMMPayHardwareAccountAlert', () => {
   it('returns alert for Ledger wallet on mUSD conversion when feature flag is disabled', () => {
     isHardwareAccountMock.mockReturnValue(true);
     isQRHardwareAccountMock.mockReturnValue(false);
-    useSelectorMock.mockReturnValue(FLAGS_DISABLED);
+    useSelectorMock.mockReturnValue(HARDWARE_PAY_DISABLED);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.musdConversion,
       txParams: {
@@ -177,7 +170,7 @@ describe('useMMPayHardwareAccountAlert', () => {
   it('returns no alert for Ledger wallet on mUSD conversion when feature flag is enabled', () => {
     isHardwareAccountMock.mockReturnValue(true);
     isQRHardwareAccountMock.mockReturnValue(false);
-    useSelectorMock.mockReturnValue(FLAGS_ENABLED_MUSD);
+    useSelectorMock.mockReturnValue(HARDWARE_PAY_ENABLED);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.musdConversion,
       txParams: {
@@ -193,7 +186,7 @@ describe('useMMPayHardwareAccountAlert', () => {
   it('returns alert for QR wallet on mUSD conversion even when feature flag is enabled', () => {
     isHardwareAccountMock.mockReturnValue(true);
     isQRHardwareAccountMock.mockReturnValue(true);
-    useSelectorMock.mockReturnValue(FLAGS_ENABLED_MUSD);
+    useSelectorMock.mockReturnValue(HARDWARE_PAY_ENABLED);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.musdConversion,
       txParams: {
@@ -211,7 +204,7 @@ describe('useMMPayHardwareAccountAlert', () => {
       (address) => address === OVERRIDE_ADDRESS,
     );
     isQRHardwareAccountMock.mockReturnValue(false);
-    useSelectorMock.mockReturnValue(FLAGS_ENABLED_DEPOSIT);
+    useSelectorMock.mockReturnValue(HARDWARE_PAY_ENABLED);
     useTransactionAccountOverrideMock.mockReturnValue(OVERRIDE_ADDRESS);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
@@ -232,7 +225,7 @@ describe('useMMPayHardwareAccountAlert', () => {
     isQRHardwareAccountMock.mockImplementation(
       (address) => address === OVERRIDE_ADDRESS,
     );
-    useSelectorMock.mockReturnValue(FLAGS_ENABLED_DEPOSIT);
+    useSelectorMock.mockReturnValue(HARDWARE_PAY_ENABLED);
     useTransactionAccountOverrideMock.mockReturnValue(OVERRIDE_ADDRESS);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
@@ -251,7 +244,7 @@ describe('useMMPayHardwareAccountAlert', () => {
       (address) => address === OVERRIDE_ADDRESS,
     );
     isQRHardwareAccountMock.mockReturnValue(false);
-    useSelectorMock.mockReturnValue(FLAGS_ENABLED_MUSD);
+    useSelectorMock.mockReturnValue(HARDWARE_PAY_DISABLED);
     useTransactionAccountOverrideMock.mockReturnValue(OVERRIDE_ADDRESS);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,

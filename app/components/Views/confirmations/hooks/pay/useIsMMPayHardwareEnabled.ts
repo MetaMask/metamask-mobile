@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
-import { hasTransactionType } from '@metamask/transaction-controller';
 
-import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { RootState } from '../../../../../reducers';
+import { selectPayHardwareConfig } from '../../../../../selectors/featureFlagController/confirmations';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 /**
@@ -10,11 +10,10 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
  */
 export function useIsMMPayHardwareEnabled(): boolean {
   const transactionMeta = useTransactionMetadataRequest();
-  const { enabled, enabledTransactionTypes } = useSelector(
-    selectMetaMaskPayHardwareFlags,
+
+  const config = useSelector((state: RootState) =>
+    selectPayHardwareConfig(state, transactionMeta?.type),
   );
 
-  return (
-    enabled && hasTransactionType(transactionMeta, enabledTransactionTypes)
-  );
+  return config.enabled === true;
 }
