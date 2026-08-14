@@ -279,6 +279,29 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   });
 
   describe('for fees', () => {
+    it('returns no fees alert while the pay token balance has not resolved', () => {
+      // Arrange — same shortfall as the case below, but measured against the
+      // stale snapshot rather than a resolved balance.
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceRaw: '999',
+        },
+        setPayToken: jest.fn(),
+      });
+      usePayTokenAccountBalanceMock.mockReturnValue({
+        balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
+        balanceRaw: '999',
+        isResolved: false,
+      });
+
+      // Act
+      const { result } = runHook();
+
+      // Assert
+      expect(result.current).toStrictEqual([]);
+    });
+
     it('returns alert if pay token balance is less than total source amount', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {

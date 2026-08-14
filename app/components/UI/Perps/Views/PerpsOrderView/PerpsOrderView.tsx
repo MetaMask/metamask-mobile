@@ -2247,7 +2247,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           {hasCustomTokenSelected && !!blockingNoQuoteAlertMessage && (
             <View style={styles.validationContainer}>
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.ErrorDefault}
+                testID={PerpsOrderViewSelectorsIDs.PAY_TOKEN_NO_QUOTE_MESSAGE}
+              >
                 {blockingNoQuoteAlertMessage}
               </Text>
             </View>

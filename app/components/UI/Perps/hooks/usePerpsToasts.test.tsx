@@ -3,6 +3,7 @@ import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
+import { strings } from '../../../../../locales/i18n';
 import {
   ButtonIconVariant,
   ToastVariants,
@@ -1289,7 +1290,10 @@ describe('usePerpsToasts', () => {
 
         // Assert
         expect(config.labelOptions).toEqual([
-          { label: 'Order validation failed', isBold: true },
+          {
+            label: strings('perps.order.validation.failed'),
+            isBold: true,
+          },
         ]);
       });
     });
