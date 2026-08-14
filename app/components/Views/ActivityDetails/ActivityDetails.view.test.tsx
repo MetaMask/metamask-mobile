@@ -1182,7 +1182,6 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
   });
 });
 
-
 /**
  * Details resolves local txs from TransactionController. Keep EVM networks
  * disabled so useTransactionsQuery does not hit the Accounts API.
@@ -1200,119 +1199,126 @@ const disableEvmNetworkFetch = {
   },
 } as const;
 
-describeForPlatforms('ActivityDetails — Core UX swap / Solana regressions', () => {
-  it('shows Swapped title, dual amounts, and Confirmed status for a local swap', async () => {
-    const swapTransaction = buildConfirmedLocalCrossChainSwapTransaction();
-    const state = initialStateActivityWithLocalTransactions([swapTransaction])
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeStatusController: {
-              txHistory: {
-                [swapTransaction.id]:
-                  activityCvCrossChainSwapBridgeHistoryEntry,
+describeForPlatforms(
+  'ActivityDetails — Core UX swap / Solana regressions',
+  () => {
+    it('shows Swapped title, dual amounts, and Confirmed status for a local swap', async () => {
+      const swapTransaction = buildConfirmedLocalCrossChainSwapTransaction();
+      const state = initialStateActivityWithLocalTransactions([swapTransaction])
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeStatusController: {
+                txHistory: {
+                  [swapTransaction.id]:
+                    activityCvCrossChainSwapBridgeHistoryEntry,
+                },
               },
+              ...disableEvmNetworkFetch.engine.backgroundState,
             },
-            ...disableEvmNetworkFetch.engine.backgroundState,
           },
-        },
-      } as never)
-      .build();
+        } as never)
+        .build();
 
-    const { findByTestId, queryByText } = renderActivityDetailsView({
-      state,
-      params: {
-        chainId: MAINNET_CAIP,
-        txIdentifier: swapTransaction.id,
-      },
+      const { findByTestId, queryByText } = renderActivityDetailsView({
+        state,
+        params: {
+          chainId: MAINNET_CAIP,
+          txIdentifier: swapTransaction.id,
+        },
+      });
+
+      expect(
+        await findByTestId(ActivityDetailsSelectorsIDs.SCREEN),
+      ).toBeOnTheScreen();
+
+      const header = await findByTestId(ActivityDetailsSelectorsIDs.HEADER);
+      expect(within(header).getByText('Swapped')).toBeOnTheScreen();
+      expect(
+        queryByText(strings('transactions.smart_contract_interaction')),
+      ).toBeNull();
+
+      const amountHeader = await findByTestId(
+        ActivityDetailsSelectorsIDs.AMOUNT_HEADER,
+      );
+      expect(
+        within(amountHeader).getByText(strings('activity_details.you_sent')),
+      ).toBeOnTheScreen();
+      expect(
+        within(amountHeader).getByText(
+          strings('activity_details.you_received'),
+        ),
+      ).toBeOnTheScreen();
+      expect(within(amountHeader).getByText(/ETH/)).toBeOnTheScreen();
+      expect(within(amountHeader).getByText(/USDC/)).toBeOnTheScreen();
+
+      expect(
+        await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
+      ).toHaveTextContent(strings('transaction.confirmed'));
     });
 
-    expect(
-      await findByTestId(ActivityDetailsSelectorsIDs.SCREEN),
-    ).toBeOnTheScreen();
-
-    const header = await findByTestId(ActivityDetailsSelectorsIDs.HEADER);
-    expect(within(header).getByText('Swapped')).toBeOnTheScreen();
-    expect(
-      queryByText(strings('transactions.smart_contract_interaction')),
-    ).toBeNull();
-
-    const amountHeader = await findByTestId(
-      ActivityDetailsSelectorsIDs.AMOUNT_HEADER,
-    );
-    expect(
-      within(amountHeader).getByText(strings('activity_details.you_sent')),
-    ).toBeOnTheScreen();
-    expect(
-      within(amountHeader).getByText(strings('activity_details.you_received')),
-    ).toBeOnTheScreen();
-    expect(within(amountHeader).getByText(/ETH/)).toBeOnTheScreen();
-    expect(within(amountHeader).getByText(/USDC/)).toBeOnTheScreen();
-
-    expect(
-      await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
-    ).toHaveTextContent(strings('transaction.confirmed'));
-  });
-
-  it('shows Pending status for a submitted local swap', async () => {
-    const swapTransaction = buildPendingLocalCrossChainSwapTransaction();
-    const state = initialStateActivityWithLocalTransactions([swapTransaction])
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeStatusController: {
-              txHistory: {
-                [swapTransaction.id]:
-                  activityCvPendingCrossChainSwapBridgeHistoryEntry,
+    it('shows Pending status for a submitted local swap', async () => {
+      const swapTransaction = buildPendingLocalCrossChainSwapTransaction();
+      const state = initialStateActivityWithLocalTransactions([swapTransaction])
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              BridgeStatusController: {
+                txHistory: {
+                  [swapTransaction.id]:
+                    activityCvPendingCrossChainSwapBridgeHistoryEntry,
+                },
               },
+              ...disableEvmNetworkFetch.engine.backgroundState,
             },
-            ...disableEvmNetworkFetch.engine.backgroundState,
           },
+        } as never)
+        .build();
+
+      const { findByTestId } = renderActivityDetailsView({
+        state,
+        params: {
+          chainId: MAINNET_CAIP,
+          txIdentifier: swapTransaction.id,
         },
-      } as never)
-      .build();
+      });
 
-    const { findByTestId } = renderActivityDetailsView({
-      state,
-      params: {
-        chainId: MAINNET_CAIP,
-        txIdentifier: swapTransaction.id,
-      },
+      expect(
+        await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
+      ).toHaveTextContent(strings('transaction.pending'));
     });
 
-    expect(
-      await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
-    ).toHaveTextContent(strings('transaction.pending'));
-  });
+    it('shows Solana send amount and fiat total from multichain asset rates', async () => {
+      const state = initialStateActivity()
+        .withOverrides(activityCvSolanaSendStateOverrides)
+        .build();
 
-  it('shows Solana send amount and fiat total from multichain asset rates', async () => {
-    const state = initialStateActivity()
-      .withOverrides(activityCvSolanaSendStateOverrides)
-      .build();
+      const { findByTestId } = renderActivityDetailsView({
+        state,
+        params: {
+          chainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+          txIdentifier: ACTIVITY_CV_SOLANA_SEND_ID,
+        },
+      });
 
-    const { findByTestId } = renderActivityDetailsView({
-      state,
-      params: {
-        chainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
-        txIdentifier: ACTIVITY_CV_SOLANA_SEND_ID,
-      },
+      expect(
+        await findByTestId(ActivityDetailsSelectorsIDs.SCREEN),
+      ).toBeOnTheScreen();
+
+      const amountHeader = await findByTestId(
+        ActivityDetailsSelectorsIDs.AMOUNT_HEADER,
+      );
+      expect(within(amountHeader).getByText(/SOL/)).toBeOnTheScreen();
+
+      const totalRow = await findByTestId(
+        ActivityDetailsSelectorsIDs.TOTAL_ROW,
+      );
+      // 2 SOL * multichain rate 4 → $8.00 (formatCurrencyWithMinThreshold)
+      expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen();
+
+      expect(
+        await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
+      ).toHaveTextContent(strings('transaction.confirmed'));
     });
-
-    expect(
-      await findByTestId(ActivityDetailsSelectorsIDs.SCREEN),
-    ).toBeOnTheScreen();
-
-    const amountHeader = await findByTestId(
-      ActivityDetailsSelectorsIDs.AMOUNT_HEADER,
-    );
-    expect(within(amountHeader).getByText(/SOL/)).toBeOnTheScreen();
-
-    const totalRow = await findByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW);
-    // 2 SOL * multichain rate 4 → $8.00 (formatCurrencyWithMinThreshold)
-    expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen();
-
-    expect(
-      await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
-    ).toHaveTextContent(strings('transaction.confirmed'));
-  });
-});
+  },
+);
