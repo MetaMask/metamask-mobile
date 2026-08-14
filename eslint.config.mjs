@@ -600,7 +600,11 @@ export default defineConfig([
     },
   },
   {
-    files: ['scripts/**/*.{js,ts}', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
+    files: [
+      'scripts/**/*.{js,ts}',
+      'tests/tools/**/*.{js,ts}',
+      'app.config.js',
+    ],
     rules: {
       'no-console': 'off',
       'import-x/no-commonjs': 'off',
