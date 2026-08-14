@@ -61,7 +61,6 @@ function getBridgeControllerMock() {
 }
 
 export const runBatchSellQuoteRequestCases = ({
-  implementation,
   render,
   debounceMs,
   helpers,
@@ -83,6 +82,7 @@ export const runBatchSellQuoteRequestCases = ({
     getBatchSellAtomicSourceAmount: typeof getBatchSellAtomicSourceAmount;
     hasValidBatchSellSourceAmounts: typeof hasValidBatchSellSourceAmounts;
     buildBatchSellQuoteRequestData?: typeof buildBatchSellQuoteRequestData;
+    buildBatchSellQuoteRows?: typeof import('../useBatchSellQuotes').buildBatchSellQuoteRows;
   };
 }) => {
   const {
@@ -90,10 +90,8 @@ export const runBatchSellQuoteRequestCases = ({
     getBatchSellAtomicSourceAmount,
     hasValidBatchSellSourceAmounts,
     buildBatchSellQuoteRequestData,
+    buildBatchSellQuoteRows,
   } = helpers;
-  const itUnlessCopied = (name: string, fn: jest.ProvidesCallback) =>
-    // eslint-disable-next-line jest/no-disabled-tests
-    implementation === 'copied' ? it.skip(name, fn) : it(name, fn);
 
   const flushQuoteRequestDebounce = async () => {
     await act(async () => {
@@ -198,16 +196,51 @@ export const runBatchSellQuoteRequestCases = ({
     }
   });
 
-  itUnlessCopied('builds quote request data for non-zero Batch Sell source token amounts', () => {
-    if (!buildBatchSellQuoteRequestData) {
+  it('builds quote request data for non-zero Batch Sell source token amounts', () => {
+    if (buildBatchSellQuoteRequestData) {
+      const quoteRequestData = buildBatchSellQuoteRequestData({
+        batchSellSlippages: {
+          [ethAssetId]: '2.5',
+        },
+        batchSellSourceTokenAmounts: {
+          [ethAssetId]: '0.749',
+        },
+        destToken: usdcToken,
+        smartTransactionsEnabled: false,
+        sourceTokens: [ethToken, uniToken],
+        walletAddress: mockBatchSellQuoteRequestEnv.walletAddress,
+      });
+
+      expect(quoteRequestData).toEqual([
+        expect.objectContaining({
+          quoteRequest: expect.objectContaining({
+            srcChainId: '1',
+            srcTokenAddress: ethToken.address,
+            destChainId: '1',
+            destTokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            srcTokenAmount: '749000000000000000',
+            slippage: 2.5,
+            walletAddress: mockBatchSellQuoteRequestEnv.walletAddress,
+            destWalletAddress: mockBatchSellQuoteRequestEnv.walletAddress,
+          }),
+          context: expect.objectContaining({
+            stx_enabled: false,
+            token_symbol_source: 'ETH',
+            token_symbol_destination: 'USDC',
+            token_security_type_destination: null,
+            usd_amount_source: 1500,
+            feature_id: FeatureId.BATCH_SELL,
+          }),
+        }),
+      ]);
       return;
     }
 
-    const quoteRequestData = buildBatchSellQuoteRequestData({
-      batchSellSlippages: {
+    const rows = buildBatchSellQuoteRows?.({
+      slippages: {
         [ethAssetId]: '2.5',
       },
-      batchSellSourceTokenAmounts: {
+      sourceTokenAmounts: {
         [ethAssetId]: '0.749',
       },
       destToken: usdcToken,
@@ -216,25 +249,21 @@ export const runBatchSellQuoteRequestCases = ({
       walletAddress: mockBatchSellQuoteRequestEnv.walletAddress,
     });
 
-    expect(quoteRequestData).toEqual([
+    expect(rows).toEqual([
       expect.objectContaining({
-        quoteRequest: expect.objectContaining({
-          srcChainId: '1',
-          srcTokenAddress: ethToken.address,
-          destChainId: '1',
-          destTokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          srcTokenAmount: '749000000000000000',
+        config: expect.objectContaining({
+          srcTokenAmount: '0.749',
           slippage: 2.5,
           walletAddress: mockBatchSellQuoteRequestEnv.walletAddress,
           destWalletAddress: mockBatchSellQuoteRequestEnv.walletAddress,
-        }),
-        context: expect.objectContaining({
-          stx_enabled: false,
-          token_symbol_source: 'ETH',
-          token_symbol_destination: 'USDC',
-          token_security_type_destination: null,
-          usd_amount_source: 1500,
-          feature_id: FeatureId.BATCH_SELL,
+          analyticsContext: expect.objectContaining({
+            stx_enabled: false,
+            token_symbol_source: 'ETH',
+            token_symbol_destination: 'USDC',
+            token_security_type_destination: null,
+            usd_amount_source: 1500,
+            feature_id: FeatureId.BATCH_SELL,
+          }),
         }),
       }),
     ]);
@@ -488,7 +517,7 @@ export const runBatchSellQuoteRequestCases = ({
     );
   });
 
-  itUnlessCopied('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
+  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
     const caipSourceToken: BridgeToken = {
       ...ethToken,
       chainId: 'eip155:1' as unknown as Hex,
@@ -509,7 +538,7 @@ export const runBatchSellQuoteRequestCases = ({
     );
   });
 
-  itUnlessCopied('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
+  it('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {
         batchSellSourceTokens: [],

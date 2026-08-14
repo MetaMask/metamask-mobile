@@ -4,6 +4,7 @@ import { debounce } from 'lodash';
 import BigNumber from 'bignumber.js';
 import {
   FeatureId,
+  assetIdsMatch,
   formatAddressToAssetId,
   isNativeAddress,
   sumAmounts,
@@ -12,7 +13,10 @@ import type { BigNumber as EthersBigNumber } from 'ethers';
 import type { CaipAssetType } from '@metamask/utils';
 
 import Engine from '../../../../../core/Engine';
-import { selectBatchSellTrades } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBatchSellQuotes,
+  selectBatchSellTrades,
+} from '../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import formatFiat from '../../../../../util/formatFiat';
@@ -285,6 +289,7 @@ export const useBatchSellQuotes = ({
     sourceTokenAmounts,
     shouldUpdateBatchSellTrades = true,
   } = config;
+  const batchSellQuotes = useSelector(selectBatchSellQuotes);
   const batchSellTrades = useSelector(selectBatchSellTrades);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
@@ -298,42 +303,97 @@ export const useBatchSellQuotes = ({
 
   const destinationTokenSymbol =
     destToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL;
-  const recommendedQuotes = useMemo(
+  const hasValidSourceAmounts = hasValidBatchSellSourceAmounts(
+    sourceTokens,
+    sourceTokenAmounts,
+    destToken,
+  );
+  const recommendedQuotesRequestKey = useMemo(
     () =>
-      orderedAssetIds
-        .map((assetId) => quotesByAssetId[assetId]?.recommendedQuote)
-        .filter(
+      getBatchSellTradesRequestKey(
+        (batchSellQuotes.recommendedQuotes ?? []).filter(
           (
             quote,
           ): quote is NonNullable<
             ReturnType<typeof useBridgeQuotes>['recommendedQuote']
           > => Boolean(quote),
         ),
-    [orderedAssetIds, quotesByAssetId],
+      ),
+    [batchSellQuotes.recommendedQuotes],
+  );
+  const lastFetchedRecommendedQuotesRequestKey = useRef<string | undefined>(
+    undefined,
   );
   const lastBatchSellTradesRequestKey = useRef<string | undefined>(undefined);
-  const hasValidSourceAmounts = hasValidBatchSellSourceAmounts(
-    sourceTokens,
-    sourceTokenAmounts,
-    destToken,
+  useEffect(() => {
+    if (!batchSellQuotes.isLoading) {
+      lastFetchedRecommendedQuotesRequestKey.current =
+        recommendedQuotesRequestKey;
+    }
+  }, [batchSellQuotes.isLoading, recommendedQuotesRequestKey]);
+  const shouldHideStaleRefreshQuotes = Boolean(
+    batchSellQuotes.isLoading &&
+      lastFetchedRecommendedQuotesRequestKey.current &&
+      lastFetchedRecommendedQuotesRequestKey.current ===
+        recommendedQuotesRequestKey,
   );
-  const hasStaleDestinationQuotes = orderedAssetIds.some((assetId) => {
-    const row = quotesByAssetId[assetId];
+  const destinationAssetId = destToken
+    ? formatAddressToAssetId(destToken.address, destToken.chainId)
+    : undefined;
+  const hasStaleDestinationQuotes = (
+    batchSellQuotes.recommendedQuotes ?? []
+  ).some(
+    (quote) =>
+      quote != null &&
+      !assetIdsMatch(quote.quote.dest.asset.assetId, destinationAssetId),
+  );
+  const recommendedQuotes = useMemo(() => {
+    if (!hasValidSourceAmounts || shouldHideStaleRefreshQuotes) {
+      return [];
+    }
 
-    return Boolean(
-      row?.recommendedQuote && !row.isActiveQuoteForCurrentTokenPair,
-    );
-  });
+    return orderedAssetIds.flatMap((assetId) => {
+      const row = quotesByAssetId[assetId];
+
+      if (!row?.recommendedQuote || !row.isActiveQuoteForCurrentTokenPair) {
+        return [];
+      }
+
+      return [row.recommendedQuote];
+    });
+  }, [
+    hasValidSourceAmounts,
+    orderedAssetIds,
+    quotesByAssetId,
+    shouldHideStaleRefreshQuotes,
+  ]);
   const hasAnyQuote = recommendedQuotes.length > 0;
-  const isLoading = orderedAssetIds.some(
-    (assetId) => quotesByAssetId[assetId]?.isLoading,
-  );
+  const hasQuoteResultsForSelectedTokens =
+    sourceTokens.length > 0 &&
+    (Boolean(batchSellQuotes.quotesLastFetchedMs) ||
+      recommendedQuotes.length === sourceTokens.length);
+  const isLoading =
+    hasValidSourceAmounts &&
+    (batchSellQuotes.isLoading ||
+      hasStaleDestinationQuotes ||
+      shouldHideStaleRefreshQuotes ||
+      !hasQuoteResultsForSelectedTokens ||
+      orderedAssetIds.some((assetId) => quotesByAssetId[assetId]?.isLoading));
+  const isWaitingForQuoteRows =
+    hasValidSourceAmounts &&
+    (!hasQuoteResultsForSelectedTokens ||
+      batchSellQuotes.isLoading ||
+      hasStaleDestinationQuotes ||
+      shouldHideStaleRefreshQuotes);
   const hasPendingQuoteRows = orderedAssetIds.some((assetId) => {
     const row = quotesByAssetId[assetId];
-
-    return Boolean(
-      row && !row.recommendedQuote && (row.isLoading || isLoading),
+    const hasVisibleQuote = Boolean(
+      row?.recommendedQuote &&
+        row.isActiveQuoteForCurrentTokenPair &&
+        !shouldHideStaleRefreshQuotes,
     );
+
+    return !hasVisibleQuote && isWaitingForQuoteRows;
   });
   const needsNewQuote = orderedAssetIds.some(
     (assetId) => quotesByAssetId[assetId]?.needsNewQuote,
@@ -371,8 +431,17 @@ export const useBatchSellQuotes = ({
     ? totalNetworkFee?.amount
     : undefined;
   const batchSellTradesRequestKey = useMemo(
-    () => getBatchSellTradesRequestKey(recommendedQuotes),
-    [recommendedQuotes],
+    () =>
+      getBatchSellTradesRequestKey(
+        (batchSellQuotes.recommendedQuotes ?? []).filter(
+          (
+            quote,
+          ): quote is NonNullable<
+            ReturnType<typeof useBridgeQuotes>['recommendedQuote']
+          > => Boolean(quote),
+        ),
+      ),
+    [batchSellQuotes.recommendedQuotes],
   );
   const quotePercentFee = useMemo(
     () => getBatchSellMetamaskFeePercent(recommendedQuotes),

@@ -8,6 +8,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { BridgeToken } from '../../types';
 import { BRIDGE_QUOTES_DEBOUNCE_MS } from '../useBridgeQuotes';
 import {
+  buildBatchSellQuoteRows,
   getBatchSellAtomicSourceAmount,
   getBatchSellSourceTokenAmount,
   hasValidBatchSellSourceAmounts,
@@ -92,6 +93,7 @@ runBatchSellQuoteRequestCases({
     getBatchSellSourceTokenAmount,
     getBatchSellAtomicSourceAmount,
     hasValidBatchSellSourceAmounts,
+    buildBatchSellQuoteRows,
   },
   render: (state) => {
     const box: {

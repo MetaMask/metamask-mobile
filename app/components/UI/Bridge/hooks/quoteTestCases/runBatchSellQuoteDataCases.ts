@@ -211,11 +211,7 @@ export const runBatchSellQuoteDataCases = (
     implementation: 'legacy',
   },
 ) => {
-  const { implementation } = options;
-  const itUnlessCopied = (name: string, fn: jest.ProvidesCallback) =>
-    // Copied rows use quotesByAssetId from nested providers, not tokenData from Redux selectors.
-    // eslint-disable-next-line jest/no-disabled-tests
-    implementation === 'copied' ? it.skip(name, fn) : it(name, fn);
+  void options;
 
   describe('batch sell quote data cases', () => {
     // @ts-expect-error - jest.SpyInstance is a valid type
@@ -294,7 +290,7 @@ export const runBatchSellQuoteDataCases = (
       jest.restoreAllMocks();
     });
 
-    itUnlessCopied(
+    it(
       'reports no quotes when all source amounts are zero even if stale quotes exist',
       () => {
         selectBatchSellSourceTokenAmountsSpy.mockReturnValue({
@@ -320,7 +316,7 @@ export const runBatchSellQuoteDataCases = (
       },
     );
 
-    itUnlessCopied('formats complete Batch Sell quote data', () => {
+    it('formats complete Batch Sell quote data', () => {
       const { result } = render();
 
       expect(result.current.hasAnyQuote).toBe(true);
@@ -523,7 +519,7 @@ export const runBatchSellQuoteDataCases = (
       expect(result.current.quotePercentFee).toBeUndefined();
     });
 
-    itUnlessCopied(
+    it(
       'does not fetch Batch Sell trades again for the same quote ids',
       () => {
         const { rerender } = render();
@@ -545,7 +541,7 @@ export const runBatchSellQuoteDataCases = (
       },
     );
 
-    itUnlessCopied(
+    it(
       'fetches Batch Sell trades again when the recommended quote id changes',
       () => {
         const { rerender } = render();
@@ -592,7 +588,7 @@ export const runBatchSellQuoteDataCases = (
       ).toHaveBeenCalledWith(expect.any(Array), true);
     });
 
-    itUnlessCopied(
+    it(
       'falls back to destination token amounts when display currency values are unavailable',
       () => {
         selectBatchSellQuotesSpy.mockReturnValue({
@@ -647,7 +643,7 @@ export const runBatchSellQuoteDataCases = (
       expect(result.current.networkFee.formattedFiat).toBe('-');
     });
 
-    itUnlessCopied(
+    it(
       'marks quote rows below the warning threshold as safe',
       () => {
         selectBatchSellQuotesSpy.mockReturnValue({
@@ -671,7 +667,7 @@ export const runBatchSellQuoteDataCases = (
       },
     );
 
-    itUnlessCopied(
+    it(
       'marks quote rows at the warning threshold as high price impact',
       () => {
         selectBatchSellQuotesSpy.mockReturnValue({
@@ -715,7 +711,7 @@ export const runBatchSellQuoteDataCases = (
       expect(result.current.tokenData[ethAssetId].isHighPriceImpact).toBe(true);
     });
 
-    itUnlessCopied(
+    it(
       'matches recommended quotes by source asset id instead of array index',
       () => {
         selectBatchSellQuotesSpy.mockReturnValue({
@@ -745,7 +741,7 @@ export const runBatchSellQuoteDataCases = (
       },
     );
 
-    itUnlessCopied(
+    it(
       'hides stale quotes when their destination does not match the selected stablecoin',
       () => {
         selectBatchSellDestTokenSpy.mockReturnValue(usdcToken);
@@ -789,7 +785,7 @@ export const runBatchSellQuoteDataCases = (
       },
     );
 
-    itUnlessCopied(
+    it(
       'marks rows without recommended quotes as unavailable after loading',
       () => {
         selectBatchSellQuotesSpy.mockReturnValue({
@@ -824,7 +820,7 @@ export const runBatchSellQuoteDataCases = (
       },
     );
 
-    itUnlessCopied(
+    it(
       'shows streamed row data and progressive totals while other rows are loading',
       () => {
         selectBatchSellQuotesSpy.mockReturnValue({
@@ -883,7 +879,7 @@ export const runBatchSellQuoteDataCases = (
       ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes, false);
     });
 
-    itUnlessCopied(
+    it(
       'hides stale quotes when a refresh starts and reveals new streamed quotes progressively',
       () => {
         const { result, rerender } = render();

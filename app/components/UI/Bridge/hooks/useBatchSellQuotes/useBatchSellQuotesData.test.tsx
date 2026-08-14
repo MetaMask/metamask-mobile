@@ -1,5 +1,7 @@
-import React from 'react';
-import { BigNumber } from 'ethers';
+import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { BigNumber } from 'bignumber.js';
+import { BigNumber as EthersBigNumber } from 'ethers';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { CaipAssetType } from '@metamask/utils';
 
@@ -7,8 +9,15 @@ import '../../_mocks_/initialState';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';
 import type { BridgeToken } from '../../types';
-// eslint-disable-next-line import-x/no-namespace -- read the same spies the runner installs
-import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
+import formatFiat from '../../../../../util/formatFiat';
+import { formatTokenBalance } from '../../utils';
+import {
+  selectBatchSellDestToken,
+  selectBatchSellSlippages,
+  selectBatchSellSourceTokenAmounts,
+  selectBatchSellSourceTokens,
+  setSourceAmount,
+} from '../../../../../core/redux/slices/bridge';
 import {
   BatchSellQuotesProvider,
   useBatchSellQuotesContext,
@@ -85,57 +94,124 @@ const Probe = ({
   return null;
 };
 
-const emptyState = {} as never;
+const formatTokenAmountWithSymbol = (
+  amount: string | undefined,
+  symbol: string | undefined,
+) => {
+  const tokenSymbol = symbol ? ` ${symbol}` : '';
+
+  if (amount === undefined) return `--${tokenSymbol}`;
+
+  return `${formatTokenBalance(amount)}${tokenSymbol}`;
+};
+
+const formatQuoteDisplayValue = ({
+  amount,
+  valueInCurrency,
+  symbol,
+}: {
+  amount: string | undefined;
+  valueInCurrency: string | null | undefined;
+  symbol: string | undefined;
+}) => {
+  const hasTokenAmount = amount !== undefined;
+  const hasNonZeroTokenAmount = hasTokenAmount && new BigNumber(amount).gt(0);
+  const hasMissingDisplayValue =
+    !valueInCurrency ||
+    (new BigNumber(valueInCurrency).isZero() && hasNonZeroTokenAmount);
+
+  if (hasMissingDisplayValue && hasTokenAmount) {
+    return formatTokenAmountWithSymbol(amount, symbol);
+  }
+
+  if (!valueInCurrency) return '-';
+
+  return formatFiat(new BigNumber(valueInCurrency), 'USD');
+};
 
 const mapToLegacyBatchSellQuoteData = (
   value: ReturnType<typeof useBatchSellQuotesContext>,
   sourceTokens: BridgeToken[],
-) => ({
-  ...value,
-  tokenData: Object.fromEntries(
-    sourceTokens.flatMap((token) => {
-      const assetId = formatAddressToAssetId(token.address, token.chainId);
-      if (!assetId) return [];
-      const row = value.quotesByAssetId[assetId];
-      return [
-        [
-          assetId,
-          {
-            key: assetId,
-            tokenSymbol: token.symbol,
-            quote: row?.recommendedQuote ?? null,
-            receivedAmount: row?.formattedQuoteData?.receivedAmount,
-            receivedAmountFiat: row?.formattedQuoteData?.receivedAmountFiat,
-            isLoading: row?.isLoading ?? false,
-            isHighPriceImpact: row?.shouldShowPriceImpactWarning ?? false,
-            isQuoteUnavailable: row?.isNoQuotesAvailable ?? false,
-          },
-        ],
-      ];
-    }),
-  ),
-});
+  destToken?: BridgeToken,
+) => {
+  const destSymbol = destToken?.symbol ?? 'UNKNOWN';
+  const isWaiting =
+    value.isLoading || value.isSummaryLoading || value.hasPendingQuoteRows;
 
-runBatchSellQuoteDataCases(() => {
-  const sourceTokens = bridgeSlice.selectBatchSellSourceTokens(emptyState);
-  const destToken = bridgeSlice.selectBatchSellDestToken(emptyState);
-  const sourceTokenAmounts =
-    bridgeSlice.selectBatchSellSourceTokenAmounts(emptyState);
-  const slippages = bridgeSlice.selectBatchSellSlippages(emptyState);
-  const latestSourceAtomicBalances = sourceTokens.reduce<
-    Partial<Record<CaipAssetType, BigNumber | undefined>>
-  >((balances, token) => {
-    const assetId = formatAddressToAssetId(token.address, token.chainId);
-    if (assetId) {
-      balances[assetId] = BigNumber.from('10000000000000000000');
-    }
-    return balances;
-  }, {});
-  const box: { current: ReturnType<typeof useBatchSellQuoteData> } = {
-    current: undefined as never,
+  return {
+    ...value,
+    tokenData: Object.fromEntries(
+      sourceTokens.flatMap((token) => {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        if (!assetId) return [];
+        const row = value.quotesByAssetId[assetId];
+        const visibleQuote =
+          value.hasAnyQuote &&
+          row?.recommendedQuote &&
+          row.isActiveQuoteForCurrentTokenPair
+            ? row.recommendedQuote
+            : null;
+        const destAmount = visibleQuote?.quote.dest.normalizedAmount;
+        const destValue = visibleQuote?.quote.dest.valueInCurrency;
+        const quoteDestSymbol =
+          visibleQuote?.quote.dest.asset.symbol ?? destSymbol;
+
+        return [
+          [
+            assetId,
+            {
+              key: assetId,
+              tokenSymbol: token.symbol,
+              quote: visibleQuote,
+              receivedAmount: formatTokenAmountWithSymbol(
+                destAmount,
+                quoteDestSymbol,
+              ),
+              receivedAmountFiat: visibleQuote
+                ? formatQuoteDisplayValue({
+                    amount: destAmount,
+                    valueInCurrency: destValue,
+                    symbol: quoteDestSymbol,
+                  })
+                : '-',
+              priceImpact: visibleQuote?.quote.priceData?.priceImpact?.amount,
+              isLoading: !visibleQuote && isWaiting,
+              isHighPriceImpact: visibleQuote
+                ? (row?.shouldShowPriceImpactWarning ?? false)
+                : false,
+              isQuoteUnavailable: !visibleQuote && !isWaiting,
+            },
+          ],
+        ];
+      }),
+    ),
   };
+};
 
-  renderWithProvider(
+const Harness = ({
+  onValue,
+}: {
+  onValue: (value: ReturnType<typeof useBatchSellQuoteData>) => void;
+}) => {
+  const sourceTokens = useSelector(selectBatchSellSourceTokens);
+  const destToken = useSelector(selectBatchSellDestToken);
+  const sourceTokenAmounts = useSelector(selectBatchSellSourceTokenAmounts);
+  const slippages = useSelector(selectBatchSellSlippages);
+  const latestSourceAtomicBalances = useMemo(
+    () =>
+      sourceTokens.reduce<
+        Partial<Record<CaipAssetType, EthersBigNumber | undefined>>
+      >((balances, token) => {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        if (assetId) {
+          balances[assetId] = EthersBigNumber.from('10000000000000000000');
+        }
+        return balances;
+      }, {}),
+    [sourceTokens],
+  );
+
+  return (
     <BatchSellQuotesProvider
       config={{
         sourceTokens,
@@ -148,16 +224,46 @@ runBatchSellQuoteDataCases(() => {
     >
       <Probe
         onValue={(value) => {
-          box.current = mapToLegacyBatchSellQuoteData(
-            value,
-            sourceTokens,
-          ) as unknown as ReturnType<typeof useBatchSellQuoteData>;
+          onValue(
+            mapToLegacyBatchSellQuoteData(
+              value,
+              sourceTokens,
+              destToken,
+            ) as unknown as ReturnType<typeof useBatchSellQuoteData>,
+          );
         }}
       />
-    </BatchSellQuotesProvider>,
+    </BatchSellQuotesProvider>
+  );
+};
+
+runBatchSellQuoteDataCases(() => {
+  const box: { current: ReturnType<typeof useBatchSellQuoteData> } = {
+    current: undefined as never,
+  };
+  let flushCount = 0;
+  const view = renderWithProvider(
+    <Harness
+      onValue={(value) => {
+        box.current = value;
+      }}
+    />,
     { state: createBridgeTestState() },
     false,
   );
 
-  return { result: box };
+  return {
+    result: box,
+    rerender: () => {
+      flushCount += 1;
+      view.store.dispatch(setSourceAmount(`flush-${flushCount}`));
+      view.rerender(
+        <Harness
+          onValue={(value) => {
+            box.current = value;
+          }}
+        />,
+      );
+    },
+  };
 }, { implementation: 'copied' });
