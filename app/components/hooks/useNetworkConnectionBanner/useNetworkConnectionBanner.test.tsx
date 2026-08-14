@@ -5,7 +5,9 @@ import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 import useNetworkConnectionBanner from './useNetworkConnectionBanner';
-import { useMessenger } from '../../../hooks/useMessenger';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
+import { RouteMessengerContext } from '../../../contexts/route-messenger';
+import type { RouteMessenger } from '../../../messengers/route-messenger';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -21,7 +23,6 @@ import {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 jest.mock('@react-navigation/native');
-jest.mock('../../../hooks/useMessenger');
 jest.mock('../useAnalytics/useAnalytics');
 jest.mock('../../../selectors/networkConnectionBanner');
 jest.mock('../../../core/Engine/controllers/network-controller/utils', () => ({
@@ -34,6 +35,9 @@ jest.mock('../../../constants/network', () => ({
   ...jest.requireActual('../../../constants/network'),
   INFURA_PROJECT_ID: 'test-infura-project-id',
 }));
+
+const SWITCH_TO_INFURA_ACTION =
+  'NetworkConnectionBannerController:switchToDefaultInfuraRpcEndpoint';
 
 // A minimal store whose snapshot changes on every SYNC dispatch. The banner
 // selectors are mocked, so the store content is irrelevant, but changing the
@@ -52,8 +56,6 @@ const mockShowToast = jest.fn();
 const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
-
-const mockMessengerCall = jest.fn(async () => undefined);
 
 const statusMock = jest.mocked(selectNetworkConnectionBannerStatus);
 const networkMock = jest.mocked(selectNetworkConnectionBannerNetwork);
@@ -105,24 +107,26 @@ describe('useNetworkConnectionBanner', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
-
-    (useMessenger as jest.Mock).mockReturnValue({ call: mockMessengerCall });
   });
 
-  const renderHookWithProviders = () => {
+  const renderHookWithProviders = (
+    routeMessenger: RouteMessenger = createMockRouteMessenger(),
+  ) => {
     const store = createStore(storeReducer);
     const utils = renderHook(() => useNetworkConnectionBanner(), {
       wrapper: ({ children }) => (
         <Provider store={store}>
-          <ToastContext.Provider
-            value={
-              { toastRef: mockToastRef } as unknown as React.ContextType<
-                typeof ToastContext
-              >
-            }
-          >
-            {children}
-          </ToastContext.Provider>
+          <RouteMessengerContext.Provider value={routeMessenger}>
+            <ToastContext.Provider
+              value={
+                { toastRef: mockToastRef } as unknown as React.ContextType<
+                  typeof ToastContext
+                >
+              }
+            >
+              {children}
+            </ToastContext.Provider>
+          </RouteMessengerContext.Provider>
         </Provider>
       ),
     });
@@ -267,13 +271,18 @@ describe('useNetworkConnectionBanner', () => {
 
   describe('switchToInfura', () => {
     it('is a no-op when the banner is not visible', async () => {
-      const { result } = renderHookWithProviders();
+      const switchToInfura = jest.fn().mockResolvedValue(undefined);
+      const messenger = createMockRouteMessenger({
+        [SWITCH_TO_INFURA_ACTION]: switchToInfura,
+      });
+
+      const { result } = renderHookWithProviders(messenger);
 
       await act(async () => {
         await result.current.switchToInfura();
       });
 
-      expect(mockMessengerCall).not.toHaveBeenCalled();
+      expect(switchToInfura).not.toHaveBeenCalled();
     });
 
     it('is a no-op when no Infura endpoint is available', async () => {
@@ -285,13 +294,19 @@ describe('useNetworkConnectionBanner', () => {
         isInfuraEndpoint: false,
         switchableInfuraNetworkClientId: null,
       });
-      const { result } = renderHookWithProviders();
+
+      const switchToInfura = jest.fn().mockResolvedValue(undefined);
+      const messenger = createMockRouteMessenger({
+        [SWITCH_TO_INFURA_ACTION]: switchToInfura,
+      });
+
+      const { result } = renderHookWithProviders(messenger);
 
       await act(async () => {
         await result.current.switchToInfura();
       });
 
-      expect(mockMessengerCall).not.toHaveBeenCalled();
+      expect(switchToInfura).not.toHaveBeenCalled();
     });
 
     it('delegates to the controller, fires analytics, and shows a success toast', async () => {
@@ -303,16 +318,19 @@ describe('useNetworkConnectionBanner', () => {
         isInfuraEndpoint: false,
         switchableInfuraNetworkClientId: 'mainnet',
       });
-      const { result } = renderHookWithProviders();
+
+      const switchToInfura = jest.fn().mockResolvedValue(undefined);
+      const messenger = createMockRouteMessenger({
+        [SWITCH_TO_INFURA_ACTION]: switchToInfura,
+      });
+
+      const { result } = renderHookWithProviders(messenger);
 
       await act(async () => {
         await result.current.switchToInfura();
       });
 
-      expect(mockMessengerCall).toHaveBeenCalledWith(
-        'NetworkConnectionBannerController:switchToDefaultInfuraRpcEndpoint',
-        '0x89',
-      );
+      expect(switchToInfura).toHaveBeenCalledWith('0x89');
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
       );
@@ -325,7 +343,6 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     it('does not show the toast when the controller rejects', async () => {
-      mockMessengerCall.mockRejectedValueOnce(new Error('boom'));
       statusMock.mockReturnValue('unavailable');
       mockFailedNetwork({
         name: 'Polygon Mainnet',
@@ -334,10 +351,16 @@ describe('useNetworkConnectionBanner', () => {
         isInfuraEndpoint: false,
         switchableInfuraNetworkClientId: 'mainnet',
       });
+
+      const switchToInfura = jest.fn().mockRejectedValueOnce(new Error('boom'));
+      const messenger = createMockRouteMessenger({
+        [SWITCH_TO_INFURA_ACTION]: switchToInfura,
+      });
       const consoleErrorSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => undefined);
-      const { result } = renderHookWithProviders();
+
+      const { result } = renderHookWithProviders(messenger);
 
       await act(async () => {
         await result.current.switchToInfura();
