@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../../../reducers';
 import { selectPayHardwareConfig } from '../../../../../selectors/featureFlagController/confirmations';
+import { getPayTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 /**
@@ -10,10 +11,13 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
  */
 export function useIsMMPayHardwareEnabled(): boolean {
   const transactionMeta = useTransactionMetadataRequest();
+  const payType = getPayTransactionType(transactionMeta);
 
-  const config = useSelector((state: RootState) =>
-    selectPayHardwareConfig(state, transactionMeta?.type),
+  const isEnabled = useSelector(
+    (state: RootState) =>
+      selectPayHardwareConfig(state, payType ?? transactionMeta?.type)
+        .enabled === true,
   );
 
-  return config.enabled === true;
+  return isEnabled;
 }

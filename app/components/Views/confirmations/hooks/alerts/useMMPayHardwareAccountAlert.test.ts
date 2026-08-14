@@ -29,8 +29,8 @@ const useSelectorMock = jest.mocked(useSelector);
 const HARDWARE_ADDRESS = '0xabc';
 const OVERRIDE_ADDRESS = '0xdef';
 
-const HARDWARE_PAY_DISABLED = { enabled: false };
-const HARDWARE_PAY_ENABLED = { enabled: true };
+const HARDWARE_PAY_DISABLED = false;
+const HARDWARE_PAY_ENABLED = true;
 
 function runHook() {
   return renderHook(() => useMMPayHardwareAccountAlert());
