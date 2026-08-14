@@ -38,7 +38,7 @@ class DappConnectionModal {
   }
 
   get permissionsTabButton(): EncapsulatedElementType {
-    return Matchers.getElementByText(
+    return this.getExactTextElement(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,
     );
   }
@@ -50,15 +50,28 @@ class DappConnectionModal {
   }
 
   get updateNetworksButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('Update');
+    return this.getExactTextElement('Update');
   }
 
   getAccountButton(accountName: string): EncapsulatedElementType {
-    return Matchers.getElementByText(accountName);
+    return this.getExactTextElement(accountName);
   }
 
   getNetworkButton(networkName: string): EncapsulatedElementType {
-    return Matchers.getElementByText(networkName);
+    return this.getExactTextElement(networkName);
+  }
+
+  /** Exact text match (legacy PlaywrightMatchers.getElementByText(..., true)). */
+  private getExactTextElement(text: string): EncapsulatedElementType {
+    const escaped = text.replace(/'/g, "\\'");
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}' or @content-desc='${escaped}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}']`,
+    );
   }
 
   async tapConnectButton({

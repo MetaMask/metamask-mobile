@@ -1,7 +1,8 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import Utilities, {
+import {
+  Utilities,
   getDriver,
   sleep,
   type EncapsulatedElementType,
@@ -291,7 +292,7 @@ class RNPlaygroundDapp {
     },
   ): Promise<void> {
     await Gestures.scrollIntoViewFullyVisible(elemGetter, {
-      direction: options?.scrollParams?.direction ?? 'down',
+      direction: options?.scrollParams?.direction ?? 'up',
       percent: options?.percent,
       maxScrolls: options?.maxScrolls,
       from: options?.from,

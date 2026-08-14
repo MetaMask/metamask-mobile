@@ -1,7 +1,8 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import Utilities, {
+import {
+  Utilities,
   sleep,
   type EncapsulatedElementType,
 } from '../../framework';

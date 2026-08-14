@@ -938,7 +938,7 @@ export default class Gestures {
     }
     const target = (await Promise.resolve(elem)) as PlaywrightElement;
     await PlaywrightGestures.scrollIntoView(target, {
-      scrollParams: { direction: options?.direction ?? 'down' },
+      scrollParams: { direction: options?.direction ?? 'up' },
       maxScrolls: options?.maxScrolls,
       scrollableElement: options?.scrollableElement,
       percent: options?.percent,
@@ -967,7 +967,7 @@ export default class Gestures {
     }
     const target = (await Promise.resolve(elem)) as PlaywrightElement;
     await PlaywrightGestures.scrollIntoViewFullyVisible(target, {
-      scrollParams: { direction: options?.direction ?? 'down' },
+      scrollParams: { direction: options?.direction ?? 'up' },
       maxScrolls: options?.maxScrolls,
       scrollableElement: options?.scrollableElement,
       percent: options?.percent,
