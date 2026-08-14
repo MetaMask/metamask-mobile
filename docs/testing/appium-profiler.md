@@ -33,9 +33,9 @@ tests/test-reports/appium-profiles/<project>/*.cpuprofile
 ```
 
 The fixture stops the profiler and extracts the file before the Appium session
-is destroyed, including when the test fails. Android profiles are pulled from
-`/sdcard/Download`; iOS profiles are copied from the simulator app data
-container.
+is destroyed, including when the test fails. Android E2E release APKs are
+debuggable so profiles can be pulled from the app-private cache with
+`adb run-as`; iOS profiles are copied from the simulator app data container.
 
 ## CI run
 

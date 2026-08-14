@@ -25,12 +25,6 @@ jest.mock('react-native-fs', () => ({
   copyFile: jest.fn(),
 }));
 
-jest.mock('react-native-blob-util', () => ({
-  MediaCollection: {
-    copyToMediaStore: jest.fn(),
-  },
-}));
-
 describe('ProfilerManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
