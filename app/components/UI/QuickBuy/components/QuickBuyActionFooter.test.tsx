@@ -184,7 +184,7 @@ describe('QuickBuyActionFooter', () => {
 
       render(<QuickBuyActionFooter />);
 
-      const disabled = screen.getByTestId('quick-buy-disabled-section');
+      const disabled = screen.getByTestId('quick-buy-disabled-footer');
       expect(disabled.props.pointerEvents).toBe('none');
       expect(
         within(disabled).getByTestId('quick-buy-quick-amounts'),
@@ -219,7 +219,7 @@ describe('QuickBuyActionFooter', () => {
 
       render(<QuickBuyActionFooter />);
 
-      const disabled = screen.getByTestId('quick-buy-disabled-section');
+      const disabled = screen.getByTestId('quick-buy-disabled-footer');
       // The CTA is the one live control — it must not inherit pointerEvents:none.
       expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
       expect(
