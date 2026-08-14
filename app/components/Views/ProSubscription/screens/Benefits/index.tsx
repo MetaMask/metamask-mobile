@@ -19,6 +19,7 @@ import {
   BENEFITS,
   DEFAULT_PLAN,
   PLANS,
+  type BenefitDetailItem,
   type BenefitItem,
   type PlanId,
   BENEFIT_DETAILS,
