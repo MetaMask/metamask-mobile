@@ -27,7 +27,6 @@ const CollectibleDetectionModal = () => {
       title: strings('toast.nft_detection_enabled'),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
-      showCloseButton: false,
     });
     // set nft autodetection
     const { PreferencesController } = Engine.context;
