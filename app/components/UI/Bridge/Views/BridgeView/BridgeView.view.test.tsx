@@ -90,6 +90,142 @@ describeForPlatforms('BridgeView', () => {
     expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
   });
 
+  describe('tabs', () => {
+    it('renders the market tab by default', () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeNull();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+      ).toBeNull();
+    });
+
+    it('labels the tabs with the market, limit and recurring strings', () => {
+      const { getByTestId } = renderBridgeView();
+
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.MARKET_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.market'));
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.limit'));
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.recurring'));
+    });
+
+    it('replaces the market content and hides slippage settings on the limit tab', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeNull();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+      ).toBeNull();
+    });
+
+    it('replaces the market content on the recurring tab', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeNull();
+    });
+
+    it('restores the market content when returning to the market tab', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeNull();
+    });
+
+    describe('feature flags', () => {
+      it('hides the tabs bar and only renders the market view when both Limit and Recurring flags are disabled', () => {
+        const { getByTestId, queryByTestId } = renderBridgeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    swapsLimitOrder: { enabled: false },
+                    swapsRecurringBuy: { enabled: false },
+                  },
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>,
+        });
+
+        expect(queryByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeNull();
+        expect(queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeNull();
+        expect(queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB)).toBeNull();
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+
+      it('shows only the enabled tab when a single WIP flag is enabled', () => {
+        const { getByTestId, queryByTestId } = renderBridgeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    swapsLimitOrder: { enabled: true },
+                    swapsRecurringBuy: { enabled: false },
+                  },
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>,
+        });
+
+        expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
+        expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeOnTheScreen();
+        expect(queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB)).toBeNull();
+      });
+    });
+  });
+
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
     const {
       getByTestId,
