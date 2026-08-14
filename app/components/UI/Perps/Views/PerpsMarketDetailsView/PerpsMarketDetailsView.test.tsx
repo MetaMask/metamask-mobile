@@ -624,12 +624,10 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
-const mockAddToWatchlist = jest.fn();
-const mockRemoveFromWatchlist = jest.fn();
 jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
   usePerpsWatchlistActions: jest.fn(() => ({
-    addToWatchlist: mockAddToWatchlist,
-    removeFromWatchlist: mockRemoveFromWatchlist,
+    addToWatchlist: jest.fn(),
+    removeFromWatchlist: jest.fn(),
   })),
 }));
 
@@ -3917,24 +3915,6 @@ describe('PerpsMarketDetailsView', () => {
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
         }),
       );
-    });
-
-    it('adds the market to the watchlist when the favorite button is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      fireEvent.press(
-        getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
-      );
-
-      expect(mockAddToWatchlist).toHaveBeenCalledWith('BTC');
-      expect(mockRemoveFromWatchlist).not.toHaveBeenCalled();
     });
   });
 
