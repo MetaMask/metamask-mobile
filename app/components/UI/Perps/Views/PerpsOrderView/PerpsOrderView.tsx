@@ -786,6 +786,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isPayBalanceLoading =
     hasCustomTokenSelected && (isPayStateNotReady || !isPayBalanceResolved);
 
+  // Settles in the same render the balance resolves in, unlike
+  // `usePerpsOrderValidation`, which re-runs a debounce later. Both the funding
+  // message and the place-order button read it so neither can act on the stale
+  // pre-resolution verdict during that window.
   const hasInsufficientPayTokenBalance = useMemo(() => {
     if (marginRequired == null || !payToken || !hasCustomTokenSelected) {
       return false;
@@ -2280,6 +2284,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
                 isPayBalanceLoading ||
+                hasInsufficientPayTokenBalance ||
                 hasBlockingPayAlerts
               }
               isLoading={isPlacingOrder || orderValidation.isValidating}
@@ -2301,6 +2306,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
                 isPayBalanceLoading ||
+                hasInsufficientPayTokenBalance ||
                 hasBlockingPayAlerts
               }
               isLoading={isPlacingOrder || orderValidation.isValidating}

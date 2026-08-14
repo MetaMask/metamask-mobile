@@ -1995,6 +1995,28 @@ describe('PerpsOrderView', () => {
       ).toBeDisabled();
     });
 
+    it('disables the place order button while validation still reports the pre-resolution verdict', async () => {
+      // Arrange — validation is debounced, so for a beat after the balance
+      // resolves it still carries the verdict it reached against the Perps
+      // balance. The button must not open on that stale `isValid`.
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        errors: [],
+        warnings: [],
+        isValid: true,
+        isValidating: false,
+        hasSuppressedBalanceError: false,
+      });
+
+      // Act — the resolved token covers the $10 minimum at 3x but falls short
+      // of the $3.67 margin the $11 order needs.
+      await renderWithPayToken({ balanceForValidation: 3.5 });
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeDisabled();
+    });
+
     it('keeps the place order button on screen after the payment method changes', async () => {
       // Arrange + Act
       await renderWithPayToken({
