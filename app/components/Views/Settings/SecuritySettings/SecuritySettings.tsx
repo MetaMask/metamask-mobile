@@ -162,15 +162,16 @@ const Settings: React.FC = () => {
   ]);
 
   const scrollToSection = useCallback(() => {
+    const scrollHost = scrollViewRef.current?.getNativeScrollRef();
+    if (!scrollHost) return;
+
     const sectionRef =
       params?.scrollToSection === 'data-collection'
         ? dataCollectionSectionRef
         : metaMetricsSectionRef;
 
     sectionRef.current?.measureLayout(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      scrollViewRef.current as any,
+      scrollHost,
       (_, y) => {
         scrollViewRef.current?.scrollTo({
           y,

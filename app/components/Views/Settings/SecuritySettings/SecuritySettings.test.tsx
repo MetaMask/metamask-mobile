@@ -1,6 +1,11 @@
 import React from 'react';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
-import { InteractionManager, ScrollView, View } from 'react-native';
+import {
+  InteractionManager,
+  ScrollView,
+  View,
+  type HostInstance,
+} from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
@@ -99,6 +104,10 @@ describe('SecuritySettings', () => {
     };
 
     jest
+      .spyOn(ScrollView.prototype, 'getNativeScrollRef')
+      .mockReturnValue({} as HostInstance);
+
+    jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((callback) => {
         setTimeout(() => {
@@ -144,22 +153,45 @@ describe('SecuritySettings', () => {
   it.each(['metametrics', 'data-collection'] as const)(
     'scrolls to the %s section when scrollToSection param is set',
     async (scrollToSection) => {
+      const measuredSectionTop = 42;
       const measureLayoutSpy = jest
         .spyOn(View.prototype, 'measureLayout')
-        .mockImplementationOnce((_node, onSuccess) => onSuccess(0, 42, 0, 0));
+        .mockImplementationOnce((_node, onSuccess) =>
+          onSuccess(0, measuredSectionTop, 0, 0),
+        );
       const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
 
       mockUseParamsValues = { scrollToSection };
       renderWithProvider(<SecuritySettings />, { state: initialState });
 
       await waitFor(() =>
-        expect(scrollToSpy).toHaveBeenCalledWith({ y: 42, animated: true }),
+        expect(scrollToSpy).toHaveBeenCalledWith({
+          y: measuredSectionTop,
+          animated: true,
+        }),
       );
 
       measureLayoutSpy.mockRestore();
       scrollToSpy.mockRestore();
     },
   );
+
+  it('does not measure when the native scroll ref is unavailable', async () => {
+    jest
+      .spyOn(ScrollView.prototype, 'getNativeScrollRef')
+      .mockReturnValue(null);
+    const measureLayoutSpy = jest.spyOn(View.prototype, 'measureLayout');
+
+    mockUseParamsValues = { scrollToSection: 'metametrics' };
+    renderWithProvider(<SecuritySettings />, { state: initialState });
+
+    await waitFor(() =>
+      expect(InteractionManager.runAfterInteractions).toHaveBeenCalled(),
+    );
+    expect(measureLayoutSpy).not.toHaveBeenCalled();
+
+    measureLayoutSpy.mockRestore();
+  });
 
   it('does not scroll when the section layout cannot be measured', async () => {
     const measureLayoutSpy = jest
