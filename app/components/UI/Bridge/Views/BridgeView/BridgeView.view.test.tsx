@@ -45,6 +45,7 @@ import {
   clearTrendingApiMocks,
   mockTrendingTokensData,
 } from '../../../../../../tests/component-view/api-mocking/trending';
+import { merge } from 'lodash';
 
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   const { bridge: bridgeOverrides, ...rest } = overrides ?? {};
@@ -345,13 +346,10 @@ describeForPlatforms('BridgeView', () => {
         }
       | undefined;
     const recommendedQuote = bridgeControllerState?.recommendedQuote;
-    const quote = recommendedQuote?.quote as Record<string, unknown>;
-    const quoteWithTrade = {
-      ...recommendedQuote,
+    const quoteWithTrade = merge({}, recommendedQuote, {
       quote: {
-        ...quote,
-        bridgeId: 'test-bridge',
-        bridges: ['test-bridge'],
+        aggregator: 'test-bridge',
+        protocols: ['test-bridge'],
         steps: [],
       },
       trade: {
@@ -359,7 +357,7 @@ describeForPlatforms('BridgeView', () => {
         gasLimit: 0,
         effectiveGas: 0,
       },
-    };
+    });
 
     if (bridgeControllerState) {
       bridgeControllerState.recommendedQuote = quoteWithTrade;

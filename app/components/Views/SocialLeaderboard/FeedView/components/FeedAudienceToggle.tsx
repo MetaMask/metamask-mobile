@@ -181,7 +181,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="border border-muted rounded-2xl p-1"
+      twClassName="shrink-0 border border-muted rounded-2xl p-1"
       testID={testID}
     >
       <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>

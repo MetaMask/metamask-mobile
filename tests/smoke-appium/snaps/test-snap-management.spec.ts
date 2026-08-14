@@ -36,7 +36,9 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
         async () => {
           await navigateFromBrowserToSnapSettings();
           await SnapSettingsView.selectSnap('Dialog Example Snap');
-          await SnapSettingsView.toggleEnable();
+          // Verify native Switch value flips before leaving settings — a bare
+          // tap can succeed on iOS without disabling the Snap.
+          await SnapSettingsView.setEnabled(false);
           await navigateFromSnapSettingsToBrowser();
 
           await TestSnaps.tapButton('sendAlertButton');
@@ -62,7 +64,7 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
         async () => {
           await navigateFromBrowserToSnapSettings();
           await SnapSettingsView.selectSnap('Dialog Example Snap');
-          await SnapSettingsView.toggleEnable();
+          await SnapSettingsView.setEnabled(true);
           await navigateFromSnapSettingsToBrowser();
 
           await TestSnaps.tapButton('sendAlertButton');

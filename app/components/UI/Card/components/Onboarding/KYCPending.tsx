@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -12,7 +12,8 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import WaitingKYCImage from '../../../../../images/waiting-kyc-card.png';
 import {
   Box,
@@ -23,6 +24,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { colors as importedColors } from '../../../../../styles/common';
+import { useSelector } from 'react-redux';
 
 // Threshold for small screen adjustments
 const SMALL_SCREEN_THRESHOLD = 700;
@@ -35,6 +37,8 @@ const KYCPending = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const hasTrackedView = useRef(false);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   // Responsive image dimensions based on current window dimensions
@@ -47,14 +51,22 @@ const KYCPending = () => {
   }, [screenWidth, screenHeight]);
 
   useEffect(() => {
+    // Wait for a known provider so we don't fire with a Baanx fallback then
+    // again when Immersve resolves (duplicate / misattributed views).
+    if (hasTrackedView.current || !activeProviderId) {
+      return;
+    }
+    hasTrackedView.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.KYC_PENDING,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.KYC_PENDING,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME);

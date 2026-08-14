@@ -5,6 +5,7 @@ export {
   PredictFeeCollectionSchema,
   PredictFeedBannerSchema,
   PredictFeedCarouselSchema,
+  PredictHiddenMarketsSchema,
   PredictSportsFeedSchema,
   PredictSportsFeedTabSchema,
   PredictSportsFeedChipSchema,

@@ -218,7 +218,6 @@ jest.mock('../../store/storage-wrapper', () => {
 jest.mock('../../constants/storage', () => ({
   OPTIN_META_METRICS_UI_SEEN: 'optin_meta_metrics_ui_seen',
   PERPS_GTM_MODAL_SHOWN: 'perps_gtm',
-  PREDICT_GTM_MODAL_SHOWN: 'predict_gtm',
   REWARDS_GTM_MODAL_SHOWN: 'rewards_gtm',
 }));
 jest.mock('../../util/analytics/analytics', () => ({
@@ -1026,10 +1025,6 @@ describe('AgenticService.install', () => {
         settings: { skipGtmModals: true },
       });
       expect(StorageWrapper.setItem).toHaveBeenCalledWith('perps_gtm', 'true');
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        'predict_gtm',
-        'true',
-      );
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
         'rewards_gtm',
         'true',
