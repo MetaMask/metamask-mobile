@@ -10,10 +10,10 @@ import {
 } from '../constants/moneyEvents';
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import useMoneyAccountBalance from './useMoneyAccountBalance';
+import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
-import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
+import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -21,7 +21,7 @@ jest.mock('../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 jest.mock('./useMoneyAccount');
-jest.mock('./useMoneyAccountBalance');
+jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
 jest.mock('./useMoneyNavigation');
@@ -29,13 +29,12 @@ jest.mock('./useMoneyNavigation');
 const mockInitiateDeposit = jest.fn();
 const mockRedirectToOnboardingIfNeeded = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
-const mockShouldShowMoneyAssetOverviewBalanceCta = jest.fn();
-const mockShouldShowMoneyAssetOverviewFooterCta = jest.fn();
-
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
-const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
+const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
+  useMoneyAssetOverviewCtaVisibility,
+);
 const mockUseMoneyOnboardingNavigation = jest.mocked(
   useMoneyOnboardingNavigation,
 );
@@ -52,26 +51,20 @@ describe('useMoneyAssetOverviewCtas', () => {
     jest.clearAllMocks();
     mockInitiateDeposit.mockResolvedValue(undefined);
     mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
-    mockShouldShowMoneyAssetOverviewBalanceCta.mockReturnValue(true);
-    mockShouldShowMoneyAssetOverviewFooterCta.mockReturnValue(true);
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: 0.04,
       apyPercent: 4,
       vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyAnalytics.mockReturnValue({
       trackTokenButtonClicked: mockTrackTokenButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
-    mockUseMoneyCtaVisibility.mockReturnValue({
-      shouldShowMoneyAssetOverviewBalanceCta:
-        mockShouldShowMoneyAssetOverviewBalanceCta,
-      shouldShowMoneyAssetOverviewFooterCta:
-        mockShouldShowMoneyAssetOverviewFooterCta,
-      shouldShowMoneyTokenListItemCta: jest.fn(),
-      shouldShowMoneyEarnBanner: jest.fn(),
+    mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
+      isBalanceCtaEligible: true,
+      isFooterCtaEligible: true,
     });
     mockUseMoneyOnboardingNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: false,
@@ -92,6 +85,24 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(mockUseMoneyAnalytics).toHaveBeenCalledWith({
       screen_name: SCREEN_NAMES.ASSET_DETAIL,
     });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('skips the vault APY query when neither Asset Overview CTA is eligible', () => {
+    mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
+      isBalanceCtaEligible: false,
+      isFooterCtaEligible: false,
+    });
+
+    renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('tracks footer onboarding with interpolated labels and token context', async () => {
@@ -179,11 +190,11 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('does not track or deposit when the footer APY label is unavailable', async () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: undefined,
       apyPercent: undefined,
       vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,

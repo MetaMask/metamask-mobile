@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import {
-  selectLocalOverrides,
   selectRawFeatureFlags,
   selectRemoteFeatureFlags,
 } from '../../../../../selectors/featureFlagController';
@@ -46,19 +45,6 @@ export const selectPredictEnabledFlag = createSelector(
 
     // Default to `true` if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
-  },
-);
-
-export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
-    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-      remoteFeatureFlags?.predictGtmOnboardingModalEnabled,
-    );
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -131,9 +117,7 @@ export const selectPredictHotTabFlag = createSelector(
 
 export const selectPredictFeatureFlags = createSelector(
   selectRawFeatureFlags,
-  selectLocalOverrides,
-  (remoteFeatureFlags, localOverrides) =>
-    resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
+  (remoteFeatureFlags) => resolvePredictFeatureFlags({ remoteFeatureFlags }),
 );
 
 export const selectExtendedSportsMarketsLeagues = createSelector(

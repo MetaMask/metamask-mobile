@@ -93,6 +93,9 @@ const ManageCardOptions = ({
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
 
+  // Providers set hasPin on CardDetails; absent means treat as true.
+  const cardHasPin = card?.hasPin !== false;
+
   // Providers without funding limits (e.g. Immersve) expose manage options as
   // soon as a card exists; balance-gating only applies to funding-limit
   // providers (Baanx), which hide them until the user has a spendable balance.
@@ -169,6 +172,7 @@ const ManageCardOptions = ({
           !isLoading &&
           card &&
           capabilities?.supportsPinView &&
+          cardHasPin &&
           !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinView)) && (
           <ManageCardListItem
@@ -186,6 +190,7 @@ const ManageCardOptions = ({
           card &&
           card.status === CardStatus.ACTIVE &&
           capabilities?.supportsPinSet &&
+          cardHasPin &&
           !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinSet)) && (
           <ManageCardListItem
