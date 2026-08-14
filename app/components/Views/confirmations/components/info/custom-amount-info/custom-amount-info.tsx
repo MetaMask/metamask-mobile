@@ -127,6 +127,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
     supportAccountSelection,
   }) => {
+    const { headlessBuyError } = useConfirmationContext();
     const transactionMeta = useTransactionMetadataRequest();
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
@@ -379,7 +380,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const alertMessage =
       alertMessageBase ??
+      headlessBuyError ??
       (showBuyButton ? getBuyMessage(transactionMeta) : undefined);
+
+    const hasAlert =
+      stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
     // Keep payment details fixed while the amount update prepares the request.
     // Once a Money Account deposit quote is in flight, reopening either picker
@@ -387,11 +392,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const shouldBlockReviewRows =
       stage === CustomAmountStage.Loading &&
       (isAmountUpdatePending || !isMoneyAccountDeposit || !isQuotesLoading);
-
-    const { headlessBuyError } = useConfirmationContext();
-
-    const hasAlert =
-      stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
     return (
       <Box style={styles.container}>
@@ -414,10 +414,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             showCursor={stage === CustomAmountStage.AmountInput}
           />
           {hasAlert && (
-            <AlertMessage
-              content={alertContent}
-              alertMessage={alertMessage ?? headlessBuyError}
-            />
+            <AlertMessage content={alertContent} alertMessage={alertMessage} />
           )}
           {!hidePayTokenAmount &&
             disablePay !== true &&

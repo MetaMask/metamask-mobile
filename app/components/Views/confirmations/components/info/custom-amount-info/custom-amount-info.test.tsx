@@ -2230,6 +2230,31 @@ describe('CustomAmountInfo', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders headless buy error when no alert message is present', () => {
+    const headlessBuyError = 'Unable to complete purchase';
+
+    useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
+      headlessBuyError,
+      isFooterVisible: true,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+      isHeadlessBuyInProgress: false,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setHeadlessBuyError: noop,
+      setIsFooterVisible: noop,
+      setIsHeadlessBuyInProgress: noop,
+      setIsTransactionDataUpdating: noop,
+      setIsTransactionValueUpdating: noop,
+    } as ReturnType<typeof useConfirmationContext>);
+
+    const { getByText } = render();
+
+    expect(getByText(headlessBuyError)).toBeOnTheScreen();
+  });
+
   it('resets submitting state when onConfirm rejects', async () => {
     useConfirmActionsMock.mockReturnValue({
       onConfirm: jest.fn().mockRejectedValue(new Error('confirm failed')),
