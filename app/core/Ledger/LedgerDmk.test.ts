@@ -9,6 +9,7 @@ import {
   connectLedgerDmkDevice,
   connectLedgerDmkHardware,
   disconnectLedgerDmkSession,
+  getLedgerDmkAppConfiguration,
   getLedgerDmkPublicKey,
   getLedgerDmkSessionState,
   isLedgerDmkBridge,
@@ -55,6 +56,7 @@ const mockBridge = Object.create(
   LedgerDmkBridge.prototype,
 ) as LedgerDmkBridge & {
   getAppNameAndVersion: jest.Mock;
+  getAppConfiguration: jest.Mock;
   getPublicKey: jest.Mock;
   updateSessionId: jest.Mock;
   connect: jest.Mock;
@@ -65,6 +67,7 @@ const mockBridge = Object.create(
 const mockListenToAvailableDevices = jest.fn();
 
 mockBridge.getAppNameAndVersion = jest.fn();
+mockBridge.getAppConfiguration = jest.fn();
 mockBridge.getPublicKey = jest.fn();
 mockBridge.updateSessionId = jest.fn();
 mockBridge.connect = jest.fn();
@@ -138,6 +141,13 @@ describe('LedgerDmk', () => {
       address: '0x123',
       publicKey: 'public-key',
       chainCode: 'chain-code',
+    });
+    mockBridge.getAppConfiguration.mockResolvedValue({
+      arbitraryDataEnabled: 1,
+      erc20ProvisioningNecessary: 0,
+      starkEnabled: 0,
+      starkv2Supported: 0,
+      version: '1.0.0',
     });
     mockBridge.updateSessionId.mockResolvedValue(true);
     legacyLedgerKeyring = new LegacyLedgerKeyring({ bridge: mockBridge });
@@ -337,6 +347,21 @@ describe('LedgerDmk', () => {
       await getLedgerDmkPublicKey(hdPath);
 
       expect(mockBridge.getPublicKey).toHaveBeenCalledWith({ hdPath });
+    });
+  });
+
+  describe('getLedgerDmkAppConfiguration', () => {
+    it('requests Ethereum app configuration from the DMK bridge', async () => {
+      const result = await getLedgerDmkAppConfiguration();
+
+      expect(mockBridge.getAppConfiguration).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({
+        arbitraryDataEnabled: 1,
+        erc20ProvisioningNecessary: 0,
+        starkEnabled: 0,
+        starkv2Supported: 0,
+        version: '1.0.0',
+      });
     });
   });
 

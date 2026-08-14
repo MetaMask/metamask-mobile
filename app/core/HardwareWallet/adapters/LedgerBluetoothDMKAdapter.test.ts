@@ -23,6 +23,7 @@ const mockCloseRunningAppOnLedger = jest.fn();
 
 const mockConnectLedgerHardware = jest.fn();
 const mockGetLedgerDmkPublicKey = jest.fn();
+const mockGetLedgerDmkAppConfiguration = jest.fn();
 const mockConnectLedgerDmkDevice = jest.fn();
 const mockGetLedgerDmkSessionState = jest.fn();
 const mockDisconnectLedgerDmkSession = jest.fn();
@@ -76,6 +77,8 @@ jest.mock('../../Ledger/LedgerDmk', () => ({
     mockConnectLedgerHardware(...args),
   getLedgerDmkPublicKey: (...args: unknown[]) =>
     mockGetLedgerDmkPublicKey(...args),
+  getLedgerDmkAppConfiguration: (...args: unknown[]) =>
+    mockGetLedgerDmkAppConfiguration(...args),
   connectLedgerDmkDevice: (...args: unknown[]) =>
     mockConnectLedgerDmkDevice(...args),
   getLedgerDmkSessionState: (...args: unknown[]) =>
@@ -786,6 +789,61 @@ describe('LedgerBluetoothDMKAdapter', () => {
         await expect(adapter.ensureDeviceReady('not-cached')).rejects.toThrow(
           'No cached DiscoveredDevice for deviceId: not-cached',
         );
+      });
+    });
+
+    describe('blind signing', () => {
+      beforeEach(() => {
+        mockConnectLedgerHardware.mockResolvedValue('Ethereum');
+        mockGetLedgerDmkAppConfiguration.mockResolvedValue({
+          arbitraryDataEnabled: 1,
+          version: '1.0.0',
+        });
+      });
+
+      it('checks blind signing when requireBlindSigning is true', async () => {
+        const result = await adapter.ensureDeviceReady(DEVICE_ID, {
+          requireBlindSigning: true,
+        });
+
+        expect(result).toBe(true);
+        expect(mockGetLedgerDmkAppConfiguration).toHaveBeenCalledTimes(1);
+      });
+
+      it('throws HardwareWalletError when blind signing is required but not enabled', async () => {
+        mockGetLedgerDmkAppConfiguration.mockResolvedValue({
+          arbitraryDataEnabled: 0,
+          version: '1.0.0',
+        });
+
+        await expect(
+          adapter.ensureDeviceReady(DEVICE_ID, {
+            requireBlindSigning: true,
+          }),
+        ).rejects.toThrow('Blind signing is not enabled');
+      });
+
+      it('skips blind signing check when requireBlindSigning is false', async () => {
+        const result = await adapter.ensureDeviceReady(DEVICE_ID, {
+          requireBlindSigning: false,
+        });
+
+        expect(result).toBe(true);
+        expect(mockGetLedgerDmkAppConfiguration).not.toHaveBeenCalled();
+      });
+
+      it('skips blind signing check by default', async () => {
+        const result = await adapter.ensureDeviceReady(DEVICE_ID);
+
+        expect(result).toBe(true);
+        expect(mockGetLedgerDmkAppConfiguration).not.toHaveBeenCalled();
+      });
+
+      it('skips blind signing check when options object is empty', async () => {
+        const result = await adapter.ensureDeviceReady(DEVICE_ID, {});
+
+        expect(result).toBe(true);
+        expect(mockGetLedgerDmkAppConfiguration).not.toHaveBeenCalled();
       });
     });
 
