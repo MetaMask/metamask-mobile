@@ -402,17 +402,15 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  // Hook for handling non-EVM asset sending
+  // Hook for handling non-EVM asset sending. `useSendNonEvmAsset` stabilizes
+  // `asset` internally, so `sendNonEvmAsset`'s identity stays stable across
+  // `Wallet` re-renders without needing to memoize this object here.
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const nonEvmSendAsset = useMemo(
-    () => ({
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: {
       chainId: chainId as string,
       address: undefined,
-    }),
-    [chainId],
-  );
-  const { sendNonEvmAsset } = useSendNonEvmAsset({
-    asset: nonEvmSendAsset,
+    },
   });
   ///: END:ONLY_INCLUDE_IF
 

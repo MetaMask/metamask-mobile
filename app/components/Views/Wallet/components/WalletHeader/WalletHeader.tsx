@@ -29,6 +29,8 @@ interface TouchAreaSlop {
   right: number;
 }
 
+const accountPickerContainerStyle: ViewStyle = { flex: 1 };
+
 export interface WalletHeaderProps {
   displayName: string;
   navigation: NavigationProp<ParamListBase>;
@@ -144,13 +146,18 @@ const WalletHeader = ({
       }
       twClassName="pl-1 pr-3"
     >
-      <PickerAccount
-        accountName={displayName}
-        onPress={handleAccountPickerPress}
-        testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-        hitSlop={touchAreaSlop}
-        style={headerAccountPickerStyle}
-      />
+      {/* `HeaderRoot` doesn't shrink `children` like the old deprecated
+          version did, so the account picker needs its own flex-1 wrapper
+          to make room for the action buttons on narrow screens. */}
+      <View style={accountPickerContainerStyle}>
+        <PickerAccount
+          accountName={displayName}
+          onPress={handleAccountPickerPress}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={touchAreaSlop}
+          style={headerAccountPickerStyle}
+        />
+      </View>
     </HeaderRoot>
   );
 };

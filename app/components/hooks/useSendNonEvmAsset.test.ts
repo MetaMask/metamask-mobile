@@ -6,13 +6,14 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 
 const mockNavigate = jest.fn();
+// Mirrors react-navigation's real `useNavigation()`, which returns a stable
+// object reference across re-renders.
+const mockNavigation = { navigate: mockNavigate };
 
 jest.mock('@metamask/keyring-api');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
+  useNavigation: () => mockNavigation,
 }));
 jest.mock('../Views/confirmations/utils/send');
 
@@ -231,6 +232,69 @@ describe('useSendNonEvmAsset', () => {
         {
           location: InitSendLocation.HomePage,
           asset: mockAsset,
+        },
+      );
+    });
+  });
+
+  describe('reference stability', () => {
+    const mockState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'evm-account-id',
+              accounts: {
+                'evm-account-id': {
+                  id: 'evm-account-id',
+                  type: 'eip155:eoa',
+                  metadata: {},
+                },
+              },
+            },
+          },
+        },
+      },
+    } as any;
+
+    it('keeps sendNonEvmAsset stable across re-renders even when a new asset object is passed', () => {
+      mockedIsEvmAccountType.mockReturnValue(true);
+      let asset = { ...mockAsset };
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useSendNonEvmAsset({ asset }),
+        { state: mockState },
+      );
+
+      const firstSendNonEvmAsset = result.current.sendNonEvmAsset;
+
+      // A brand new object with the same values, as an unmemoized caller would pass
+      asset = { ...mockAsset };
+      rerender();
+
+      expect(result.current.sendNonEvmAsset).toBe(firstSendNonEvmAsset);
+    });
+
+    it('still uses the latest asset value after re-rendering with a new object', async () => {
+      mockedIsEvmAccountType.mockReturnValue(true);
+      let asset = mockAsset;
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useSendNonEvmAsset({ asset }),
+        { state: mockState },
+      );
+
+      const updatedAsset = { ...mockAsset, address: 'updated-address' };
+      asset = updatedAsset;
+      rerender();
+
+      await result.current.sendNonEvmAsset(InitSendLocation.HomePage);
+
+      expect(mockedHandleSendPageNavigation).toHaveBeenCalledWith(
+        mockNavigate,
+        {
+          location: InitSendLocation.HomePage,
+          asset: updatedAsset,
         },
       );
     });
