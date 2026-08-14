@@ -206,8 +206,10 @@ describe('MoneyCardTiltAnimation', () => {
 
     act(() => applyTilt(1, 1));
 
-    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 100);
-    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 0);
+    // Four fifths of the artboard's 0-100 travel, so a fully tilted device
+    // stops short of the poses the extremes hold.
+    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 90);
+    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 10);
   });
 
   it('drives a partial tilt past the raw curve reported by the hook', () => {
@@ -222,12 +224,13 @@ describe('MoneyCardTiltAnimation', () => {
 
     // The hook reports an already-squared tilt, so 0.5 means the device is
     // ~71% of the way through its travel. Mapping it straight through would
-    // under-read at 75; the shaping recovers the real angle.
+    // under-read at 70; the shaping recovers the real angle, and the card's
+    // reduced amplitude still keeps it short of the 90 a full tilt reaches.
     const [, xValue] = mockSetNumber.mock.calls.find(
       ([property]) => property === 'xValue',
     ) as [string, number];
-    expect(xValue).toBeGreaterThan(75);
-    expect(xValue).toBeLessThan(100);
+    expect(xValue).toBeGreaterThan(70);
+    expect(xValue).toBeLessThan(90);
   });
 
   it('does not dispatch tilt values while the native Rive view is detached', () => {

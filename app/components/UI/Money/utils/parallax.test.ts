@@ -7,6 +7,7 @@ import {
   shapeCardTilt,
   shapeParallaxTilt,
   smoothParallaxTilt,
+  CARD_TILT_AMPLITUDE,
   CARD_TILT_DEADZONE,
   PARALLAX_TILT_AMPLITUDE,
   pitchToParallaxValue,
@@ -43,6 +44,21 @@ describe('tiltToParallaxValue', () => {
     );
     expect(tiltToParallaxValue(-2)).toBe(
       PARALLAX_REST_VALUE - PARALLAX_TILT_AMPLITUDE,
+    );
+  });
+
+  it('swings around the resting value by the amplitude it is given', () => {
+    expect(tiltToParallaxValue(1, CARD_TILT_AMPLITUDE)).toBe(
+      PARALLAX_REST_VALUE + CARD_TILT_AMPLITUDE,
+    );
+    expect(tiltToParallaxValue(-1, CARD_TILT_AMPLITUDE)).toBe(
+      PARALLAX_REST_VALUE - CARD_TILT_AMPLITUDE,
+    );
+  });
+
+  it('clamps to the given amplitude beyond the normalized range', () => {
+    expect(tiltToParallaxValue(2, CARD_TILT_AMPLITUDE)).toBe(
+      PARALLAX_REST_VALUE + CARD_TILT_AMPLITUDE,
     );
   });
 });
@@ -84,6 +100,28 @@ describe('pitchToParallaxValue', () => {
       expect(pitchToParallaxValue(pitch)).toBe(tiltToParallaxValue(-pitch));
     },
   );
+
+  it('swings around the resting value by the amplitude it is given', () => {
+    expect(pitchToParallaxValue(1, CARD_TILT_AMPLITUDE)).toBe(
+      PARALLAX_REST_VALUE - CARD_TILT_AMPLITUDE,
+    );
+    expect(pitchToParallaxValue(-1, CARD_TILT_AMPLITUDE)).toBe(
+      PARALLAX_REST_VALUE + CARD_TILT_AMPLITUDE,
+    );
+  });
+});
+
+describe('CARD_TILT_AMPLITUDE', () => {
+  it('reaches four fifths of the travel the artboard authors', () => {
+    expect(CARD_TILT_AMPLITUDE).toBeCloseTo(PARALLAX_TILT_AMPLITUDE * 0.8, 10);
+  });
+
+  it('leaves the parallax surfaces on the full amplitude', () => {
+    expect(CARD_TILT_AMPLITUDE).toBeLessThan(PARALLAX_TILT_AMPLITUDE);
+    expect(tiltToParallaxValue(1)).toBe(
+      PARALLAX_REST_VALUE + PARALLAX_TILT_AMPLITUDE,
+    );
+  });
 });
 
 describe('shapeCardTilt', () => {

@@ -18,6 +18,7 @@ import {
   shapeCardTilt,
   pitchToParallaxValue,
   tiltToParallaxValue,
+  CARD_TILT_AMPLITUDE,
 } from '../../utils/parallax';
 import CardTiltAnimation from '../../../../../animations/card_tilt_v1.6.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
@@ -104,8 +105,8 @@ const MoneyCardTiltAnimation = ({
   const applyTilt = useCallback(
     (x: number, y: number) => {
       writeTilt(
-        tiltToParallaxValue(shapeCardTilt(x)),
-        pitchToParallaxValue(shapeCardTilt(y)),
+        tiltToParallaxValue(shapeCardTilt(x), CARD_TILT_AMPLITUDE),
+        pitchToParallaxValue(shapeCardTilt(y), CARD_TILT_AMPLITUDE),
       );
     },
     [writeTilt],

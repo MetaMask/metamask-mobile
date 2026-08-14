@@ -9,17 +9,33 @@ export const PARALLAX_REST_VALUE = 50;
 export const PARALLAX_TILT_AMPLITUDE = 50;
 
 /**
+ * Travel the card takes of the artboard's authored range — four fifths of it,
+ * so the card stops short of the poses the extremes hold. The artboard reads as
+ * overdone when driven end to end, and the reach is the only part of the
+ * response that was too much: shaping the curve instead would have damped the
+ * small deliberate tilts MUSD-1249 tuned for, so the amplitude carries the
+ * reduction and leaves the deadzone and the exponent as they are.
+ *
+ * Card-only. The parallax graphic and the First Deposit screen keep the full
+ * amplitude; nothing asked for less reach there.
+ */
+export const CARD_TILT_AMPLITUDE = 40;
+
+/**
  * Maps a normalized device-tilt value (from `useDeviceOrientation`, in the
  * [-1, 1] range) onto the Rive value, swinging symmetrically around the resting
  * value.
  *
  * A flat device (tilt 0) yields the rest value (centred); full tilt yields
- * `rest ± PARALLAX_TILT_AMPLITUDE`. The input is clamped so a sensor spike can
- * never push a layer past its intended travel.
+ * `rest ± amplitude`. The input is clamped so a sensor spike can never push a
+ * layer past its intended travel.
  */
-export function tiltToParallaxValue(tilt: number): number {
+export function tiltToParallaxValue(
+  tilt: number,
+  amplitude: number = PARALLAX_TILT_AMPLITUDE,
+): number {
   const clamped = Math.min(1, Math.max(-1, tilt));
-  return PARALLAX_REST_VALUE + clamped * PARALLAX_TILT_AMPLITUDE;
+  return PARALLAX_REST_VALUE + clamped * amplitude;
 }
 
 /**
@@ -29,8 +45,11 @@ export function tiltToParallaxValue(tilt: number): number {
  * `useDeviceOrientation`, so the pitch is inverted before mapping — without
  * this the graphic leans the wrong way.
  */
-export function pitchToParallaxValue(pitch: number): number {
-  return tiltToParallaxValue(-pitch);
+export function pitchToParallaxValue(
+  pitch: number,
+  amplitude: number = PARALLAX_TILT_AMPLITUDE,
+): number {
+  return tiltToParallaxValue(-pitch, amplitude);
 }
 
 /**
