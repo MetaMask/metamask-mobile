@@ -40,9 +40,13 @@ _Avoid_: Venue Account, sub-wallet
 
 ### Core Data Model
 
+**Feed**:
+A product-owned, ordered selection of Events for a navigation surface. A Feed may represent a Category, curated collection, or supported filter combination.
+_Avoid_: Venue series, raw Event query, client-side category
+
 **Event**:
-A product grouping of one or more related binary Markets on a single topic, such as "2026 NBA Finals" or "Will ETH hit $5k?". A Venue's recurring series is a separate grouping and is not a canonical Event.
-_Avoid_: Market, PredictMarket
+A grouping of one or more related binary Markets from exactly one Venue Event, such as "2026 NBA Finals" or "Will ETH hit $5k?". An Event may have one Category and one Series.
+_Avoid_: Market, PredictMarket, composite Venue Events
 
 **Market**:
 A single binary question within an Event, resolved as Yes or No, such as "Lakers to win Game 7".
@@ -51,6 +55,26 @@ _Avoid_: Outcome, PredictOutcome, condition
 **Outcome**:
 One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome has a Venue-qualified identifier that may be native to the Venue or deterministically derived by the adapter when the Venue exposes only a side label; this identifier is not necessarily a token identifier.
 _Avoid_: OutcomeToken, token, share
+
+**Category**:
+An Event's primary MetaMask product classification, such as Sports, Crypto, or Politics. Subjects such as Trump are Topics, not peer Categories.
+_Avoid_: Tag, Topic, Venue category array
+
+**Series**:
+A Venue-backed grouping of related Events. A Series is optional on an Event and is either a Collection Series or a Rolling Series.
+_Avoid_: Feed, Category, synthetic singleton Series
+
+**Collection Series**:
+A Series whose Events are independently current or browsable, such as NFL Games.
+_Avoid_: Current Event Series
+
+**Rolling Series**:
+A Series for which Predict follows one backend-selected current Event at a time, such as five-minute Bitcoin up-or-down Events.
+_Avoid_: Current Event wrapper, rotating Event identity
+
+**Market Lifecycle**:
+The progression of a Market through initialized, active, inactive, closed, determined, disputed, amended, and finalized states.
+_Avoid_: Simplified browse status, Event status
 
 **Position**:
 A Predict User's holdings in a specific Outcome, measured in shares.
@@ -132,6 +156,10 @@ _Avoid_: Price, sell price, Yes bid
 Total settlement currency traded on a Market or Event across all users.
 _Avoid_: Liquidity
 
+**24-Hour Volume**:
+Settlement currency traded on a Market or Event during the trailing 24-hour window at the backend observation time.
+_Avoid_: Daily Volume, total Volume
+
 **Liquidity**:
 The depth of available orders in a Market order book; higher liquidity means less price slippage.
 _Avoid_: Volume
@@ -195,8 +223,13 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Account Readiness is assessed for a Predict User at a Venue and may depend on Funding Wallet context for wallet-scoped Venues.
 - Account Setup can change Account Readiness from setup-required to ready.
 - Account Readiness is distinct from Balance and Venue Status; a Predict User can be ready with zero Balance, or funded while a Venue is unavailable.
-- Each Event originates from exactly one Venue and contains one or more Markets.
-- A Venue's recurring Series is distinct from the canonical Event grouping.
+- A Feed contains zero or more Events and owns their membership, ordering, and pagination semantics.
+- Each Event maps to exactly one Venue Event and contains one or more Markets; Predict never combines Markets from multiple Venue Events into one Event.
+- Each Event may have one primary Category and one Series.
+- A Category is product-owned and is distinct from Venue tags and future Topics.
+- A Series groups related Events; Predict does not fabricate a singleton Series for an Event without a meaningful Series.
+- A Collection Series may have multiple simultaneous or upcoming Events.
+- A Rolling Series selects one current Event at a time without changing that Event's identity.
 - Each Market contains exactly two Outcomes, typically Yes and No.
 - Each Position is tied to exactly one Outcome.
 - Each Order targets exactly one Outcome and may produce zero or more Fills.
@@ -214,7 +247,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Without a valid Venue Selection Preference, US geolocation defaults the Active Venue to Kalshi and non-US geolocation defaults it to Polymarket.
 - A valid Venue Selection Preference takes precedence over regional defaulting, but does not override eligibility, Venue Status, or rollout controls.
 - A sports Event may have one Game, and a Game has participating Teams.
-- Extended sports child Events are represented as additional Markets grouped under one canonical parent Event, with child provenance preserved in metadata.
+- Sports Events preserve Venue Event boundaries; related Venue Events are never flattened into Markets under a synthetic parent Event.
 
 ## Flagged Ambiguities
 
@@ -237,7 +270,10 @@ _Avoid_: New Venue, backend provider, opaque proxy
 | Predict User   | Wallet owner / user                        | Kalshi member, one real person                      |
 | Funding Wallet | Owner wallet                               | User-controlled payout/deposit wallet               |
 | Venue Account  | Safe / deposit wallet                      | MetaMask ISV sub-account                            |
+| Feed           | Product-owned projection                   | Product-owned projection                            |
 | Event          | Event                                      | Event                                               |
+| Category       | Product mapping from category/tags         | Product mapping, usually from Series metadata       |
+| Series         | Optional selected Series                   | Series                                              |
 | Market         | Market / Condition                         | Market / Contract                                   |
 | Outcome        | Outcome token                              | Yes/No side                                         |
 | Position       | Position                                   | Position                                            |

@@ -40,7 +40,9 @@ Do not add a forwarding layer that only repeats another module's interface. Do n
 
 Product-facing modules use the language in [`../CONTEXT.md`](../CONTEXT.md): Event, Market, Outcome, Order, Position, Predict User, Funding Wallet, and Venue Account. Kalshi DTO names and protocol mechanics remain inside the adapter/backend boundary.
 
-Every root Event, query, route, and operation is Venue-qualified. Nested Markets and Outcomes carry their own opaque identifiers and inherit Venue and parent scope through containment; raw Venue identifiers are not globally unique.
+Every root Feed, Event, query, route, and operation is Venue-qualified. A canonical Event maps to exactly one Venue Event; Feeds may combine discovery results but never merge Markets from multiple Venue Events into one Event. Nested Category, Series, Market, and Outcome identifiers inherit Venue and parent scope through containment; raw Venue identifiers are not globally unique.
+
+The public read-model direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Feed and detail reads initially share the complete Event model. An Event may have one product-owned Category and one genuine Venue-backed Series; synthetic singleton Series are not created merely to make the hierarchy uniform.
 
 ### Identity is not a wallet
 
@@ -62,7 +64,7 @@ A Venue exposes only supported capability modules. Unsupported operations are ab
 
 A Venue adapter is the translation boundary for one Venue. Capabilities are grouped by independently varying product concerns:
 
-- `marketData` — public Event, Market, Outcome, status, and price reads,
+- `marketData` — public Feed, Event, Category, Series, Market, Outcome, status, Volume, media, and price reads,
 - `account` — Account Readiness and optional Account Setup,
 - `portfolio` — Balance, Position, Fill/Activity, and optional open Order reads,
 - `trading` — Order Preview and submission; optional Resting Order operations,
@@ -119,8 +121,10 @@ Properties:
 
 - `venueId` is explicit and part of every cache key,
 - no selected wallet, bearer token, or account session is required,
-- Event list and detail responses include the initial Outcome Bid Price and Ask Price snapshot,
+- Feed and Event detail responses use the same complete canonical Event shape and include the initial Outcome Bid Price and Ask Price snapshot,
+- rolling Series reads return the backend-selected current Event while immutable Event reads always preserve the requested Event identity,
 - transport and DTO normalization stay below the service,
+- Event and Market Volume remain independent decimal-string projections, and image URLs come from backend-approved HTTPS sources,
 - responses are runtime-validated and unknown fields are discarded,
 - the service alone owns response caching, deduplication, and bounded retry for safe reads.
 

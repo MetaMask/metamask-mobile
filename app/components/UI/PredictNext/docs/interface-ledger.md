@@ -1,6 +1,8 @@
 # PredictNext Interface Ledger
 
-This ledger records the mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
+This ledger records the implemented mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
+
+The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). It is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
 
 ## Canonical read models
 
@@ -15,6 +17,12 @@ This ledger records the mobile canonical read contract stabilized by PRED-1168 a
 - `PredictVenueStatus` contains the root `venueId`, an `available | degraded | unavailable` status, and the backend observation time as `PredictTimestamp`.
 - `PredictEntityId` is venue-local and opaque. An Outcome ID may be native or adapter-derived.
 - `PredictTimestamp` is an RFC 3339/ISO-8601 UTC string.
+
+## Agreed next-contract changes
+
+The next public-read contract will use `Feed → Event → Market → Outcome`, with the same complete Event shape in Feed and detail responses. It will add an optional single Category and Series to Event; optional Event and Market Volume, 24-Hour Volume, and image URL; product-owned Feed reads; and a current-Event read for Rolling Series. A canonical Event will continue to map to exactly one Venue Event.
+
+The reduced browse status will be replaced by the Kalshi lifecycle vocabulary: `initialized`, `active`, `inactive`, `closed`, `determined`, `disputed`, `amended`, and `finalized`. The existing binary Outcome invariant remains unchanged.
 
 ## Query descriptors
 

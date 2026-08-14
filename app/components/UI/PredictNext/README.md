@@ -77,6 +77,7 @@ These are boundaries, not a requirement to create every possible directory or mo
 - [`AGENTS.md`](./AGENTS.md) — instructions for coding agents and contributors.
 - [`CONTEXT.md`](./CONTEXT.md) — canonical product language.
 - [`docs/architecture.md`](./docs/architecture.md) — stable architecture boundaries and data flows.
+- [`docs/canonical-read-model-and-api.md`](./docs/canonical-read-model-and-api.md) — agreed working direction for public read types, relationships, and REST routes.
 - [`docs/venue-adapters.md`](./docs/venue-adapters.md) — capability adapter rules.
 - [`docs/remote-adapters.md`](./docs/remote-adapters.md) — remote trust and transport rules.
 - [`docs/agents/issue-tracker.md`](./docs/agents/issue-tracker.md) — Predict Jira conventions.

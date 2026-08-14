@@ -26,7 +26,7 @@ Structural presence is executable truth. Product capability metadata may control
 
 ## Public and account-scoped data
 
-Public Event, Market, Outcome, Bid Price, Ask Price, and Venue Status reads are scoped by `venueId`. The first Kalshi browse slice is deliberately unauthenticated and does not require a selected wallet or fake Venue Session.
+Public Feed, Event, Category, Series, Market, Outcome, Volume, image, Bid Price, Ask Price, and Venue Status reads are scoped by `venueId`. The first Kalshi browse slice is deliberately unauthenticated and does not require a selected wallet or fake Venue Session.
 
 A later account-scoped route must use explicit required authentication. Do not opportunistically attach identity to public reads unless the contract and cache scope are intentionally personalized.
 
@@ -36,8 +36,9 @@ Account Readiness, Account Setup, portfolio, trading, and funding are account-sc
 
 - Predict User identity is distinct from Funding Wallet and Venue Account.
 - The backend authorizes account-scoped requests from authenticated MetaMask identity, not client-supplied identity fields.
-- Every root Event, query key, route, and durable Venue Operation is Venue-qualified.
-- Nested Markets and Outcomes carry their own opaque identifiers and inherit Venue and parent scope through containment.
+- Every root Feed, Event, query key, route, and durable Venue Operation is Venue-qualified.
+- A canonical Event maps to exactly one Venue Event; adapters never merge Markets from multiple Venue Events into one Event.
+- Nested Category, Series, Market, and Outcome values carry opaque identifiers and inherit Venue and parent scope through containment.
 - A raw Venue identifier is meaningful only with its containing `venueId`.
 - Canonical entities contain no raw credentials, PII/KYC values, or authentication subjects.
 
@@ -87,7 +88,9 @@ interface VenueMarketDataAdapter {
 }
 ```
 
-Event list and detail include the initial optional `bidPrice` and `askPrice` snapshot on each Outcome. There is no separate price operation in the first slice. Future live data may identify an Event, Market, and Outcome and patch these prices in cached Events.
+The implemented Event list and detail include the initial optional `bidPrice` and `askPrice` snapshot on each Outcome. There is no separate price operation in the first slice. Future live data may identify an Event, Market, and Outcome and patch these prices in cached Events.
+
+The agreed next contract replaces product Event-list reads with Feed reads, adds optional Category and Series metadata, Event and Market Volume/media, and a current-Event read for Rolling Series. Both fixed Event detail and Rolling Series current-Event reads return the same canonical Event type. See [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md); do not partially implement it across the trust boundary.
 
 Only add price history, batch price reads, search, carousel, account, portfolio, trading, funding, or live-data operations when an active product slice requires them.
 
