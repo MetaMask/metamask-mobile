@@ -28,6 +28,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
+import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../../util/theme';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
@@ -130,6 +131,14 @@ const OrderBookRow = ({
   }));
 
   const priceLabel = formatOrderBookPrice(level.price, priceFormat);
+
+  if (testID.endsWith('-bid-row-0')) {
+    DevLogger.log(
+      `[PR-TAT-3713] BUG_MARKER: ladder price label rendered in a 50/50 split column priceLabel=${priceLabel} length=${priceLabel.length} format=${JSON.stringify(
+        priceFormat,
+      )}`,
+    );
+  }
 
   const content = (
     <>
