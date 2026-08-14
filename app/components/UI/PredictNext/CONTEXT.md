@@ -53,7 +53,7 @@ A single binary question within an Event, resolved as Yes or No, such as "Lakers
 _Avoid_: Outcome, PredictOutcome, condition
 
 **Outcome**:
-One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome has a Venue-qualified identifier that may be native to the Venue or deterministically derived by the adapter when the Venue exposes only a side label; this identifier is not necessarily a token identifier.
+One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome may have a Game Selection when it authoritatively represents the home Team, away Team, or draw.
 _Avoid_: OutcomeToken, token, share
 
 **Category**:
@@ -178,13 +178,25 @@ _Avoid_: Event without qualifier, UI event, overlay
 
 ### Sports Terms
 
+**Sport**:
+A product classification for one kind of athletic competition, such as American football.
+_Avoid_: Sports Category, Venue sport label
+
+**Competition**:
+A league or tournament within a Sport, such as the NFL or college football.
+_Avoid_: League when the contest is a tournament, Venue competition label
+
 **Game**:
-A sports contest represented as optional metadata on an Event, including scheduled time, live status, score, period, league, and participating Teams.
+A sports contest represented as optional metadata on an Event, including status, score, period, clock, and participating Teams. Game status is distinct from Market Lifecycle.
 _Avoid_: Match, fixture, raw sports payload
 
 **Team**:
-A participant in a sports Game, including canonical display metadata such as name, abbreviation, logo, and color.
+The home or away participant in a Game, including canonical display metadata such as name, abbreviation, logo, and color.
 _Avoid_: Team DTO, venue team
+
+**Game Selection**:
+An Outcome's authoritative association with the home Team, away Team, or draw. It complements the Outcome's Yes or No side and must not be inferred from display text.
+_Avoid_: Team side, parsed Outcome label
 
 ### Venue Terms
 
@@ -246,7 +258,11 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Exactly one Venue is the Active Venue for a rendered Predict experience.
 - Without a valid Venue Selection Preference, US geolocation defaults the Active Venue to Kalshi and non-US geolocation defaults it to Polymarket.
 - A valid Venue Selection Preference takes precedence over regional defaulting, but does not override eligibility, Venue Status, or rollout controls.
-- A sports Event may have one Game, and a Game has participating Teams.
+- A sports Event may have one Sports context containing one Sport, an optional Competition, and an optional Game.
+- Game Events and Game-specific prop Events may carry a Game; season props and futures have no Game.
+- A Game has one home Team and one away Team in the initial canonical model.
+- Game status and Market Lifecycle are independent and must not be derived from one another.
+- An Outcome may have one Game Selection of home, away, or draw; its Yes or No side remains unchanged.
 - Sports Events preserve Venue Event boundaries; related Venue Events are never flattened into Markets under a synthetic parent Event.
 
 ## Flagged Ambiguities

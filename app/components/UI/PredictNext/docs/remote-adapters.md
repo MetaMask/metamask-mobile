@@ -71,7 +71,7 @@ The mobile/backend API exposes product capabilities, not raw Kalshi endpoints. R
 
 Contract-version header enforcement and cross-repository fixture tooling are deferred until their semantics and value are proven. The implemented first read-only slice needs only Venue Status and Event list/detail; Event responses embed the initial optional Outcome Bid Price and Ask Price snapshot.
 
-The agreed next public-read contract uses Venue-qualified Feed reads, immutable Event detail, and a Rolling Series current-Event read. All return complete canonical Events; the backend owns Feed selection/order, single Category and Series normalization, current-Event selection, Kalshi lifecycle mapping, decimal-string Volume, and approved HTTPS image URLs. See [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Do not define a separate price, account, or write route until a slice requires it.
+The agreed next public-read contract uses Venue-qualified Feed reads, immutable Event detail, and a Rolling Series current-Event read. All return complete canonical Events; the backend owns Feed selection/order, single Category and Series normalization, current-Event selection, Sports/Game snapshot normalization, Outcome Game Selection, Kalshi lifecycle mapping, decimal-string Volume, and approved HTTPS image URLs. No separate Game route is required initially. See [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Do not define a separate price, account, or write route until a slice requires it.
 
 ## Sensitive-data rule
 

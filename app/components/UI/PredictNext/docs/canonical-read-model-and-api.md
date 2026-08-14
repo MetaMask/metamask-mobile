@@ -13,6 +13,8 @@ Feed
   └── Event *
        ├── Category 0..1
        ├── Series 0..1
+       ├── Sports Context 0..1
+       │    └── Game 0..1
        └── Market 1..*
             └── Outcome exactly 2 (Yes and No sides)
 ```
@@ -31,6 +33,11 @@ A canonical Event maps to exactly one Venue Event. A Feed may combine Events dis
 - **Series** — an optional Venue-backed grouping of related Events.
 - **Collection Series** — a Series whose Events can be independently current or browsable, such as NFL Games.
 - **Rolling Series** — a Series for which the product follows one backend-selected current Event at a time, such as a five-minute BTC up-or-down Series.
+- **Sport** — a stable product classification for one kind of athletic competition, such as American football.
+- **Competition** — a league or tournament within a Sport, such as the NFL or college football.
+- **Game** — an optional snapshot of the sports contest associated with an Event. Game status is independent of Market lifecycle.
+- **Team** — the home or away participant in a Game.
+- **Game Selection** — an Outcome's optional authoritative association with the home Team, away Team, or draw.
 
 `Trump` is not a second Category alongside `Politics`; it is a future Topic concept. Topic arrays are deferred until a product slice needs them.
 
@@ -51,6 +58,7 @@ type PredictAmount = string & { readonly __brand: 'PredictAmount' };
 type PredictPrice = string & { readonly __brand: 'PredictPrice' };
 
 type PredictHttpsUrl = string & { readonly __brand: 'PredictHttpsUrl' };
+type PredictHexColor = string & { readonly __brand: 'PredictHexColor' };
 
 interface PredictCategory {
   id: PredictEntityId;
@@ -66,6 +74,53 @@ interface PredictSeries {
 
   // ISO 8601 duration, for example PT5M or P1D. Informational when present.
   recurrence?: string;
+}
+
+interface PredictSport {
+  // Stable MetaMask product ID, for example "american-football".
+  id: PredictEntityId;
+  label: string;
+}
+
+interface PredictCompetition {
+  // Stable MetaMask product ID, for example "nfl" or "college-football".
+  id: PredictEntityId;
+  label: string;
+}
+
+interface PredictTeam {
+  name: string;
+  abbreviation?: string;
+  logoUrl?: PredictHttpsUrl;
+  primaryColor?: PredictHexColor;
+}
+
+type PredictGameStatus =
+  | 'scheduled'
+  | 'in_progress'
+  | 'delayed'
+  | 'suspended'
+  | 'postponed'
+  | 'completed'
+  | 'canceled';
+
+interface PredictGame {
+  status: PredictGameStatus;
+  homeTeam: PredictTeam;
+  awayTeam: PredictTeam;
+  score?: {
+    home: string;
+    away: string;
+  };
+  period?: string;
+  clock?: string;
+  observedAt: PredictTimestamp;
+}
+
+interface PredictSportsContext {
+  sport: PredictSport;
+  competition?: PredictCompetition;
+  game?: PredictGame;
 }
 
 type PredictMarketStatus =
@@ -84,6 +139,9 @@ interface PredictOutcome {
   label: string;
   askPrice?: PredictPrice;
   bidPrice?: PredictPrice;
+
+  // Present only when this Outcome authoritatively represents a Game selection.
+  gameSelection?: 'home' | 'away' | 'draw';
 }
 
 interface PredictMarket {
@@ -114,6 +172,7 @@ interface PredictEvent {
 
   category?: PredictCategory;
   series?: PredictSeries;
+  sports?: PredictSportsContext;
 
   volume?: PredictAmount;
   volume24h?: PredictAmount;
@@ -141,9 +200,15 @@ interface PredictFeed {
 - `volume24h` is settlement currency traded during the trailing 24-hour window at the backend observation time.
 - Event and Market Volume are independent backend projections. Mobile must not sum Market Volume to invent Event Volume.
 - Amounts and prices are decimal strings. Mobile must not use binary floating-point arithmetic for financial calculations.
-- `imageUrl` is an optional backend-approved absolute HTTPS URL. Mobile must not derive media from titles, tickers, or slugs.
+- `imageUrl` and `logoUrl` are optional backend-approved absolute HTTPS URLs. Mobile must not derive media from titles, tickers, or slugs.
+- `primaryColor` is a backend-approved six-digit hexadecimal RGB color such as `#E31837`; it is decorative and must not be the only way UI communicates meaning.
 - Nested Category, Series, Market, and Outcome IDs inherit Venue scope from the containing Event.
 - `recurrence` describes a regular cadence but is not authoritative current-Event selection logic.
+- For a Game Event, `Event.startsAt` is the scheduled Game start; the Game does not duplicate that timestamp.
+- `Game.score`, `period`, and `clock` are display-safe strings because their formats vary by Sport. Mobile must not parse them to recover Venue semantics.
+- `Game.observedAt` records when the backend observed the Game snapshot so mobile can identify stale REST data.
+- `Outcome.gameSelection` is authoritative when present. Mobile must not infer a Team or draw association from an Outcome label, Market question, title, ticker, or array order.
+- A `no` Outcome opposite a Team's `yes` Outcome does not automatically represent the other Team; draws and Venue resolution rules can make that inference false.
 
 ## Series and rolling Events
 
@@ -196,6 +261,32 @@ Polymarket lifecycle fields are mapped conservatively. The backend must not inve
 
 Do not add a generic Event lifecycle by deriving it from child Markets. Sports Game state, Event display timing, and Market trading lifecycle are separate concepts.
 
+## Sports and Game metadata
+
+Sports metadata is an optional Event projection rather than another resource hierarchy. This allows Game Events, Game-specific props, season props, and futures to share one Event model:
+
+| Event                              | Sports context                                    |
+| ---------------------------------- | ------------------------------------------------- |
+| Chiefs vs Bills                    | American football, NFL, and Game snapshot         |
+| Mahomes touchdowns against Buffalo | American football, NFL, and the same Game context |
+| Mahomes season passing yards       | American football and NFL; no Game                |
+| Super Bowl winner                  | American football and NFL; no Game                |
+
+A Game snapshot is initially limited to one home Team and one away Team. Sports with more than two competitors require a later contract change driven by a concrete product slice.
+
+Game status and Market lifecycle are independent:
+
+```text
+Game:   scheduled -> in_progress -> completed
+Market: initialized -> active -> closed -> determined -> finalized
+```
+
+For example, a Game can be `scheduled` while its Markets are already `active`, or `completed` while a Market remains `determined` pending finalization. Mobile never derives one lifecycle from the other.
+
+The backend maps authoritative Venue status into this small Game vocabulary. Overtime, shootout, forfeit, or other display detail can remain in `period` while `status` is `completed`. Unsupported or ambiguous Venue values fail closed rather than being guessed.
+
+`gameSelection` lets Game cards associate a displayed Outcome with `home`, `away`, or `draw` without replacing the canonical `yes | no` side used for trading. It is optional for totals, spreads, player props, and any Outcome without an authoritative Game-side association.
+
 ## REST API
 
 All public reads are Venue-qualified and return canonical Predict data rather than Venue DTOs.
@@ -229,7 +320,7 @@ GET /v1/venues/kalshi/feeds/crypto?limit=20
 
 Filter IDs are stable MetaMask product IDs. The backend maps them to current Venue Series, tags, catalogs, and metadata. Supported filter discovery is deferred until the UI requires a dynamic filter catalog; the backend rejects unsupported combinations rather than silently ignoring them.
 
-The backend owns Feed membership, ordering, and opaque cursor semantics. For the first Games feeds, live/current Games precede future Games and future Games are ordered by scheduled time.
+The backend owns Feed membership, ordering, and opaque cursor semantics. For the first Games feeds, in-progress Games precede future Games and future Games are ordered by scheduled time.
 
 ### Read one immutable Event
 
@@ -263,6 +354,10 @@ The existing Venue-qualified status route remains:
 GET /v1/venues/{venueId}/status
 ```
 
+### Refresh Game snapshots
+
+No Game-specific endpoint is required initially. Feed and immutable Event reads return the complete embedded Game snapshot. REST clients refresh the existing Feed or Event query according to the product's snapshot policy; a later live-data slice may patch the same canonical Game shape while REST remains the recovery path.
+
 ## Backend normalization responsibilities
 
 The MetaMask Predict backend must:
@@ -273,6 +368,7 @@ The MetaMask Predict backend must:
 - assign at most one primary MetaMask Category to an Event;
 - select at most one useful Series and classify it as `collection` or `rolling`;
 - select the current Event for rolling Series;
+- normalize optional Sport, Competition, Game, Team, Game status, score, period, clock, and Game Selection data only from authoritative sources;
 - map Market lifecycle to the canonical eight-state vocabulary conservatively;
 - normalize prices and Volume as validated decimal strings;
 - provide Event and Market image URLs only from approved HTTPS sources;
@@ -284,7 +380,8 @@ The MetaMask Predict backend must:
 ### Kalshi
 
 - Discover Events through explicit Series, sport catalog, category, tag, and product metadata relationships.
-- Use `series_ticker`, `event_ticker`, and Market ticker fields explicitly; do not parse ticker structure.
+- Join Event metadata and authoritative milestone/live-data sources when constructing Sports and Game snapshots.
+- Use `series_ticker`, `event_ticker`, and Market ticker fields explicitly; do not parse ticker structure or display text to recover Team or Game identity.
 - Map Kalshi Market statuses directly to the canonical lifecycle.
 - Treat NFL Games-like Series as `collection` and interval contracts such as five-minute up/down as `rolling` when product configuration establishes that behavior.
 
@@ -294,7 +391,8 @@ The MetaMask Predict backend must:
 - Select zero or one primary Series deterministically from Polymarket's optional Series array.
 - Keep Gamma Event ID, Market ID, condition ID, and Outcome token IDs distinct internally.
 - Map categories/tags to one primary MetaMask Category; do not expose an arbitrary array as peer Categories.
-- Derive lifecycle only from authoritative Gamma/CLOB state.
+- Normalize structured Gamma sports metadata and sports-stream updates, including splitting combined scores into canonical home and away values.
+- Derive Game Selection and both Game and Market lifecycles only from authoritative structured data.
 
 ## Relationship and behavior examples
 
@@ -305,7 +403,12 @@ Feed: nfl-games
   Event: Chiefs vs Bills
     Category: Sports
     Series: NFL Games (collection)
+    Sports:
+      Sport: American football
+      Competition: NFL
+      Game: in progress, BUF home 17, KC away 21, Q3 08:42
     Markets: winner, spread, total
+      Winner Outcomes: BUF (home), KC (away)
 ```
 
 The same Venue Event may later appear in a Props Feed when its own Markets support that treatment. Feed-specific featured-Market presentation is deferred until a concrete UI requires it.
@@ -317,10 +420,11 @@ Feed: nfl-props
   Event: Will Mahomes throw 3+ touchdowns this week?
     Category: Sports
     Series: optional
+    Sports: American football, NFL, and Game when the prop is Game-specific
     Market: one binary question
 ```
 
-No synthetic Game Event is created.
+No synthetic Game Event is created. A season prop or future has Sport and Competition context but omits Game.
 
 ### Five-minute BTC up/down
 
@@ -348,10 +452,11 @@ The implemented walking-skeleton contract currently returns paginated `PredictEv
 
 1. add `PredictFeed`, `PredictCategory`, and `PredictSeries`;
 2. add optional Event and Market `volume`, `volume24h`, and `imageUrl`;
-3. replace the reduced Market status enum with the canonical Kalshi lifecycle;
-4. replace Event-list reads with Feed reads where product Feed semantics are required;
-5. add the rolling-Series current-Event read;
-6. update runtime validation, adapter transport, query keys, service actions, fixtures, and tests together.
+3. add optional Sports, Competition, Game, Team, Game status, and Game Selection metadata;
+4. replace the reduced Market status enum with the canonical Kalshi lifecycle;
+5. replace Event-list reads with Feed reads where product Feed semantics are required;
+6. add the rolling-Series current-Event read;
+7. update runtime validation, adapter transport, query keys, service actions, fixtures, and tests together.
 
 Until that implementation lands, code and tests remain the executable contract.
 
@@ -367,4 +472,4 @@ Until that implementation lands, code and tests remain the executable contract.
 - Feed-specific featured Market projections;
 - non-binary canonical Markets;
 - continuous live updates and WebSockets;
-- charts, history, rules, Game/Team live state, and account-scoped data.
+- play-by-play, possession, down and distance, per-period scores, player entities and statistics, sports Market-type/line metadata, Games with more than two competitors, independently cached Team resources, charts, history, rules, and account-scoped data.

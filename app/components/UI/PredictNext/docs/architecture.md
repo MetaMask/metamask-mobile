@@ -64,7 +64,7 @@ A Venue exposes only supported capability modules. Unsupported operations are ab
 
 A Venue adapter is the translation boundary for one Venue. Capabilities are grouped by independently varying product concerns:
 
-- `marketData` — public Feed, Event, Category, Series, Market, Outcome, status, Volume, media, and price reads,
+- `marketData` — public Feed, Event, Category, Series, Sports/Game context, Market, Outcome, status, Volume, media, and price reads,
 - `account` — Account Readiness and optional Account Setup,
 - `portfolio` — Balance, Position, Fill/Activity, and optional open Order reads,
 - `trading` — Order Preview and submission; optional Resting Order operations,
@@ -125,6 +125,7 @@ Properties:
 - rolling Series reads return the backend-selected current Event while immutable Event reads always preserve the requested Event identity,
 - transport and DTO normalization stay below the service,
 - Event and Market Volume remain independent decimal-string projections, and image URLs come from backend-approved HTTPS sources,
+- optional Sports/Game snapshots are normalized by the backend and Game status remains independent of Market lifecycle,
 - responses are runtime-validated and unknown fields are discarded,
 - the service alone owns response caching, deduplication, and bounded retry for safe reads.
 
