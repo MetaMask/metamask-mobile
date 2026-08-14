@@ -89,6 +89,8 @@ function createUserRejectedError(): HardwareWalletError {
 }
 
 describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
+  const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
+
   beforeEach(() => {
     setTransactions([]);
   });
@@ -96,15 +98,11 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
   it('returns true from onError when a retry replacement shares the original nonce and the error is a BLE disconnect', () => {
     setTransactions(originalAndReplacement(TransactionType.retry));
 
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
-
     expect(onError(createDisconnectError())).toBe(true);
   });
 
   it('returns true from onError when a cancel replacement shares the original nonce and the error is a BLE disconnect', () => {
     setTransactions(originalAndReplacement(TransactionType.cancel));
-
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
 
     expect(onError(createDisconnectError())).toBe(true);
   });
@@ -112,23 +110,17 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
   it('returns true from onError when the keyring wrapped DisconnectedDevice as Unknown', () => {
     setTransactions(originalAndReplacement(TransactionType.retry));
 
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
-
     expect(onError(createWrappedDisconnectError())).toBe(true);
   });
 
   it('returns false from onError when a replacement exists but the error is a user rejection', () => {
     setTransactions(originalAndReplacement(TransactionType.retry));
 
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
-
     expect(onError(createUserRejectedError())).toBe(false);
   });
 
   it('returns false from onError when a replacement exists but the error is not a disconnect', () => {
     setTransactions(originalAndReplacement(TransactionType.retry));
-
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
 
     expect(onError(new Error('signing failed'))).toBe(false);
   });
@@ -141,8 +133,6 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
       }),
     ]);
 
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
-
     expect(onError(createDisconnectError())).toBe(false);
   });
 
@@ -153,8 +143,6 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
         type: TransactionType.retry,
       }),
     ]);
-
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
 
     expect(onError(createDisconnectError())).toBe(false);
   });
@@ -172,8 +160,6 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
       }),
     ]);
 
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
-
     expect(onError(createDisconnectError())).toBe(false);
   });
 
@@ -189,8 +175,6 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
         status: TransactionStatus.signed,
       }),
     ]);
-
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
 
     expect(onError(createDisconnectError())).toBe(false);
   });
@@ -208,8 +192,6 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
       }),
     ]);
 
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
-
     expect(onError(createDisconnectError())).toBe(false);
   });
 
@@ -225,8 +207,6 @@ describe('skipHardwareWalletErrorIfReplacementSubmitted', () => {
         status: TransactionStatus.confirmed,
       }),
     ]);
-
-    const onError = skipHardwareWalletErrorIfReplacementSubmitted(ORIGINAL_ID);
 
     expect(onError(createDisconnectError())).toBe(true);
   });
