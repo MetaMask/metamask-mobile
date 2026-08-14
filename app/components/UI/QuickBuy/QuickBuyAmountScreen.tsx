@@ -35,13 +35,25 @@ const QuickBuyAmountScreen: React.FC = () => {
       {/* The toolbar stays live even with no funds — it owns the close button,
           so dimming it would leave the user with no way out of the sheet. */}
       <QuickBuyToolbar />
-      <QuickBuyDisabledSection isDisabled={hasNoPayWithFunds}>
+      <QuickBuyDisabledSection
+        isDisabled={hasNoPayWithFunds}
+        testID="quick-buy-disabled-amount"
+      >
         <Box testID="quick-buy-amount-container">
           <QuickBuyAmount />
         </Box>
       </QuickBuyDisabledSection>
       <QuickBuyActionFooter />
-      <QuickBuyKeypad />
+      {/* The keypad stays mounted and expanded whether or not the user has funds
+          — collapsing it would make the sheet height depend on a flag that is
+          not settled on first render, which flashed. It is dimmed and inert
+          instead, so its digit keys cannot type into a dead amount field. */}
+      <QuickBuyDisabledSection
+        isDisabled={hasNoPayWithFunds}
+        testID="quick-buy-disabled-keypad"
+      >
+        <QuickBuyKeypad />
+      </QuickBuyDisabledSection>
     </>
   );
 };
