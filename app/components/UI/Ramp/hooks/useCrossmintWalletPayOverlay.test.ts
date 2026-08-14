@@ -130,8 +130,74 @@ describe('useCrossmintWalletPayOverlay', () => {
       walletAddress: '0x1234567890123456789012345678901234567890',
       chainId: 'solana',
     });
-    expect(result.current.checkoutUrl).toBe(
-      'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?orderId=abc',
+    const checkoutUrl = new URL(result.current.checkoutUrl as string);
+    expect(`${checkoutUrl.origin}${checkoutUrl.pathname}`).toBe(
+      'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout',
+    );
+    expect(checkoutUrl.searchParams.get('orderId')).toBe('abc');
+  });
+
+  it('keeps reporting preparing until the payment button has rendered', async () => {
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+
+    expect(result.current.isPreparing).toBe(true);
+
+    await settle();
+
+    // The order exists, but its checkout is still loading, so the caller must
+    // keep its own Continue button rather than show an empty overlay.
+    expect(result.current.checkoutUrl).not.toBeNull();
+    expect(result.current.isCheckoutReady).toBe(false);
+    expect(result.current.isPreparing).toBe(true);
+
+    act(() => {
+      result.current.onCheckoutReady();
+    });
+
+    expect(result.current.isCheckoutReady).toBe(true);
+    expect(result.current.isPreparing).toBe(false);
+  });
+
+  it('stops reporting preparing when order creation fails', async () => {
+    mockGetBuyWidgetData.mockRejectedValue(new Error('boom'));
+
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+
+    await settle();
+
+    // The standard Continue button is the fallback here, so it must not be
+    // left disabled behind a spinner.
+    expect(result.current.isPreparing).toBe(false);
+    expect(result.current.checkoutUrl).toBeNull();
+  });
+
+  it('is not preparing when the quote is not eligible', () => {
+    const { result } = renderHook(() => useCrossmintWalletPayOverlay(null, 25));
+
+    expect(result.current.isPreparing).toBe(false);
+  });
+
+  it('themes the checkout URL and sets the locale', async () => {
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+
+    await settle();
+
+    const params = new URL(result.current.checkoutUrl as string).searchParams;
+    expect(params.get('locale')).toBe('en-US');
+    expect(
+      JSON.parse(params.get('appearance') as string).variables.colors,
+    ).toEqual(
+      expect.objectContaining({
+        accent: expect.any(String),
+        backgroundPrimary: expect.any(String),
+        textPrimary: expect.any(String),
+      }),
     );
   });
 
@@ -210,6 +276,45 @@ describe('useCrossmintWalletPayOverlay', () => {
     expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(2);
   });
 
+  it('requires the new checkout to report ready again after an amount change', async () => {
+    const { result, rerender } = renderHook(
+      ({ quote, amount }: { quote: Quote; amount: number }) =>
+        useCrossmintWalletPayOverlay(quote, amount),
+      { initialProps: { quote: crossmintQuote, amount: 25 } },
+    );
+
+    await settle();
+    act(() => {
+      result.current.onCheckoutReady();
+    });
+    expect(result.current.isCheckoutReady).toBe(true);
+
+    rerender({ quote: crossmintQuote, amount: 50 });
+    await settle();
+
+    // A new order means a fresh WebView load, so the stale ready flag must not
+    // let an empty overlay replace the Continue button.
+    expect(result.current.isCheckoutReady).toBe(false);
+  });
+
+  it('drops the previous checkout while re-preparing for a new amount', async () => {
+    const { result, rerender } = renderHook(
+      ({ quote, amount }: { quote: Quote; amount: number }) =>
+        useCrossmintWalletPayOverlay(quote, amount),
+      { initialProps: { quote: crossmintQuote, amount: 25 } },
+    );
+
+    await settle();
+    expect(result.current.checkoutUrl).not.toBeNull();
+
+    rerender({ quote: crossmintQuote, amount: 50 });
+
+    // The old URL points at an order for the old total, so it must not stay
+    // on screen, and the caller must see this as busy rather than ready.
+    expect(result.current.checkoutUrl).toBeNull();
+    expect(result.current.isPreparing).toBe(true);
+  });
+
   it('is not eligible when the feature flag is disabled', async () => {
     jest.mocked(useSelector).mockReturnValue(false);
 
@@ -285,7 +390,7 @@ describe('useCrossmintWalletPayOverlay', () => {
     await settle();
 
     expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
-    expect(result.current.checkoutUrl).toBe(
+    expect(result.current.checkoutUrl).toContain(
       'https://staging.crossmint.com/sdk/embedded-checkout',
     );
   });

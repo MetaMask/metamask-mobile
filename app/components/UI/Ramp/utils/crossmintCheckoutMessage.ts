@@ -23,6 +23,8 @@ export interface CrossmintCheckoutMessage {
   data?: {
     message?: string;
     order?: CrossmintCheckoutOrder;
+    /** Payload of `ui:height.changed`, the checkout's own content height. */
+    height?: number;
   };
 }
 

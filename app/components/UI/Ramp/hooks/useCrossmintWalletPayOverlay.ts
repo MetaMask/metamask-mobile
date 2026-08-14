@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 import type { WebViewMessageEvent } from '@metamask/react-native-webview';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
 
+import I18n from '../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { useTheme } from '../../../../util/theme';
 import { selectCrossmintApplePayCheckoutEnabled } from '../../../../selectors/featureFlagController/crossmintApplePayCheckout';
 import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
@@ -15,6 +17,11 @@ import {
   getCheckoutContext,
 } from '../utils/buildQuoteWithRedirectUrl';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
+import {
+  applyCrossmintCheckoutAppearance,
+  buildCrossmintAppearanceVariables,
+  toCrossmintLocale,
+} from '../utils/crossmintCheckoutAppearance';
 import {
   getCrossmintFailureMessage,
   isCrossmintPaymentCompleted,
@@ -41,27 +48,28 @@ interface PreparedOverlay {
 }
 
 export interface UseCrossmintWalletPayOverlayResult {
-  /**
-   * True when the current selection qualifies for the embedded wallet-pay
-   * overlay (flag on, Crossmint quote, platform-native wallet-pay method:
-   * Apple Pay on iOS, Google Pay on Android).
-   */
+  /** Flag on, Crossmint quote, and the platform's own wallet-pay method. */
   isEligible: boolean;
-  /**
-   * The embedded checkout URL rendering the hosted Apple Pay / Google Pay
-   * button, or null while preparing / when not eligible / when preparation
-   * failed.
-   */
+  /** The embedded checkout URL, or null while preparing / ineligible / failed. */
   checkoutUrl: string | null;
+  /**
+   * True from eligibility until the payment button has rendered. The caller
+   * must not offer Continue in this window: it would send the user to the
+   * browser checkout for an order about to be payable inline. Goes false on
+   * preparation failure, where Continue is the right fallback.
+   */
+  isPreparing: boolean;
+  /** True once the payment button has rendered; the overlay takes no space before it. */
+  isCheckoutReady: boolean;
+  /** Passed to the overlay so it can report the payment button as rendered. */
+  onCheckoutReady: () => void;
   /** Best-effort handler for the overlay WebView postMessage events. */
   onMessage: (event: WebViewMessageEvent) => void;
 }
 
 /**
- * Returns whether the payment method is the platform-native wallet-pay
- * method: Apple Pay on iOS, Google Pay on Android. The wallet-pay sheets
- * only work on their own platform, so cross-platform combinations (e.g. a
- * Google Pay quote on iOS) fall through to the standard checkout flow.
+ * Apple Pay on iOS, Google Pay on Android. The sheets only work on their own
+ * platform, so cross-platform pairs fall through to the standard checkout.
  */
 function isPlatformWalletPayMethod(paymentMethodId?: string): boolean {
   if (!paymentMethodId) {
@@ -80,25 +88,16 @@ function isPlatformWalletPayMethod(paymentMethodId?: string): boolean {
  * Prepares Crossmint's embedded wallet-pay checkout for a UB2 quote
  * (LaunchDarkly flag `crossmintApplePayCheckout`).
  *
- * When the quote is a Crossmint quote paid with the platform's wallet-pay
- * method (Apple Pay on iOS, Google Pay on Android), this hook creates the
- * provider order through the on-ramp API buy-widget endpoint
- * (`RampsController.getBuyWidgetData`) — no Crossmint API is called from
- * the client — and returns the embedded checkout URL that renders the
- * hosted payment button inline on the amount screen. The order id returned
- * by the API is registered as a precreated order, so the existing order
- * processor polls it to completion even if the WebView never posts events
- * (`enableApplePay` disables the postMessage polyfill on iOS).
+ * Creates the order through the on-ramp API buy-widget endpoint — no Crossmint
+ * API is called from the client — and returns the checkout URL that renders the
+ * payment button inline. The order id is registered as precreated so the order
+ * processor polls it to completion even when the WebView posts no events.
  *
- * Preparation is debounced and cached per provider/asset/payment/amount so
- * quote refreshes do not create a new Crossmint order on every poll. On any
- * preparation failure the overlay is simply not shown and the standard
- * Continue button remains the checkout path.
+ * Preparation is debounced and cached per provider/asset/payment/amount, so
+ * quote refreshes do not create a new order on every poll. Any failure leaves
+ * the standard Continue button as the checkout path.
  *
- * Once payment is authorized (detected via the WebView's `order:updated`
- * postMessage events, or via the precreated order's polled status when
- * postMessage is unavailable), the hook resets navigation onto the existing
- * UB2 OrderDetails screen, which tracks the order to completion — the same
+ * Once payment is authorized, navigation resets onto OrderDetails, the same
  * handoff the Checkout WebView performs on its callback redirect.
  */
 export default function useCrossmintWalletPayOverlay(
@@ -113,12 +112,15 @@ export default function useCrossmintWalletPayOverlay(
     addPrecreatedOrder,
   } = useRampsController();
   const { getOrderById } = useRampsOrders();
+  const { colors } = useTheme();
   const isFlagEnabled = useSelector(selectCrossmintApplePayCheckoutEnabled);
   const walletAddress = useRampAccountAddress(
     selectedToken?.chainId as CaipChainId,
   );
 
   const [prepared, setPrepared] = useState<PreparedOverlay | null>(null);
+  const [preparationFailed, setPreparationFailed] = useState(false);
+  const [isCheckoutReady, setIsCheckoutReady] = useState(false);
   const preparedKeyRef = useRef<string | null>(null);
   const prepareIdRef = useRef(0);
   const handedOffRef = useRef(false);
@@ -136,6 +138,7 @@ export default function useCrossmintWalletPayOverlay(
       prepareIdRef.current += 1;
       preparedKeyRef.current = null;
       setPrepared(null);
+      setPreparationFailed(false);
       return;
     }
 
@@ -154,6 +157,11 @@ export default function useCrossmintWalletPayOverlay(
 
     const prepareId = prepareIdRef.current + 1;
     prepareIdRef.current = prepareId;
+    // Drop the checkout prepared for the previous amount: it points at an
+    // order for the wrong total and would read as "ready" while the new one
+    // is still being created.
+    setPrepared(null);
+    setPreparationFailed(false);
 
     const timer = setTimeout(async () => {
       try {
@@ -163,7 +171,12 @@ export default function useCrossmintWalletPayOverlay(
         );
         const buyWidget = await getBuyWidgetData(quoteForWidget);
 
-        if (prepareId !== prepareIdRef.current || !buyWidget?.url) {
+        if (prepareId !== prepareIdRef.current) {
+          return;
+        }
+
+        if (!buyWidget?.url) {
+          setPreparationFailed(true);
           return;
         }
 
@@ -193,6 +206,7 @@ export default function useCrossmintWalletPayOverlay(
         if (prepareId === prepareIdRef.current) {
           preparedKeyRef.current = null;
           setPrepared(null);
+          setPreparationFailed(true);
         }
         Logger.error(error as Error, {
           message:
@@ -217,10 +231,8 @@ export default function useCrossmintWalletPayOverlay(
   ]);
 
   /**
-   * Leaves BuildQuote for the existing UB2 OrderDetails screen once payment
-   * has been authorized. Mirrors the Checkout WebView's callback handoff
-   * (`navigation.reset` onto RAMPS_ORDER_DETAILS); OrderDetails and the
-   * precreated-order processor then track the order to completion.
+   * Leaves BuildQuote for OrderDetails once payment is authorized, mirroring
+   * the Checkout WebView's own callback handoff.
    */
   const handOffToOrderDetails = useCallback(() => {
     const orderId = prepared?.orderId;
@@ -245,8 +257,16 @@ export default function useCrossmintWalletPayOverlay(
     handedOffRef.current = false;
   }, [prepared?.orderId]);
 
-  // Primary signal: Crossmint's embedded checkout posts `order:updated`
-  // events as the payment progresses.
+  // A new URL means a fresh load, so the button must announce itself again.
+  useEffect(() => {
+    setIsCheckoutReady(false);
+  }, [prepared?.checkoutUrl]);
+
+  const onCheckoutReady = useCallback(() => {
+    setIsCheckoutReady(true);
+  }, []);
+
+  // Primary signal: `order:updated` events as the payment progresses.
   const onMessage = useCallback(
     (event: WebViewMessageEvent) => {
       const message = parseCrossmintCheckoutMessage(event.nativeEvent.data);
@@ -256,8 +276,7 @@ export default function useCrossmintWalletPayOverlay(
 
       const failure = getCrossmintFailureMessage(message);
       if (failure) {
-        // Crossmint's embedded UI surfaces the failure inline and lets the
-        // user retry, so only log here.
+        // Their UI surfaces the failure inline and allows a retry, so only log.
         Logger.error(new Error(failure), {
           message: 'useCrossmintWalletPayOverlay Crossmint checkout failure',
         });
@@ -276,11 +295,8 @@ export default function useCrossmintWalletPayOverlay(
     [handOffToOrderDetails],
   );
 
-  // Fallback signal: `enableApplePay` disables the WebView postMessage
-  // polyfill on iOS, so messages may never arrive. The precreated-order
-  // processor polls the on-ramp API, which keeps unpaid Crossmint orders at
-  // CREATED and only advances once payment is authorized — so any status
-  // past CREATED means the user has paid.
+  // Fallback signal, since iOS posts no messages: the API holds unpaid orders
+  // at CREATED, so any status past it means the user has paid.
   const trackedOrderStatus = prepared?.orderId
     ? getOrderById(prepared.orderId)?.status
     : undefined;
@@ -295,9 +311,30 @@ export default function useCrossmintWalletPayOverlay(
     }
   }, [trackedOrderStatus, handOffToOrderDetails]);
 
+  // Themed at read time, not during preparation: folding this into the prepare
+  // effect would make a theme or language change create a new Crossmint order.
+  const checkoutUrl = useMemo(() => {
+    if (!isEligible || !prepared?.checkoutUrl) {
+      return null;
+    }
+    return applyCrossmintCheckoutAppearance(prepared.checkoutUrl, {
+      variables: buildCrossmintAppearanceVariables(colors),
+      locale: toCrossmintLocale(I18n.locale),
+    });
+  }, [isEligible, prepared?.checkoutUrl, colors]);
+
+  // Derived during render, not state: effects run after paint, so a flag set
+  // in the prepare effect leaves one frame where Continue flashes in enabled.
+  // Stays true until the button renders so its spinner covers the load too.
+  const isPreparing =
+    isEligible && !preparationFailed && (!prepared || !isCheckoutReady);
+
   return {
     isEligible,
-    checkoutUrl: isEligible ? (prepared?.checkoutUrl ?? null) : null,
+    checkoutUrl,
+    isPreparing,
+    isCheckoutReady,
+    onCheckoutReady,
     onMessage,
   };
 }

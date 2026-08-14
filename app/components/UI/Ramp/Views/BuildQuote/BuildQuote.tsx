@@ -720,6 +720,12 @@ function BuildQuote() {
         />
       );
     }
+    // The overlay's terms notice takes this slot and already names the
+    // provider, so the attribution would only repeat it. Until then the
+    // ordinary Continue button is showing and the attribution stays.
+    if (crossmintWalletPay.isCheckoutReady) {
+      return null;
+    }
     if (selectedProvider && !isTokenUnavailable && tokenStateIsSettled) {
       return (
         <Text variant={TextVariant.BodySm} style={styles.poweredByText}>
@@ -840,19 +846,22 @@ function BuildQuote() {
                     checkoutUrl={crossmintWalletPay.checkoutUrl}
                     interactive={canContinue}
                     onMessage={crossmintWalletPay.onMessage}
+                    onReady={crossmintWalletPay.onCheckoutReady}
                   />
-                ) : (
+                ) : null}
+                {crossmintWalletPay.isCheckoutReady ? null : (
                   <Button
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     onPress={handleContinuePress}
                     isFullWidth
-                    isDisabled={!canContinue}
+                    isDisabled={!canContinue || crossmintWalletPay.isPreparing}
                     isLoading={
                       selectedQuoteLoading ||
                       isContinueLoading ||
                       isTokenUnavailable ||
-                      !tokenStateIsSettled
+                      !tokenStateIsSettled ||
+                      crossmintWalletPay.isPreparing
                     }
                     testID={BuildQuoteSelectors.CONTINUE_BUTTON}
                   >
