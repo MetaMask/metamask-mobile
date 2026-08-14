@@ -3,6 +3,7 @@ import { MockEventsObject } from '../../../framework';
 const hyperliquidInfoEndpoint = 'https://api.hyperliquid.xyz/info';
 
 const hyperliquidExchangeEndpoint = 'https://api.hyperliquid.xyz/exchange';
+const hyperliquidMockPriority = 1001;
 
 export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
   GET: [
@@ -18,12 +19,14 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       urlEndpoint: hyperliquidExchangeEndpoint,
       responseCode: 200,
       response: { status: 'ok' },
+      priority: hyperliquidMockPriority,
     },
     {
       urlEndpoint: hyperliquidInfoEndpoint,
       requestBody: { type: 'allMids' },
       responseCode: 200,
       response: {},
+      priority: hyperliquidMockPriority,
     },
     {
       urlEndpoint: hyperliquidInfoEndpoint,
@@ -36,12 +39,14 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
           { name: 'SOL', szDecimals: 2, maxLeverage: 50, marginTableId: 0 },
         ],
       },
+      priority: hyperliquidMockPriority,
     },
     {
       urlEndpoint: hyperliquidInfoEndpoint,
       requestBody: { type: 'perpDexs' },
       responseCode: 200,
       response: {},
+      priority: hyperliquidMockPriority,
     },
     {
       urlEndpoint: hyperliquidInfoEndpoint,
@@ -51,6 +56,7 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       ignoreFields: ['user'],
       responseCode: 200,
       response: {},
+      priority: hyperliquidMockPriority,
     },
     {
       urlEndpoint: hyperliquidInfoEndpoint,
@@ -77,6 +83,7 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
         assetPositions: [],
         time: 0,
       },
+      priority: hyperliquidMockPriority,
     },
     {
       urlEndpoint: hyperliquidInfoEndpoint,
@@ -88,6 +95,7 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       response: {
         balances: [],
       },
+      priority: hyperliquidMockPriority,
     },
   ],
 };
