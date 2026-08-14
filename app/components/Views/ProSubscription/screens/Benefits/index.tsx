@@ -131,6 +131,7 @@ const Benefits = ({ onSuccess, onClose, initialPlan }: BenefitsProps) => {
           {strings('pro_subscription.join_pro')}
         </Button>
       </Box>
+
       {isBenefitDetailSheetOpen && selectedBenfitDetail && (
         <BenefitDetails
           onClose={handleBenefitDetailSheetClose}

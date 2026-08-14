@@ -10927,6 +10927,11 @@
       "support": {
         "description": "When something goes wrong, a real person responds in minutes—anytime, any day."
       }
+    },
+    "success": {
+      "title": "You just leveled up, {{name}}",
+      "description": "Time to start earning.",
+      "cta": "Continue"
     }
   }
 }
