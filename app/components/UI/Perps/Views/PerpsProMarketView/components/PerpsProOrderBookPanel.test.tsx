@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import PerpsProOrderBookPanel from './PerpsProOrderBookPanel';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -598,8 +599,10 @@ describe('PerpsProOrderBookPanel', () => {
       const headerValue = getByTestId(`${testID}-column-header-value`);
       const headerValueStyle = StyleSheet.flatten(headerValue.props.style);
 
-      // "Total (USD)" is also wider than half the column.
-      expect(headerValue).toHaveTextContent('Total (USD)');
+      // The value header is also wider than half the column.
+      expect(headerValue).toHaveTextContent(
+        `${strings('perps.order_book.total')} (USD)`,
+      );
       expect(headerValueStyle).toMatchObject({ flexShrink: 0 });
       expect(headerValueStyle.flexGrow).toBeUndefined();
     });
