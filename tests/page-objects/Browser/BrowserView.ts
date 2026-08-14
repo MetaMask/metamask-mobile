@@ -539,6 +539,38 @@ class Browser {
     });
   }
 
+  /**
+   * Assert the unfocused URL bar contains `text`.
+   * Display text is origin + pathname + query, so callers typically pass an origin.
+   */
+  async expectUrlToContain(text: string, description?: string): Promise<void> {
+    const urlElement = FrameworkDetector.isAppium()
+      ? this.urlBarDisplayText
+      : this.urlInputBoxID;
+
+    if (!FrameworkDetector.isAppium()) {
+      await Assertions.expectElementToHaveText(urlElement, text, {
+        description: description ?? `URL input box contains "${text}"`,
+      });
+      return;
+    }
+
+    const el = await asPlaywrightElement(urlElement);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actual = ((await el.textContent()) ?? '').trim();
+        if (!actual.includes(text)) {
+          throw new Error(
+            `Expected URL bar to contain "${text}" but got "${actual}"`,
+          );
+        }
+      },
+      {
+        description: description ?? `URL bar contains "${text}"`,
+      },
+    );
+  }
+
   async navigateToURL(
     url: string,
     options: {
