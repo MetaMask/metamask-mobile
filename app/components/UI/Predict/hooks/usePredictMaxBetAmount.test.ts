@@ -50,6 +50,7 @@ describe('usePredictMaxBetAmount', () => {
     mockUseQuery.mockReturnValue({
       data: undefined,
       isFetching: false,
+      isError: false,
     } as ReturnType<typeof useQuery>);
   });
 
@@ -57,6 +58,7 @@ describe('usePredictMaxBetAmount', () => {
     mockUseQuery.mockReturnValue({
       data: { maxAmountSpent: 95.23 },
       isFetching: false,
+      isError: false,
     } as ReturnType<typeof useQuery>);
 
     const { result } = renderHook(() => usePredictMaxBetAmount(defaultParams));
@@ -70,6 +72,7 @@ describe('usePredictMaxBetAmount', () => {
     mockUseQuery.mockReturnValue({
       data: undefined,
       isFetching: true,
+      isError: false,
     } as ReturnType<typeof useQuery>);
 
     const { result } = renderHook(() => usePredictMaxBetAmount(defaultParams));
@@ -78,17 +81,53 @@ describe('usePredictMaxBetAmount', () => {
   });
 
   it('uses the existing fee estimate while the max preview loads', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isFetching: true,
+      isError: false,
+    } as ReturnType<typeof useQuery>);
+
     const { result } = renderHook(() =>
       usePredictMaxBetAmount({ ...defaultParams, preview: fallbackPreview }),
     );
 
-    expect(result.current.maxBetAmount).toBe(95.23);
+    expect(result.current).toEqual({
+      maxBetAmount: 95.23,
+      isLoading: false,
+    });
+  });
+
+  it('keeps the maximum hidden after a failed query without a preview', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isFetching: false,
+      isError: true,
+    } as ReturnType<typeof useQuery>);
+
+    const { result } = renderHook(() => usePredictMaxBetAmount(defaultParams));
+
+    expect(result.current).toEqual({ maxBetAmount: 0, isLoading: true });
+  });
+
+  it('does not promote the fee estimate after a liquidity-aware query fails', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isFetching: false,
+      isError: true,
+    } as ReturnType<typeof useQuery>);
+
+    const { result } = renderHook(() =>
+      usePredictMaxBetAmount({ ...defaultParams, preview: fallbackPreview }),
+    );
+
+    expect(result.current).toEqual({ maxBetAmount: 0, isLoading: true });
   });
 
   it('returns zero when the provider finds no fillable cent-denominated buy', () => {
     mockUseQuery.mockReturnValue({
       data: null,
       isFetching: false,
+      isError: false,
     } as ReturnType<typeof useQuery>);
 
     const { result } = renderHook(() =>

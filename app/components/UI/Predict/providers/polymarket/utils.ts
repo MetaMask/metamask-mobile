@@ -2302,9 +2302,9 @@ const matchBuyOrder = ({
 }: {
   asks: OrderSummary[];
   dollarAmount: number;
-}): { price: number; size: number } => {
+}): { price: number; size: number } | null => {
   if (!asks.length) {
-    throw new Error('no order match');
+    return null;
   }
 
   const sharePrice = parseFloat(asks[asks.length - 1].price);
@@ -2339,7 +2339,7 @@ const matchBuyOrder = ({
     };
   }
 
-  throw new Error('not enough shares to match user bet amount');
+  return null;
 };
 
 const getBuyLiquidity = (asks: OrderSummary[]): number =>
@@ -2545,13 +2545,18 @@ export const previewOrder = async (
       throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
     }
 
-    return buildBuyPreviewFromContext({
+    const preview = buildBuyPreviewFromContext({
       marketId,
       outcomeId,
       outcomeTokenId,
       size,
       context,
     });
+    if (!preview) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+    }
+
+    return preview;
   }
 
   const [book, feeRateBps, marketInfo] = await Promise.all([
@@ -2677,15 +2682,19 @@ function buildBuyPreviewFromContext({
   context,
 }: Omit<PreviewOrderParams, 'side' | 'positionId'> & {
   context: BuyPreviewContext;
-}): OrderPreview {
+}): OrderPreview | null {
   const { book, marketInfo, serviceFeesPerDollar } = context;
   const { tickSize, roundConfig } = getTickSizeRoundConfig({
     tickSize: book.tick_size,
   });
-  const { price: bestPrice, size: shareAmount } = matchBuyOrder({
+  const match = matchBuyOrder({
     asks: book.asks,
     dollarAmount: size,
   });
+  if (!match) {
+    return null;
+  }
+  const { price: bestPrice, size: shareAmount } = match;
   const makerAmount = roundDown(size, roundConfig.size);
   const metamaskFee = makerAmount * serviceFeesPerDollar.metamaskFee;
   const providerFee = makerAmount * serviceFeesPerDollar.providerFee;
@@ -2764,7 +2773,7 @@ export const previewMaxBuyOrder = async (
       context,
     });
 
-    if (getBuyAllInCostInCents(preview) <= balanceInCents) {
+    if (preview && getBuyAllInCostInCents(preview) <= balanceInCents) {
       maxPreview = preview;
       low = candidateInCents + 1;
     } else {

@@ -2909,6 +2909,35 @@ describe('polymarket utils', () => {
       ).resolves.toBeNull();
     });
 
+    it('narrows the search instead of throwing when a candidate cannot be matched', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [
+              { price: '1', size: '10000000000000000' },
+              { price: '1', size: '-10000000000000000' },
+              { price: '1', size: '1' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      const preview = await previewMaxBuyOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        availableBalance: 100,
+      });
+
+      expect(preview?.maxAmountSpent).toBe(0.99);
+    });
+
     it('returns null without fetching when the balance is not positive', async () => {
       await expect(
         previewMaxBuyOrder({
