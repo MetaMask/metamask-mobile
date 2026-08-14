@@ -1,10 +1,12 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
-import BottomSheet, {
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  Button,
+  ButtonVariant,
   type BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+} from '@metamask/design-system-react-native';
 import { Box } from '../../../Box/Box';
 import {
   AlignItems,
@@ -102,7 +104,11 @@ const BlockExplorersModal = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef} testID={BlockExplorersModalSelectorsIDs.SHEET}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      testID={BlockExplorersModalSelectorsIDs.SHEET}
+    >
       <BottomSheetHeader>
         {strings('bridge_transaction_details.view_on_block_explorer')}
       </BottomSheetHeader>

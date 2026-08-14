@@ -20,27 +20,25 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   callback?.();
 });
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: forwardRef(
-        (
-          { children }: { children: React.ReactNode },
-          ref: React.Ref<unknown>,
-        ) => {
-          useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: mockOnCloseBottomSheet,
-          }));
-          return <View testID="bottom-sheet">{children}</View>;
-        },
-      ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    BottomSheet: forwardRef(
+      (
+        { children, testID }: { children: React.ReactNode; testID?: string },
+        ref: React.Ref<unknown>,
+      ) => {
+        useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+        return <View testID={testID ?? 'bottom-sheet'}>{children}</View>;
+      },
+    ),
+  };
+});
 
 const mockTx = {
   id: 'test-tx-id',
@@ -63,6 +61,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: jest.fn(),
       setOptions: jest.fn(),
     }),
     useRoute: () => ({
