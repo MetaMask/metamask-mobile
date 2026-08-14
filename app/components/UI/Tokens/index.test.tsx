@@ -215,6 +215,8 @@ describe('Tokens', () => {
     mockNavigate.mockClear();
     mockPush.mockClear();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
+    jest.mocked(TokenList).mockReset();
   });
 
   it('displays container', async () => {
