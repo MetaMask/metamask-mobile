@@ -24,7 +24,9 @@ const PredictMarketListRoute = () => {
     useRoute<RouteProp<PredictStackParamList, 'PredictMarketList'>>().params;
 
   if (resolvePredictMarketListLane(config, params) === 'kalshi') {
-    return <PredictNextStack />;
+    return (
+      <PredictNextStack initialParams={{ entryPoint: params?.entryPoint }} />
+    );
   }
   return homeRedesignEnabled ? <PredictHome /> : <PredictFeed />;
 };
