@@ -5,7 +5,7 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 /**
  * Resolved shape of a Bridge tab remote flag.
  */
-interface BridgeTabEnabledFlagValue {
+interface BridgeTabEnabledFlagValue extends Record<string, Json> {
   enabled: boolean;
 }
 
