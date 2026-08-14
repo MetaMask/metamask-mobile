@@ -2,7 +2,12 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import Benefits from './index';
 import { BenefitsTestIds } from './Benefits.testIds';
-import { BENEFITS, PLANS, type PlanId } from './Benefits.constants';
+import {
+  BENEFITS,
+  BENEFIT_DETAILS,
+  PLANS,
+  type PlanId,
+} from './Benefits.constants';
 import { strings } from '../../../../../../locales/i18n';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -145,15 +150,153 @@ describe('Benefits', () => {
       expect(mockOnSuccess).toHaveBeenCalledTimes(1);
     });
 
-    it('pressing a benefit row does not throw (SUB-993 stub)', () => {
-      const firstBenefit = BENEFITS[0];
+    it('pressing a benefit row opens the detail sheet', () => {
       const { getByTestId } = renderBenefits();
 
-      expect(() =>
-        fireEvent.press(
-          getByTestId(BenefitsTestIds.BENEFIT_ROW(firstBenefit.id)),
-        ),
-      ).not.toThrow();
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW(BENEFITS[0].id)));
+
+      expect(
+        getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+      ).toBeTruthy();
+    });
+  });
+
+  // ── BenefitDetails bottom sheet ───────────────────────────────────────────
+
+  describe('BenefitDetails bottom sheet', () => {
+    it('is not visible by default', () => {
+      const { queryByTestId } = renderBenefits();
+
+      expect(
+        queryByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+      ).toBeNull();
+    });
+
+    it('opens when any benefit row is pressed', () => {
+      const { getByTestId } = renderBenefits();
+
+      BENEFITS.forEach((benefit) => {
+        fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW(benefit.id)));
+        expect(
+          getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+        ).toBeTruthy();
+        fireEvent(
+          getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+          'close',
+        );
+      });
+    });
+
+    it('shows the description for the pressed benefit', () => {
+      const apyDetail = BENEFIT_DETAILS.find((d) => d.id === 'apy');
+      if (!apyDetail)
+        throw new Error('apy detail not found in BENEFIT_DETAILS');
+      const { getByTestId, getByText } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
+
+      expect(getByText(strings(apyDetail.description))).toBeTruthy();
+    });
+
+    it('shows bullet points for a benefit that has points (cashback)', () => {
+      const cashbackDetail = BENEFIT_DETAILS.find((d) => d.id === 'cashback');
+      if (!cashbackDetail)
+        throw new Error('cashback detail not found in BENEFIT_DETAILS');
+      const { getByTestId, getByText } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('cashback')));
+
+      cashbackDetail.points?.forEach((pointKey) => {
+        expect(getByText(`\u2022 ${strings(pointKey)}`)).toBeTruthy();
+      });
+    });
+
+    it('shows bullet points for a benefit that has points (member_pricing)', () => {
+      const memberPricingDetail = BENEFIT_DETAILS.find(
+        (d) => d.id === 'member_pricing',
+      );
+      if (!memberPricingDetail)
+        throw new Error('member_pricing detail not found in BENEFIT_DETAILS');
+      const { getByTestId, getByText } = renderBenefits();
+
+      fireEvent.press(
+        getByTestId(BenefitsTestIds.BENEFIT_ROW('member_pricing')),
+      );
+
+      memberPricingDetail.points?.forEach((pointKey) => {
+        expect(getByText(`\u2022 ${strings(pointKey)}`)).toBeTruthy();
+      });
+    });
+
+    it('shows subDescription, learnMore, and notes for the protection benefit', () => {
+      const protectionDetail = BENEFIT_DETAILS.find(
+        (d) => d.id === 'protection',
+      );
+      if (!protectionDetail)
+        throw new Error('protection detail not found in BENEFIT_DETAILS');
+      const { getByTestId, getByText } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('protection')));
+
+      if (!protectionDetail.subDescription)
+        throw new Error('protection.subDescription missing');
+      if (!protectionDetail.learnMore)
+        throw new Error('protection.learnMore missing');
+      if (!protectionDetail.notes) throw new Error('protection.notes missing');
+      expect(getByText(strings(protectionDetail.subDescription))).toBeTruthy();
+      expect(getByText(strings(protectionDetail.learnMore))).toBeTruthy();
+      expect(getByText(strings(protectionDetail.notes))).toBeTruthy();
+    });
+
+    it('does not show points for benefits that have none (apy)', () => {
+      const apyDetail = BENEFIT_DETAILS.find((d) => d.id === 'apy');
+      if (!apyDetail)
+        throw new Error('apy detail not found in BENEFIT_DETAILS');
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
+
+      expect(apyDetail.points).toBeUndefined();
+    });
+
+    it('closes the sheet when onClose is fired', () => {
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW(BENEFITS[0].id)));
+      expect(
+        getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+      ).toBeTruthy();
+
+      fireEvent(
+        getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+        'close',
+      );
+
+      expect(
+        queryByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+      ).toBeNull();
+    });
+
+    it('shows different content when a different benefit row is pressed', () => {
+      const apyDetail = BENEFIT_DETAILS.find((d) => d.id === 'apy');
+      const supportDetail = BENEFIT_DETAILS.find((d) => d.id === 'support');
+      if (!apyDetail)
+        throw new Error('apy detail not found in BENEFIT_DETAILS');
+      if (!supportDetail)
+        throw new Error('support detail not found in BENEFIT_DETAILS');
+      const { getByTestId, getByText, queryByText } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
+      expect(getByText(strings(apyDetail.description))).toBeTruthy();
+
+      fireEvent(
+        getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+        'close',
+      );
+
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('support')));
+      expect(getByText(strings(supportDetail.description))).toBeTruthy();
+      expect(queryByText(strings(apyDetail.description))).toBeNull();
     });
   });
 

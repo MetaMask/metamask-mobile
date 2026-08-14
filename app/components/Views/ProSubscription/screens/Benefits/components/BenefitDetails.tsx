@@ -1,0 +1,81 @@
+import React from 'react';
+import {
+  BottomSheet,
+  Text,
+  TextVariant,
+  TextColor,
+  Box,
+} from '@metamask/design-system-react-native';
+import { BenefitDetailItem } from '../Benefits.constants';
+import { strings } from '../../../../../../../locales/i18n';
+import { BenefitsTestIds } from '../Benefits.testIds';
+
+interface BenefitDetailsProps {
+  onClose: () => void;
+  details: BenefitDetailItem;
+}
+
+const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => (
+  <BottomSheet
+    onClose={onClose}
+    testID={BenefitsTestIds.BENEFIT_DETAILS_CONTAINER}
+  >
+    <Box twClassName="px-4 py-6 flex flex-col">
+      <Text
+        variant={TextVariant.HeadingMd}
+        color={TextColor.TextDefault}
+        twClassName="mb-4"
+      >
+        {strings(details.title)}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="mb-4"
+      >
+        {strings(details.description)}
+      </Text>
+      {details.subDescription && (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="mb-4"
+        >
+          {strings(details.subDescription)}
+        </Text>
+      )}
+
+      {details.points && (
+        <Box twClassName="flex flex-col gap-y-2 mb-4">
+          {details.points.map((pointKey) => (
+            <Text
+              key={pointKey}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {`\u2022 ${strings(pointKey)}`}
+            </Text>
+          ))}
+        </Box>
+      )}
+
+      {details.learnMore && (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="mb-4"
+        >
+          {strings(details.learnMore)}
+        </Text>
+      )}
+
+      {details.notes && (
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          {strings(details.notes)}
+        </Text>
+      )}
+    </Box>
+  </BottomSheet>
+);
+
+export default BenefitDetails;

@@ -75,3 +75,67 @@ export const PLANS: PlanOption[] = [
 ];
 
 export const DEFAULT_PLAN: PlanId = 'annual';
+
+export interface BenefitDetailItem {
+  /** Unique key — matches the `benefits_description` i18n namespace segment. */
+  id: string;
+  /** i18n key for the title. */
+  title: string;
+  /** i18n key for the main description paragraph. */
+  description: string;
+  /** i18n keys for bullet-point list items (cashback, member_pricing). */
+  points?: string[];
+  /** i18n key for the secondary description paragraph (protection). */
+  subDescription?: string;
+  /** i18n key for the "Learn more" link label (protection). */
+  learnMore?: string;
+  /** i18n key for the disclaimer note (protection). */
+  notes?: string;
+}
+
+export const BENEFIT_DETAILS: BenefitDetailItem[] = [
+  {
+    id: 'apy',
+    title: 'pro_subscription.benefits.apy.title',
+    description: 'pro_subscription.benefits_description.apy.description',
+  },
+  {
+    id: 'cashback',
+    title: 'pro_subscription.benefits.cashback.title',
+    description: 'pro_subscription.benefits_description.cashback.description',
+    points: [
+      'pro_subscription.benefits_description.cashback.points.0',
+      'pro_subscription.benefits_description.cashback.points.1',
+    ],
+  },
+  {
+    id: 'member_pricing',
+    title: 'pro_subscription.benefits.member_pricing.title',
+    description:
+      'pro_subscription.benefits_description.member_pricing.description',
+    points: [
+      'pro_subscription.benefits_description.member_pricing.points.0',
+      'pro_subscription.benefits_description.member_pricing.points.1',
+      'pro_subscription.benefits_description.member_pricing.points.2',
+    ],
+  },
+  {
+    id: 'atm_fees',
+    title: 'pro_subscription.benefits.atm_fees.title',
+    description: 'pro_subscription.benefits_description.atm_fees.description',
+  },
+  {
+    id: 'protection',
+    title: 'pro_subscription.benefits.protection.title',
+    description: 'pro_subscription.benefits_description.protection.description',
+    subDescription:
+      'pro_subscription.benefits_description.protection.sub_description',
+    learnMore: 'pro_subscription.benefits_description.protection.learn_more',
+    notes: 'pro_subscription.benefits_description.protection.notes',
+  },
+  {
+    id: 'support',
+    title: 'pro_subscription.benefits.support.title',
+    description: 'pro_subscription.benefits_description.support.description',
+  },
+];
