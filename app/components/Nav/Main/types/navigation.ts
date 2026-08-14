@@ -172,7 +172,7 @@ export type ImportPrivateKeyStackParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyTabStackParamList = {
-  MoneyHome: undefined;
+  MoneyHome: { entryPoint?: string } | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };

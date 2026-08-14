@@ -90,7 +90,13 @@ const PredictHome: React.FC = () => {
     useCallback(() => {
       Engine.context.PredictController.trackHomeViewed({ entryPoint });
       resetImpressions();
-    }, [entryPoint, resetImpressions]),
+
+      return () => {
+        if (entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [entryPoint, navigation, resetImpressions]),
   );
 
   const {

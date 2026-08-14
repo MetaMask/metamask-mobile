@@ -1,6 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
-import { useNavigation } from '@react-navigation/native';
+import {
+  type RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
@@ -15,16 +20,33 @@ import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
 import { EventCardContent } from '../../components/EventCard/EventCardContent';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
+import Engine from '../../../../../core/Engine';
 
 const PAGE_SIZE = 20;
 
 export const PredictHome = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
+  const route =
+    useRoute<RouteProp<PredictNextStackParamList, 'PredictNextHome'>>();
+  const entryPoint = route.params?.entryPoint;
   const statusQuery = useVenueStatus(KALSHI_VENUE_ID);
   const eventsQuery = useEventList(KALSHI_VENUE_ID, { limit: PAGE_SIZE });
   const endReached = useRef(false);
   const [paginationError, setPaginationError] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      Engine.context.PredictController.trackHomeViewed({ entryPoint });
+
+      return () => {
+        if (entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [entryPoint, navigation]),
+  );
+
   const events = useMemo(
     () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [eventsQuery.data],
