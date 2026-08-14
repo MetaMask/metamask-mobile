@@ -11,10 +11,6 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
@@ -22,6 +18,7 @@ import { RAMPS_BUY_CUF_SURFACE } from '../../../../../UI/Ramp/constants/rampsBuy
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { AlertMessage } from '../../alerts/alert-message';
 
 export function CustomAmountBuy() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -64,11 +61,7 @@ export function CustomAmountBuy() {
 
   return (
     <Box alignItems={AlignItems.center} gap={20}>
-      {message && (
-        <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-          {message}
-        </Text>
-      )}
+      <AlertMessage alertMessage={message} />
       <Button
         variant={ButtonVariant.Primary}
         onPress={handleBuyPress}

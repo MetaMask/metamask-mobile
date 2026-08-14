@@ -419,10 +419,7 @@ describe('CustomAmountInfo', () => {
       fieldAlerts: [] as Alert[],
     } as AlertsContextParams);
 
-    useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: undefined,
-      alertMessage: undefined,
-    });
+    useTransactionCustomAmountAlertsMock.mockReturnValue({});
 
     useAccountTokensMock.mockReturnValue([]);
     useTransactionPayAvailableTokensMock.mockReturnValue({
@@ -523,16 +520,15 @@ describe('CustomAmountInfo', () => {
     ).not.toBeDisabled();
   });
 
-  it('renders alert', () => {
+  it('renders help text under the amount when a blocking error is present', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: 'Test Alert Title',
-      alertMessage: 'Test Alert Message',
+      alertMessage: 'Test Help Text',
     });
 
-    const { getByText } = render();
+    const { getByTestId, getByText } = render();
 
-    expect(getByText('Test Alert Title')).toBeDefined();
-    expect(getByText('Test Alert Message')).toBeDefined();
+    expect(getByTestId('alert-message-banner')).toBeOnTheScreen();
+    expect(getByText('Test Help Text')).toBeDefined();
   });
 
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
@@ -1349,7 +1345,6 @@ describe('CustomAmountInfo', () => {
     });
 
     useTransactionCustomAmountAlertsMock.mockReturnValue({
-      alertTitle: strings('confirm.custom_amount.insufficient_funds'),
       alertMessage: strings('alert_system.account_no_funds.message'),
     });
 
@@ -1357,8 +1352,7 @@ describe('CustomAmountInfo', () => {
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
-    // The alert message appears in AlertMessage and in the keyboard's alertMessage
-    // prop now that hasFiatOption=true (asset-provider path). Check at least one.
+    // The help text renders under the amount for the blocking error.
     expect(
       getAllByText(strings('alert_system.account_no_funds.message'))[0],
     ).toBeOnTheScreen();

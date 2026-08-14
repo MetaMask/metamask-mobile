@@ -45,7 +45,6 @@ export function useTransactionCustomAmountAlerts({
 }): {
   alertContent?: ReactElement;
   alertMessage?: string;
-  alertTitle?: string;
 } {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({
@@ -91,18 +90,13 @@ export function useTransactionCustomAmountAlerts({
     return {};
   }
 
-  const alertTitle =
-    firstAlert.title ?? (firstAlert.message as string | undefined);
-
-  const alertMessage = firstAlert.title
-    ? (firstAlert.message as string | undefined)
-    : undefined;
+  const alertMessage =
+    (firstAlert.message as string | undefined) ?? firstAlert.title;
 
   const alertContent = firstAlert.content as ReactElement | undefined;
 
   return {
     alertContent,
     alertMessage,
-    alertTitle,
   };
 }

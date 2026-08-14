@@ -7,6 +7,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../hooks/useStyles';
 import type { QuoteErrorInfo } from '@metamask/transaction-pay-controller';
 import styleSheet from './no-quote-alert.styles';
+import { AlertMessage } from '../alert-message';
 
 const TAPS_TO_TOGGLE = 2;
 
@@ -27,9 +28,9 @@ export function NoQuoteAlert({ error }: Props) {
 
   return (
     <Pressable onPress={handlePress} testID="no-quote-alert">
-      <Text variant={TextVariant.BodySM} style={styles.message}>
-        {isExpanded ? error.message : collapsedMessage}
-      </Text>
+      <AlertMessage
+        alertMessage={isExpanded ? error.message : collapsedMessage}
+      />
       {isExpanded && error.detail && error.detail.length > 0 && (
         <View style={styles.detailsBlock} testID="no-quote-alert-details">
           {error.detail.map((row) => (
