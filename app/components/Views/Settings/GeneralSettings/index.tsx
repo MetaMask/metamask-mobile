@@ -202,14 +202,12 @@ const Settings = ({
       })),
     [],
   );
-  const themeOptions = useMemo<SelectOption[]>(
-    () =>
-      (Object.values(AppThemeKey) as AppThemeKey[]).map((themeKey) => ({
-        value: themeKey,
-        label: strings(`app_settings.theme_${themeKey}`),
-        key: themeKey,
-      })),
-    [currentLanguage],
+  const themeOptions = (Object.values(AppThemeKey) as AppThemeKey[]).map(
+    (themeKey) => ({
+      value: themeKey,
+      label: strings(`app_settings.theme_${themeKey}`),
+      key: themeKey,
+    }),
   );
   const navigationTimeoutRef = useRef<
     ReturnType<typeof setTimeout> | undefined
