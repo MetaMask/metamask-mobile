@@ -24,6 +24,7 @@ class OnboardingView {
       checkForDisplayed: true,
       checkEnabled: true,
       waitForInteractive: true,
+      checkStability: true,
       timeout: 15_000,
     });
   }
@@ -38,6 +39,7 @@ class OnboardingView {
       checkForDisplayed: true,
       checkEnabled: true,
       waitForInteractive: true,
+      checkStability: true,
       timeout: 15_000,
     });
   }

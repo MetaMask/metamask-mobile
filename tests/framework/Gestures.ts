@@ -909,6 +909,18 @@ export default class Gestures {
   }
 
   /**
+   * Hide the soft keyboard (Appium).
+   * Uses Android `hideKeyboard` when shown, and iOS `mobile: hideKeyboard`
+   * with `tapOutside` (plain `driver.hideKeyboard()` is unreliable on XCUITest).
+   */
+  static async hideKeyboard(): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.hideKeyboard is Appium only');
+    }
+    await PlaywrightGestures.hideKeyboard();
+  }
+
+  /**
    * Dismiss soft keyboard after token search (tapOutside + iOS pills-strip tap).
    * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
    */

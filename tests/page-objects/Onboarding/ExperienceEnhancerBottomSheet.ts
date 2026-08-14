@@ -29,9 +29,10 @@ class ExperienceEnhancerBottomSheet {
    */
   async dismissIfPresent(): Promise<void> {
     try {
+      // Short timeout: this is often a no-op; avoid a 5s wait on every call site.
       await Assertions.expectElementToBeVisible(this.noThanksButton, {
         description: 'experience enhancer modal',
-        timeout: 5_000,
+        timeout: 500,
       });
       await Gestures.waitAndTap(this.noThanksButton, {
         elemDescription: 'No Thanks Button in Experience Enhancer Bottom Sheet',

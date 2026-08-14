@@ -3,7 +3,6 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getDriver } from '../../framework';
 
 class ProtectYourWalletView {
   get container(): EncapsulatedElementType {
@@ -20,14 +19,7 @@ class ProtectYourWalletView {
 
   async tapOnRemindMeLaterButton(): Promise<void> {
     if (PlatformDetector.isIOS()) {
-      const drv = getDriver();
-      if (drv) {
-        try {
-          await drv.hideKeyboard();
-        } catch {
-          // Keyboard may already be dismissed.
-        }
-      }
+      await Gestures.hideKeyboard();
     }
     await Gestures.scrollIntoView(this.remindMeLaterButton);
     await Gestures.waitAndTap(this.remindMeLaterButton, {

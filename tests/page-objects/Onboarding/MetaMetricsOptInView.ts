@@ -3,7 +3,6 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getDriver } from '../../framework';
 
 class MetaMetricsOptIn {
   get container(): EncapsulatedElementType {
@@ -48,14 +47,7 @@ class MetaMetricsOptIn {
 
   async tapIAgreeButton(): Promise<void> {
     if (PlatformDetector.isAndroid()) {
-      const drv = getDriver();
-      if (drv) {
-        try {
-          await drv.hideKeyboard();
-        } catch {
-          // Keyboard may already be dismissed.
-        }
-      }
+      await Gestures.hideKeyboard();
     }
     await Gestures.waitAndTap(this.iAgreeButton, {
       elemDescription: 'Opt-in Metrics Continue Button',

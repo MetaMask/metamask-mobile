@@ -6,7 +6,6 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getDriver } from '../../framework';
 
 class ImportWalletView {
   get container(): EncapsulatedElementType {
@@ -117,26 +116,14 @@ class ImportWalletView {
       });
     }
     await this.tapImportScreenTitleToDismissKeyboard(onboarding);
-    await this.hideKeyboardIfPresent();
-  }
-
-  private async hideKeyboardIfPresent(): Promise<void> {
-    const drv = getDriver();
-    if (!drv) {
-      return;
-    }
-    try {
-      await drv.hideKeyboard();
-    } catch {
-      // Keyboard may already be dismissed.
-    }
+    await Gestures.hideKeyboard();
   }
 
   async tapContinueButton(onboarding = true): Promise<void> {
     if (onboarding) {
       // iOS only — Android replaceText path already has no keyboard.
       if (!PlatformDetector.isAndroid()) {
-        await this.hideKeyboardIfPresent();
+        await Gestures.hideKeyboard();
       }
       await Gestures.waitAndTap(this.continueButton, {
         elemDescription: 'Import Wallet Continue Button',
@@ -148,7 +135,7 @@ class ImportWalletView {
     }
 
     if (!PlatformDetector.isAndroid()) {
-      await this.hideKeyboardIfPresent();
+      await Gestures.hideKeyboard();
     }
 
     if (PlatformDetector.isAndroid()) {
