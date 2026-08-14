@@ -65,6 +65,7 @@ export function useInsufficientPayTokenBalanceAlert({
     balanceUsd: accountBalanceUsd,
     balanceRaw: accountBalanceRaw,
     isResolved: isAccountBalanceResolved,
+    isRawResolved: isAccountBalanceRawResolved,
   } = usePayTokenAccountBalance();
 
   const balanceUsd = isMoneyPaymentOverride
@@ -78,6 +79,11 @@ export function useInsufficientPayTokenBalanceAlert({
   // override reads a different source and is not subject to that race, and the
   // source-network and no-quote checks below use their own inputs.
   const isPayBalanceKnown = isMoneyPaymentOverride || isAccountBalanceResolved;
+
+  // The fee check below compares raw token units, which the account source
+  // produces before the USD rate lands. Gating it on the USD-dependent flag
+  // would drop a real shortfall for as long as the rate is missing.
+  const isPayBalanceRawKnown = isAccountBalanceRawResolved;
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
@@ -146,11 +152,11 @@ export function useInsufficientPayTokenBalanceAlert({
       !isPostQuote &&
       !isPendingAlert &&
       payToken &&
-      isPayBalanceKnown &&
+      isPayBalanceRawKnown &&
       totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
     [
       balanceRaw,
-      isPayBalanceKnown,
+      isPayBalanceRawKnown,
       isMoneyPaymentOverride,
       isPendingAlert,
       isPostQuote,

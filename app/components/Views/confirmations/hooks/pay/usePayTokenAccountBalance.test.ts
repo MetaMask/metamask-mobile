@@ -66,6 +66,7 @@ describe('usePayTokenAccountBalance', () => {
       balanceUsd: '0',
       balanceRaw: '0',
       isResolved: false,
+      isRawResolved: false,
     });
   });
 
@@ -85,6 +86,7 @@ describe('usePayTokenAccountBalance', () => {
       balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
       balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
       isResolved: false,
+      isRawResolved: false,
     });
   });
 
@@ -99,6 +101,7 @@ describe('usePayTokenAccountBalance', () => {
       balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
       balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
       isResolved: false,
+      isRawResolved: false,
     });
   });
 
@@ -124,6 +127,7 @@ describe('usePayTokenAccountBalance', () => {
       balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
       balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
       isResolved: false,
+      isRawResolved: false,
     });
   });
 
@@ -186,6 +190,7 @@ describe('usePayTokenAccountBalance', () => {
       balanceUsd: '0',
       balanceRaw: '0',
       isResolved: true,
+      isRawResolved: true,
     });
   });
 
@@ -207,6 +212,7 @@ describe('usePayTokenAccountBalance', () => {
       balanceUsd: '0',
       balanceRaw: '0',
       isResolved: false,
+      isRawResolved: false,
     });
   });
 
@@ -227,5 +233,28 @@ describe('usePayTokenAccountBalance', () => {
 
     // Assert — the returned figure is the stale snapshot, not a confirmed balance.
     expect(result.current.isResolved).toBe(false);
+  });
+
+  it('reports the raw balance as resolved even while the USD rate is unavailable', () => {
+    // Arrange — the account source has produced raw units; only the rate is missing.
+    useTokenFiatRateMock.mockReturnValue(undefined);
+
+    // Act
+    const { result } = runHook();
+
+    // Assert — callers comparing raw units can act on it now, rate or no rate.
+    expect(result.current.isRawResolved).toBe(true);
+    expect(result.current.balanceRaw).toBe('2000000000000000000');
+  });
+
+  it('reports the raw balance as unresolved while it is still the snapshot', () => {
+    // Arrange
+    useAccountTokensMock.mockReturnValue([]);
+
+    // Act
+    const { result } = runHook();
+
+    // Assert
+    expect(result.current.isRawResolved).toBe(false);
   });
 });

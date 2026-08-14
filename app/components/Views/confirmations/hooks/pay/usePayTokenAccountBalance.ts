@@ -20,6 +20,12 @@ export function usePayTokenAccountBalance(): {
    * empty wallet until this is true.
    */
   isResolved: boolean;
+  /**
+   * True as soon as `balanceRaw` comes from the account source, which happens
+   * before the USD rate lands. Callers comparing raw token units should gate on
+   * this rather than `isResolved`, which additionally waits on the rate.
+   */
+  isRawResolved: boolean;
 } {
   const { payToken } = useTransactionPayToken();
   const accountTokens = useAccountTokens({ includeNoBalance: true });
@@ -31,7 +37,12 @@ export function usePayTokenAccountBalance(): {
 
   return useMemo(() => {
     if (!payToken) {
-      return { balanceUsd: '0', balanceRaw: '0', isResolved: false };
+      return {
+        balanceUsd: '0',
+        balanceRaw: '0',
+        isResolved: false,
+        isRawResolved: false,
+      };
     }
 
     const matchingToken = accountTokens.find(
@@ -45,6 +56,7 @@ export function usePayTokenAccountBalance(): {
         balanceUsd: payToken.balanceUsd ?? '0',
         balanceRaw: payToken.balanceRaw ?? '0',
         isResolved: false,
+        isRawResolved: false,
       };
     }
 
@@ -58,11 +70,17 @@ export function usePayTokenAccountBalance(): {
         balanceUsd: payToken.balanceUsd ?? '0',
         balanceRaw: rawBalanceDecimal,
         isResolved: false,
+        isRawResolved: true,
       };
     }
 
     const balanceUsd = humanBalance.multipliedBy(usdRate).toString(10);
 
-    return { balanceUsd, balanceRaw: rawBalanceDecimal, isResolved: true };
+    return {
+      balanceUsd,
+      balanceRaw: rawBalanceDecimal,
+      isResolved: true,
+      isRawResolved: true,
+    };
   }, [payToken, accountTokens, usdRate]);
 }

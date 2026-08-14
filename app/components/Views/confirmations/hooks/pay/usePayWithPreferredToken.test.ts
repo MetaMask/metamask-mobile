@@ -89,6 +89,7 @@ describe('usePayWithPreferredToken', () => {
       balanceUsd: TOKEN_MOCK.balanceUsd,
       balanceRaw: TOKEN_MOCK.balanceRaw,
       isResolved: true,
+      isRawResolved: true,
     });
   });
 

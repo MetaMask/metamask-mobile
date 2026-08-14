@@ -163,6 +163,7 @@ describe('PayWithRow', () => {
       balanceUsd: '0',
       balanceRaw: '0',
       isResolved: true,
+      isRawResolved: true,
     });
   });
 
@@ -258,6 +259,7 @@ describe('PayWithRow', () => {
         balanceUsd: '1234.999',
         balanceRaw: '0',
         isResolved: true,
+        isRawResolved: true,
       });
 
       const { getByTestId } = render();

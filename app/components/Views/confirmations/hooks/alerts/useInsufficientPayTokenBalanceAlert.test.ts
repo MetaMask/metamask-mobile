@@ -120,6 +120,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         balanceUsd: payToken?.balanceUsd ?? '0',
         balanceRaw: payToken?.balanceRaw ?? '0',
         isResolved: true,
+        isRawResolved: true,
       };
     });
     useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -160,6 +161,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         balanceUsd: '1.22',
         balanceRaw: '1000',
         isResolved: false,
+        isRawResolved: false,
       });
 
       // Act
@@ -281,7 +283,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   describe('for fees', () => {
     it('returns no fees alert while the pay token balance has not resolved', () => {
       // Arrange — same shortfall as the case below, but measured against the
-      // stale snapshot rather than a resolved balance.
+      // stale snapshot rather than a balance the account source produced.
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           ...PAY_TOKEN_MOCK,
@@ -293,6 +295,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
         balanceRaw: '999',
         isResolved: false,
+        isRawResolved: false,
       });
 
       // Act
@@ -300,6 +303,42 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
       // Assert
       expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns the fees alert once the raw balance is known, even while the USD rate is missing', () => {
+      // Arrange — the account source has produced raw units and they are short.
+      // The USD rate has not landed, so the USD-derived `isResolved` is still
+      // false; a raw-unit comparison must not wait on it.
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceRaw: '999',
+        },
+        setPayToken: jest.fn(),
+      });
+      usePayTokenAccountBalanceMock.mockReturnValue({
+        balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
+        balanceRaw: '999',
+        isResolved: false,
+        isRawResolved: true,
+      });
+
+      // Act
+      const { result } = runHook();
+
+      // Assert
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenFees,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_method_balance.message',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
     });
 
     it('returns alert if pay token balance is less than total source amount', () => {
