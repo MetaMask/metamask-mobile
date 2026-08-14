@@ -512,6 +512,8 @@ jest.mock('../../app/core/Engine', () => {
         resetFirstTimeUserState: jest.fn(),
         clearPendingTransactionRequests: jest.fn(),
         recordMarketViewed: jest.fn(),
+        getWatchlistMarkets: jest.fn(() => []),
+        toggleWatchlistMarket: jest.fn().mockResolvedValue(undefined),
       },
     },
     controllerMessenger: {
