@@ -1030,8 +1030,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // fire onLoadEnd without a matching onLoadStart for the destination
         // URL, so `started` is false. A completed load on a new origin is
         // still a committed navigation — update the URL bar (#33815).
-        const isCommittedCrossOriginRedirect =
-          incomingOrigin !== activeOrigin;
+        const isCommittedCrossOriginRedirect = incomingOrigin !== activeOrigin;
         if (
           forceResolve ||
           (started && ended) ||
