@@ -112,18 +112,19 @@ describe('shapeCardTilt', () => {
     // A third of the way through the travel, as reported by the hook.
     const smallTilt = (1 / 3) ** 2;
 
-    expect(shapeCardTilt(smallTilt)).toBeGreaterThan(smallTilt * 3);
+    expect(shapeCardTilt(smallTilt)).toBeGreaterThan(smallTilt * 2.5);
   });
 
   it('stays eased above a proportional response without over-boosting it', () => {
     // Halfway through the travel, as reported by the hook's squared curve.
-    // Below the proportional 0.5 the card would need a deliberate turn before
-    // it answered at all; far above it, the drift of a hand holding a phone
-    // still enough to read drives the artboard.
+    // Below the proportional response the card would need a deliberate turn
+    // before it answered at all; far above it, the drift of a hand holding a
+    // phone still enough to read drives the artboard.
     const halfway = 0.5 ** 2;
+    const proportional = (0.5 - CARD_TILT_DEADZONE) / (1 - CARD_TILT_DEADZONE);
 
-    expect(shapeCardTilt(halfway)).toBeGreaterThan(0.5);
-    expect(shapeCardTilt(halfway)).toBeLessThan(0.55);
+    expect(shapeCardTilt(halfway)).toBeGreaterThan(proportional);
+    expect(shapeCardTilt(halfway)).toBeLessThan(proportional * 1.15);
   });
 
   it('damps the smallest movements hardest', () => {

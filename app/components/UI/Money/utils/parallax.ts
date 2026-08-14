@@ -51,17 +51,19 @@ export const CARD_TILT_DEADZONE = 0.08;
 /**
  * Shapes the card's response above the deadzone. `useDeviceOrientation` reports
  * a tilt already squared by its own response curve, so an exponent below 0.5
- * would overshoot linear; 0.8 lands slightly eased, close to proportional to
- * the angle the device is actually held at. Lower it for a livelier card.
+ * would overshoot linear; 0.9 sits just barely eased, near enough to
+ * proportional with the angle the device is actually held at. Lower it for a
+ * livelier card.
  *
  * MUSD-1249 set this to 0.65 to answer a card that barely moved. That overshot:
  * the card then swung on the few degrees a phone drifts through while it is
- * simply being held, which reads as overdone rather than deliberate. 0.8 takes
- * roughly a fifth off the response at the ten-or-so degrees a card is actually
- * looked at, and damps the smallest movements hardest, while the extremes still
- * reach full travel — the reach was never the complaint, the gain was.
+ * simply being held, which reads as overdone rather than deliberate. 0.9 takes
+ * roughly a quarter off the response at the ten-or-so degrees a card is
+ * actually looked at and around three fifths off the smallest drift, while the
+ * extremes still reach full travel — the reach was never the complaint, the
+ * gain was.
  */
-export const CARD_TILT_RESPONSE_EXPONENT = 0.8;
+export const CARD_TILT_RESPONSE_EXPONENT = 0.9;
 
 /**
  * Fraction of the device's tilt travel the parallax graphic treats as
