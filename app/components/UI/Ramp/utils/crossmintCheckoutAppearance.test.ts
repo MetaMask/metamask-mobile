@@ -136,7 +136,9 @@ describe('applyCrossmintCheckoutAppearance', () => {
 
   it('lets the app theme win over variables already on the URL', () => {
     const withVariables = `https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?appearance=${encodeURIComponent(
-      JSON.stringify({ variables: { borderRadius: '2px' } }),
+      JSON.stringify({
+        variables: { borderRadius: '2px', fontFamily: 'url-font' },
+      }),
     )}`;
 
     const result = applyCrossmintCheckoutAppearance(withVariables, {
@@ -144,8 +146,10 @@ describe('applyCrossmintCheckoutAppearance', () => {
       locale: 'en-US',
     });
 
+    // `borderRadius` is overridden by the app theme; `fontFamily`, which the
+    // theme does not set, survives.
     expect(getAppearance(result).variables).toEqual({
-      borderRadius: '2px',
+      fontFamily: 'url-font',
       ...VARIABLES,
     });
   });
