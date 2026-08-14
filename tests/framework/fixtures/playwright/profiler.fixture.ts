@@ -16,6 +16,9 @@ async function startProfiler(driver: WebdriverIO.Browser): Promise<void> {
   const start = await driver.$('~e2e-profiler-start');
   await start.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
   await start.click();
+
+  const recordingReady = await driver.$('~e2e-profiler-recording-ready');
+  await recordingReady.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
 }
 
 async function stopProfiler(driver: WebdriverIO.Browser): Promise<void> {

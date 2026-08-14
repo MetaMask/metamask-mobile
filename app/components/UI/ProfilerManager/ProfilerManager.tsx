@@ -41,8 +41,12 @@ const styles = StyleSheet.create({
     top: 2,
     left: 0,
   },
-  e2eResultReady: {
+  e2eRecordingReady: {
     top: 4,
+    left: 0,
+  },
+  e2eResultReady: {
+    top: 6,
     left: 0,
   },
 });
@@ -179,6 +183,16 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
             onPress={stopProfiler}
             style={[styles.e2eToggle, styles.e2eStop]}
           />
+          {isRecording && (
+            <Pressable
+              testID="e2e-profiler-recording-ready"
+              accessibilityLabel="e2e-profiler-recording-ready"
+              accessible
+              importantForAccessibility="yes"
+              onPress={() => undefined}
+              style={[styles.e2eToggle, styles.e2eRecordingReady]}
+            />
+          )}
           {lastProfilePath && (
             <Pressable
               testID="e2e-profiler-result-ready"
