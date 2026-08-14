@@ -815,6 +815,23 @@ const QRScanner = ({
     );
   }, []);
 
+  useEffect(() => {
+    if (isAddDeviceScanner || !permissionCheckCompleted || hasPermission) {
+      return;
+    }
+
+    navigation.goBack();
+    InteractionManager.runAfterInteractions(() => {
+      showCameraNotAuthorizedAlert();
+    });
+  }, [
+    hasPermission,
+    isAddDeviceScanner,
+    navigation,
+    permissionCheckCompleted,
+    showCameraNotAuthorizedAlert,
+  ]);
+
   const getScannerOverlayLabel = useCallback(() => {
     if (isAddDeviceScanner) {
       if (addDeviceScannerUiState === AddDeviceScannerUiState.Detected) {

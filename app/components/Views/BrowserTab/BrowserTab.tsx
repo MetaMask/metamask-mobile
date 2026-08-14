@@ -1026,10 +1026,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         const { started, ended } = webStates.current[url];
         const incomingOrigin = new URLParse(url).origin;
         const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
+        // JS-initiated cross-origin redirects (`window.location.href`) often
+        // fire onLoadEnd without a matching onLoadStart for the destination
+        // URL, so `started` is false. A completed load on a new origin is
+        // still a committed navigation — update the URL bar (#33815).
+        const isCommittedCrossOriginRedirect =
+          incomingOrigin !== activeOrigin;
         if (
           forceResolve ||
           (started && ended) ||
-          incomingOrigin === activeOrigin
+          incomingOrigin === activeOrigin ||
+          isCommittedCrossOriginRedirect
         ) {
           delete webStates.current[url];
           // Update navigation bar address with title of loaded url.
