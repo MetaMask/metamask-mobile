@@ -12,7 +12,6 @@ export interface GatewayWithAvailability {
 export type SecuritySettingsScrollSection = 'metametrics' | 'data-collection';
 
 export interface SecuritySettingsParams {
-  scrollToDetectNFTs?: boolean;
   scrollToSection?: SecuritySettingsScrollSection;
 }
 

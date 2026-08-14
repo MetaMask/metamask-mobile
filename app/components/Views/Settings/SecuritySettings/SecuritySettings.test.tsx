@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { InteractionManager, ScrollView, View } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
@@ -52,7 +53,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
-    useFocusEffect: jest.fn(),
+    useFocusEffect: jest.fn((callback: () => void) => callback()),
   };
 });
 
@@ -62,10 +63,8 @@ jest.mock('@react-native-cookies/cookies', () => ({
 }));
 
 let mockUseParamsValues: {
-  scrollToDetectNFTs?: boolean;
   scrollToSection?: 'metametrics' | 'data-collection';
 } = {
-  scrollToDetectNFTs: undefined,
   scrollToSection: undefined,
 };
 
@@ -96,9 +95,17 @@ describe('SecuritySettings', () => {
     jest.clearAllMocks();
     mockGoBack.mockClear();
     mockUseParamsValues = {
-      scrollToDetectNFTs: undefined,
       scrollToSection: undefined,
     };
+
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        setTimeout(() => {
+          if (typeof callback === 'function') callback();
+        }, 0);
+        return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() };
+      });
 
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       dispatch: jest.fn(),
@@ -125,7 +132,6 @@ describe('SecuritySettings', () => {
 
   it('renders the metametrics sections when scrollToSection param is set', () => {
     mockUseParamsValues = {
-      scrollToDetectNFTs: undefined,
       scrollToSection: 'data-collection',
     };
     const { getByTestId } = renderWithProvider(<SecuritySettings />, {
@@ -133,6 +139,42 @@ describe('SecuritySettings', () => {
     });
     expect(getByTestId(META_METRICS_SECTION)).toBeOnTheScreen();
     expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeOnTheScreen();
+  });
+
+  it.each(['metametrics', 'data-collection'] as const)(
+    'scrolls to the %s section when scrollToSection param is set',
+    async (scrollToSection) => {
+      const measureLayoutSpy = jest
+        .spyOn(View.prototype, 'measureLayout')
+        .mockImplementationOnce((_node, onSuccess) => onSuccess(0, 42, 0, 0));
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+      mockUseParamsValues = { scrollToSection };
+      renderWithProvider(<SecuritySettings />, { state: initialState });
+
+      await waitFor(() =>
+        expect(scrollToSpy).toHaveBeenCalledWith({ y: 42, animated: true }),
+      );
+
+      measureLayoutSpy.mockRestore();
+      scrollToSpy.mockRestore();
+    },
+  );
+
+  it('does not scroll when the section layout cannot be measured', async () => {
+    const measureLayoutSpy = jest
+      .spyOn(View.prototype, 'measureLayout')
+      .mockImplementationOnce((_node, _onSuccess, onFail) => onFail?.());
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+    mockUseParamsValues = { scrollToSection: 'metametrics' };
+    renderWithProvider(<SecuritySettings />, { state: initialState });
+
+    await waitFor(() => expect(measureLayoutSpy).toHaveBeenCalled());
+    expect(scrollToSpy).not.toHaveBeenCalled();
+
+    measureLayoutSpy.mockRestore();
+    scrollToSpy.mockRestore();
   });
 
   it('renders inline header with Security and privacy title', () => {

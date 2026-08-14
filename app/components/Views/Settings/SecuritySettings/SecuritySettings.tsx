@@ -1,6 +1,13 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
+import {
+  Switch,
+  ScrollView,
+  View,
+  Keyboard,
+  Linking,
+  InteractionManager,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -84,7 +91,6 @@ const Settings: React.FC = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
   const scrollViewRef = useRef<ScrollView>(null);
-  const detectNftComponentRef = useRef<View>(null);
   const metaMetricsSectionRef = useRef<View>(null);
   const dataCollectionSectionRef = useRef<View>(null);
   const {
@@ -155,39 +161,6 @@ const Settings: React.FC = () => {
     isNotificationEnabled,
   ]);
 
-  const scrollToDetectNFTs = useCallback(() => {
-    if (detectNftComponentRef.current) {
-      detectNftComponentRef.current?.measureLayout(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        scrollViewRef.current as any,
-        (_, y) => {
-          scrollViewRef.current?.scrollTo({
-            y,
-            animated: true,
-          });
-        },
-        () => null,
-      );
-    }
-  }, []);
-
-  const waitForRenderDetectNftComponentRef = useCallback(async () => {
-    if (params?.scrollToDetectNFTs) {
-      // Add a delay to ensure the component is fully rendered
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Scroll to the desired position
-      scrollToDetectNFTs();
-    }
-  }, [scrollToDetectNFTs, params?.scrollToDetectNFTs]);
-
-  useFocusEffect(
-    useCallback(() => {
-      waitForRenderDetectNftComponentRef();
-    }, [waitForRenderDetectNftComponentRef]),
-  );
-
   const scrollToSection = useCallback(() => {
     const sectionRef =
       params?.scrollToSection === 'data-collection'
@@ -208,20 +181,13 @@ const Settings: React.FC = () => {
     );
   }, [params?.scrollToSection]);
 
-  const waitForRenderSectionRef = useCallback(async () => {
-    if (params?.scrollToSection) {
-      // Add a delay to ensure the component is fully rendered
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Scroll to the desired position
-      scrollToSection();
-    }
-  }, [scrollToSection, params?.scrollToSection]);
-
   useFocusEffect(
     useCallback(() => {
-      waitForRenderSectionRef();
-    }, [waitForRenderSectionRef]),
+      if (!params?.scrollToSection) return;
+
+      const task = InteractionManager.runAfterInteractions(scrollToSection);
+      return () => task.cancel();
+    }, [scrollToSection, params?.scrollToSection]),
   );
 
   const toggleHint = () => {
@@ -439,11 +405,7 @@ const Settings: React.FC = () => {
             {strings('app_settings.token_nft_ens_subheading')}
           </Text>
           <DisplayNFTMediaSettings />
-          {isMainnet && (
-            <View ref={detectNftComponentRef}>
-              <AutoDetectNFTSettings />
-            </View>
-          )}
+          {isMainnet && <AutoDetectNFTSettings />}
           <IPFSGatewaySettings />
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.analytics_subheading')}
