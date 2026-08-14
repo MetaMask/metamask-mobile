@@ -378,9 +378,9 @@ export default defineConfig([
       '@metamask/design-tokens/color-no-hex': 'off',
       radix: 'off',
 
-      // These rule modifications are removing changes to our shared ESLint config made after
-      // version v9. Restoring them requires bulk error suppression, which is being added
-      // separately now that ESLint v9 makes it available.
+      // These rule modifications remove changes made to `@metamask/eslint-config`
+      // after its version 9. Restoring them needs bulk error suppression, which
+      // ESLint v9 makes available and which lands separately.
       //
       // TODO: Remove these modifications once suppressions are in place
       'react-hooks/rules-of-hooks': 'off',
@@ -445,9 +445,9 @@ export default defineConfig([
         },
       ],
 
-      // These rule modifications are removing changes to our shared ESLint config made after
-      // version v9. Restoring them requires bulk error suppression, which is being added
-      // separately now that ESLint v9 makes it available.
+      // These rule modifications remove changes made to `@metamask/eslint-config`
+      // after its version 9. Restoring them needs bulk error suppression, which
+      // ESLint v9 makes available and which lands separately.
       //
       // TODO: Remove these modifications once suppressions are in place
       ...disabledJsdocRecommendedRules,
