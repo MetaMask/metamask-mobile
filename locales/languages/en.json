@@ -7696,9 +7696,6 @@
       "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime.",
       "description_no_apy": "Add mUSD. Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
-    "musd_row": {
-      "add": "Add"
-    },
     "balance_card": {
       "label": "Money balance",
       "currency_suffix": " • mUSD",
