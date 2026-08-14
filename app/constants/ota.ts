@@ -12,7 +12,6 @@ import otaConfig from '../../ota.config.js';
  * Reset when releasing a new native build as appropriate for that line.
  * Kept here (not only in ota.config.js) so changes there do not alter the Expo fingerprint and break CI.
  */
-// JS-only change for fingerprint-reuse trial (does not affect the native hash).
 export const OTA_VERSION: string = 'vX.XX.X';
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
