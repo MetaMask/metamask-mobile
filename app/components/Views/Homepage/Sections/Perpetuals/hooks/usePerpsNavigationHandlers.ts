@@ -20,6 +20,7 @@ import type {
   PerpsStackParamList,
 } from '../../../../../UI/Perps/types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { NavigationAnalyticsContext } from '../../../../../../util/analytics/navigationAnalyticsAttribution';
 
 interface UsePerpsNavigationHandlersArgs {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -59,41 +60,49 @@ export const usePerpsNavigationHandlers = ({
     [isFirstTimePerpsUser, navigation],
   );
 
-  const handleViewAllPerps = useCallback(() => {
-    const homeParams = {
+  const navigateToPerpsHome = useCallback(
+    (analyticsContext?: NavigationAnalyticsContext) => {
+      const homeParams = {
+        ...(analyticsContext ? { analyticsContext } : { source }),
+        ...(marketDetailsTransactionActiveAbTests?.length
+          ? {
+              transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
+            }
+          : {}),
+      };
+
+      // Resolve the Pro-aware target up front (Home vs. default Pro market)
+      // so first-time users are redirected consistently with returning users
+      // once they complete the tutorial (TAT-3612).
+      const target = getPerpsHomeNavigationTarget(homeParams);
+
+      if (isFirstTimePerpsUser) {
+        navigation.navigate(Routes.PERPS.TUTORIAL, {
+          source,
+          redirectScreen: target.screen,
+          redirectParams: target.params,
+        });
+        return;
+      }
+
+      navigation.navigate(
+        Routes.PERPS.ROOT,
+        toPerpsNavigatorScreenParams(target),
+      );
+    },
+    [
+      isFirstTimePerpsUser,
+      navigation,
+      marketDetailsTransactionActiveAbTests,
+      getPerpsHomeNavigationTarget,
       source,
-      ...(marketDetailsTransactionActiveAbTests?.length
-        ? {
-            transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
-          }
-        : {}),
-    };
+    ],
+  );
 
-    // Resolve the Pro-aware target up front (Home vs. default Pro market)
-    // so first-time users are redirected consistently with returning users
-    // once they complete the tutorial (TAT-3612).
-    const target = getPerpsHomeNavigationTarget(homeParams);
-
-    if (isFirstTimePerpsUser) {
-      navigation.navigate(Routes.PERPS.TUTORIAL, {
-        source,
-        redirectScreen: target.screen,
-        redirectParams: target.params,
-      });
-      return;
-    }
-
-    navigation.navigate(
-      Routes.PERPS.ROOT,
-      toPerpsNavigatorScreenParams(target),
-    );
-  }, [
-    isFirstTimePerpsUser,
-    navigation,
-    marketDetailsTransactionActiveAbTests,
-    getPerpsHomeNavigationTarget,
-    source,
-  ]);
+  const handleViewAllPerps = useCallback(
+    () => navigateToPerpsHome(),
+    [navigateToPerpsHome],
+  );
 
   const handleViewMorePerps = useCallback(() => {
     navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
@@ -124,6 +133,7 @@ export const usePerpsNavigationHandlers = ({
   return {
     marketDetailsTransactionActiveAbTests,
     navigateToTutorialOrScreen,
+    navigateToPerpsHome,
     handleViewAllPerps,
     handleViewMorePerps,
     handleTilePress,
