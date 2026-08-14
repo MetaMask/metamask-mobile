@@ -591,6 +591,7 @@ const PerpsProOrderBookPanel = ({
             little value. Logic (viewMode/handleCycleViewMode/showBids/
             showAsks) is kept as-is so the button can be restored later by
             un-gating this block. */}
+        {/* eslint-disable-next-line no-constant-binary-expression -- the constant is the gate */}
         {false && (
           <Pressable
             onPress={handleCycleViewMode}

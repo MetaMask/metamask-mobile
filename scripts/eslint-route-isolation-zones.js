@@ -14,7 +14,7 @@
 //   so it is naturally outside any zone's `target` and does not need an
 //   explicit exemption.
 //
-// Required by `.eslintrc.js` and merged into the existing
+// Required by `eslint.config.mjs` and merged into the existing
 // `import-x/no-restricted-paths` zones list.
 
 const fs = require('node:fs');
