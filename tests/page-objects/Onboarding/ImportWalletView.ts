@@ -1,6 +1,5 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
-import enContent from '../../../locales/languages/en.json';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -180,8 +179,8 @@ class ImportWalletView {
   }
 
   get importFromExtensionLink(): EncapsulatedElementType {
-    return Matchers.getElementByText(
-      enContent.import_from_seed.import_wallet_from_extension,
+    return Matchers.getElementByID(
+      ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
     );
   }
 
