@@ -41,6 +41,10 @@ const styles = StyleSheet.create({
     top: 2,
     left: 0,
   },
+  e2eResultReady: {
+    top: 4,
+    left: 0,
+  },
 });
 
 interface ProfilerManagerProps {
@@ -85,7 +89,6 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
       // inside try/catch", which the React Compiler cannot yet optimize.
       if (typeof path === 'string') {
         if (path.length > 0) {
-          setLastProfilePath(path);
           if (
             Platform.OS === 'android' &&
             process.env.METAMASK_ENVIRONMENT === 'e2e'
@@ -101,6 +104,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
               path,
             );
           }
+          setLastProfilePath(path);
         }
       }
     } catch (error) {
@@ -175,6 +179,16 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
             onPress={stopProfiler}
             style={[styles.e2eToggle, styles.e2eStop]}
           />
+          {lastProfilePath && (
+            <Pressable
+              testID="e2e-profiler-result-ready"
+              accessibilityLabel="e2e-profiler-result-ready"
+              accessible
+              importantForAccessibility="yes"
+              onPress={() => undefined}
+              style={[styles.e2eToggle, styles.e2eResultReady]}
+            />
+          )}
         </>
       )}
       {isVisible && (

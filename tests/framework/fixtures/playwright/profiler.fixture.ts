@@ -22,6 +22,9 @@ async function stopProfiler(driver: WebdriverIO.Browser): Promise<void> {
   const stop = await driver.$('~e2e-profiler-stop');
   await stop.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
   await stop.click();
+
+  const resultReady = await driver.$('~e2e-profiler-result-ready');
+  await resultReady.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
 }
 
 export const profilerFixture: Fixtures<TestLevelFixtures, WorkerLevelFixtures> =
