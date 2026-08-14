@@ -1968,7 +1968,7 @@ describe('Homepage balance breakdown ABC test', () => {
             {
               key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
               value: variantName,
-              key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown:${variantName}`,
+              key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown=${variantName}`,
             },
           ],
         }),
