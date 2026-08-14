@@ -13,6 +13,13 @@ const ZERO_ADDRESS = '0x0' as Hex;
 export function usePayTokenAccountBalance(): {
   balanceUsd: string;
   balanceRaw: string;
+  /**
+   * False while the reactive source has not produced a balance for this token
+   * yet, in which case the returned values are the stale snapshot rather than a
+   * confirmed balance. Callers that gate funding UI must not read a `0` as an
+   * empty wallet until this is true.
+   */
+  isResolved: boolean;
 } {
   const { payToken } = useTransactionPayToken();
   const accountTokens = useAccountTokens({ includeNoBalance: true });
@@ -24,7 +31,7 @@ export function usePayTokenAccountBalance(): {
 
   return useMemo(() => {
     if (!payToken) {
-      return { balanceUsd: '0', balanceRaw: '0' };
+      return { balanceUsd: '0', balanceRaw: '0', isResolved: false };
     }
 
     const matchingToken = accountTokens.find(
@@ -37,6 +44,7 @@ export function usePayTokenAccountBalance(): {
       return {
         balanceUsd: payToken.balanceUsd ?? '0',
         balanceRaw: payToken.balanceRaw ?? '0',
+        isResolved: false,
       };
     }
 
@@ -45,10 +53,16 @@ export function usePayTokenAccountBalance(): {
     );
     const decimals = matchingToken.decimals ?? payToken.decimals;
     const humanBalance = new BigNumber(rawBalanceDecimal).shiftedBy(-decimals);
-    const balanceUsd = usdRate
-      ? humanBalance.multipliedBy(usdRate).toString(10)
-      : (payToken.balanceUsd ?? '0');
+    if (!usdRate) {
+      return {
+        balanceUsd: payToken.balanceUsd ?? '0',
+        balanceRaw: rawBalanceDecimal,
+        isResolved: false,
+      };
+    }
 
-    return { balanceUsd, balanceRaw: rawBalanceDecimal };
+    const balanceUsd = humanBalance.multipliedBy(usdRate).toString(10);
+
+    return { balanceUsd, balanceRaw: rawBalanceDecimal, isResolved: true };
   }, [payToken, accountTokens, usdRate]);
 }

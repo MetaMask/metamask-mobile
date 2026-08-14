@@ -65,6 +65,7 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current).toStrictEqual({
       balanceUsd: '0',
       balanceRaw: '0',
+      isResolved: false,
     });
   });
 
@@ -83,6 +84,7 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current).toStrictEqual({
       balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
       balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
+      isResolved: false,
     });
   });
 
@@ -96,6 +98,7 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current).toStrictEqual({
       balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
       balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
+      isResolved: false,
     });
   });
 
@@ -120,6 +123,7 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current).toStrictEqual({
       balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
       balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
+      isResolved: false,
     });
   });
 
@@ -181,6 +185,7 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current).toStrictEqual({
       balanceUsd: '0',
       balanceRaw: '0',
+      isResolved: true,
     });
   });
 
@@ -201,6 +206,26 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current).toStrictEqual({
       balanceUsd: '0',
       balanceRaw: '0',
+      isResolved: false,
     });
+  });
+
+  it('reports the balance as resolved once it comes from the account source', () => {
+    // Arrange + Act
+    const { result } = runHook();
+
+    // Assert
+    expect(result.current.isResolved).toBe(true);
+  });
+
+  it('reports the balance as unresolved while the USD rate is unavailable', () => {
+    // Arrange
+    useTokenFiatRateMock.mockReturnValue(undefined);
+
+    // Act
+    const { result } = runHook();
+
+    // Assert — the returned figure is the stale snapshot, not a confirmed balance.
+    expect(result.current.isResolved).toBe(false);
   });
 });
