@@ -3,20 +3,37 @@ import {
   NotificationMoment,
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import {
+  ButtonIconVariant,
+  ToastOptions,
+  ToastVariants,
+} from '../../../../component-library/components/Toast/Toast.types';
+import { useAppThemeFromContext } from '../../../../util/theme';
 import {
   Spinner,
   IconSize as ReactNativeDsIconSize,
-  toast,
-  ToastSeverity,
-  type ToastOptions,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import type { MoneyAccountDepositIntent } from './useMoneyAccount';
 
-export type MoneyToastOptions = ToastOptions & {
+export type MoneyToastOptions = Omit<
+  Extract<ToastOptions, { variant: ToastVariants.Icon }>,
+  'labelOptions'
+> & {
   hapticsType: HapticNotificationMoment;
-  onPress?: () => void;
+  labelOptions?: {
+    label: string | React.ReactNode;
+    isBold?: boolean;
+  }[];
 };
 
 export type DepositIntent = MoneyAccountDepositIntent;
@@ -105,6 +122,22 @@ export interface MoneyToastOptionsConfig {
   };
 }
 
+interface MoneyToastLabelOptions {
+  primary: string | React.ReactNode;
+  secondary: string | React.ReactNode;
+  primaryIsBold?: boolean;
+}
+
+const getMoneyToastLabels = ({
+  primary,
+  secondary,
+  primaryIsBold = false,
+}: MoneyToastLabelOptions) => [
+  { label: primary, isBold: primaryIsBold },
+  { label: '\n', isBold: false },
+  { label: secondary, isBold: false },
+];
+
 const MONEY_TOASTS_DEFAULT_OPTIONS: Partial<MoneyToastOptions> = {
   hasNoTimeout: false,
 };
@@ -114,29 +147,55 @@ const useMoneyToasts = (): {
   closeToast: () => void;
   MoneyToastOptions: MoneyToastOptionsConfig;
 } => {
-  const closeToast = useCallback(() => {
-    toast.dismiss();
-  }, []);
+  const { toastRef } = useContext(ToastContext);
+  const theme = useAppThemeFromContext();
 
-  const buildToastPress = useCallback((onPress?: () => void) => {
-    if (!onPress) {
-      return undefined;
-    }
-    return () => {
-      toast.dismiss();
-      onPress();
-    };
-  }, []);
+  const closeToast = useCallback(() => {
+    toastRef?.current?.closeToast();
+  }, [toastRef]);
+
+  const closeButtonOptions = useMemo(
+    () => ({
+      variant: ButtonIconVariant.Icon,
+      iconName: IconName.Close,
+      onPress: closeToast,
+    }),
+    [closeToast],
+  );
+
+  const buildToastPress = useCallback(
+    (onPress?: () => void) => {
+      if (!onPress) {
+        return undefined;
+      }
+      return () => {
+        closeToast();
+        onPress();
+      };
+    },
+    [closeToast],
+  );
 
   const moneyBaseToastOptions: Record<string, MoneyToastOptions> = useMemo(
     () => ({
       success: {
         ...(MONEY_TOASTS_DEFAULT_OPTIONS as MoneyToastOptions),
-        severity: ToastSeverity.Success,
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
         hapticsType: NotificationMoment.Success,
+        startAccessory: (
+          <Icon
+            name={IconName.Confirmation}
+            color={theme.colors.success.default}
+            size={IconSize.Lg}
+          />
+        ),
       },
       inProgress: {
         ...(MONEY_TOASTS_DEFAULT_OPTIONS as MoneyToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Loading,
         hapticsType: NotificationMoment.Warning,
         hasNoTimeout: true,
         startAccessory: (
@@ -145,26 +204,30 @@ const useMoneyToasts = (): {
       },
       error: {
         ...(MONEY_TOASTS_DEFAULT_OPTIONS as MoneyToastOptions),
-        severity: ToastSeverity.Danger,
+        variant: ToastVariants.Icon,
+        iconName: IconName.CircleX,
+        iconColor: theme.colors.error.default,
         hapticsType: NotificationMoment.Error,
+        startAccessory: (
+          <Icon
+            name={IconName.CircleX}
+            color={theme.colors.error.default}
+            size={IconSize.Lg}
+          />
+        ),
       },
     }),
-    [],
+    [theme],
   );
 
-  const showToast = useCallback((config: MoneyToastOptions) => {
-    const { hapticsType, onPress, ...toastOptions } = config;
-    toast({
-      ...toastOptions,
-      ...(onPress
-        ? {
-            titleProps: { onPress },
-            descriptionProps: { onPress },
-          }
-        : {}),
-    });
-    playNotification(hapticsType);
-  }, []);
+  const showToast = useCallback(
+    (config: MoneyToastOptions) => {
+      const { hapticsType, ...toastOptions } = config;
+      toastRef?.current?.showToast(toastOptions as ToastOptions);
+      playNotification(hapticsType);
+    },
+    [toastRef],
+  );
 
   const MoneyToastOptions: MoneyToastOptionsConfig = useMemo(() => {
     const buildSendToast = (
@@ -175,8 +238,16 @@ const useMoneyToasts = (): {
       onPress?: () => void,
     ): MoneyToastOptions => ({
       ...base,
-      title: strings(primaryKey),
-      description: strings(secondaryKey, secondaryParams),
+      labelOptions: getMoneyToastLabels({
+        primary: strings(primaryKey),
+        primaryIsBold: true,
+        secondary: (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings(secondaryKey, secondaryParams)}
+          </Text>
+        ),
+      }),
+      closeButtonOptions,
       onPress: buildToastPress(onPress),
     });
 
@@ -186,27 +257,60 @@ const useMoneyToasts = (): {
           const keys = getDepositToastKeys(params?.intent);
           return {
             ...moneyBaseToastOptions.inProgress,
-            title: strings(keys.inProgressTitle),
-            description: strings(keys.inProgressBody),
+            labelOptions: getMoneyToastLabels({
+              primary: strings(keys.inProgressTitle),
+              primaryIsBold: true,
+              secondary: (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings(keys.inProgressBody)}
+                </Text>
+              ),
+            }),
+            closeButtonOptions,
             onPress: buildToastPress(params?.onPress),
           };
         },
         success: ({ amountFiat, intent, onPress }: DepositSuccessParams) => ({
           ...moneyBaseToastOptions.success,
-          title: strings(getDepositToastKeys(intent).successTitle),
-          description: amountFiat
-            ? strings('money.toasts.deposit_success_body', {
-                amount: amountFiat,
-              })
-            : strings('money.toasts.deposit_success_body_no_amount'),
+          labelOptions: getMoneyToastLabels({
+            primary: strings(getDepositToastKeys(intent).successTitle),
+            primaryIsBold: true,
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {amountFiat
+                  ? strings('money.toasts.deposit_success_body', {
+                      amount: amountFiat,
+                    })
+                  : strings('money.toasts.deposit_success_body_no_amount')}
+              </Text>
+            ),
+          }),
+          closeButtonOptions,
           onPress: buildToastPress(onPress),
         }),
         failed: (params?: DepositFailedParams) => {
           const keys = getDepositToastKeys(params?.intent);
           return {
             ...moneyBaseToastOptions.error,
-            title: strings(keys.failedTitle),
-            description: strings(keys.failedBody),
+            labelOptions: getMoneyToastLabels({
+              primary: strings(keys.failedTitle),
+              primaryIsBold: true,
+              secondary: (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings(keys.failedBody)}
+                </Text>
+              ),
+            }),
+            closeButtonOptions,
             onPress: buildToastPress(params?.onPress),
           };
         },
@@ -214,25 +318,58 @@ const useMoneyToasts = (): {
       withdraw: {
         inProgress: () => ({
           ...moneyBaseToastOptions.inProgress,
-          title: strings('money.toasts.withdraw_in_progress_title'),
-          description: strings('money.toasts.in_progress_body'),
+          labelOptions: getMoneyToastLabels({
+            primary: strings('money.toasts.withdraw_in_progress_title'),
+            primaryIsBold: true,
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.toasts.in_progress_body')}
+              </Text>
+            ),
+          }),
+          closeButtonOptions,
         }),
         success: ({ amountFiat, destination }: WithdrawSuccessParams) => ({
           ...moneyBaseToastOptions.success,
-          title: strings('money.toasts.withdraw_success_title'),
-          description: amountFiat
-            ? strings('money.toasts.withdraw_success_body', {
-                amount: amountFiat,
-                destination,
-              })
-            : strings('money.toasts.withdraw_success_body_no_amount', {
-                destination,
-              }),
+          labelOptions: getMoneyToastLabels({
+            primary: strings('money.toasts.withdraw_success_title'),
+            primaryIsBold: true,
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {amountFiat
+                  ? strings('money.toasts.withdraw_success_body', {
+                      amount: amountFiat,
+                      destination,
+                    })
+                  : strings('money.toasts.withdraw_success_body_no_amount', {
+                      destination,
+                    })}
+              </Text>
+            ),
+          }),
+          closeButtonOptions,
         }),
         failed: () => ({
           ...moneyBaseToastOptions.error,
-          title: strings('money.toasts.withdraw_failed_title'),
-          description: strings('money.toasts.withdraw_failed_body'),
+          labelOptions: getMoneyToastLabels({
+            primary: strings('money.toasts.withdraw_failed_title'),
+            primaryIsBold: true,
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.toasts.withdraw_failed_body')}
+              </Text>
+            ),
+          }),
+          closeButtonOptions,
         }),
       },
       send: {
@@ -272,6 +409,7 @@ const useMoneyToasts = (): {
     };
   }, [
     buildToastPress,
+    closeButtonOptions,
     moneyBaseToastOptions.error,
     moneyBaseToastOptions.inProgress,
     moneyBaseToastOptions.success,
