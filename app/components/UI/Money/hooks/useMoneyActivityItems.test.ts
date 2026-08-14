@@ -2,6 +2,10 @@ import { renderHook } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import {
+  CardTransactionStatus,
+  CardTransactionType,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
   mergeMoneyActivity,
   buildMoneyActivityBuckets,
   useMoneyActivityItems,
@@ -14,6 +18,23 @@ import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 
 jest.mock('./useMoneyAccountTransactions');
 jest.mock('./useMoneyAccountApiActivity');
+jest.mock('../../Card/hooks/useCardTransactionIndex', () => ({
+  useCardTransactionIndex: () => ({
+    bySettlementHash: new Map(),
+    declined: [],
+    oldestFetchedTime: Number.NEGATIVE_INFINITY,
+    isFetching: false,
+    isSettling: false,
+    isError: false,
+  }),
+}));
+jest.mock('../../Card/hooks/useCardCapabilities', () => ({
+  useCardCapabilities: () => null,
+}));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
 
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
@@ -208,6 +229,56 @@ describe('buildMoneyActivityBuckets', () => {
       Number.NEGATIVE_INFINITY,
     );
     expect(buckets[MoneyActivityFilter.All]).toHaveLength(3);
+  });
+
+  it('injects declined card txs into All and Purchases only', () => {
+    const declined = {
+      id: 'declined-1',
+      providerId: 'baanx' as const,
+      timestamp: 280,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.00', currency: 'USD' },
+      fundingSources: [],
+    };
+
+    const buckets = buildMoneyActivityBuckets(
+      onchain,
+      [card, cashback],
+      Number.NEGATIVE_INFINITY,
+      [declined],
+    );
+
+    const ids = (filter: MoneyActivityFilter) =>
+      buckets[filter].map((i) => i.id);
+
+    expect(ids(MoneyActivityFilter.All)).toContain('declined-1');
+    expect(ids(MoneyActivityFilter.Purchases)).toContain('declined-1');
+    expect(ids(MoneyActivityFilter.Deposits)).not.toContain('declined-1');
+    expect(ids(MoneyActivityFilter.Transfers)).not.toContain('declined-1');
+  });
+
+  it('withholds declined card txs at or below the watermark', () => {
+    const declined = {
+      id: 'declined-old',
+      providerId: 'baanx' as const,
+      timestamp: 150,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.00', currency: 'USD' },
+      fundingSources: [],
+    };
+
+    const buckets = buildMoneyActivityBuckets(onchain, [card], 200, [declined]);
+
+    expect(buckets[MoneyActivityFilter.All].map((i) => i.id)).not.toContain(
+      'declined-old',
+    );
+    expect(
+      buckets[MoneyActivityFilter.Purchases].map((i) => i.id),
+    ).not.toContain('declined-old');
   });
 });
 

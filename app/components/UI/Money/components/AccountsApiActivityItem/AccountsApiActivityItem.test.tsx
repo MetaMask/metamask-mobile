@@ -112,6 +112,7 @@ describe('AccountsApiActivityItem', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: card,
+      enrichment: undefined,
     });
   });
 
@@ -122,6 +123,7 @@ describe('AccountsApiActivityItem', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: cashback,
+      enrichment: undefined,
     });
   });
 

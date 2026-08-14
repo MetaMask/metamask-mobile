@@ -133,6 +133,21 @@ jest.mock('../../components/MoneyCardTiltAnimation', () => ({
   default: () => null,
 }));
 
+jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
+  useCardTransactionIndex: () => ({
+    bySettlementHash: new Map(),
+    declined: [],
+    oldestFetchedTime: Number.NEGATIVE_INFINITY,
+    isFetching: false,
+    isSettling: false,
+    isError: false,
+  }),
+}));
+
+jest.mock('../../../Card/hooks/useCardCapabilities', () => ({
+  useCardCapabilities: () => null,
+}));
+
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));

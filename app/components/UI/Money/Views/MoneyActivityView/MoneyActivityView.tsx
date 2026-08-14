@@ -81,8 +81,10 @@ interface ActivitySection {
   isPending?: boolean;
 }
 
-/** True for an in-flight on-chain row. Card spends are never pending. */
 function isPendingItem(item: MoneyActivityItem): boolean {
+  if (item.kind === 'cardProvider') {
+    return item.tx.status === 'pending';
+  }
   return (
     item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
   );
@@ -166,6 +168,7 @@ const MoneyActivityView = () => {
     refetch,
     moneyAddress,
     mockDataEnabled,
+    cardEnrichmentByHash,
   } = useMoneyActivityItems({
     // Auto-fill the active tab's bucket to a screenful; switching tabs
     // re-evaluates for the new bucket.
@@ -239,9 +242,16 @@ const MoneyActivityView = () => {
         moneyAddress={moneyAddress}
         onPress={isRowPressEnabled ? handleItemPress : undefined}
         privacyMode={privacyMode}
+        cardEnrichmentByHash={cardEnrichmentByHash}
       />
     ),
-    [moneyAddress, isRowPressEnabled, handleItemPress, privacyMode],
+    [
+      moneyAddress,
+      isRowPressEnabled,
+      handleItemPress,
+      privacyMode,
+      cardEnrichmentByHash,
+    ],
   );
 
   // Pages are shared across all three tabs (one cursor stream), so reaching the

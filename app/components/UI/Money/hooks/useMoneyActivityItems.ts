@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   accountsApiItem,
+  cardProviderItem,
   onchainItem,
   type AccountsApiActivity,
   type MoneyActivityItem,
@@ -12,6 +14,15 @@ import {
 } from '../constants/mockActivityData';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
+import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
+import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
+import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
+import {
+  selectMoneyEnableCardActivityEnrichmentFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
+import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 /** The list shown for each activity filter tab. */
 export type MoneyActivityBuckets = Record<
@@ -42,6 +53,7 @@ export interface UseMoneyActivityItemsResult {
   moneyAddress: string | undefined;
   /** When true, the list shows curated demo data and rows aren't pressable. */
   mockDataEnabled: boolean;
+  cardEnrichmentByHash: Map<string, CardTransaction>;
 }
 
 /**
@@ -97,6 +109,7 @@ function onchainOnly(items: MoneyActivityItem[]): MoneyActivityItem[] {
 export function mergeMoneyActivity(
   onchainTransactions: TransactionMeta[],
   apiActivity: AccountsApiActivity[],
+  declinedCardTxs: CardTransaction[] = [],
 ): MoneyActivityItem[] {
   const apiHashes = new Set(apiActivity.map((a) => a.hash.toLowerCase()));
   const onchain = onchainTransactions
@@ -106,9 +119,11 @@ export function mergeMoneyActivity(
   // Time-descending, with `id` as a stable tiebreak so rows sharing a timestamp
   // (e.g. a spend and its cashback in the same second) keep a deterministic
   // order across renders/refetches and across the two merged sources.
-  return [...onchain, ...apiActivity.map(accountsApiItem)].sort(
-    (a, b) => b.time - a.time || a.id.localeCompare(b.id),
-  );
+  return [
+    ...onchain,
+    ...apiActivity.map(accountsApiItem),
+    ...declinedCardTxs.map(cardProviderItem),
+  ].sort((a, b) => b.time - a.time || a.id.localeCompare(b.id));
 }
 
 export function buildMoneyActivityBuckets(
@@ -119,28 +134,27 @@ export function buildMoneyActivityBuckets(
   },
   apiActivity: AccountsApiActivity[],
   watermark: number = Number.NEGATIVE_INFINITY,
+  declinedCardTxs: CardTransaction[] = [],
 ): MoneyActivityBuckets {
   return {
     [MoneyActivityFilter.All]: safeItems(
-      mergeMoneyActivity(onchain.all, apiActivity),
+      mergeMoneyActivity(onchain.all, apiActivity, declinedCardTxs),
       watermark,
     ),
-    // Deposits (inflows the user funded) and Sends (outflows they initiated,
-    // including Perps/Predict funding) are on-chain only. Every Accounts-API
-    // row — card spend, cashback, refund — belongs to Purchases instead. The
-    // API rows are still merged in here so their hashes dedupe any on-chain
-    // twin, then dropped from the rendered rows.
+    // Deposits and Sends are on-chain only. API rows are still merged in so
+    // their hashes dedupe any on-chain twin, then dropped from the rendered
+    // rows. Declined card txs are omitted here so they only surface in All /
+    // Purchases.
     [MoneyActivityFilter.Deposits]: onchainOnly(
       safeItems(mergeMoneyActivity(onchain.deposits, apiActivity), watermark),
     ),
     [MoneyActivityFilter.Transfers]: onchainOnly(
       safeItems(mergeMoneyActivity(onchain.transfers, apiActivity), watermark),
     ),
-    // Purchases is API-only, but the strict gate still applies: a fetched row
-    // at exactly the watermark may have same-timestamp siblings on the next
-    // page that would sort above it, so it's withheld like everything else.
+    // Purchases is API-only (+ declined card rows); the watermark gate still
+    // applies for same-timestamp siblings on the next page.
     [MoneyActivityFilter.Purchases]: safeItems(
-      mergeMoneyActivity([], apiActivity),
+      mergeMoneyActivity([], apiActivity, declinedCardTxs),
       watermark,
     ),
   };
@@ -173,6 +187,23 @@ export function useMoneyActivityItems({
     refetch,
   } = useMoneyAccountApiActivity();
 
+  const masterFlag = useSelector(selectCardTransactionHistoryEnabled);
+  const enrichmentFlag = useSelector(
+    selectMoneyEnableCardActivityEnrichmentFlag,
+  );
+  const moneyAccountFlag = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
+  const capabilities = useCardCapabilities();
+
+  const enrichmentEnabled =
+    !mockDataEnabled &&
+    masterFlag &&
+    enrichmentFlag &&
+    moneyAccountFlag &&
+    isGeoEligible &&
+    (capabilities?.supportsTransactionHistory ?? false) &&
+    (capabilities?.supportsMoneyAccountLinking ?? false);
+
   const apiActivity = mockDataEnabled ? MOCK_API_ACTIVITY : activity;
   // Mock data is exhaustive and unpaginated: ignore the real watermark so every
   // curated row renders and `loadMore` is inert.
@@ -180,14 +211,52 @@ export function useMoneyActivityItems({
     ? Number.NEGATIVE_INFINITY
     : watermark;
 
+  const oldestVisibleTime = useMemo(() => {
+    const times = apiActivity.map((a) => a.time);
+    if (times.length === 0) {
+      return undefined;
+    }
+    return Math.min(...times);
+  }, [apiActivity]);
+
+  const {
+    bySettlementHash,
+    declined,
+    isSettling: isEnrichmentSettling,
+    isError: isEnrichmentError,
+  } = useCardTransactionIndex({
+    oldestVisibleTime,
+    enabled: enrichmentEnabled,
+  });
+
+  const enrichmentReady = enrichmentEnabled && !isEnrichmentError;
+
+  const declinedForFeed = useMemo(
+    () => (enrichmentReady ? declined : []),
+    [enrichmentReady, declined],
+  );
+
+  const emptyEnrichmentMap = useMemo(
+    () => new Map<string, CardTransaction>(),
+    [],
+  );
+
   const buckets = useMemo(
     () =>
       buildMoneyActivityBuckets(
         { all: allTransactions, deposits, transfers },
         apiActivity,
         effectiveWatermark,
+        declinedForFeed,
       ),
-    [allTransactions, deposits, transfers, apiActivity, effectiveWatermark],
+    [
+      allTransactions,
+      deposits,
+      transfers,
+      apiActivity,
+      effectiveWatermark,
+      declinedForFeed,
+    ],
   );
 
   // Minimum-viable upfront fetch: pull more pages until the target bucket
@@ -212,7 +281,9 @@ export function useMoneyActivityItems({
   // the fetch effect runs on, so the two can't disagree.
   const isSettling =
     !mockDataEnabled &&
-    (isLoading || (fillCount === 0 && (wantsMorePages || isLoadingMore)));
+    (isLoading ||
+      (enrichmentEnabled && isEnrichmentSettling) ||
+      (fillCount === 0 && (wantsMorePages || isLoadingMore)));
 
   return {
     buckets,
@@ -225,5 +296,8 @@ export function useMoneyActivityItems({
     isSettling,
     moneyAddress,
     mockDataEnabled,
+    cardEnrichmentByHash: enrichmentReady
+      ? bySettlementHash
+      : emptyEnrichmentMap,
   };
 }

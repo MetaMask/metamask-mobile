@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import type { Hex } from '@metamask/utils';
 import { MoneyApiActivityDetailsView } from './MoneyApiActivityDetailsView';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
+import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const token = {
   address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
@@ -42,7 +43,13 @@ const refund: AccountsApiActivity = {
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-let mockRouteParams: { activity?: AccountsApiActivity } | undefined;
+let mockRouteParams:
+  | {
+      activity?: AccountsApiActivity;
+      enrichment?: CardTransaction;
+      cardTransaction?: CardTransaction;
+    }
+  | undefined;
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useRoute: () => ({
@@ -57,6 +64,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: () => ({}),
+}));
+
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectCardPrimaryToken: () => null,
 }));
 
 jest.mock('../../../../../selectors/moneyAccountController', () => ({
@@ -91,7 +102,7 @@ jest.mock('../../../../../util/networks', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  const { View, Text: RNText } = jest.requireActual('react-native');
+  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
   return {
     ...actual,
     HeaderStandard: ({
@@ -108,6 +119,22 @@ jest.mock('@metamask/design-system-react-native', () => {
         </RNText>
       </View>
     ),
+    AvatarToken: ({ testID }: { testID?: string }) => (
+      <View testID={testID ?? 'avatar-token'} />
+    ),
+    Button: ({
+      children,
+      onPress,
+      testID,
+    }: {
+      children: React.ReactNode;
+      onPress: () => void;
+      testID?: string;
+    }) => (
+      <Pressable testID={testID} onPress={onPress}>
+        <RNText>{children}</RNText>
+      </Pressable>
+    ),
   };
 });
 
@@ -119,10 +146,6 @@ jest.mock(
   '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
   () => () => null,
 );
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
-  () => () => null,
-);
 jest.mock('../../../Name/Name', () => {
   const { Text: RNText } = jest.requireActual('react-native');
   return {
@@ -132,28 +155,19 @@ jest.mock('../../../Name/Name', () => {
     ),
   };
 });
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const { Pressable, Text: RNText } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      label,
-      onPress,
-      testID,
-    }: {
-      label: string;
-      onPress: () => void;
-      testID?: string;
-    }) => (
-      <Pressable testID={testID} onPress={onPress}>
-        <RNText>{label}</RNText>
-      </Pressable>
-    ),
-    ButtonVariants: {},
-    ButtonSize: {},
-    ButtonWidthTypes: {},
-  };
-});
+
+jest.mock(
+  '../../../../Views/confirmations/components/UI/copy-button/copy-button',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ testID }: { testID?: string }) => (
+        <View testID={testID ?? 'copy-button'} />
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../../util/intl', () => ({
   getIntlDateTimeFormatter: (_locale: string, _opts?: object) => ({
@@ -176,10 +190,10 @@ describe('MoneyApiActivityDetailsView', () => {
   });
 
   describe('card spend', () => {
-    it('renders the Purchase title', () => {
+    it('renders the shared transaction details title', () => {
       const { getByTestId } = render(<MoneyApiActivityDetailsView />);
       expect(getByTestId('header-title')).toHaveTextContent(
-        'money.transaction.purchase',
+        'card.transactions.details_title',
       );
     });
 
@@ -198,13 +212,67 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByTestId('money-account-hero-icon')).toBeTruthy();
     });
 
-    it('renders the From row with the Money account label', () => {
-      const { getByText, queryByText } = render(
+    it('does not render the Report Transaction button', () => {
+      const { queryByTestId, queryByText } = render(
         <MoneyApiActivityDetailsView />,
       );
-      expect(getByText('transaction_details.label.from')).toBeTruthy();
-      expect(getByText('transaction_details.label.money_account')).toBeTruthy();
-      expect(queryByText('transaction_details.label.to')).toBeNull();
+      expect(
+        queryByTestId('card-transaction-details-report-button'),
+      ).toBeNull();
+      expect(queryByText('transaction_details.label.from')).toBeNull();
+      expect(queryByText('transaction_details.label.network')).toBeNull();
+    });
+
+    it('renders a copyable transaction ID from enrichment reference', () => {
+      mockRouteParams = {
+        activity: card,
+        enrichment: {
+          id: 'baanx-id',
+          providerId: 'baanx',
+          timestamp: card.time,
+          status: 'completed',
+          type: 'purchase',
+          isDebit: true,
+          billingAmount: { value: '5.38', currency: 'USD' },
+          reference: '1000131559458',
+          fundingSources: [],
+        } as never,
+      };
+      const { getByTestId, getByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(getByText('transaction.transaction_id')).toBeTruthy();
+      expect(getByText('1000131559458')).toBeTruthy();
+      expect(getByTestId('card-transaction-details-copy-id')).toBeTruthy();
+    });
+
+    it('hides the transaction ID row when enrichment has no reference', () => {
+      const { queryByTestId, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(queryByText('transaction.transaction_id')).toBeNull();
+      expect(queryByTestId('card-transaction-details-copy-id')).toBeNull();
+    });
+
+    it('opens the block explorer when the button is pressed', () => {
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      fireEvent.press(getByTestId('card-transaction-details-explorer-button'));
+
+      expect(mockGetBlockExplorerTxUrl).toHaveBeenCalledWith(
+        expect.anything(),
+        card.hash,
+        'https://monadscan.com',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Webview',
+        expect.objectContaining({
+          params: {
+            url: 'https://monadscan.com/tx/0x2b45',
+            title: 'monadscan.com',
+          },
+        }),
+      );
     });
   });
 
@@ -244,6 +312,32 @@ describe('MoneyApiActivityDetailsView', () => {
       ).toBeTruthy();
       expect(getByTestId('counterparty-name')).toHaveTextContent(
         cashback.receivedFrom,
+      );
+    });
+
+    it('renders the network row', () => {
+      const { getByText } = render(<MoneyApiActivityDetailsView />);
+      expect(getByText('Monad')).toBeTruthy();
+    });
+
+    it('opens the block explorer when the button is pressed', () => {
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      fireEvent.press(getByTestId('card-transaction-details-explorer-button'));
+
+      expect(mockGetBlockExplorerTxUrl).toHaveBeenCalledWith(
+        expect.anything(),
+        cashback.hash,
+        'https://monadscan.com',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Webview',
+        expect.objectContaining({
+          params: {
+            url: 'https://monadscan.com/tx/0x2b45',
+            title: 'monadscan.com',
+          },
+        }),
       );
     });
   });
@@ -289,40 +383,16 @@ describe('MoneyApiActivityDetailsView', () => {
   });
 
   it('renders status as Completed', () => {
+    mockRouteParams = { activity: cashback };
     const { getByText } = render(<MoneyApiActivityDetailsView />);
     expect(getByText('money.api_activity_details.completed')).toBeTruthy();
   });
 
-  it('renders the network row', () => {
-    const { getByText } = render(<MoneyApiActivityDetailsView />);
-    expect(getByText('Monad')).toBeTruthy();
-  });
-
   it('navigates back when back button is pressed', () => {
+    mockRouteParams = { activity: cashback };
     const { getByTestId } = render(<MoneyApiActivityDetailsView />);
     fireEvent.press(getByTestId('header-back'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('opens the block explorer when the button is pressed', () => {
-    const { getByTestId } = render(<MoneyApiActivityDetailsView />);
-
-    fireEvent.press(getByTestId('card-transaction-details-explorer-button'));
-
-    expect(mockGetBlockExplorerTxUrl).toHaveBeenCalledWith(
-      expect.anything(),
-      card.hash,
-      'https://monadscan.com',
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Webview',
-      expect.objectContaining({
-        params: {
-          url: 'https://monadscan.com/tx/0x2b45',
-          title: 'monadscan.com',
-        },
-      }),
-    );
   });
 
   it('pops back and renders nothing when reached without an activity param', () => {
