@@ -43,7 +43,8 @@ class NotificationMenuView {
   /**
    * Wait until the notification FlatList has finished loading.
    * Feature announcements can appear before wallet notifications are merged;
-   * callers that need wallet rows should also wait for a wallet item to exist.
+   * callers that need wallet rows should use {@link waitForNotificationItem}
+   * (scroll-based) rather than a bare hierarchy existence check.
    */
   async waitForListReady(timeout = 30_000): Promise<void> {
     await Assertions.expectElementToNotBeVisible(this.loadingIndicator, {
@@ -61,6 +62,9 @@ class NotificationMenuView {
     );
   }
 
+  async tapOnAllTab() {
+    await Gestures.waitAndTap(this.all_tab);
+  }
   async tapOnWalletTab() {
     await Gestures.waitAndTap(this.wallet_tab);
   }
@@ -72,16 +76,34 @@ class NotificationMenuView {
       elemDescription: `Notification Menu - Notification Item with ID: ${id}`,
     });
   }
-  async scrollToNotificationItem(id: string) {
+
+  /**
+   * Prove a notification row is in the list by scrolling it into view.
+   *
+   * FlatList virtualizes off-screen rows, so `expectElementToExist` alone can
+   * time out even when mocks have merged — the item is simply not mounted yet.
+   */
+  async waitForNotificationItem(
+    id: string,
+    options?: { direction?: 'up' | 'down'; timeout?: number },
+  ): Promise<void> {
+    await this.scrollToNotificationItem(id, options);
+  }
+
+  async scrollToNotificationItem(
+    id: string,
+    options?: { direction?: 'up' | 'down'; timeout?: number },
+  ): Promise<void> {
     // Bound the Appium scroll budget so a missing item fails fast with a clear
     // error instead of looping until the suite timeout (CI: ~3 minutes).
+    // 40s → ~8 scrolls (GestureStrategy caps timeout/5000 between 3 and 12).
     await Gestures.scrollToElement(
       this.selectNotificationItem(id),
       this.scrollViewIdentifier,
       {
         elemDescription: `Notification Menu - scroll to item ${id}`,
-        direction: 'down',
-        timeout: 25_000,
+        direction: options?.direction ?? 'down',
+        timeout: options?.timeout ?? 40_000,
       },
     );
   }
