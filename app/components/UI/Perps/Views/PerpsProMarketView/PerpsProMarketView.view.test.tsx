@@ -23,11 +23,39 @@ import {
 
 const ids = PerpsProOrderFormSelectorsIDs;
 const TIMEOUT_MS = 5000;
+const triggeredOrderTypeIDs = [
+  PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+  PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+  PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
+  PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
+] as const;
 
 const renderFundedProMarket = () =>
   renderPerpsProMarketView({
     streamOverrides: {
       account: createFundedAccountForViews('1000'),
+    },
+  });
+
+const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
+  renderPerpsProMarketView({
+    overrides: {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProModeEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsProTriggeredOrdersEnabled: {
+                enabled,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -65,6 +93,51 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(limitPriceInput, '00025');
 
       await waitFor(() => expect(limitPriceInput).toHaveProp('value', '25'));
+    },
+  );
+
+  itForPlatforms(
+    'shows triggered order types when the remote flag is enabled',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true);
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      for (const testID of triggeredOrderTypeIDs) {
+        expect(screen.getByTestId(testID)).toBeOnTheScreen();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'hides triggered order types when the remote flag is disabled',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(false);
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
+        ),
+      ).not.toBeOnTheScreen();
+      for (const testID of triggeredOrderTypeIDs) {
+        expect(screen.queryByTestId(testID)).not.toBeOnTheScreen();
+      }
     },
   );
 
