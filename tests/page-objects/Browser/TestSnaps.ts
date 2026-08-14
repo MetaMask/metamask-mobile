@@ -481,6 +481,25 @@ class TestSnaps {
     }
   }
 
+  /**
+   * Assert the transient disabled-Snap alert in a single query.
+   * The alert can disappear within a few seconds on iOS; splitting into
+   * separate `dialog-example-snap` + `disabled` substring asserts races
+   * (first match succeeds, second hits stale / missing).
+   * Appium text RegExp uses full-string MATCHES — wrap with `.*`.
+   */
+  async expectDisabledSnapAlert(
+    snapIdFragment = 'dialog-example-snap',
+  ): Promise<void> {
+    const escaped = snapIdFragment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    await Assertions.expectTextDisplayed(
+      new RegExp(`.*${escaped}.*disabled.*|.*disabled.*${escaped}.*`, 'i'),
+      {
+        timeout: 30_000,
+      },
+    );
+  }
+
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,

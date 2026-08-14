@@ -276,10 +276,12 @@ export default class Assertions {
   }
 
   /**
-   * Assert text is displayed anywhere on screen with auto-retry
+   * Assert text is displayed anywhere on screen with auto-retry.
+   * Accepts a string (substring contains) or RegExp (full-string MATCHES
+   * on Appium — wrap with `.*` for contains-style patterns).
    */
   static async expectTextDisplayed(
-    text: string,
+    text: string | RegExp,
     options: AssertionOptions & { allowDuplicates?: boolean } = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
@@ -288,6 +290,8 @@ export default class Assertions {
 
     const { timeout = BASE_DEFAULTS.timeout, allowDuplicates = false } =
       options;
+    const textDescription =
+      text instanceof RegExp ? text.toString() : `"${text}"`;
 
     return Utilities.executeWithRetry(
       async () => {
@@ -307,7 +311,7 @@ export default class Assertions {
       },
       {
         timeout,
-        description: `Assert text "${text}" is displayed${
+        description: `Assert text ${textDescription} is displayed${
           allowDuplicates ? ' (allowing duplicates)' : ''
         }`,
       },

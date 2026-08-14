@@ -42,13 +42,9 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
           await navigateFromSnapSettingsToBrowser();
 
           await TestSnaps.tapButton('sendAlertButton');
-          // Android Appium often omits/escapes quotes in alert copy; assert stable substrings.
-          await Assertions.expectTextDisplayed('dialog-example-snap', {
-            timeout: 30_000,
-          });
-          await Assertions.expectTextDisplayed('disabled', {
-            timeout: 30_000,
-          });
+          // Single atomic assert — the disabled alert can vanish between two
+          // substring polls (post-#34606 residual on iOS).
+          await TestSnaps.expectDisabledSnapAlert();
           await TestSnaps.dismissAlert();
         },
       );
