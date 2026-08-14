@@ -29,6 +29,8 @@ export interface PredictMarket {
   question: string;
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictEntityStatus;
+  volume?: string;
+  volume24h?: string;
   createdAt?: PredictTimestamp;
   updatedAt?: PredictTimestamp;
   opensAt?: PredictTimestamp;
@@ -47,6 +49,7 @@ export interface PredictEvent {
   description?: string;
   category?: string;
   volume?: string;
+  volume24h?: string;
   imageUrl?: string;
   markets: readonly PredictMarket[];
 }

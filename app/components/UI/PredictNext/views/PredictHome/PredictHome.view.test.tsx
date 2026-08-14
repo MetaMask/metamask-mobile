@@ -102,9 +102,12 @@ describe('PredictHome', () => {
     );
 
     expect(within(card).getByText('Who wins the election?')).toBeOnTheScreen();
-    expect(within(card).getByText('Election 2028')).toBeOnTheScreen();
-    expect(within(card).getByText('Yes 42¢')).toBeOnTheScreen();
-    expect(within(card).getByText('No 58¢')).toBeOnTheScreen();
+    expect(within(card).getByText('Yes')).toBeOnTheScreen();
+    expect(within(card).getByText('2.38x')).toBeOnTheScreen();
+    expect(within(card).getByText('42¢')).toBeOnTheScreen();
+    expect(within(card).getByText('No')).toBeOnTheScreen();
+    expect(within(card).getByText('1.72x')).toBeOnTheScreen();
+    expect(within(card).getByText('58¢')).toBeOnTheScreen();
   });
 
   it('opens detail and returns without fetching Event detail', async () => {

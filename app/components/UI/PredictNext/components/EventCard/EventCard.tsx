@@ -6,7 +6,6 @@ import {
 import {
   Box,
   Button,
-  ButtonSize,
   ButtonVariant,
   FontWeight,
   Icon,

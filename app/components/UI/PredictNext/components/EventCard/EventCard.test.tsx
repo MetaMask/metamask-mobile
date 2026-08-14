@@ -199,7 +199,7 @@ describe('EventCard.OutcomeRow', () => {
     renderRow('0.42');
 
     expect(screen.getByTestId('predict-next-outcome-event-1-yes')).toHaveStyle({
-      width: 56,
+      width: 64,
     });
   });
 

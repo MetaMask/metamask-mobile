@@ -70,6 +70,8 @@ const marketSchema = object({
   question: string(),
   outcomes: binaryOutcomes,
   status,
+  volume: optional(amount),
+  volume24h: optional(amount),
   createdAt: optional(timestamp),
   updatedAt: optional(timestamp),
   opensAt: optional(timestamp),
@@ -94,6 +96,7 @@ const eventSchema = object({
   description: optional(string()),
   category: optional(string()),
   volume: optional(amount),
+  volume24h: optional(amount),
   imageUrl: optional(string()),
   markets: nonEmptyMarkets,
 });
