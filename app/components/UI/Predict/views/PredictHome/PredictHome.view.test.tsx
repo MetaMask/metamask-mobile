@@ -233,8 +233,11 @@ describe('PredictHome', () => {
       });
     });
 
-    it('clears the balance breakdown entry point when focus is lost', () => {
+    it('clears the balance breakdown entry point when focus is lost', async () => {
       const setParams = jest.fn();
+      const trackHomeViewed = Engine.context.PredictController
+        .trackHomeViewed as jest.Mock;
+      trackHomeViewed.mockClear();
       const view = renderPredictHomeView({
         initialParams: {
           entryPoint:
@@ -243,9 +246,17 @@ describe('PredictHome', () => {
         setParams,
       });
 
+      await waitFor(() =>
+        expect(trackHomeViewed).toHaveBeenCalledWith({
+          entryPoint: 'homescreen_balance_breakdown',
+        }),
+      );
+
       view.unmount();
 
-      expect(setParams).toHaveBeenCalledWith({ entryPoint: undefined });
+      await waitFor(() =>
+        expect(setParams).toHaveBeenCalledWith({ entryPoint: undefined }),
+      );
     });
 
     it('tracks a section-viewed impression once it dwells in the viewport', async () => {
