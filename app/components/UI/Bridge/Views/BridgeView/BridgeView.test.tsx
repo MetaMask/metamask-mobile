@@ -2625,5 +2625,23 @@ describe('BridgeView', () => {
         ).toBeOnTheScreen();
       });
     });
+
+    it('does not navigate back on a right swipe over the tab content when the tabs bar is hidden', async () => {
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: mockState },
+      );
+
+      await act(async () => {
+        fireGestureHandler(
+          getByGestureTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE),
+          [{ translationX: 80, velocityX: 600 }],
+        );
+        await Promise.resolve();
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
   });
 });
