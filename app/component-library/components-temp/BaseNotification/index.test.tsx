@@ -270,7 +270,45 @@ describe('BaseNotification', () => {
     jest.useRealTimers();
   });
 
-  it('handles unmount and ignores duplicate layout after enter', async () => {
+  it('does not restart auto-dismiss when only onDismissComplete identity changes', async () => {
+    jest.useFakeTimers();
+    const { getByTestId, rerender } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={1000}
+        onDismissComplete={() => undefined}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      // Finish entrance spring and start the auto-dismiss delay.
+      jest.advanceTimersByTime(500);
+    });
+
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+    clearTimeoutSpy.mockClear();
+
+    await act(async () => {
+      // New inline callback identity — must not clear/restart the timer.
+      rerender(
+        <BaseNotification
+          status="success"
+          data={defaultData}
+          dismissDuration={1000}
+          onDismissComplete={() => undefined}
+        />,
+      );
+    });
+
+    expect(clearTimeoutSpy).not.toHaveBeenCalled();
+    clearTimeoutSpy.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it('handles unmount after enter without duplicate dismiss callbacks', async () => {
     jest.useFakeTimers();
     const onDismissComplete = jest.fn();
     const { getByTestId, unmount } = renderWithProvider(
