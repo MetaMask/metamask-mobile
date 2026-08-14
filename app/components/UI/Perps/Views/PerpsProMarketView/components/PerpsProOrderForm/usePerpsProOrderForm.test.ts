@@ -50,6 +50,7 @@ const mockSetLimitPrice = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
+const mockSetMaxPossibleAmountOverride = jest.fn();
 
 const mockContextValue = {
   orderForm: mockOrderForm,
@@ -63,6 +64,7 @@ const mockContextValue = {
   setOrderType: mockSetOrderType,
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
+  setMaxPossibleAmountOverride: mockSetMaxPossibleAmountOverride,
   balanceForValidation: 500,
 };
 
@@ -544,6 +546,25 @@ describe('usePerpsProOrderForm', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('clears the size max override after a successful Reduce Only order', async () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      mockSetMaxPossibleAmountOverride.mockClear();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.reduceOnly).toBe(false);
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(null);
+    });
+
     it('flushes a pending slider preview before allowing submission', async () => {
       // Arrange
       const { result, rerender } = renderProForm();
@@ -970,7 +991,174 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockSetTakeProfitPrice).toHaveBeenCalledWith(undefined);
       expect(mockSetStopLossPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(null);
+      expect(mockSetAmount).toHaveBeenCalledWith('0');
       expect(result.current.reduceOnly).toBe(true);
+    });
+
+    it('sets the size slider max to the open position notional when Reduce Only is on', () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      expect(result.current.sizeSlider.maximumValue).toBe(1000);
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.sizeSlider.maximumValue).toBe(90000);
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(90000);
+    });
+
+    it('keeps the margin-based slider max and empty size when Reduce Only is on with no position', () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.sizeSlider.maximumValue).toBe(1000);
+      expect(result.current.sizeInput.value).toBe('');
+    });
+
+    it('keeps the margin-based slider max and empty size when Reduce Only is on with the wrong direction', () => {
+      mockExistingPosition = {
+        size: '1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.sizeSlider.maximumValue).toBe(1000);
+      expect(result.current.sizeInput.value).toBe('');
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(null);
+    });
+
+    it('does not commit slider amount when Reduce Only has a position error', () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      mockSetAmount.mockClear();
+
+      act(() => {
+        result.current.sizeSlider.onValueChange(250);
+        result.current.sizeSlider.onDragEnd(250);
+      });
+
+      expect(result.current.sizeInput.value).toBe('');
+      expect(result.current.sizeSlider.value).toBe(250);
+      expect(mockSetAmount).not.toHaveBeenCalled();
+    });
+
+    it('does not restore a focused size after Reduce Only enables with no position', () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.sizeInput.onFocus();
+        result.current.onReduceOnlyChange(true);
+        result.current.sizeInput.onBlur();
+      });
+
+      expect(result.current.sizeInput.value).toBe('');
+      expect(mockSetAmount).toHaveBeenCalledWith('0');
+      expect(mockSetAmount).not.toHaveBeenCalledWith('100');
+    });
+
+    it('does not clear typed size while the reduce-only position is loading', () => {
+      mockPositionStreamLoading = true;
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(mockSetAmount).not.toHaveBeenCalledWith('0');
+      expect(result.current.sizeInput.value).toBe('100');
+      expect(result.current.sizeSlider.maximumValue).toBe(1000);
+    });
+
+    it('keeps typed size when a valid closing position arrives after Reduce Only load', () => {
+      mockPositionStreamLoading = true;
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      mockPositionStreamLoading = false;
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      rerender({});
+
+      expect(mockSetAmount).not.toHaveBeenCalledWith('0');
+      expect(result.current.sizeInput.value).toBe('100');
+      expect(result.current.sizeSlider.maximumValue).toBe(90000);
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(90000);
+    });
+
+    it('uses the limit price for the Reduce Only slider max', () => {
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = '80000';
+      mockExistingPosition = {
+        size: '-0.5',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.sizeSlider.maximumValue).toBe(40000);
+    });
+
+    it('restores the margin-based amount cap when Reduce Only turns off', () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      mockSetMaxPossibleAmountOverride.mockClear();
+      act(() => {
+        result.current.onReduceOnlyChange(false);
+      });
+
+      expect(mockSetMaxPossibleAmountOverride).toHaveBeenCalledWith(null);
+      expect(result.current.sizeSlider.maximumValue).toBe(1000);
+    });
+
+    it('does not clamp size to available margin when confirming leverage with Reduce Only on', () => {
+      mockOrderForm.amount = '6000';
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      mockSetAmount.mockClear();
+      act(() => {
+        result.current.onLeverageConfirm(10, 'slider');
+      });
+
+      expect(mockSetLeverage).toHaveBeenCalledWith(10);
+      expect(mockSetAmount).not.toHaveBeenCalled();
     });
   });
 

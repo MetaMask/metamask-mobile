@@ -28,8 +28,8 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
   | typeof PredictEventValues.ENTRY_POINT.HOMESCREEN_PILL
+  | typeof PredictEventValues.ENTRY_POINT.HOMESCREEN_BALANCE_BREAKDOWN
   | typeof PredictEventValues.ENTRY_POINT.REWARDS
-  | typeof PredictEventValues.ENTRY_POINT.GTM_MODAL
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
@@ -161,7 +161,6 @@ export type PredictSellPreviewProps =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictModalsNavigationParamList = {
   PredictUnavailable: undefined;
-  PredictGTMModal: undefined;
   PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
   PredictActivityDetail: PredictActivityDetailParams;
   RedesignedConfirmations: undefined;

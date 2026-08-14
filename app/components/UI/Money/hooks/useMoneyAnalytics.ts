@@ -263,12 +263,16 @@ export const useMoneyAnalytics = ({
   );
 
   const trackSurfaceViewed = useCallback(
-    (surfaceType: MONEY_SURFACE_TYPES) => {
+    (
+      surfaceType: MONEY_SURFACE_TYPES,
+      properties?: { entry_point?: string },
+    ) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_VIEWED)
           .addProperties({
             ...getBaseProperties(),
             surface_type: surfaceType,
+            ...properties,
           })
           .build(),
       );
@@ -277,7 +281,8 @@ export const useMoneyAnalytics = ({
   );
 
   const trackScreenViewed = useCallback(
-    () => trackSurfaceViewed(MONEY_SURFACE_TYPES.SCREEN),
+    (properties?: { entry_point?: string }) =>
+      trackSurfaceViewed(MONEY_SURFACE_TYPES.SCREEN, properties),
     [trackSurfaceViewed],
   );
 

@@ -411,8 +411,6 @@ describe('CustomAmountInfo', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
-      isMaxDeposit: false,
-      setIsMaxDeposit: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useAlertsMock.mockReturnValue({

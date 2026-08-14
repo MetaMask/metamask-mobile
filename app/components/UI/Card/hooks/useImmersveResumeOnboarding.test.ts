@@ -27,6 +27,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockSignIn = jest.fn();
 jest.mock('./useImmersveSiweAuth', () => ({
+  ...jest.requireActual('./useImmersveSiweAuth'),
   useImmersveSiweAuth: () => ({
     signIn: mockSignIn,
     isAuthenticating: false,
@@ -40,18 +41,25 @@ jest.mock('./useImmersveOnboardingRouter', () => ({
 }));
 
 const mockDispatch = jest.fn();
-let mockCardFeatureFlag: unknown = {
-  immersve: { fundingChannelId: 'base-channel' },
-};
+let mockImmersveConfig: unknown = { fundingChannelId: 'base-channel' };
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: () => mockCardFeatureFlag,
+  useSelector: () => mockImmersveConfig,
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
   setImmersveFundingSourceId: (id: string) => ({
     type: 'card/setImmersveFundingSourceId',
     payload: id,
+  }),
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
+    })),
   }),
 }));
 
@@ -73,7 +81,7 @@ const contactPrereqs: CardSpendingPrerequisite[] = [
 describe('useImmersveResumeOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCardFeatureFlag = { immersve: { fundingChannelId: 'base-channel' } };
+    mockImmersveConfig = { fundingChannelId: 'base-channel' };
     mockSignIn.mockResolvedValue({ done: true });
     mockGetResumeCardInfo.mockResolvedValue(null);
     mockGetFundingSources.mockResolvedValue([]);

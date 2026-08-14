@@ -2,7 +2,6 @@ import TimerHelper from '../../../framework/TimerHelper';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import OnboardingInterestQuestionnaireView from '../../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import OnboardingSuccessView from '../../../page-objects/Onboarding/OnboardingSuccessView';
-import PredictModalView from '../../../page-objects/Predict/PredictModalView';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -60,29 +59,5 @@ export async function measureCreatePasswordToOnboardingSuccess(
     await timer.measure(async () => {
       await expectSuccessDoneVisible();
     });
-  }
-}
-
-/**
- * Measures Done → Predict GTM "Not now" when the modal appears.
- * Returns false when the modal is absent (flag/config off) without failing the test.
- * Does not pre-wait before measuring (avoids collapsing timer5 to ~0ms).
- */
-export async function measurePredictGtmModalIfShown(
-  timer: TimerHelper,
-): Promise<boolean> {
-  try {
-    await timer.measure(async () => {
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(PredictModalView.notNowButton),
-        {
-          timeout: 10000,
-          description: 'Predict modal should be visible',
-        },
-      );
-    });
-    return true;
-  } catch {
-    return false;
   }
 }

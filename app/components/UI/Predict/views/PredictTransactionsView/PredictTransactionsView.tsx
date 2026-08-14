@@ -85,7 +85,9 @@ interface ClaimPendingPositionRowProps {
 }
 
 const isActionableClaimPendingPosition = (position: PredictPosition) =>
-  position.status === PredictPositionStatus.WON && position.currentValue > 0;
+  (position.status === PredictPositionStatus.WON ||
+    position.status === PredictPositionStatus.REDEEMABLE) &&
+  position.currentValue > 0;
 
 const getClaimPendingPositionTitle = (
   status: PredictPositionStatus,
@@ -528,7 +530,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE}
       >
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-          {strings('predict.error.description')}
+          {strings('predict.error.description_short')}
         </Text>
         <Pressable
           accessibilityRole="button"

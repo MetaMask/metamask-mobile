@@ -11,6 +11,7 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   CardActions,
@@ -64,6 +65,10 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
@@ -87,6 +92,7 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectIsCardholder: () => mockIsCardholder(),
   selectCardHomeDataStatus: () => mockCardHomeDataStatus(),
   selectIsCardStateResolved: () => mockIsCardStateResolved(),
+  selectCardActiveProviderId: () => 'baanx',
 }));
 
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
@@ -95,6 +101,7 @@ const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
 const mockUseMoneyAccountDeposit =
   useMoneyAccountDeposit as jest.MockedFunction<typeof useMoneyAccountDeposit>;
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountCardLinkage =
   useMoneyAccountCardLinkage as jest.MockedFunction<
     typeof useMoneyAccountCardLinkage
@@ -140,8 +147,10 @@ const setupDefaultMocks = ({
   mockUseMoneyAccountBalance.mockReturnValue({
     tokenTotal,
     isBalanceLoading,
-    apyPercent,
   } as ReturnType<typeof useMoneyAccountBalance>);
+  mockUseMoneyVaultApy.mockReturnValue({
+    apyPercent,
+  } as ReturnType<typeof useMoneyVaultApy>);
   (mockUseMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
     startLinkFlow: mockStartLinkFlow,
     isCardAuthenticated,
@@ -341,6 +350,7 @@ describe('MoneyOnboardingCard', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
@@ -364,6 +374,7 @@ describe('MoneyOnboardingCard', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
@@ -380,6 +391,7 @@ describe('MoneyOnboardingCard', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         card_state: 'non_cardholder',
@@ -393,6 +405,7 @@ describe('MoneyOnboardingCard', () => {
       render(<MoneyOnboardingCard />);
 
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         card_state: 'non_cardholder',
@@ -436,6 +449,7 @@ describe('MoneyOnboardingCard', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         card_state: 'no_card',
@@ -513,6 +527,7 @@ describe('MoneyOnboardingCard', () => {
       expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
       expect(mockStartLinkFlow).toHaveBeenCalledWith(MONEY_HOME_CARD_ORIGIN);
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
@@ -540,6 +555,7 @@ describe('MoneyOnboardingCard', () => {
 
       expect(mockIncrementStep).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.MONEY_HOME,
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,

@@ -18,6 +18,7 @@ import {
   selectCardPrimaryToken,
   selectCardAvailableTokens,
   selectCardFundingTokens,
+  selectCardExternalWalletPriority,
   selectCardDelegationSettings,
   selectIsMoneyAccountDelegatedForCard,
   selectCardCountryOfResidence,
@@ -1824,5 +1825,94 @@ describe('selectCardRedemptionDestinationIsMoneyAccount', () => {
       cardHomeData: homeDataWithPriority([]),
     });
     expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(true);
+  });
+});
+
+describe('referential stability of card list selectors', () => {
+  const cloneHomeData = (): CardHomeData =>
+    JSON.parse(JSON.stringify(mockCardHomeData)) as CardHomeData;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns the same selectCardAvailableTokens reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardAvailableTokens(stateA);
+    const second = selectCardAvailableTokens(stateB);
+
+    expect(second).toBe(first);
+    expect(first).toHaveLength(2);
+  });
+
+  it('returns the same selectCardFundingTokens reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardFundingTokens(stateA);
+    const second = selectCardFundingTokens(stateB);
+
+    expect(second).toBe(first);
+    expect(first).toHaveLength(2);
+  });
+
+  it('returns the same selectCardPrimaryToken reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardPrimaryToken(stateA);
+    const second = selectCardPrimaryToken(stateB);
+
+    expect(second).toBe(first);
+    expect(first?.symbol).toBe('USDC');
+  });
+
+  it('returns the shared empty array for selectCardholderAccounts when CardController is missing', () => {
+    const stateA = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    const stateB = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+
+    const first = selectCardholderAccounts(stateA);
+    const second = selectCardholderAccounts(stateB);
+
+    expect(first).toStrictEqual([]);
+    expect(second).toBe(first);
+  });
+
+  it('returns the shared empty array for selectCardExternalWalletPriority when missing', () => {
+    const stateA = createMockRootState({ cardHomeData: null });
+    const stateB = createMockRootState({ cardHomeData: null });
+
+    const first = selectCardExternalWalletPriority(stateA);
+    const second = selectCardExternalWalletPriority(stateB);
+
+    expect(first).toStrictEqual([]);
+    expect(second).toBe(first);
   });
 });
