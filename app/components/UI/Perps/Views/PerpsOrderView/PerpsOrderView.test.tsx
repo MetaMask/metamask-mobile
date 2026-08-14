@@ -485,6 +485,20 @@ jest.mock(
   }),
 );
 
+// The reactive pay-token balance, as opposed to the stale snapshot carried on
+// `payToken.balanceUsd`.
+const mockUsePayTokenAccountBalance = jest.fn<
+  { balanceUsd: string; balanceRaw: string },
+  unknown[]
+>(() => ({ balanceUsd: '0', balanceRaw: '0' }));
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance',
+  () => ({
+    usePayTokenAccountBalance: (...args: unknown[]) =>
+      mockUsePayTokenAccountBalance(...args),
+  }),
+);
+
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics',
   () => ({
@@ -1571,11 +1585,9 @@ describe('PerpsOrderView', () => {
     // balance, which is the flow where the funding messages used to stack.
     const renderWithPayToken = ({
       balanceForValidation,
-      payTokenBalanceUsd,
       isBalanceLoading = false,
     }: {
       balanceForValidation: number;
-      payTokenBalanceUsd: string;
       isBalanceLoading?: boolean;
     }) => {
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
@@ -1585,10 +1597,16 @@ describe('PerpsOrderView', () => {
           address: '0xeeee',
           chainId: '0x1',
           symbol: 'ETH',
-          balanceUsd: payTokenBalanceUsd,
+          // Deliberately wrong: this snapshot is the value the screen used to
+          // read, and nothing may derive the funding state from it any more.
+          balanceUsd: '0',
         },
         setPayToken: jest.fn(),
         isNative: true,
+      });
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: String(balanceForValidation),
+        balanceRaw: '1',
       });
       (usePerpsOrderContext as jest.Mock).mockReturnValue(
         buildOrderContextMock({
@@ -1608,6 +1626,10 @@ describe('PerpsOrderView', () => {
         setPayToken: jest.fn(),
         isNative: undefined,
       });
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: '0',
+        balanceRaw: '0',
+      });
       // jest.clearAllMocks() keeps implementations, so restore the shared
       // validation mock rather than leaking an invalid order into later tests.
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
@@ -1621,7 +1643,6 @@ describe('PerpsOrderView', () => {
       // Arrange + Act
       renderWithPayToken({
         balanceForValidation: 0,
-        payTokenBalanceUsd: '0',
         isBalanceLoading: true,
       });
 
@@ -1635,7 +1656,6 @@ describe('PerpsOrderView', () => {
       // Arrange + Act
       renderWithPayToken({
         balanceForValidation: 3,
-        payTokenBalanceUsd: '3',
       });
 
       // Assert
@@ -1648,7 +1668,6 @@ describe('PerpsOrderView', () => {
       // Arrange + Act
       renderWithPayToken({
         balanceForValidation: 3,
-        payTokenBalanceUsd: '3',
       });
 
       // Assert
@@ -1660,10 +1679,10 @@ describe('PerpsOrderView', () => {
     });
 
     it('states one funding message when the selected pay token cannot cover the trade', () => {
-      // Arrange + Act
+      // Arrange + Act — enough to reach the $10 minimum at 3x, but short of the
+      // $3.67 margin the $11 order needs.
       renderWithPayToken({
-        balanceForValidation: 1000,
-        payTokenBalanceUsd: '1',
+        balanceForValidation: 3.5,
       });
 
       // Assert
@@ -1672,6 +1691,22 @@ describe('PerpsOrderView', () => {
           PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
         ),
       ).toHaveTextContent('Insufficient funds to cover the trade');
+    });
+
+    it('funds the trade from the live pay token balance, not the stale snapshot on payToken', () => {
+      // Arrange + Act — the snapshot `payToken.balanceUsd` is '0' while the
+      // account actually holds enough to cover the margin. Reading the snapshot
+      // is what made the screen claim the wallet was empty.
+      renderWithPayToken({
+        balanceForValidation: 1000,
+      });
+
+      // Assert
+      expect(
+        screen.queryByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toBeNull();
     });
 
     it('states a funding message when validation withheld its balance error and the pay token has not landed', () => {
@@ -1707,7 +1742,6 @@ describe('PerpsOrderView', () => {
       // Arrange + Act
       renderWithPayToken({
         balanceForValidation: 0,
-        payTokenBalanceUsd: '0',
         isBalanceLoading: true,
       });
 
@@ -1723,7 +1757,6 @@ describe('PerpsOrderView', () => {
       // Arrange + Act
       renderWithPayToken({
         balanceForValidation: 0,
-        payTokenBalanceUsd: '0',
       });
 
       // Assert
@@ -1763,7 +1796,6 @@ describe('PerpsOrderView', () => {
       // Act
       renderWithPayToken({
         balanceForValidation: 3,
-        payTokenBalanceUsd: '3',
       });
 
       // Assert
@@ -1774,7 +1806,6 @@ describe('PerpsOrderView', () => {
       // Arrange + Act
       renderWithPayToken({
         balanceForValidation: 0,
-        payTokenBalanceUsd: '0',
       });
 
       // Assert
@@ -4816,6 +4847,14 @@ describe('PerpsOrderView', () => {
         isNative: false,
       });
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      // The screen funds the trade from the balance validation uses, so the
+      // shortfall has to be expressed there rather than on the pay-token snapshot.
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          balanceForValidation: 0.01,
+          maxPossibleAmount: 0.03,
+        }),
+      );
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 

@@ -63,6 +63,7 @@ import {
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { usePayTokenAccountBalance } from '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
@@ -787,10 +788,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (isPayBalanceLoading) {
       return false;
     }
-    const requiredUsd = Number(marginRequired);
-    const balanceUsd = Number(payToken.balanceUsd);
-    return requiredUsd > balanceUsd;
-  }, [hasCustomTokenSelected, isPayBalanceLoading, marginRequired, payToken]);
+    // Compare against the balance validation and the slider already use, so the
+    // banner can never contradict the rest of the screen.
+    return Number(marginRequired) > spendableBalance;
+  }, [
+    hasCustomTokenSelected,
+    isPayBalanceLoading,
+    marginRequired,
+    payToken,
+    spendableBalance,
+  ]);
 
   // Standard confirmation blocking alerts for pay-with-any-token flow.
   // These validate the relay quote totals (input + fees) against the actual
@@ -2473,11 +2480,15 @@ const PerpsOrderView: React.FC = () => {
     defaultMaxLeverage,
   } = route.params || {};
 
+  // `payToken.balanceUsd` is a snapshot taken when the token was selected and
+  // is never refreshed, so it reads 0 whenever the balance had not landed yet.
+  // Read the same reactive source the token selector shows the user instead.
+  const { balanceUsd: payTokenBalanceUsd } = usePayTokenAccountBalance();
+
   const effectiveAvailableBalance = useMemo(() => {
-    if (!hasCustomTokenSelected) return undefined;
-    const amount = payToken?.balanceUsd;
-    return amount !== undefined ? Number(amount) : undefined;
-  }, [hasCustomTokenSelected, payToken?.balanceUsd]);
+    if (!hasCustomTokenSelected || !payToken) return undefined;
+    return Number(payTokenBalanceUsd);
+  }, [hasCustomTokenSelected, payToken, payTokenBalanceUsd]);
 
   return (
     <PerpsOrderProvider
