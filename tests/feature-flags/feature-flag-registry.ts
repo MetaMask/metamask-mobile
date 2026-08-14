@@ -5006,8 +5006,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '7.61.6',
-      enabled: true,
+      minimumVersion: '0.0.1',
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },

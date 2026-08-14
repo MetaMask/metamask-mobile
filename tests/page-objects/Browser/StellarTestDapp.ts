@@ -1,7 +1,6 @@
 import { dataTestIds } from '@metamask/test-dapp-stellar';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Gestures from '../../framework/Gestures';
 import Browser from './BrowserView';
@@ -11,7 +10,7 @@ import { StellarTestDappSelectorsWebIDs } from '../../selectors/Browser/StellarT
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<DetoxElement | WebElement | PlaywrightElement> {
+): Promise<WebElement> {
   const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 
@@ -54,11 +53,6 @@ class StellarTestDapp {
   async navigateToStellarTestDApp(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(getDappUrl(0));
-
-    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
-      .toBeVisible()
-      .withTimeout(10000);
-
     await this.waitForDappLoaded();
   }
 
