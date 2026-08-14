@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor } from './legacy-detox-shim';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
 import {

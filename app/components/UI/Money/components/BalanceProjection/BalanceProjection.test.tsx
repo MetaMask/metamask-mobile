@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { BalanceProjection } from './BalanceProjection';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { strings } from '../../../../../../locales/i18n';
 import {
   COMPONENT_NAMES,
@@ -10,7 +10,7 @@ import {
 } from '../../constants/moneyEvents';
 import Routes from '../../../../../constants/navigation/Routes';
 
-jest.mock('../../hooks/useMoneyAccountBalance');
+jest.mock('../../hooks/useMoneyVaultApy');
 
 const mockTrackTooltipClicked = jest.fn();
 
@@ -32,7 +32,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const useMoneyAccountBalanceMock = jest.mocked(useMoneyAccountBalance);
+const useMoneyVaultApyMock = jest.mocked(useMoneyVaultApy);
 
 const ONE_YEAR_LABEL = strings('confirm.custom_amount.projected_balance', {
   projectedYears: 1,
@@ -47,11 +47,11 @@ function mockBalance({
   apyPercent: number | undefined;
   isLoading?: boolean;
 }) {
-  useMoneyAccountBalanceMock.mockReturnValue({
+  useMoneyVaultApyMock.mockReturnValue({
     apyDecimal,
     apyPercent,
     vaultApyQuery: { isLoading },
-  } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+  } as unknown as ReturnType<typeof useMoneyVaultApy>);
 }
 
 describe('BalanceProjection', () => {

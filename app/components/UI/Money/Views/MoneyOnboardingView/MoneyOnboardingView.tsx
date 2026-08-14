@@ -23,7 +23,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { apyDigitCount } from '../../utils/riveApy';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
@@ -262,6 +262,7 @@ const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
   const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const entryPoint = route.params?.entryPoint;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -274,7 +275,7 @@ const MoneyOnboardingView = () => {
     component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
   });
 
-  const { apyPercent, apyPercentFormatted } = useMoneyAccountBalance();
+  const { apyPercent, apyPercentFormatted } = useMoneyVaultApy();
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
   const { initiateDeposit } = useMoneyAccountDeposit();
 
@@ -364,9 +365,12 @@ const MoneyOnboardingView = () => {
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+      params: {
+        screen: Routes.MONEY.HOME,
+        ...(entryPoint ? { params: { entryPoint } } : {}),
+      },
     });
-  }, [navigation]);
+  }, [entryPoint, navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
     if (

@@ -42,10 +42,6 @@ import {
   usePureBlack,
   useTailwind,
 } from '@metamask/design-system-twrnc-preset';
-import {
-  getElevatedSurfaceColor,
-  useElevatedSurface,
-} from '../../../util/theme/themeUtils';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PerpsMode } from '@metamask/perps-controller';
 import {
@@ -133,10 +129,11 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const isPureBlack = usePureBlack();
-  const theme = useTheme();
-  const { colors } = theme;
+  // Match the elevated surface MMDS BottomSheet applies internally; this
+  // custom sheet renders its own background so it needs the same class.
+  const surfaceClass = isPureBlack ? 'bg-alternative' : 'bg-default';
+  const { colors } = useTheme();
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -356,7 +353,9 @@ function TradeWalletActions() {
     [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
-  const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
+  // Svg fill/stroke take color strings, not classes, so resolve the surface
+  // class to its color value.
+  const elevatedSurfaceColor = tw.color(surfaceClass);
   const layout = buttonLayout as NonNullable<
     TradeWalletActionsParams['buttonLayout']
   >;
