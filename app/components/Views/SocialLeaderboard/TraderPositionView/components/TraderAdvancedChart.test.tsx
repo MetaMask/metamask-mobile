@@ -891,6 +891,68 @@ describe('TraderAdvancedChart', () => {
     expect(mockRequestCandlePeriod).toHaveBeenCalledWith(CandlePeriod.OneHour);
   });
 
+  it('does not widen the candle period when older-bar pagination fails with an error', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const oldTradeTime = recentBars[0].time - intervalMs;
+    const mockFetchOlder = jest.fn().mockResolvedValue({
+      requestId: 'focus-older',
+      seriesGeneration: 1,
+      bars: [],
+      noData: true,
+      error: 'Error: history down',
+    });
+    const mockRequestCandlePeriod = jest.fn();
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        onRequestCandlePeriod={mockRequestCandlePeriod}
+        trades={[
+          {
+            intent: 'enter',
+            direction: 'buy',
+            tokenAmount: 1,
+            usdCost: 100,
+            timestamp: oldTradeTime / 1000,
+            transactionHash: '0xold',
+          },
+        ]}
+        focusRequest={{
+          id: '0xold',
+          timestamp: oldTradeTime / 1000,
+          nonce: 1,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchOlder).toHaveBeenCalled();
+    expect(mockRequestCandlePeriod).not.toHaveBeenCalled();
+    expect(mockFocusTime).not.toHaveBeenCalled();
+  });
+
   it('falls back to the legacy chart for a perp with insufficient adapter data', () => {
     setOHLCV([]);
     setPerpAdapter(makeBars(2));

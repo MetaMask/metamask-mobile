@@ -604,6 +604,10 @@ const TraderPerpAdvancedChart = ({
           if (focusRequestRef.current?.nonce !== requestedNonce) {
             return;
           }
+          if (response.error) {
+            handledFocusNonceRef.current = requestedNonce;
+            return;
+          }
           if (response.noData) {
             const widerPeriod =
               getNextWiderPerpCandlePeriod(selectedCandlePeriod);
