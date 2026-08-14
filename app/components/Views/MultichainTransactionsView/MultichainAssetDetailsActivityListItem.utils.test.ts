@@ -4,13 +4,8 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
-import { mapKeyringTransaction } from '@metamask/client-utils';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
-import {
-  enrichKeyringActivityWithBridge,
-  type ActivityListItem,
-} from '../../../util/activity-adapters';
 import { getMultichainTransactionDetailEventProperties } from './MultichainAssetDetailsActivityListItem.utils';
 
 const createTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
@@ -39,26 +34,6 @@ const createTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
   }) as Transaction;
 
 describe('MultichainAssetDetailsActivityListItem utils', () => {
-  it('maps a keyring transaction to an activity item on its own chain', () => {
-    const transaction = createTransaction();
-
-    const item = {
-      ...mapKeyringTransaction({ transaction }),
-      raw: { type: 'keyringTransaction' as const, data: transaction },
-    } as ActivityListItem;
-
-    expect(item).toEqual(
-      expect.objectContaining({
-        chainId: SolScope.Mainnet,
-        hash: 'tx-1',
-        raw: expect.objectContaining({
-          type: 'keyringTransaction',
-        }),
-        type: 'send',
-      }),
-    );
-  });
-
   it('builds transaction detail event properties with asset details location', () => {
     const transaction = createTransaction();
 
@@ -128,40 +103,6 @@ describe('MultichainAssetDetailsActivityListItem utils', () => {
         monetized_primitive: MonetizedPrimitive.Swaps,
       }),
     );
-  });
-
-  it('maps a keyring swap that carries cross-chain bridge history to a bridge item', () => {
-    const transaction = createTransaction({ type: TransactionType.Swap });
-
-    const item = enrichKeyringActivityWithBridge(
-      {
-        ...mapKeyringTransaction({ transaction }),
-        raw: { type: 'keyringTransaction' as const, data: transaction },
-      } as ActivityListItem,
-      {
-        status: { status: 'COMPLETE' },
-        quote: {
-          srcChainId: SolScope.Mainnet,
-          destChainId: 'eip155:1',
-          srcTokenAmount: '1000000000',
-          destTokenAmount: '1000000',
-          srcAsset: {
-            chainId: SolScope.Mainnet,
-            assetId: `${SolScope.Mainnet}/slip44:501`,
-            decimals: 9,
-            symbol: 'SOL',
-          },
-          destAsset: {
-            chainId: 'eip155:1',
-            assetId: 'eip155:1/slip44:60',
-            decimals: 6,
-            symbol: 'USDC',
-          },
-        },
-      } as never,
-    );
-
-    expect(item.type).toBe('bridge');
   });
 
   it('defaults transaction detail event location to home', () => {

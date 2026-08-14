@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import type { Transaction } from '@metamask/keyring-api';
@@ -8,6 +8,7 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
@@ -17,74 +18,62 @@ import {
 } from '../../UI/Bridge/utils/transaction-history';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../ActivityList/getActivityDetailsRoute';
-import { mapKeyringTransaction } from '@metamask/client-utils';
-import {
-  enrichKeyringActivityWithBridge,
-  type ActivityListItem,
-} from '../../../util/activity-adapters';
+import { type ActivityListItem } from '../../../util/activity-adapters';
 import {
   getMultichainTransactionDetailEventProperties,
   ACTIVITY_DETAIL_EVENTS,
 } from './MultichainAssetDetailsActivityListItem.utils';
 
 interface MultichainAssetDetailsActivityListItemProps {
-  transaction: Transaction;
+  item: ActivityListItem;
   chainId: SupportedCaipChainId;
   bridgeHistoryItem?: BridgeHistoryItem;
   navigation: AppNavigationProp;
   index: number;
   location?: TransactionDetailLocation;
-  subjectAddress?: string;
 }
 
 export const MultichainAssetDetailsActivityListItem = ({
-  transaction,
+  item,
   chainId,
   bridgeHistoryItem,
   navigation,
   index,
   location,
-  subjectAddress,
 }: MultichainAssetDetailsActivityListItemProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isTransactionsRedesignEnabled = useSelector(
     selectIsTransactionsRedesignEnabled,
   );
-  const displayData = useMultichainTransactionDisplay(transaction, chainId);
-  const activityItem = useMemo(() => {
-    const activity = {
-      ...mapKeyringTransaction({
-        transaction: {
-          ...transaction,
-          fees: transaction.fees ?? [],
-        },
-        subjectAddress,
-      }),
-      raw: { type: 'keyringTransaction' as const, data: transaction },
-    } as ActivityListItem;
-    return enrichKeyringActivityWithBridge(
-      activity,
-      bridgeHistoryItem,
-      subjectAddress,
-    );
-  }, [transaction, bridgeHistoryItem, subjectAddress]);
+  const keyringState = useSelector(
+    selectNonEvmTransactionsForSelectedAccountGroup,
+  );
+  const transaction = keyringState?.transactions?.find(
+    (keyringTx) => keyringTx.id === item.hash && keyringTx.chain === chainId,
+  );
+  const displayData = useMultichainTransactionDisplay(
+    transaction as Transaction,
+    chainId,
+  );
 
   const handlePress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
-        .addProperties(
-          getMultichainTransactionDetailEventProperties({
-            transaction,
-            chainId,
-            location,
-            bridgeHistoryItem,
-          }),
-        )
-        .build(),
-    );
+    if (transaction) {
+      trackEvent(
+        createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
+          .addProperties(
+            getMultichainTransactionDetailEventProperties({
+              transaction,
+              chainId,
+              location,
+              bridgeHistoryItem,
+            }),
+          )
+          .build(),
+      );
+    }
 
     if (isTransactionsRedesignEnabled) {
-      const detailsRoute = getActivityDetailsRoute(activityItem);
+      const detailsRoute = getActivityDetailsRoute(item);
       if (detailsRoute) {
         navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
         return;
@@ -105,7 +94,7 @@ export const MultichainAssetDetailsActivityListItem = ({
       params: { displayData, transaction },
     });
   }, [
-    activityItem,
+    item,
     bridgeHistoryItem,
     chainId,
     createEventBuilder,
@@ -121,7 +110,7 @@ export const MultichainAssetDetailsActivityListItem = ({
     <Box twClassName="px-4">
       <ActivityListItemRow
         bridgeHistoryItem={bridgeHistoryItem}
-        item={activityItem}
+        item={item}
         index={index}
         onPress={handlePress}
       />

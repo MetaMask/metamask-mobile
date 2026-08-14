@@ -3,11 +3,9 @@ import {
   StatusTypes as BridgeStatusTypes,
 } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
-import type { ActivityListItem, Status } from '../types';
+import type { ActivityListItem } from '../../../../util/activity-adapters';
 
-function getBridgeActivityStatus(
-  bridgeHistoryItem: BridgeHistoryItem,
-): Status | undefined {
+function getBridgeActivityStatus(bridgeHistoryItem: BridgeHistoryItem) {
   const {
     quote,
     status: { status },
@@ -32,11 +30,11 @@ function getBridgeActivityStatus(
   return undefined;
 }
 
-export function enrichKeyringActivityWithBridge(
+export function applyBridgeQuote(
   activity: ActivityListItem,
   bridgeHistory?: BridgeHistoryItem,
   subjectAddress?: string,
-): ActivityListItem {
+) {
   const quote = bridgeHistory?.quote;
   if (
     !bridgeHistory ||
@@ -47,7 +45,7 @@ export function enrichKeyringActivityWithBridge(
   }
 
   const fees = 'fees' in activity.data ? activity.data.fees : undefined;
-  const status: Status | undefined =
+  const status =
     activity.status === 'failed'
       ? 'failed'
       : getBridgeActivityStatus(bridgeHistory);

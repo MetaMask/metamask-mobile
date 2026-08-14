@@ -8,17 +8,18 @@ import {
   type V1TransactionByHashResponse,
   type V4MultiAccountTransactionsResponse,
 } from '@metamask/core-backend';
+import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
   mapApiEvmTransactions,
-  enrichKeyringActivityWithBridge,
   type ActivityListItem,
   type ActivityAdapterEnvironment,
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
+import { applyBridgeQuote } from './apply-bridge-quote';
 
 export type { ActivityListItem };
 
@@ -202,12 +203,14 @@ export function mapNonEvmTransactions(
       }),
       raw: { type: 'keyringTransaction' as const, data: transaction },
     } as ActivityListItem;
+    const bridgeHistoryItem = getBridgeHistoryItem?.(transaction.id);
+    const quote = bridgeHistoryItem?.quote;
 
-    return enrichKeyringActivityWithBridge(
-      activity,
-      getBridgeHistoryItem?.(transaction.id),
-      subjectAddress,
-    );
+    if (quote && isCrossChain(quote.srcChainId, quote.destChainId)) {
+      return applyBridgeQuote(activity, bridgeHistoryItem, subjectAddress);
+    }
+
+    return activity;
   });
 }
 

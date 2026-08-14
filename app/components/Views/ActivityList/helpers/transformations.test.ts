@@ -234,8 +234,6 @@ describe('ActivityList transformations', () => {
             },
           },
         ],
-        fees: [],
-        events: [],
         status: KeyringTransactionStatus.Confirmed,
         timestamp: 1,
         to: [{ address }],

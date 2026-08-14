@@ -1,7 +1,6 @@
 /**
- * Activity types are centralized in `@metamask/client-utils` (same as extension).
- * This module re-exports those aliases and keeps a small mobile-only surface for
- * fields/kinds not shipped upstream yet.
+ * `@metamask/client-utils` is the source of truth for activity types (same as
+ * extension). Remaining mobile-only fields are leftovers to delete as call sites move over.
  */
 import type {
   ActivityItem as ClientUtilsActivityItem,
@@ -13,12 +12,12 @@ import type {
 import type { Transaction } from '@metamask/keyring-api';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { CaipChainId } from '@metamask/utils';
-import type { RampsOrder } from '@metamask/ramps-controller';
 import type { TransactionGroup } from './adapters/transaction-group';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PredictActivity } from '../../components/UI/Predict/types';
+import type { RampsOrder } from '@metamask/ramps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
@@ -28,17 +27,14 @@ export type {
   Fee as ActivityFee,
 } from '@metamask/client-utils';
 
-/**
- * client-utils TokenAmount plus mobile-only unlimited-approval flag until that
- * lands upstream / via the indexed API.
- */
 export type TokenAmount = ClientUtilsTokenAmount & {
   isUnlimitedApproval?: boolean;
 };
 
 /**
  * Perps order-lifecycle kinds (market/limit/stop, long/short, open/close).
- * Kept local until client-utils ActivityKind covers the full set.
+ * The single source the `ActivityKind` union, the Perps "Order" sub-filter, and
+ * the icon/details dispatch all derive from, so a new kind is wired in once.
  */
 export const PERPS_ORDER_KINDS = [
   'marketShort',
@@ -55,6 +51,7 @@ export const PERPS_ORDER_KINDS = [
 
 export type PerpsOrderKind = (typeof PERPS_ORDER_KINDS)[number];
 
+/** @deprecated Interim all callsites are migrated to use client-utils */
 type MobileOnlyActivityKind =
   | 'stake'
   | 'unstake'
@@ -63,10 +60,15 @@ type MobileOnlyActivityKind =
 
 export type ActivityKind = ClientUtilsActivityKind | MobileOnlyActivityKind;
 
-const perpsOrderKindSet: ReadonlySet<string> = new Set(PERPS_ORDER_KINDS);
+const PERPS_ORDER_KIND_SET: ReadonlySet<string> = new Set(PERPS_ORDER_KINDS);
 
+/**
+ * Whether a kind is a perps order row. Type guard so callers can narrow the
+ * union — e.g. keeping the icon/details switches exhaustive after an early
+ * return.
+ */
 export function isPerpsOrderKind(kind: ActivityKind): kind is PerpsOrderKind {
-  return perpsOrderKindSet.has(kind);
+  return PERPS_ORDER_KIND_SET.has(kind);
 }
 
 type ActivityRaw =
@@ -77,11 +79,11 @@ type ActivityRaw =
   | { type: 'predictActivity'; data: PredictActivity }
   | { type: 'rampOrder'; data: FiatOrder | RampsOrder };
 
-type MobileFields = {
+interface MobileFields {
   isEarliestNonce?: boolean;
-  /** Used by legacy details modals until redesigned details take over. */
+  /** @deprecated Get raw transaction data directly as needed */
   raw?: ActivityRaw;
-};
+}
 
 type MobileActivityData<Type extends ActivityKind, Data> = {
   type: Type;
@@ -92,10 +94,7 @@ type MobileActivityData<Type extends ActivityKind, Data> = {
   data: Data;
 } & MobileFields;
 
-/**
- * Kinds / shapes mobile still produces that are not in client-utils
- * `ActivityItem` yet (or need mobile-only `fees` / token extras).
- */
+/** @deprecated Interim all callsites are migrated to use client-utils */
 type MobileOnlyActivityItem =
   | MobileActivityData<
       'stake' | 'unstake',

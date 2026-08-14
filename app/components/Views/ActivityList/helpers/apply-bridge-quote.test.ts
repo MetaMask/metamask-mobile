@@ -6,13 +6,13 @@ import {
   type Transaction,
 } from '@metamask/keyring-api';
 import { mapKeyringTransaction } from '@metamask/client-utils';
-import { enrichKeyringActivityWithBridge } from './enrich-keyring-activity';
-import type { ActivityListItem } from '../types';
+import type { ActivityListItem } from '../../../../util/activity-adapters';
+import { applyBridgeQuote } from './apply-bridge-quote';
 
 const solanaChainId =
   'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ' as Transaction['chain'];
 
-describe('enrichKeyringActivityWithBridge', () => {
+describe('applyBridgeQuote', () => {
   const makeKeyringTx = (overrides: Partial<Transaction> = {}): Transaction =>
     ({
       id: 'bridge-id',
@@ -73,15 +73,11 @@ describe('enrichKeyringActivityWithBridge', () => {
       },
     }) as unknown as BridgeHistoryItem;
 
-  const mapWithRaw = (transaction: Transaction): ActivityListItem =>
-    ({
-      ...mapKeyringTransaction({ transaction }),
-      raw: { type: 'keyringTransaction', data: transaction },
-    }) as ActivityListItem;
-
   it('maps a cross-chain bridge to a pending bridge item with quote-derived tokens', () => {
-    const item = enrichKeyringActivityWithBridge(
-      mapWithRaw(makeKeyringTx()),
+    const item = applyBridgeQuote(
+      mapKeyringTransaction({
+        transaction: makeKeyringTx(),
+      }) as ActivityListItem,
       makeBridgeHistory(),
       'from-address',
     );
@@ -98,8 +94,10 @@ describe('enrichKeyringActivityWithBridge', () => {
   });
 
   it('marks the bridge successful once the destination leg lands', () => {
-    const item = enrichKeyringActivityWithBridge(
-      mapWithRaw(makeKeyringTx({ type: TransactionType.Swap })),
+    const item = applyBridgeQuote(
+      mapKeyringTransaction({
+        transaction: makeKeyringTx({ type: TransactionType.Swap }),
+      }) as ActivityListItem,
       makeBridgeHistory({
         bridgeStatus: StatusTypes.COMPLETE,
         destChainAmount: '4990000000000000',
@@ -116,8 +114,10 @@ describe('enrichKeyringActivityWithBridge', () => {
   });
 
   it('leaves same-chain swaps with bridge history on the regular keyring mapping', () => {
-    const item = enrichKeyringActivityWithBridge(
-      mapWithRaw(makeKeyringTx({ type: TransactionType.Swap })),
+    const item = applyBridgeQuote(
+      mapKeyringTransaction({
+        transaction: makeKeyringTx({ type: TransactionType.Swap }),
+      }) as ActivityListItem,
       makeBridgeHistory({ destChainId: solanaChainId }),
     );
 
