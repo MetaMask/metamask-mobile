@@ -11,7 +11,7 @@
     "@metamask/oss-attribution-generator": "^2.0.2"
   },
   "resolutions": {
-    "minimatch@npm:^9.0.4": "9.0.9",
+    "minimatch@npm:^9.0.0": "9.0.9",
     "ip-address": "10.3.1"
   },
   "engines": {

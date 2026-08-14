@@ -906,7 +906,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:9.0.9":
+"minimatch@npm:^9.0.4":
   version: 9.0.9
   resolution: "minimatch@npm:9.0.9"
   dependencies:
