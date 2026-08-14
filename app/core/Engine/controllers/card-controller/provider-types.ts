@@ -143,6 +143,7 @@ export interface CardProviderCapabilities {
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
   supportsTransactionHistory: boolean;
+  supportsMoneyAccountLinking: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -182,6 +183,8 @@ export interface CardDetails {
   isFreezable?: boolean;
   /** ISO region code from Immersve LIST/detail (e.g. "GB"). */
   regionCode?: string;
+  /** False when the card is issued without a PIN, e.g. Baanx virtual cards outside the US. */
+  hasPin?: boolean;
 }
 
 export interface CardSecureViewParams {

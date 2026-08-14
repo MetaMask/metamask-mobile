@@ -1,6 +1,7 @@
 import {
   formatPerpsFiat,
   formatPercentage,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import {
   formatAmountWithThreshold,
@@ -23,6 +24,16 @@ export function formatUsd(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
   const sign = value < 0 ? '-' : '';
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+/**
+ * Per-unit trade price for feed sub-headers and similar copy. Uses the same
+ * tiered precision as Perps ({@link PRICE_RANGES_UNIVERSAL}) and the social
+ * API formatter so sub-cent assets (e.g. PUMP) don't collapse to `$0.00`.
+ */
+export function formatTradeUnitPrice(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  return formatPerpsFiat(Math.abs(value), { ranges: PRICE_RANGES_UNIVERSAL });
 }
 
 /**

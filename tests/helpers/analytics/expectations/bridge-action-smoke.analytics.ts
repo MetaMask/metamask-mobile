@@ -63,7 +63,7 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
         chain_id_source: 'eip155:1',
         chain_id_destination: 'eip155:8453',
         token_address_source: 'eip155:1/slip44:60',
-        token_address_destination: 'eip155:8453/slip44:8453',
+        token_address_destination: 'eip155:8453/slip44:60',
         token_symbol_source: 'ETH',
         token_symbol_destination: 'ETH',
       },

@@ -526,6 +526,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
   ORDER_SIZE_EDIT: 'perps-pro-market-order-size-edit',
   ORDER_ROW: 'perps-pro-market-order-row',
+  ORDER_DIRECTION_TAG: 'perps-pro-market-order-direction-tag',
   ORDER_TYPE: 'perps-pro-market-order-type',
 };
 
@@ -859,6 +860,12 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-order-type-bottom-sheet-close',
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
+  STOP_LIMIT_OPTION: 'perps-order-type-stop-limit',
+  STOP_MARKET_OPTION: 'perps-order-type-stop-market',
+  TAKE_PROFIT_LIMIT_OPTION: 'perps-order-type-take-profit-limit',
+  TAKE_PROFIT_MARKET_OPTION: 'perps-order-type-take-profit-market',
+  BASIC_SECTION_HEADER: 'perps-order-type-basic-section-header',
+  TRIGGERED_SECTION_HEADER: 'perps-order-type-triggered-section-header',
 } as const;
 
 export const PerpsMarginModeBottomSheetSelectorsIDs = {

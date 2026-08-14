@@ -207,12 +207,16 @@ describe('Feature Flag Registry', () => {
       }
     });
 
-    it('returns empty array when no entries match deprecated', () => {
+    it('returns deprecated entries', () => {
       const deprecated = getRegistryEntriesByStatus(
         FeatureFlagStatus.Deprecated,
       );
-      // All current flags are active, so deprecated should be empty
-      expect(deprecated).toHaveLength(0);
+      for (const entry of deprecated) {
+        expect(entry.status).toBe(FeatureFlagStatus.Deprecated);
+      }
+      expect(deprecated.map((entry) => entry.name)).toContain(
+        'earnMerklCampaignClaiming',
+      );
     });
   });
 

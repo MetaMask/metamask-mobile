@@ -12,7 +12,10 @@ import {
 import { useAlerts } from '../../Views/confirmations/context/alert-system-context';
 import { useSecurityAlertResponse } from '../../Views/confirmations/hooks/alerts/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagController';
+import {
+  selectRemoteFeatureFlags,
+  selectFeatureFlagThresholdGroups,
+} from '../../../selectors/featureFlagController';
 import { resolveABTestAssignment } from '../../../util/abTest';
 import {
   SCAM_QUESTIONNAIRE_FLAG_KEY,
@@ -55,10 +58,12 @@ export function useSendScamQuestionnaire({
   onReject,
 }: UseSendScamQuestionnaireOptions): UseSendScamQuestionnaireResult {
   const flags = useSelector(selectRemoteFeatureFlags);
+  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
   const { variantName } = resolveABTestAssignment(
     flags,
     SCAM_QUESTIONNAIRE_FLAG_KEY,
     Object.keys(SCAM_QUESTIONNAIRE_VARIANTS),
+    thresholdGroups,
   );
   const showQuestionnaire =
     SCAM_QUESTIONNAIRE_VARIANTS[
