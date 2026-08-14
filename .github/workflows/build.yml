@@ -81,6 +81,7 @@ on:
           - main-e2e
           - main-exp
           - main-dev
+          - main-dev-testflight
           - main-dev-expo
           - flask-prod
           - flask-test

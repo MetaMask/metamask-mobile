@@ -46,6 +46,9 @@ interface PlaywrightTestResult {
   annotations?: { type: string; description?: string }[];
 }
 
+const isTestFailureStatus = (status: string): boolean =>
+  status === 'failed' || status === 'timedOut' || status === 'interrupted';
+
 /**
  * Main Playwright reporter for performance test runs.
  * Replaces the old custom-reporter.js with clean separation of concerns.
@@ -215,8 +218,7 @@ class PerformanceReporter {
     testTags: string[],
     projectName: string,
   ): void {
-    const isActualFailure =
-      result.status === 'failed' || result.status === 'timedOut';
+    const isActualFailure = isTestFailureStatus(result.status);
     if (!isActualFailure) return;
 
     const teamId = teamInfo.teamId;
@@ -277,7 +279,7 @@ class PerformanceReporter {
         };
 
         // Mark actual failures
-        if (result.status === 'failed' || result.status === 'timedOut') {
+        if (isTestFailureStatus(result.status)) {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = result.status;
         }
@@ -289,6 +291,34 @@ class PerformanceReporter {
         // Ensure team info is included
         if (!metricsEntry.team) {
           metricsEntry.team = teamInfo;
+        }
+
+        if (!metricsEntry.steps || metricsEntry.steps.length === 0) {
+          metricsEntry.testFailed = true;
+          metricsEntry.failureReason = 'no_performance_metrics';
+
+          const teamId = teamInfo.teamId;
+          if (!this.failedTestsByTeam[teamId]) {
+            this.failedTestsByTeam[teamId] = { team: teamInfo, tests: [] };
+          }
+          const alreadyTracked = this.failedTestsByTeam[teamId].tests.find(
+            (t) => t.testName === test.title && t.projectName === projectName,
+          );
+          if (!alreadyTracked) {
+            this.failedTestsByTeam[teamId].tests.push({
+              testName: test.title,
+              testFilePath,
+              tags: testTags,
+              status: 'failed',
+              duration: result.duration,
+              projectName,
+              sessionId:
+                result.annotations?.find((a) => a.type === 'sessionId')
+                  ?.description ?? null,
+              qualityGates: null,
+              failureReason: 'no_performance_metrics',
+            });
+          }
         }
 
         // For fallback metrics, ensure proper structure
@@ -384,7 +414,7 @@ class PerformanceReporter {
       } catch (error) {
         logger.error(`Error processing metrics: ${error}`);
       }
-    } else if (result.status === 'failed' || result.status === 'timedOut') {
+    } else if (isTestFailureStatus(result.status)) {
       // For actual failed tests without metrics, create a basic entry
       logger.warn('Test failed without metrics, creating basic entry');
 

@@ -151,3 +151,15 @@ export const selectCardFiatCreditFeatureEnabled = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
+
+export const selectCardTransactionHistoryEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardTransactionHistory as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);

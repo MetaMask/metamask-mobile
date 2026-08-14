@@ -271,6 +271,7 @@ const NetworkDetailsView = () => {
           canDeleteNetwork(formHook.form.chainId ?? '') ? (
             <Pressable
               onPress={handleDelete}
+              testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
               style={({ pressed }) =>
                 tw.style(
                   'w-9 h-9 mr-2 items-center justify-center',
