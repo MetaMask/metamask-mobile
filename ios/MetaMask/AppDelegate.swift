@@ -7,6 +7,7 @@ import UserNotifications
 import RNBranch
 import BrazeKit
 
+// Native change for fingerprint-reuse trial (invalidates the Expo OTA hash).
 final class MetaMaskReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     return bridge.bundleURL ?? bundleURL()
