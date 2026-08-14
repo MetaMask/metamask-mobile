@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, within } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
@@ -8,7 +8,6 @@ import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import MoneyHomeView from './MoneyHomeView';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
-import { MoneyHeaderTestIds } from '../../components/MoneyHeader/MoneyHeader.testIds';
 import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
@@ -72,6 +71,7 @@ import {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockSetOptions = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
 const mockRefetchInterest = jest.fn();
@@ -93,9 +93,29 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
+      setOptions: mockSetOptions,
     }),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      const cleanup = callback();
+      return typeof cleanup === 'function' ? cleanup : undefined;
+    },
   };
 });
+
+/**
+ * Returns the native headerRight menu renderer configured via setOptions.
+ */
+const getNativeHeaderRight = () => {
+  const headerRightCall = mockSetOptions.mock.calls
+    .map(([options]) => options as { headerRight?: () => React.ReactNode })
+    .reverse()
+    .find((options) => typeof options?.headerRight === 'function');
+
+  expect(headerRightCall?.headerRight).toEqual(expect.any(Function));
+  return headerRightCall?.headerRight as () => React.ReactNode;
+};
+
+const renderNativeHeaderMenu = () => render(<>{getNativeHeaderRight()()}</>);
 
 const mockDepositTokens = [
   {
@@ -625,10 +645,28 @@ describe('MoneyHomeView', () => {
     expect(getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW)).toBeOnTheScreen();
   });
 
-  it('renders the header section', () => {
+  it('configures the native header menu button with an empty title at rest', () => {
+    renderWithProvider(<MoneyHomeView />);
+
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: '',
+        headerRight: expect.any(Function),
+      }),
+    );
+
+    const { getByTestId } = renderNativeHeaderMenu();
+
+    expect(getByTestId(MoneyHomeViewTestIds.MENU_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('renders the Money title above the balance', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-    expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(MoneyHomeViewTestIds.TITLE)).toHaveTextContent(
+      strings('money.title'),
+    );
+    expect(getByTestId(MoneyHomeViewTestIds.TITLE_SECTION)).toBeOnTheScreen();
   });
 
   it('renders the balance summary section', () => {
@@ -1328,9 +1366,10 @@ describe('MoneyHomeView', () => {
   });
 
   it('opens the More sheet when menu button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+    renderWithProvider(<MoneyHomeView />);
 
-    fireEvent.press(getByTestId(MoneyHeaderTestIds.MENU_BUTTON));
+    const { getByTestId } = renderNativeHeaderMenu();
+    fireEvent.press(getByTestId(MoneyHomeViewTestIds.MENU_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MORE_SHEET,

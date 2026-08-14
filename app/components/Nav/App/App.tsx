@@ -200,20 +200,6 @@ const addWalletTransitionOptions: NativeStackNavigationOptions = {
   fullScreenGestureEnabled: true,
 };
 
-const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
-  presentation: 'transparentModal',
-  animation: 'none',
-  contentStyle: { backgroundColor: importedColors.transparent },
-  gestureEnabled: false,
-};
-
-const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
-  Boolean(
-    params &&
-      'screen' in params &&
-      params.screen === Routes.MODAL.TRADE_WALLET_ACTIONS,
-  );
-
 // Type helper for screen components that use v5 pattern of requiring route props
 // In React Navigation v6, screen components should ideally use useRoute() hook,
 // but for migration compatibility, we cast these components to satisfy the type checker.
@@ -1155,15 +1141,10 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
-        options={({ route }) => {
-          if (isTradeWalletActionsRootModalRoute(route.params)) {
-            return tradeWalletActionsRootModalOptions;
-          }
-          return {
-            presentation: 'transparentModal',
-            animation: 'none',
-            contentStyle: { backgroundColor: importedColors.transparent },
-          };
+        options={{
+          presentation: 'transparentModal',
+          animation: 'none',
+          contentStyle: { backgroundColor: importedColors.transparent },
         }}
       />
       <NativeStack.Screen

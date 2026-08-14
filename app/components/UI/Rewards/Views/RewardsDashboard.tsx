@@ -5,6 +5,8 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
+  IconColor,
   IconName,
   Text,
   TextVariant,
@@ -13,7 +15,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
@@ -48,15 +49,113 @@ import { navigateToRewardsRoute } from '../utils';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
-import { Pressable, ScrollView } from 'react-native';
+import { type LayoutChangeEvent, Pressable, StyleSheet } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
+import { useRewardsDashboardHeaderScroll } from '../hooks/useRewardsDashboardHeaderScroll';
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
 
+const styles = StyleSheet.create({
+  nativeHeaderRightContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 16,
+  },
+});
+
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
+
+/**
+ * Native header right actions. Lives as its own component so VIP visibility
+ * re-renders from Redux without re-running the parent focus effect (which
+ * would wipe the scroll-driven compact title).
+ */
+const RewardsDashboardHeaderRight: React.FC = () => {
+  const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
+  const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
+  const isVipReferee = useSelector(selectIsVipReferee);
+  const hasAcceptedVipInvite = useSelector(
+    selectHasAcceptedVipInvite(subscriptionId),
+  );
+  const hasAcceptedVipRefereeInvite = useSelector(
+    selectHasAcceptedVipRefereeInvite(subscriptionId),
+  );
+
+  const handleVipPress = useCallback(() => {
+    navigateToRewardsRoute(
+      navigation,
+      hasAcceptedVipInvite
+        ? Routes.REWARDS_VIP_VIEW
+        : Routes.REWARDS_VIP_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipInvite, navigation]);
+
+  const handleVipRefereePress = useCallback(() => {
+    navigateToRewardsRoute(
+      navigation,
+      hasAcceptedVipRefereeInvite
+        ? Routes.REWARDS_VIP_REFEREE_VIEW
+        : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipRefereeInvite, navigation]);
+
+  const handleReferralPress = useCallback(() => {
+    navigateToRewardsRoute(navigation, Routes.REFERRAL_REWARDS_VIEW);
+  }, [navigation]);
+
+  const handleSettingsPress = useCallback(() => {
+    navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW);
+  }, [navigation]);
+
+  return (
+    <Box twClassName="flex-row gap-2 px-1">
+      {isVipProgramEnabled && isVipReferee && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleVipRefereePress}
+          style={tw.style('h-8 w-8 items-center justify-center')}
+          testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
+        >
+          <VipIcon width={24} height={24} name="VipIcon" />
+        </Pressable>
+      )}
+      {isVipProgramEnabled && isVipEnabled && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleVipPress}
+          style={tw.style('h-8 w-8 items-center justify-center')}
+          testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
+        >
+          <VipIcon width={24} height={24} name="VipIcon" />
+        </Pressable>
+      )}
+      <ButtonIcon
+        iconName={IconName.UserCircleAdd}
+        size={ButtonIconSize.Md}
+        iconProps={{ color: IconColor.IconDefault }}
+        onPress={handleReferralPress}
+        accessibilityLabel={strings('rewards.referral_title')}
+        testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
+      />
+      <ButtonIcon
+        disabled={!subscriptionId}
+        iconName={IconName.Setting}
+        size={ButtonIconSize.Md}
+        iconProps={{ color: IconColor.IconDefault }}
+        onPress={handleSettingsPress}
+        accessibilityLabel={strings('rewards.settings.title')}
+        testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
+      />
+    </Box>
+  );
+};
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -64,15 +163,7 @@ const RewardsDashboard: React.FC = () => {
   const dispatch = useDispatch();
   const pendingDeeplink = useSelector(selectPendingDeeplink);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
-  const hasAcceptedVipInvite = useSelector(
-    selectHasAcceptedVipInvite(subscriptionId),
-  );
-  const isVipReferee = useSelector(selectIsVipReferee);
-  const hasAcceptedVipRefereeInvite = useSelector(
-    selectHasAcceptedVipRefereeInvite(subscriptionId),
-  );
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
@@ -336,23 +427,48 @@ const RewardsDashboard: React.FC = () => {
     })();
   }, [isVipEnabled, subscriptionId]);
 
-  const handleVipPress = useCallback(() => {
-    navigateToRewardsRoute(
-      navigation,
-      hasAcceptedVipInvite
-        ? Routes.REWARDS_VIP_VIEW
-        : Routes.REWARDS_VIP_SPLASH_VIEW,
-    );
-  }, [hasAcceptedVipInvite, navigation]);
+  const handleCompactTitleVisibilityChange = useCallback(
+    (visible: boolean) => {
+      navigation.setOptions({
+        title: visible ? strings('rewards.main_title') : '',
+      });
+    },
+    [navigation],
+  );
 
-  const handleVipRefereePress = useCallback(() => {
-    navigateToRewardsRoute(
-      navigation,
-      hasAcceptedVipRefereeInvite
-        ? Routes.REWARDS_VIP_REFEREE_VIEW
-        : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
-    );
-  }, [hasAcceptedVipRefereeInvite, navigation]);
+  const { onScroll, setTitleSectionHeight, largeTitleAnimatedStyle } =
+    useRewardsDashboardHeaderScroll({
+      onCompactTitleVisibilityChange: handleCompactTitleVisibilityChange,
+    });
+
+  const handleTitleSectionLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTitleSectionHeight(event.nativeEvent.layout.height);
+    },
+    [setTitleSectionHeight],
+  );
+
+  // Native stack header — referral/settings on the right (iOS 26 liquid glass).
+  // Title starts empty; scroll reveals the centered compact "Rewards" title.
+  // Keep deps minimal ([navigation] only) so scroll-driven title updates are
+  // not wiped when other identities change.
+  useFocusEffect(
+    useCallback(() => {
+      navigation.setOptions({
+        title: '',
+        headerRightContainerStyle: styles.nativeHeaderRightContainer,
+        headerRight: () => <RewardsDashboardHeaderRight />,
+      });
+
+      return () => {
+        navigation.setOptions({
+          title: '',
+          headerRight: undefined,
+          headerRightContainerStyle: undefined,
+        });
+      };
+    }, [navigation]),
+  );
 
   useEffect(() => {
     trackEvent(
@@ -365,79 +481,42 @@ const RewardsDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={['bottom', 'left', 'right']}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
-        <HeaderRoot
-          endAccessory={
-            <Box twClassName="flex-row gap-2">
-              {isVipProgramEnabled && isVipReferee && (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={handleVipRefereePress}
-                  style={tw.style('h-8 w-8 items-center justify-center')}
-                  testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
-                >
-                  <VipIcon width={24} height={24} name="VipIcon" />
-                </Pressable>
-              )}
-              {isVipProgramEnabled && isVipEnabled && (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={handleVipPress}
-                  style={tw.style('h-8 w-8 items-center justify-center')}
-                  testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
-                >
-                  <VipIcon width={24} height={24} name="VipIcon" />
-                </Pressable>
-              )}
-              <ButtonIcon
-                iconName={IconName.UserCircleAdd}
-                onPress={() =>
-                  navigateToRewardsRoute(
-                    navigation,
-                    Routes.REFERRAL_REWARDS_VIEW,
-                  )
-                }
-                size={ButtonIconSize.Md}
-                testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-              />
-              <ButtonIcon
-                disabled={!subscriptionId}
-                iconName={IconName.Setting}
-                onPress={() =>
-                  navigateToRewardsRoute(
-                    navigation,
-                    Routes.REWARDS_SETTINGS_VIEW,
-                  )
-                }
-                size={ButtonIconSize.Md}
-                testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
-              />
-            </Box>
-          }
-        >
-          <Pressable
-            accessibilityRole="header"
-            onPress={handleTitlePress}
-            testID={REWARDS_VIEW_SELECTORS.TITLE}
-          >
-            <Text variant={TextVariant.HeadingLg}>
-              {strings('rewards.main_title')}
-            </Text>
-          </Pressable>
-        </HeaderRoot>
-        <ScrollView
+        <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
+          <Animated.View
+            onLayout={handleTitleSectionLayout}
+            style={largeTitleAnimatedStyle}
+            testID={REWARDS_VIEW_SELECTORS.TITLE_SECTION}
+          >
+            <Box twClassName="px-4 pt-2">
+              <Pressable
+                accessibilityRole="header"
+                onPress={handleTitlePress}
+                testID={REWARDS_VIEW_SELECTORS.TITLE}
+              >
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {strings('rewards.main_title')}
+                </Text>
+              </Pressable>
+            </Box>
+          </Animated.View>
           <Box twClassName="gap-3">
             <CampaignsPreview />
             <EarnRewardsPreview />
             <BenefitsPreview />
           </Box>
-        </ScrollView>
+        </Animated.ScrollView>
       </SafeAreaView>
     </ErrorBoundary>
   );

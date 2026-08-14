@@ -1,5 +1,4 @@
 import { act, fireEvent } from '@testing-library/react-native';
-import { BackHandler } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
@@ -44,62 +43,40 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
 
-jest.mock('react-native-gesture-handler', () => {
-  const RN = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
-  return {
-    ...jest.requireActual('react-native-gesture-handler'),
-    GestureHandlerRootView: RN.View,
-    GestureHandlerRootViewContext: React.createContext(true),
-  };
-});
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
 
-jest.mock('react-native-reanimated', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const Reanimated = jest.requireActual('react-native-reanimated/mock');
-
-  const AnimatedView = ({
-    exiting,
-    children,
-    ...rest
-  }: {
-    exiting?: { __invokeExit?: () => void };
-    children?: React.ReactNode;
-  }) => {
-    React.useLayoutEffect(
-      () => () => {
-        exiting?.__invokeExit?.();
-      },
-      [exiting],
-    );
-
-    return React.createElement(View, rest, children);
-  };
-
-  return {
-    ...Reanimated,
-    default: {
-      ...Reanimated.default,
-      View: AnimatedView,
-    },
-    FadeOutDown: {
-      duration: () => ({
-        withCallback: (callback: (finished: boolean) => void) => ({
-          __invokeExit: () => {
-            callback(true);
+    return {
+      __esModule: true,
+      default: React.forwardRef(
+        (
+          {
+            children,
+            onClose,
+          }: {
+            children?: React.ReactNode;
+            onClose?: (hasCallback?: boolean) => void;
           },
-        }),
-      }),
-    },
-    FadeInDown: {
-      duration: () => ({
-        withInitialValues: () => ({}),
-      }),
-    },
-    runOnJS: (fn: () => void) => fn,
-  };
-});
+          ref: React.Ref<{
+            onCloseBottomSheet: (callback?: () => void) => void;
+          }>,
+        ) => {
+          React.useImperativeHandle(ref, () => ({
+            onCloseBottomSheet: (callback?: () => void) => {
+              onClose?.(Boolean(callback));
+              callback?.();
+            },
+          }));
+
+          return React.createElement(View, null, children);
+        },
+      ),
+    };
+  },
+);
 
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
@@ -351,8 +328,6 @@ const mockInitialState: DeepPartial<RootState> = {
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockParentGoBack = jest.fn();
-let mockParentCanGoBack = true;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -361,10 +336,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      getParent: () => ({
-        goBack: mockParentGoBack,
-        canGoBack: () => mockParentCanGoBack,
-      }),
+      isFocused: () => true,
     }),
   };
 });

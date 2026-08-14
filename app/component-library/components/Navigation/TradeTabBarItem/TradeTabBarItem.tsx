@@ -1,10 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import {
-  LayoutRectangle,
-  Pressable,
-  PressableProps,
-  useWindowDimensions,
-} from 'react-native';
+import { Pressable, PressableProps, useWindowDimensions } from 'react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import Icon, { IconColor, IconName, IconSize } from '../../Icons/Icon';
 import { useTheme } from '../../../../util/theme';
@@ -33,9 +28,8 @@ interface TradeTabBarItemProps extends PressableProps {
 function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
   const [isActive, setIsActive] = useState(false);
   const { colors, themeAppearance } = useTheme();
-  const tw = useTailwind(); // Gets theme from ThemeProvider context
+  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const [buttonLayout, setButtonLayout] = useState<LayoutRectangle>();
   const fontScale = useWindowDimensions().fontScale;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -63,7 +57,6 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
       params: {
         onDismiss: () => setIsActive(false),
-        buttonLayout,
       },
     });
     trackEvent(
@@ -74,7 +67,7 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
         })
         .build(),
     );
-  }, [buttonLayout, chainId, createEventBuilder, navigation, trackEvent]);
+  }, [chainId, createEventBuilder, navigation, trackEvent]);
 
   const iconColor =
     themeAppearance === 'light'
@@ -105,11 +98,6 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
           animatedStyle,
         ]}
         testID="trade-tab-bar-item-icon-container"
-        onLayout={(event) => {
-          event.target.measureInWindow((x, y, width, height) => {
-            setButtonLayout({ x, y, width, height });
-          });
-        }}
       >
         <Icon name={IconName.Add} size={IconSize.Xl} color={iconColor} />
       </Animated.View>

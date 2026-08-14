@@ -27,9 +27,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  HeaderStandardAnimated,
+  IconColor,
   IconName,
-  useHeaderStandardAnimated,
   SensitiveText,
   SensitiveTextLength,
   Tag,
@@ -46,6 +45,7 @@ import {
   formatPerpsBalance,
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
   usePerpsHomeData,
   usePerpsNavigation,
@@ -87,7 +87,6 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
   selectPerpsNetwork,
   selectPerpsWatchlistMarkets,
@@ -280,19 +279,11 @@ const PerpsHomeView = () => {
     [],
   );
 
-  const {
-    scrollY: headerScrollY,
-    setTitleSectionHeight,
-    titleSectionHeightSv,
-  } = useHeaderStandardAnimated();
-
   const perpsScreenTitle = strings('perps.title');
 
   const perpsScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       'worklet';
-      // eslint-disable-next-line react-compiler/react-compiler -- Reanimated shared values are intentionally mutated from worklets.
-      headerScrollY.value = event.contentOffset.y;
       scheduleOnRN(
         scheduleScrollEventOnRN,
         event.contentOffset.y,
@@ -549,6 +540,57 @@ const PerpsHomeView = () => {
     createEventBuilder,
     transactionActiveAbTests,
   ]);
+
+  // Native stack header (MainNavigator PERPS.ROOT) — search on the right, no title
+  useFocusEffect(
+    useCallback(() => {
+      const parentNavigation = navigation.getParent();
+      parentNavigation?.setOptions({
+        title: '',
+        headerRightContainerStyle: styles.nativeHeaderRightContainer,
+        headerRight: () => (
+          <Box
+            accessible={false}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <ButtonIcon
+              iconName={IconName.Search}
+              size={ButtonIconSize.Md}
+              iconProps={{ color: IconColor.IconDefault }}
+              onPress={handleSearchToggle}
+              accessibilityLabel="Search"
+              testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
+            />
+            {isPerpsProModeEnabled ? (
+              <PerpsModeToggle
+                mode={perpsMode}
+                onChange={handleModeChange}
+                variant="active"
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+              />
+            ) : null}
+          </Box>
+        ),
+      });
+
+      return () => {
+        parentNavigation?.setOptions({
+          title: undefined,
+          headerRight: undefined,
+          headerRightContainerStyle: undefined,
+        });
+      };
+    }, [
+      navigation,
+      handleSearchToggle,
+      styles.nativeHeaderRightContainer,
+      isPerpsProModeEnabled,
+      perpsMode,
+      handleModeChange,
+    ]),
+  );
 
   const handleWhatsHappeningHeaderPress = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -1059,52 +1101,8 @@ const PerpsHomeView = () => {
     return undefined;
   }, [isMultiProviderEnabled, isTestnet]);
 
-  // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
-  const handleBackPress = perpsNavigation.navigateToWallet;
-
   return (
     <View style={styles.container}>
-      {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
-      <HeaderStandardAnimated
-        includesTopInset
-        // h-16 (64px) matches the Figma header when the Lite pill is shown
-        // (HeaderBase defaults to 56px).
-        twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
-        scrollY={headerScrollY}
-        titleSectionHeight={titleSectionHeightSv}
-        title={perpsScreenTitle}
-        onBack={handleBackPress}
-        backButtonProps={{
-          accessibilityLabel: 'Back',
-          testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-        }}
-        endAccessory={
-          <Box
-            accessible={false}
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-          >
-            <ButtonIcon
-              iconName={IconName.Search}
-              size={ButtonIconSize.Md}
-              onPress={handleSearchToggle}
-              accessibilityLabel="Search"
-              testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
-            />
-            {isPerpsProModeEnabled ? (
-              <PerpsModeToggle
-                mode={perpsMode}
-                onChange={handleModeChange}
-                variant="active"
-                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-              />
-            ) : null}
-          </Box>
-        }
-        testID="perps-home"
-      />
-
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView
         style={styles.scrollView}
@@ -1118,9 +1116,6 @@ const PerpsHomeView = () => {
           <PerpsMarketBalanceActions
             showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
             hideBalanceSection
-            onTitleSectionLayout={(event) =>
-              setTitleSectionHeight(event.nativeEvent.layout.height)
-            }
           >
             {isServiceInterruptionBannerEnabled && (
               <Box twClassName="px-4 mb-4">

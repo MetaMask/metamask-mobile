@@ -1,29 +1,8 @@
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  BackHandler,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-  type ViewStyle,
-  useWindowDimensions,
-} from 'react-native';
-import Animated, {
-  Easing,
-  FadeOutDown,
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
-import { useTheme } from '../../../util/theme';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { View, type ViewStyle } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useParams } from '../../../util/navigation/navUtils';
 
 import {
@@ -41,15 +20,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PerpsMode } from '@metamask/perps-controller';
-import {
-  useSafeAreaFrame,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
-import { AnimationDuration } from '../../../component-library/constants/animation.constants';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
@@ -87,14 +63,8 @@ import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constan
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
-
-import BottomShape from './components/BottomShape';
-import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
-
-const bottomMaskHeight = 35;
-const animationDuration = AnimationDuration.Fast;
 
 const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
@@ -102,51 +72,15 @@ const batchSellIconStyle = {
 
 export interface TradeWalletActionsParams {
   onDismiss?: () => void;
-  /** Measured tab-bar button layout; may be unset until first layout. */
-  buttonLayout?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
 }
 
 function TradeWalletActions() {
-  const { navigate } = useNavigation();
-  const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
-  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-
-  const postCallback = useRef<(() => void | Promise<void>) | undefined>(
-    undefined,
-  );
-  const [visible, setIsVisible] = useState(true);
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const { height: screenHeight } = useSafeAreaFrame();
-  const insets = useSafeAreaInsets();
-  const insetsTop = Platform.OS === 'android' ? insets.top : 0;
-
+  const { navigate } = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { onDismiss } = useParams<TradeWalletActionsParams>();
+  const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
-  const surfaceClass = 'bg-elevated1';
-  const { colors } = useTheme();
-
-  const backdropOpacity = useSharedValue(0);
-  const backdropAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
-
-  const sheetProgress = useSharedValue(0);
-  const sheetAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: sheetProgress.value,
-    transform: [{ translateY: (1 - sheetProgress.value) * 50 }],
-  }));
-
-  useEffect(() => {
-    backdropOpacity.value = withTiming(1, {
-      duration: animationDuration,
-      easing: Easing.linear,
-    });
-    sheetProgress.value = withTiming(1, { duration: animationDuration });
-  }, [backdropOpacity, sheetProgress]);
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
@@ -155,7 +89,6 @@ function TradeWalletActions() {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
 
   const { isEligible: isEarnEligible } = useStakingEligibility();
 
@@ -200,42 +133,42 @@ function TradeWalletActions() {
     swapButtonEventLocationOverride: ActionLocation.NAVBAR,
   });
 
-  const dismissRootModalFlow = useCallback(() => {
-    const parentNavigation = navigation.getParent();
-    if (parentNavigation?.canGoBack()) {
-      parentNavigation.goBack();
-      return;
-    }
-
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleNavigateBack = useCallback(() => {
+  const handleSheetClose = useCallback(() => {
     onDismiss?.();
-    setIsVisible(false);
   }, [onDismiss]);
 
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void | Promise<void>) => {
+      sheetRef.current?.onCloseBottomSheet(() => {
+        // Defer navigation until RootModalFlow is fully dismissed so screens
+        // on MainNavigator (e.g. StakeModals) are not opened underneath it.
+        requestAnimationFrame(() => {
+          void navigateFunc();
+        });
+      });
+    },
+    [],
+  );
+
   const goToSwaps = useCallback(() => {
-    postCallback.current = () => {
+    closeBottomSheetAndNavigate(() => {
       goToSwapsBase();
-    };
-    handleNavigateBack();
-  }, [goToSwapsBase, handleNavigateBack]);
+    });
+  }, [closeBottomSheetAndNavigate, goToSwapsBase]);
 
   const onBatchSell = useCallback(() => {
-    postCallback.current = () => {
+    closeBottomSheetAndNavigate(() => {
       navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
         params: {
           batchSellLocation: BatchSellMetricsLocation.TradeMenu,
         },
       });
-    };
-    handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
 
   const onPerps = useCallback(() => {
-    postCallback.current = async () => {
+    closeBottomSheetAndNavigate(async () => {
       if (isPerpsProModeEnabled) {
         const hasCompletedModeSelection =
           await hasCompletedPerpsModeSelection();
@@ -253,10 +186,9 @@ function TradeWalletActions() {
           toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
         );
       }
-    };
-    handleNavigateBack();
+    });
   }, [
-    handleNavigateBack,
+    closeBottomSheetAndNavigate,
     navigate,
     navigation,
     isFirstTimePerpsUser,
@@ -265,19 +197,18 @@ function TradeWalletActions() {
   ]);
 
   const onPredict = useCallback(() => {
-    postCallback.current = () => {
+    closeBottomSheetAndNavigate(() => {
       navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
         params: {
           entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
         },
       });
-    };
-    handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
 
-  const onEarn = useCallback(async () => {
-    postCallback.current = () => {
+  const onEarn = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
         params: {
@@ -300,239 +231,115 @@ function TradeWalletActions() {
           })
           .build(),
       );
-    };
-    handleNavigateBack();
-  }, [handleNavigateBack, navigate, trackEvent, createEventBuilder, chainId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const onBackPress = () => {
-        handleNavigateBack();
-        return true;
-      };
-
-      const backHandler = BackHandler.addEventListener(
-        'hardwareBackPress',
-        onBackPress,
-      );
-
-      return () => backHandler.remove();
-    }, [handleNavigateBack]),
-  );
-
-  const exitingAnimationWithCallback = useCallback(
-    (callback: () => void) =>
-      FadeOutDown.duration(animationDuration).withCallback(
-        (finished) => finished && runOnJS(callback)(),
-      ),
-    [],
-  );
-
-  const exitingWithNavigateBack = useMemo(
-    () =>
-      exitingAnimationWithCallback(() => {
-        const callback = postCallback.current;
-        postCallback.current = undefined;
-
-        dismissRootModalFlow();
-
-        if (callback) {
-          // Defer navigation until RootModalFlow is fully dismissed so screens
-          // on MainNavigator (e.g. StakeModals) are not opened underneath it.
-          requestAnimationFrame(() => {
-            callback();
-          });
-        }
-      }),
-    [dismissRootModalFlow, exitingAnimationWithCallback],
-  );
-
-  // Svg fill/stroke take color strings, not classes, so resolve the surface
-  // class to its color value.
-  const elevatedSurfaceColor = tw.color(surfaceClass);
-  const layout = buttonLayout as NonNullable<
-    TradeWalletActionsParams['buttonLayout']
-  >;
-  const bottomShapeMaskWidth = layout.width * 2;
-
-  const actionList = (
-    <>
-      {shouldRenderBatchSell && (
-        <ActionListItem
-          label={
-            <View style={tw.style('flex-row items-center gap-2')}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('asset_overview.batch_sell')}
-              </Text>
-              <Tag severity={TagSeverity.Info}>
-                {strings('asset_overview.batch_sell_new_label')}
-              </Tag>
-            </View>
-          }
-          description={strings('asset_overview.batch_sell_description')}
-          iconName={IconName.Merge}
-          iconProps={{
-            style: batchSellIconStyle,
-          }}
-          onPress={onBatchSell}
-          testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
-          isDisabled={!isSwapsEnabled}
-        />
-      )}
-      {AppConstants.SWAPS.ACTIVE && (
-        <ActionListItem
-          label={strings('asset_overview.swap')}
-          description={strings('asset_overview.swap_description')}
-          iconName={IconName.SwapVertical}
-          onPress={goToSwaps}
-          testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-          isDisabled={!isSwapsEnabled}
-        />
-      )}
-      {isPerpsEnabled && (
-        <ActionListItem
-          label={
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('asset_overview.perps_button')}
-              </Text>
-              {isPerpsProModeEnabled ? (
-                <Tag
-                  severity={
-                    perpsModeBadge === PerpsMode.Pro
-                      ? TagSeverity.Warning
-                      : TagSeverity.Neutral
-                  }
-                  testID={WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE}
-                >
-                  {strings(`perps.mode.${perpsModeBadge}`)}
-                </Tag>
-              ) : null}
-            </Box>
-          }
-          description={strings('asset_overview.perps_description')}
-          iconName={IconName.Candlestick}
-          onPress={onPerps}
-          testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
-          isDisabled={!canSignTransactions}
-        />
-      )}
-      {isPredictEnabled && (
-        <ActionListItem
-          label={strings('asset_overview.predict_button')}
-          description={strings('asset_overview.predict_description')}
-          iconName={IconName.Speedometer}
-          onPress={onPredict}
-          testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
-          isDisabled={!canSignTransactions}
-        />
-      )}
-      {isEarnWalletActionEnabled && isEarnEligible && (
-        <ActionListItem
-          label={strings('asset_overview.earn_button')}
-          description={strings('asset_overview.earn_description')}
-          iconName={IconName.Stake}
-          onPress={onEarn}
-          testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-          isDisabled={!canSignTransactions}
-        />
-      )}
-    </>
-  );
-
-  const sheetContent = (
-    <Animated.View style={sheetAnimatedStyle}>
-      <View style={tw.style('px-4')}>
-        <View
-          testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
-          style={tw.style(
-            `${surfaceClass} p-4 rounded-t-2xl px-0`,
-            'border-t border-l border-r border-alternative',
-          )}
-        >
-          {actionList}
-        </View>
-        <View
-          style={tw.style('flex-row mt-[-1px]', { height: bottomMaskHeight })}
-        >
-          <View
-            style={tw.style(
-              `${surfaceClass} flex-1 rounded-bl-2xl`,
-              'border-l border-b border-alternative',
-            )}
-          />
-          <BottomShape
-            width={bottomShapeMaskWidth}
-            height={bottomMaskHeight}
-            peakHeight={16}
-            peakBezierLength={25}
-            baseBezierLength={55}
-            fill={elevatedSurfaceColor}
-          />
-          <View
-            style={tw.style(
-              `${surfaceClass} flex-1 rounded-br-2xl`,
-              'border-r border-b border-alternative',
-            )}
-          />
-          <View
-            pointerEvents="none"
-            style={tw.style('absolute bottom-0 inset-x-0 items-center')}
-            testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
-          >
-            <BottomShape
-              width={bottomShapeMaskWidth + 4}
-              height={bottomMaskHeight}
-              peakHeight={16}
-              peakBezierLength={25}
-              baseBezierLength={55}
-              strokeOnly
-              pathProps={{
-                stroke: colors.border.alternative,
-                strokeWidth: 2,
-              }}
-            />
-          </View>
-        </View>
-      </View>
-    </Animated.View>
-  );
+    });
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    chainId,
+  ]);
 
   return (
-    <View style={tw.style('flex-1 justify-end')}>
-      <Animated.View
-        style={[StyleSheet.absoluteFillObject, backdropAnimatedStyle]}
-      >
-        <Pressable
-          style={StyleSheet.absoluteFillObject}
-          onPress={handleNavigateBack}
-        >
-          <OverlayWithHole
-            width={windowWidth}
-            height={windowHeight + insetsTop}
-            circleSize={layout.width - 1}
-            circleX={layout.x + layout.width / 2}
-            circleY={layout.y + layout.height / 2 + insetsTop}
-            fill={colors.overlay.default}
-          />
-        </Pressable>
-      </Animated.View>
-
-      {visible && (
-        <Animated.View exiting={exitingWithNavigateBack}>
-          {sheetContent}
-        </Animated.View>
-      )}
+    <BottomSheet ref={sheetRef} onClose={handleSheetClose}>
       <View
-        style={tw.style('pointer-events-none', {
-          height: screenHeight - layout.y - insetsTop,
-        })}
-      />
-    </View>
+        testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+        style={tw.style('w-full py-4')}
+      >
+        {shouldRenderBatchSell && (
+          <ActionListItem
+            label={
+              <View style={tw.style('flex-row items-center gap-2')}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('asset_overview.batch_sell')}
+                </Text>
+                <Tag severity={TagSeverity.Info}>
+                  {strings('asset_overview.batch_sell_new_label')}
+                </Tag>
+              </View>
+            }
+            description={strings('asset_overview.batch_sell_description')}
+            iconName={IconName.Merge}
+            iconProps={{
+              style: batchSellIconStyle,
+            }}
+            onPress={onBatchSell}
+            testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
+            isDisabled={!isSwapsEnabled}
+          />
+        )}
+        {AppConstants.SWAPS.ACTIVE && (
+          <ActionListItem
+            label={strings('asset_overview.swap')}
+            description={strings('asset_overview.swap_description')}
+            iconName={IconName.SwapVertical}
+            onPress={goToSwaps}
+            testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
+            isDisabled={!isSwapsEnabled}
+          />
+        )}
+        {isPerpsEnabled && (
+          <ActionListItem
+            label={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('asset_overview.perps_button')}
+                </Text>
+                {isPerpsProModeEnabled ? (
+                  <Tag
+                    severity={
+                      perpsModeBadge === PerpsMode.Pro
+                        ? TagSeverity.Warning
+                        : TagSeverity.Neutral
+                    }
+                    testID={
+                      WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE
+                    }
+                  >
+                    {strings(`perps.mode.${perpsModeBadge}`)}
+                  </Tag>
+                ) : null}
+              </Box>
+            }
+            description={strings('asset_overview.perps_description')}
+            iconName={IconName.Candlestick}
+            onPress={onPerps}
+            testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
+            isDisabled={!canSignTransactions}
+          />
+        )}
+        {isPredictEnabled && (
+          <ActionListItem
+            label={strings('asset_overview.predict_button')}
+            description={strings('asset_overview.predict_description')}
+            iconName={IconName.Speedometer}
+            onPress={onPredict}
+            testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
+            isDisabled={!canSignTransactions}
+          />
+        )}
+        {isEarnWalletActionEnabled && isEarnEligible && (
+          <ActionListItem
+            label={strings('asset_overview.earn_button')}
+            description={strings('asset_overview.earn_description')}
+            iconName={IconName.Stake}
+            onPress={onEarn}
+            testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+            isDisabled={!canSignTransactions}
+          />
+        )}
+      </View>
+    </BottomSheet>
   );
 }
 

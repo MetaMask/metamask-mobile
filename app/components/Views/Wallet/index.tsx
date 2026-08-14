@@ -36,12 +36,26 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
+import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
+import AddressCopy from '../../UI/AddressCopy';
+import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
-import WalletHeader from './components/WalletHeader/WalletHeader';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createAccountSelectorNavDetails } from '../AccountSelector';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
+  BadgeStatus,
+  BadgeStatusStatus,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor as MMDSIconColor,
+  IconName as MMDSIconName,
   Text as CustomText,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -68,7 +82,6 @@ import ConditionalScrollView from '../../../component-library/components-temp/Co
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -119,8 +132,6 @@ import { useABTest } from '../../../hooks';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { trackExploreSearchOpened } from '../TrendingView/search/analytics';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -208,15 +219,28 @@ const createStyles = ({ colors }: Theme) =>
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
     },
-    headerActionButtonsContainer: {
-      flexDirection: 'row',
-      gap: 8,
-    },
-    headerAccountPickerStyle: {
-      marginRight: 16,
-      backgroundColor: 'transparent',
-    },
   });
+
+const nativeHeaderStyles = RNStyleSheet.create({
+  nativeHeaderLeftContainer: {
+    justifyContent: 'center',
+    paddingLeft: 16,
+  },
+  nativeHeaderRightContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 16,
+  },
+  headerActionButtonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  headerAccountPickerStyle: {
+    backgroundColor: 'transparent',
+  },
+});
 
 interface WalletProps {
   navigation: NavigationProp<ParamListBase>;
@@ -295,6 +319,135 @@ export const useHomeDeepLinkEffects = (opts: {
       onPerpsTabSelected,
       onNetworkSelectorSelected,
     ]),
+  );
+};
+
+const TOUCH_AREA_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
+const WalletHeaderLeft: React.FC = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const accountName = useAccountName();
+  const accountGroupName = useAccountGroupName();
+  const displayName = accountGroupName || accountName;
+
+  return (
+    <View testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}>
+      <PickerAccount
+        accountName={displayName}
+        onPress={() =>
+          navigation.navigate(...createAccountSelectorNavDetails({}))
+        }
+        testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+        hitSlop={TOUCH_AREA_SLOP}
+        style={nativeHeaderStyles.headerAccountPickerStyle}
+      />
+    </View>
+  );
+};
+
+const WalletHeaderRight: React.FC = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent } = useAnalytics();
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+  const unreadNotificationCount = useSelector(
+    getMetamaskNotificationsUnreadCount,
+  );
+
+  const handleHamburgerPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
+      )
+        .addProperties({ action: 'Navigation Drawer', name: 'Settings' })
+        .build(),
+    );
+    navigation.navigate(Routes.SETTINGS_VIEW);
+  }, [navigation, trackEvent]);
+
+  const handleCardPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation, trackEvent]);
+
+  const handleActivityPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ACTIVITY_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+  }, [navigation, trackEvent]);
+
+  return (
+    <View
+      style={nativeHeaderStyles.headerActionButtonsContainer}
+      accessible={false}
+    >
+      {isMoneyAccountVisible && (
+        <ButtonIcon
+          iconProps={{
+            color: MMDSIconColor.IconDefault,
+          }}
+          onPress={handleActivityPress}
+          iconName={MMDSIconName.Clock}
+          size={ButtonIconSize.Md}
+          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+          hitSlop={TOUCH_AREA_SLOP}
+        />
+      )}
+      <AddressCopy
+        testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+        hitSlop={TOUCH_AREA_SLOP}
+      />
+      {!isMoneyAccountVisible && (
+        <CardButton onPress={handleCardPress} touchAreaSlop={TOUCH_AREA_SLOP} />
+      )}
+      {isNotificationsFeatureEnabled() ? (
+        <BadgeWrapper
+          position={BadgeWrapperPosition.TopRight}
+          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+          badge={
+            isNotificationEnabled && unreadNotificationCount > 0 ? (
+              <BadgeStatus status={BadgeStatusStatus.Attention} />
+            ) : null
+          }
+        >
+          <ButtonIcon
+            iconProps={{
+              color: MMDSIconColor.IconDefault,
+            }}
+            onPress={handleHamburgerPress}
+            iconName={MMDSIconName.Menu}
+            size={ButtonIconSize.Md}
+            testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
+            hitSlop={TOUCH_AREA_SLOP}
+          />
+        </BadgeWrapper>
+      ) : (
+        <ButtonIcon
+          iconProps={{
+            color: MMDSIconColor.IconDefault,
+          }}
+          onPress={handleHamburgerPress}
+          iconName={MMDSIconName.Menu}
+          size={ButtonIconSize.Md}
+          testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
+          hitSlop={TOUCH_AREA_SLOP}
+        />
+      )}
+    </View>
   );
 };
 
@@ -544,12 +697,8 @@ const Wallet = ({
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
-  const accountName = useAccountName();
-  const accountGroupName = useAccountGroupName();
-
   useSafeChains();
 
-  const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();
 
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
@@ -679,14 +828,6 @@ const Wallet = ({
     toastRef,
   ]);
 
-  const isNotificationEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
-
-  const unreadNotificationCount = useSelector(
-    getMetamaskNotificationsUnreadCount,
-  );
-
   const homeGrowthBanner = useHomeGrowthBanner();
 
   /**
@@ -787,47 +928,27 @@ const Wallet = ({
     }
   }, []);
 
-  const touchAreaSlop = useMemo(
-    () => ({ top: 12, bottom: 12, left: 12, right: 12 }),
-    [],
+  // Native stack header — account picker left, actions right (iOS 26 liquid glass)
+  useFocusEffect(
+    useCallback(() => {
+      navigation.setOptions({
+        headerLeftContainerStyle: nativeHeaderStyles.nativeHeaderLeftContainer,
+        headerRightContainerStyle:
+          nativeHeaderStyles.nativeHeaderRightContainer,
+        headerLeft: () => <WalletHeaderLeft />,
+        headerRight: () => <WalletHeaderRight />,
+      });
+
+      return () => {
+        navigation.setOptions({
+          headerLeft: undefined,
+          headerRight: undefined,
+          headerLeftContainerStyle: undefined,
+          headerRightContainerStyle: undefined,
+        });
+      };
+    }, [navigation]),
   );
-
-  const handleHamburgerPress = useCallback(() => {
-    trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-      )
-        .addProperties({ action: 'Navigation Drawer', name: 'Settings' })
-        .build(),
-    );
-    navigation.navigate(Routes.SETTINGS_VIEW);
-  }, [navigation, trackEvent]);
-
-  const handleCardPress = useCallback(() => {
-    trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.CARD_HOME_CLICKED,
-      ).build(),
-    );
-    navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation, trackEvent]);
-
-  const handleActivityPress = useCallback(() => {
-    trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ACTIVITY_CLICKED,
-      ).build(),
-    );
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: { entryPoint: ActivityScreenEntryPoint.WalletHomeHeader },
-    });
-  }, [navigation, trackEvent]);
-
-  const handleSearchPress = useCallback(() => {
-    trackExploreSearchOpened('home');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
-  }, [navigation]);
 
   const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1075,27 +1196,11 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          edges={{ top: 'additive' }}
+          edges={['bottom', 'left', 'right']}
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
-              <WalletHeader
-                displayName={displayName}
-                navigation={navigation}
-                isMoneyAccountVisible={isMoneyAccountVisible}
-                isNotificationEnabled={isNotificationEnabled}
-                unreadNotificationCount={unreadNotificationCount}
-                handleSearchPress={handleSearchPress}
-                handleActivityPress={handleActivityPress}
-                handleCardPress={handleCardPress}
-                handleHamburgerPress={handleHamburgerPress}
-                touchAreaSlop={touchAreaSlop}
-                headerActionButtonsContainerStyle={
-                  styles.headerActionButtonsContainer
-                }
-                headerAccountPickerStyle={styles.headerAccountPickerStyle}
-              />
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}

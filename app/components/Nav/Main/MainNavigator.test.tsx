@@ -17,10 +17,36 @@ jest.mock('@react-navigation/native-stack', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/bottom-tabs', () => ({
-  createBottomTabNavigator: jest.fn().mockReturnValue({
+jest.mock('./NativeBottomTabNavigator', () => ({
+  createNativeBottomTabNavigator: jest.fn().mockReturnValue({
     Navigator: 'TabNavigator',
     Screen: 'TabScreen',
+  }),
+}));
+
+jest.mock('./NativeBottomTabNavigator/tabIcons', () => ({
+  HOME_TAB_ICONS: {
+    home: () => ({ type: 'sfSymbol', name: 'house' }),
+    homeSelected: () => ({ type: 'sfSymbol', name: 'house.fill' }),
+    trade: () => ({ type: 'sfSymbol', name: 'plus.circle' }),
+    tradeSelected: () => ({ type: 'sfSymbol', name: 'plus.circle.fill' }),
+    explore: () => ({ type: 'sfSymbol', name: 'magnifyingglass' }),
+    exploreSelected: () => ({ type: 'sfSymbol', name: 'magnifyingglass' }),
+    money: () => ({ type: 'sfSymbol', name: 'dollarsign.circle' }),
+    moneySelected: () => ({ type: 'sfSymbol', name: 'dollarsign.circle.fill' }),
+    activity: () => ({ type: 'sfSymbol', name: 'clock' }),
+    activitySelected: () => ({ type: 'sfSymbol', name: 'clock.fill' }),
+    rewards: () => ({ type: 'sfSymbol', name: 'gift' }),
+    rewardsSelected: () => ({ type: 'sfSymbol', name: 'gift.fill' }),
+  },
+}));
+
+jest.mock('../../UI/Money/hooks/useMoneyNavigation', () => ({
+  useMoneyNavigation: () => ({
+    navigateToMoneyHome: jest.fn(),
+  }),
+  useMoneyOnboardingNavigation: () => ({
+    redirectToOnboardingIfNeeded: jest.fn(() => false),
   }),
 }));
 
@@ -98,7 +124,7 @@ jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
   default: () => null,
 }));
 
-const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
+const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(true);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
@@ -121,7 +147,7 @@ describe('MainNavigator', () => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
   });
 
-  describe('Tab Bar Visibility', () => {
+  describe('Native Home Tabs', () => {
     const getHomeTabsComponent = (): React.ComponentType<
       Record<string, unknown>
     > => {
@@ -135,62 +161,60 @@ describe('MainNavigator', () => {
       return homeScreen?.props?.component;
     };
 
-    const getTabBarFn = (
-      HomeTabsComponent: React.ComponentType<Record<string, unknown>>,
-    ) => {
+    const getHomeTabScreens = () => {
+      const HomeTabs = getHomeTabsComponent();
       const { root: homeRoot } = renderWithProvider(
-        <HomeTabsComponent route={{ params: {} }} />,
+        <HomeTabs route={{ params: {} }} />,
         { state: initialRootState },
       );
-      const tabNavigatorNode = homeRoot.findAll(
-        (node: ReactTestInstance) => node.type?.toString?.() === 'TabNavigator',
-      )[0];
-      return tabNavigatorNode?.props?.tabBar as (args: {
-        state: {
-          routes: { name: string; state?: unknown }[];
-          index: number;
-        };
-        descriptors: Record<string, unknown>;
-        navigation: Record<string, unknown>;
-      }) => React.ReactNode;
+      return homeRoot.findAll(
+        (node: ReactTestInstance) => node.type?.toString?.() === 'TabScreen',
+      );
     };
 
-    it('hides tab bar when browser is active', () => {
-      // Given HomeTabs is rendered and the active route is the browser
-      const HomeTabs = getHomeTabsComponent();
-      const renderTabBar = getTabBarFn(HomeTabs);
+    it('registers Home, Explore, Money, Rewards, and Trade tabs', () => {
+      const tabScreens = getHomeTabScreens();
+      const names = tabScreens.map(
+        (screen: ReactTestInstance) => screen.props.name as string,
+      );
 
-      // When renderTabBar is called with a browser route as the active tab
-      const result = renderTabBar({
-        state: {
-          routes: [{ name: Routes.BROWSER.HOME }],
-          index: 0,
-        },
-        descriptors: {},
-        navigation: {},
-      });
-
-      // Then the tab bar should be hidden
-      expect(result).toBeNull();
+      expect(names).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.MONEY.ROOT,
+        Routes.REWARDS_VIEW,
+        Routes.MODAL.TRADE_WALLET_ACTIONS,
+      ]);
     });
 
-    it('shows tab bar when not in browser', () => {
-      // Given HomeTabs is rendered and the active route is the wallet
-      const HomeTabs = getHomeTabsComponent();
-      const renderTabBar = getTabBarFn(HomeTabs);
+    it('prevents native selection on Trade so it can open the actions modal', () => {
+      const tabScreens = getHomeTabScreens();
+      const tradeScreen = tabScreens.find(
+        (screen: ReactTestInstance) =>
+          screen.props.name === Routes.MODAL.TRADE_WALLET_ACTIONS,
+      );
 
-      // When renderTabBar is called with a non-browser route as the active tab
-      const result = renderTabBar({
-        state: {
-          routes: [{ name: Routes.WALLET.HOME }],
-          index: 0,
-        },
-        descriptors: {},
-        navigation: {},
-      });
+      expect(tradeScreen?.props?.options?.tabBarSelectionEnabled).toBe(false);
+    });
 
-      // Then the tab bar should be visible
-      expect(result).not.toBeNull();
+    it('assigns the iOS search system item to Trade so it is isolated from the tab pill', () => {
+      const tabScreens = getHomeTabScreens();
+      const tradeScreen = tabScreens.find(
+        (screen: ReactTestInstance) =>
+          screen.props.name === Routes.MODAL.TRADE_WALLET_ACTIONS,
+      );
+
+      expect(tradeScreen?.props?.options?.tabBarSystemItem).toBe('search');
+    });
+
+    it('does not register Browser or Activity as home tabs', () => {
+      const tabScreens = getHomeTabScreens();
+      const names = tabScreens.map(
+        (screen: ReactTestInstance) => screen.props.name as string,
+      );
+
+      expect(names).not.toContain(Routes.BROWSER.HOME);
+      expect(names).not.toContain(Routes.TRANSACTIONS_VIEW);
     });
 
     it('sets the wallet tab stack background to the theme background', () => {
@@ -238,123 +262,6 @@ describe('MainNavigator', () => {
           headerShown: false,
         }),
       );
-    });
-
-    it.each([
-      Routes.BROWSER.HOME,
-      Routes.TRANSACTIONS_VIEW,
-      Routes.REWARDS_VIEW,
-    ])(
-      'opts %s out of freeze-on-blur so its unmount-on-blur wrapper can commit',
-      (tabName) => {
-        // Given HomeTabs is rendered
-        const HomeTabs = getHomeTabsComponent();
-
-        // When the tab screens are inspected
-        const { root: homeRoot } = renderWithProvider(
-          <HomeTabs route={{ params: {} }} />,
-          { state: initialRootState },
-        );
-        const tabScreen = homeRoot.findAll(
-          (node: ReactTestInstance) =>
-            node.type?.toString?.() === 'TabScreen' &&
-            node.props?.name === tabName,
-        )[0];
-
-        // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
-        // frozen subtree suspends the wrapper's unmount and keeps the tab alive
-        expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
-      },
-    );
-
-    describe('Rewards sub-page tab bar visibility', () => {
-      // rewardsViewRoute is found via .find(r => r.name === Routes.REWARDS_VIEW),
-      // so the inner route that wraps the nested nav state must carry that name.
-      const buildRewardsState = (activeRouteName: string | undefined) => ({
-        routes: [
-          {
-            name: Routes.REWARDS_VIEW,
-            state: activeRouteName
-              ? {
-                  routes: [
-                    {
-                      name: Routes.REWARDS_VIEW,
-                      state: {
-                        index: 0,
-                        routes: [{ name: activeRouteName }],
-                      },
-                    },
-                  ],
-                }
-              : undefined,
-          },
-        ],
-        index: 0,
-      });
-
-      it('hides tab bar when navigated to a rewards sub-page', () => {
-        // Given HomeTabs is rendered and the active route is a rewards sub-page
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called for a rewards sub-page
-        const result = renderTabBar({
-          state: buildRewardsState('OndoCampaignDetails'),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be hidden
-        expect(result).toBeNull();
-      });
-
-      it('shows tab bar when on the rewards dashboard', () => {
-        // Given HomeTabs is rendered and the active route is the rewards dashboard
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called for the rewards dashboard
-        const result = renderTabBar({
-          state: buildRewardsState(Routes.REWARDS_DASHBOARD),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible
-        expect(result).not.toBeNull();
-      });
-
-      it('shows tab bar when on the rewards onboarding flow', () => {
-        // Given HomeTabs is rendered and the active route is the onboarding flow
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called for the onboarding flow
-        const result = renderTabBar({
-          state: buildRewardsState(Routes.REWARDS_ONBOARDING_FLOW),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible
-        expect(result).not.toBeNull();
-      });
-
-      it('shows tab bar when rewards route has no nested navigation state yet', () => {
-        // Given HomeTabs is rendered and the rewards route has no nested state
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called with no nested rewards state (activeRouteName undefined)
-        const result = renderTabBar({
-          state: buildRewardsState(undefined),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible (default to home page)
-        expect(result).not.toBeNull();
-      });
     });
   });
 
@@ -1469,19 +1376,19 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders BrowserFlow', () => {
+      it('renders Trade tab actions target', () => {
         const Component = getScreenComponent(
           homeTabsRoot,
-          Routes.BROWSER.HOME,
+          Routes.MODAL.TRADE_WALLET_ACTIONS,
           'TabScreen',
         );
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders TransactionsHome', () => {
+      it('renders MoneyTabScreenStack', () => {
         const Component = getScreenComponent(
           homeTabsRoot,
-          Routes.TRANSACTIONS_VIEW,
+          Routes.MONEY.ROOT,
           'TabScreen',
         );
         expect(renderInner(Component).toJSON()).toBeTruthy();
@@ -1712,7 +1619,7 @@ describe('MainNavigator', () => {
       });
     });
 
-    describe('Money account conditional rendering', () => {
+    describe('Money account tab', () => {
       const getHomeTabsScreenNames = (): string[] => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
@@ -1742,21 +1649,13 @@ describe('MainNavigator', () => {
           .map((child) => child.props.name as string);
       };
 
-      it('includes Money route when feature flag is enabled', () => {
+      it('includes Money as a home tab when the account is enabled and geo-eligible', () => {
         mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+        mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
-      });
-
-      it('excludes Money route when feature flag is disabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
-
-        const tabScreenNames = getHomeTabsScreenNames();
-
-        expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
       });
     });
   });

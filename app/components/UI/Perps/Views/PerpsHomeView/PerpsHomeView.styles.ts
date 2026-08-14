@@ -29,6 +29,11 @@ const styleSheet = (params: { theme: Theme }) => {
     searchButton: {
       padding: 4,
     },
+    nativeHeaderRightContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingRight: 16,
+    },
     searchContainer: {
       paddingTop: 16,
       paddingHorizontal: 16,
@@ -60,6 +65,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     scrollViewContent: {
+      paddingTop: 12,
       paddingBottom: 16, // Padding for tab bar safe area
     },
     tabBarContainer: {
