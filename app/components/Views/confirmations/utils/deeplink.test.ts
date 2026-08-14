@@ -176,7 +176,7 @@ describe('addTransactionForDeeplink', () => {
   });
 
   it('throws and does not add a transaction when the chain is not in the wallet', async () => {
-    mockFindNetworkClientIdByChainId.mockReturnValue(undefined);
+    mockFindNetworkClientIdByChainId.mockReturnValue('');
 
     await expect(
       addTransactionForDeeplink({
