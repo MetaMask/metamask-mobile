@@ -44,6 +44,12 @@ import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+import { endRampsBuyCufTrace } from '../../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_BOUNDARY,
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../../constants/rampsBuyCufTags';
 
 export const createRampsOrderDetailsNavDetails =
   createNavigationDetails<RampsOrderDetailsParams>(
@@ -107,6 +113,12 @@ const OrderDetails = () => {
           walletAddress,
         );
         if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
+          endRampsBuyCufTrace({
+            data: {
+              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.BAILED,
+            },
+          });
           resetWithRoutes(navigation, {
             index: 0,
             routes: getNavigateAfterExternalBrowserRoutes({
@@ -193,6 +205,7 @@ const OrderDetails = () => {
   ]);
 
   const hasTrackedScreenView = useRef(false);
+  const hasEndedBuyCuf = useRef(false);
   useEffect(() => {
     if (order && !hasTrackedScreenView.current) {
       hasTrackedScreenView.current = true;
@@ -206,6 +219,20 @@ const OrderDetails = () => {
       );
     }
   }, [order, createEventBuilder, trackEvent]);
+
+  useEffect(() => {
+    if (!order || hasEndedBuyCuf.current) {
+      return;
+    }
+    hasEndedBuyCuf.current = true;
+    endRampsBuyCufTrace({
+      data: {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+        orderId: order.providerOrderId,
+      },
+    });
+  }, [order]);
 
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;

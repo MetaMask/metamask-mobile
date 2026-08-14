@@ -262,6 +262,13 @@ export default {
     UAT: 'https://dev.api.baanx.com',
     PRD: 'https://api.baanx.com',
   },
+  // MetaMask Card API (CX) — proxies provider endpoints (e.g. Immersve supported-regions).
+  // GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
+  CARD_API_URL: {
+    DEV: 'https://card.dev-api.cx.metamask.io',
+    UAT: 'https://card.uat-api.cx.metamask.io',
+    PRD: 'https://card.api.cx.metamask.io',
+  },
   IMMERSVE_API_URL: {
     DEV: 'https://test.immersve.com',
     PRD: 'https://api.immersve.com',

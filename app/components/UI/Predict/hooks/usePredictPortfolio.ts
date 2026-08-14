@@ -56,6 +56,11 @@ export interface PredictPortfolioModel {
   >['withdrawTransaction'];
 }
 
+interface UsePredictPortfolioOptions {
+  enabled?: boolean;
+  livePriceUpdates?: boolean;
+}
+
 const getPositionsPnl = (positions: PredictPosition[]) => {
   const totals = positions.reduce(
     (acc, position) => ({
@@ -75,20 +80,27 @@ const getPositionsPnl = (positions: PredictPosition[]) => {
   };
 };
 
-export function usePredictPortfolio(): PredictPortfolioModel {
+export function usePredictPortfolio({
+  enabled = true,
+  livePriceUpdates = true,
+}: UsePredictPortfolioOptions = {}): PredictPortfolioModel {
   const {
     data: availableBalance = 0,
     isLoading: isBalanceLoading,
     isRefetching: isBalanceRefetching,
     error: balanceError,
     refetch: refetchBalance,
-  } = usePredictBalance();
+  } = usePredictBalance({ enabled });
 
   const activePositionsQuery = usePredictPositions({
     claimable: false,
-    livePriceUpdates: true,
+    enabled,
+    livePriceUpdates,
   });
-  const claimablePositionsQuery = usePredictPositions({ claimable: true });
+  const claimablePositionsQuery = usePredictPositions({
+    claimable: true,
+    enabled,
+  });
 
   const activePositions = activePositionsQuery.data ?? EMPTY_POSITIONS;
   const claimablePositions = claimablePositionsQuery.data ?? EMPTY_POSITIONS;
@@ -127,7 +139,7 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
 
   const accountStateQuery = usePredictAccountState({
-    enabled: portfolioValue > 0,
+    enabled: enabled && portfolioValue > 0,
   });
   const refetchAccountState = accountStateQuery.refetch;
   const totalUnrealizedPnl = useMemo(

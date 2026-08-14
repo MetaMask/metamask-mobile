@@ -4,10 +4,12 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import BigNumber from 'bignumber.js';
 import {
   FontWeight,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { MetamaskPayMetadata } from '@metamask/transaction-controller';
 import {
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
@@ -15,6 +17,7 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { useNavigateToPerpsHome } from '../../../UI/Perps/utils/perpsModeSwitch';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
   ActivityDetailRow,
@@ -23,9 +26,12 @@ import {
   ActivityDetailsPerpsExplorerButton,
   ActivityDetailsPerpsHero,
   ActivityDetailsPerpsMetadata,
+  ActivityDetailsPayFeesAndTotal,
   ActivityDetailsPerpsStepTimeline,
   ActivityDetailsStatus,
   ActivityDetailsTemplateFrame,
+  formatActivityTokenAmount,
+  useActivityPayFiat,
 } from '../components';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import {
@@ -41,11 +47,29 @@ import {
   getPerpsTransaction,
   shouldShowPerpsPnl,
   type PerpsActivityListItem,
+  type PerpsDepositWithdrawalStatus,
   type PerpsTransaction,
 } from '../components/ActivityDetailsPerps.utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsOrderFees } from '../../../UI/Perps/hooks';
 import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
+
+/**
+ * The local row's activity status in the terms the step timeline speaks. A
+ * cancelled deposit reads as failed — the timeline has no cancelled state, and
+ * neither outcome credited the account.
+ */
+function toPerpsFundsStatus(
+  status: ActivityListItem['status'],
+): PerpsDepositWithdrawalStatus {
+  if (status === 'success') {
+    return 'completed';
+  }
+  if (status === 'failed' || status === 'cancelled') {
+    return 'failed';
+  }
+  return 'pending';
+}
 
 function useTradeAgain(asset: string | undefined) {
   const navigation = useNavigation<AppNavigationProp>();
@@ -67,17 +91,6 @@ function useTradeAgain(asset: string | undefined) {
       },
     });
   }, [market, navigation]);
-}
-
-function useOpenPerpsHome() {
-  const navigation = useNavigation<AppNavigationProp>();
-
-  return useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: {},
-    });
-  }, [navigation]);
 }
 
 function StatusAndDateRows({
@@ -306,6 +319,33 @@ function FundingDetails({
   );
 }
 
+/**
+ * The MetaMask Pay fee block above the step timeline, with the divider only
+ * when both are present. Perps labels the network fee "Transaction fee".
+ */
+function PerpsFundsDetailsBody({
+  pay,
+  timeline,
+}: {
+  pay: MetamaskPayMetadata | undefined;
+  timeline: React.ReactNode;
+}) {
+  if (!pay) {
+    return <>{timeline}</>;
+  }
+
+  return (
+    <>
+      <ActivityDetailsPayFeesAndTotal
+        pay={pay}
+        networkFeeLabel={strings('activity_details.transaction_fee')}
+      />
+      <SectionDivider marginVertical={3} />
+      {timeline}
+    </>
+  );
+}
+
 function FundsDetails({
   item,
   transaction,
@@ -314,7 +354,10 @@ function FundsDetails({
   transaction: PerpsTransaction;
 }) {
   const depositWithdrawal = transaction.depositWithdrawal;
-  const openPerpsHome = useOpenPerpsHome();
+  const openPerpsHome = useNavigateToPerpsHome();
+  // Provider-backed rows carry no `metamaskPay`; it is resolved from the local
+  // transaction behind this row's hash.
+  const pay = useActivityPayFiat(item);
   // The perps source prefixes wallet-originated funds movements with `wallet-`;
   // only those carry a real on-chain `txHash` we can link to a block explorer.
   // Other deposit/withdrawal ids (e.g. internal transfers) have no explorer tx.
@@ -328,6 +371,8 @@ function FundsDetails({
     return null;
   }
 
+  const isDeposit = transaction.type === 'deposit';
+
   return (
     <ActivityDetailsTemplateFrame
       hero={
@@ -337,21 +382,76 @@ function FundsDetails({
           symbol={depositWithdrawal.asset}
         />
       }
-      metadata={<ActivityDetailsPerpsMetadata item={item} />}
+      metadata={
+        <ActivityDetailsPerpsMetadata item={item} isDeposit={isDeposit} />
+      }
       details={
-        <ActivityDetailsPerpsStepTimeline
-          explorerTarget={stepExplorerTarget}
-          status={depositWithdrawal.status}
-          timestamp={item.timestamp}
-          type={depositWithdrawal.type}
+        <PerpsFundsDetailsBody
+          pay={isDeposit ? pay : undefined}
+          timeline={
+            <ActivityDetailsPerpsStepTimeline
+              explorerTarget={stepExplorerTarget}
+              status={depositWithdrawal.status}
+              timestamp={item.timestamp}
+              type={depositWithdrawal.type}
+            />
+          }
         />
       }
       footer={
         <ActivityDetailsDoItAgainButton
-          label={getPerpsFundsCtaLabel(
-            item.status,
-            transaction.type === 'deposit',
-          )}
+          label={getPerpsFundsCtaLabel(item.status, isDeposit)}
+          onPress={openPerpsHome}
+        />
+      }
+    />
+  );
+}
+
+/**
+ * A perps deposit/withdrawal that only exists as a local transaction — the
+ * HyperLiquid feed has not returned it yet, which is the state the funding
+ * toast's "Track" opens into. Renders the same shape as {@link FundsDetails}
+ * from the local row, so both entry points land on the same screen.
+ */
+function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
+  const openPerpsHome = useNavigateToPerpsHome();
+  const pay = useActivityPayFiat(item);
+  const isDeposit = item.type === 'perpsAddFunds';
+  const token = 'token' in item.data ? item.data.token : undefined;
+
+  return (
+    <ActivityDetailsTemplateFrame
+      hero={
+        <ActivityDetailsPerpsHero
+          amount={formatActivityTokenAmount(token)}
+          isPositive={isDeposit && item.status !== 'failed'}
+          symbol={token?.symbol}
+        />
+      }
+      metadata={
+        <ActivityDetailsPerpsMetadata item={item} isDeposit={isDeposit} />
+      }
+      details={
+        <PerpsFundsDetailsBody
+          pay={isDeposit ? pay : undefined}
+          timeline={
+            <ActivityDetailsPerpsStepTimeline
+              explorerTarget={
+                item.hash
+                  ? { chainId: item.chainId, hash: item.hash }
+                  : undefined
+              }
+              status={toPerpsFundsStatus(item.status)}
+              timestamp={item.timestamp}
+              type={isDeposit ? 'deposit' : 'withdrawal'}
+            />
+          }
+        />
+      }
+      footer={
+        <ActivityDetailsDoItAgainButton
+          label={getPerpsFundsCtaLabel(item.status, isDeposit)}
           onPress={openPerpsHome}
         />
       }
@@ -364,6 +464,9 @@ export function PerpsDetails({ item }: { item: ActivityListItem }) {
   const transaction = getPerpsTransaction(item);
 
   if (!transaction) {
+    if (item.type === 'perpsAddFunds' || item.type === 'perpsWithdraw') {
+      return <LocalFundsDetails item={perpsItem} />;
+    }
     return null;
   }
 

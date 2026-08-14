@@ -315,11 +315,18 @@ class CreatePasswordView {
     checkbox: Awaited<ReturnType<typeof asPlaywrightElement>>,
   ): Promise<boolean | undefined> {
     // Fetch attributes independently. Android UiAutomator2 does not support
-    // `aria-checked`; requesting it first used to abort the whole read and
-    // leave isChecked undefined (see seedless Apple/Telegram perf failures).
+    // `aria-checked` (only `checked` / `value`); requesting it floods WARN/ERROR
+    // logs and used to abort the whole read when tried first.
     const attributes: Record<string, unknown> = {};
+    const attributeNames: ('checked' | 'value' | 'aria-checked')[] = [
+      'checked',
+      'value',
+    ];
+    if (PlatformDetector.isIOS()) {
+      attributeNames.push('aria-checked');
+    }
 
-    for (const name of ['checked', 'value', 'aria-checked'] as const) {
+    for (const name of attributeNames) {
       try {
         attributes[name] = await checkbox.getAttribute(name);
       } catch {

@@ -1320,12 +1320,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                 jest
                   .spyOn(navigation, 'navigate')
                   .mockImplementation(mockNavigate);
-                return (
-                  <ImportFromSecretRecoveryPhrase
-                    navigation={navigation}
-                    route={{ params: {} }}
-                  />
-                );
+                return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
           </Stack.Navigator>
@@ -1373,14 +1368,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
               name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
               initialParams={{ qrSyncImport: true }}
             >
-              {({ navigation, route }) => {
+              {({ navigation }) => {
                 jest.spyOn(navigation, 'goBack').mockImplementation(mockGoBack);
-                return (
-                  <ImportFromSecretRecoveryPhrase
-                    navigation={navigation}
-                    route={route}
-                  />
-                );
+                return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
           </Stack.Navigator>
@@ -1808,6 +1798,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
+      await act(async () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 

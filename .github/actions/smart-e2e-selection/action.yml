@@ -155,8 +155,8 @@ runs:
           echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
           echo "SKIP_REASON=PR targets a release or stable branch (release/* or stable)" >> "$GITHUB_OUTPUT"
           echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
-          # Release/stable target → the scheduled performance workflow covers these branches.
-          # No need to also trigger the PR performance job.
+          # Release/stable target → performance runs are label-only. Return []
+          # so AI output cannot automatically trigger the PR performance job.
           echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"

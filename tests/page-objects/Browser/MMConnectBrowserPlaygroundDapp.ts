@@ -2,7 +2,6 @@
 import { waitFor } from 'detox';
 import { isCaipChainId } from '@metamask/utils';
 
-import TestHelpers from '../../helpers';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
@@ -206,7 +205,6 @@ class MMConnectBrowserPlaygroundDapp {
     skipLogin = false,
   }: { skipLogin?: boolean } = {}): Promise<void> {
     if (!skipLogin) {
-      await TestHelpers.reverseServerPort();
       await loginToApp();
     }
     await navigateToBrowserView();
@@ -305,8 +303,7 @@ class MMConnectBrowserPlaygroundDapp {
       el.value = '${escaped}';
       el.dispatchEvent(new Event('change', { bubbles: true }));
     }`);
-    // Give React a tick to commit the selected-method state.
-    await TestHelpers.delay(500);
+    // Subsequent invokeScopeCardMethod taps wait for the button; no fixed delay.
   }
 
   /** Tap the per-scope "Invoke Method" button after selecting a method. */

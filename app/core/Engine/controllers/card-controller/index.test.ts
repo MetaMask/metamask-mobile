@@ -112,53 +112,25 @@ describe('cardControllerInit', () => {
     expect(constructorArgs.state).toStrictEqual(persistedState);
   });
 
-  describe('getCardFeatureFlag cardProgramId overlay', () => {
-    it('overlays selectedCardProgramId onto immersve.cardProgramId', () => {
-      getRemoteFeatureFlags.mockReturnValue({
-        remoteFeatureFlags: {
-          cardFeature: {
-            ...defaultCardFeatureFlag,
-            immersve: {
-              ...defaultCardFeatureFlag.immersve,
-              cardProgramId: 'default-program',
-            },
+  it('returns immersve.cardProgramId from the remote feature flag', () => {
+    getRemoteFeatureFlags.mockReturnValue({
+      remoteFeatureFlags: {
+        cardFeature: {
+          ...defaultCardFeatureFlag,
+          immersve: {
+            ...defaultCardFeatureFlag.immersve,
+            cardProgramId: 'default-program',
           },
         },
-      });
-
-      const { controller } = cardControllerInit(initRequestMock);
-
-      expect(immersveProviderClassMock).toHaveBeenCalled();
-      expect(capturedGetCardFeatureFlag).toBeDefined();
-      expect(capturedGetCardFeatureFlag?.()?.immersve?.cardProgramId).toBe(
-        'default-program',
-      );
-
-      controller.setSelectedCardProgramId('override-program');
-
-      expect(capturedGetCardFeatureFlag?.()?.immersve?.cardProgramId).toBe(
-        'override-program',
-      );
+      },
     });
 
-    it('does not overlay when selectedCardProgramId is null', () => {
-      getRemoteFeatureFlags.mockReturnValue({
-        remoteFeatureFlags: {
-          cardFeature: {
-            ...defaultCardFeatureFlag,
-            immersve: {
-              ...defaultCardFeatureFlag.immersve,
-              cardProgramId: 'default-program',
-            },
-          },
-        },
-      });
+    cardControllerInit(initRequestMock);
 
-      cardControllerInit(initRequestMock);
-
-      expect(capturedGetCardFeatureFlag?.()?.immersve?.cardProgramId).toBe(
-        'default-program',
-      );
-    });
+    expect(immersveProviderClassMock).toHaveBeenCalled();
+    expect(capturedGetCardFeatureFlag).toBeDefined();
+    expect(capturedGetCardFeatureFlag?.()?.immersve?.cardProgramId).toBe(
+      'default-program',
+    );
   });
 });

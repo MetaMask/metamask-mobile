@@ -1537,6 +1537,48 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
+    it('enables the CTA when sentAmount is missing but quote.srcTokenAmount matches the request', () => {
+      // Partial QuoteMetadata (#33559) can omit sentAmount. Without a fallback
+      // to quote.srcTokenAmount the CTA stayed disabled with a valid quote.
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.activeQuote = createActiveQuote({
+        quote: { srcTokenAmount: '10000000000000000' },
+        sentAmount: { amount: undefined },
+      });
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
     it('enables the CTA for a gas-included quote whose srcTokenAmount is the post-fee amount', () => {
       const quoteState: UseQuickBuyQuotesResult = {
         activeQuote: undefined,
@@ -2389,12 +2431,91 @@ describe('useQuickBuyController', () => {
   });
 
   describe('sell mode availability', () => {
-    const createPositionToken = () =>
+    const createPositionToken = (overrides: Partial<BridgeToken> = {}) =>
       createSourceToken({
         address: '0xDEST',
         chainId: '0x1',
         symbol: 'TARGET',
+        ...overrides,
       });
+
+    const createSellReceiveNative = () =>
+      createSourceToken({
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+        symbol: 'ETH',
+        currencyExchangeRate: 2000,
+      });
+
+    it('keeps Sell enabled when the position token price ticks after a quote settles', () => {
+      // Regression (TSA-976): sell mode derived sourceTokenAmount from the live
+      // position-token rate. Market-data ticks changed the amount for the same
+      // fiat input, so isPendingQuoteRefresh stayed true and Sell remained
+      // disabled even with a valid quote on screen (no error label).
+      let positionToken = createPositionToken({ currencyExchangeRate: 2000 });
+      (usePositionTokenBalance as jest.Mock).mockImplementation(
+        () => positionToken,
+      );
+      (useReceiveTokens as jest.Mock).mockReturnValue([
+        createSellReceiveNative(),
+      ]);
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '1.0',
+        atomicBalance: '1000000000000000000',
+      });
+
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.setTradeMode('sell');
+      });
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      const committedSourceAmount = result.current.sourceTokenAmount;
+      expect(committedSourceAmount).toBe('0.01');
+
+      quoteState.activeQuote = createActiveQuote({
+        sentAmount: { amount: '0.01' },
+      });
+      rerender(props);
+      expect(result.current.isConfirmDisabled).toBe(false);
+
+      // Price tick: same token identity, new exchange rate. The committed sell
+      // amount (and CTA) must stay stable — buy mode gets this for free via the
+      // pay-with useState snapshot; sell must freeze the quote conversion rate.
+      positionToken = createPositionToken({ currencyExchangeRate: 2500 });
+      rerender(props);
+
+      expect(result.current.sourceTokenAmount).toBe(committedSourceAmount);
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
 
     it('resets tradeMode to buy when the position token balance becomes zero', () => {
       (usePositionTokenBalance as jest.Mock).mockReturnValue(

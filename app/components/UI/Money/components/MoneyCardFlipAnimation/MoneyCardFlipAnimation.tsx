@@ -11,7 +11,7 @@ import Animated, {
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardFlipAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotionState } from '../../hooks/useReduceMotion';
-import CardTiltAnimation from '../../../../../animations/card_tilt_v1.2.riv';
+import CardTiltAnimation from '../../../../../animations/card_tilt_v1.3.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styles from './MoneyCardFlipAnimation.styles';
@@ -20,13 +20,13 @@ import { MoneyCardFlipAnimationTestIds } from './MoneyCardFlipAnimation.testIds'
 const log = createProjectLogger('money-card-flip');
 
 // -- Rive names ------------------------------------------------------------
-// These MUST match the names authored in card_tilt_v1.2.riv. If the Rive
+// These MUST match the names authored in card_tilt_v1.3.riv. If the Rive
 // designer renames any of these, update the constants here.
 //
 // The flip is played as a raw timeline on the per-variant artboards. The
-// MainTilt state machine + ViewModel (cardType / startAnimation) do not
-// respond to the data-bound trigger in this asset version, so the state
-// machine is deliberately bypassed here.
+// MainTilt state machine + ViewModel (cardType / startAnimation) do respond
+// to data binding in this asset version, but the state machine is still
+// deliberately bypassed here so the flip plays as a one-shot timeline.
 
 /** Artboard holding the virtual-card flip animation. */
 const RIVE_ARTBOARD_VIRTUAL = 'Card Tilt Y Animation - Digital';

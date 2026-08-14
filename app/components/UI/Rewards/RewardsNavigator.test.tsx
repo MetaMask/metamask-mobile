@@ -191,11 +191,6 @@ jest.mock('../../../util/theme', () => {
   };
 });
 
-// Mock getNavigationOptionsTitle
-jest.mock('../Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({ title: 'Rewards' })),
-}));
-
 // Mock i18n
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {

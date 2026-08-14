@@ -4,6 +4,7 @@ import Matchers from '../framework/Matchers';
 import Utilities, { sleep } from '../framework/Utilities';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestDApp from '../page-objects/Browser/TestDApp';
+import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
@@ -225,4 +226,15 @@ export const openUrlInBrowserView = async (): Promise<void> => {
       elemDescription: 'URL input box',
     },
   );
+};
+
+/**
+ * Opens the in-app test dapp and completes the default connect sheet approval.
+ * Assumes the browser tab is already open (e.g. after {@link navigateToBrowserView}).
+ */
+export const connectToTestDapp = async (): Promise<void> => {
+  await BrowserView.navigateToTestDApp();
+  await waitForTestDappToLoad();
+  await TestDApp.tapDappConnectButton();
+  await ConnectBottomSheet.tapConnectButton();
 };

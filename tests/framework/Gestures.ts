@@ -96,6 +96,8 @@ export default class Gestures {
         timeout: options.timeout,
         description: options.elemDescription,
         delay: options.delay,
+        checkForDisplayed: options.checkForDisplayed,
+        checkForEnabled: options.checkEnabled,
       });
     }
 
@@ -141,6 +143,8 @@ export default class Gestures {
         timeout: options.timeout,
         description: options.elemDescription,
         delay: options.delay,
+        checkForDisplayed: options.checkForDisplayed,
+        checkForEnabled: options.checkEnabled,
       });
     }
 
@@ -387,6 +391,7 @@ export default class Gestures {
         description: options.elemDescription,
         hideKeyboard: options.hideKeyboard,
         clearFirst: options.clearFirst,
+        checkForDisplayed: options.checkForDisplayed,
       });
     }
 

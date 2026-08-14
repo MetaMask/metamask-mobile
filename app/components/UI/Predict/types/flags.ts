@@ -54,30 +54,6 @@ export interface PredictExtendedSportsMarketsFlag
   nonRegTimeSportsMarketTypes?: string[];
 }
 
-export interface PredictWorldCupStageConfig {
-  key: string;
-  labelKey?: string;
-  label?: string;
-  eventIds: string[];
-}
-
-export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
-  showMainFeedBanner: boolean;
-  showMainFeedTab: boolean;
-  showWorldCupScreen: boolean;
-  showHubV2: boolean;
-  showHubBanner: boolean;
-  tagSlug: string;
-  gamesTagId: string;
-  winnerEventId: string;
-  bannerImage?: {
-    url: string;
-    width: number;
-    height: number;
-  };
-  stages: PredictWorldCupStageConfig[];
-}
-
 export type PredictSportsFeedChipKind = 'games' | 'props' | 'tag';
 export type PredictSportsFeedChipOrder = PredictMarketListOrder;
 
@@ -133,7 +109,6 @@ export interface PredictFeatureFlags {
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
-  predictWorldCup: PredictWorldCupConfig;
   predictSportsFeed: PredictSportsFeedConfig;
   predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;

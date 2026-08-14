@@ -24,6 +24,7 @@ import {
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -189,6 +190,7 @@ describe('ConfirmationsDeveloperOptions', () => {
       networkClientId: MOCK_NETWORK_CLIENT_ID,
       disableHook: true,
       disableSequential: true,
+      overwriteUpgrade: true,
       transactions: [
         {
           params: {

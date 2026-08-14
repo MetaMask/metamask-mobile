@@ -176,6 +176,7 @@ export function enrichCaveatValue({
  * WalletConnect format for the dapp.
  */
 export async function handleRequest({
+  origin,
   connectedAddresses,
   scope,
   requestId,
@@ -190,6 +191,7 @@ export async function handleRequest({
 
   if (method === 'tron_signMessage') {
     const result = await callTronSnap({
+      origin,
       connectedAddresses: normalizedConnectedAddresses,
       scope,
       requestId,
@@ -201,6 +203,7 @@ export async function handleRequest({
 
   if (method === 'tron_signTransaction') {
     const result = await callTronSnap({
+      origin,
       connectedAddresses: normalizedConnectedAddresses,
       scope,
       requestId,

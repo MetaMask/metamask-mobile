@@ -150,10 +150,11 @@ const AddDeviceToWallet = () => {
 
   return (
     <SafeAreaView
+      edges={['bottom', 'left', 'right']}
       style={tw.style('flex-1 bg-default')}
       testID={AddDeviceToWalletTestIds.SCREEN}
     >
-      <HeaderCompactStandard onBack={handleBack} />
+      <HeaderCompactStandard onBack={handleBack} includesTopInset />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
           source={addDeviceToWalletImage}

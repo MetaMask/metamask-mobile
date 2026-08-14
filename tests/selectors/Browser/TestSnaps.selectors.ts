@@ -121,14 +121,33 @@ export const EntropyDropDownSelectorWebIDS = {
   multichainNetworkDropdown: 'select-multichain-chain',
 };
 
-export const NativeDropdownSelectorWebIDS = {
-  snapUISelector: 'snap-ui-renderer__selector',
-  snapUIDropdown: 'snap-ui-renderer__dropdown',
-};
-
 /** Native Snap UI renderer element IDs used outside web dropdown option maps. */
 export const SnapUIRendererSelectorIDs = {
   selectorItem: 'snap-ui-renderer__selector-item',
+  scrollView: 'snap-ui-renderer__scrollview',
+  dropdown: 'snap-ui-renderer__dropdown',
+  selector: 'snap-ui-renderer__selector',
+  checkbox: 'snap-ui-renderer__checkbox',
+  radio: 'snap-ui-renderer__radio',
+  radioButton: 'snap-ui-renderer__radio-button',
+  dateTimeTouchable: 'snap-ui-renderer__date-time-picker--datetime-touchable',
+  dateTouchable: 'snap-ui-renderer__date-time-picker--date-touchable',
+  timeTouchable: 'snap-ui-renderer__date-time-picker--time-touchable',
+  dateTimeInput: 'snap-ui-renderer__date-time-picker--datetime-input',
+  dateInput: 'snap-ui-renderer__date-time-picker--date-input',
+  timeInput: 'snap-ui-renderer__date-time-picker--time-input',
+};
+
+/** Android: read-only date/time inputs (touchables often vanish when disabled). */
+export const SNAP_UI_DATE_PICKER_INPUT_IDS = [
+  SnapUIRendererSelectorIDs.dateTimeInput,
+  SnapUIRendererSelectorIDs.dateInput,
+  SnapUIRendererSelectorIDs.timeInput,
+] as const;
+
+export const NativeDropdownSelectorWebIDS = {
+  snapUISelector: SnapUIRendererSelectorIDs.selector,
+  snapUIDropdown: SnapUIRendererSelectorIDs.dropdown,
 };
 
 /** Native Snap UI dialog custom input (Detox / Android Appium testID). */
@@ -136,23 +155,49 @@ export const SnapUIInputSelectorIDs = {
   customDialogInput: 'custom-input-snap-ui-input',
 };
 
-/**
- * iOS Appium XPath for the dialog custom input — testID is not exposed in
- * the XCUITest page source, so target the textfield under the Snap UI scrollview.
- */
+/** iOS: XCUITest often omits `*-snap-ui-input`; use scrollview textfield instead. */
 export const SnapUIInputSelectorXPaths = {
-  customDialogInputIos:
+  textfieldIos:
     '//*[@name="snap-ui-renderer__scrollview"]//*[@name="textfield"]',
 };
+
+/** iOS Appium XPath by testID/`name` (nodes may be accessible=false / visible=false). */
+export function snapUiNativeIosXPath(testID: string): string {
+  return `//*[@name="${testID}"]`;
+}
+
+/**
+ * JSX Snap count — scoped under the Snap UI scrollview so bare "0"/"1" cannot
+ * match unrelated wallet chrome (especially on Android contains-text matchers).
+ *
+ * iOS: count StaticTexts are accessible=false; the SnapUI card parent exposes
+ * label "Hover for explanation, Count, N, Increment".
+ */
+export function snapUIJsxCountIosXPath(count: string): string {
+  const scrollView = SnapUIRendererSelectorIDs.scrollView;
+  return `//*[@name="${scrollView}"]//*[@accessible="true" and contains(@label,"Count, ${count}")]`;
+}
+
+export function snapUIJsxCountAndroidXPath(count: string): string {
+  const scrollView = SnapUIRendererSelectorIDs.scrollView;
+  return `//*[contains(@resource-id,"${scrollView}")]//*[@text="${count}" or @content-desc="${count}" or contains(@content-desc,"Count, ${count}")]`;
+}
 
 export function snapUISelectorItemAndroidUIAutomator(text: string): string {
   const id = SnapUIRendererSelectorIDs.selectorItem;
   return `.resourceIdMatches(".*${id}.*").childSelector(new UiSelector().text("${text}"))`;
 }
 
+/** iOS SnapUIDropdown bottom-sheet title (`snap_ui.dropdown.title`). */
+export const SNAP_UI_DROPDOWN_SHEET_TITLE = 'Select an option';
+
+/** iOS dropdown/selector sheet option — scoped to SelectorItem (not in-form radios). */
 export function snapUISelectorItemIosXPath(text: string): string {
   const id = SnapUIRendererSelectorIDs.selectorItem;
-  return `//*[@name="${id}" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="${id}"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`;
+  return [
+    `//*[@name="${id}" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")]`,
+    `//*[@name="${id}"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`,
+  ].join(' | ');
 }
 
 /**
@@ -176,6 +221,22 @@ export const TEST_SNAPS_ANDROID_SCROLL_LABELS: Record<string, string> = {
   'connectlifecycle-hooks': 'Connect to Lifecycle Hooks Snap',
   'connectmanage-state': 'Connect to Manage State Snap',
   'connectmultichain-provider': 'Connect to Multichain Provider Snap',
+  // Multichain Provider actions — resource-ids often virtualized until scrolled.
+  // Prefer section-unique labels: "Get Accounts" / "Sign Message" / "Sign Typed
+  // Data" also appear in Ethereum Provider / Entropy and can resolve wrong nodes.
+  sendCreateSession: 'Create Session',
+  sendRevokeSession: 'Revoke Session',
+  'select-multichain-chain': 'Select chain',
+  sendMultichainChainId: 'Get Chain ID',
+  sendMultichainGetGenesisHash: 'Get Genesis Hash',
+  sendMultichainAccounts: 'Get Genesis Hash',
+  signMessageMultichain: 'Get Genesis Hash',
+  signMessageMultichainButton: 'Get Genesis Hash',
+  signMessageMultichainResult: 'Get Genesis Hash',
+  signTypedDataMultichain: 'Get Genesis Hash',
+  signTypedDataMultichainButton: 'Get Genesis Hash',
+  signTypedDataMultichainResult: 'Get Genesis Hash',
+  multichainProviderResult: 'Get Genesis Hash',
   'connectname-lookup': 'Connect to Name Lookup Snap',
   'connectnetwork-access': 'Connect to Network Access Snap',
   'connectethereum-provider': 'Connect to Ethereum Provider Snap',

@@ -303,11 +303,17 @@ const getBannerContent = (
   };
 };
 
-export const NetworkConnectionBanner = () => {
+type NetworkConnectionBannerData = ReturnType<
+  typeof useNetworkConnectionBanner
+>;
+
+export const NetworkConnectionBannerContent = ({
+  networkConnectionBannerState,
+  updateRpc,
+  switchToInfura,
+}: NetworkConnectionBannerData) => {
   const theme = useAppTheme();
   const tw = useTailwind();
-  const { networkConnectionBannerState, updateRpc, switchToInfura } =
-    useNetworkConnectionBanner();
 
   const handleUpdateRpc = useCallback(() => {
     if (networkConnectionBannerState.visible) {
@@ -347,6 +353,11 @@ export const NetworkConnectionBanner = () => {
       description={secondaryMessage}
     />
   );
+};
+
+export const NetworkConnectionBanner = () => {
+  const bannerData = useNetworkConnectionBanner();
+  return <NetworkConnectionBannerContent {...bannerData} />;
 };
 
 export default NetworkConnectionBanner;

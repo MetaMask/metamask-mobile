@@ -202,6 +202,71 @@ describe('usePerpsOrderForm', () => {
       });
     });
 
+    it('keeps an empty surface fallback empty', () => {
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ fallbackAmount: '' }),
+        {
+          wrapper: createWrapper(),
+        },
+      );
+
+      expect(result.current.orderForm.amount).toBe('');
+      expect(result.current.orderForm.balancePercent).toBe(0);
+    });
+
+    it('prioritizes a pending amount over an empty surface fallback', () => {
+      const mockStoreWithPendingConfig = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: {
+                        pendingConfig: {
+                          amount: '125',
+                          timestamp: Date.now(),
+                        },
+                      },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+      const WrapperWithPendingConfig = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithPendingConfig,
+          children: streamProvider,
+        });
+      };
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            fallbackAmount: '',
+          }),
+        { wrapper: WrapperWithPendingConfig },
+      );
+
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
     it('prioritizes existing position leverage over saved config', () => {
       // Mock existing position with 10x leverage
       mockUsePerpsLivePositions.mockReturnValue({

@@ -195,6 +195,13 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       dappOrigin,
     ]);
 
+    const dismissEditing = useCallback(() => {
+      shouldTriggerBlurCallbackRef.current = false;
+      inputRef?.current?.blur();
+      unfocusInput();
+      onBlur();
+    }, [unfocusInput, onBlur]);
+
     useImperativeHandle(ref, () => ({
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
@@ -207,6 +214,10 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         }
         inputRef?.current?.setNativeProps(props);
       },
+      suppressNextBlur: () => {
+        shouldTriggerBlurCallbackRef.current = false;
+      },
+      dismissEditing,
     }));
 
     /**

@@ -36,15 +36,6 @@ module.exports = {
     retries: process.env.CI ? 1 : 0,
   },
   configurations: {
-    'ios.sim.apiSpecs': {
-      device: 'ios.simulator',
-      app: process.env.CI ? `ios.${process.env.METAMASK_BUILD_TYPE}.release` : 'ios.debug',
-      testRunner: {
-        args: {
-          "$0": "node tests/smoke/api-specs/run-api-spec-tests.js",
-        },
-      },
-    },
     'android.emu.main': {
       device: 'android.emulator',
       app: 'android.debug',

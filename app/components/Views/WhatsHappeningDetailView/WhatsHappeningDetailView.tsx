@@ -246,8 +246,17 @@ const WhatsHappeningDetailView = () => {
   const hasError = !isLoading && items.length === 0 && !!error;
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-default`}>
+    // The top edge is deliberately off: a native SafeAreaView top padding is
+    // recalculated as the view is attached, which lands after this screen's
+    // `slide_from_right` push and visibly drops the header into place. The top
+    // inset comes from `includesTopInset` (JS `marginTop` off the already
+    // resolved provider) instead, matching PerpsMarketDetailsView.
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={tw`flex-1 bg-default`}
+    >
       <HeaderStandard
+        includesTopInset
         title={strings('whats_happening.title')}
         onBack={handleBackPress}
         backButtonProps={{ testID: 'whats-happening-detail-back-button' }}

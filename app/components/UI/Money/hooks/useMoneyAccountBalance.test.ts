@@ -204,6 +204,19 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.isBalanceLoading).toBe(false);
   });
 
+  it('disables every query when disabled', () => {
+    renderHook(() => useMoneyAccountBalance({ enabled: false }));
+
+    expect(mockUseQuery).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockUseQuery).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('returns undefined tokenTotal when still loading', () => {
     setupDefaultQueries({
       data: undefined,

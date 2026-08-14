@@ -28,6 +28,7 @@ import { useSelector } from 'react-redux';
 import {
   selectIsCardholder,
   selectCardHomeDataStatus,
+  selectIsCardStateResolved,
 } from '../../../../../selectors/cardController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -70,6 +71,7 @@ const MoneyOnboardingCard = () => {
   } = useMoneyAccountCardLinkage();
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardStateResolved = useSelector(selectIsCardStateResolved);
 
   const isMoneyAccountFunded = Boolean(
     !isBalanceLoading && tokenTotal?.isGreaterThan(0),
@@ -366,7 +368,15 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
-  if (isBalanceLoading || !isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
+  const isWaitingForCardState =
+    !isCardStateResolved && effectiveCurrentStep > 0;
+
+  if (
+    isBalanceLoading ||
+    isWaitingForCardState ||
+    !isOnboardingCardVisible ||
+    !isVisibleAfterAutoSkip
+  ) {
     return null;
   }
 

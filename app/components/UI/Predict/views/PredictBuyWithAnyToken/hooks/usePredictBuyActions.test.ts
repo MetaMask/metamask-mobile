@@ -200,6 +200,13 @@ describe('usePredictBuyActions', () => {
       expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
     });
 
+    it('does not reset payment token during init', () => {
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
     it('does not call initPayWithAnyToken when pay with any token is disabled', () => {
       mockPayWithAnyTokenEnabled = false;
 
@@ -218,6 +225,18 @@ describe('usePredictBuyActions', () => {
       expect(mockTransitionEndUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockBeforeRemoveUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledTimes(1);
+    });
+
+    it('resets payment token on beforeRemove cleanup', () => {
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      act(() => {
+        mockBeforeRemoveCallbacks[0]();
+      });
+
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });
 
     it('only calls initPayWithAnyToken once even if transitionEnd fires again', () => {
@@ -753,9 +772,11 @@ describe('usePredictBuyActions', () => {
         'beforeRemove',
         expect.any(Function),
       );
+      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
 
       unmount();
 
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
       expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });
@@ -783,9 +804,11 @@ describe('usePredictBuyActions', () => {
 
       mockOnConfirmActionsReject.mockClear();
       mockClearActiveOrderTransactionId.mockClear();
+      mockResetSelectedPaymentToken.mockClear();
 
       unmount();
 
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
       expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });

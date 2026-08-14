@@ -48,6 +48,7 @@ import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import PlaywrightUtilities, {
   getDriver,
 } from '../framework/PlaywrightUtilities';
+import UnifiedGestures from '../framework/UnifiedGestures';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
@@ -55,6 +56,8 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
+import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
+import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -136,15 +139,24 @@ export const ensureAccountListOpenPlaywright = async (
     }
 
     if (await isWalletHomeReadyOnAppium()) {
+      if (PlatformDetector.isAndroid()) {
+        await dismissAndroidSystemOverlaysPlaywright();
+      }
       await WalletView.tapIdenticon();
-      await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
-        {
-          timeout: resolveE2EWaitTimeoutMs(10_000),
-          description: 'Account list should open from wallet home',
-        },
-      );
-      return;
+      try {
+        // Keep each tap attempt short so we can re-tap if wallet chrome is still settling.
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
+          {
+            timeout: 3_000,
+            description: 'Account list should open from wallet home',
+          },
+        );
+        return;
+      } catch {
+        await sleep(250);
+        continue;
+      }
     }
 
     if (PlatformDetector.isAndroid()) {
@@ -750,10 +762,18 @@ export const loginToAppPlaywright = async (
   const { scenarioType = 'login' } = options;
 
   const dismissPostLoginModals = async (): Promise<void> => {
-    await PlaywrightUtilities.wait(500);
-    await dismissPushNotificationExistingUserSheet();
-    await dismissExperienceEnhancerModal();
+    startPhase('modal_dismissal');
+    try {
+      await PlaywrightUtilities.wait(500);
+      await dismissPushNotificationExistingUserSheet();
+      await dismissExperienceEnhancerModal();
+    } finally {
+      // Resume test_body after login + modals (exclusive phases).
+      startPhase('test_body');
+    }
   };
+
+  startPhase('login');
 
   await dismissAndroidSystemOverlaysPlaywright();
 
@@ -797,6 +817,130 @@ export const loginToAppPlaywright = async (
 
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
   await dismissPostLoginModals();
+};
+
+const MM_CONNECT_UNLOCK_ATTEMPTS = 3;
+const MM_CONNECT_LOCK_GONE_TIMEOUT_MS = 10_000;
+
+async function dismissUnlockBlockers(): Promise<void> {
+  // Play services heads-up on google_apis CI emulators covers Unlock and
+  // makes the control non-interactive until the banner is dismissed.
+  PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
+  await dismissAndroidSystemOverlaysPlaywright();
+}
+
+async function isPasswordFieldVisible(): Promise<boolean> {
+  try {
+    const passwordInput = await asPlaywrightElement(LoginView.passwordInput);
+    return await passwordInput.isVisible();
+  } catch {
+    return false;
+  }
+}
+
+async function waitForLockScreenGone(timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!(await isPasswordFieldVisible())) {
+      return true;
+    }
+    await sleep(300);
+  }
+  return false;
+}
+
+/**
+ * Tap Unlock without waiting for UiAutomator2 "interactive" — heads-up banners
+ * make that check fail for ~10s even when a plain tap would succeed.
+ */
+async function tapUnlockWithoutInteractiveWait(): Promise<void> {
+  await UnifiedGestures.waitAndTap(LoginView.loginButton, {
+    description: 'Login Button (MM Connect unlock)',
+    checkForDisplayed: true,
+    checkForEnabled: true,
+    waitForInteractive: false,
+    timeout: 10_000,
+  });
+}
+
+/**
+ * If MetaMask's lock / login screen is showing, unlock with the e2e password.
+ *
+ * Prefer the password field over the outer login container — after a deeplink
+ * the lock screen is often the only UI, and CI auto-lock hits right after
+ * returning to MetaMask for dapp connect.
+ *
+ * Intentionally does NOT use full {@link loginToAppPlaywright}: after a connect
+ * deeplink we expect the permission sheet (not wallet home).
+ */
+export const unlockIfLockScreenVisible = async (): Promise<void> => {
+  await dismissUnlockBlockers();
+
+  if (!(await isPasswordFieldVisible())) {
+    return;
+  }
+
+  logger.debug('Lock screen detected; unlocking for MM Connect flow');
+  const password = getPasswordForScenario('e2e') ?? '123123123';
+
+  let lastError: unknown;
+  for (let attempt = 0; attempt < MM_CONNECT_UNLOCK_ATTEMPTS; attempt++) {
+    await dismissUnlockBlockers();
+
+    try {
+      await LoginView.enterPassword(password);
+      await dismissUnlockBlockers();
+      await tapUnlockWithoutInteractiveWait();
+
+      if (await waitForLockScreenGone(MM_CONNECT_LOCK_GONE_TIMEOUT_MS)) {
+        return;
+      }
+      lastError = new Error('Lock screen still visible after unlock tap');
+    } catch (error) {
+      lastError = error;
+      logger.debug(
+        `Unlock attempt ${attempt + 1} failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+
+    await sleep(500);
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`Failed to unlock MetaMask lock screen: ${String(lastError)}`);
+};
+
+/**
+ * Wait for the wallet to be visible, then cycle the app twice to ensure all
+ * account groups (including Solana) are created and syncing completes.
+ * Must be called after login.
+ */
+export const ensureAccountGroupsFinishedLoading = async (
+  currentDeviceDetails: CurrentDeviceDetails,
+): Promise<void> => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
+  await PlaywrightGestures.terminateApp(currentDeviceDetails);
+  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await loginToAppPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
+  await WalletView.tapIdenticon();
+  await AccountListBottomSheet.waitForAccountSyncToComplete();
+  await PlaywrightGestures.terminateApp(currentDeviceDetails);
+  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await loginToAppPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
 };
 
 /**

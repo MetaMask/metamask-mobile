@@ -504,7 +504,9 @@ describe('PerpsMarketDetailsView', () => {
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
       expect(screen.getByText('Ethereum')).toBeOnTheScreen();
-      expect(screen.getByText('ETH-USD perp')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.SUBTITLE),
+      ).toHaveTextContent('ETH-USD perp');
     });
 
     it('renders live price, 24h change, and fullscreen button inside the market summary row', async () => {

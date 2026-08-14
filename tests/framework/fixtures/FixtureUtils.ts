@@ -499,13 +499,6 @@ function getServerPort(resourceType: ResourceType): number {
   return allocatedPort;
 }
 
-/**
- * Gets the URL for the second test dapp.
- * This function is used instead of a constant to ensure device.getPlatform() is called
- * after Detox is properly initialized, preventing initialization errors in the apiSpecs tests.
- *
- * @returns {string} The URL for the second test dapp
- */
 // ========== New Clean Dapp API (Use These) ==========
 
 /**

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyEarningsInfoSheet from './MoneyEarningsInfoSheet';
 import { MoneyEarningsInfoSheetTestIds } from './MoneyEarningsInfoSheet.testIds';
@@ -14,7 +15,6 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
-const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -36,18 +36,25 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
 
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      { children, testID }: { children: React.ReactNode; testID?: string },
-      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: mockOnCloseBottomSheet,
-        onOpenBottomSheet: jest.fn(),
-      }));
-      return ReactActual.createElement(View, { testID }, children);
-    },
-  );
+  const MockBottomSheet = ({
+    children,
+    testID,
+    goBack,
+  }: {
+    children: React.ReactNode;
+    testID?: string;
+    goBack?: () => void;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID },
+      ReactActual.createElement(
+        Pressable,
+        { testID: 'bottom-sheet-dismiss', onPress: goBack },
+        ReactActual.createElement(RNText, {}, 'dismiss'),
+      ),
+      children,
+    );
 
   const MockBottomSheetHeader = ({
     children,
@@ -59,11 +66,13 @@ jest.mock('@metamask/design-system-react-native', () => {
     ReactActual.createElement(
       View,
       { testID: 'bottom-sheet-header' },
-      ReactActual.createElement(
-        Pressable,
-        { testID: 'bottom-sheet-close-button', onPress: onClose },
-        ReactActual.createElement(RNText, {}, 'close'),
-      ),
+      onClose
+        ? ReactActual.createElement(
+            Pressable,
+            { testID: 'bottom-sheet-close-button', onPress: onClose },
+            ReactActual.createElement(RNText, {}, 'close'),
+          )
+        : null,
       children,
     );
 
@@ -133,12 +142,26 @@ describe('MoneyEarningsInfoSheet', () => {
     expect(queryByTestId('money-earnings-info-sheet-got-it-button')).toBeNull();
   });
 
-  it('closes the sheet when the close button is pressed', () => {
+  it('does not render a close button', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
+
+    expect(queryByTestId('bottom-sheet-close-button')).toBeNull();
+  });
+
+  it('navigates back when the sheet is dismissed', () => {
     const { getByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
-    fireEvent.press(getByTestId('bottom-sheet-close-button'));
+    fireEvent.press(getByTestId('bottom-sheet-dismiss'));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the body in the alternative text colour', () => {
+    const { getByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
+
+    expect(getByTestId(MoneyEarningsInfoSheetTestIds.BODY)).toHaveStyle({
+      color: lightTheme.colors.text.alternative,
+    });
   });
 
   describe('analytics', () => {

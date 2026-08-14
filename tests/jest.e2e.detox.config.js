@@ -1,7 +1,7 @@
 /* eslint-disable import-x/no-commonjs */
 // dotenv never overrides existing vars — first file loaded wins on collisions.
 // Load .e2e.env first so test accounts/flags take precedence, then .js.env
-// for WATCHER_PORT used by helpers.js and general.flow.ts at test runtime.
+// for WATCHER_PORT used by DetoxAppLaunch and general.flow.ts at test runtime.
 require('dotenv').config({ path: '.e2e.env' });
 require('dotenv').config({ path: '.js.env' });
 

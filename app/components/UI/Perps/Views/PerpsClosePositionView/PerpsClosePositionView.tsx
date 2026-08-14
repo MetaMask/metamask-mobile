@@ -63,6 +63,7 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { MAX_PERPS_INPUT_DIGITS } from '../../constants/perpsConfig';
 import {
   formatPositionSize,
   formatPerpsFiat,
@@ -685,10 +686,10 @@ const PerpsClosePositionView: React.FC = () => {
         setIsUserInputActive(true);
       }
 
-      // Enforce 9-digit limit (ignoring non-digits). Block the change if exceeded.
+      // Enforce digit limit (ignoring non-digits). Block the change if exceeded.
       const digitCount = (adjustedValue.match(/\d/g) || []).length;
-      if (digitCount > 9) {
-        return; // Ignore input that would exceed 9 digits
+      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+        return; // Ignore input that would exceed the max digit limit
       }
 
       // USD decimal input logic - preserve raw string for display

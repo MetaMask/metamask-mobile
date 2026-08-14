@@ -236,10 +236,24 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
+      const sourceAmount = mockQuoteWithMetadata.sentAmount;
+      const destAmount = mockQuoteWithMetadata.toTokenAmount;
+      if (!sourceAmount || !destAmount) {
+        throw new Error('Mock quote is missing token amounts');
+      }
+
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.BRIDGE.ROOT,
         expect.objectContaining({
           screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+          params: expect.objectContaining({
+            submissionParams: expect.objectContaining({
+              postTradeModalParams: expect.objectContaining({
+                sourceAmount: sourceAmount.amount,
+                destAmount: destAmount.amount,
+              }),
+            }),
+          }),
         }),
       );
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);

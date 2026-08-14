@@ -616,7 +616,9 @@ const useSpendingLimit = ({
         });
         if (success) {
           try {
-            await Engine.context.CardController.fetchCardHomeData();
+            await Engine.context.CardController.fetchCardHomeData({
+              force: true,
+            });
           } catch (error) {
             Logger.error(
               error as Error,
@@ -672,7 +674,7 @@ const useSpendingLimit = ({
 
       // Wait for backend to process, then refresh card home data
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      await Engine.context.CardController.fetchCardHomeData();
+      await Engine.context.CardController.fetchCardHomeData({ force: true });
 
       if (!isOnboardingFlow) {
         showSuccessToast();

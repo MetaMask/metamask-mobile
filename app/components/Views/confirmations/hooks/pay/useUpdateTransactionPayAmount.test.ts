@@ -185,6 +185,70 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
     expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(true);
+  });
+
+  it('reuses a completed optimized amount update for the same amount', async () => {
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await result.current.updateTransactionPayAmount('1.23');
+    await result.current.updateTransactionPayAmount('1.23');
+
+    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries an optimized amount update after the previous request rejects', async () => {
+    const error = new Error('quote failed');
+    updateMoneyAccountDepositAmountMock
+      .mockRejectedValueOnce(error)
+      .mockResolvedValueOnce(true);
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await expect(
+      result.current.updateTransactionPayAmount('1.23'),
+    ).rejects.toThrow('quote failed');
+    await result.current.updateTransactionPayAmount('1.23');
+
+    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries an optimized amount update when the quote is not published', async () => {
+    updateMoneyAccountDepositAmountMock
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    const unpublishedResult =
+      await result.current.updateTransactionPayAmount('1.23');
+    await result.current.updateTransactionPayAmount('1.23');
+
+    expect(unpublishedResult).toBe(false);
+    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts a new optimized amount update when the amount changes', async () => {
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await result.current.updateTransactionPayAmount('1.23');
+    await result.current.updateTransactionPayAmount('4.56');
+
+    expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(2);
+    expect(updateMoneyAccountDepositAmountMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: transactionIdMock }),
+      '4.56',
+    );
   });
 
   it.each(['addMusd', 'card'] as const)(
@@ -201,6 +265,7 @@ describe('useUpdateTransactionPayAmount', () => {
 
       expect(updateMoneyAccountDepositAmountMock).not.toHaveBeenCalled();
       expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
+      expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(false);
     },
   );
 
@@ -218,6 +283,7 @@ describe('useUpdateTransactionPayAmount', () => {
 
     expect(updateMoneyAccountDepositAmountMock).not.toHaveBeenCalled();
     expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(false);
   });
 
   it('uses the atomic update for an explicit convert intent', async () => {

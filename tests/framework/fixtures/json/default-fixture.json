@@ -163,8 +163,7 @@
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
-          "selectedCountry": null,
-          "selectedCardProgramId": null
+          "selectedCountry": null
         },
         "ClientController": {
           "isUiOpen": false

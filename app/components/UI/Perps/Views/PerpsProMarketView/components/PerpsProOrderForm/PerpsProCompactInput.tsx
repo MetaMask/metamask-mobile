@@ -6,8 +6,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React from 'react';
-import { Keyboard, Platform } from 'react-native';
+import React, { useRef } from 'react';
+import { Platform, Pressable, type TextInput } from 'react-native';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -18,10 +18,13 @@ interface PerpsProCompactInputProps {
   onChangeText: (value: string) => void;
   testID: string;
   variant?: 'stacked' | 'inline';
+  startAccessory?: React.ReactNode;
   endAccessory?: React.ReactNode;
   footer?: React.ReactNode;
   placeholder?: string;
   placeholderColor?: 'default' | 'muted';
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 const PerpsProCompactInput = ({
@@ -30,28 +33,34 @@ const PerpsProCompactInput = ({
   onChangeText,
   testID,
   variant = 'stacked',
+  startAccessory,
   endAccessory,
   footer,
   placeholder = '0',
   placeholderColor = 'muted',
+  onFocus,
+  onBlur,
 }: PerpsProCompactInputProps) => {
   const tw = useTailwind();
+  const inputRef = useRef<TextInput>(null);
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+  const focusInput = () => inputRef.current?.focus();
 
   const input = (
     <Input
+      ref={inputRef}
       value={value}
       onChangeText={onChangeText}
       keyboardType="decimal-pad"
-      returnKeyType="done"
-      onSubmitEditing={Keyboard.dismiss}
+      onFocus={onFocus}
+      onBlur={onBlur}
       inputAccessoryViewID={inputAccessoryViewID}
       placeholder={placeholder}
       placeholderTextColor={tw.color(`text-${placeholderColor}`)}
       textVariant={TextVariant.BodySm}
       isStateStylesDisabled
-      twClassName="flex-1 border-0 bg-transparent p-0 font-medium"
+      twClassName="flex-1 border-0 bg-transparent p-0"
       testID={testID}
       accessibilityLabel={label}
     />
@@ -63,7 +72,10 @@ const PerpsProCompactInput = ({
         twClassName="h-12 flex-row items-center border-t border-muted px-3"
         testID={`${testID}-container`}
       >
-        {input}
+        <Box twClassName="min-w-0 flex-1 flex-row items-center">
+          {startAccessory}
+          {input}
+        </Box>
         {endAccessory}
       </Box>
     );
@@ -72,13 +84,24 @@ const PerpsProCompactInput = ({
   return (
     <Box twClassName="rounded-xl bg-muted p-3" testID={`${testID}-container`}>
       <Box twClassName="flex-row items-center justify-between">
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {label}
-        </Text>
+        {/* Tapping the label focuses the input and opens the keyboard, same
+            as tapping the (visually small) input row itself. */}
+        <Pressable onPress={focusInput}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {label}
+          </Text>
+        </Pressable>
         {endAccessory}
       </Box>
-      {input}
-      {footer}
+      <Box twClassName="flex-row items-center">
+        {startAccessory}
+        {input}
+      </Box>
+      {footer ? (
+        <Box twClassName="mt-3" testID={`${testID}-footer`}>
+          {footer}
+        </Box>
+      ) : null}
     </Box>
   );
 };

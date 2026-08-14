@@ -15,7 +15,6 @@ import type { LayoutChangeEvent } from 'react-native';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
@@ -99,7 +98,6 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // True once a dismissal is requested via the CTA/Cancel so the content drops
   // with the sheet instead of running its horizontal screen-exit transition.
   const [isClosing, setIsClosing] = useState(false);
-  const surfaceClass = useElevatedSurface();
 
   const directionSV = useSharedValue<ScreenDirection>(1);
   // Suppresses the enter animation on the initial screen when the sheet opens;
@@ -192,11 +190,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const shouldLockHeight = lockedHeight !== null && !isDynamicHeightScreen;
 
   return (
-    <BottomSheetDialog
-      ref={bottomSheetRef}
-      onClose={onClose}
-      twClassName={surfaceClass}
-    >
+    <BottomSheetDialog ref={bottomSheetRef} onClose={onClose}>
       {isContentReady ? (
         <QuickBuyProvider
           target={target}

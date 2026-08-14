@@ -10,6 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { useIsTransactionPayAmountStale } from '../../../hooks/pay/useIsTransactionPayAmountStale';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useAlerts } from '../../../context/alert-system-context';
 import { TotalRow } from '../../rows/total-row';
@@ -48,6 +49,7 @@ export const MusdMaxConversionInfo = () => {
 
   const transactionMetadata = useTransactionMetadataRequest();
   const isQuoteLoading = useIsTransactionPayLoading();
+  const isPayAmountStale = useIsTransactionPayAmountStale();
 
   const { onConfirm } = useConfirmActions();
   const { alerts } = useAlerts();
@@ -60,7 +62,8 @@ export const MusdMaxConversionInfo = () => {
 
   const isLoading = !transactionMetadata || isQuoteLoading;
 
-  const isConfirmDisabled = isLoading || Boolean(blockingAlert);
+  const isConfirmDisabled =
+    isLoading || isPayAmountStale || Boolean(blockingAlert);
 
   const buttonLabel = useMemo(
     () => blockingAlert?.title ?? strings('earn.musd_conversion.convert'),

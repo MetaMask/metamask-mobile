@@ -15,12 +15,19 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Get build variant and display type from environment (rc = normal, exp = experimental).
+ * Get build variant and display type from environment.
  * @returns {{ buildVariant: string, buildType: string }}
  */
 function getBuildTypeInfo() {
   const variant = (process.env.BUILD_VARIANT || 'rc').toLowerCase();
-  const buildType = variant === 'exp' ? 'Experimental' : 'Normal';
+  let buildType = 'Normal';
+  if (variant === 'exp') {
+    buildType = 'Experimental';
+  } else if (variant === 'rc') {
+    buildType = 'RC';
+  } else if (variant === 'e2e') {
+    buildType = 'E2E';
+  }
   return { buildVariant: variant, buildType };
 }
 

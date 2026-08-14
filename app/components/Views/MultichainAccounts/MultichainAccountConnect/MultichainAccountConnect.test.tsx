@@ -813,7 +813,7 @@ describe('MultichainAccountConnect', () => {
         ...createMockState(),
         sdk: {
           v2Connections: {},
-          wc2Metadata: { id: 'mock-wc2-id' },
+          wc2Metadata: { id: mockChannelId },
         },
       };
 
@@ -2274,7 +2274,7 @@ describe('MultichainAccountConnect', () => {
         ...state,
         sdk: {
           wc2Metadata: {
-            id: 'mock-wc2-id',
+            id: 'wc-channel-id',
             url: 'https://malicious-dapp.com',
             name: 'Malicious Dapp',
             icon: '',
@@ -2572,7 +2572,7 @@ describe('MultichainAccountConnect', () => {
       const { getByTestId } = renderForReferrer(channelId, {
         sdk: {
           v2Connections: {},
-          wc2Metadata: { id: 'wc-id', url: wcUrl },
+          wc2Metadata: { id: channelId, url: wcUrl },
         },
       });
 
@@ -2581,6 +2581,28 @@ describe('MultichainAccountConnect', () => {
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith(
           expect.objectContaining({ referrer: wcUrl }),
+        );
+      });
+    });
+
+    it('ignores stale wc2 metadata for in-app browser origins', async () => {
+      const origin = 'https://app.uniswap.org';
+
+      const { getByTestId } = renderForReferrer(origin, {
+        sdk: {
+          v2Connections: {},
+          wc2Metadata: {
+            id: 'stale-pairing-topic',
+            url: 'https://chikn.farm',
+          },
+        },
+      });
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: origin }),
         );
       });
     });

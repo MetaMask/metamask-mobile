@@ -114,6 +114,8 @@ export interface GestureOptions {
   checkStability?: boolean;
   checkVisibility?: boolean;
   checkEnabled?: boolean;
+  /** Appium: when false, skip waitForDisplayed (XCUITest visible=false nodes). */
+  checkForDisplayed?: boolean;
   elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 

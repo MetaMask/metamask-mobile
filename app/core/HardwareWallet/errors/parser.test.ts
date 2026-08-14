@@ -340,6 +340,16 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
     });
 
+    it('parses "Only version 4 of typed data signing is supported" message', () => {
+      const error = new Error(
+        'Ledger: Only version 4 of typed data signing is supported',
+      );
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateOnlyV4Supported);
+    });
+
     it('parses "eth app" with "open" message', () => {
       const error = new Error('Please open the Ethereum app on your device');
 

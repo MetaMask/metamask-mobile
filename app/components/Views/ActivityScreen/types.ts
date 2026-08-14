@@ -25,13 +25,14 @@ export enum ActivityTypeFilter {
  * (trade / order / funding / deposit|withdrawal) — see `perps-transaction.ts`.
  *
  * String values mirror metamask-extension's `PerpsTransactionFilter`
- * (`trade | order | funding | deposit`) for cross-platform parity. Display
- * labels intentionally follow the mobile ticket (Trades / Order / Fundings /
- * Deposits) — see PERPS_ACTIVITY_FILTER_LABEL_KEY.
+ * (`trade | order | funding | deposit`) for cross-platform parity, so they stay
+ * singular even where the member and its label are plural. Display labels are
+ * Trades / Orders / Funding payments / Deposits — see
+ * PERPS_ACTIVITY_FILTER_LABEL_KEY.
  */
 export enum PerpsActivityFilter {
   Trades = 'trade',
-  Order = 'order',
+  Orders = 'order',
   Fundings = 'funding',
   Deposits = 'deposit',
 }
@@ -60,7 +61,7 @@ export const PERPS_ACTIVITY_FILTER_KINDS: Record<
     'perpsCloseShortTakeProfit',
   ]),
 
-  [PerpsActivityFilter.Order]: new Set<ActivityKind>(PERPS_ORDER_KINDS),
+  [PerpsActivityFilter.Orders]: new Set<ActivityKind>(PERPS_ORDER_KINDS),
   [PerpsActivityFilter.Fundings]: new Set<ActivityKind>([
     'perpsPaidFundingFees',
     'perpsReceivedFundingFees',
@@ -74,7 +75,7 @@ export const PERPS_ACTIVITY_FILTER_KINDS: Record<
 // `Trades` is the default selection (per design).
 export const PERPS_ACTIVITY_FILTER_ORDER: PerpsActivityFilter[] = [
   PerpsActivityFilter.Trades,
-  PerpsActivityFilter.Order,
+  PerpsActivityFilter.Orders,
   PerpsActivityFilter.Fundings,
   PerpsActivityFilter.Deposits,
 ];

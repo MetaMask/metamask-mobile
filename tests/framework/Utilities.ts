@@ -107,12 +107,10 @@ export default class Utilities {
       if (!(await el.isEnabled())) {
         return;
       }
-      // Android RN reports isEnabled=true while disabled — use native enabled attr
-      if (PlatformDetector.isAndroidAppium()) {
-        const enabledAttr = await el.getAttribute('enabled');
-        if (enabledAttr === 'false') {
-          return;
-        }
+      // RN may report isEnabled=true while native enabled="false".
+      const enabledAttr = await el.getAttribute('enabled');
+      if (enabledAttr === 'false') {
+        return;
       }
       throw new Error('🚫 Element is enabled, but should be disabled.');
     }

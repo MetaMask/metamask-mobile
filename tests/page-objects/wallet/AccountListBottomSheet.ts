@@ -23,6 +23,7 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   createLogger,
   encapsulatedAction,
+  getDriver,
   LogLevel,
   PlaywrightGestures,
   sleep,
@@ -583,14 +584,68 @@ class AccountListBottomSheet {
       throw new Error(`No account row found for "${accountName}"`);
     }
 
-    await PlaywrightGestures.scrollIntoView(
-      accountCells[accountCells.length - 1],
-    );
+    const accountCell = accountCells[accountCells.length - 1];
+    await PlaywrightGestures.scrollIntoView(accountCell);
 
-    const addressXpath = PlatformDetector.isAndroid()
-      ? `//*[@resource-id='${AccountCellIds.ADDRESS}']`
-      : `//*[@name='${AccountCellIds.ADDRESS}']`;
-    const addressElements = await Matchers.getAllElementsByXPath(addressXpath);
+    const menuEl = await this.getAccountEllipsisMenuByNameXPath(accountName);
+    if (menuEl) {
+      await PlaywrightGestures.waitAndTap(menuEl, {
+        elemDescription: `Ellipsis menu for "${accountName}"`,
+        timeout: 15_000,
+        checkForDisplayed: false,
+        checkForEnabled: false,
+      });
+      return;
+    }
+
+    if (PlatformDetector.isIOS()) {
+      await this.tapAccountEllipsisAlignedToRowIos(accountCell, accountName);
+      return;
+    }
+
+    const menuIndex =
+      await this.getAccountEllipsisMenuIndexByAddress(accountName);
+    await this.tapAccountEllipsisButtonV2(menuIndex, { shouldWait: true });
+  }
+
+  /**
+   * Resolve the ellipsis for `accountName` via CONTAINER/parent-scoped XPath.
+   * TODO: Add TestIds for element
+   */
+  private async getAccountEllipsisMenuByNameXPath(
+    accountName: string,
+  ): Promise<PlaywrightElement | undefined> {
+    const escaped = accountName.replace(/'/g, "\\'");
+    const menu = AccountCellIds.MENU;
+    const xpaths = PlatformDetector.isAndroid()
+      ? [
+          `//*[@resource-id='${AccountCellIds.ADDRESS}' and @text='${escaped}']/ancestor::*[@resource-id='${AccountCellIds.CONTAINER}'][1]//*[@resource-id='${menu}' or @resource-id='${menu}-${escaped}' or starts-with(@resource-id,'${menu}-')]`,
+          `//*[@resource-id='${AccountCellIds.ADDRESS}' and contains(@text,'${escaped}')]/ancestor::*[@resource-id='${AccountCellIds.CONTAINER}'][1]//*[@resource-id='${menu}' or starts-with(@resource-id,'${menu}-')]`,
+        ]
+      : [
+          `//*[@name='${AccountCellIds.SELECT}' and contains(@label,'${escaped}')]/parent::*//*[@name='${menu}' or @name='${menu}-${escaped}' or starts-with(@name,'${menu}-')]`,
+          `//*[@name='${AccountCellIds.CONTAINER}'][.//*[@name='${AccountCellIds.SELECT}' and contains(@label,'${escaped}')]]//*[@name='${menu}' or starts-with(@name,'${menu}-')]`,
+          `//*[@name='${AccountCellIds.ADDRESS}' and contains(@label,'${escaped}')]/ancestor::*[@name='${AccountCellIds.CONTAINER}'][1]//*[@name='${menu}' or starts-with(@name,'${menu}-')]`,
+        ];
+
+    for (const xpath of xpaths) {
+      const menus = await Matchers.getAllElementsByXPath(xpath);
+      if (menus.length > 0) {
+        return menus[menus.length - 1];
+      }
+    }
+    return undefined;
+  }
+
+  private async getAccountEllipsisMenuIndexByAddress(
+    accountName: string,
+  ): Promise<number> {
+    const addressAttr = PlatformDetector.isAndroid()
+      ? `@resource-id='${AccountCellIds.ADDRESS}'`
+      : `@name='${AccountCellIds.ADDRESS}'`;
+    const addressElements = await Matchers.getAllElementsByXPath(
+      `//*[${addressAttr}]`,
+    );
 
     let menuIndex = -1;
     for (let i = 0; i < addressElements.length; i++) {
@@ -602,11 +657,71 @@ class AccountListBottomSheet {
 
     if (menuIndex < 0) {
       throw new Error(
-        `Could not resolve ellipsis menu index for account "${accountName}"`,
+        `Could not resolve ellipsis menu for account "${accountName}" via XPath or address index`,
+      );
+    }
+    return menuIndex;
+  }
+
+  /**
+   * iOS-only: Needed when the accessibility tree flattens CONTAINER
+   * so parent-scoped XPath cannot reach the ellipsis.
+   */
+  private async tapAccountEllipsisAlignedToRowIos(
+    accountCell: PlaywrightElement,
+    accountName: string,
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) {
+      throw new Error('Driver is not available');
+    }
+
+    const rowLocation = await accountCell.unwrap().getLocation();
+    const rowSize = await accountCell.unwrap().getSize();
+    const rowCenterY = rowLocation.y + rowSize.height / 2;
+
+    const menuElements = await Matchers.getAllElementsByXPath(
+      `//*[@name='${AccountCellIds.MENU}' or starts-with(@name,'${AccountCellIds.MENU}-')]`,
+    );
+    if (menuElements.length === 0) {
+      throw new Error(
+        `No ellipsis menu buttons found while targeting "${accountName}"`,
       );
     }
 
-    await this.tapAccountEllipsisButtonV2(menuIndex);
+    let bestMenu = menuElements[0];
+    let bestDelta = Number.POSITIVE_INFINITY;
+    for (const menu of menuElements) {
+      const menuLocation = await menu.unwrap().getLocation();
+      const menuSize = await menu.unwrap().getSize();
+      const menuCenterY = menuLocation.y + menuSize.height / 2;
+      const delta = Math.abs(menuCenterY - rowCenterY);
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        bestMenu = menu;
+      }
+    }
+
+    if (bestDelta > Math.max(rowSize.height, 48)) {
+      throw new Error(
+        `Could not align ellipsis menu to "${accountName}" (Δy=${Math.round(bestDelta)})`,
+      );
+    }
+
+    const menuLocation = await bestMenu.unwrap().getLocation();
+    const menuSize = await bestMenu.unwrap().getSize();
+    const x = Math.floor(menuLocation.x + menuSize.width / 2);
+    const y = Math.floor(menuLocation.y + menuSize.height / 2);
+
+    await drv
+      .action('pointer', {
+        parameters: { pointerType: 'touch' },
+      })
+      .move({ x, y })
+      .down()
+      .pause(80)
+      .up()
+      .perform();
   }
 
   async expectAccountVisibleByNameV2(

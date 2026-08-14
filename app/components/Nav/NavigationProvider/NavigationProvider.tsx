@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
+  DefaultTheme,
   NavigationContainer,
   NavigationContainerRef,
   ParamListBase,
-  Theme,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { onNavigationReady } from '../../../actions/navigation';
@@ -66,8 +66,16 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   return (
     <NavigationContainer
       // Using transparent background to support transparent modals
-      // The actual app background is handled by individual screens
-      theme={{ colors: { background: 'transparent' } } as Theme}
+      // The actual app background is handled by individual screens.
+      // Spread DefaultTheme so required fields (e.g. fonts in v7) stay defined —
+      // casting a partial object as Theme would hide that at compile time.
+      theme={{
+        ...DefaultTheme,
+        colors: {
+          ...DefaultTheme.colors,
+          background: 'transparent',
+        },
+      }}
       onReady={onReady}
       ref={setNavigationRef}
     >

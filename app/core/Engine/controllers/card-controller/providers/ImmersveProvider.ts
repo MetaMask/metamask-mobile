@@ -31,6 +31,7 @@ import {
   CardProviderCapabilities,
   CardProviderError,
   CardProviderErrorCode,
+  CardProviderIds,
   CardSensitiveDetails,
   CardSpendingPrerequisitesParams,
   CardSpendingPrerequisitesResult,
@@ -215,6 +216,7 @@ interface ImmersveCardListItem {
   cardProgramId?: string;
   panLast4?: string;
   network?: string;
+  regionCode?: string;
 }
 
 interface ImmersveCardListResponse {
@@ -252,7 +254,7 @@ export interface CardResumeInfo {
 }
 
 export class ImmersveProvider implements ICardProvider {
-  readonly id = 'immersve' as const;
+  readonly id = CardProviderIds.Immersve;
 
   readonly capabilities: CardProviderCapabilities = {
     authMethod: 'siwe',
@@ -694,7 +696,11 @@ export class ImmersveProvider implements ICardProvider {
         `/api/cards/${card.id}`,
         tokens,
       );
-      const cardDetails = this.mapImmersveCard(detail);
+      const cardDetails = this.mapImmersveCard({
+        ...detail,
+        // LIST is the AC source for regionCode; detail may omit it.
+        regionCode: detail.regionCode ?? card.regionCode,
+      });
       const fundingAssets = await this.fetchFundingAssets(
         detail.fundingSourceIds ?? [],
         tokens,
@@ -737,7 +743,10 @@ export class ImmersveProvider implements ICardProvider {
         `/api/cards/${card.id}`,
         tokens,
       );
-      return this.mapImmersveCard(detail);
+      return this.mapImmersveCard({
+        ...detail,
+        regionCode: detail.regionCode ?? card.regionCode,
+      });
     } catch (error) {
       throw mapApiError(error, 'getCardDetails');
     }
@@ -792,6 +801,7 @@ export class ImmersveProvider implements ICardProvider {
       lastFour: detail.panLast4 ?? '',
       holderName: detail.cardholderName,
       isFreezable: status === CardStatus.ACTIVE || status === CardStatus.FROZEN,
+      regionCode: detail.regionCode,
     };
   }
 

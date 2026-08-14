@@ -674,6 +674,21 @@ describe('BaanxProvider', () => {
       );
     });
 
+    it('rejects on a 429 from a sub-request instead of degrading to null card', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/card/status') {
+          return Promise.reject(new CardApiError(429, path, ''));
+        }
+        return Promise.resolve(null);
+      });
+
+      await expect(
+        buildProvider(get).getCardHomeData('0xabc', tokens),
+      ).rejects.toMatchObject({
+        statusCode: 429,
+      });
+    });
+
     it('degrades to a partial payload when a sub-request fails transiently', async () => {
       const get = jest.fn().mockImplementation((path: string) => {
         if (path === '/v1/user') {

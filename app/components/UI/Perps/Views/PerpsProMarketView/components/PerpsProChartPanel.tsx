@@ -14,6 +14,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
+import { AnimationDuration } from '@metamask/design-tokens';
 import React, {
   useCallback,
   useEffect,
@@ -21,6 +22,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
@@ -46,7 +48,7 @@ import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
 } from '../../../components/TradingViewChart';
-import PerpsProMarketSummary from './PerpsProMarketSummary';
+import PerpsMarketSummary from '../../../components/PerpsMarketSummary';
 
 const PRO_CHART_HEIGHT = 288;
 /**
@@ -245,13 +247,16 @@ const PerpsProChartPanel = ({
 
   return (
     <>
-      <PerpsProMarketSummary
+      <PerpsMarketSummary
         symbol={symbol}
         currentPrice={syncedChartCurrentPrice}
+        testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
+        testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
+        testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
         endAccessory={
           <ButtonIcon
             iconName={IconName.Candlestick}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Filled}
             onPress={() => handleToggleChartExpanded(!isChartExpanded)}
             testID={PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON}
@@ -265,63 +270,70 @@ const PerpsProChartPanel = ({
         }
       />
       {isChartExpanded ? (
-        <Box
-          testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
-          twClassName="my-2 h-[344px] px-4 py-2"
+        <Animated.View
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
         >
           <Box
-            testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
-            twClassName="flex-1 gap-2"
+            testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
+            twClassName="my-2 h-[344px] px-2 py-2"
           >
             <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
+              testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
+              twClassName="flex-1 gap-2"
             >
-              <PerpsCandlePeriodSelector
-                selectedPeriod={selectedCandlePeriod}
-                onPeriodChange={onCandlePeriodChange}
-                onMorePress={onMorePress}
-                visiblePeriods={PRO_CANDLE_PERIODS}
-                twClassName="flex-1 py-0"
-                groupTwClassName="gap-2 justify-start"
-                filterVariant={FilterButtonVariant.Secondary}
-                periodButtonTwClassName="h-7 rounded px-1"
-                moreButtonTwClassName="h-7 rounded px-1"
-                textVariant={TextVariant.BodyXs}
-                testID={PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR}
-              />
-              <ButtonIcon
-                iconName={IconName.Expand}
-                size={ButtonIconSize.Sm}
-                onPress={handleFullscreenChartOpen}
-                testID={PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON}
-                accessibilityLabel={strings(
-                  'perps.market_details.fullscreen_chart',
-                )}
-              />
-            </Box>
-            <ComponentErrorBoundary
-              componentLabel="PerpsProMarketChart"
-              onError={onChartError}
-            >
-              <Box twClassName="relative flex-1">
-                {ohlcData ? (
-                  <Box twClassName="absolute left-0 right-0 top-0 z-10">
-                    <PerpsOHLCVBar
-                      open={ohlcData.open}
-                      high={ohlcData.high}
-                      low={ohlcData.low}
-                      close={ohlcData.close}
-                      volume={ohlcData.volume}
-                      testID={PerpsProMarketViewSelectorsIDs.CHART_OHLCV}
-                    />
-                  </Box>
-                ) : null}
-                {chartContent}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+              >
+                <PerpsCandlePeriodSelector
+                  selectedPeriod={selectedCandlePeriod}
+                  onPeriodChange={onCandlePeriodChange}
+                  onMorePress={onMorePress}
+                  visiblePeriods={PRO_CANDLE_PERIODS}
+                  twClassName="flex-1 py-0"
+                  groupTwClassName="gap-2 justify-start"
+                  filterVariant={FilterButtonVariant.Secondary}
+                  periodButtonTwClassName="h-7 rounded px-1"
+                  moreButtonTwClassName="h-7 rounded px-1"
+                  textVariant={TextVariant.BodyXs}
+                  testID={PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR}
+                />
+                <ButtonIcon
+                  iconName={IconName.Expand}
+                  size={ButtonIconSize.Sm}
+                  onPress={handleFullscreenChartOpen}
+                  testID={
+                    PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON
+                  }
+                  accessibilityLabel={strings(
+                    'perps.market_details.fullscreen_chart',
+                  )}
+                />
               </Box>
-            </ComponentErrorBoundary>
+              <ComponentErrorBoundary
+                componentLabel="PerpsProMarketChart"
+                onError={onChartError}
+              >
+                <Box twClassName="relative flex-1">
+                  {ohlcData ? (
+                    <Box twClassName="absolute left-0 right-0 top-0 z-10">
+                      <PerpsOHLCVBar
+                        open={ohlcData.open}
+                        high={ohlcData.high}
+                        low={ohlcData.low}
+                        close={ohlcData.close}
+                        volume={ohlcData.volume}
+                        testID={PerpsProMarketViewSelectorsIDs.CHART_OHLCV}
+                      />
+                    </Box>
+                  ) : null}
+                  {chartContent}
+                </Box>
+              </ComponentErrorBoundary>
+            </Box>
           </Box>
-        </Box>
+        </Animated.View>
       ) : null}
       {isTradingHalted && !isLoadingTradingHalted ? (
         <PerpsPriceDeviationWarning
