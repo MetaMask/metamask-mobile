@@ -104,7 +104,7 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       },
       ignoreFields: ['user'],
       responseCode: 200,
-      response: 'default',
+      response: JSON.stringify('unifiedAccount'),
       priority: hyperliquidMockPriority,
     },
   ],
