@@ -775,14 +775,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [displayAmount, effectivePrice, szDecimals, isLoadingMarketData]);
 
+  // A pay token the user just picked reports `balanceUsd: '0'` until the
+  // transaction-pay state settles, so every balance-derived value below would
+  // otherwise treat a not-yet-known balance as an empty wallet.
+  const isPayBalanceLoading = hasCustomTokenSelected && isPayStateNotReady;
+
   const hasInsufficientPayTokenBalance = useMemo(() => {
     if (marginRequired == null || !payToken || !hasCustomTokenSelected) {
+      return false;
+    }
+    if (isPayBalanceLoading) {
       return false;
     }
     const requiredUsd = Number(marginRequired);
     const balanceUsd = Number(payToken.balanceUsd);
     return requiredUsd > balanceUsd;
-  }, [hasCustomTokenSelected, marginRequired, payToken]);
+  }, [hasCustomTokenSelected, isPayBalanceLoading, marginRequired, payToken]);
 
   // Standard confirmation blocking alerts for pay-with-any-token flow.
   // These validate the relay quote totals (input + fees) against the actual
@@ -1149,18 +1157,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     spendableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
-    skipValidation: isInputFocused,
+    skipValidation: isInputFocused || isPayBalanceLoading,
     originalUsdAmount: orderForm.amount, // Pass original USD input to prevent validation flash from price updates
+    // The pay-with-token flow shows its own funding message, so the generic
+    // balance error would otherwise repeat it with the Perps balance figure.
+    skipBalanceError: hasCustomTokenSelected,
   });
-
-  // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
-  // Hide the "Size must be a positive number" message from the error list
-  const filteredErrors = useMemo(() => {
-    const sizePositiveMsg = strings(
-      'perps.errors.orderValidation.sizePositive',
-    );
-    return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
-  }, [orderValidation.errors]);
 
   // Handlers
   const handleTPSLPress = useCallback(() => {
@@ -1697,20 +1699,64 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(spendableBalance * orderForm.leverage);
 
-  const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
+  // A balance that has not resolved yet reads as 0, which must not pass for a
+  // balance too small to reach the protocol minimum.
+  const isBelowMinimumOrderAmount =
+    !isPayBalanceLoading && amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
   const orderButtonKey =
     orderForm.direction === 'long'
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
-  const isInsufficientFunds =
-    !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
+  const isInsufficientFunds = !isLoadingAccount && isBelowMinimumOrderAmount;
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
     : strings(orderButtonKey, {
         asset: getPerpsDisplaySymbol(orderForm.asset),
       });
+
+  // Exactly one funding message for the selected payment method: nothing while
+  // the balance is still loading, the protocol minimum when the token cannot
+  // reach it (which is also why the slider is disabled), and otherwise the
+  // not-enough-for-this-trade message.
+  const payTokenFundingMessage = useMemo(() => {
+    if (!hasCustomTokenSelected || isPayBalanceLoading) {
+      return null;
+    }
+    if (isBelowMinimumOrderAmount) {
+      return strings('perps.order.validation.minimum_amount', {
+        amount: minimumOrderAmount.toString(),
+      });
+    }
+    if (hasInsufficientPayTokenBalance) {
+      return strings(
+        'perps.order.validation.insufficient_funds_to_cover_trade',
+      );
+    }
+    return null;
+  }, [
+    hasCustomTokenSelected,
+    hasInsufficientPayTokenBalance,
+    isBelowMinimumOrderAmount,
+    isPayBalanceLoading,
+    minimumOrderAmount,
+  ]);
+
+  // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
+  // Hide the "Size must be a positive number" message from the error list, plus
+  // anything the pay-with-token message above already states.
+  const filteredErrors = useMemo(() => {
+    const hiddenMessages = [
+      strings('perps.errors.orderValidation.sizePositive'),
+    ];
+    if (payTokenFundingMessage) {
+      hiddenMessages.push(payTokenFundingMessage);
+    }
+    return orderValidation.errors.filter(
+      (err) => !hiddenMessages.includes(err),
+    );
+  }, [orderValidation.errors, payTokenFundingMessage]);
 
   const {
     doesStopLossRiskLiquidation,
@@ -1760,7 +1806,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={displayAmount}
-          showWarning={!isLoadingAccount && spendableBalance === 0}
+          // The copy asks the user to deposit or change payment method, which
+          // only makes sense for the Perps balance; paying with a wallet token
+          // has its own single funding message below.
+          showWarning={
+            !isLoadingAccount &&
+            !hasCustomTokenSelected &&
+            spendableBalance === 0
+          }
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={livePositionSize}
@@ -1784,7 +1837,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               maximumValue={maxPossibleAmount}
               step={1}
               showPercentageLabels
-              disabled={isAmountDisabled}
+              disabled={isBelowMinimumOrderAmount}
             />
           </View>
         )}
@@ -1853,15 +1906,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               )}
             </View>
-            {hasInsufficientPayTokenBalance && (
+            {payTokenFundingMessage && (
               <View style={styles.insufficientPayTokenWarning}>
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
+                  testID={PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE}
                 >
-                  {strings(
-                    'perps.order.validation.insufficient_funds_to_cover_trade',
-                  )}
+                  {payTokenFundingMessage}
                 </Text>
               </View>
             )}

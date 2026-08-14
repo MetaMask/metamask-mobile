@@ -787,6 +787,7 @@ export const PerpsOrderViewSelectorsIDs = {
   SLIPPAGE_ROW: 'perps-order-view-slippage-row',
   SLIPPAGE_VALUE: 'perps-order-view-slippage-value',
   SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
+  PAY_TOKEN_FUNDING_MESSAGE: 'perps-order-view-pay-token-funding-message',
 };
 
 // ========================================

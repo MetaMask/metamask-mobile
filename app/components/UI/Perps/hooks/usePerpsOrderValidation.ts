@@ -47,6 +47,12 @@ interface UsePerpsOrderValidationParams {
   midPrice?: number;
   /** Asset size decimals used to canonicalize venue prices. */
   szDecimals?: number;
+  /**
+   * When true, the caller renders its own funding message for the selected
+   * payment method, so the generic balance error is kept out of `errors`
+   * instead of being shown a second time. The order still reports as invalid.
+   */
+  skipBalanceError?: boolean;
 }
 
 interface ValidationState {
@@ -99,6 +105,7 @@ export function usePerpsOrderValidation(
     triggerPrice,
     midPrice = assetPrice,
     szDecimals,
+    skipBalanceError,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -159,7 +166,8 @@ export function usePerpsOrderValidation(
 
       // Balance validation (immediate)
       const requiredMargin = Number.parseFloat(marginRequired);
-      if (requiredMargin > spendableBalance) {
+      const isBalanceInsufficient = requiredMargin > spendableBalance;
+      if (isBalanceInsufficient && !skipBalanceError) {
         immediateErrors.push(
           strings('perps.order.validation.insufficient_balance', {
             required: marginRequired,
@@ -304,7 +312,9 @@ export function usePerpsOrderValidation(
         setValidation({
           errors: errors.length > 0 ? errors : EMPTY_ERRORS,
           warnings: warnings.length > 0 ? warnings : EMPTY_WARNINGS,
-          protocolValid: errors.length === 0,
+          // A suppressed balance error still blocks the order; only its message
+          // is left to the caller's own funding message.
+          protocolValid: errors.length === 0 && !isBalanceInsufficient,
           isValidating: false,
         });
       } catch (error) {
@@ -337,6 +347,7 @@ export function usePerpsOrderValidation(
       originalUsdAmount,
       positionSize,
       reduceOnly,
+      skipBalanceError,
       spendableBalance,
       szDecimals,
       triggerPrice,

@@ -225,6 +225,35 @@ describe('usePerpsOrderValidation', () => {
         'Insufficient balance: need 10.00, have 5',
       );
     });
+
+    it('withholds the balance message but still invalidates the order when the caller owns that message', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: 5,
+          marginRequired: '10.00',
+          skipBalanceError: true,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      // Assert
+      expect(result.current.errors).not.toContain(
+        'Insufficient balance: need 10.00, have 5',
+      );
+      expect(result.current.isValid).toBe(false);
+    });
   });
 
   describe('leverage warnings', () => {

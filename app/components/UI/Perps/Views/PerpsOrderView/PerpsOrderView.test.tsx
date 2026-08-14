@@ -38,7 +38,10 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsAmountDisplaySelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../Perps.testIds';
 import {
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
@@ -102,6 +105,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
+      'perps.order.validation.insufficient_funds_to_cover_trade':
+        'Insufficient funds to cover the trade',
+      'perps.order.validation.minimum_amount':
+        'Minimum order size is ${{amount}}',
+      'perps.deposit.no_funds_available':
+        'Not enough funds available. Deposit funds or select a different payment method',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
       'perps.errors.orderValidation.sizePositive':
@@ -495,6 +504,7 @@ jest.mock(
       '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
     ),
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
+    useIsTransactionPayLoading: () => mockIsPayQuoteLoading,
     useTransactionPayTotals: () => mockPayTotals,
     useTransactionPayRequiredTokens: () => mockPayRequiredTokens,
     useIsTransactionPaySubmitReady: () => mockIsPaySubmitReady,
@@ -658,14 +668,16 @@ jest.mock('../../components/PerpsSlider', () => ({
     value,
     onValueChange,
     onDragEnd,
+    disabled,
   }: {
     value: number;
     onValueChange: (v: number) => void;
     onDragEnd?: (v: number) => void;
+    disabled?: boolean;
   }) => {
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
-      <View testID="perps-slider">
+      <View testID="perps-slider" accessibilityState={{ disabled: !!disabled }}>
         <Text>Slider Value: {value}</Text>
         <TouchableOpacity
           testID="perps-slider-drag"
@@ -1553,6 +1565,195 @@ describe('PerpsOrderView', () => {
     maxPossibleAmount: 1000,
     balanceForValidation: 1000,
     ...overrides,
+  });
+
+  describe('pay with token funding state', () => {
+    // The trade screen is driven by a wallet token instead of the Perps
+    // balance, which is the flow where the funding messages used to stack.
+    const renderWithPayToken = ({
+      balanceForValidation,
+      payTokenBalanceUsd,
+      isBalanceLoading = false,
+    }: {
+      balanceForValidation: number;
+      payTokenBalanceUsd: string;
+      isBalanceLoading?: boolean;
+    }) => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockIsPayQuoteLoading = isBalanceLoading;
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: {
+          address: '0xeeee',
+          chainId: '0x1',
+          symbol: 'ETH',
+          balanceUsd: payTokenBalanceUsd,
+        },
+        setPayToken: jest.fn(),
+        isNative: true,
+      });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          balanceForValidation,
+          maxPossibleAmount: balanceForValidation * 3,
+        }),
+      );
+
+      return render(<PerpsOrderView />, { wrapper: TestWrapper });
+    };
+
+    afterEach(() => {
+      mockIsPayQuoteLoading = false;
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+        isNative: undefined,
+      });
+      // jest.clearAllMocks() keeps implementations, so restore the shared
+      // validation mock rather than leaking an invalid order into later tests.
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+    });
+
+    it('leaves the amount slider usable while the selected pay token balance is still loading', () => {
+      // Arrange + Act
+      renderWithPayToken({
+        balanceForValidation: 0,
+        payTokenBalanceUsd: '0',
+        isBalanceLoading: true,
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId('perps-slider').props.accessibilityState.disabled,
+      ).toBe(false);
+    });
+
+    it('disables the amount slider once a resolved pay token balance cannot reach the minimum order size', () => {
+      // Arrange + Act
+      renderWithPayToken({
+        balanceForValidation: 3,
+        payTokenBalanceUsd: '3',
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId('perps-slider').props.accessibilityState.disabled,
+      ).toBe(true);
+    });
+
+    it('states the minimum order size when the selected pay token cannot reach it', () => {
+      // Arrange + Act
+      renderWithPayToken({
+        balanceForValidation: 3,
+        payTokenBalanceUsd: '3',
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toHaveTextContent('Minimum order size is $10');
+    });
+
+    it('states one funding message when the selected pay token cannot cover the trade', () => {
+      // Arrange + Act
+      renderWithPayToken({
+        balanceForValidation: 1000,
+        payTokenBalanceUsd: '1',
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toHaveTextContent('Insufficient funds to cover the trade');
+    });
+
+    it('omits any funding message while the selected pay token balance is still loading', () => {
+      // Arrange + Act
+      renderWithPayToken({
+        balanceForValidation: 0,
+        payTokenBalanceUsd: '0',
+        isBalanceLoading: true,
+      });
+
+      // Assert
+      expect(
+        screen.queryByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toBeNull();
+    });
+
+    it('omits the Perps balance deposit warning while paying with a wallet token', () => {
+      // Arrange + Act
+      renderWithPayToken({
+        balanceForValidation: 0,
+        payTokenBalanceUsd: '0',
+      });
+
+      // Assert
+      expect(
+        screen.queryByTestId(PerpsAmountDisplaySelectorsIDs.WARNING),
+      ).toBeNull();
+    });
+
+    it('keeps the Perps balance deposit warning when the Perps balance is the payment method', () => {
+      // Arrange
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          balanceForValidation: 0,
+          maxPossibleAmount: 0,
+        }),
+      );
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.WARNING),
+      ).toBeOnTheScreen();
+    });
+
+    it('states the minimum order size once when validation reports it as well', () => {
+      // Arrange
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        errors: ['Minimum order size is $10'],
+        warnings: [],
+        isValid: false,
+        isValidating: false,
+      });
+
+      // Act
+      renderWithPayToken({
+        balanceForValidation: 3,
+        payTokenBalanceUsd: '3',
+      });
+
+      // Assert
+      expect(screen.getAllByText('Minimum order size is $10')).toHaveLength(1);
+    });
+
+    it('keeps the place order button on screen after the payment method changes', () => {
+      // Arrange + Act
+      renderWithPayToken({
+        balanceForValidation: 0,
+        payTokenBalanceUsd: '0',
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Slider drag commit funnel', () => {
