@@ -37,6 +37,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
+import { selectMoneyDepositEligibleAssets } from '../../../components/UI/Money/selectors/depositTokens';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
 import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
@@ -80,6 +81,9 @@ const selectAllLendingMarkets = createSelector(
   selectEarnControllerState,
   (earnControllerState) => selectLendingMarkets(earnControllerState),
 );
+
+const selectSelectedEvmAddress = (state: RootState) =>
+  selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address;
 
 const selectEarnTokenBaseData = createSelector(
   [

@@ -41,7 +41,10 @@ const useEarningsHistory = ({
   const fetchEarningsHistory = useCallback(async () => {
     const numericChainId = hexToNumber(asset?.chainId as Hex);
 
-    if (asset.experience.type === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (
+      asset.experience.type === EARN_EXPERIENCES.POOLED_STAKING ||
+      asset.experience.type === EARN_EXPERIENCES.TRX_STAKING
+    ) {
       if (stakingApiService) {
         setIsLoading(true);
         setError(null);
