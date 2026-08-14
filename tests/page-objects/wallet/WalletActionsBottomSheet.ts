@@ -1,14 +1,8 @@
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import Assertions from '../../framework/Assertions';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class WalletActionsBottomSheet {
   get sendButton(): EncapsulatedElementType {
@@ -48,97 +42,79 @@ class WalletActionsBottomSheet {
   }
 
   get perpsButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
-          ),
-      },
-    });
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+    );
   }
 
   get predictButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
-          ),
-      },
-    });
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
+    );
   }
 
   async tapSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.sendButton);
+    await Gestures.waitAndTap(this.sendButton, {
+      elemDescription: 'Send button',
+    });
   }
 
   async tapReceiveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.receiveButton);
+    await Gestures.waitAndTap(this.receiveButton, {
+      elemDescription: 'Receive button',
+    });
   }
 
   async tapSwapButton(): Promise<void> {
     await Gestures.waitAndTap(this.swapButton, {
       delay: 1000,
+      elemDescription: 'Swap button',
     });
   }
 
   async tapBridgeButton(): Promise<void> {
     await Gestures.waitAndTap(this.bridgeButton, {
       delay: 1000,
+      elemDescription: 'Bridge button',
     });
   }
 
   async tapBuyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.buyButton);
+    await Gestures.waitAndTap(this.buyButton, {
+      elemDescription: 'Buy button',
+    });
   }
 
   async tapSellButton() {
-    await Gestures.waitAndTap(this.sellButton);
+    await Gestures.waitAndTap(this.sellButton, {
+      elemDescription: 'Sell button',
+    });
   }
 
   async tapPerpsButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.perpsButton, {
-      description: 'Perps Button',
+    await Gestures.waitAndTap(this.perpsButton, {
+      elemDescription: 'Perps Button',
     });
   }
 
   async tapPredictButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.predictButton, {
-      description: 'Predict Button',
+    await Gestures.waitAndTap(this.predictButton, {
+      elemDescription: 'Predict Button',
     });
   }
+
   // We would need to update this as assertions should not live in page objects
   async checkModalVisibility(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const resolved = await asPlaywrightElement(this.perpsButton);
-        await resolved.waitForDisplayed({ timeout: 5000 });
-      },
+    await Assertions.expectElementToBeVisible(this.perpsButton, {
+      timeout: 5000,
+      description: 'Wallet actions bottom sheet should be visible',
     });
   }
 
   async swipeDownActionsBottomSheet(): Promise<void> {
     await Gestures.swipe(this.sendButton, 'down', {
       speed: 'fast',
+      elemDescription: 'Wallet actions bottom sheet swipe down',
     });
   }
 }

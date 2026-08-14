@@ -624,6 +624,35 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
+  usePerpsWatchlistActions: jest.fn(() => ({
+    addToWatchlist: jest.fn(),
+    removeFromWatchlist: jest.fn(),
+  })),
+}));
+
+// Direct-path mocks for usePerpsMarketHeaderActions dependencies (it does not
+// import these from the hooks barrel).
+jest.mock('../../hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: jest.fn(() => ({
+    navigateToHome: mockNavigateToHome,
+    navigateToActivity: mockNavigateToActivity,
+    navigateToOrder: mockNavigateToOrder,
+    navigateToTutorial: mockNavigateToTutorial,
+    navigateToMarketList: mockNavigateToMarketList,
+    navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
+    navigateBack: mockNavigateBack,
+    canGoBack: mockCanGoBack(),
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsMode', () => ({
+  usePerpsMode: jest.fn(() => ({
+    mode: mockPerpsModeValue,
+    setMode: mockSetPerpsMode,
+  })),
+}));
+
 // Mock useABTest to return default (control/white) variant
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: () => ({
@@ -1010,7 +1039,7 @@ describe('PerpsMarketDetailsView', () => {
     });
   };
 
-  it('shows the active-mode pill next to search when the Pro mode flag is enabled', () => {
+  it('shows the favorite button and active-mode pill when the Pro mode flag is enabled', () => {
     enableProModeFlag();
 
     const { getByTestId } = renderWithProvider(
@@ -1023,7 +1052,7 @@ describe('PerpsMarketDetailsView', () => {
     );
 
     expect(
-      getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
