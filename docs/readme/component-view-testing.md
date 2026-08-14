@@ -351,7 +351,7 @@ To enforce component view tests purity, we rely on a static ESLint guard that bl
 
 **ESLint Configuration:**
 
-- Location: root `.eslintrc.js`
+- Location: root `eslint.config.mjs`
 - Files: `**/*.view.test.{js,ts,tsx,jsx}`
 - Blocks `jest.mock(...)` except for allowed modules
 
@@ -362,7 +362,7 @@ To enforce component view tests purity, we rely on a static ESLint guard that bl
 - `react-native-device-info`
 
 ```js
-// .eslintrc.js
+// eslint.config.mjs
 {
   files: ['**/*.view.test.{js,ts,tsx,jsx}'],
   rules: {

@@ -1479,7 +1479,7 @@ const App: React.FC = () => {
       Logger.error(error, 'Error starting app');
     });
     // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
-    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
+    // (exhaustive-deps disabled for this file via eslint.config.mjs override.)
   }, []);
 
   return (
