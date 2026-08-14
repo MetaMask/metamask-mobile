@@ -105,6 +105,7 @@ import {
   HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
   HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
+  getHomepageBalanceBreakdownTransactionActiveAbTests,
   HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
@@ -402,7 +403,9 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  // Hook for handling non-EVM asset sending
+  // Hook for handling non-EVM asset sending. `useSendNonEvmAsset` stabilizes
+  // `asset` internally, so `sendNonEvmAsset`'s identity stays stable across
+  // `Wallet` re-renders without needing to memoize this object here.
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const { sendNonEvmAsset } = useSendNonEvmAsset({
     asset: {
@@ -733,6 +736,7 @@ const Wallet = ({
 
   const {
     variant: balanceBreakdownVariant,
+    variantName: balanceBreakdownVariantName,
     isActive: isBalanceBreakdownExperimentActive,
   } = useABTest(
     HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
@@ -743,6 +747,11 @@ const Wallet = ({
   const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
     ? balanceBreakdownVariant.layout
     : null;
+  const balanceBreakdownTransactionActiveAbTests =
+    getHomepageBalanceBreakdownTransactionActiveAbTests(
+      isBalanceBreakdownExperimentActive && balanceBreakdownLayout !== null,
+      balanceBreakdownVariantName,
+    );
 
   const discoveryPillsIconStyle = discoveryPillsVariant.iconStyle;
   const showDiscoveryPills =
@@ -1054,6 +1063,7 @@ const Wallet = ({
         accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
         hideRows: inWalletHomePostOnboardingFlow,
         layout: balanceBreakdownLayout,
+        transactionActiveAbTests: balanceBreakdownTransactionActiveAbTests,
         children: contentBeforeBalanceBreakdown,
       }
     : undefined;

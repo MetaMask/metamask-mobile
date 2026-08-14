@@ -1,15 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
-import {
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 const SHEET_READY_TIMEOUT_MS = 30_000;
 
@@ -30,17 +22,9 @@ class AddAccountBottomSheet {
   }
 
   get importSrpButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+    );
   }
 
   async waitForImportSrpOption(
@@ -51,19 +35,9 @@ class AddAccountBottomSheet {
       options.description ??
       'Import SRP option should be visible in add account sheet';
 
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(this.importSrpButton, {
-          description,
-          timeout,
-        });
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(this.importSrpButton),
-          { description, timeout },
-        );
-      },
+    await Assertions.expectElementToBeVisible(this.importSrpButton, {
+      description,
+      timeout,
     });
   }
 
@@ -75,43 +49,29 @@ class AddAccountBottomSheet {
       options.description ??
       'Import account option should be visible in add account sheet';
 
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(this.importAccountButton, {
-          description,
-          timeout,
-        });
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(this.importAccountButton),
-          { description, timeout },
-        );
-      },
+    await Assertions.expectElementToBeVisible(this.importAccountButton, {
+      description,
+      timeout,
     });
   }
 
   async tapImportAccount(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.importAccountButton, {
-      description: 'Import Account button',
+    await Gestures.waitAndTap(this.importAccountButton, {
+      elemDescription: 'Import Account button',
       timeout: 20_000,
       checkForDisplayed: true,
-      checkForEnabled: true,
+      checkEnabled: true,
       waitForInteractive: true,
-      enabledStableReads: 3,
-      postEnabledSettleMs: 250,
     });
   }
 
   async tapImportSrp(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.importSrpButton, {
-      description: 'Import SRP button',
+    await Gestures.waitAndTap(this.importSrpButton, {
+      elemDescription: 'Import SRP button',
       timeout: 20_000,
       checkForDisplayed: true,
-      checkForEnabled: true,
+      checkEnabled: true,
       waitForInteractive: true,
-      enabledStableReads: 3,
-      postEnabledSettleMs: 250,
     });
   }
 

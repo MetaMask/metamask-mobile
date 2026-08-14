@@ -90,7 +90,6 @@ export enum COMPONENT_NAMES {
 
   // — Miscellaneous —
   MONEY_WHAT_YOU_GET_SECTION = 'money_what_you_get_section',
-  MONEY_MUSD_TOKEN_SECTION = 'money_musd_token_row_section',
   MONEY_BALANCE_CARD = 'money_balance_card',
   MONEY_BALANCE_SUMMARY = 'money_balance_summary',
   MONEY_BALANCE_PROJECTION = 'money_balance_projection',

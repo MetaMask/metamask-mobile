@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useLayoutEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { useNavigation } from '@react-navigation/native';
@@ -25,15 +25,23 @@ export function useSendNonEvmAsset({ asset }: UseSendNonEvmAssetParams) {
   const navigation = useNavigation<AppNavigationProp>();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
+  // Keeps `asset` current without making it a `sendNonEvmAsset` dependency,
+  // so callers don't need to memoize it to get a stable reference back.
+  const assetRef = useRef(asset);
+  useLayoutEffect(() => {
+    assetRef.current = asset;
+  }, [asset]);
+
   const sendNonEvmAsset = useCallback(
     async (location: string): Promise<boolean> => {
+      const currentAsset = assetRef.current;
       handleSendPageNavigation(navigation.navigate, {
         location,
-        asset: asset.address ? (asset as TokenI) : undefined,
+        asset: currentAsset.address ? (currentAsset as TokenI) : undefined,
       });
       return true;
     },
-    [navigation, asset],
+    [navigation],
   );
 
   return {
