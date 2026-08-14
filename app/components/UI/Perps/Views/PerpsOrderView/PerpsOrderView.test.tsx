@@ -504,7 +504,6 @@ jest.mock(
       '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
     ),
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
-    useIsTransactionPayLoading: () => mockIsPayQuoteLoading,
     useTransactionPayTotals: () => mockPayTotals,
     useTransactionPayRequiredTokens: () => mockPayRequiredTokens,
     useIsTransactionPaySubmitReady: () => mockIsPaySubmitReady,
@@ -1666,6 +1665,35 @@ describe('PerpsOrderView', () => {
         balanceForValidation: 1000,
         payTokenBalanceUsd: '1',
       });
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toHaveTextContent('Insufficient funds to cover the trade');
+    });
+
+    it('states a funding message when validation withheld its balance error and the pay token has not landed', () => {
+      // Arrange — a custom token is selected but payToken is still undefined, so
+      // the pay-token balance check cannot answer and validation suppressed its
+      // own message; the screen must still say why the order is blocked.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+        isNative: undefined,
+      });
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        errors: [],
+        warnings: [],
+        isValid: false,
+        isValidating: false,
+        hasSuppressedBalanceError: true,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // Assert
       expect(

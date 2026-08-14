@@ -253,6 +253,34 @@ describe('usePerpsOrderValidation', () => {
         'Insufficient balance: need 10.00, have 5',
       );
       expect(result.current.isValid).toBe(false);
+      expect(result.current.hasSuppressedBalanceError).toBe(true);
+    });
+
+    it('reports no suppression when the balance covers the required margin', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: 1000,
+          marginRequired: '10.00',
+          skipBalanceError: true,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      // Assert
+      expect(result.current.hasSuppressedBalanceError).toBe(false);
+      expect(result.current.isValid).toBe(true);
     });
   });
 

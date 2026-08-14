@@ -60,6 +60,7 @@ interface ValidationState {
   warnings: string[];
   protocolValid: boolean;
   isValidating: boolean;
+  hasSuppressedBalanceError: boolean;
 }
 
 export interface ValidationResult {
@@ -68,6 +69,11 @@ export interface ValidationResult {
   fieldIssues: OrderFormFieldIssue[];
   isValid: boolean;
   isValidating: boolean;
+  /**
+   * True when `skipBalanceError` withheld the balance message. The order is
+   * invalid with no message to show for it, so the caller must supply its own.
+   */
+  hasSuppressedBalanceError: boolean;
 }
 
 // Stable empty array references to prevent unnecessary re-renders
@@ -116,6 +122,7 @@ export function usePerpsOrderValidation(
     warnings: EMPTY_WARNINGS,
     protocolValid: false,
     isValidating: false, // Start with false to prevent initial flickering
+    hasSuppressedBalanceError: false,
   });
 
   // Use stable array references to prevent unnecessary re-renders
@@ -316,6 +323,7 @@ export function usePerpsOrderValidation(
           // is left to the caller's own funding message.
           protocolValid: errors.length === 0 && !isBalanceInsufficient,
           isValidating: false,
+          hasSuppressedBalanceError: isBalanceInsufficient && !!skipBalanceError,
         });
       } catch (error) {
         if (requestId !== validationRequestIdRef.current) {
@@ -330,6 +338,7 @@ export function usePerpsOrderValidation(
           warnings: EMPTY_WARNINGS,
           protocolValid: false,
           isValidating: false,
+          hasSuppressedBalanceError: false,
         });
       }
     },
@@ -378,6 +387,8 @@ export function usePerpsOrderValidation(
         errors: EMPTY_ERRORS,
         isValidating: false,
         protocolValid: false,
+        // Nothing was suppressed here: the order is blocked on size, not funds.
+        hasSuppressedBalanceError: false,
       }));
       return;
     }
@@ -437,5 +448,6 @@ export function usePerpsOrderValidation(
     fieldIssues,
     isValid: validation.protocolValid && fieldIssues.length === 0,
     isValidating: validation.isValidating,
+    hasSuppressedBalanceError: validation.hasSuppressedBalanceError,
   };
 }

@@ -1422,7 +1422,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       try {
         // Validation errors are shown in the UI
         if (!orderValidation.isValid) {
-          const firstError = orderValidation.errors[0];
+          // The order can be invalid with no message when the balance error was
+          // withheld for the pay-with-token flow, and the post-deposit re-entry
+          // above reaches here without the disabled button in the way. Never
+          // hand `undefined` to the toast or to telemetry.
+          const firstError =
+            orderValidation.errors[0] ??
+            (orderValidation.hasSuppressedBalanceError
+              ? strings(
+                  'perps.order.validation.insufficient_funds_to_cover_trade',
+                )
+              : strings('perps.order.validation.failed'));
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
               firstError,
@@ -1592,6 +1602,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderValidation.isValid,
       orderValidation.isValidating,
       orderValidation.errors,
+      orderValidation.hasSuppressedBalanceError,
       track,
       orderForm.asset,
       orderForm.direction,
@@ -1729,7 +1740,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         amount: minimumOrderAmount.toString(),
       });
     }
-    if (hasInsufficientPayTokenBalance) {
+    // `hasInsufficientPayTokenBalance` cannot answer while `payToken` is still
+    // undefined, so also cover the case where validation withheld its balance
+    // message for this flow — otherwise the order is blocked with nothing on
+    // screen explaining why.
+    if (
+      hasInsufficientPayTokenBalance ||
+      orderValidation.hasSuppressedBalanceError
+    ) {
       return strings(
         'perps.order.validation.insufficient_funds_to_cover_trade',
       );
@@ -1741,6 +1759,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isBelowMinimumOrderAmount,
     isPayBalanceLoading,
     minimumOrderAmount,
+    orderValidation.hasSuppressedBalanceError,
   ]);
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
