@@ -80,6 +80,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+  appium-perps-android-smoke:
     if: >-
       ${{
         !cancelled() &&
