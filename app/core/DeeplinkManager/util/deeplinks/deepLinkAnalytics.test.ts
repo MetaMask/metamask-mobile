@@ -44,6 +44,10 @@ jest.mock('./deepLinkAnalytics', () => {
 });
 
 describe('deepLinkAnalytics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('determineAppInstallationStatus', () => {
     it('detects deferred deep link when user installs app via Branch link', () => {
       const params = {
