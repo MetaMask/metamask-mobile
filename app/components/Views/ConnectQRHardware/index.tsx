@@ -266,20 +266,11 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
     resetError();
     setBlockingModalVisible(true);
     try {
-      let deviceName: string = HardwareDeviceTypes.QR;
-      try {
-        deviceName = await withQrKeyring(
-          async ({ keyring }) => await keyring.getName(),
-        );
-      } catch (err) {
-        Logger.log('Error: Getting QR hardware wallet name', err);
-      }
-
       trackEvent(
         createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
           .addProperties({
             device_type: HardwareDeviceTypes.QR,
-            device_model: deviceName,
+            device_model: HardwareDeviceTypes.QR,
           })
           .build(),
       );

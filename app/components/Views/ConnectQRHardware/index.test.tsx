@@ -294,18 +294,8 @@ const mockHdKeyringWithMultipleAccounts = {
   accounts: [MOCK_HD_ACCOUNT, MOCK_REMAINING_HD_ACCOUNT],
 };
 
-const MOCK_DEVICE_NAME_UNAVAILABLE_ERROR = new Error('device name unavailable');
 const MOCK_FORGET_DEVICE_ERROR = new Error('forget failed');
 const MOCK_FORGET_DEVICE_STRING_ERROR = 'forget failed string';
-
-const mockGetNameThrowsAfterFirstCall = () => {
-  jest
-    .spyOn(mockQrKeyring, 'getName')
-    .mockReturnValueOnce('KeystoneDevice')
-    .mockImplementation(() => {
-      throw MOCK_DEVICE_NAME_UNAVAILABLE_ERROR;
-    });
-};
 
 const mockForgetDeviceRejected = (reason: unknown = MOCK_FORGET_DEVICE_ERROR) =>
   jest.spyOn(mockQrKeyring, 'forgetDevice').mockRejectedValue(reason);
@@ -601,6 +591,11 @@ describe('ConnectQRHardware', () => {
 
   it('tracks hardware wallet forgotten event with QR device type when device is forgotten', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
+    const mockAddProperties = jest.fn().mockReturnThis();
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: jest.fn().mockReturnValue({}),
+    });
 
     const { getByTestId } = renderWithProvider(
       <ConnectQRHardware navigation={mockedNavigate} />,
@@ -622,6 +617,10 @@ describe('ConnectQRHardware', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN,
     );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      device_type: HardwareDeviceTypes.QR,
+      device_model: HardwareDeviceTypes.QR,
+    });
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
@@ -709,36 +708,6 @@ describe('ConnectQRHardware', () => {
     expect(MockEngine.setSelectedAddress).toHaveBeenCalledWith(
       MOCK_REMAINING_HD_ACCOUNT,
     );
-    expect(mockQrKeyring.forgetDevice).toHaveBeenCalled();
-  });
-
-  it('forgets the QR device when getting the device name throws', async () => {
-    mockKeyringController.getAccounts.mockResolvedValue([]);
-    const mockAddProperties = jest.fn().mockReturnThis();
-    mockCreateEventBuilder.mockReturnValue({
-      addProperties: mockAddProperties,
-      build: jest.fn().mockReturnValue({}),
-    });
-    mockGetNameThrowsAfterFirstCall();
-
-    const { getByTestId } = renderWithProvider(
-      <ConnectQRHardware navigation={mockedNavigate} />,
-      { state: mockInitialState },
-    );
-
-    await act(async () => {
-      fireEvent.press(
-        getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON),
-      );
-    });
-    await act(async () => {
-      fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
-    });
-
-    expect(mockAddProperties).toHaveBeenCalledWith({
-      device_type: HardwareDeviceTypes.QR,
-      device_model: HardwareDeviceTypes.QR,
-    });
     expect(mockQrKeyring.forgetDevice).toHaveBeenCalled();
   });
 
