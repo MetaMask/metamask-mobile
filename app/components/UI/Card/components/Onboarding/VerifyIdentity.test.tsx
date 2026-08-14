@@ -63,6 +63,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 // Mock metrics util
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardActions: {
     VERIFY_IDENTITY_BUTTON: 'VERIFY_IDENTITY_BUTTON',
   },

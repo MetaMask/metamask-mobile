@@ -122,6 +122,10 @@ import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts'
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
 import SwapDiscoveryFeed from '../../components/SwapDiscoveryFeed/SwapDiscoveryFeed';
 import {
+  RobinhoodSwapsBanner,
+  useRobinhoodSwapsBanner,
+} from '../../components/RobinhoodSwapsBanner/RobinhoodSwapsBanner';
+import {
   SWAP_DISCOVERY_FEED_REVAMP_AB_KEY,
   SWAP_DISCOVERY_FEED_REVAMP_EXPOSURE_METADATA,
   SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
@@ -166,6 +170,11 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
     SWAP_DISCOVERY_FEED_REVAMP_EXPOSURE_METADATA,
   );
+  const {
+    dismiss: dismissRobinhoodBanner,
+    handlePress: handleRobinhoodBannerPress,
+    shouldShow: shouldShowRobinhoodBanner,
+  } = useRobinhoodSwapsBanner();
 
   const { styles } = useStyles(createStyles);
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -849,6 +858,12 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                     hasInsufficientBalance={hasInsufficientBalance}
                   />
                 </Box>
+              ) : null}
+              {shouldShowDiscoveryFeed && shouldShowRobinhoodBanner ? (
+                <RobinhoodSwapsBanner
+                  onDismiss={dismissRobinhoodBanner}
+                  onPress={handleRobinhoodBannerPress}
+                />
               ) : null}
               {shouldShowDiscoveryFeed ? (
                 <SwapDiscoveryFeed

@@ -92,6 +92,8 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           securityAlertsEnabled: true,
         },
+        setDismissSmartAccountSuggestionEnabled: jest.fn(),
+        setSmartTransactionsOptInStatus: jest.fn(),
         setTokenNetworkFilter() {
           return undefined;
         },
@@ -114,6 +116,8 @@ jest.mock('../../app/core/Engine', () => {
           supportsCredit: true,
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
+          supportsTransactionHistory: false,
+          supportsMoneyAccountLinking: false,
         }),
       },
       PhishingController: {
@@ -130,12 +134,16 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       CurrencyRateController: {
+        setCurrentCurrency: jest.fn(),
         startPolling() {
           return undefined;
         },
         stopPollingByPollingToken() {
           return undefined;
         },
+      },
+      AssetsController: {
+        setSelectedCurrency: jest.fn(),
       },
       TokenRatesController: {
         startPolling() {
@@ -344,6 +352,7 @@ jest.mock('../../app/core/Engine', () => {
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
+      PredictNextController: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],
@@ -366,6 +375,7 @@ jest.mock('../../app/core/Engine', () => {
         getActivity: jest.fn().mockResolvedValue([]),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
+        getPriceHistory: jest.fn().mockResolvedValue([]),
         getMarketSeries: jest.fn().mockResolvedValue([]),
         getCryptoPriceHistory: jest.fn().mockResolvedValue([]),
         getCryptoTargetPrice: jest.fn().mockResolvedValue(69000),
@@ -393,10 +403,18 @@ jest.mock('../../app/core/Engine', () => {
         trackPortfolioTransactionInitiated: jest.fn(),
         trackPositionsScreenViewed: jest.fn(),
         trackPositionsTabViewed: jest.fn(),
+        trackPredictOrderEvent: jest.fn(),
+        trackBetslipDismissed: jest.fn(),
+        trackCategoryClicked: jest.fn(),
+        trackShareAction: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
         claimWithConfirmation: jest.fn().mockResolvedValue(undefined),
         depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
         prepareWithdraw: jest.fn().mockResolvedValue(undefined),
+        placeOrder: jest.fn().mockResolvedValue(undefined),
+        previewOrder: jest.fn().mockResolvedValue(undefined),
+        initPayWithAnyToken: jest.fn().mockResolvedValue(undefined),
+        getUnrealizedPnL: jest.fn().mockResolvedValue(undefined),
       },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
       // getMarkets returns one market so explore sections render "See all perps"
@@ -499,13 +517,9 @@ jest.mock('../../app/core/Engine', () => {
       },
     },
     controllerMessenger: {
-      subscribe() {
-        return undefined;
-      },
-      unsubscribe() {
-        return undefined;
-      },
-      call(action: string, ...args: unknown[]) {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+      call: jest.fn((action: string, ...args: unknown[]) => {
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
         if (
@@ -515,7 +529,7 @@ jest.mock('../../app/core/Engine', () => {
           return Promise.resolve({ valid: true, errors: [] });
         }
         return Promise.resolve(undefined);
-      },
+      }),
     },
     getTotalEvmFiatAccountBalance() {
       return { balance: '0', fiatBalance: '0' };

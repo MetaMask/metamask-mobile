@@ -41,7 +41,7 @@ interface UsePerpsOrderExecutionParams {
 }
 
 interface UsePerpsOrderExecutionReturn {
-  placeOrder: (params: OrderParams) => Promise<void>;
+  placeOrder: (params: OrderParams) => Promise<OrderResult | undefined>;
   isPlacing: boolean;
   lastResult?: OrderResult;
   error?: string;
@@ -90,7 +90,7 @@ export function usePerpsOrderExecution(
   });
 
   const placeOrder = useCallback(
-    async (orderParams: OrderParams) => {
+    async (orderParams: OrderParams): Promise<OrderResult | undefined> => {
       // Market orders measure submit -> position rendered (toast coupled to the
       // same stream render) via PerpsPlaceOrderToPositionRendered. Limit orders
       // measure submit -> resting order rendered in the orders stream (no
@@ -319,6 +319,8 @@ export function usePerpsOrderExecution(
 
           onError?.(errorMessage);
         }
+
+        return result;
       } catch (err) {
         controllerSettled = true;
         endCuf({
@@ -359,6 +361,8 @@ export function usePerpsOrderExecution(
         });
 
         onError?.(errorMessage);
+
+        return undefined;
       } finally {
         setIsPlacing(false);
       }

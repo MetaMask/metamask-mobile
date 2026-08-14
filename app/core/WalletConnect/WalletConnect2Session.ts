@@ -1,4 +1,5 @@
 import { WalletDevice } from '@metamask/transaction-controller';
+import { validateTransactionParams } from '@metamask/eth-json-rpc-middleware';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -7,6 +8,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 import { isEqual } from 'lodash';
+import type { OriginMetadata } from '@metamask/snaps-sdk';
 
 import {
   CaipAccountId,
@@ -662,6 +664,14 @@ class WalletConnect2Session {
       }
 
       return this.handleAdapterRequest({
+        // The channel id is the unspoofable per-session identifier and is
+        // what Snaps must receive as the request origin, never the dapp's
+        // self-reported metadata URL.
+        origin: this.channelId,
+        originMetadata: {
+          transport: 'WalletConnect',
+          selfReportedOrigin: this.selfReportedUrl,
+        },
         requestEvent,
         scope: normalizedRequestChainId,
       });
@@ -790,9 +800,13 @@ class WalletConnect2Session {
    * the request namespace.
    */
   private handleAdapterRequest = async ({
+    origin,
+    originMetadata,
     requestEvent,
     scope,
   }: {
+    origin: string;
+    originMetadata: OriginMetadata;
     requestEvent: WalletKitTypes.SessionRequest;
     scope: CaipChainId;
   }) => {
@@ -803,6 +817,8 @@ class WalletConnect2Session {
 
     try {
       const result = await handleMultichainRequestByAdapter({
+        origin,
+        originMetadata,
         connectedAddresses,
         scope,
         requestId: requestEvent.id,
@@ -833,6 +849,7 @@ class WalletConnect2Session {
     unverifiedOrigin: string,
   ) {
     try {
+      validateTransactionParams(methodParams[0]);
       const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,

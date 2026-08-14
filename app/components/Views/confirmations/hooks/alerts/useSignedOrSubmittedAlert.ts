@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import {
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
@@ -10,7 +11,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { isHardwareAccount } from '../../../../../util/address';
 import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';

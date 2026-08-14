@@ -187,8 +187,8 @@ describe('useBridgeConfirm', () => {
           status: PostTradeStatus.InProgress,
           transactionMetaId: 'tx-meta-id',
           transactionHash: '0xabc',
-          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+          sourceAmount: mockQuoteWithMetadata.quote.src?.normalizedAmount,
+          destAmount: mockQuoteWithMetadata.quote.dest?.normalizedAmount,
         }),
       });
     });
@@ -260,7 +260,7 @@ describe('useBridgeConfirm', () => {
         ...defaultParams,
         activeQuote: {
           ...mockQuoteWithMetadata,
-          approval: { raw_data_hex: '0xabc' },
+          approval: { raw_data_hex: '0xabc' } as never,
         },
       });
 
@@ -268,10 +268,24 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
+      const sourceAmount = mockQuoteWithMetadata.sentAmount;
+      const destAmount = mockQuoteWithMetadata.toTokenAmount;
+      if (!sourceAmount || !destAmount) {
+        throw new Error('Mock quote is missing token amounts');
+      }
+
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.BRIDGE.ROOT,
         expect.objectContaining({
           screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+          params: expect.objectContaining({
+            submissionParams: expect.objectContaining({
+              postTradeModalParams: expect.objectContaining({
+                sourceAmount: sourceAmount.amount,
+                destAmount: destAmount.amount,
+              }),
+            }),
+          }),
         }),
       );
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -303,7 +317,7 @@ describe('useBridgeConfirm', () => {
         ...defaultParams,
         activeQuote: {
           ...mockQuoteWithMetadata,
-          approval: { raw_data_hex: '0xabc' },
+          approval: { raw_data_hex: '0xabc' } as never,
         },
       });
 
@@ -486,8 +500,8 @@ describe('useBridgeConfirm', () => {
         screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
         params: expect.objectContaining({
           status: PostTradeStatus.Failed,
-          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+          sourceAmount: mockQuoteWithMetadata.quote.src?.normalizedAmount,
+          destAmount: mockQuoteWithMetadata.quote.dest?.normalizedAmount,
         }),
       });
     });

@@ -14,6 +14,10 @@
  * Or compare all failed tests from the current run:
  *   node tests/scripts/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all
  *
+ * From the performance workflow (local aggregated-reports already present):
+ *   node tests/scripts/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all \
+ *     --current-dir aggregated-reports --replace
+ *
  * Environment:
  *   GITHUB_REPOSITORY  owner/repo (required unless --repo is passed)
  *   GH_TOKEN / GITHUB_TOKEN  GitHub token with actions:read + pull_requests:write
@@ -42,6 +46,10 @@ function parseArgs(argv) {
     workflow: DEFAULT_WORKFLOW,
     repo: process.env.GITHUB_REPOSITORY || null,
     dryRun: false,
+    /** When set, use this local aggregated-reports dir instead of downloading the current run. */
+    currentDir: null,
+    /** Delete previous app-profiling-check PR comments before posting a new one. */
+    replace: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -80,11 +88,18 @@ function parseArgs(argv) {
         args.repo = next;
         i += 1;
         break;
+      case '--current-dir':
+        args.currentDir = next;
+        i += 1;
+        break;
       case '--all':
         args.all = true;
         break;
       case '--dry-run':
         args.dryRun = true;
+        break;
+      case '--replace':
+        args.replace = true;
         break;
       default:
         break;
@@ -227,9 +242,19 @@ function getFailedScenariosFromSummary(summaryDir) {
   return scenarios;
 }
 
-function downloadAggregatedReports(runId, destDir, repo) {
+function downloadAggregatedReports(runId, destDir, repo, { runGhFn = runGh } = {}) {
+  const resultsPath = path.join(destDir, 'performance-results.json');
+  // Reuse a prior download in this workRoot (common with --all when multiple
+  // scenarios share the same baseline candidates). Re-extracting into a
+  // non-empty dir fails with "file exists" and would skip a valid baseline.
+  if (fs.existsSync(resultsPath)) {
+    return { reused: true };
+  }
+  if (fs.existsSync(destDir)) {
+    fs.rmSync(destDir, { recursive: true, force: true });
+  }
   fs.mkdirSync(destDir, { recursive: true });
-  runGh([
+  runGhFn([
     'run',
     'download',
     String(runId),
@@ -240,6 +265,7 @@ function downloadAggregatedReports(runId, destDir, repo) {
     '-D',
     destDir,
   ]);
+  return { reused: false };
 }
 
 function listBaselineCandidateRuns({ repo, workflow, branch, limit = 40 }) {
@@ -281,7 +307,10 @@ function flattenPerformanceResults(results) {
   return entries;
 }
 
-function findGreenScenarioInDir(dir, { testName, device }) {
+function findScenarioWithProfilingInDir(
+  dir,
+  { testName, device, requireGreen = false },
+) {
   const resultsPath = path.join(dir, 'performance-results.json');
   if (!fs.existsSync(resultsPath)) {
     return null;
@@ -291,11 +320,13 @@ function findGreenScenarioInDir(dir, { testName, device }) {
     (entry) =>
       entry.test.testName === testName &&
       devicesMatch(entry.device, device) &&
-      isScenarioGreen(entry.test),
+      (!requireGreen || isScenarioGreen(entry.test)),
   );
   if (!match) {
     return null;
   }
+
+  const isGreen = isScenarioGreen(match.test);
 
   // Prefer dedicated app-profiling sidecars when present (new artifact layout).
   const artifacts = findProfilingArtifacts(dir);
@@ -305,6 +336,7 @@ function findGreenScenarioInDir(dir, { testName, device }) {
       platform: match.platform,
       device: match.device,
       artifact: sidecar.data,
+      isGreen,
     };
   }
 
@@ -329,7 +361,17 @@ function findGreenScenarioInDir(dir, { testName, device }) {
     platform: match.platform,
     device: match.device,
     artifact: embeddedArtifact,
+    isGreen,
   };
+}
+
+/** @deprecated Prefer findScenarioWithProfilingInDir({ requireGreen: true }) */
+function findGreenScenarioInDir(dir, { testName, device }) {
+  return findScenarioWithProfilingInDir(dir, {
+    testName,
+    device,
+    requireGreen: true,
+  });
 }
 
 function findBaselineScenario({
@@ -347,12 +389,14 @@ function findBaselineScenario({
     branch: baselineBranch,
   });
 
+  const downloaded = [];
+
   for (const run of candidates) {
     if (String(run.databaseId) === String(currentRunId)) {
       continue;
     }
-    // Prefer completed runs; performance can be non-blocking so conclusion
-    // success still needs per-scenario green checks below.
+    // Prefer completed workflow runs. Per-scenario green is checked below;
+    // performance can be non-blocking so workflow success ≠ scenario green.
     if (run.conclusion && run.conclusion !== 'success') {
       continue;
     }
@@ -367,11 +411,39 @@ function findBaselineScenario({
       continue;
     }
 
-    const found = findGreenScenarioInDir(dest, { testName, device });
-    if (found) {
+    downloaded.push({ run, dest });
+
+    const green = findScenarioWithProfilingInDir(dest, {
+      testName,
+      device,
+      requireGreen: true,
+    });
+    if (green) {
       return {
         run,
-        ...found,
+        ...green,
+        isGreen: true,
+      };
+    }
+  }
+
+  // Fallback: if the scenario is also failing on the baseline branch, still
+  // compare against the latest usable profilingSummary so teams can see
+  // whether the PR is worse/better than current main.
+  for (const { run, dest } of downloaded) {
+    const any = findScenarioWithProfilingInDir(dest, {
+      testName,
+      device,
+      requireGreen: false,
+    });
+    if (any) {
+      console.warn(
+        `⚠️  No green baseline for "${testName}"; using latest usable profiling from run ${run.databaseId} (scenario also failing on ${baselineBranch})`,
+      );
+      return {
+        run,
+        ...any,
+        isGreen: false,
       };
     }
   }
@@ -518,6 +590,111 @@ function getMetricRows(baselineSummary, currentSummary) {
   });
 }
 
+function buildRegressionSummary(rows) {
+  const warned = (rows ?? []).filter((row) => row.warn);
+  if (warned.length === 0) {
+    return '✅ No metrics over the +10% baseline margin.';
+  }
+
+  const list = warned
+    .map((row) => {
+      const delta = String(row.deltaText ?? '')
+        .replaceAll('**', '')
+        .replace(' ⚠️', '')
+        .trim();
+      return delta ? `${row.label} (${delta})` : row.label;
+    })
+    .join(', ');
+
+  return `⚠️ **${warned.length}** metric${
+    warned.length === 1 ? '' : 's'
+  } over +10%: ${list}`;
+}
+
+function shouldIncludeScenarioInComment({ currentArtifact, baseline }) {
+  // Without a prior baseline there is nothing useful to compare — omit the
+  // scenario from the PR comment instead of posting a "no baseline" stub.
+  return Boolean(
+    baseline && currentArtifact && hasUsableProfilingSummary(currentArtifact),
+  );
+}
+
+/**
+ * Compact profiling block for embedding under a failed performance test.
+ * Returns null when there is no usable baseline comparison.
+ */
+function buildEmbeddedProfilingSection({
+  currentRunId,
+  currentArtifact,
+  baseline,
+  repo,
+  baselineBranch = DEFAULT_BASELINE_BRANCH,
+  includeRawJson = false,
+}) {
+  if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
+    return null;
+  }
+
+  const currentUrl = `https://github.com/${repo}/actions/runs/${currentRunId}`;
+  const baselineUrl =
+    baseline.run.url ||
+    `https://github.com/${repo}/actions/runs/${baseline.run.databaseId}`;
+  const baselineSha = (baseline.run.headSha || '').slice(0, 7);
+  const baselineKind =
+    baseline.isGreen === false
+      ? `last run on \`${baselineBranch}\` (scenario also failing)`
+      : `last green on \`${baselineBranch}\``;
+
+  const rows = getMetricRows(
+    baseline.artifact.profilingSummary,
+    currentArtifact.profilingSummary,
+  );
+
+  let md = `🔬 **App profiling check** · Current [run ${currentRunId}](${currentUrl}) · Baseline (${baselineKind}) [run ${baseline.run.databaseId}](${baselineUrl})`;
+  if (baselineSha) {
+    md += ` @ \`${baselineSha}\``;
+  }
+  md += '\n\n';
+
+  if (baseline.isGreen === false) {
+    md += `> ⚠️ No green baseline on \`${baselineBranch}\` — comparing against the latest usable profiling.\n\n`;
+  }
+
+  md += `**Summary:** ${buildRegressionSummary(rows)}\n`;
+
+  if (currentArtifact.apiCallsError) {
+    md += `\n> ℹ️ API calls unavailable: \`${currentArtifact.apiCallsError}\`\n`;
+  }
+
+  md += `\n<details>\n<summary>Full metric table (+10% variance rules)</summary>\n\n`;
+  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
+  md += `> - If \`Current <= Baseline + 10%\`, treated as acceptable noise.\n`;
+  md += `> - If \`Current > Baseline + 10%\`, **Current** and **variance %** are highlighted with ⚠️.\n\n`;
+  md += `| Metric | Baseline | Current | Δ |\n`;
+  md += `|--------|----------|---------|---|\n`;
+  for (const row of rows) {
+    md += `| ${row.label} | ${row.baselineText} | ${row.currentText} | ${row.deltaText} |\n`;
+  }
+  md += `\n</details>\n`;
+
+  if (includeRawJson) {
+    md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
+    md += `**Baseline**\n\n\`\`\`json\n${JSON.stringify(
+      baseline.artifact.profilingSummary,
+      null,
+      2,
+    )}\n\`\`\`\n\n`;
+    md += `**Current**\n\n\`\`\`json\n${JSON.stringify(
+      currentArtifact.profilingSummary,
+      null,
+      2,
+    )}\n\`\`\`\n\n`;
+    md += `</details>\n`;
+  }
+
+  return md;
+}
+
 function buildScenarioComment({
   testName,
   platform,
@@ -538,21 +715,8 @@ function buildScenarioComment({
   md += '\n\n';
   md += `**Current:** [run ${currentRunId}](${currentUrl})`;
 
-  if (!currentArtifact || !hasUsableProfilingSummary(currentArtifact)) {
-    md += `\n\n⚠️ Current run has no usable \`profilingSummary\` for this scenario.\n`;
-    if (currentArtifact?.apiCallsError) {
-      md += `\nAPI calls note: \`${currentArtifact.apiCallsError}\`\n`;
-    }
-    md += `\n${COMMENT_MARKER}\n`;
-    return md;
-  }
-
-  if (!baseline) {
-    md += `\n\n⚠️ No green baseline found on \`${baselineBranch}\` (within recent \`aggregated-reports\` retention) for this scenario + device.\n\n`;
-    md += `### Current profilingSummary\n\n`;
-    md += '```json\n';
-    md += `${JSON.stringify(currentArtifact.profilingSummary, null, 2)}\n`;
-    md += '```\n';
+  if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
+    md += `\n\n⚠️ Skipping scenario: need usable current profiling and a baseline on \`${baselineBranch}\`.\n`;
     md += `\n${COMMENT_MARKER}\n`;
     return md;
   }
@@ -561,43 +725,32 @@ function buildScenarioComment({
     baseline.run.url ||
     `https://github.com/${repo}/actions/runs/${baseline.run.databaseId}`;
   const baselineSha = (baseline.run.headSha || '').slice(0, 7);
-  md += ` · **Baseline (last green on \`${baselineBranch}\`):** [run ${baseline.run.databaseId}](${baselineUrl})`;
+  const baselineKind =
+    baseline.isGreen === false
+      ? `last run on \`${baselineBranch}\` (scenario also failing)`
+      : `last green on \`${baselineBranch}\``;
+  md += ` · **Baseline (${baselineKind}):** [run ${baseline.run.databaseId}](${baselineUrl})`;
   if (baselineSha) {
     md += ` @ \`${baselineSha}\``;
   }
-  md += '\n\n';
-  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
-  md += `> - If \`Current <= Baseline + 10%\`, the change is treated as acceptable noise (no highlight).\n`;
-  md += `> - If \`Current > Baseline + 10%\`, **Current** and the **variance %** are highlighted and marked with ⚠️.\n\n`;
+  md += '\n';
 
-  const rows = getMetricRows(
-    baseline.artifact.profilingSummary,
-    currentArtifact.profilingSummary,
-  );
+  const embedded = buildEmbeddedProfilingSection({
+    currentRunId,
+    currentArtifact,
+    baseline,
+    repo,
+    baselineBranch,
+    includeRawJson: true,
+  });
 
-  md += `| Metric | Baseline | Current | Δ |\n`;
-  md += `|--------|----------|---------|---|\n`;
-  for (const row of rows) {
-    md += `| ${row.label} | ${row.baselineText} | ${row.currentText} | ${row.deltaText} |\n`;
-  }
-
-  if (currentArtifact.apiCallsError) {
-    md += `\n> ℹ️ API calls unavailable on current run: \`${currentArtifact.apiCallsError}\`\n`;
-  }
-
-  md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
-  md += `**Baseline**\n\n\`\`\`json\n${JSON.stringify(
-    baseline.artifact.profilingSummary,
-    null,
-    2,
-  )}\n\`\`\`\n\n`;
-  md += `**Current**\n\n\`\`\`json\n${JSON.stringify(
-    currentArtifact.profilingSummary,
-    null,
-    2,
-  )}\n\`\`\`\n\n`;
-  md += `</details>\n\n`;
-  md += `${COMMENT_MARKER}\n`;
+  // Reuse summary + collapsed details from the embedded builder; drop its
+  // leading "App profiling check · Current/Baseline" line (already above).
+  const detailsOnly = embedded
+    .replace(/^🔬 \*\*App profiling check\*\*[^\n]*\n\n/, '')
+    .replace(/^\n+/, '\n');
+  md += detailsOnly;
+  md += `\n${COMMENT_MARKER}\n`;
   return md;
 }
 
@@ -623,6 +776,36 @@ function resolveScenarios(args, currentDir) {
   ];
 }
 
+function deletePreviousAppProfilingComments({ pr, repo }) {
+  // Paginate: without --paginate gh only returns the first page (30 comments,
+  // oldest-first), so recent <!-- app-profiling-check --> comments on busy PRs
+  // would be missed and --replace would stack duplicates.
+  const raw = runGh([
+    'api',
+    '--paginate',
+    `repos/${repo}/issues/${pr}/comments?per_page=100`,
+    '--jq',
+    `.[] | select(.body | contains("${COMMENT_MARKER}")) | .id`,
+  ]);
+  const ids = raw
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (const id of ids) {
+    try {
+      runGh(['api', `repos/${repo}/issues/comments/${id}`, '--method', 'DELETE']);
+      console.log(`🗑️  Deleted previous app profiling comment ${id}`);
+    } catch (error) {
+      console.warn(
+        `⚠️  Could not delete comment ${id}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -631,10 +814,21 @@ function main() {
   if (!args.repo) fail('Missing --repo owner/repo or GITHUB_REPOSITORY');
 
   const workRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'app-profiling-check-'));
-  const currentDir = path.join(workRoot, 'current');
+  let currentDir = args.currentDir;
 
-  console.log(`📥 Downloading current aggregated-reports from run ${args.run}...`);
-  downloadAggregatedReports(args.run, currentDir, args.repo);
+  if (currentDir) {
+    currentDir = path.resolve(currentDir);
+    if (!fs.existsSync(currentDir)) {
+      fail(`--current-dir does not exist: ${currentDir}`);
+    }
+    console.log(`📂 Using local aggregated-reports at ${currentDir}`);
+  } else {
+    currentDir = path.join(workRoot, 'current');
+    console.log(
+      `📥 Downloading current aggregated-reports from run ${args.run}...`,
+    );
+    downloadAggregatedReports(args.run, currentDir, args.repo);
+  }
 
   const scenarios = resolveScenarios(args, currentDir);
   const currentArtifacts = findProfilingArtifacts(currentDir);
@@ -666,6 +860,15 @@ function main() {
       workRoot,
     });
 
+    if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
+      console.warn(
+        `⏭️  Skipping "${scenario.testName}" on ${formatDeviceLabel(
+          scenario.device,
+        )}: no usable current profiling and/or no prior baseline on ${args.baselineBranch}`,
+      );
+      continue;
+    }
+
     comments.push(
       buildScenarioComment({
         testName: scenario.testName,
@@ -680,6 +883,17 @@ function main() {
     );
   }
 
+  if (comments.length === 0) {
+    console.log(
+      'ℹ️  No failed scenarios had both usable current profiling and a prior baseline — nothing to post',
+    );
+    if (args.replace && !args.dryRun) {
+      console.log('🧹 Clearing previous app profiling check comments...');
+      deletePreviousAppProfilingComments({ pr: args.pr, repo: args.repo });
+    }
+    return;
+  }
+
   const body = comments.join('\n---\n\n');
   const bodyFile = path.join(workRoot, 'comment.md');
   fs.writeFileSync(bodyFile, body);
@@ -688,6 +902,11 @@ function main() {
     console.log(body);
     console.log(`\n✅ Dry run complete. Comment written to ${bodyFile}`);
     return;
+  }
+
+  if (args.replace) {
+    console.log('🧹 Replacing previous app profiling check comments...');
+    deletePreviousAppProfilingComments({ pr: args.pr, repo: args.repo });
   }
 
   console.log(`💬 Posting comment on PR #${args.pr}...`);
@@ -705,7 +924,15 @@ export {
   hasUsableProfilingSummary,
   findMatchingArtifact,
   findGreenScenarioInDir,
+  findScenarioWithProfilingInDir,
+  downloadAggregatedReports,
+  buildRegressionSummary,
+  buildEmbeddedProfilingSection,
   buildScenarioComment,
+  shouldIncludeScenarioInComment,
+  findBaselineScenario,
+  findProfilingArtifacts,
+  parseArgs,
   COMMENT_MARKER,
 };
 

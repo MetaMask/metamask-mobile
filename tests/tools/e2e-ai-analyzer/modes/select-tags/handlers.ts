@@ -19,6 +19,7 @@ import {
   getFrameworkInfraChanges,
   getChangedSpecFiles,
   getChangedSharedInfraFiles,
+  isIgnorableSharedInfraCompanion,
   isSpecFile,
   SPEC_PATH_PREFIXES,
 } from './test-infrastructure-paths';
@@ -394,11 +395,13 @@ const HARD_RULES: HardRule[] = [
       const infraFiles = getChangedSharedInfraFiles(changedFiles);
       if (infraFiles.length === 0) return null;
 
-      // Only apply when all changes are within tests/ — app changes go to AI
-      const hasNonTestChanges = changedFiles.some(
-        (f) => !f.startsWith('tests/'),
+      // App changes and E2E-relevant workflow changes go to AI so their wider
+      // impact is considered. Documentation, assets, locale files, and
+      // performance-only workflow changes do not affect smoke-tag reachability.
+      const hasNonIgnorableNonTestChanges = changedFiles.some(
+        (f) => !f.startsWith('tests/') && !isIgnorableSharedInfraCompanion(f),
       );
-      if (hasNonTestChanges) return null;
+      if (hasNonIgnorableNonTestChanges) return null;
 
       const validTags = new Set(SELECT_TAGS_CONFIG.map((c) => c.tag));
 

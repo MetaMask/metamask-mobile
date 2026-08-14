@@ -1,8 +1,10 @@
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingView/abTestConfig';
+import { HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY } from '../../components/Views/Homepage/abTestConfig';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
+import { CHAIN_VALUE_ORDER_AB_KEY } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 
 describe('enrichWithABTests', () => {
   it('loads swap AB configs when the Analytics barrel initializes first', () => {
@@ -23,25 +25,44 @@ describe('enrichWithABTests', () => {
   });
 
   it('injects one active assignment for a matching allowlisted event', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Token Details Opened',
+    )
       .addProperties({
         screen: 'wallet',
       })
       .build();
 
     const result = enrichWithABTests(event, {
-      cardCARD338AbtestAttentionBadge: 'withBadge',
+      assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
     });
 
     expect(result.properties).toMatchObject({
       screen: 'wallet',
       active_ab_tests: [
         createActiveABTestAssignment(
-          'cardCARD338AbtestAttentionBadge',
-          'withBadge',
+          'assetsASSETS3205AbtestAmbientPriceColor',
+          'treatment',
         ),
       ],
     });
+  });
+
+  it('enriches homepage breakdown row events with the experiment assignment', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.BALANCE_BREAKDOWN_SLICE_TAPPED,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY]: 'allocation',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+        'allocation',
+      ),
+    ]);
   });
 
   it('injects multiple assignments when multiple tests match the same event', () => {
@@ -64,6 +85,52 @@ describe('enrichWithABTests', () => {
         'control',
       ),
     ]);
+  });
+
+  it('injects the network value order assignment into swap funnel events', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Unified SwapBridge Submitted',
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [CHAIN_VALUE_ORDER_AB_KEY]: { name: 'treatment' },
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(CHAIN_VALUE_ORDER_AB_KEY, 'treatment'),
+    ]);
+  });
+
+  it('injects the network value order assignment into Swaps Asset Viewed', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
+      .addProperties({
+        trade_type: 'Swaps',
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      [CHAIN_VALUE_ORDER_AB_KEY]: 'control',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(CHAIN_VALUE_ORDER_AB_KEY, 'control'),
+    ]);
+  });
+
+  it('does not inject the network value order assignment into Perps Asset Viewed', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
+      .addProperties({
+        trade_type: 'Perps',
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      [CHAIN_VALUE_ORDER_AB_KEY]: 'treatment',
+    });
+
+    expect(result.properties).toEqual({
+      trade_type: 'Perps',
+    });
   });
 
   it('injects swap AB assignments for Asset Viewed only when trade_type is Swaps', () => {
@@ -121,7 +188,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      cardCARD338AbtestAttentionBadge: 'withBadge',
+      assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
     });
 
     expect(result.properties).toEqual({
@@ -143,16 +210,17 @@ describe('enrichWithABTests', () => {
   });
 
   it('supports both string flags and controller object flags', () => {
-    const event =
-      AnalyticsEventBuilder.createEventBuilder('Card Button Viewed').build();
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Token Details Opened',
+    ).build();
 
     const result = enrichWithABTests(event, {
-      cardCARD338AbtestAttentionBadge: { name: 'control' },
+      assetsASSETS3205AbtestAmbientPriceColor: { name: 'control' },
     });
 
     expect(result.properties.active_ab_tests).toEqual([
       createActiveABTestAssignment(
-        'cardCARD338AbtestAttentionBadge',
+        'assetsASSETS3205AbtestAmbientPriceColor',
         'control',
       ),
     ]);
@@ -299,7 +367,9 @@ describe('enrichWithABTests', () => {
   });
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Token Details Opened',
+    )
       .addProperties({
         button_type: 'card',
       })
@@ -309,7 +379,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      cardCARD338AbtestAttentionBadge: 'control',
+      assetsASSETS3205AbtestAmbientPriceColor: 'control',
     });
 
     expect(result.properties.button_type).toBe('card');

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { deflate } from 'react-native-gzip';
+import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
-import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import {
   FALSE_POSITIVE_REPORT_BASE_URL,
@@ -46,6 +48,9 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [reportUrl, setReportUrl] = useState<string>('');
   const { styles } = useStyles(styleSheet, {});
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const onToggleShowDetails = () => {
     setIsExpanded(!isExpanded);
@@ -71,7 +76,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
       jsonRpcMethod: req.method,
       jsonRpcParams: JSON.stringify(req.params),
       blockNumber: block,
-      chain: BLOCKAID_SUPPORTED_NETWORK_NAMES[chainId],
+      chain: networkConfigurations?.[chainId as Hex]?.name,
       classification: reason,
       resultType: result_type,
       reproduce: JSON.stringify(features),
@@ -83,7 +88,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
         setReportUrl(getReportUrl(compressed));
       }
     })();
-  }, [securityAlertResponse, isExpanded]);
+  }, [securityAlertResponse, isExpanded, networkConfigurations]);
 
   return (
     <>

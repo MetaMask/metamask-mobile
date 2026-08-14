@@ -1,8 +1,10 @@
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
+  blurAndroidWebView,
   fillAndroidWebId,
   readAndroidWebIdText,
   scrollAndroidWebIdIntoView,
+  selectAndroidWebId,
   tapAndroidWebId,
   type AndroidWebViewScrollOptions,
   type AndroidWebViewTapOptions,
@@ -11,8 +13,10 @@ import { FrameworkDetector } from './FrameworkDetector.ts';
 import Gestures from './Gestures.ts';
 import Matchers from './Matchers.ts';
 import { type PlaywrightElement } from './PlaywrightAdapter.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
 import PlaywrightWebMatchers from './PlaywrightWebMatchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import { getDriver } from './PlaywrightUtilities.ts';
 
 export type WebViewByIdOptions = AndroidWebViewScrollOptions & {
   /** Required for Appium Chromedriver / iOS WebView context lookups. */
@@ -33,13 +37,10 @@ export type { AndroidWebViewScrollOptions, AndroidWebViewTapOptions };
  */
 export default class WebView {
   /**
-   * Run an action in the appropriate WebView context for the current framework.
-   *
-   * Used by iOS Appium (switches into the page) and Detox (runs as-is).
-   * Android Appium callers must use the native UiAutomator helpers instead —
-   * public methods early-return before invoking this.
+   * iOS Appium / Detox only. Android Appium never reaches this — public
+   * methods route to native UiAutomator first.
    */
-  static async withContext(
+  private static async withContext(
     pageUrl: string | undefined,
     action: () => Promise<void>,
   ): Promise<void> {
@@ -104,6 +105,105 @@ export default class WebView {
       text = await webElement.getText();
     });
     return text;
+  }
+
+  /**
+   * Select an option in an HTML `<select>` by visible option text.
+   */
+  static async selectOptionById(
+    webId: string,
+    optionText: string,
+    options: WebViewByIdOptions = {},
+  ): Promise<void> {
+    if (PlatformDetector.isAndroidAppium()) {
+      await selectAndroidWebId(webId, optionText, {
+        ...options,
+        timeout: 60_000,
+        description: options.description ?? `WebView select open "${webId}"`,
+      });
+      return;
+    }
+
+    if (FrameworkDetector.isAppium()) {
+      await this.withContext(options.pageUrl, async () => {
+        await getDriver().execute(
+          (id: string, searchText: string) => {
+            const el = document.getElementById(id) as HTMLSelectElement | null;
+            if (!el?.options) {
+              throw new Error(`Select element #${id} not found`);
+            }
+            const option = Array.from(el.options).find((opt) =>
+              opt.text.includes(searchText),
+            );
+            if (!option) {
+              throw new Error(
+                `Option containing "${searchText}" not found in #${id}`,
+              );
+            }
+            el.value = option.value;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          },
+          webId,
+          optionText,
+        );
+      });
+      return;
+    }
+
+    // Detox web element — runScript is Detox-only.
+    const webElement = await Matchers.getElementByWebID(
+      options.webviewId ?? BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      webId,
+    );
+
+    const source = await webElement.runScript(
+      (el: HTMLSelectElement, searchText: string) => {
+        if (!el?.options) return null;
+        const option = Array.from(el.options).find((opt) =>
+          opt.text.includes(searchText),
+        );
+        return option ? option.value : null;
+      },
+      [optionText],
+    );
+
+    await webElement.runScript(
+      (el: HTMLSelectElement, value: string | null) => {
+        el.value = value ?? '';
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      },
+      [source],
+    );
+  }
+
+  /**
+   * Blur the focused element inside the WebView.
+   * Appium-only — do not add new Detox coverage.
+   *
+   * @param pageUrl - Required on iOS to switch into the WebView context.
+   */
+  static async blurActiveElement(pageUrl: string): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error(
+        'WebView.blurActiveElement is Appium-only. Do not add new Detox coverage for this path.',
+      );
+    }
+
+    if (PlatformDetector.isAndroidAppium()) {
+      await blurAndroidWebView(pageUrl);
+      return;
+    }
+
+    await this.withContext(pageUrl, async () => {
+      await getDriver().execute(() => {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && typeof active.blur === 'function') {
+          active.blur();
+        }
+      });
+    });
+    await PlaywrightGestures.hideKeyboard().catch(() => undefined);
   }
 
   static async scrollIntoView(

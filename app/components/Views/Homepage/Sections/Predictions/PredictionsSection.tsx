@@ -18,15 +18,13 @@ import useHomeViewedEvent, {
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import HomepagePredictWorldCupDiscovery from './components/HomepagePredictWorldCupDiscovery';
+import HomepagePredictDiscovery from './components/HomepagePredictDiscovery';
 import HomepagePredictTrendingMarkets from './components/HomepagePredictTrendingMarkets';
 import HomepagePredictPositions from './components/HomepagePredictPositions';
 import {
   usePredictMarketsForHomepage,
   usePredictPositionsForHomepage,
-  useHomepagePredictLiveWorldCupMarkets,
-  useHomepagePredictWorldCupMarkets,
-  useHomepagePredictWorldCupEventCount,
+  useHomepagePredictMarketSlots,
   usePredictHomepageDiscoveryExperiment,
 } from './hooks';
 import { MAX_MARKETS_DISPLAYED } from './predictionsSectionConstants';
@@ -53,13 +51,6 @@ import {
   type PredictEmptyStateCtaName,
 } from '../../abTestConfig';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-
-/** Loads the feeds the World Cup discovery rail needs. */
-const useWorldCupDiscoveryFeeds = (enabled: boolean) => ({
-  worldCup: useHomepagePredictWorldCupMarkets({ enabled }),
-  liveWorldCup: useHomepagePredictLiveWorldCupMarkets({ enabled }),
-  worldCupEventCount: useHomepagePredictWorldCupEventCount({ enabled }),
-});
 
 const usePredictEmptyStateAnalytics = ({
   activeAbTests,
@@ -296,14 +287,6 @@ const PredictionsSectionDefault = forwardRef<
       hasPositions,
       predictHomepageUnrealizedPnl,
     } = usePredictPositionsSectionData(isPredictEnabled);
-    const {
-      markets,
-      isLoading: isLoadingMarkets,
-      error: marketsError,
-      refetch: refetchMarkets,
-    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
-      enabled: isPredictEnabled,
-    });
 
     const {
       discoveryLayout,
@@ -314,20 +297,21 @@ const PredictionsSectionDefault = forwardRef<
     } = usePredictHomepageDiscoveryExperiment();
 
     const {
-      worldCup: worldCupHomepageMarkets,
-      liveWorldCup: liveWorldCupHomepageMarkets,
-      worldCupEventCount,
-    } = useWorldCupDiscoveryFeeds(isPredictEnabled && isTreatmentDiscovery);
-    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
-    const { refetch: refetchLiveWorldCupHomepageMarkets } =
-      liveWorldCupHomepageMarkets;
-    const { refetch: refetchWorldCupEventCount } = worldCupEventCount;
-    const isLoadingWorldCupHomepage = useTreatmentDiscoveryFeedsLoading({
+      markets,
+      isLoading: isLoadingMarkets,
+      error: marketsError,
+      refetch: refetchMarkets,
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
+      enabled: isPredictEnabled && !isTreatmentDiscovery,
+    });
+
+    const homepageMarketSlots = useHomepagePredictMarketSlots({
+      enabled: isPredictEnabled && isTreatmentDiscovery,
+    });
+    const { refetch: refetchHomepageMarketSlots } = homepageMarketSlots;
+    const isLoadingMarketSlots = useTreatmentDiscoveryFeedsLoading({
       isTreatmentDiscovery,
-      isWorldCupFetching:
-        worldCupHomepageMarkets.isFetching ||
-        liveWorldCupHomepageMarkets.isFetching ||
-        worldCupEventCount.isFetching,
+      isDiscoveryFetching: homepageMarketSlots.isFetching,
     });
 
     const {
@@ -345,7 +329,7 @@ const PredictionsSectionDefault = forwardRef<
       isLoadingClaimable,
       isLoadingMarkets,
       isTreatmentDiscovery,
-      isLoadingWorldCupHomepage,
+      isLoadingWorldCupHomepage: isLoadingMarketSlots,
       hasPositions,
       positionsLength: positions.length,
       positionsError,
@@ -390,18 +374,14 @@ const PredictionsSectionDefault = forwardRef<
     const refresh = useCallback(async () => {
       const tasks: Promise<unknown>[] = [refreshPositions(), refetchMarkets()];
       if (isTreatmentDiscovery) {
-        tasks.push(refetchWorldCupHomepageMarkets());
-        tasks.push(refetchLiveWorldCupHomepageMarkets());
-        tasks.push(refetchWorldCupEventCount());
+        tasks.push(refetchHomepageMarketSlots());
       }
       await Promise.all(tasks);
     }, [
       refreshPositions,
       refetchMarkets,
       isTreatmentDiscovery,
-      refetchWorldCupHomepageMarkets,
-      refetchLiveWorldCupHomepageMarkets,
-      refetchWorldCupEventCount,
+      refetchHomepageMarketSlots,
     ]);
 
     const positionsLayout =
@@ -438,9 +418,7 @@ const PredictionsSectionDefault = forwardRef<
                   isLoadingMarkets={isLoadingMarkets}
                   markets={markets}
                   transactionActiveAbTests={discoveryTransactionActiveAbTests}
-                  worldCupHomepage={worldCupHomepageMarkets}
-                  liveWorldCupHomepage={liveWorldCupHomepageMarkets}
-                  worldCupEventCount={worldCupEventCount.eventCount}
+                  marketSlots={homepageMarketSlots}
                   emptyStateTransactionActiveAbTests={
                     discoveryTransactionActiveAbTests
                   }
@@ -476,9 +454,7 @@ const PredictionsSectionDefault = forwardRef<
               isLoadingMarkets={isLoadingMarkets}
               markets={markets}
               transactionActiveAbTests={discoveryTransactionActiveAbTests}
-              worldCupHomepage={worldCupHomepageMarkets}
-              liveWorldCupHomepage={liveWorldCupHomepageMarkets}
-              worldCupEventCount={worldCupEventCount.eventCount}
+              marketSlots={homepageMarketSlots}
               emptyStateTransactionActiveAbTests={
                 discoveryTransactionActiveAbTests
               }
@@ -495,10 +471,7 @@ const PredictionsSectionDefault = forwardRef<
   },
 );
 
-/**
- * Sports-only section: World Cup discovery rail (BTC row, men's summary, winner market, bracket pills).
- * Renders whenever Predict is enabled.
- */
+/** Sports-only section: configured Predict homepage market slots. */
 const PredictionsSectionSportsOnly = forwardRef<
   SectionRefreshHandle,
   PredictionsSectionProps
@@ -511,27 +484,14 @@ const PredictionsSectionSportsOnly = forwardRef<
     const title = strings('homepage.sections.predictions');
     const { handleViewAllPredictions } = usePredictNavigationHandlers();
 
-    const {
-      worldCup: worldCupHomepageMarkets,
-      liveWorldCup: liveWorldCupHomepageMarkets,
-      worldCupEventCount,
-    } = useWorldCupDiscoveryFeeds(isPredictEnabled);
-    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
-    const { refetch: refetchLiveWorldCupHomepageMarkets } =
-      liveWorldCupHomepageMarkets;
-    const { refetch: refetchWorldCupEventCount } = worldCupEventCount;
+    const homepageMarketSlots = useHomepagePredictMarketSlots({
+      enabled: isPredictEnabled,
+    });
+    const { refetch: refetchHomepageMarketSlots } = homepageMarketSlots;
 
     const refresh = useCallback(async () => {
-      await Promise.all([
-        refetchWorldCupHomepageMarkets(),
-        refetchLiveWorldCupHomepageMarkets(),
-        refetchWorldCupEventCount(),
-      ]);
-    }, [
-      refetchWorldCupHomepageMarkets,
-      refetchLiveWorldCupHomepageMarkets,
-      refetchWorldCupEventCount,
-    ]);
+      await refetchHomepageMarketSlots();
+    }, [refetchHomepageMarketSlots]);
 
     return (
       <PredictionsSectionShell
@@ -539,11 +499,7 @@ const PredictionsSectionSportsOnly = forwardRef<
         enabled={isPredictEnabled}
         viewed={isPredictEnabled}
         refresh={refresh}
-        isLoading={
-          worldCupHomepageMarkets.isFetching ||
-          liveWorldCupHomepageMarkets.isFetching ||
-          worldCupEventCount.isFetching
-        }
+        isLoading={homepageMarketSlots.isFetching}
         isEmpty={false}
         itemCount={1}
         analyticsName={HomeSectionNames.PREDICT}
@@ -551,13 +507,11 @@ const PredictionsSectionSportsOnly = forwardRef<
         totalSectionsLoaded={totalSectionsLoaded}
       >
         <Box paddingBottom={3}>
-          <HomepagePredictWorldCupDiscovery
+          <HomepagePredictDiscovery
             title={title}
             onViewAll={handleViewAllPredictions}
             headerTestIdKey="predictions"
-            worldCup={worldCupHomepageMarkets}
-            liveWorldCup={liveWorldCupHomepageMarkets}
-            worldCupEventCount={worldCupEventCount.eventCount}
+            marketSlots={homepageMarketSlots}
           />
         </Box>
       </PredictionsSectionShell>

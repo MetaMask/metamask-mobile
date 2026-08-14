@@ -4,7 +4,6 @@ import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../../../../core/redux/slices/bridge';
-import type { RootState } from '../../../../../../reducers';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
   SwapBridgeNavigationLocation,
@@ -24,9 +23,7 @@ const SwapButton = ({
   allowTwoLineLabel,
 }: HomepageActionButtonSlotProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state),
-  );
+  const isSwapsEnabled = useSelector(selectIsSwapsEnabled);
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',

@@ -1,7 +1,9 @@
 # Compares BrowserStack app profiling for a failed performance scenario against
 # the last green baseline on main, then posts a diff comment on the PR.
 #
-# Trigger via bot command on a PR:
+# Automatic: run-performance-e2e.yml posts this for failed PR scenarios.
+#
+# Manual trigger via bot command on a PR:
 #   @metamaskbot app-profiling-check --test "Cold Start Login" --platform Android --device "Google Pixel 8 Pro+14.0" --run 123456789
 #   @metamaskbot app-profiling-check --all --run 123456789
 #

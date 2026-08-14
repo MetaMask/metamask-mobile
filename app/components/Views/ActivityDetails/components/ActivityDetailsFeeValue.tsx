@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, type ImageSourcePropType } from 'react-native';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -39,6 +39,74 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * A fee amount followed by its token and network badge (`$1.23 (◆)ETH`). Shows
+ * the amount alone when `symbol` is unknown.
+ */
+export function ActivityFeeTokenValue({
+  value,
+  symbol,
+  tokenImageSource,
+  networkImageSource,
+}: {
+  value: string;
+  symbol?: string;
+  tokenImageSource?: ReturnType<typeof getTokenImageSource>;
+  networkImageSource?: ImageSourcePropType;
+}) {
+  return (
+    <Box twClassName="flex-row items-center justify-end gap-2 shrink">
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        twClassName="shrink"
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {value}
+      </Text>
+      {symbol ? (
+        <Box twClassName="flex-row items-center gap-1 shrink">
+          <BadgeWrapper
+            position={BadgeWrapperPosition.BottomRight}
+            style={styles.tokenAvatarWrapper}
+            badge={
+              networkImageSource ? (
+                <Box
+                  twClassName="overflow-hidden border border-background-default bg-default"
+                  style={styles.networkBadge}
+                  testID="fee-network-badge"
+                >
+                  <Image
+                    source={networkImageSource}
+                    style={styles.networkBadgeImage}
+                  />
+                </Box>
+              ) : null
+            }
+          >
+            <AvatarToken
+              name={symbol}
+              src={tokenImageSource}
+              size={AvatarTokenSize.Xs}
+              testID="fee-token-avatar"
+            />
+          </BadgeWrapper>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="ml-1 shrink"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {symbol}
+          </Text>
+        </Box>
+      ) : null}
+    </Box>
+  );
+}
+
 export function ActivityDetailsFeeValue({
   fee,
   value,
@@ -70,58 +138,13 @@ export function ActivityDetailsFeeValue({
     symbol: fee.symbol,
     assetId: fee.assetId,
   };
-  const tokenImageSource = getTokenImageSource(token);
-  const networkImageSource = getNetworkImageSource({ chainId });
 
   return (
-    <Box twClassName="flex-row items-center justify-end gap-2 shrink">
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        twClassName="shrink"
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
-        {value}
-      </Text>
-      {fee.symbol ? (
-        <Box twClassName="flex-row items-center gap-1 shrink">
-          <BadgeWrapper
-            position={BadgeWrapperPosition.BottomRight}
-            style={styles.tokenAvatarWrapper}
-            badge={
-              networkImageSource ? (
-                <Box
-                  twClassName="overflow-hidden border border-background-default bg-default"
-                  style={styles.networkBadge}
-                  testID="fee-network-badge"
-                >
-                  <Image
-                    source={networkImageSource}
-                    style={styles.networkBadgeImage}
-                  />
-                </Box>
-              ) : null
-            }
-          >
-            <AvatarToken
-              name={fee.symbol}
-              src={tokenImageSource}
-              size={AvatarTokenSize.Xs}
-              testID="fee-token-avatar"
-            />
-          </BadgeWrapper>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="ml-1 shrink"
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {fee.symbol}
-          </Text>
-        </Box>
-      ) : null}
-    </Box>
+    <ActivityFeeTokenValue
+      value={value}
+      symbol={fee.symbol}
+      tokenImageSource={getTokenImageSource(token)}
+      networkImageSource={getNetworkImageSource({ chainId })}
+    />
   );
 }

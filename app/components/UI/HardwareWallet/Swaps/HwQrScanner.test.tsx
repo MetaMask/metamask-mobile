@@ -6,9 +6,8 @@ import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import Routes from '../../../../constants/navigation/Routes';
 import { resetHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
-import { ToastVariants } from '../../../../component-library/components/Toast';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockDispatch = jest.fn();
 
@@ -412,7 +411,7 @@ describe('HwQrScanner', () => {
       expect(getMockShowToast()).not.toHaveBeenCalled();
     });
 
-    it('completes success on the last scan: toast, Redux reset, and activity navigation', () => {
+    it('goes back on the last Bridge scan so lifecycle owns completion', () => {
       mockUseRoute.mockReturnValue({
         params: { currentStep: 2, totalSteps: 2 },
       });
@@ -429,19 +428,28 @@ describe('HwQrScanner', () => {
         cbor: Buffer.from('signature').toString('hex'),
       });
       expect(mockSetRequestCompleted).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(getMockShowToast()).not.toHaveBeenCalled();
+      expect(resetHardwareWalletsSwaps).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('preserves scanner-owned completion on the last Send scan', () => {
+      mockUseRoute.mockReturnValue({
+        params: { currentStep: 2, totalSteps: 2, completeOnScan: true },
+      });
+
+      render(<HwQrScanner />);
+
+      capturedOnScanSuccess?.({
+        type: 'eth-signature',
+        cbor: Buffer.from('signature'),
+      });
+
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(getMockShowToast()).toHaveBeenCalledWith({
-        variant: ToastVariants.Icon,
-        iconName: 'check',
-        hasNoTimeout: false,
-        labelOptions: [
-          { label: 'bridge.hardware_wallet_progress.submitted_title' },
-        ],
-      });
-      expect(resetHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: 'bridge/resetHardwareWalletsSwaps',
-      });
+      expect(getMockShowToast()).toHaveBeenCalled();
+      expect(resetHardwareWalletsSwaps).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 

@@ -12,6 +12,10 @@ import {
   getDeFiPositionsControllerMessenger,
 } from './defi-positions-controller-messenger/defi-positions-controller-messenger';
 import {
+  getDeFiPositionsControllerV2InitMessenger,
+  getDeFiPositionsControllerV2Messenger,
+} from './defi-positions-controller-v2-messenger/defi-positions-controller-v2-messenger';
+import {
   getBackendWebSocketServiceMessenger,
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
@@ -43,6 +47,7 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
+import { getPredictNextControllerMessenger } from './predict-next-controller-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -239,6 +244,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getDeFiPositionsControllerMessenger,
     getInitMessenger: getDeFiPositionsControllerInitMessenger,
   },
+  DeFiPositionsControllerV2: {
+    getMessenger: getDeFiPositionsControllerV2Messenger,
+    getInitMessenger: getDeFiPositionsControllerV2InitMessenger,
+  },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   AuthenticationController: {
     getMessenger: getAuthenticationControllerMessenger,
@@ -343,6 +352,10 @@ export const MESSENGER_FACTORIES = {
   },
   PredictController: {
     getMessenger: getPredictControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PredictNextController: {
+    getMessenger: getPredictNextControllerMessenger,
     getInitMessenger: noop,
   },
   BridgeController: {

@@ -15,14 +15,14 @@
  * Catches the wiring between hook and controller in addition to the
  * controller wiring itself. Heavier setup, broader coverage.
  *
- * Reference: tests/integration/harnesses/perps-flow.ts
+ * Reference: tests/integration/harnesses/perps/perps-flow.ts
  *            tests/integration/STRATEGY.md (Shape A vs Shape B discussion)
  */
 
 import { act } from '@testing-library/react-native';
 import { type OrderResult, type Position } from '@metamask/perps-controller';
 
-import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps-flow';
+import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps/perps-flow';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
@@ -139,6 +139,46 @@ describe('Perps order lifecycle — FLOW integration', () => {
       expect(tradeEvent).toMatchObject({
         status: PERPS_EVENT_VALUE.STATUS.FAILED,
         asset: 'BTC',
+      });
+    });
+
+    it('emits a partially_filled Perp Trade Transaction when the fill is partial', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: {
+            statuses: [
+              { filled: { oid: 123, totalSz: '0.05', avgPx: '50000' } },
+            ],
+          },
+        },
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50_000,
+        });
+      });
+
+      const events = perps.analytics.byName(
+        PerpsAnalyticsEvent.TradeTransaction,
+      );
+      const partialEvent = events.find(
+        (e) => e.status === PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+      );
+      expect(partialEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+        asset: 'BTC',
+        order_size: 0.1,
+        amount_filled: 0.05,
+        remaining_amount: 0.05,
       });
     });
   });

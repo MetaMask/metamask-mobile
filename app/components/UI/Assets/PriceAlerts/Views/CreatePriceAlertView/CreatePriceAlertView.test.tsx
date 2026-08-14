@@ -9,6 +9,7 @@ import {
   CreatePriceAlertTestIds,
   type PercentChangeAlert,
 } from '../../constants';
+import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
 import CreatePriceAlertView from './CreatePriceAlertView';
 
 const mockGoBack = jest.fn();
@@ -17,6 +18,9 @@ const mockAbsoluteForm = jest.fn((_props: unknown) => (
 ));
 const mockPercentForm = jest.fn((_props: unknown) => (
   <Text testID="mock-percent-form">Percent form</Text>
+));
+const mockFeatureGate = jest.fn((_props: unknown) => (
+  <Text testID="mock-feature-gate">Feature gate</Text>
 ));
 
 const baseRoute: CreatePriceAlertRouteParams = {
@@ -36,7 +40,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/useAlertSaveFlow', () => ({
   __esModule: true,
-  default: () => ({ saveAlert: jest.fn() }),
+  default: jest.fn(() => ({ saveAlert: jest.fn() })),
 }));
 
 jest.mock('./AbsolutePriceAlertForm', () => ({
@@ -48,6 +52,13 @@ jest.mock('./PercentChangeAlertForm', () => ({
   __esModule: true,
   default: (props: unknown) => mockPercentForm(props),
 }));
+
+jest.mock(
+  '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate',
+  () => ({
+    FeatureNotificationsGate: (props: unknown) => mockFeatureGate(props),
+  }),
+);
 
 const absoluteAlert: AbsolutePriceAlert = {
   id: 'absolute-alert-1',
@@ -74,6 +85,7 @@ const percentAlert: PercentChangeAlert = {
 };
 
 const mockAnalytics = jest.mocked(useAnalytics)();
+const mockUseAlertSaveFlow = jest.mocked(useAlertSaveFlow);
 const viewedBuilder = () => {
   const calls = jest.mocked(mockAnalytics.createEventBuilder).mock.calls;
   const index = calls.findIndex(
@@ -144,6 +156,58 @@ describe('CreatePriceAlertView', () => {
     });
   });
 
+  it('enables auto-watchlisting when creating the first alert for an asset', () => {
+    mockRouteParams = {
+      ...baseRoute,
+      existingAbsoluteAlerts: [],
+      existingPercentAlerts: [],
+    };
+
+    render(<CreatePriceAlertView />);
+
+    expect(mockUseAlertSaveFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'eip155:1/slip44:60',
+        shouldAutoWatchlistOnCreate: true,
+      }),
+    );
+  });
+
+  it('disables auto-watchlisting while editing an alert', () => {
+    mockRouteParams = {
+      ...baseRoute,
+      editingAlert: absoluteAlert,
+      existingAbsoluteAlerts: [],
+      existingPercentAlerts: [],
+    };
+
+    render(<CreatePriceAlertView />);
+
+    expect(mockUseAlertSaveFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'eip155:1/slip44:60',
+        shouldAutoWatchlistOnCreate: false,
+      }),
+    );
+  });
+
+  it('disables auto-watchlisting when the asset has an existing alert', () => {
+    mockRouteParams = {
+      ...baseRoute,
+      existingAbsoluteAlerts: [absoluteAlert],
+      existingPercentAlerts: [],
+    };
+
+    render(<CreatePriceAlertView />);
+
+    expect(mockUseAlertSaveFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'eip155:1/slip44:60',
+        shouldAutoWatchlistOnCreate: false,
+      }),
+    );
+  });
+
   it('tracks creation viewed with has_existing_alert true for an absolute alert', () => {
     mockRouteParams = {
       ...baseRoute,
@@ -177,6 +241,15 @@ describe('CreatePriceAlertView', () => {
 
     expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
       MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED,
+    );
+  });
+
+  it('renders the price alerts notifications gate', () => {
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByTestId('mock-feature-gate')).toBeOnTheScreen();
+    expect(mockFeatureGate).toHaveBeenCalledWith(
+      expect.objectContaining({ feature: 'priceAlerts' }),
     );
   });
 

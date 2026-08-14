@@ -11,4 +11,8 @@ export const TopTradersViewSelectorsIDs = {
   TRADER_LIST: 'top-traders-view-list',
   TYPE_SELECTOR: 'top-traders-view-type-selector',
   PINNED_TYPE_SELECTOR: 'top-traders-view-pinned-type-selector',
-};
+  TIMEFRAME_SELECTOR: 'top-traders-view-timeframe-selector',
+  PINNED_TIMEFRAME_SELECTOR: 'top-traders-view-pinned-timeframe-selector',
+  SORT_SELECTOR: 'top-traders-view-sort-selector',
+  PINNED_SORT_SELECTOR: 'top-traders-view-pinned-sort-selector',
+} as const;

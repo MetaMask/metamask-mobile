@@ -12,6 +12,7 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
@@ -22,7 +23,6 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { AssetType } from '../../types/token';
 import {
   getPostQuoteTransactionType,
-  hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { useSelector } from 'react-redux';
@@ -183,6 +183,13 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (autoSelectFiatPayment || tokens.length === 0) {
+      // Do NOT set isUpdated.current here. This return is intentionally
+      // unlatch-able: if isFiatEnabled is false because an incompatible provider
+      // is selected (e.g. Coinbase left over from UB2), useEnsureCompatibleProvider
+      // will dispatch a switch and trigger a re-render. The effect must be free to
+      // re-run on that render and complete fiat selection. Setting the latch here
+      // would silently prevent that re-run and leave the "Pay with..." row as a
+      // permanent skeleton.
       if (!isFiatEnabled || paymentMethods.length === 0) {
         return;
       }

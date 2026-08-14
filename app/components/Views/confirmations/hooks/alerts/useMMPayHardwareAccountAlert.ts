@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 import {
   isHardwareAccount,
   isQRHardwareAccount,

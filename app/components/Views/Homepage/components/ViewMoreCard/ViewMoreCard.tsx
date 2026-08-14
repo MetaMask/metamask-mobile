@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import {
   Text,
   Icon,
@@ -18,7 +18,6 @@ interface ViewMoreCardProps {
   /** Tailwind classes for the card dimensions, e.g. "w-[180px] h-[140px]" */
   twClassName: string;
   textVariant?: TextVariant;
-  activeOpacity?: number;
   testID?: string;
 }
 
@@ -30,18 +29,19 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
   onPress,
   twClassName,
   textVariant = TextVariant.BodyMd,
-  activeOpacity,
   testID,
 }) => {
   const tw = useTailwind();
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      activeOpacity={activeOpacity}
       testID={testID}
-      style={tw.style(
-        `rounded-xl bg-background-muted items-center justify-center gap-2 ${twClassName}`,
-      )}
+      style={({ pressed }) =>
+        tw.style(
+          `rounded-xl items-center justify-center gap-2 ${twClassName}`,
+          pressed ? 'bg-muted-pressed' : 'bg-muted',
+        )
+      }
     >
       <Icon
         name={IconName.ArrowRight}
@@ -55,7 +55,7 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
       >
         {strings('homepage.sections.view_more')}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

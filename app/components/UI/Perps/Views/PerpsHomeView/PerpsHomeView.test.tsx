@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
@@ -48,6 +48,7 @@ jest.mock('react-native-worklets', () => ({
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+const mockReset = jest.fn();
 let mockRouteParams: Record<string, unknown> = {
   source: 'main_action_button',
 };
@@ -57,6 +58,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
+    reset: mockReset,
   }),
   useRoute: () => ({
     params: mockRouteParams,
@@ -66,6 +68,8 @@ jest.mock('@react-navigation/native', () => ({
     callback();
   },
 }));
+
+const mockPerpsModeToggle = jest.fn();
 
 // Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
 // (its analytics/design-system internals are covered by its own unit tests).
@@ -77,12 +81,20 @@ jest.mock('../../components/PerpsModeToggle', () => {
   );
   return {
     __esModule: true,
-    default: ({ onChange }: { onChange?: (mode: string) => void }) =>
-      ReactActual.createElement(TouchableOpacity, {
+    default: ({
+      onChange,
+      variant,
+    }: {
+      onChange?: (mode: string) => void;
+      variant?: string;
+    }) => {
+      mockPerpsModeToggle({ variant });
+      return ReactActual.createElement(TouchableOpacity, {
         testID: SelectorsIDs.CONTAINER,
         // Simulate the user switching to Pro from the stubbed toggle.
         onPress: () => onChange?.('pro'),
-      }),
+      });
+    },
     PerpsMode: { Lite: 'lite', Pro: 'pro' },
   };
 });
@@ -146,6 +158,13 @@ jest.mock('../../hooks', () => ({
     mode: 'lite',
     setMode: mockSetPerpsMode,
   })),
+}));
+
+const mockHasCompletedPerpsModeSelection = jest.fn(() =>
+  Promise.resolve(false),
+);
+jest.mock('../../utils/perpsModeSelectionStorage', () => ({
+  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
 }));
 
 // Mock direct import of usePerpsCategories (used for sections_displayed gating)
@@ -253,7 +272,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 // Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
     ButtonIcon: ({
@@ -262,7 +281,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: {
       testID?: string;
       onPress?: () => void;
-    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    }) => ReactActual.createElement(TouchableOpacity, { testID, onPress }),
     Box: 'Box',
   };
 });
@@ -534,6 +553,7 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
@@ -586,7 +606,7 @@ describe('PerpsHomeView', () => {
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
-  it('renders the Lite/Pro toggle in the header when the Pro mode flag is enabled', () => {
+  it('renders the active-mode pill in the header when the Pro mode flag is enabled', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
@@ -595,7 +615,7 @@ describe('PerpsHomeView', () => {
     // Act
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Assert - back/search remain and the toggle is shown centered
+    // Assert - back/search remain and the active-mode pill sits in endAccessory
     expect(
       getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
     ).toBeTruthy();
@@ -603,6 +623,7 @@ describe('PerpsHomeView', () => {
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({ variant: 'active' });
   });
 
   it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
@@ -617,27 +638,62 @@ describe('PerpsHomeView', () => {
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
   });
 
-  it('navigates to the default Pro market when the header toggle switches to Pro', () => {
+  it('opens the mode selection sheet when the header toggle is pressed', async () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
     );
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Act - stubbed toggle switches to Pro on press
+    // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - persists the new mode and lands on the default (BTC) market
-    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PERPS.MARKET_DETAILS,
-      expect.objectContaining({
-        market: expect.objectContaining({ symbol: 'BTC' }),
-      }),
-    );
+    // Assert — chooser opens once while selection is incomplete
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'home',
+          source: 'perps_home',
+        },
+      });
+    });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
-  it('routes first-time users to the Perps tutorial when the header toggle switches mode', () => {
+  it('does not open the mode selection sheet when the user has already completed it', async () => {
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    await waitFor(() => {
+      expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      }),
+    );
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        expect.objectContaining({
+          name: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'BTC' }),
+          }),
+        }),
+      ],
+    });
+  });
+
+  it('opens the mode selection sheet for first-time users from the header toggle', async () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) =>
@@ -649,11 +705,19 @@ describe('PerpsHomeView', () => {
     // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - mode is persisted, but onboarding is not skipped
-    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
+    // Assert — first-time tutorial continues from the chooser after select
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'home',
+          source: 'perps_home',
+        },
+      });
+    });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.MARKET_DETAILS,
+      Routes.PERPS.TUTORIAL,
       expect.anything(),
     );
   });

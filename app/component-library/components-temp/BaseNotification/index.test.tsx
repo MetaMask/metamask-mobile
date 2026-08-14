@@ -142,6 +142,17 @@ describe('BaseNotification', () => {
     },
   );
 
+  it('does not fall back when an empty description is provided', () => {
+    const { queryByText } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={{ title: 'Agent CLI successfully linked', description: '' }}
+      />,
+    );
+
+    expect(queryByText(getDescription('success', {}))).toBeNull();
+  });
+
   it('does not crash when data is undefined', () => {
     const { getByTestId } = renderWithProvider(
       <BaseNotification status="success" />,

@@ -6,6 +6,7 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import {
@@ -28,6 +29,9 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { store } from '../../../../store';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
 import {
   ActivityTypeFilter,
@@ -128,6 +132,13 @@ export interface PerpsToastOptionsConfig {
         assetSymbol: string,
       ) => PerpsToastOptions;
       creationFailed: (error?: string) => PerpsToastOptions;
+      editSubmitting: () => PerpsToastOptions;
+      editConfirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      editFailed: (error?: string) => PerpsToastOptions;
     };
   };
   positionManagement: {
@@ -208,6 +219,8 @@ export interface PerpsToastOptionsConfig {
     };
   };
   watchlist: {
+    added: (symbol: string) => PerpsToastOptions;
+    removed: (symbol: string) => PerpsToastOptions;
     addError: PerpsToastOptions;
     limitReached: PerpsToastOptions;
   };
@@ -307,10 +320,17 @@ const usePerpsToasts = (): {
         perpsFilter?: PerpsActivityFilter,
       ) => {
         toastRef?.current?.closeToast();
+        const state = store.getState();
+        const depositMeta = selectTransactionMetadataById(state, transactionId);
         navigateToTransactionDetails(navigation, {
           transactionId,
           initialTypeFilter: ActivityTypeFilter.Perps,
           ...(perpsFilter ? { initialPerpsFilter: perpsFilter } : {}),
+          isTransactionsRedesignEnabled:
+            selectIsTransactionsRedesignEnabled(state),
+          ...(depositMeta?.chainId
+            ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
+            : {}),
         });
       },
       goToPnlHeroCard: (position: Position, marketPrice?: string) => {
@@ -602,6 +622,40 @@ const usePerpsToasts = (): {
                 error,
                 fallbackMessage: strings(
                   'perps.order.your_funds_have_been_returned_to_you',
+                ),
+              }),
+            ),
+          }),
+          editSubmitting: () => ({
+            ...perpsBaseToastOptions.inProgress,
+            hasNoTimeout: true,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.updating_your_order'),
+            ),
+          }),
+          editConfirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_updated'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+              }),
+            ),
+          }),
+          editFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_update_failed'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings(
+                  'perps.order.order_update_failed_subtitle',
                 ),
               }),
             ),
@@ -1054,6 +1108,22 @@ const usePerpsToasts = (): {
         },
       },
       watchlist: {
+        added: (symbol: string) => ({
+          ...perpsBaseToastOptions.success,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.added', {
+              symbol: getPerpsDisplaySymbol(symbol),
+            }),
+          ),
+        }),
+        removed: (symbol: string) => ({
+          ...perpsBaseToastOptions.info,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.removed', {
+              symbol: getPerpsDisplaySymbol(symbol),
+            }),
+          ),
+        }),
         addError: {
           ...perpsBaseToastOptions.error,
           labelOptions: getPerpsToastLabels(

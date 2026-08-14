@@ -79,6 +79,28 @@ jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
+jest.mock(
+  '../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const ActualReact = jest.requireActual('react');
+    const { Pressable } = jest.requireActual('react-native');
+
+    return {
+      __esModule: true,
+      default: jest.fn(
+        ({ onBack }: { onBack?: () => void; includesTopInset?: boolean }) =>
+          ActualReact.createElement(Pressable, {
+            testID: 'button-icon',
+            onPress: onBack,
+            accessibilityRole: 'button',
+          }),
+      ),
+    };
+  },
+);
+
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+
 const renderComponent = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState> = {},
   completedOnboarding = false,
@@ -106,6 +128,15 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('initial render', () => {
+    it('applies top safe-area inset to the header so the back button is tappable on iOS', () => {
+      renderComponent();
+
+      expect(HeaderCompactStandard).toHaveBeenCalledWith(
+        expect.objectContaining({ includesTopInset: true }),
+        undefined,
+      );
+    });
+
     it('renders the page heading', () => {
       const { getByText } = renderComponent();
 

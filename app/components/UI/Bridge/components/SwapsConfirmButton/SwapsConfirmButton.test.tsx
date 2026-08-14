@@ -29,11 +29,19 @@ import {
 import {
   ChainId,
   MetaMetricsSwapsEventSource,
+  formatChainIdToCaip,
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
-import { SecurityDataType } from '../../types';
+import { SecurityDataType, BridgeViewMode } from '../../types';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
+import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
+import {
+  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+  SwapsCtaButtonColorVariant,
+} from './abTestConfig';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -169,19 +177,27 @@ const mockActiveQuote = {
   ...mockQuoteWithMetadata,
   quote: {
     ...mockQuoteWithMetadata.quote,
-    srcTokenAmount: '1000000000000000000', // calcTokenValue('1.0', 18)
+    src: {
+      ...mockQuoteWithMetadata.quote.src,
+      amount: '1000000000000000000', // calcTokenValue('1.0', 18)
+    },
   },
 };
 
 const mockBtcQuoteWithUnavailableNetworkFee = {
   ...mockActiveQuote,
+  chainId: formatChainIdToCaip(ChainId.BTC),
   quote: {
     ...mockActiveQuote.quote,
-    srcChainId: ChainId.BTC,
-  },
-  totalNetworkFee: {
-    ...mockActiveQuote.totalNetworkFee,
-    amount: '0',
+    feeData: {
+      ...mockActiveQuote.quote.feeData,
+      network: [
+        {
+          ...(mockActiveQuote.quote.feeData?.network?.[0] ?? {}),
+          normalizedAmount: '0',
+        },
+      ],
+    },
   },
 };
 
@@ -323,6 +339,33 @@ const mockState: DeepPartial<RootState> = {
   },
 };
 
+function createAbTestState(
+  variantName?: SwapsCtaButtonColorVariant,
+  bridgeViewMode = BridgeViewMode.Unified,
+): DeepPartial<RootState> {
+  return {
+    ...mockState,
+    engine: {
+      ...mockState.engine,
+      backgroundState: {
+        ...mockState.engine?.backgroundState,
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            bridgeConfigV2: defaultBridgeConfigV2,
+            ...(variantName && {
+              [SWAPS_CTA_BUTTON_COLOR_AB_KEY]: { name: variantName },
+            }),
+          },
+        },
+      },
+    },
+    bridge: {
+      ...mockState.bridge,
+      bridgeViewMode,
+    },
+  };
+}
+
 describe('SwapsConfirmButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -350,6 +393,117 @@ describe('SwapsConfirmButton', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('CTA color A/B test', () => {
+    it('uses Primary when the CTA experiment is unresolved', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: createAbTestState() },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.variant).toBe(ButtonVariant.Primary);
+      expect(button.props.twClassName).toBeUndefined();
+      expect(button.props.textProps).toBeUndefined();
+    });
+
+    it('uses Primary for the control assignment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Control),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.variant).toBe(ButtonVariant.Primary);
+      expect(button.props.twClassName).toBeUndefined();
+      expect(button.props.textProps).toBeUndefined();
+    });
+
+    it('uses the success color for the treatment assignment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
+      expect(button.props.textProps).toEqual({
+        color: TextColor.SuccessInverse,
+      });
+    });
+
+    it('uses the success color outside Unified mode for treatment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(
+            SwapsCtaButtonColorVariant.Treatment,
+            BridgeViewMode.Swap,
+          ),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
+    });
+
+    it('preserves existing transaction attribution when submitting treatment', async () => {
+      const existingAssignment = createActiveABTestAssignment(
+        'existingExperiment',
+        'control',
+      );
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+          transactionActiveAbTests={[existingAssignment]}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+          quoteResponse: mockActiveQuote,
+          location: MetaMetricsSwapsEventSource.MainView,
+          transactionActiveAbTests: [existingAssignment],
+        });
+      });
+    });
   });
 
   describe('Button Label', () => {
@@ -1150,7 +1304,7 @@ describe('SwapsConfirmButton', () => {
       });
 
       expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
-      expect(mockUpdateQuoteParams).toHaveBeenCalled();
+      expect(mockUpdateQuoteParams).toHaveBeenCalledWith({ isRefresh: true });
       // Should NOT call submitBridgeTx
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
@@ -1573,7 +1727,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.90' }, // well above danger threshold
+              priceData: { priceImpact: { amount: '0.90' } }, // well above danger threshold
             },
           },
         }));
@@ -1734,7 +1888,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1774,7 +1928,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1808,7 +1962,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.25' }, // exactly at the danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.25' } }, // exactly at the danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1849,7 +2003,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.10' }, // 0.10 < danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.10' } }, // 0.10 < danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1884,7 +2038,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: undefined },
+              priceData: { priceImpact: { amount: undefined } },
             },
           },
           formattedQuoteData: {
@@ -1924,7 +2078,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: 'NaN' },
+              priceData: { priceImpact: { amount: 'NaN' } },
             },
           },
           formattedQuoteData: {
@@ -1959,7 +2113,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -2002,7 +2156,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.25' }, // 0.25 >= 0.25 → modal shown
+              priceData: { priceImpact: { amount: '0.25' } }, // 0.25 >= 0.25 → modal shown
             },
           },
           formattedQuoteData: {
@@ -2063,7 +2217,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.22' }, // 0.22 < AppConstants fallback 0.25 → no modal shown
+              priceData: { priceImpact: { amount: '0.22' } }, // 0.22 < AppConstants fallback 0.25 → no modal shown
             },
           },
           formattedQuoteData: {

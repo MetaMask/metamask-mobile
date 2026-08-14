@@ -2,18 +2,20 @@ import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { NameType } from '../../../../../UI/Name/Name.types';
@@ -22,7 +24,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
-import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import MoneyIcon from '../../../../../../images/money.png';
@@ -157,13 +158,15 @@ export function TransactionDetailsAccountRow() {
     </View>
   ) : (
     <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImage}
-          name={networkName}
-        />
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        networkImage ? (
+          <BadgeNetwork
+            src={networkImage}
+            name={networkName}
+            testID="transaction-details-account-network-badge"
+          />
+        ) : null
       }
     >
       <AvatarAccount accountAddress={avatarAddress} size={AvatarSize.Sm} />

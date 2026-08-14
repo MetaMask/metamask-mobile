@@ -1,5 +1,6 @@
 import { useCallback, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -8,7 +9,11 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import type { ImmersveNextAction } from '../util/immersvePrerequisites';
+import { CardActions, withCardProvider } from '../util/metrics';
 
 interface RouteContext {
   email?: string;
@@ -17,6 +22,25 @@ interface RouteContext {
   showAccountExistsToast?: boolean;
   /** Callers outside the OnboardingNavigator (CardAuthentication) hop via ONBOARDING.ROOT. */
   navigateFromRoot?: boolean;
+}
+
+function destinationForAction(action: ImmersveNextAction): string {
+  switch (action.type) {
+    case 'contact':
+      return Routes.CARD.ONBOARDING.SIGN_UP;
+    case 'kyc':
+    case 'pending':
+    case 'expected_spend':
+      return Routes.CARD.ONBOARDING.KYC_PROCESSING;
+    case 'funding':
+      return Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
+    case 'rejected':
+      return Routes.CARD.ONBOARDING.KYC_FAILED;
+    case 'active':
+      return Routes.CARD.HOME;
+    default:
+      return 'unknown';
+  }
 }
 
 /**
@@ -33,10 +57,23 @@ export const useImmersveOnboardingRouter = () => {
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   return useCallback(
     (action: ImmersveNextAction, ctx: RouteContext = {}) => {
       const { countryKey, showAccountExistsToast, navigateFromRoot } = ctx;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: CardActions.IMMERSVE_ONBOARDING_ROUTED,
+              next_action: action.type,
+              destination: destinationForAction(action),
+            }),
+          )
+          .build(),
+      );
 
       const goToOnboarding = (
         screen: string,
@@ -45,7 +82,7 @@ export const useImmersveOnboardingRouter = () => {
         if (navigateFromRoot) {
           navigation.navigate(Routes.CARD.ONBOARDING.ROOT, { screen, params });
         } else {
-          navigation.navigate(screen, params);
+          navigateWithDetails(navigation, [screen, params]);
         }
       };
 
@@ -103,6 +140,6 @@ export const useImmersveOnboardingRouter = () => {
           break;
       }
     },
-    [navigation, toastRef, colors],
+    [navigation, toastRef, colors, trackEvent, createEventBuilder],
   );
 };

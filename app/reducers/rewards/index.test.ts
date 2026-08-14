@@ -4924,6 +4924,7 @@ describe('setVipDashboard', () => {
         swapsBps: 11,
         perpsBps: 7,
         referralCarryoverBps: 4242,
+        maintainPointsRequirement: null,
         status: 'current',
       },
     ],
@@ -4951,6 +4952,8 @@ describe('setVipDashboard', () => {
       equityLockedDescription: 'Body copy',
       equityUnlockedTitle: 'VIP allocation unlocked',
       equityUnlockedDescription: 'Unlocked body copy',
+      equityMultiplierFailedTitle: 'Estimate failed',
+      equityMultiplierFailedDescription: 'Estimate failed body copy',
     },
     lastFetched: 1767225600000,
   };

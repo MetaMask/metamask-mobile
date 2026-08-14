@@ -374,35 +374,84 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('on enter key press at the last input field with correct length, the new input field value is not created', async () => {
-      const { getByPlaceholderText, queryByTestId } = renderScreen(
+    it('creates a 13th input when space follows a valid 12-word prefix of a longer SRP', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Enter a valid 12-word seed phrase
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
 
       fireEvent.changeText(
         input,
+        'tumble heart quit undo right legal salute lizard tape unveil art lava ',
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_12`),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('continues after a valid 12-word SRP even when a trailing empty slot exists', async () => {
+      const { getByPlaceholderText, getByRole, getByText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      // Trailing space appends an empty 13th slot; Continue must still work.
+      fireEvent.changeText(
+        input,
         'frame midnight talk absent spy release check below volume industry advance neglect ',
       );
 
-      await act(async () => {
-        fireEvent(input, 'onSubmitEditing', {
-          nativeEvent: { key: 'Enter' },
-          index: 11,
-        });
-      });
+      const continueButton = getByRole('button', { name: 'Continue' });
 
       await waitFor(() => {
-        const secondInput = queryByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_12`,
-        );
-        expect(secondInput).not.toBeOnTheScreen();
+        expect(continueButton).toBeEnabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(
+        () => {
+          expect(
+            getByText(strings('import_from_seed.metamask_password')),
+          ).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
+      );
+    });
+
+    it('keeps continue enabled after entering a 24-word SRP whose first 12 words are also valid', async () => {
+      const { getByPlaceholderText, getByRole } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      fireEvent.changeText(
+        input,
+        'tumble heart quit undo right legal salute lizard tape unveil art lava filter fee snack fragile duck impact oven come cram tourist casino sort',
+      );
+
+      await waitFor(() => {
+        expect(getByRole('button', { name: 'Continue' })).toBeEnabled();
       });
     });
 
@@ -1320,12 +1369,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                 jest
                   .spyOn(navigation, 'navigate')
                   .mockImplementation(mockNavigate);
-                return (
-                  <ImportFromSecretRecoveryPhrase
-                    navigation={navigation}
-                    route={{ params: {} }}
-                  />
-                );
+                return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
           </Stack.Navigator>
@@ -1373,14 +1417,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
               name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
               initialParams={{ qrSyncImport: true }}
             >
-              {({ navigation, route }) => {
+              {({ navigation }) => {
                 jest.spyOn(navigation, 'goBack').mockImplementation(mockGoBack);
-                return (
-                  <ImportFromSecretRecoveryPhrase
-                    navigation={navigation}
-                    route={route}
-                  />
-                );
+                return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
           </Stack.Navigator>
@@ -1808,6 +1847,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
+      await act(async () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 

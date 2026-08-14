@@ -31,6 +31,8 @@ import {
   JsonMap,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { getSocialAccountType } from '../../../constants/onboarding';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
@@ -93,6 +95,14 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     onboardingTraceCtx,
     provider,
   } = route?.params ?? {};
+
+  useNavigationPerformance({
+    destinationScreenId:
+      type === 'found'
+        ? OnboardingScreenIds.ACCOUNT_ALREADY_EXISTS
+        : OnboardingScreenIds.ACCOUNT_NOT_FOUND,
+    destinationReady: true,
+  });
 
   const isSmallScreen = windowWidth < 375;
 

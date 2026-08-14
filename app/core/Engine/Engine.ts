@@ -124,6 +124,7 @@ import { bridgeStatusControllerInit } from './controllers/bridge-status-controll
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
+import { defiPositionsControllerV2Init } from './controllers/defi-positions-controller-v2/defi-positions-controller-v2-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -133,6 +134,7 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
+import { predictNextControllerInit } from './controllers/predict-next-controller-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
@@ -340,6 +342,7 @@ export class Engine {
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
+        DeFiPositionsControllerV2: defiPositionsControllerV2Init,
         BridgeController: bridgeControllerInit,
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
@@ -379,6 +382,7 @@ export class Engine {
         ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        PredictNextController: predictNextControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -434,6 +438,7 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
+    const predictNextController = messengerClientsByName.PredictNextController;
     const rewardsController = messengerClientsByName.RewardsController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
@@ -447,6 +452,11 @@ export class Engine {
     const connectivityController = this.#wallet.getInstance(
       'ConnectivityController',
     );
+    const subscriptionController = this.#wallet.getInstance(
+      'SubscriptionController',
+    );
+    const shieldController = this.#wallet.getInstance('ShieldController');
+    const claimsController = this.#wallet.getInstance('ClaimsController');
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -595,6 +605,9 @@ export class Engine {
       TransactionController: this.transactionController,
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
+      SubscriptionController: subscriptionController,
+      ShieldController: shieldController,
+      ClaimsController: claimsController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
@@ -640,6 +653,8 @@ export class Engine {
         messengerClientsByName.MoneyAccountApiDataService,
       GeolocationController: geolocationController,
       DeFiPositionsController: messengerClientsByName.DeFiPositionsController,
+      DeFiPositionsControllerV2:
+        messengerClientsByName.DeFiPositionsControllerV2,
       SeedlessOnboardingController: seedlessOnboardingController,
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController: messengerClientsByName.SamplePetnamesController,
@@ -647,6 +662,7 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
+      PredictNextController: predictNextController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
@@ -1283,6 +1299,9 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
       MoneyAccountController,
+      SubscriptionController,
+      ShieldController,
+      ClaimsController,
     } = this.context;
 
     // Remove all permissions.
@@ -1316,6 +1335,15 @@ export class Engine {
 
     // Accounts:
     MoneyAccountController.clearState();
+
+    // Subscriptions:
+    SubscriptionController.clearState();
+
+    // Shield:
+    ShieldController.clearState();
+
+    // Claims:
+    ClaimsController.clearState();
   };
 
   removeAllListeners() {
@@ -1470,6 +1498,7 @@ export default {
       ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
+      DeFiPositionsControllerV2,
       DelegationController,
       EarnController,
       GasFeeController,
@@ -1492,6 +1521,9 @@ export default {
       SelectedNetworkController,
       SignatureController,
       SmartTransactionsController,
+      SubscriptionController,
+      ShieldController,
+      ClaimsController,
       TokenBalancesController,
       TokenRatesController,
       TokensController,
@@ -1544,6 +1576,7 @@ export default {
       ConnectivityController: ConnectivityController.state,
       CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,
+      DeFiPositionsControllerV2: DeFiPositionsControllerV2.state,
       DelegationController: DelegationController.state,
       EarnController: EarnController.state,
       GasFeeController: GasFeeController.state,
@@ -1566,6 +1599,9 @@ export default {
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
+      SubscriptionController: SubscriptionController.state,
+      ShieldController: ShieldController.state,
+      ClaimsController: ClaimsController.state,
       TokenBalancesController: TokenBalancesController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,

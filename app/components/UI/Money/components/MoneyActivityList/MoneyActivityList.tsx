@@ -21,7 +21,6 @@ interface MoneyActivityListProps {
   /** Whether more activity exists beyond what's fetched (paginated upstream). */
   hasMore?: boolean;
   onViewAllPress?: () => void;
-  onHeaderPress?: () => void;
   onItemPress?: (transaction: TransactionMeta) => void;
   /** Whether the crypto/fiat amounts should be masked. */
   privacyMode?: boolean;
@@ -32,7 +31,6 @@ const MoneyActivityList = ({
   moneyAddress,
   hasMore = false,
   onViewAllPress,
-  onHeaderPress,
   onItemPress,
   privacyMode = false,
 }: MoneyActivityListProps) => {
@@ -50,10 +48,7 @@ const MoneyActivityList = ({
   return (
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
       <Box twClassName="px-4 pt-3 pb-1">
-        <MoneySectionHeader
-          title={strings('money.activity.title')}
-          onPress={hasMoreItems ? onHeaderPress : undefined}
-        />
+        <MoneySectionHeader title={strings('money.activity.title')} />
       </Box>
       {previewItems.map((item) => (
         <MoneyActivityRow

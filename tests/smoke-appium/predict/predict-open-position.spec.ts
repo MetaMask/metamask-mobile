@@ -23,6 +23,7 @@ import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { predictOpenPositionAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-open-position.analytics.js';
 import {
   loginForPredictTests,
+  remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 import { CELTICS_NETS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
@@ -50,6 +51,7 @@ const positionDetails = {
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
+    ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
@@ -66,15 +68,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
       minimumVersion: '0.0.0',
     },
     carouselBanners: false,
-    predictExtendedSportsMarkets: {
-      versions: {
-        '7.82.0': {
-          enabled: false,
-          leagues: [],
-          enabledSportsMarketTypes: [],
-        },
-      },
-    },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS(mockServer);

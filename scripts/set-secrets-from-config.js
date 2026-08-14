@@ -15,8 +15,19 @@
 
 const fs = require('fs');
 
+// No fallback: an unresolved toJSON(secrets) expands to an empty string, and
+// defaulting it to {} would skip every secret while still exiting 0 — producing
+// a signed binary with no Infura ID, Sentry DSN, or RPC failover URLs.
+if (!process.env.ALL_SECRETS) {
+  // GitHub Actions annotation so the error surfaces on the run summary.
+  console.error(
+    '::error title=Secret injection failed::ALL_SECRETS is not defined. Expected toJSON(secrets).',
+  );
+  process.exit(1);
+}
+
 const secretsMapping = JSON.parse(process.env.CONFIG_SECRETS || '{}');
-const allSecrets = JSON.parse(process.env.ALL_SECRETS || '{}');
+const allSecrets = JSON.parse(process.env.ALL_SECRETS);
 const githubEnvPath = process.env.GITHUB_ENV;
 
 function appendToGithubEnv(name, value) {

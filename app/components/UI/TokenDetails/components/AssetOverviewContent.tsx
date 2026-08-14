@@ -44,17 +44,13 @@ import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
+import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
-import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
-import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectMerklCampaignClaimingEnabledFlag,
-} from '../../Earn/selectors/featureFlags';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
@@ -65,7 +61,7 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type Hex } from '@metamask/utils';
+import { isCaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -77,18 +73,22 @@ import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTra
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import {
   Box,
-  BoxFlexDirection,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
+import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
+import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
+import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
+import { useSpendableBalance } from '../hooks/useSpendableBalance';
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
@@ -143,6 +143,10 @@ export interface AssetOverviewContentProps {
 
   // Balance data
   balance: string | number | undefined;
+  balanceCta?: React.ReactNode;
+  balanceDescription?: React.ReactNode;
+  balancePriceChangeOverride?: string;
+  balancePriceChangeOverrideColor?: ComponentLibraryTextColor;
   mainBalance: string;
   secondaryBalance: string | undefined;
 
@@ -211,13 +215,16 @@ export interface AssetOverviewContentProps {
  * - Chart navigation buttons
  * - Action buttons (Buy, Swap, Send, Receive)
  * - Balance display
- * - Merkl rewards section
  * - Perps discovery banner
  * - Token details (contract, decimals, etc.)
  */
 const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   token,
   balance,
+  balanceCta,
+  balanceDescription,
+  balancePriceChangeOverride,
+  balancePriceChangeOverrideColor,
   mainBalance,
   secondaryBalance,
   currentPrice,
@@ -260,6 +267,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
+  const isAssetInactive = useSelector((state) =>
+    getIsAssetRequireActivate(state, {
+      assetId: token.address,
+    }),
+  );
+  const spendableBalanceData = useSpendableBalance({
+    assetId: token.address,
+  });
+  const showSpendableBalance = spendableBalanceData.hasSpendableBalance;
 
   const {
     hasPerpsMarket,
@@ -353,19 +369,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
-
-  const isMerklClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
-  const isTokenEligibleForMerklClaim = useMemo(
-    () =>
-      isMerklClaimingEnabled &&
-      isTokenEligibleForMerklRewards(
-        token.chainId as Hex,
-        token.address as Hex | undefined,
-      ),
-    [isMerklClaimingEnabled, token.chainId, token.address],
-  );
 
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
@@ -596,6 +599,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             )}
 
+          {isAssetInactive ? (
+            <AssetActivateCard token={token} chainName="Stellar" />
+          ) : null}
+
           <Price
             asset={token}
             prices={prices}
@@ -658,15 +665,28 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             tronNativeToken && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
-          {balance != null && (
-            <Balance
-              asset={token}
-              mainBalance={mainBalance}
-              secondaryBalance={secondaryBalance}
+          {balance != null && spendableBalanceData.hasSpendableBalance && (
+            <SpendableBalanceSection
+              minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
+              spendableBalance={spendableBalanceData.spendableBalance}
+              totalBalance={String(balance)}
+              symbol={token.symbol}
+              fiatValue={mainBalance}
             />
           )}
-          {isTokenEligibleForMerklClaim && (
-            <AssetOverviewClaimBonus asset={token} />
+          {balance != null && !spendableBalanceData.hasSpendableBalance && (
+            <>
+              <Balance
+                asset={token}
+                balanceCta={balanceCta}
+                balanceDescription={balanceDescription}
+                mainBalance={mainBalance}
+                priceChangeOverride={balancePriceChangeOverride}
+                priceChangeOverrideColor={balancePriceChangeOverrideColor}
+                secondaryBalance={secondaryBalance}
+              />
+              <EarnBalance asset={token} />
+            </>
           )}
           {showMusdConvertSection && (
             <MoneyConvertStablecoins

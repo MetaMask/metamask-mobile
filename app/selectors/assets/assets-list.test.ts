@@ -18,6 +18,7 @@ import {
   selectAssetsByAccountGroupId,
   selectAssetsBySelectedAccountGroup,
   selectHasEligibleSwapSource,
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
   selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
@@ -1324,6 +1325,24 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIds', () => {
 });
 
 describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
+  it('returns assets for the chain IDs bound to the selector factory', () => {
+    const state = mockState();
+    const chainIds = ['eip155:1', '0xa'];
+    const selectSortedAssets =
+      makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+        chainIds,
+      );
+
+    const result = selectSortedAssets(state);
+
+    expect(result).toEqual(
+      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+        state,
+        chainIds,
+      ),
+    );
+  });
+
   it('filters assets by explicit chain IDs (same as ForChainIds)', () => {
     const state = mockState();
     const chainIds = ['eip155:1', '0xa'];

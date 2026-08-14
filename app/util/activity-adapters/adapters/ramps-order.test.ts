@@ -158,6 +158,106 @@ describe('mapRampsOrder', () => {
     expect(mapRampsOrder({ order })?.chainId).toBe('eip155:1');
   });
 
+  it('falls through an unparseable network name to cryptoCurrency.chainId', () => {
+    // Coinbase (and other generic providers) return network as a free-form
+    // name string while still attaching a CAIP cryptoCurrency.chainId.
+    // Regression: TRAM-3822 / state log v8.5.0 (6225) order …b03d98.
+    const order: RampsOrder = {
+      ...baseOrder,
+      id: 'coinbase-m/orders/c-d599b5708a6011f197a0374abeb03d98',
+      providerOrderId: 'c-d599b5708a6011f197a0374abeb03d98',
+      network: 'ethereum' as unknown as RampsOrder['network'],
+      txHash: '0x',
+      cryptoAmount: 0.00112678,
+      fiatAmount: 2,
+      cryptoCurrency: {
+        assetId: 'eip155:1/slip44:60',
+        chainId: 'eip155:1',
+        name: 'Ethereum',
+        symbol: 'ETH',
+        decimals: 18,
+      },
+      fiatCurrency: {
+        id: 'eur',
+        symbol: 'EUR',
+        name: 'Euro',
+        decimals: 2,
+      },
+    };
+
+    expect(mapRampsOrder({ order })).toMatchObject({
+      type: 'buy',
+      chainId: 'eip155:1',
+      status: 'success',
+      hash: 'coinbase-m/orders/c-d599b5708a6011f197a0374abeb03d98',
+      data: {
+        token: {
+          amount: '0.00112678',
+          symbol: 'ETH',
+          assetId: 'eip155:1/slip44:60',
+          direction: 'in',
+        },
+      },
+    });
+  });
+
+  it('falls through an unparseable network name to cryptoCurrency.assetId', () => {
+    const order = {
+      ...baseOrder,
+      network: 'ethereum' as unknown as RampsOrder['network'],
+      cryptoCurrency: {
+        symbol: 'ETH',
+        assetId: 'eip155:1/slip44:60',
+      },
+    };
+
+    expect(mapRampsOrder({ order })?.chainId).toBe('eip155:1');
+  });
+
+  it('returns null when network is an unparseable name and crypto currency has no chain', () => {
+    expect(
+      mapRampsOrder({
+        order: {
+          ...baseOrder,
+          network: 'ethereum' as unknown as RampsOrder['network'],
+          cryptoCurrency: undefined,
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it('treats placeholder txHash values as missing and falls back to order id', () => {
+    expect(mapRampsOrder({ order: { ...baseOrder, txHash: '0x' } })?.hash).toBe(
+      baseOrder.id,
+    );
+    expect(
+      mapRampsOrder({ order: { ...baseOrder, txHash: '0x0000' } })?.hash,
+    ).toBe(baseOrder.id);
+  });
+
+  it('keeps distinct placeholder-hash orders from collapsing under the same key', () => {
+    const first = mapRampsOrder({
+      order: {
+        ...baseOrder,
+        id: 'coinbase-m/orders/order-a',
+        txHash: '0x',
+        network: 'ethereum' as unknown as RampsOrder['network'],
+      },
+    });
+    const second = mapRampsOrder({
+      order: {
+        ...baseOrder,
+        id: 'coinbase-m/orders/order-b',
+        txHash: '0x',
+        network: 'ethereum' as unknown as RampsOrder['network'],
+      },
+    });
+
+    expect(first?.hash).toBe('coinbase-m/orders/order-a');
+    expect(second?.hash).toBe('coinbase-m/orders/order-b');
+    expect(first?.hash).not.toBe(second?.hash);
+  });
+
   it('maps non-EVM CAIP-2 network metadata', () => {
     const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
     expect(
