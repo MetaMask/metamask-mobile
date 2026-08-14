@@ -279,7 +279,10 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
-const mockStartHomepageReadyTrace = jest.fn();
+const HOMEPAGE_READY_TRACE_TOKEN = 1;
+const mockStartHomepageReadyTrace = jest.fn(
+  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+);
 const mockCancelHomepageReadyTrace = jest.fn();
 jest.mock('../../../core/Performance/HomepageReady', () => ({
   startHomepageReadyTrace: (...args: unknown[]) =>
@@ -1921,6 +1924,7 @@ describe('Login', () => {
 
       expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
         reason: 'unlock_failed',
+        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
       });
     });
 
@@ -1947,6 +1951,7 @@ describe('Login', () => {
 
       expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
         reason: 'unlock_failed',
+        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
       });
     });
   });

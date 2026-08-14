@@ -3,7 +3,9 @@ import {
   cancelHomepageReadyTrace,
   endHomepageReadyTrace,
   isHomepageReadyTraceActive,
+  queueColdHomepageReadyTrace,
   resetHomepageReadyTraceForTesting,
+  resolveColdHomepageReadyTrace,
   startHomepageReadyTrace,
 } from './HomepageReady';
 
@@ -99,12 +101,12 @@ describe('HomepageReady', () => {
   });
 
   it('ends a failed unlock and allows its retry to start a new trace', () => {
-    startHomepageReadyTrace({
+    const traceToken = startHomepageReadyTrace({
       source: 'unlock',
       appStartType: 'warm',
     });
 
-    cancelHomepageReadyTrace({ reason: 'unlock_failed' });
+    cancelHomepageReadyTrace({ reason: 'unlock_failed', traceToken });
     startHomepageReadyTrace({
       source: 'unlock',
       appStartType: 'warm',
@@ -118,6 +120,64 @@ describe('HomepageReady', () => {
       },
     });
     expect(mockTrace).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps an active app-open trace when a blocked unlock fails', () => {
+    startHomepageReadyTrace({
+      source: 'app_open',
+      appStartType: 'warm',
+    });
+    const blockedUnlockToken = startHomepageReadyTrace({
+      source: 'unlock',
+      appStartType: 'warm',
+    });
+
+    cancelHomepageReadyTrace({
+      reason: 'unlock_failed',
+      traceToken: blockedUnlockToken,
+    });
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(isHomepageReadyTraceActive()).toBe(true);
+  });
+
+  it('starts a queued cold trace when the homepage is focused', () => {
+    const startTime = 1_723_456_789_000;
+    queueColdHomepageReadyTrace(startTime);
+
+    resolveColdHomepageReadyTrace({ isHomepageFocused: true });
+
+    expect(mockTrace).toHaveBeenCalledWith({
+      name: TraceName.HomepageReady,
+      op: TraceOperation.HomepagePerformance,
+      startTime,
+      tags: {
+        start_source: 'app_open',
+        app_start_type: 'cold',
+      },
+    });
+  });
+
+  it('discards a queued cold trace when the homepage is unfocused', () => {
+    queueColdHomepageReadyTrace(1_723_456_789_000);
+
+    resolveColdHomepageReadyTrace({ isHomepageFocused: false });
+    resolveColdHomepageReadyTrace({ isHomepageFocused: true });
+
+    expect(mockTrace).not.toHaveBeenCalled();
+  });
+
+  it('does not queue a cold trace while an unlock trace is active', () => {
+    startHomepageReadyTrace({
+      source: 'unlock',
+      appStartType: 'cold',
+    });
+    queueColdHomepageReadyTrace(1_723_456_789_000);
+    endHomepageReadyTrace({ contentState: 'filled' });
+
+    resolveColdHomepageReadyTrace({ isHomepageFocused: true });
+
+    expect(mockTrace).toHaveBeenCalledTimes(1);
   });
 
   it('marks a rendered error state as unsuccessful', () => {

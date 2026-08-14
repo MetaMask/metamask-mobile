@@ -3,6 +3,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import {
   endHomepageReadyTrace,
+  resolveColdHomepageReadyTrace,
   startHomepageReadyTrace,
   type HomepageReadyContentState,
 } from '../../../../core/Performance/HomepageReady';
@@ -23,6 +24,16 @@ export const useHomepageReady = ({
   const isFocused = useIsFocused();
   const lastAppStateRef = useRef<AppStateStatus>(AppState.currentState);
   const [foregroundSequence, setForegroundSequence] = useState(0);
+  const hasResolvedColdTraceRef = useRef(false);
+
+  useEffect(() => {
+    if (hasResolvedColdTraceRef.current) {
+      return;
+    }
+
+    hasResolvedColdTraceRef.current = true;
+    resolveColdHomepageReadyTrace({ isHomepageFocused: isFocused });
+  }, [isFocused]);
 
   useEffect(() => {
     if (isFocused && contentReady) {

@@ -32,12 +32,10 @@ import { TraceName } from '../../../util/trace';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import Logger from '../../../util/Logger';
 
-const mockStartHomepageReadyTrace = jest.fn();
-const mockIsHomepageReadyTraceActive = jest.fn(() => false);
+const mockQueueColdHomepageReadyTrace = jest.fn();
 jest.mock('../../../core/Performance/HomepageReady', () => ({
-  startHomepageReadyTrace: (...args: unknown[]) =>
-    mockStartHomepageReadyTrace(...args),
-  isHomepageReadyTraceActive: () => mockIsHomepageReadyTraceActive(),
+  queueColdHomepageReadyTrace: (...args: unknown[]) =>
+    mockQueueColdHomepageReadyTrace(...args),
 }));
 
 const initialState: DeepPartial<RootState> = {
@@ -414,7 +412,6 @@ describe('App', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsHomepageReadyTraceActive.mockReturnValue(false);
     mockNavigate.mockClear();
   });
 
@@ -1472,24 +1469,19 @@ describe('App', () => {
       });
     });
 
-    it('starts Homepage Ready at app open for an unlocked existing user', () => {
+    it('queues Homepage Ready at app open for an unlocked existing user', () => {
       renderApp(getHomepageReadyState(true));
 
-      expect(mockStartHomepageReadyTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          source: 'app_open',
-          appStartType: 'cold',
-        }),
-      );
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
     });
 
-    it('does not start Homepage Ready before credentials for a locked user', () => {
+    it('does not queue Homepage Ready before credentials for a locked user', () => {
       renderApp(getHomepageReadyState(false));
 
-      expect(mockStartHomepageReadyTrace).not.toHaveBeenCalled();
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
     });
 
-    it('starts Homepage Ready when the unlocked state becomes available after mount', () => {
+    it('queues Homepage Ready when the unlocked state becomes available after mount', () => {
       const lockedState = getHomepageReadyState(false);
       const unlockedState = getHomepageReadyState(true);
       const store = createStore((state: unknown | undefined, action) => {
@@ -1512,7 +1504,7 @@ describe('App', () => {
       );
 
       render(<App />, { wrapper: Providers });
-      expect(mockStartHomepageReadyTrace).not.toHaveBeenCalled();
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
 
       act(() => {
         store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
@@ -1524,43 +1516,7 @@ describe('App', () => {
         store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
       });
 
-      expect(mockStartHomepageReadyTrace).toHaveBeenCalledTimes(1);
-      expect(mockStartHomepageReadyTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          source: 'app_open',
-          appStartType: 'cold',
-        }),
-      );
-    });
-
-    it('preserves an unlock trace when the unlocked state becomes available', () => {
-      const lockedState = getHomepageReadyState(false);
-      const unlockedState = getHomepageReadyState(true);
-      const store = createStore(
-        (state: unknown | undefined, action) =>
-          action.type === 'TEST/UNLOCKED_STATE_AVAILABLE'
-            ? unlockedState
-            : (state ?? lockedState),
-        lockedState as unknown,
-      );
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      render(<App />, { wrapper: Providers });
-      mockIsHomepageReadyTraceActive.mockReturnValue(true);
-
-      act(() => {
-        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
-      });
-
-      expect(mockStartHomepageReadyTrace).not.toHaveBeenCalled();
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
     });
   });
 

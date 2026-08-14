@@ -22,9 +22,15 @@ interface EndHomepageReadyTraceOptions {
 
 interface CancelHomepageReadyTraceOptions {
   reason: 'unlock_failed';
+  traceToken: HomepageReadyTraceToken | null;
 }
 
 let startedAt: number | null = null;
+let activeTraceToken: HomepageReadyTraceToken | null = null;
+let nextTraceToken = 0;
+let queuedColdTrace: { startTime?: number } | null = null;
+
+export type HomepageReadyTraceToken = number;
 
 /**
  * Returns whether an entry point has already started the Homepage Ready CUF.
@@ -41,13 +47,15 @@ export const startHomepageReadyTrace = ({
   source,
   appStartType,
   startTime,
-}: StartHomepageReadyTraceOptions) => {
+}: StartHomepageReadyTraceOptions): HomepageReadyTraceToken | null => {
   const now = Date.now();
   if (startedAt !== null && now - startedAt < TRACES_CLEANUP_INTERVAL) {
-    return;
+    return null;
   }
 
   startedAt = now;
+  nextTraceToken += 1;
+  activeTraceToken = nextTraceToken;
   trace({
     name: TraceName.HomepageReady,
     op: TraceOperation.HomepagePerformance,
@@ -56,6 +64,45 @@ export const startHomepageReadyTrace = ({
       start_source: source,
       app_start_type: appStartType,
     },
+  });
+  return activeTraceToken;
+};
+
+/**
+ * Queues an already-unlocked cold launch until navigation resolves. This keeps
+ * the native launch timestamp without recording non-home launch destinations.
+ */
+export const queueColdHomepageReadyTrace = (startTime?: number) => {
+  if (startedAt !== null || queuedColdTrace !== null) {
+    return;
+  }
+
+  queuedColdTrace = { startTime };
+};
+
+/**
+ * Resolves the queued cold launch once the homepage knows whether it is the
+ * focused destination. An unfocused homepage discards the launch.
+ */
+export const resolveColdHomepageReadyTrace = ({
+  isHomepageFocused,
+}: {
+  isHomepageFocused: boolean;
+}): HomepageReadyTraceToken | null => {
+  if (queuedColdTrace === null) {
+    return null;
+  }
+
+  const { startTime } = queuedColdTrace;
+  queuedColdTrace = null;
+  if (!isHomepageFocused) {
+    return null;
+  }
+
+  return startHomepageReadyTrace({
+    source: 'app_open',
+    appStartType: 'cold',
+    startTime,
   });
 };
 
@@ -78,6 +125,7 @@ export const endHomepageReadyTrace = ({
     },
   });
   startedAt = null;
+  activeTraceToken = null;
 };
 
 /**
@@ -88,8 +136,13 @@ export const endHomepageReadyTrace = ({
  */
 export const cancelHomepageReadyTrace = ({
   reason,
+  traceToken,
 }: CancelHomepageReadyTraceOptions) => {
-  if (startedAt === null) {
+  if (
+    startedAt === null ||
+    traceToken === null ||
+    traceToken !== activeTraceToken
+  ) {
     return;
   }
 
@@ -101,8 +154,12 @@ export const cancelHomepageReadyTrace = ({
     },
   });
   startedAt = null;
+  activeTraceToken = null;
 };
 
 export const resetHomepageReadyTraceForTesting = () => {
   startedAt = null;
+  activeTraceToken = null;
+  nextTraceToken = 0;
+  queuedColdTrace = null;
 };

@@ -43,7 +43,10 @@ const mockRequestBiometricsAccessControlForIOS = jest.fn();
 const mockUpdateAuthPreference = jest.fn();
 const mockAnalyticsIdentify = jest.fn();
 const mockAnalyticsTrackEvent = jest.fn();
-const mockStartHomepageReadyTrace = jest.fn();
+const HOMEPAGE_READY_TRACE_TOKEN = 1;
+const mockStartHomepageReadyTrace = jest.fn(
+  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+);
 const mockCancelHomepageReadyTrace = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
@@ -388,6 +391,7 @@ describe('OAuthRehydration', () => {
       });
       expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
         reason: 'unlock_failed',
+        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
       });
     });
 

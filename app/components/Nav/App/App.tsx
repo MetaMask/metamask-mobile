@@ -132,10 +132,7 @@ import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
 import { endTrace, TraceName } from '../../../util/trace';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Performance } from '../../../core/Performance';
-import {
-  isHomepageReadyTraceActive,
-  startHomepageReadyTrace,
-} from '../../../core/Performance/HomepageReady';
+import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
@@ -1455,29 +1452,20 @@ const App: React.FC = () => {
   );
   const existingUser = useSelector(selectExistingUser);
   const isUnlocked = useSelector(selectIsUnlocked);
-  const hasStartedColdHomepageReadyTrace = useRef(false);
-  const homepageReadyTraceWasActive = isHomepageReadyTraceActive();
+  const hasQueuedColdHomepageReadyTrace = useRef(false);
 
   useEffect(() => {
     if (
-      hasStartedColdHomepageReadyTrace.current ||
+      hasQueuedColdHomepageReadyTrace.current ||
       !existingUser ||
       !isUnlocked
     ) {
       return;
     }
 
-    hasStartedColdHomepageReadyTrace.current = true;
-    if (homepageReadyTraceWasActive) {
-      return;
-    }
-
-    startHomepageReadyTrace({
-      source: 'app_open',
-      appStartType: 'cold',
-      startTime: Performance.appLaunchTime,
-    });
-  }, [existingUser, homepageReadyTraceWasActive, isUnlocked]);
+    hasQueuedColdHomepageReadyTrace.current = true;
+    queueColdHomepageReadyTrace(Performance.appLaunchTime);
+  }, [existingUser, isUnlocked]);
 
   useEffect(() => {
     async function startApp() {

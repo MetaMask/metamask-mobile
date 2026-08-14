@@ -64,6 +64,7 @@ import {
 import {
   cancelHomepageReadyTrace,
   startHomepageReadyTrace,
+  type HomepageReadyTraceToken,
 } from '../../../core/Performance/HomepageReady';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getLoginAppStartType } from '../Login/loginPerformanceTags';
@@ -564,11 +565,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       account_type: accountType,
       biometrics: biometryChoice,
     });
+    let homepageReadyTraceToken: HomepageReadyTraceToken | null = null;
 
     try {
       if (finalLoading) return;
 
-      startHomepageReadyTrace({
+      homepageReadyTraceToken = startHomepageReadyTrace({
         source: 'unlock',
         appStartType: getLoginAppStartType(),
       });
@@ -648,7 +650,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      cancelHomepageReadyTrace({ reason: 'unlock_failed' });
+      cancelHomepageReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: homepageReadyTraceToken,
+      });
       await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
       if (passwordLoginAttemptTraceCtxRef.current) {
         endTrace({
@@ -674,10 +679,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
+    let homepageReadyTraceToken: HomepageReadyTraceToken | null = null;
+
     try {
       if (finalLoading) return;
 
-      startHomepageReadyTrace({
+      homepageReadyTraceToken = startHomepageReadyTrace({
         source: 'unlock',
         appStartType: getLoginAppStartType(),
       });
@@ -714,7 +721,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      cancelHomepageReadyTrace({ reason: 'unlock_failed' });
+      cancelHomepageReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: homepageReadyTraceToken,
+      });
       await handleLoginError(
         ensureError(loginErr, 'Global password login failed'),
       );

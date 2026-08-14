@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
 import {
   endHomepageReadyTrace,
+  resolveColdHomepageReadyTrace,
   startHomepageReadyTrace,
 } from '../../../../core/Performance/HomepageReady';
 import { useHomepageReady } from './useHomepageReady';
@@ -15,10 +16,14 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../core/Performance/HomepageReady', () => ({
   startHomepageReadyTrace: jest.fn(),
   endHomepageReadyTrace: jest.fn(),
+  resolveColdHomepageReadyTrace: jest.fn(),
 }));
 
 const mockStartHomepageReadyTrace = jest.mocked(startHomepageReadyTrace);
 const mockEndHomepageReadyTrace = jest.mocked(endHomepageReadyTrace);
+const mockResolveColdHomepageReadyTrace = jest.mocked(
+  resolveColdHomepageReadyTrace,
+);
 
 describe('useHomepageReady', () => {
   let appStateListener: ((state: AppStateStatus) => void) | undefined;
@@ -52,6 +57,28 @@ describe('useHomepageReady', () => {
 
     expect(mockEndHomepageReadyTrace).toHaveBeenCalledWith({
       contentState: 'filled',
+    });
+  });
+
+  it('resolves the queued cold trace for a focused homepage', () => {
+    renderHook(() =>
+      useHomepageReady({ contentReady: false, contentState: 'filled' }),
+    );
+
+    expect(mockResolveColdHomepageReadyTrace).toHaveBeenCalledWith({
+      isHomepageFocused: true,
+    });
+  });
+
+  it('discards the queued cold trace for an unfocused homepage', () => {
+    mockIsFocused = false;
+
+    renderHook(() =>
+      useHomepageReady({ contentReady: false, contentState: 'filled' }),
+    );
+
+    expect(mockResolveColdHomepageReadyTrace).toHaveBeenCalledWith({
+      isHomepageFocused: false,
     });
   });
 
