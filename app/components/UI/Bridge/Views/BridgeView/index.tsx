@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -19,7 +19,10 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Engine from '../../../../../core/Engine';
 import {
+  resetBridgeState,
+  resetBridgeTokenInputs,
   selectBridgeViewMode,
   selectDestToken,
   selectSourceToken,
@@ -47,6 +50,7 @@ const BridgeView = () => {
     BridgeTabKey.Market,
   );
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -156,6 +160,39 @@ const BridgeView = () => {
       setRenderedTab(BridgeTabKey.Market);
     }
   }, [tabs, renderedTab]);
+
+  // Stops any in-flight BridgeController quote polling and clears the
+  // amount inputs (not the selected tokens) for the tab being left,
+  // whenever the rendered tab changes. This intentionally runs as the
+  // effect's cleanup rather than eagerly inside handleTabPress: cleanups
+  // fire after React commits the tab switch (deferred via startTransition
+  // above), so the outgoing tab is already gone by the time this runs
+  // instead of visibly flashing back to a reset state right before it's
+  // replaced.
+  useEffect(
+    () => () => {
+      if (Engine.context.BridgeController?.resetState) {
+        Engine.context.BridgeController.resetState();
+      }
+      dispatch(resetBridgeTokenInputs());
+    },
+    [renderedTab, dispatch],
+  );
+
+  // Reset the full bridge state (selected tokens, amounts, and controller
+  // quote state) when the whole Bridge screen unmounts, i.e. the user
+  // leaves Bridge entirely, not just switching tabs within it. This lives
+  // here rather than in an individual tab's view so it fires exactly once
+  // regardless of which tab is active when the user navigates away.
+  useEffect(
+    () => () => {
+      dispatch(resetBridgeState());
+      if (Engine.context.BridgeController?.resetState) {
+        Engine.context.BridgeController.resetState();
+      }
+    },
+    [dispatch],
+  );
 
   return (
     <Box twClassName="flex-1 bg-default">

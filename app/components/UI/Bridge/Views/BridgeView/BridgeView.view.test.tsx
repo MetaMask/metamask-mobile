@@ -92,7 +92,7 @@ describeForPlatforms('BridgeView', () => {
   });
 
   describe('tabs', () => {
-    it('renders the market tab by default', () => {
+    it('shows the market tab with its label by default, then switches to the limit tab and hides slippage settings on press', async () => {
       const { getByTestId, queryByTestId } = renderBridgeView();
 
       expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
@@ -103,29 +103,14 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
-      ).toBeNull();
-      expect(
-        queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
-      ).toBeNull();
-    });
-
-    it('labels the tabs with the market, limit and recurring strings', () => {
-      const { getByTestId } = renderBridgeView();
-
-      expect(
         getByTestId(`${BridgeViewSelectorsIDs.MARKET_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.market'));
       expect(
-        getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
-      ).toHaveTextContent(strings('bridge.tabs.limit'));
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).not.toBeOnTheScreen();
       expect(
-        getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
-      ).toHaveTextContent(strings('bridge.tabs.recurring'));
-    });
-
-    it('replaces the market content and hides slippage settings on the limit tab', async () => {
-      const { getByTestId, queryByTestId } = renderBridgeView();
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
 
@@ -136,14 +121,21 @@ describeForPlatforms('BridgeView', () => {
       });
       expect(
         queryByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
       expect(
         queryByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
-    it('replaces the market content on the recurring tab', async () => {
+    it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
       const { getByTestId, queryByTestId } = renderBridgeView();
+
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.limit'));
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.recurring'));
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
 
@@ -154,7 +146,7 @@ describeForPlatforms('BridgeView', () => {
       });
       expect(
         queryByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('restores the market content when returning to the market tab', async () => {
@@ -176,12 +168,33 @@ describeForPlatforms('BridgeView', () => {
       });
       expect(
         queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
+    });
+
+    it('clears the amount inputs and stops controller polling after switching away from the market tab, keeping the selected tokens', async () => {
+      const { getByTestId, store } = defaultBridgeWithTokens();
+
+      expect(store.getState().bridge.sourceToken).toBeTruthy();
+      expect(store.getState().bridge.sourceAmount).toBe('1');
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceAmount).toBeUndefined();
+      });
+      // The selected tokens are preserved so Market shows the same pair on return.
+      expect(store.getState().bridge.sourceToken).toBeTruthy();
+      expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
     });
 
     describe('feature flags', () => {
-      it('hides the tabs bar and only renders the market view when both Limit and Recurring flags are disabled', () => {
-        const { getByTestId, queryByTestId } = renderBridgeView({
+      it('hides the tabs bar and keeps the market view functional when both Limit and Recurring flags are disabled', async () => {
+        const { getByTestId, queryByTestId, store } = renderBridgeView({
           overrides: {
             engine: {
               backgroundState: {
@@ -196,15 +209,29 @@ describeForPlatforms('BridgeView', () => {
           } as unknown as DeepPartial<RootState>,
         });
 
-        expect(queryByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeNull();
-        expect(queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeNull();
-        expect(queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB)).toBeNull();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.TABS_BAR),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+        ).not.toBeOnTheScreen();
         expect(
           getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
         ).toBeOnTheScreen();
+
+        act(() => {
+          store.dispatch(setSourceAmount('1'));
+        });
+
+        await waitFor(() => {
+          expect(store.getState().bridge.sourceAmount).toBe('1');
+        });
       });
 
-      it('shows only the enabled tab when a single WIP flag is enabled', () => {
+      it('shows only the enabled tab when a single WIP flag is enabled and lets the user switch to it', async () => {
         const { getByTestId, queryByTestId } = renderBridgeView({
           overrides: {
             engine: {
@@ -222,7 +249,17 @@ describeForPlatforms('BridgeView', () => {
 
         expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
         expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeOnTheScreen();
-        expect(queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB)).toBeNull();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+        ).not.toBeOnTheScreen();
+
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+        await waitFor(() => {
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+          ).toBeOnTheScreen();
+        });
       });
     });
   });

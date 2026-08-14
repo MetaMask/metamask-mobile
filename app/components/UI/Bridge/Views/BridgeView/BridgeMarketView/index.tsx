@@ -17,7 +17,9 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import {
   BannerAlert,
   BannerAlertSeverity,
+  BannerBase,
   Box,
+  ButtonSize,
   Icon,
   IconColor,
   IconName,
@@ -36,7 +38,6 @@ import {
   selectSelectedDestChainId,
   setSourceAmount,
   setSourceAmountAsMax,
-  resetBridgeState,
   selectDestToken,
   selectSourceToken,
   selectIsEvmNonEvmBridge,
@@ -52,8 +53,6 @@ import {
   selectSlippage,
   selectIsSlippageUserOverride,
 } from '../../../../../../core/redux/slices/bridge';
-import BannerBase from '../../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
-import { IconName as CLIconName } from '../../../../../../component-library/components/Icons/Icon';
 import { TokenWarningModalMode } from '../../../components/TokenWarningModal/constants';
 import {
   useNavigation,
@@ -65,7 +64,6 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { SecurityDataType, TokenSelectorType } from '../../../types';
-import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
@@ -134,10 +132,6 @@ import { getQuoteStreamReasonString } from './BridgeMarketView.utils';
 import { hasMissingPriceData } from '../../../utils/hasMissingPriceData';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError/index.ts';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button/Button.types.ts';
 import { useIsNetworkFeeUnavailable } from '../../../hooks/useIsNetworkFeeUnavailable/index.ts';
 import {
   hidePostTradeNotificationSurface,
@@ -461,18 +455,6 @@ const BridgeMarketViewContent = ({
     isSlippageUserOverride,
   ]);
 
-  // Reset bridge state when component unmounts
-  useEffect(
-    () => () => {
-      dispatch(resetBridgeState());
-      // Clear bridge controller state if available
-      if (Engine.context.BridgeController?.resetState) {
-        Engine.context.BridgeController.resetState();
-      }
-    },
-    [dispatch],
-  );
-
   useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
@@ -726,7 +708,6 @@ const BridgeMarketViewContent = ({
                               )
                         }
                         onClose={navigateToModal}
-                        closeButtonProps={{ iconName: CLIconName.ArrowRight }}
                       />
                     </Pressable>
                   );
@@ -755,15 +736,15 @@ const BridgeMarketViewContent = ({
                         { ticker },
                       )}
                       style={bannerStyle}
+                      actionButtonLabel={strings(
+                        'bridge.insufficient_native_reserve_cta',
+                      )}
+                      actionButtonOnPress={() =>
+                        handleSourcePresetAmountSelect(
+                          insufficientNativeReserveError.maxSwappableNativeBalance,
+                        )
+                      }
                       actionButtonProps={{
-                        label: strings(
-                          'bridge.insufficient_native_reserve_cta',
-                        ),
-                        onPress: () =>
-                          handleSourcePresetAmountSelect(
-                            insufficientNativeReserveError.maxSwappableNativeBalance,
-                          ),
-                        variant: ButtonVariants.Primary,
                         size: ButtonSize.Sm,
                         style: {
                           marginTop: 6,
