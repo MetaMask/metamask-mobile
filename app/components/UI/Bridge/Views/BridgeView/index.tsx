@@ -52,7 +52,6 @@ import {
   selectBridgeControllerState,
   selectSlippage,
   selectIsSlippageUserOverride,
-  selectIsInOffHoursTrading,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
@@ -150,6 +149,7 @@ import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../utils/postTradeNotifications';
+import { useStockMarketHours } from '../../hooks/useStockMarketHours';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -160,17 +160,7 @@ interface BridgeViewContentProps {
 const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
 
-  // Re-evaluate off-hours market status every minute so the warning banner
-  // appears / disappears as soon as the off-hours window opens or closes.
-  const [nowMs, setNowMs] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNowMs(Date.now()), 60_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const isInOffHoursTrading = useSelector((state: RootState) =>
-    selectIsInOffHoursTrading(state, nowMs),
-  );
+  const { isInOffHoursTrading, isStockMarketClosed } = useStockMarketHours();
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -433,7 +423,8 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
     hasInsufficientGas ||
-    !walletAddress;
+    !walletAddress ||
+    isStockMarketClosed;
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
@@ -857,6 +848,15 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                   title={strings('bridge.off_hours_trading.title')}
                   description={strings('bridge.off_hours_trading.description')}
                   testID={BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER}
+                />
+              ) : null}
+
+              {isStockMarketClosed ? (
+                <BannerAlert
+                  severity={BannerAlertSeverity.Danger}
+                  title={strings('bridge.market_closed.title')}
+                  description={strings('bridge.market_closed.description')}
+                  testID={BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER}
                 />
               ) : null}
             </Box>

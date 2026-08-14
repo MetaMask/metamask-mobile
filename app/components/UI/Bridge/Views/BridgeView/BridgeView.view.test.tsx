@@ -647,6 +647,53 @@ describeForPlatforms('BridgeView', () => {
         ).not.toBeOnTheScreen();
       });
     });
+
+    it('replaces the off-hours warning with the market-closed banner when dest stock becomes fully closed', async () => {
+      const nowMs = Date.now();
+      const stockInOffHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: true,
+      });
+      const stockFullyClosed = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: false,
+      });
+      const { queryByTestId, findByTestId, store } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+      });
+
+      act(() => {
+        store.dispatch(setDestToken(stockInOffHours));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(stockFullyClosed));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
