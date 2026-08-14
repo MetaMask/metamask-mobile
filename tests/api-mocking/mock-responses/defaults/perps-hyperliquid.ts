@@ -97,5 +97,15 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       },
       priority: hyperliquidMockPriority,
     },
+    {
+      urlEndpoint: hyperliquidInfoEndpoint,
+      requestBody: {
+        type: 'userAbstraction',
+      },
+      ignoreFields: ['user'],
+      responseCode: 200,
+      response: 'default',
+      priority: hyperliquidMockPriority,
+    },
   ],
 };
