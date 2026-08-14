@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Appearance, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
 import Engine from '../../../../core/Engine';
@@ -23,6 +23,9 @@ import {
 import PickComponent from '../../PickComponent';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { setAppTheme } from '../../../../actions/user';
+import { selectAppTheme } from '../../../../selectors/user';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -47,6 +50,9 @@ import { GeneralSettingsSelectorsIDs } from './GeneralSettings.testIds';
 
 export const GENERAL_SETTINGS_CURRENCY_SELECTOR =
   'general-settings-currency-selector';
+
+export const GENERAL_SETTINGS_THEME_SELECTOR =
+  'general-settings-theme-selector';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
   a.quote.code
@@ -73,6 +79,14 @@ interface SelectOption {
   key: string;
   value: string;
 }
+
+const themeOptions: SelectOption[] = (
+  Object.values(AppThemeKey) as AppThemeKey[]
+).map((themeKey) => ({
+  value: themeKey,
+  label: strings(`app_settings.theme_${themeKey}`),
+  key: themeKey,
+}));
 
 interface SettingsState {
   searchEngine: string;
@@ -153,6 +167,8 @@ const Settings = ({
   hapticsEnabled,
   setHapticsEnabled,
 }: Props) => {
+  const dispatch = useDispatch();
+  const appTheme = useSelector(selectAppTheme);
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [currentLanguage, setCurrentLanguage] = useState(
@@ -219,6 +235,18 @@ const Settings = ({
     setPrimaryCurrency(selectedPrimaryCurrency);
 
     updateUserTraitsWithCurrencyType(selectedPrimaryCurrency);
+  };
+
+  const selectTheme = (theme: string) => {
+    const selectedTheme = theme as AppThemeKey;
+    dispatch(setAppTheme(selectedTheme));
+    const themeStyle =
+      selectedTheme === AppThemeKey.os
+        ? Appearance.getColorScheme()
+        : selectedTheme;
+    analytics.identify({
+      [UserProfileProperty.THEME]: themeStyle ?? null,
+    });
   };
 
   return (
@@ -301,6 +329,32 @@ const Settings = ({
           </View>
           <View style={styles.setting}>
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('app_settings.theme_title', {
+                theme: strings(`app_settings.theme_${appTheme}`),
+              })}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              style={styles.desc}
+            >
+              {strings('app_settings.theme_description')}
+            </Text>
+            <View style={styles.accessory}>
+              <SelectComponent
+                testID={GENERAL_SETTINGS_THEME_SELECTOR}
+                selectedValue={appTheme}
+                onValueChange={selectTheme}
+                label={strings('app_settings.theme_title', {
+                  theme: strings(`app_settings.theme_${appTheme}`),
+                })}
+                options={themeOptions}
+              />
+            </View>
+          </View>
+          <View style={styles.setting}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('app_settings.search_engine')}
             </Text>
             <Text
@@ -368,7 +422,6 @@ const mapStateToProps = (state: SettingsRootState): StateProps => ({
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   hapticsEnabled: state.settings.hapticsEnabled !== false,
   isPushNotificationsEnabled: selectIsMetaMaskPushNotificationsEnabled(state),
-  // appTheme: state.user.appTheme,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
