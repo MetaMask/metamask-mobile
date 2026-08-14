@@ -171,6 +171,10 @@ const Settings = ({
   const appTheme = useSelector(selectAppTheme);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const themeLabel = strings(`app_settings.theme_${appTheme}`);
+  const themeTitle = strings('app_settings.theme_title', {
+    theme: themeLabel,
+  });
   const [currentLanguage, setCurrentLanguage] = useState(
     I18n.locale.substr(0, 2),
   );
@@ -329,9 +333,7 @@ const Settings = ({
           </View>
           <View style={styles.setting}>
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('app_settings.theme_title', {
-                theme: strings(`app_settings.theme_${appTheme}`),
-              })}
+              {themeTitle}
             </Text>
             <Text
               variant={TextVariant.BodySm}
@@ -346,9 +348,7 @@ const Settings = ({
                 testID={GENERAL_SETTINGS_THEME_SELECTOR}
                 selectedValue={appTheme}
                 onValueChange={selectTheme}
-                label={strings('app_settings.theme_title', {
-                  theme: strings(`app_settings.theme_${appTheme}`),
-                })}
+                label={themeTitle}
                 options={themeOptions}
               />
             </View>
