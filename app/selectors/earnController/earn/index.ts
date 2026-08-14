@@ -532,6 +532,36 @@ const selectEarnTokens = createDeepEqualSelector(
   },
 );
 
+export const selectEarnAssetCatalogueInputs = createDeepEqualSelector(
+  [
+    selectEarnTokens,
+    selectAllLendingMarkets,
+    selectMoneyDepositEligibleAssets,
+    pooledStakingSelectors.selectEligibility,
+    selectPooledStakingEnabledFlag,
+    selectStablecoinLendingEnabledFlag,
+    selectTrxStakingEnabled,
+  ],
+  (
+    earnTokensData,
+    lendingMarkets,
+    moneyDepositAssets,
+    isEarnEligible,
+    isPooledStakingEnabled,
+    isStablecoinLendingEnabled,
+    isTrxStakingEnabled,
+  ) => ({
+    earnTokens: earnTokensData.earnTokens,
+    earnOutputTokens: earnTokensData.earnOutputTokens,
+    lendingMarkets,
+    moneyDepositAssets,
+    isEarnEligible,
+    isPooledStakingEnabled,
+    isStablecoinLendingEnabled,
+    isTrxStakingEnabled,
+  }),
+);
+
 const selectEarnToken = createSelector(
   [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
   (earnTokens, asset) => {
@@ -659,6 +689,7 @@ export const earnSelectors = {
   selectEarnControllerState,
   selectAllLendingMarkets,
   selectEarnTokens,
+  selectEarnAssetCatalogueInputs,
   selectEarnToken,
   selectEarnOutputToken,
   selectEarnTokenPair,
