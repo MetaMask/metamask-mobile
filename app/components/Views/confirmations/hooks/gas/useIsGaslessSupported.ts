@@ -12,11 +12,6 @@ import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmart
  * - Via Smart Transactions (sendBundle): Supported when smart transactions are enabled and sendBundle is supported for the chain. Works for all account types including hardware wallets, since only standard EIP-1559 signing is required.
  * - Via 7702 relay: Supported when the current account is upgraded, the chain supports atomic batch, relay is available, and the transaction is not a contract deployment. Hardware wallets are excluded from this path because they cannot sign EIP-7702 authorization lists.
  *
- * The check is intentionally based on `txParams.from` — the account that signs
- * the confirmed transaction. MM Pay funding accounts never sign this
- * transaction, and the pay controller separately excludes non-HD payers from
- * 7702 when building funding transactions.
- *
  * @returns An object containing:
  * - `isSupported`: `true` if gasless transactions are supported via either sendBundle or 7702.
  * - `isSmartTransaction`: `true` if smart transactions are enabled for the current chain.
