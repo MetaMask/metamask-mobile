@@ -22,6 +22,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsProOrdersPreferences } from '../../../hooks/usePerpsProOrdersPreferences';
 import { usePerpsProPositionsPreferences } from '../../../hooks/usePerpsProPositionsPreferences';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import {
@@ -50,11 +51,7 @@ import {
   getProPositionSideFilterButtonLabelKey,
   getProPositionSideFilterEmptyDescriptionKey,
 } from '../utils/proPositionSideFilter';
-import {
-  DEFAULT_PRO_ORDER_SORT,
-  sortProOrders,
-  type ProOrderSortConfig,
-} from '../utils/proOrderSort';
+import { sortProOrders } from '../utils/proOrderSort';
 import { sortProPositions } from '../utils/proPositionSort';
 
 const POSITIONS_TAB_INDEX = 0;
@@ -83,9 +80,8 @@ interface PerpsProPositionsPanelProps {
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
  * The Positions tab shows the user's open positions across all assets,
  * falling back to an empty state when there are none.
- * The sort, side, and `$TICKER only` controls apply to both tabs. Positions
- * and orders use domain-specific sort fields while sharing side and market
- * filters.
+ * Sort and side-filter preferences persist independently per tab via
+ * PerpsController. `$TICKER only` is still shared local UI state.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -100,11 +96,18 @@ const PerpsProPositionsPanel = ({
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [isSideFilterSheetOpen, setIsSideFilterSheetOpen] = useState(false);
-  const { sideFilter, sortConfig, setSideFilter, setSortConfig } =
-    usePerpsProPositionsPreferences();
-  const [orderSortConfig, setOrderSortConfig] = useState<ProOrderSortConfig>(
-    DEFAULT_PRO_ORDER_SORT,
-  );
+  const {
+    sideFilter: positionsSideFilter,
+    sortConfig,
+    setSideFilter: setPositionsSideFilter,
+    setSortConfig,
+  } = usePerpsProPositionsPreferences();
+  const {
+    sideFilter: ordersSideFilter,
+    sortConfig: orderSortConfig,
+    setSideFilter: setOrdersSideFilter,
+    setSortConfig: setOrderSortConfig,
+  } = usePerpsProOrdersPreferences();
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000,
     useLivePnl: true,
@@ -187,14 +190,20 @@ const PerpsProPositionsPanel = ({
     [isTickerOnly, orders, symbol],
   );
 
+  const isOrdersTab = activeIndex === ORDERS_TAB_INDEX;
+  const activeSideFilter = isOrdersTab ? ordersSideFilter : positionsSideFilter;
+  const setActiveSideFilter = isOrdersTab
+    ? setOrdersSideFilter
+    : setPositionsSideFilter;
+
   const sideFilteredPositions = useMemo(
-    () => filterProPositionsBySide(visiblePositions, sideFilter),
-    [sideFilter, visiblePositions],
+    () => filterProPositionsBySide(visiblePositions, positionsSideFilter),
+    [positionsSideFilter, visiblePositions],
   );
 
   const sideFilteredOrders = useMemo(
-    () => filterProOrdersBySide(visibleOrders, sideFilter),
-    [sideFilter, visibleOrders],
+    () => filterProOrdersBySide(visibleOrders, ordersSideFilter),
+    [ordersSideFilter, visibleOrders],
   );
 
   const sortedVisiblePositions = useMemo(
@@ -247,11 +256,11 @@ const PerpsProPositionsPanel = ({
   const hasPositions = sortedVisiblePositions.length > 0;
   const hasAnyPositions = positions.length > 0;
   const isSideFilterEmpty =
-    sideFilter !== 'all' &&
+    positionsSideFilter !== 'all' &&
     sideFilteredPositions.length === 0 &&
     visiblePositions.length > 0;
   const sideFilterEmptyDescriptionKey = isSideFilterEmpty
-    ? getProPositionSideFilterEmptyDescriptionKey(sideFilter)
+    ? getProPositionSideFilterEmptyDescriptionKey(positionsSideFilter)
     : undefined;
   const filteredTicker =
     isTickerOnly &&
@@ -263,11 +272,11 @@ const PerpsProPositionsPanel = ({
 
   const hasAnyOrders = orders.length > 0;
   const isOrderSideFilterEmpty =
-    sideFilter !== 'all' &&
+    ordersSideFilter !== 'all' &&
     sideFilteredOrders.length === 0 &&
     visibleOrders.length > 0;
   const orderSideFilterEmptyDescriptionKey = isOrderSideFilterEmpty
-    ? getProOrderSideFilterEmptyDescriptionKey(sideFilter)
+    ? getProOrderSideFilterEmptyDescriptionKey(ordersSideFilter)
     : undefined;
   const filteredOrdersTicker =
     isTickerOnly &&
@@ -286,7 +295,8 @@ const PerpsProPositionsPanel = ({
             returnOnEquity={aggregateTotals.returnOnEquity}
             positionCount={sideFilteredPositions.length}
             isFiltered={
-              isTickerOnly || sideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER
+              isTickerOnly ||
+              positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER
             }
             onCloseAll={handleCloseAllPress}
           />
@@ -444,7 +454,7 @@ const PerpsProPositionsPanel = ({
           onPress={() => setIsSideFilterSheetOpen(true)}
           testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON}
         >
-          {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
+          {strings(getProPositionSideFilterButtonLabelKey(activeSideFilter))}
         </Button>
         <Box twClassName="bg-muted rounded-lg px-2 py-1">
           {renderTickerOnlyCheckbox()}
@@ -473,8 +483,8 @@ const PerpsProPositionsPanel = ({
       )}
       <PerpsProPositionsSideFilterSheet
         isVisible={isSideFilterSheetOpen}
-        sideFilter={sideFilter}
-        onApply={setSideFilter}
+        sideFilter={activeSideFilter}
+        onApply={setActiveSideFilter}
         onClose={() => setIsSideFilterSheetOpen(false)}
         testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}
       />

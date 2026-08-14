@@ -9,7 +9,7 @@ import {
 import type { ProPositionSortConfig } from '../Views/PerpsProMarketView/utils/proPositionSort';
 
 export interface UsePerpsProPositionsPreferencesReturn {
-  /** Shared Positions/Orders side filter from persisted controller state. */
+  /** Positions-only side filter from persisted controller state. */
   sideFilter: ProPositionsSideFilter;
   /** Positions list sort config composed for UI from flat controller fields. */
   sortConfig: ProPositionSortConfig;
@@ -20,13 +20,13 @@ export interface UsePerpsProPositionsPreferencesReturn {
 }
 
 /**
- * Read and update persisted Pro Positions/Orders panel sort and side-filter
+ * Read and update persisted Pro Positions panel sort and side-filter
  * preferences.
  *
  * These live as flat fields on `PerpsController.proLayoutPreferences`
  * (`positionsSideFilter`, `positionsSortField`, `positionsSortDirection`), so
- * the choice is global across markets and survives app restarts. Nested UI
- * sort config is mapped at this boundary.
+ * the choice is global across markets and survives app restarts independently
+ * of Orders. Nested UI sort config is mapped at this boundary.
  */
 export const usePerpsProPositionsPreferences =
   (): UsePerpsProPositionsPreferencesReturn => {

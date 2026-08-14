@@ -11,6 +11,7 @@ import {
   DEFAULT_PERPS_MODE,
   type PerpsAnalyticsProperties,
 } from '@metamask/perps-controller';
+import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller/constants';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { store } from '../../../../store';
 import { selectPerpsMode } from '../selectors/perpsController';
@@ -21,7 +22,7 @@ import { selectPerpsMode } from '../selectors/perpsController';
  * Kept separate from `PERPS_EVENT_PROPERTY.MODE` (`"mode"`), which search
  * already uses for query intent (`discovery` / `intent` / `browse`).
  */
-export const PERPS_MODE_ANALYTICS_PROPERTY = 'perps_mode' as const;
+export const PERPS_MODE_ANALYTICS_PROPERTY = PERPS_EVENT_PROPERTY.PERPS_MODE;
 
 /**
  * Snapshot the current Lite/Pro interface mode as an analytics property.

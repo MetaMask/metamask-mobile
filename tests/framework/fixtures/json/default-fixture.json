@@ -472,7 +472,13 @@
             "chartExpanded": false,
             "orderBookExpanded": false,
             "orderBookPosition": "left",
-            "orderFormPosition": "right"
+            "orderFormPosition": "right",
+            "positionsSideFilter": "all",
+            "positionsSortField": "positionValue",
+            "positionsSortDirection": "desc",
+            "ordersSideFilter": "all",
+            "ordersSortField": "time",
+            "ordersSortDirection": "desc"
           },
           "recentlyViewedMarkets": {
             "mainnet": [],

@@ -148,7 +148,7 @@ export function usePerpsClosePositionValidation(
       const closeParams: ClosePositionParams = {
         symbol,
         size: closePercentage === 100 ? undefined : closeAmount.toString(),
-        orderType,
+        orderType: orderType === 'limit' ? 'limit' : 'market',
         price: orderType === 'limit' ? limitPrice : undefined,
         currentPrice: executionPrice,
       };

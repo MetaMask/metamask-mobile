@@ -54,6 +54,26 @@ jest.mock('../../../hooks/usePerpsProPositionsPreferences', () => {
   };
 });
 
+jest.mock('../../../hooks/usePerpsProOrdersPreferences', () => {
+  const { useState } = jest.requireActual('react') as typeof import('react');
+  const { DEFAULT_PRO_LAYOUT_PREFERENCES } = jest.requireActual(
+    '@metamask/perps-controller',
+  ) as typeof import('@metamask/perps-controller');
+
+  return {
+    usePerpsProOrdersPreferences: () => {
+      const [sideFilter, setSideFilter] = useState(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSideFilter,
+      );
+      const [sortConfig, setSortConfig] = useState({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortDirection,
+      });
+      return { sideFilter, sortConfig, setSideFilter, setSortConfig };
+    },
+  };
+});
+
 jest.mock('../../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));
@@ -400,7 +420,7 @@ describe('PerpsProPositionsPanel', () => {
     ).toBeNull();
   });
 
-  it('filters orders by side from the shared filter bar', () => {
+  it('filters orders by side from the orders tab filter bar', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [
         makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
@@ -439,6 +459,56 @@ describe('PerpsProPositionsPanel', () => {
     applySideFilter('long');
 
     expect(screen.getByText('No long orders.')).toBeOnTheScreen();
+  });
+
+  it('keeps positions and orders side filters independent', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
+        makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('SOL')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expectTabLabel('Orders (2)');
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
+
+    applySideFilter('short');
+
+    expectTabLabel('Orders (1)');
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
+    expect(screen.queryByText('BTC')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_POSITIONS,
+      ),
+    );
+
+    expect(screen.getByText('Long')).toBeOnTheScreen();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('SOL')).toBeNull();
   });
 
   it('sorts orders by order value from the Orders tab', () => {

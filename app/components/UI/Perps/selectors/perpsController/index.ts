@@ -218,9 +218,10 @@ const selectPerpsProChartExpanded = createSelector(
 );
 
 /**
- * Pro Positions/Orders panel side filter (all/long/short). Persisted globally
+ * Pro Positions panel side filter (all/long/short). Persisted globally
  * across markets and app restarts via
  * `PerpsController.proLayoutPreferences.positionsSideFilter`.
+ * Independent of `ordersSideFilter`.
  */
 const selectPerpsProPositionsSideFilter = createSelector(
   selectPerpsProLayoutPreferences,
@@ -238,6 +239,31 @@ const selectPerpsProPositionsSortConfig = createSelector(
   (proLayoutPreferences) => ({
     field: proLayoutPreferences.positionsSortField,
     direction: proLayoutPreferences.positionsSortDirection,
+  }),
+);
+
+/**
+ * Pro Orders panel side filter (all/long/short). Persisted globally across
+ * markets and app restarts via
+ * `PerpsController.proLayoutPreferences.ordersSideFilter`.
+ * Independent of `positionsSideFilter`.
+ */
+const selectPerpsProOrdersSideFilter = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences) => proLayoutPreferences.ordersSideFilter,
+);
+
+/**
+ * Pro Orders list sort config composed from flat controller fields.
+ * Persisted globally across markets and app restarts via
+ * `ordersSortField` / `ordersSortDirection` on
+ * `PerpsController.proLayoutPreferences`.
+ */
+const selectPerpsProOrdersSortConfig = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences) => ({
+    field: proLayoutPreferences.ordersSortField,
+    direction: proLayoutPreferences.ordersSortDirection,
   }),
 );
 
@@ -272,4 +298,6 @@ export {
   selectPerpsProChartExpanded,
   selectPerpsProPositionsSideFilter,
   selectPerpsProPositionsSortConfig,
+  selectPerpsProOrdersSideFilter,
+  selectPerpsProOrdersSortConfig,
 };

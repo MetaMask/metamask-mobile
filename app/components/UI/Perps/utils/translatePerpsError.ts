@@ -99,6 +99,45 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.editTriggerUnsupported',
   [PERPS_ERROR_CODES.ORDER_EDIT_ORDER_UNVERIFIABLE]:
     'perps.errors.orderValidation.editOrderUnverifiable',
+  // Strategy placement errors (TWAP / scale / chase)
+  [PERPS_ERROR_CODES.ORDER_STRATEGY_PARAMS_NOT_SUPPORTED]:
+    'perps.errors.orderValidation.strategyParamsNotSupported',
+  [PERPS_ERROR_CODES.ORDER_STRATEGY_FIELD_UNSUPPORTED]:
+    'perps.errors.orderValidation.strategyFieldUnsupported',
+  [PERPS_ERROR_CODES.ORDER_STRATEGY_MARKET_UNSUPPORTED]:
+    'perps.errors.orderValidation.strategyMarketUnsupported',
+  [PERPS_ERROR_CODES.ORDER_STRATEGY_HANDLE_UNKNOWN]:
+    'perps.errors.orderValidation.strategyHandleUnknown',
+  [PERPS_ERROR_CODES.ORDER_EDIT_STRATEGY_UNSUPPORTED]:
+    'perps.errors.orderValidation.editStrategyUnsupported',
+  [PERPS_ERROR_CODES.ORDER_STRATEGY_CANCEL_INCOMPLETE]:
+    'perps.errors.orderValidation.strategyCancelIncomplete',
+  [PERPS_ERROR_CODES.ORDER_TWAP_DURATION_REQUIRED]:
+    'perps.errors.orderValidation.twapDurationRequired',
+  [PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID]:
+    'perps.errors.orderValidation.twapDurationInvalid',
+  [PERPS_ERROR_CODES.ORDER_SCALE_RANGE_REQUIRED]:
+    'perps.errors.orderValidation.scaleRangeRequired',
+  [PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID]:
+    'perps.errors.orderValidation.scaleRangeInvalid',
+  [PERPS_ERROR_CODES.ORDER_SCALE_COUNT_INVALID]:
+    'perps.errors.orderValidation.scaleCountInvalid',
+  [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_TOO_SMALL]:
+    'perps.errors.orderValidation.scaleSizeTooSmall',
+  [PERPS_ERROR_CODES.ORDER_SCALE_NOTIONAL_TOO_SMALL]:
+    'perps.errors.orderValidation.scaleNotionalTooSmall',
+  [PERPS_ERROR_CODES.ORDER_TWAP_NOTIONAL_TOO_SMALL]:
+    'perps.errors.orderValidation.twapNotionalTooSmall',
+  [PERPS_ERROR_CODES.ORDER_CHASE_INTERVAL_INVALID]:
+    'perps.errors.orderValidation.chaseIntervalInvalid',
+  [PERPS_ERROR_CODES.ORDER_CHASE_DURATION_INVALID]:
+    'perps.errors.orderValidation.chaseDurationInvalid',
+  [PERPS_ERROR_CODES.ORDER_CHASE_ABANDONED]:
+    'perps.errors.orderValidation.chaseAbandoned',
+  [PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED]:
+    'perps.errors.orderValidation.chaseLimitReached',
+  [PERPS_ERROR_CODES.ORDER_CHASE_TOUCH_UNAVAILABLE]:
+    'perps.errors.orderValidation.chaseTouchUnavailable',
   // HyperLiquid client/service errors
   [PERPS_ERROR_CODES.EXCHANGE_CLIENT_NOT_AVAILABLE]:
     'perps.errors.exchangeClientNotAvailable',
