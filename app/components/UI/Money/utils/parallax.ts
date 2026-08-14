@@ -9,33 +9,17 @@ export const PARALLAX_REST_VALUE = 50;
 export const PARALLAX_TILT_AMPLITUDE = 50;
 
 /**
- * Travel the card takes of the artboard's authored range — four fifths of it,
- * so the card stops short of the poses the extremes hold. The artboard reads as
- * overdone when driven end to end, and the reach is the only part of the
- * response that was too much: shaping the curve instead would have damped the
- * small deliberate tilts MUSD-1249 tuned for, so the amplitude carries the
- * reduction and leaves the deadzone and the exponent as they are.
- *
- * Card-only. The parallax graphic and the First Deposit screen keep the full
- * amplitude; nothing asked for less reach there.
- */
-export const CARD_TILT_AMPLITUDE = 40;
-
-/**
  * Maps a normalized device-tilt value (from `useDeviceOrientation`, in the
  * [-1, 1] range) onto the Rive value, swinging symmetrically around the resting
  * value.
  *
  * A flat device (tilt 0) yields the rest value (centred); full tilt yields
- * `rest ± amplitude`. The input is clamped so a sensor spike can never push a
- * layer past its intended travel.
+ * `rest ± PARALLAX_TILT_AMPLITUDE`. The input is clamped so a sensor spike can
+ * never push a layer past its intended travel.
  */
-export function tiltToParallaxValue(
-  tilt: number,
-  amplitude: number = PARALLAX_TILT_AMPLITUDE,
-): number {
+export function tiltToParallaxValue(tilt: number): number {
   const clamped = Math.min(1, Math.max(-1, tilt));
-  return PARALLAX_REST_VALUE + clamped * amplitude;
+  return PARALLAX_REST_VALUE + clamped * PARALLAX_TILT_AMPLITUDE;
 }
 
 /**
@@ -45,11 +29,8 @@ export function tiltToParallaxValue(
  * `useDeviceOrientation`, so the pitch is inverted before mapping — without
  * this the graphic leans the wrong way.
  */
-export function pitchToParallaxValue(
-  pitch: number,
-  amplitude: number = PARALLAX_TILT_AMPLITUDE,
-): number {
-  return tiltToParallaxValue(-pitch, amplitude);
+export function pitchToParallaxValue(pitch: number): number {
+  return tiltToParallaxValue(-pitch);
 }
 
 /**
@@ -70,10 +51,17 @@ export const CARD_TILT_DEADZONE = 0.08;
 /**
  * Shapes the card's response above the deadzone. `useDeviceOrientation` reports
  * a tilt already squared by its own response curve, so an exponent below 0.5
- * would overshoot linear; 0.65 lands slightly eased, close to proportional to
+ * would overshoot linear; 0.8 lands slightly eased, close to proportional to
  * the angle the device is actually held at. Lower it for a livelier card.
+ *
+ * MUSD-1249 set this to 0.65 to answer a card that barely moved. That overshot:
+ * the card then swung on the few degrees a phone drifts through while it is
+ * simply being held, which reads as overdone rather than deliberate. 0.8 takes
+ * roughly a fifth off the response at the ten-or-so degrees a card is actually
+ * looked at, and damps the smallest movements hardest, while the extremes still
+ * reach full travel — the reach was never the complaint, the gain was.
  */
-export const CARD_TILT_RESPONSE_EXPONENT = 0.65;
+export const CARD_TILT_RESPONSE_EXPONENT = 0.8;
 
 /**
  * Fraction of the device's tilt travel the parallax graphic treats as
@@ -165,7 +153,9 @@ export function shapeTiltAboveNoiseFloor(
  * Shapes a normalized device tilt into the value driving the card artboard.
  *
  * The card needed a large tilt before it visibly moved, so its exponent eases
- * the response to close to proportional with the angle the device is held at.
+ * the response to close to proportional with the angle the device is held at —
+ * enough to answer a deliberate tilt, not so much that holding the phone still
+ * enough to read it drives the artboard.
  */
 export function shapeCardTilt(tilt: number): number {
   return shapeTilt(tilt, CARD_TILT_DEADZONE, CARD_TILT_RESPONSE_EXPONENT);

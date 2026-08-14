@@ -7,7 +7,6 @@ import {
   shapeCardTilt,
   shapeParallaxTilt,
   smoothParallaxTilt,
-  CARD_TILT_AMPLITUDE,
   CARD_TILT_DEADZONE,
   PARALLAX_TILT_AMPLITUDE,
   pitchToParallaxValue,
@@ -44,21 +43,6 @@ describe('tiltToParallaxValue', () => {
     );
     expect(tiltToParallaxValue(-2)).toBe(
       PARALLAX_REST_VALUE - PARALLAX_TILT_AMPLITUDE,
-    );
-  });
-
-  it('swings around the resting value by the amplitude it is given', () => {
-    expect(tiltToParallaxValue(1, CARD_TILT_AMPLITUDE)).toBe(
-      PARALLAX_REST_VALUE + CARD_TILT_AMPLITUDE,
-    );
-    expect(tiltToParallaxValue(-1, CARD_TILT_AMPLITUDE)).toBe(
-      PARALLAX_REST_VALUE - CARD_TILT_AMPLITUDE,
-    );
-  });
-
-  it('clamps to the given amplitude beyond the normalized range', () => {
-    expect(tiltToParallaxValue(2, CARD_TILT_AMPLITUDE)).toBe(
-      PARALLAX_REST_VALUE + CARD_TILT_AMPLITUDE,
     );
   });
 });
@@ -100,28 +84,6 @@ describe('pitchToParallaxValue', () => {
       expect(pitchToParallaxValue(pitch)).toBe(tiltToParallaxValue(-pitch));
     },
   );
-
-  it('swings around the resting value by the amplitude it is given', () => {
-    expect(pitchToParallaxValue(1, CARD_TILT_AMPLITUDE)).toBe(
-      PARALLAX_REST_VALUE - CARD_TILT_AMPLITUDE,
-    );
-    expect(pitchToParallaxValue(-1, CARD_TILT_AMPLITUDE)).toBe(
-      PARALLAX_REST_VALUE + CARD_TILT_AMPLITUDE,
-    );
-  });
-});
-
-describe('CARD_TILT_AMPLITUDE', () => {
-  it('reaches four fifths of the travel the artboard authors', () => {
-    expect(CARD_TILT_AMPLITUDE).toBeCloseTo(PARALLAX_TILT_AMPLITUDE * 0.8, 10);
-  });
-
-  it('leaves the parallax surfaces on the full amplitude', () => {
-    expect(CARD_TILT_AMPLITUDE).toBeLessThan(PARALLAX_TILT_AMPLITUDE);
-    expect(tiltToParallaxValue(1)).toBe(
-      PARALLAX_REST_VALUE + PARALLAX_TILT_AMPLITUDE,
-    );
-  });
 });
 
 describe('shapeCardTilt', () => {
@@ -151,6 +113,28 @@ describe('shapeCardTilt', () => {
     const smallTilt = (1 / 3) ** 2;
 
     expect(shapeCardTilt(smallTilt)).toBeGreaterThan(smallTilt * 3);
+  });
+
+  it('stays eased above a proportional response without over-boosting it', () => {
+    // Halfway through the travel, as reported by the hook's squared curve.
+    // Below the proportional 0.5 the card would need a deliberate turn before
+    // it answered at all; far above it, the drift of a hand holding a phone
+    // still enough to read drives the artboard.
+    const halfway = 0.5 ** 2;
+
+    expect(shapeCardTilt(halfway)).toBeGreaterThan(0.5);
+    expect(shapeCardTilt(halfway)).toBeLessThan(0.55);
+  });
+
+  it('damps the smallest movements hardest', () => {
+    // Share of the travel reached per share of the travel turned through. A
+    // gain change bites hardest near rest; an amplitude change would move
+    // every one of these by the same factor.
+    const responseAt = (fraction: number) =>
+      shapeCardTilt(fraction ** 2) / fraction;
+
+    expect(responseAt(0.1)).toBeLessThan(responseAt(0.25));
+    expect(responseAt(0.25)).toBeLessThan(responseAt(0.5));
   });
 
   it('increases monotonically with the tilt', () => {
