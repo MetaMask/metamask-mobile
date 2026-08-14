@@ -76,7 +76,10 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
-import { CustomAmountBuy } from '../../custom-amount/custom-amount-buy';
+import {
+  CustomAmountBuy,
+  getBuyMessage,
+} from '../../custom-amount/custom-amount-buy';
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
 
@@ -219,12 +222,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { toastRef } = useContext(ToastContext);
 
-    const { alertContent, alertMessage } = useTransactionCustomAmountAlerts({
-      isInputChanged,
-      isKeyboardVisible: stage === CustomAmountStage.AmountInput,
-      pendingTokenAmount: amountHumanDebounced,
-      pendingFiatAmount: amountFiatDebounced,
-    });
+    const { alertContent, alertMessage: alertMessageBase } =
+      useTransactionCustomAmountAlerts({
+        isInputChanged,
+        isKeyboardVisible: stage === CustomAmountStage.AmountInput,
+        pendingTokenAmount: amountHumanDebounced,
+        pendingFiatAmount: amountFiatDebounced,
+      });
 
     const hasAutoSubmittedPrefill = useRef(false);
 
@@ -368,6 +372,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       Boolean(accountOverride) &&
       (hasAccountNoFunds || stage === CustomAmountStage.Loading);
 
+    const showBuyButton =
+      (!hasPaymentOption || hasAccountNoFunds) &&
+      !hideBuyForNoFunds &&
+      !isDepositPrefillEnabled;
+
+    const alertMessage =
+      alertMessageBase ??
+      (showBuyButton ? getBuyMessage(transactionMeta) : undefined);
+
     // Keep payment details fixed while the amount update prepares the request.
     // Once a Money Account deposit quote is in flight, reopening either picker
     // is safe and keeps the loading screen responsive.
@@ -408,7 +421,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {!hidePayTokenAmount &&
             disablePay !== true &&
-            !alertMessage &&
+            !hasAlert &&
             (isMoneyAccountDeposit ? (
               <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
             ) : (
@@ -488,9 +501,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 }
               />
             )}
-          {(!hasPaymentOption || hasAccountNoFunds) &&
-            !hideBuyForNoFunds &&
-            !isDepositPrefillEnabled && <CustomAmountBuy />}
+          {showBuyButton && <CustomAmountBuy />}
           {stage !== CustomAmountStage.AmountInput && (
             <CustomAmountConfirmButton
               isDisabled={
