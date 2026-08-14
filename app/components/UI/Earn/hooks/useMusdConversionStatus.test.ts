@@ -8,8 +8,6 @@ import { renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { useMusdConversionStatus } from './useMusdConversionStatus';
 import useEarnToasts, { EarnToastOptionsConfig } from './useEarnToasts';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
 
 // Mock all external dependencies
@@ -63,8 +61,6 @@ import {
   TransactionPayStrategy,
   type TransactionPayQuote,
 } from '@metamask/transaction-pay-controller';
-import { mockTheme } from '../../../../util/theme';
-
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 const mockSelectTransactionPayQuotesByTransactionId = jest.mocked(
@@ -111,73 +107,47 @@ describe('useMusdConversionStatus', () => {
 
   const mockShowToast = jest.fn();
   const mockInProgressToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.Loading,
     hasNoTimeout: true,
-    backgroundColor: mockTheme.colors.background.default,
     hapticsType: NotificationMoment.Warning,
-    labelOptions: [{ label: 'In Progress', isBold: true }],
+    title: 'In Progress',
   };
   const mockInProgressFn = jest.fn(() => mockInProgressToast);
   const mockEarnToastOptions: EarnToastOptionsConfig = {
     mUsdConversion: {
       inProgress: mockInProgressFn,
       success: {
-        variant: ToastVariants.Icon as const,
-        iconName: IconName.CheckBold,
         hasNoTimeout: false,
-        iconColor: mockTheme.colors.success.default,
-        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationMoment.Success,
-        labelOptions: [{ label: 'Success', isBold: true }],
+        title: 'Success',
       },
       failed: {
-        variant: ToastVariants.Icon as const,
-        iconName: IconName.Danger,
         hasNoTimeout: false,
-        iconColor: mockTheme.colors.error.default,
-        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationMoment.Error,
-        labelOptions: [{ label: 'Failed', isBold: true }],
+        title: 'Failed',
       },
     },
     bonusClaim: {
       inProgress: {
-        variant: ToastVariants.Icon as const,
-        iconName: IconName.Loading,
         hasNoTimeout: true,
-        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationMoment.Warning,
-        labelOptions: [{ label: 'Claiming bonus', isBold: true }],
+        title: 'Claiming bonus',
       },
       success: {
-        variant: ToastVariants.Icon as const,
-        iconName: IconName.CheckBold,
         hasNoTimeout: false,
-        iconColor: mockTheme.colors.success.default,
-        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationMoment.Success,
-        labelOptions: [{ label: 'Success', isBold: true }],
+        title: 'Success',
       },
       failed: {
-        variant: ToastVariants.Icon as const,
-        iconName: IconName.Danger,
         hasNoTimeout: false,
-        iconColor: mockTheme.colors.error.default,
-        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationMoment.Error,
-        labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
+        title: 'Bonus claim failed',
       },
     },
     tronWithdrawal: {
       failed: jest.fn().mockReturnValue({
-        variant: ToastVariants.Icon as const,
-        iconName: IconName.Danger,
         hasNoTimeout: false,
-        iconColor: mockTheme.colors.error.default,
-        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationMoment.Error,
-        labelOptions: [{ label: 'Withdrawal failed', isBold: true }],
+        title: 'Withdrawal failed',
       }),
     },
   };
