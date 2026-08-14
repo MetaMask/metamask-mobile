@@ -36989,7 +36989,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:3.3.18, nanoid@npm:^3.3.18":
+"nanoid@npm:3.3.18, nanoid@npm:^3.1.23, nanoid@npm:^3.3.10, nanoid@npm:^3.3.12, nanoid@npm:^3.3.8":
   version: 3.3.18
   resolution: "nanoid@npm:3.3.18"
   bin:
@@ -36998,7 +36998,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:5.1.16":
+"nanoid@npm:^5.1.2":
   version: 5.1.16
   resolution: "nanoid@npm:5.1.16"
   bin:
