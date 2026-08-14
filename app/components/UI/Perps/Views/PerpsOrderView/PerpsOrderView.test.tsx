@@ -498,7 +498,7 @@ jest.mock(
 const mockUsePayTokenAccountBalance = jest.fn<
   { balanceUsd: string; balanceRaw: string; isResolved: boolean },
   unknown[]
->(() => ({ balanceUsd: '0', balanceRaw: '0', isResolved: false }));
+>(() => ({ balanceUsd: '0', balanceRaw: '0', isResolved: true }));
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance',
   () => ({
@@ -1654,7 +1654,7 @@ describe('PerpsOrderView', () => {
       mockUsePayTokenAccountBalance.mockReturnValue({
         balanceUsd: '0',
         balanceRaw: '0',
-        isResolved: false,
+        isResolved: true,
       });
       capturedOrderProviderProps = {};
       // jest.clearAllMocks() keeps implementations, so restore the shared
@@ -1871,6 +1871,63 @@ describe('PerpsOrderView', () => {
 
       // Assert
       expect(screen.getAllByText(minimumOrderCopy)).toHaveLength(1);
+    });
+
+    it('shows one funding row when the calculation and a blocking balance alert both fire', async () => {
+      // Arrange — the token cannot reach the minimum AND the confirmation layer
+      // raises its own blocking insufficiency for the same shortfall.
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([
+        {
+          key: 'insufficient-pay-token-balance',
+          message: 'You do not have enough ETH to cover this transaction',
+          isBlocking: true,
+        },
+      ]);
+
+      // Act
+      await renderWithPayToken({ balanceForValidation: 3 });
+
+      // Assert — one row, and it is the more specific calculated message.
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toHaveTextContent(minimumOrderCopy);
+      expect(
+        screen.queryByText(
+          'You do not have enough ETH to cover this transaction',
+        ),
+      ).toBeNull();
+
+      mockInsufficientAlert.mockReturnValue([]);
+    });
+
+    it('still surfaces an unrelated no-quote failure alongside the funding state', async () => {
+      // Arrange — a no-quote alert is a different failure and keeps its own row.
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockNoQuotesAlert.mockReturnValue([
+        {
+          key: 'no-pay-token-quotes',
+          message: 'This payment route is not available right now',
+          isBlocking: true,
+        },
+      ]);
+
+      // Act
+      await renderWithPayToken({ balanceForValidation: 1000 });
+
+      // Assert
+      expect(
+        screen.getByText('This payment route is not available right now'),
+      ).toBeOnTheScreen();
+
+      mockNoQuotesAlert.mockReturnValue([]);
     });
 
     it('keeps the place order button on screen after the payment method changes', async () => {

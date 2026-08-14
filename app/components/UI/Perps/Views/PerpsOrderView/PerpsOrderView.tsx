@@ -815,13 +815,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return allPayAlerts.filter((a) => a.isBlocking);
   }, [insufficientPayAlerts, noQuotesAlerts]);
 
+  // The confirmation layer's insufficiency alert describes the same shortfall
+  // as `payTokenFundingMessage`, so the two must not both render. A no-quote
+  // alert is a different failure and keeps its own row.
+  const blockingBalanceAlertMessage = useMemo(() => {
+    const balanceAlert = insufficientPayAlerts.find((a) => a.isBlocking);
+    return balanceAlert?.message ?? balanceAlert?.title;
+  }, [insufficientPayAlerts]);
+
+  const blockingNoQuoteAlertMessage = useMemo(() => {
+    const noQuoteAlert = noQuotesAlerts.find((a) => a.isBlocking);
+    return noQuoteAlert?.message ?? noQuoteAlert?.title;
+  }, [noQuotesAlerts]);
+
   const hasBlockingPayAlerts =
     hasCustomTokenSelected && blockingPayAlerts.length > 0;
-
-  const blockingPayAlertMessage = useMemo(
-    () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
-    [blockingPayAlerts],
-  );
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_ERROR,
@@ -1765,8 +1773,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         'perps.order.validation.insufficient_funds_to_cover_trade',
       );
     }
-    return null;
+    // Last, the confirmation alert: it validates the whole relay quote
+    // (input + fees) and so catches shortfalls the margin-only check misses.
+    // Owning it here is what keeps it from rendering as a second funding row.
+    return blockingBalanceAlertMessage ?? null;
   }, [
+    blockingBalanceAlertMessage,
     hasCustomTokenSelected,
     hasInsufficientPayTokenBalance,
     isBelowMinimumOrderAmount,
@@ -1781,7 +1793,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const hiddenMessages = [
       strings('perps.errors.orderValidation.sizePositive'),
     ];
-    if (payTokenFundingMessage) {
+    if (typeof payTokenFundingMessage === 'string') {
       hiddenMessages.push(payTokenFundingMessage);
     }
     return orderValidation.errors.filter(
@@ -2233,10 +2245,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             )}
 
-          {hasBlockingPayAlerts && !!blockingPayAlertMessage && (
+          {hasCustomTokenSelected && !!blockingNoQuoteAlertMessage && (
             <View style={styles.validationContainer}>
               <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {blockingPayAlertMessage}
+                {blockingNoQuoteAlertMessage}
               </Text>
             </View>
           )}
@@ -2263,6 +2275,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
+                isPayBalanceLoading ||
                 hasBlockingPayAlerts
               }
               isLoading={isPlacingOrder || orderValidation.isValidating}
@@ -2283,6 +2296,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
+                isPayBalanceLoading ||
                 hasBlockingPayAlerts
               }
               isLoading={isPlacingOrder || orderValidation.isValidating}

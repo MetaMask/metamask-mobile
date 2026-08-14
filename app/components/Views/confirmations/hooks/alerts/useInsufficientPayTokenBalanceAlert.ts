@@ -61,13 +61,23 @@ export function useInsufficientPayTokenBalanceAlert({
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
   const { withdrawableFiatRaw } = useMoneyAccountBalance();
-  const { balanceUsd: accountBalanceUsd, balanceRaw: accountBalanceRaw } =
-    usePayTokenAccountBalance();
+  const {
+    balanceUsd: accountBalanceUsd,
+    balanceRaw: accountBalanceRaw,
+    isResolved: isAccountBalanceResolved,
+  } = usePayTokenAccountBalance();
 
   const balanceUsd = isMoneyPaymentOverride
     ? (withdrawableFiatRaw ?? '0')
     : accountBalanceUsd;
   const balanceRaw = accountBalanceRaw;
+
+  // Until the pay-token balance resolves, `balanceUsd`/`balanceRaw` are the
+  // stale snapshot, which can read `0`. Comparing against it would raise a
+  // blocking insufficiency for a balance nobody has measured yet. The money
+  // override reads a different source and is not subject to that race, and the
+  // source-network and no-quote checks below use their own inputs.
+  const isPayBalanceKnown = isMoneyPaymentOverride || isAccountBalanceResolved;
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
@@ -125,8 +135,9 @@ export function useInsufficientPayTokenBalanceAlert({
     () =>
       !isPostQuote &&
       payToken &&
+      isPayBalanceKnown &&
       totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
-    [balanceUsd, isPostQuote, payToken, totalAmountUsd],
+    [balanceUsd, isPayBalanceKnown, isPostQuote, payToken, totalAmountUsd],
   );
 
   const isInsufficientForFees = useMemo(
@@ -135,9 +146,11 @@ export function useInsufficientPayTokenBalanceAlert({
       !isPostQuote &&
       !isPendingAlert &&
       payToken &&
+      isPayBalanceKnown &&
       totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
     [
       balanceRaw,
+      isPayBalanceKnown,
       isMoneyPaymentOverride,
       isPendingAlert,
       isPostQuote,
