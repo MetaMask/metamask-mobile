@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import type { LendingMarket } from '@metamask/stake-sdk';
 import Engine from '../../../../core/Engine';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
+import Logger from '../../../../util/Logger';
 
 interface UseEarnSectionLendingMarketsOptions {
   enabled: boolean;
@@ -29,11 +30,12 @@ const useEarnSectionLendingMarkets = ({
     try {
       await Engine.context.EarnController.refreshLendingMarkets();
     } catch (refreshError: unknown) {
-      setError(
+      const requestError =
         refreshError instanceof Error
           ? refreshError
-          : new Error('Failed to refresh Earn lending markets'),
-      );
+          : new Error('Failed to refresh Earn lending markets');
+      setError(requestError);
+      throw requestError;
     } finally {
       setIsLoading(false);
     }
@@ -47,7 +49,12 @@ const useEarnSectionLendingMarkets = ({
     }
     if (markets.length > 0) return;
 
-    refresh();
+    refresh().catch((refreshError: unknown) => {
+      Logger.error(
+        refreshError as Error,
+        'Failed to refresh Earn lending markets',
+      );
+    });
   }, [enabled, markets.length, refresh]);
 
   return {

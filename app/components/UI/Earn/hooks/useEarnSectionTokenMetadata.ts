@@ -1,4 +1,3 @@
-// TODO: Review entire file.
 import { useEffect, useMemo, useState } from 'react';
 import {
   fetchTokenAssets,
@@ -45,7 +44,7 @@ const useEarnSectionTokenMetadata = (assetIds: string[]) => {
 
     const loadMetadata = async () => {
       try {
-        // TODO: Check if this fetches token metadata each render or if the token data is cached or persisted somewhere.
+        // fetchTokenAssets shares module-level cache and in-flight requests.
         const tokens = await fetchTokenAssets(assetIdsKey.split(','));
         if (cancelled) return;
 
