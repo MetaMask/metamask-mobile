@@ -82,9 +82,6 @@ const selectAllLendingMarkets = createSelector(
   (earnControllerState) => selectLendingMarkets(earnControllerState),
 );
 
-const selectSelectedEvmAddress = (state: RootState) =>
-  selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address;
-
 const selectEarnTokenBaseData = createSelector(
   [
     selectEarnControllerState,
