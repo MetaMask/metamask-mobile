@@ -520,7 +520,7 @@ describe('useCrossmintWalletPayOverlay', () => {
     expect(mockNavigationReset).not.toHaveBeenCalled();
   });
 
-  it('hands off when the polled order status advances past CREATED', async () => {
+  it('hands off when the polled order reaches PENDING', async () => {
     mockGetOrderById.mockImplementation((orderId: string) =>
       orderId === 'custom-order-id-1' ? { status: 'PENDING' } : undefined,
     );
@@ -540,20 +540,40 @@ describe('useCrossmintWalletPayOverlay', () => {
     );
   });
 
-  it('does not hand off while the polled order is still precreated or created', async () => {
-    mockGetOrderById.mockReturnValue({ status: 'PRECREATED' });
+  it('hands off when the polled order reaches COMPLETED', async () => {
+    mockGetOrderById.mockImplementation((orderId: string) =>
+      orderId === 'custom-order-id-1' ? { status: 'COMPLETED' } : undefined,
+    );
 
     renderHook(() => useCrossmintWalletPayOverlay(crossmintQuote, 25));
     await settle();
 
-    expect(mockNavigationReset).not.toHaveBeenCalled();
-
-    mockGetOrderById.mockReturnValue({ status: 'CREATED' });
-    renderHook(() => useCrossmintWalletPayOverlay(crossmintQuote, 25));
-    await settle();
-
-    expect(mockNavigationReset).not.toHaveBeenCalled();
+    expect(mockNavigationReset).toHaveBeenCalledTimes(1);
   });
+
+  it.each(['PRECREATED', 'CREATED', 'UNKNOWN'])(
+    'does not hand off while the polled order is still %s',
+    async (status) => {
+      mockGetOrderById.mockReturnValue({ status });
+
+      renderHook(() => useCrossmintWalletPayOverlay(crossmintQuote, 25));
+      await settle();
+
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['FAILED', 'CANCELLED', 'ID_EXPIRED'])(
+    'does not hand off when the polled order ends unpaid as %s',
+    async (status) => {
+      mockGetOrderById.mockReturnValue({ status });
+
+      renderHook(() => useCrossmintWalletPayOverlay(crossmintQuote, 25));
+      await settle();
+
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+    },
+  );
 
   it('ignores unparseable WebView messages', () => {
     const loggerSpy = jest

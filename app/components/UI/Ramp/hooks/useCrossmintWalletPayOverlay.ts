@@ -39,6 +39,11 @@ const APPLE_PAY_PAYMENT_METHOD_SUFFIX = 'apple-pay';
 const GOOGLE_PAY_PAYMENT_METHOD_SUFFIX = 'google-pay';
 const PREPARE_DEBOUNCE_MS = 400;
 
+const PAID_ORDER_STATUSES: RampsOrderStatus[] = [
+  RampsOrderStatus.Pending,
+  RampsOrderStatus.Completed,
+];
+
 interface PreparedOverlay {
   /** Cache key so quote refreshes do not create duplicate orders. */
   key: string;
@@ -295,17 +300,15 @@ export default function useCrossmintWalletPayOverlay(
     [handOffToOrderDetails],
   );
 
-  // Fallback signal, since iOS posts no messages: the API holds unpaid orders
-  // at CREATED, so any status past it means the user has paid.
+  // Fallback signal, since iOS posts no messages: the polled order reaching a
+  // paid status stands in for the `order:updated` event.
   const trackedOrderStatus = prepared?.orderId
     ? getOrderById(prepared.orderId)?.status
     : undefined;
   useEffect(() => {
     if (
       trackedOrderStatus &&
-      trackedOrderStatus !== RampsOrderStatus.Precreated &&
-      trackedOrderStatus !== RampsOrderStatus.Created &&
-      trackedOrderStatus !== RampsOrderStatus.Unknown
+      PAID_ORDER_STATUSES.includes(trackedOrderStatus)
     ) {
       handOffToOrderDetails();
     }

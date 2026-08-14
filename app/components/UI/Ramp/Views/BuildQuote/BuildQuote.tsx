@@ -659,6 +659,10 @@ function BuildQuote() {
     debouncedPollingAmount,
   );
 
+  const isWalletPayButtonVisible =
+    Boolean(crossmintWalletPay.checkoutUrl) &&
+    crossmintWalletPay.isCheckoutReady;
+
   const hasNoQuotes =
     hasAmount &&
     hasSettledQuoteAmount &&
@@ -723,7 +727,7 @@ function BuildQuote() {
     // The overlay's terms notice takes this slot and already names the
     // provider, so the attribution would only repeat it. Until then the
     // ordinary Continue button is showing and the attribution stays.
-    if (crossmintWalletPay.isCheckoutReady) {
+    if (isWalletPayButtonVisible) {
       return null;
     }
     if (selectedProvider && !isTokenUnavailable && tokenStateIsSettled) {
@@ -849,7 +853,7 @@ function BuildQuote() {
                     onReady={crossmintWalletPay.onCheckoutReady}
                   />
                 ) : null}
-                {crossmintWalletPay.isCheckoutReady ? null : (
+                {isWalletPayButtonVisible ? null : (
                   <Button
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
