@@ -1,18 +1,9 @@
 import { MetaMetricsOptInSelectorsIDs } from '../../../app/components/UI/OptinMetrics/MetaMetricsOptIn.testIds';
-import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import { PlaywrightGestures } from '../../framework';
+import { getDriver } from '../../framework';
 
 class MetaMetricsOptIn {
   get container(): EncapsulatedElementType {
@@ -22,41 +13,15 @@ class MetaMetricsOptIn {
   }
 
   get screenTitle(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
-          {
-            exact: true,
-          },
-        ),
-    });
-  }
-
-  get optInMetricsContent(): EncapsulatedElementType {
     return Matchers.getElementByID(
-      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
     );
   }
 
   get iAgreeButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
-          {
-            exact: true,
-          },
-        ),
-    });
+    return Matchers.getElementByID(
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
+    );
   }
 
   get metricsCheckbox(): EncapsulatedElementType {
@@ -77,44 +42,26 @@ class MetaMetricsOptIn {
     );
   }
 
-  async swipeContentUp(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.swipe(asDetoxElement(this.optInMetricsContent), 'up', {
-          speed: 'fast',
-          percentage: 0.9,
-          elemDescription: 'Opt-in Metrics Privacy Policy Content',
-        });
-      },
-      appium: async () => undefined,
-    });
-  }
-
   async tapAgreeButton(): Promise<void> {
     await this.tapIAgreeButton();
   }
 
   async tapIAgreeButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await this.swipeContentUp();
-        await Gestures.waitAndTap(asDetoxElement(this.iAgreeButton), {
-          elemDescription: 'Opt-in Metrics Continue Button',
-        });
-      },
-      appium: async () => {
-        if (await PlatformDetector.isAndroid()) {
-          await PlaywrightGestures.hideKeyboard();
+    if (PlatformDetector.isAndroid()) {
+      const drv = getDriver();
+      if (drv) {
+        try {
+          await drv.hideKeyboard();
+        } catch {
+          // Keyboard may already be dismissed.
         }
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.iAgreeButton),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            timeout: 15_000,
-          },
-        );
-      },
+      }
+    }
+    await Gestures.waitAndTap(this.iAgreeButton, {
+      elemDescription: 'Opt-in Metrics Continue Button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      timeout: 15_000,
     });
   }
 
@@ -123,21 +70,21 @@ class MetaMetricsOptIn {
   }
 
   async tapMetricsCheckbox(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.metricsCheckbox, {
-      description: 'Opt-in Metrics Metrics Checkbox',
+    await Gestures.waitAndTap(this.metricsCheckbox, {
+      elemDescription: 'Opt-in Metrics Metrics Checkbox',
     });
   }
 
   async tapMarketingCheckbox(): Promise<void> {
-    await UnifiedGestures.scrollToElement(
+    await Gestures.scrollToElement(
       this.marketingCheckbox,
       this.scrollViewIdentifier,
       {
-        description: 'Opt-in Metrics Marketing Checkbox',
+        elemDescription: 'Opt-in Metrics Marketing Checkbox',
       },
     );
-    await UnifiedGestures.waitAndTap(this.marketingCheckbox, {
-      description: 'Opt-in Metrics Marketing Checkbox',
+    await Gestures.waitAndTap(this.marketingCheckbox, {
+      elemDescription: 'Opt-in Metrics Marketing Checkbox',
     });
   }
 }
