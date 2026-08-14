@@ -11,43 +11,61 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useStyles } from '../../../../../component-library/hooks';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { Theme } from '../../../../../util/theme/models';
-import { strings } from '../../../../../../locales/i18n';
-import robinhoodIcon from '../../../../../images/robinhood.png';
-import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
-import Routes from '../../../../../constants/navigation/Routes';
-import { ROBINHOOD_SWAPS_BANNER_DISMISSED } from '../../../../../constants/storage';
-import StorageWrapper from '../../../../../store/storage-wrapper';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import { useStyles } from '../../../component-library/hooks';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { Theme } from '../../../util/theme/models';
+import { strings } from '../../../../locales/i18n';
+import robinhoodIcon from '../../../images/robinhood.png';
+import { NetworkToCaipChainId } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
+import Routes from '../../../constants/navigation/Routes';
+import {
+  ROBINHOOD_EXPLORE_BANNER_DISMISSED,
+  ROBINHOOD_SWAPS_BANNER_DISMISSED,
+} from '../../../constants/storage';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { TokenDetailsSource } from '../TokenDetails/constants/constants';
 
-export const ROBINHOOD_SWAPS_BANNER_TEST_ID = 'robinhood-swaps-banner';
-export const ROBINHOOD_SWAPS_BANNER_DISMISS_TEST_ID =
-  'robinhood-swaps-banner-dismiss';
+export const ROBINHOOD_BANNER_TEST_ID = 'robinhood-banner';
+export const ROBINHOOD_BANNER_DISMISS_TEST_ID = 'robinhood-banner-dismiss';
 
-const getIsRobinhoodSwapsBannerDismissed = () =>
-  StorageWrapper.getItemSync(ROBINHOOD_SWAPS_BANNER_DISMISSED) === 'true';
+/** Screen the banner is rendered on. Each surface dismisses independently. */
+export enum RobinhoodBannerSurface {
+  Swaps = 'swaps',
+  ExploreCrypto = 'explore-crypto',
+}
 
-export function useRobinhoodSwapsBanner() {
+const SURFACE_CONFIG: Record<
+  RobinhoodBannerSurface,
+  { storageKey: string; tokenDetailsSource: TokenDetailsSource }
+> = {
+  [RobinhoodBannerSurface.Swaps]: {
+    storageKey: ROBINHOOD_SWAPS_BANNER_DISMISSED,
+    tokenDetailsSource: TokenDetailsSource.BannerRobinhoodSwaps,
+  },
+  [RobinhoodBannerSurface.ExploreCrypto]: {
+    storageKey: ROBINHOOD_EXPLORE_BANNER_DISMISSED,
+    tokenDetailsSource: TokenDetailsSource.BannerRobinhoodExplore,
+  },
+};
+
+export function useRobinhoodBanner(surface: RobinhoodBannerSurface) {
+  const { storageKey, tokenDetailsSource } = SURFACE_CONFIG[surface];
   const navigation = useNavigation<AppNavigationProp>();
   const [isDismissed, setIsDismissed] = useState(
-    getIsRobinhoodSwapsBannerDismissed,
+    () => StorageWrapper.getItemSync(storageKey) === 'true',
   );
 
   const dismiss = useCallback(() => {
     setIsDismissed(true);
-    StorageWrapper.setItem(ROBINHOOD_SWAPS_BANNER_DISMISSED, 'true').catch(
-      () => undefined,
-    );
-  }, []);
+    StorageWrapper.setItem(storageKey, 'true').catch(() => undefined);
+  }, [storageKey]);
 
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW, {
       initialNetwork: [NetworkToCaipChainId.ROBINHOOD],
-      tokenDetailsSource: TokenDetailsSource.BannerRobinhoodSwaps,
+      tokenDetailsSource,
     });
-  }, [navigation]);
+  }, [navigation, tokenDetailsSource]);
 
   return {
     dismiss,
@@ -56,7 +74,7 @@ export function useRobinhoodSwapsBanner() {
   };
 }
 
-interface RobinhoodSwapsBannerProps {
+interface RobinhoodBannerProps {
   onDismiss: () => void;
   onPress: () => void;
 }
@@ -107,10 +125,7 @@ const createStyles = ({ theme }: { theme: Theme }) =>
     },
   });
 
-export function RobinhoodSwapsBanner({
-  onDismiss,
-  onPress,
-}: RobinhoodSwapsBannerProps) {
+export function RobinhoodBanner({ onDismiss, onPress }: RobinhoodBannerProps) {
   const { styles } = useStyles(createStyles, {});
 
   return (
@@ -118,7 +133,7 @@ export function RobinhoodSwapsBanner({
       accessibilityRole="button"
       onPress={onPress}
       style={styles.container}
-      testID={ROBINHOOD_SWAPS_BANNER_TEST_ID}
+      testID={ROBINHOOD_BANNER_TEST_ID}
     >
       <View style={styles.imageContainer}>
         <Image source={robinhoodIcon} resizeMode="cover" style={styles.image} />
@@ -140,7 +155,7 @@ export function RobinhoodSwapsBanner({
             onPress={onDismiss}
             iconProps={{ color: IconColor.IconDefault }}
             style={styles.dismissButton}
-            testID={ROBINHOOD_SWAPS_BANNER_DISMISS_TEST_ID}
+            testID={ROBINHOOD_BANNER_DISMISS_TEST_ID}
           />
         </View>
         <Text
