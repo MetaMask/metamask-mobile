@@ -32,9 +32,12 @@ const { routeIsolationZones } = routeIsolationZonesModule;
  * TODO: Remove once suppressions are in place
  */
 const disabledJsdocRecommendedRules = Object.fromEntries(
-  Object.keys(
-    jsdocPlugin.configs['flat/recommended-typescript-error'].rules,
-  ).map((rule) => [rule, 'off']),
+  Object.entries(jsdocPlugin.configs['flat/recommended-typescript-error'].rules)
+    // The preset lists every jsdoc rule, most of them already off. Only the
+    // ones it turns on are newly enforced, and only those should be disabled —
+    // the rest would clobber the rules the shared config sets directly.
+    .filter(([, severity]) => severity !== 'off' && severity !== 0)
+    .map(([rule]) => [rule, 'off']),
 );
 
 // `@react-native/eslint-config` is still published in the legacy eslintrc
