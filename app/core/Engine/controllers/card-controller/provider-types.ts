@@ -143,6 +143,7 @@ export interface CardProviderCapabilities {
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
   supportsTransactionHistory: boolean;
+  supportsMoneyAccountLinking: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --

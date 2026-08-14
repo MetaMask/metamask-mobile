@@ -1,10 +1,11 @@
 import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { SmartAccountIds } from '../../../app/components/Views/MultichainAccounts/SmartAccount.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import {
+  EncapsulatedElementType,
+  type PlaywrightElement,
+} from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import Assertions from '../../framework/Assertions';
 
 class SmartAccount {
@@ -28,18 +29,17 @@ class SmartAccount {
       },
     );
 
-    const labelEl = await PlaywrightMatchers.getElementByText(networkName);
-    await PlaywrightGestures.scrollIntoView(labelEl);
+    await Gestures.scrollIntoView(Matchers.getElementByText(networkName));
 
     const switchEl = PlatformDetector.isIOS()
       ? await this.getIosSwitchInNetworkRow(networkName)
       : await this.getAndroidSwitchInNetworkRow(networkName);
 
-    await PlaywrightGestures.waitAndTap(switchEl, {
+    await Gestures.waitAndTap(Promise.resolve(switchEl), {
       elemDescription: `Smart account switch for "${networkName}"`,
       timeout: 15_000,
       checkForDisplayed: false,
-      checkForEnabled: false,
+      checkEnabled: false,
     });
   }
 
@@ -74,8 +74,10 @@ class SmartAccount {
   private async getFallbackSwitchAlignedToLabel(
     networkName: string,
   ): Promise<PlaywrightElement> {
-    const labelEl = await PlaywrightMatchers.getElementByText(networkName);
-    await PlaywrightGestures.scrollIntoView(labelEl);
+    const labelEl = (await Matchers.getElementByText(
+      networkName,
+    )) as PlaywrightElement;
+    await Gestures.scrollIntoView(labelEl);
 
     const labelLocation = await labelEl.unwrap().getLocation();
     const labelSize = await labelEl.unwrap().getSize();

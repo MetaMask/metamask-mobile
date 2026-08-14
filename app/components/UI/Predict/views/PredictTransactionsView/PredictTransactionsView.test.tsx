@@ -257,7 +257,7 @@ describe('PredictTransactionsView', () => {
     expect(screen.queryByText('No recent activity')).toBeNull();
 
     await act(async () => {
-      fireEvent.press(screen.getByText('Retry'));
+      fireEvent.press(screen.getByText('Try again'));
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);

@@ -39,7 +39,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const BENEFIT_CLAIM_BUTTON_TYPE = 'claim';
-const BENEFIT_URL_WALLET_PARAM = 'wallet';
+const BENEFIT_URL_WALLET_PARAM = 'trackingWallet';
 
 const getBenefitWalletAddress = (url: string): string | undefined => {
   if (!url) return undefined;

@@ -28,6 +28,7 @@ import {
   formatAddressToAssetId,
   formatChainIdToHex,
   type QuoteStreamCompleteData,
+  assetIdsMatch,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -484,10 +485,11 @@ function getBridgeTokenMetadata(
   }
 
   const metadataAssetIds = Object.keys(BridgeTokenMetadata) as CaipAssetType[];
-  const metadataAssetId = metadataAssetIds.find(
-    (bridgeTokenMetadataAssetId) =>
-      formatBatchSellStablecoinAssetId(bridgeTokenMetadataAssetId) ===
+  const metadataAssetId = metadataAssetIds.find((bridgeTokenMetadataAssetId) =>
+    assetIdsMatch(
+      formatBatchSellStablecoinAssetId(bridgeTokenMetadataAssetId),
       formattedAssetId,
+    ),
   );
   const tokenMetadata = metadataAssetId
     ? BridgeTokenMetadata[metadataAssetId]
