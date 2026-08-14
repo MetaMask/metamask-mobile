@@ -2,6 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
 import Benefits from './screens/Benefits';
@@ -45,11 +51,22 @@ const ProSubscription = () => {
   }, []);
 
   return (
-    <SafeAreaView style={tw.style('flex-1')} edges={['top']}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={['top']}
+    >
+      {/* Shared close button — sits above both Benefits and Success screens */}
+      <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSize.Md}
+          onPress={handleClose}
+        />
+      </Box>
+
       {currentScreen === 'benefits' ? (
         <Benefits
           onSuccess={handleSuccess}
-          onClose={handleClose}
           initialPlan={route.params?.initialPlan}
         />
       ) : (

@@ -10,10 +10,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  ButtonIcon,
-  ButtonIconSize,
   FontWeight,
-  IconName,
 } from '@metamask/design-system-react-native';
 import {
   BENEFITS,
@@ -32,11 +29,10 @@ import { strings } from '../../../../../../locales/i18n';
 
 interface BenefitsProps {
   onSuccess: () => void;
-  onClose: () => void;
   initialPlan?: PlanId;
 }
 
-const Benefits = ({ onSuccess, onClose, initialPlan }: BenefitsProps) => {
+const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
@@ -62,16 +58,6 @@ const Benefits = ({ onSuccess, onClose, initialPlan }: BenefitsProps) => {
       twClassName="flex-1 bg-background-default"
       testID={BenefitsTestIds.CONTAINER}
     >
-      {/* Close button */}
-      <Box twClassName="px-4 py-4 pb-10 flex-row items-center justify-end">
-        <ButtonIcon
-          iconName={IconName.Close}
-          size={ButtonIconSize.Md}
-          onPress={onClose}
-          testID={BenefitsTestIds.CLOSE_BUTTON}
-        />
-      </Box>
-
       {/* Header */}
       <Box twClassName="px-5 pt-2 pb-5">
         <Text
