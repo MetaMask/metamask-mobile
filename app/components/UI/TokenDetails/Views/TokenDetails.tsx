@@ -14,6 +14,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -205,8 +206,10 @@ const TokenDetails: React.FC<{
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
-      if (token.caipAssetId && isCaipAssetType(token.caipAssetId)) {
-        return token.caipAssetId;
+      if (token.caipAssetId) {
+        if (isCaipAssetType(token.caipAssetId)) {
+          return token.caipAssetId;
+        }
       }
       if (isCaipAssetType(token.address)) {
         return token.address as CaipAssetType;
@@ -221,7 +224,14 @@ const TokenDetails: React.FC<{
         AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
           token.chainId as SupportedCaipChainId
         ];
-      return (nonEvmConfig?.nativeCurrency as CaipAssetType) ?? null;
+      if (!nonEvmConfig) {
+        return null;
+      }
+      const nativeCurrency = nonEvmConfig.nativeCurrency as CaipAssetType;
+      if (nativeCurrency == null) {
+        return null;
+      }
+      return nativeCurrency;
     } catch {
       return null;
     }
@@ -682,22 +692,24 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const firedRef = useRef(false);
 
   const fireClosedRef = useRef<() => void>(() => undefined);
-  fireClosedRef.current = () => {
-    if (firedRef.current) return;
-    firedRef.current = true;
+  useLayoutEffect(() => {
+    fireClosedRef.current = () => {
+      if (firedRef.current) return;
+      firedRef.current = true;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
-        .addProperties({
-          chain_id: token.chainId,
-          token_symbol: token.symbol,
-          token_address: token.address,
-          exit_action: closeSourceRef.current ?? 'back_navigation',
-          time_on_screen_ms: Date.now() - openedAtRef.current,
-        })
-        .build(),
-    );
-  };
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
+          .addProperties({
+            chain_id: token.chainId,
+            token_symbol: token.symbol,
+            token_address: token.address,
+            exit_action: closeSourceRef.current ?? 'back_navigation',
+            time_on_screen_ms: Date.now() - openedAtRef.current,
+          })
+          .build(),
+      );
+    };
+  });
 
   useEffect(() => {
     // On iOS, `inactive` is transient (Control Center, notifications, Face ID, etc.)
@@ -769,6 +781,11 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // Reset perps market state when the token changes so stale results from a
   // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
+  // Kept as a render-time ref reset (not useEffect) since a useEffect version
+  // can race with AssetOverviewContent's perps-resolution effect and clobber
+  // isLoading back to true, breaking TOKEN_DETAILS_OPENED tracking. React
+  // Compiler flags this as a ref-during-render violation, but it's a
+  // blessed pattern: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   const prevTokenKeyRef = useRef<string | null>(null);
   if (prevTokenKeyRef.current !== tokenKey) {
     prevTokenKeyRef.current = tokenKey;

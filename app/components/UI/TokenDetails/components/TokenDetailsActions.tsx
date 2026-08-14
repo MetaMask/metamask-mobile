@@ -93,7 +93,14 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
 
-  // Prevent rapid navigation clicks - locks all buttons during navigation
+  // Prevent rapid navigation clicks - locks all buttons during navigation.
+  // Kept as a ref (not state) so the guard is synchronous: this screen's
+  // renders can take 100ms+, and a state-based lock could still be stale
+  // (pre-update closure) if a second tap lands before the re-render commits,
+  // letting the double-tap through. React Compiler flags reading this ref
+  // from the handlers below as a "ref during render" violation because
+  // those handlers are referenced inside the memoized `buttons` array, so
+  // this component intentionally stays outside compiler optimization.
   const navigationLockRef = useRef(false);
 
   // Expose reset so parent can unlock when a non-navigating action ends (e.g. geo block modal dismissed)
