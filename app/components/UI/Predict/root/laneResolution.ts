@@ -18,13 +18,7 @@ export const resolveActiveVenue = (config: PredictConfig): PredictLane => {
 export const hasLegacyMarketListParams = (
   params?: PredictMarketListRouteParams,
 ): boolean =>
-  Boolean(
-    params?.feedId ||
-      params?.tab ||
-      params?.tabId ||
-      params?.query ||
-      params?.transactionActiveAbTests,
-  );
+  Boolean(params?.feedId || params?.tab || params?.tabId || params?.query);
 
 export const resolvePredictMarketListLane = (
   config: PredictConfig,

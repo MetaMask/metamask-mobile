@@ -261,6 +261,8 @@ export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnaly
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY =
   'homeTMCU1209AbtestHomepageBalanceBreakdown';
+export const HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT =
+  'homescreen_balance_breakdown';
 
 export enum HomepageBalanceBreakdownVariant {
   Control = 'control',
@@ -298,12 +300,49 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
   },
 } as const;
 
+export function getHomepageBalanceBreakdownTransactionActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+
+  return [
+    createActiveABTestAssignment(
+      HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+      variantName,
+    ),
+  ];
+}
+
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
     flagKey: HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
     validVariants: Object.values(HomepageBalanceBreakdownVariant),
     eventNames: [
       EVENT_NAME.HOME_VIEWED,
-      EVENT_NAME.BALANCE_BREAKDOWN_SLICE_TAPPED,
+      EVENT_NAME.MONEY_SURFACE_VIEWED,
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PREDICT_FEED_VIEWED,
+      EVENT_NAME.PREDICT_HOME_VIEWED,
+      EVENT_NAME.POSITION_SCREEN_VIEWED,
     ],
+    eventPropertyRequirements: {
+      [EVENT_NAME.MONEY_SURFACE_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PERPS_SCREEN_VIEWED]: {
+        source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PREDICT_FEED_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.PREDICT_HOME_VIEWED]: {
+        entry_point: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+      [EVENT_NAME.POSITION_SCREEN_VIEWED]: {
+        source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+    },
   };
