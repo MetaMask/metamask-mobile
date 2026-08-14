@@ -38,6 +38,7 @@ import { filterDeFiPositionsByEnabledNetworks } from '../utils/filter-defi-posit
 
 interface DeFiPositionsListV2Props {
   isFullView: boolean;
+  analyticsSource?: string;
 }
 
 /**
@@ -47,6 +48,7 @@ interface DeFiPositionsListV2Props {
  */
 const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
   isFullView,
+  analyticsSource,
 }) => {
   const { styles } = useStyles(styleSheet, undefined);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -144,10 +146,18 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
           location: 'homepage',
           is_empty: listLength === 0,
           screen_type: 'defi',
+          ...(analyticsSource ? { source: analyticsSource } : {}),
         })
         .build(),
     );
-  }, [isFullView, isReady, listLength, trackEvent, createEventBuilder]);
+  }, [
+    isFullView,
+    isReady,
+    listLength,
+    analyticsSource,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   if (isLoading || showIdlePlaceholder) {
     return (

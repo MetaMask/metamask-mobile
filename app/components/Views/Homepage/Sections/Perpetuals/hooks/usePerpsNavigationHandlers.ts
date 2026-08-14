@@ -23,10 +23,12 @@ import type { TransactionActiveAbTestEntry } from '../../../../../../util/transa
 
 interface UsePerpsNavigationHandlersArgs {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  source?: string;
 }
 
 export const usePerpsNavigationHandlers = ({
   transactionActiveAbTests,
+  source = PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
 }: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
@@ -59,7 +61,7 @@ export const usePerpsNavigationHandlers = ({
 
   const handleViewAllPerps = useCallback(() => {
     const homeParams = {
-      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      source,
       ...(marketDetailsTransactionActiveAbTests?.length
         ? {
             transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
@@ -74,7 +76,7 @@ export const usePerpsNavigationHandlers = ({
 
     if (isFirstTimePerpsUser) {
       navigation.navigate(Routes.PERPS.TUTORIAL, {
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        source,
         redirectScreen: target.screen,
         redirectParams: target.params,
       });
@@ -90,6 +92,7 @@ export const usePerpsNavigationHandlers = ({
     navigation,
     marketDetailsTransactionActiveAbTests,
     getPerpsHomeNavigationTarget,
+    source,
   ]);
 
   const handleViewMorePerps = useCallback(() => {
