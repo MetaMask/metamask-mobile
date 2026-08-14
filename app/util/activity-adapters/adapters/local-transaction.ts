@@ -38,6 +38,14 @@ const EVM_NATIVE_DECIMALS = 18;
 
 const PREDICT_COLLATERAL_DECIMALS = 6;
 const PREDICT_COLLATERAL_SYMBOL = 'USDC';
+
+const PERPS_COLLATERAL_DECIMALS = 6;
+const PERPS_COLLATERAL_SYMBOL = 'USDC';
+const PERPS_DEPOSIT_TYPES: TransactionType[] = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+];
+const PERPS_WITHDRAW_TYPES: TransactionType[] = [TransactionType.perpsWithdraw];
 const ERC20_TRANSFER_SELECTOR = '0xa9059cbb';
 
 // Converts local TransactionController groups into activity items
@@ -513,6 +521,98 @@ export function mapLocalTransaction(
   const predictFundsActivity = getPredictFundsActivity();
   if (predictFundsActivity) {
     return predictFundsActivity;
+  }
+
+  /**
+   * Perps deposits/withdrawals submitted from this device. The Activity list
+   * never shows these — the HyperLiquid feed's copy wins the hash dedup, and
+   * the list drops local perps groups outright. This is for the details screen,
+   * which resolves by `TransactionMeta.id` before the feed catches up (the
+   * funding toast's "Track"), so the row lands on the Perps funding template
+   * rather than a generic contract interaction.
+   *
+   * Checks the transaction and its nested calls, plus `originalType` since the
+   * confirmation flow can rewrite `type` — mirroring
+   * `isPerpsWalletTransactionGroup` in the Activity list.
+   */
+  const getPerpsFundsActivity = (): ActivityListItem | undefined => {
+    const isType = (
+      candidate:
+        | { type?: TransactionType; originalType?: TransactionType }
+        | undefined,
+      types: TransactionType[],
+    ) =>
+      Boolean(
+        candidate &&
+          ((candidate.type && types.includes(candidate.type)) ||
+            (candidate.originalType && types.includes(candidate.originalType))),
+      );
+
+    const metas = [initialTransaction, primaryTransaction];
+    const nested = initialTransaction.nestedTransactions ?? [];
+    const isDeposit =
+      metas.some((meta) => isType(meta, PERPS_DEPOSIT_TYPES)) ||
+      nested.some((call) => isType(call, PERPS_DEPOSIT_TYPES));
+    const isWithdraw =
+      !isDeposit &&
+      (metas.some((meta) => isType(meta, PERPS_WITHDRAW_TYPES)) ||
+        nested.some((call) => isType(call, PERPS_WITHDRAW_TYPES)));
+
+    if (!isDeposit && !isWithdraw) {
+      return undefined;
+    }
+
+    // The collateral moves via ERC-20 transfer(address,uint256) — from the
+    // nested call in a batch, otherwise from the transaction's own params.
+    const fundsCall =
+      nested.find((call) =>
+        isType(call, isDeposit ? PERPS_DEPOSIT_TYPES : PERPS_WITHDRAW_TYPES),
+      ) ?? initialTransaction.txParams;
+    const contractAddress = fundsCall.to;
+    const data = fundsCall.data;
+
+    let amount: string | undefined;
+    if (
+      data &&
+      data.toLowerCase().startsWith(ERC20_TRANSFER_SELECTOR) &&
+      data.length >= 138
+    ) {
+      try {
+        amount = BigInt(`0x${data.slice(74, 138)}`).toString();
+      } catch {
+        amount = undefined;
+      }
+    }
+
+    const tokenMetadata = contractAddress
+      ? getKnownTokenMetadata(chainId, contractAddress, environment)
+      : undefined;
+    const assetId = contractAddress
+      ? environment.toAssetId(contractAddress, chainId)
+      : undefined;
+
+    const token: TokenAmount = {
+      direction: isDeposit ? 'in' : 'out',
+      symbol: tokenMetadata?.symbol ?? PERPS_COLLATERAL_SYMBOL,
+      decimals: tokenMetadata?.decimals ?? PERPS_COLLATERAL_DECIMALS,
+      ...(assetId ? { assetId } : {}),
+      ...(amount ? { amount } : {}),
+    };
+
+    return {
+      type: isDeposit ? 'perpsAddFunds' : 'perpsWithdraw',
+      chainId,
+      status,
+      timestamp,
+      hash,
+      raw: { type: 'localTransaction', data: transactionGroup },
+      data: { token },
+    };
+  };
+
+  const perpsFundsActivity = getPerpsFundsActivity();
+  if (perpsFundsActivity) {
+    return perpsFundsActivity;
   }
 
   const getSmartAccountUpgradeActivity = (): ActivityListItem | undefined => {

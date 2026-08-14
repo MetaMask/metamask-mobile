@@ -12,9 +12,21 @@ import {
   selectRelayFixedSpread,
   PrefilledAmountConfig,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  selectFeatureFlagThresholdGroups,
+  selectRemoteFeatureFlags,
+} from '../../../../../selectors/featureFlagController';
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
+import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { isRouteToken } from '../../utils/relayFixedSpread';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import {
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+  MoneyAccountDepositPrefillVariant,
+} from './abTestConfig';
+import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
@@ -24,6 +36,16 @@ function formatFiatAmount(value: BigNumber): string {
 
 export interface DepositPrefillResult {
   prefillAmount: string | undefined;
+  /**
+   * Percentage of balance used for the prefill (100 for stablecoins, 50
+   * otherwise). Undefined when there is no prefill amount.
+   */
+  percentage: number | undefined;
+  /**
+   * True when the computed percentage amount was reduced by a deposit limit.
+   * Limit-capped prefills must not go through the Max/percentage path.
+   */
+  isLimitCapped: boolean;
   enabled: boolean;
   isLoading: boolean;
   hasPrefilled: boolean;
@@ -55,7 +77,48 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     return undefined;
   }, [transactionMeta, depositLimits]);
 
-  const enabled = prefilledAmountConfig.enabled;
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
+
+  const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
+  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
+
+  // Scope the deposit-prefill experiment to moneyAccountDeposit only. Other
+  // CustomAmountInfo flows (perps/predict/withdraw) must not read or apply it.
+  // Experiment Viewed is emitted from MoneyAccountDepositInfo via useABTest.
+  const enabled = useMemo(() => {
+    if (!isMoneyAccountDeposit) {
+      return prefilledAmountConfig.enabled;
+    }
+
+    const { variantName } = resolveABTestAssignment(
+      remoteFeatureFlags,
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+      Object.values(MoneyAccountDepositPrefillVariant),
+      thresholdGroups,
+    );
+    const abTestPrefillEnabled =
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[
+        variantName as MoneyAccountDepositPrefillVariant
+      ]?.prefillEnabled ??
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[
+        MoneyAccountDepositPrefillVariant.Control
+      ].prefillEnabled;
+
+    return isMoneyAccountDepositPrefillEnabled({
+      remotePrefillEnabled: prefilledAmountConfig.enabled,
+      abTestPrefillEnabled,
+      intent: depositIntent,
+    });
+  }, [
+    depositIntent,
+    isMoneyAccountDeposit,
+    prefilledAmountConfig.enabled,
+    remoteFeatureFlags,
+    thresholdGroups,
+  ]);
 
   const transactionId = transactionMeta?.id ?? '';
   const accountOverride = useSelector((state: RootState) =>
@@ -67,25 +130,36 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   const tokenKey = `${payToken?.address}:${payToken?.chainId}:${accountOverride}`;
   const [committedKey, setCommittedKey] = useState<string | null>(null);
 
-  const prefillAmount = useMemo(() => {
+  const { prefillAmount, percentage, isLimitCapped } = useMemo(() => {
     if (!enabled || !balanceUsd || balanceUsd <= 0 || !payToken) {
-      return undefined;
+      return {
+        prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
     }
 
     const stable = isRouteToken(relayFixedSpread, {
       chainId: payToken.chainId,
       address: payToken.address,
     });
-    const percentage = stable ? 100 : 50;
+    const nextPercentage = stable ? 100 : 50;
 
-    const raw = new BigNumber(percentage)
+    const raw = new BigNumber(nextPercentage)
       .dividedBy(100)
       .multipliedBy(balanceUsd)
       .decimalPlaces(2, BigNumber.ROUND_DOWN);
 
-    return formatFiatAmount(
-      depositLimit !== undefined ? BigNumber.min(raw, depositLimit) : raw,
-    );
+    const capped =
+      depositLimit !== undefined && raw.isGreaterThan(depositLimit);
+
+    return {
+      prefillAmount: formatFiatAmount(
+        capped ? new BigNumber(depositLimit) : raw,
+      ),
+      percentage: nextPercentage,
+      isLimitCapped: capped,
+    };
   }, [enabled, balanceUsd, payToken, depositLimit, relayFixedSpread]);
 
   useEffect(() => {
@@ -106,5 +180,12 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   const hasPrefilled = committedKey === tokenKey;
   const isLoading = enabled && !hasPrefilled;
 
-  return { prefillAmount, isLoading, hasPrefilled, enabled };
+  return {
+    prefillAmount,
+    percentage,
+    isLimitCapped,
+    isLoading,
+    hasPrefilled,
+    enabled,
+  };
 }

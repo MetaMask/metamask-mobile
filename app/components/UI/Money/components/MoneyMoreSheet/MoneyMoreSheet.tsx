@@ -87,12 +87,10 @@ const MoneyMoreSheet = () => {
       redirect_target: MONEY_URLS.METAMASK_SUPPORT,
     });
 
-    closeAndNavigate(() => {
-      openSupportWithConsent(
-        (url) => openInAppBrowser(navigation, url),
-        METAMASK_SUPPORT_URL,
-      );
-    });
+    openSupportWithConsent(
+      (url) => closeAndNavigate(() => openInAppBrowser(navigation, url)),
+      METAMASK_SUPPORT_URL,
+    );
   }, [
     closeAndNavigate,
     navigation,

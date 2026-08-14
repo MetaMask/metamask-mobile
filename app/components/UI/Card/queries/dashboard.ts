@@ -30,4 +30,7 @@ export const dashboardKeys = {
     [...dashboardKeys.all(), 'registrationStatus', onboardingId] as const,
   consentSet: (onboardingId: string) =>
     [...dashboardKeys.all(), 'consentSet', onboardingId] as const,
+  /** Full Immersve supported-regions list (no regionCode — filter client-side). */
+  immersveSupportedRegions: () =>
+    [...dashboardKeys.all(), 'immersveSupportedRegions'] as const,
 };

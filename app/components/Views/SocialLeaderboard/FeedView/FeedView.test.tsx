@@ -12,9 +12,10 @@ import {
   getFeedTraderTestId,
 } from './FeedView.testIds';
 import {
+  TimeframeFilterSelectorsIDs,
   TypeFilterSelectorsIDs,
   getTypeFilterOptionTestId,
-} from '../components/TypeFilter';
+} from '../components/Filters';
 import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
@@ -135,9 +136,9 @@ jest.mock('../analytics', () => {
 
 let handleTypeFilterChange: ((value: FeedTypeFilter) => void) | undefined;
 
-jest.mock('../components/TypeFilter', () => {
+jest.mock('../components/Filters', () => {
   const ReactActual = jest.requireActual('react');
-  const Actual = jest.requireActual('../components/TypeFilter');
+  const Actual = jest.requireActual('../components/Filters');
   return {
     ...Actual,
     TypeFilterSheet: (
@@ -166,6 +167,14 @@ describe('FeedView', () => {
       screen.getByTestId(FeedViewSelectorsIDs.AUDIENCE_TOGGLE),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(FeedViewSelectorsIDs.LIST)).toBeOnTheScreen();
+  });
+
+  it('does not offer a time frame filter', () => {
+    renderWithProvider(<FeedView />);
+
+    expect(
+      screen.queryByTestId(TimeframeFilterSelectorsIDs.SELECTOR),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the skeleton loading state on the initial fetch', () => {

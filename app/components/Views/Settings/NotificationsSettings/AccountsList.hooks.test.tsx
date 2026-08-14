@@ -36,6 +36,16 @@ jest.mock(
   }),
 );
 
+const mockRefetchPreferences = jest.fn();
+jest.mock('./hooks/useNotificationStoragePreferences', () => ({
+  useNotificationStoragePreferences: () => ({
+    refetch: mockRefetchPreferences,
+  }),
+}));
+
+// Un-spy the notification hook modules between tests (clearAllMocks does not).
+afterEach(() => jest.restoreAllMocks());
+
 const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
 const EVM_ADDRESSES = [
   '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
@@ -356,6 +366,16 @@ describe('useNotificationAccountListProps', () => {
     // Assert update method is called
     await waitFor(() => {
       expect(mocks.mockUpdate).toHaveBeenCalledWith(addresses);
+    });
+  });
+
+  it('refetches the preferences blob alongside account settings', async () => {
+    const { hook } = arrange(['0x123', '0x456']);
+
+    await act(async () => hook.result.current.refetchAccountSettings());
+
+    await waitFor(() => {
+      expect(mockRefetchPreferences).toHaveBeenCalledTimes(1);
     });
   });
 });

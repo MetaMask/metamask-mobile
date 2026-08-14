@@ -45,11 +45,15 @@ export const useMoneyOnboardingNavigation = () => {
     [hasSeenOnboarding, isOnboardingEnabled, redirectToOnboarding],
   );
 
-  return { redirectToOnboardingIfNeeded };
+  return {
+    isOnboardingRedirectNeeded: !hasSeenOnboarding && isOnboardingEnabled,
+    redirectToOnboardingIfNeeded,
+  };
 };
 
 export const useMoneyNavigation = () => {
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const { isOnboardingRedirectNeeded, redirectToOnboardingIfNeeded } =
+    useMoneyOnboardingNavigation();
 
   const navigateToMoneyHome = useCallback(() => {
     if (redirectToOnboardingIfNeeded()) {
@@ -62,5 +66,5 @@ export const useMoneyNavigation = () => {
     });
   }, [redirectToOnboardingIfNeeded]);
 
-  return { navigateToMoneyHome };
+  return { isOnboardingRedirectNeeded, navigateToMoneyHome };
 };

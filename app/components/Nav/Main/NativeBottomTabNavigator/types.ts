@@ -53,6 +53,11 @@ export type NativeBottomTabNavigationOptions = Omit<
    * Use for action tabs (e.g. Trade) that open a modal.
    */
   tabBarSelectionEnabled?: boolean;
+  /**
+   * iOS system tab item. `search` is drawn in a separate trailing control on
+   * iOS 26+; custom `tabBarIcon` still overrides the magnifying-glass glyph.
+   */
+  tabBarSystemItem?: 'search';
   tabBarLabelStyle?: TextStyle;
 };
 

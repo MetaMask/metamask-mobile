@@ -74,9 +74,40 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.order.validation.leverage_below_position',
   [PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED]:
     'perps.order.validation.max_order_value',
+  // Trigger placement validation errors (stop / take profit order types)
+  [PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_REQUIRED]:
+    'perps.errors.orderValidation.triggerPriceRequired',
+  [PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_POSITIVE]:
+    'perps.errors.orderValidation.triggerPricePositive',
+  [PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_NOT_SUPPORTED]:
+    'perps.errors.orderValidation.triggerPriceNotSupported',
+  [PERPS_ERROR_CODES.ORDER_TRIGGER_TPSL_UNSUPPORTED]:
+    'perps.errors.orderValidation.triggerTpslUnsupported',
+  [PERPS_ERROR_CODES.ORDER_TIME_IN_FORCE_NOT_SUPPORTED]:
+    'perps.errors.orderValidation.timeInForceNotSupported',
+  // Attached TP/SL validation errors
+  [PERPS_ERROR_CODES.ORDER_TPSL_SIZE_INVALID]:
+    'perps.errors.orderValidation.tpslSizeInvalid',
+  [PERPS_ERROR_CODES.ORDER_TPSL_LINKAGE_CONFLICT]:
+    'perps.errors.orderValidation.tpslLinkageConflict',
+  [PERPS_ERROR_CODES.ORDER_TPSL_LINKAGE_REQUIRED]:
+    'perps.errors.orderValidation.tpslLinkageRequired',
+  [PERPS_ERROR_CODES.ORDER_TPSL_POSITION_LINKAGE_UNSUPPORTED]:
+    'perps.errors.orderValidation.tpslPositionLinkageUnsupported',
+  // Order edit errors
+  [PERPS_ERROR_CODES.ORDER_EDIT_TRIGGER_UNSUPPORTED]:
+    'perps.errors.orderValidation.editTriggerUnsupported',
+  [PERPS_ERROR_CODES.ORDER_EDIT_ORDER_UNVERIFIABLE]:
+    'perps.errors.orderValidation.editOrderUnverifiable',
   // HyperLiquid client/service errors
   [PERPS_ERROR_CODES.EXCHANGE_CLIENT_NOT_AVAILABLE]:
     'perps.errors.exchangeClientNotAvailable',
+  [PERPS_ERROR_CODES.EXCHANGE_ACCOUNT_NOT_FOUND]:
+    'perps.errors.exchangeAccountNotFound',
+  [PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED]:
+    'perps.errors.exchangeMultiSigRequired',
+  [PERPS_ERROR_CODES.EXCHANGE_INVALID_NONCE]:
+    'perps.errors.exchangeInvalidNonce',
   [PERPS_ERROR_CODES.INFO_CLIENT_NOT_AVAILABLE]:
     'perps.errors.infoClientNotAvailable',
   [PERPS_ERROR_CODES.SUBSCRIPTION_CLIENT_NOT_AVAILABLE]:

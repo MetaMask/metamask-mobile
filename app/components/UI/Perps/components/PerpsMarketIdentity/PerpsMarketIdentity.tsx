@@ -39,10 +39,15 @@ export interface PerpsMarketIdentityProps {
   nameStyle?: StyleProp<TextStyle>;
   /**
    * When provided, the identity becomes a content-hugging pressable that opens
-   * the market list and shows a trailing caret.
+   * the market list and shows a trailing down chevron.
    */
   onPress?: () => void;
   testIDs?: PerpsMarketIdentityTestIDs;
+  /**
+   * When provided, replaces the default `[Ticker]-[collateral] perp`
+   * subtitle row entirely (e.g. Pro's scroll-linked live price crossfade).
+   */
+  subtitleContent?: React.ReactNode;
 }
 
 /**
@@ -60,6 +65,7 @@ const PerpsMarketIdentity = ({
   nameStyle,
   onPress,
   testIDs,
+  subtitleContent,
 }: PerpsMarketIdentityProps) => {
   const displaySymbol = getPerpsDisplaySymbol(symbol);
   const displayTitle = name || displaySymbol;
@@ -73,20 +79,22 @@ const PerpsMarketIdentity = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={gap}
-      twClassName={`self-start rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
+      twClassName={`rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
     >
       <PerpsTokenLogo symbol={symbol} size={size} testID={testIDs?.assetIcon} />
-      <Box flexDirection={BoxFlexDirection.Column}>
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
+          twClassName="min-w-0"
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            style={nameStyle}
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={[{ flexShrink: 1 }, nameStyle]}
             testID={testIDs?.assetName}
           >
             {displayTitle}
@@ -94,21 +102,23 @@ const PerpsMarketIdentity = ({
           {maxLeverage ? <PerpsLeverage maxLeverage={maxLeverage} /> : null}
           {onPress ? (
             <Icon
-              name={IconName.ArrowRight}
+              name={IconName.ArrowDown}
               size={IconSize.Xs}
               color={IconColor.IconAlternative}
             />
           ) : null}
         </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-          testID={testIDs?.subtitle}
-        >
-          {subtitle}
-        </Text>
+        {subtitleContent ?? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            testID={testIDs?.subtitle}
+          >
+            {subtitle}
+          </Text>
+        )}
       </Box>
     </Box>
   );

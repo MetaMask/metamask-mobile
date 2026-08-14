@@ -5,7 +5,6 @@ import {
   getDefaultRampsControllerState,
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
-import { getRampCallbackBaseUrl } from '../../../../components/UI/Ramp/utils/getRampCallbackBaseUrl';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
@@ -40,14 +39,9 @@ export const rampsControllerInit: MessengerClientInitFunction<
     // The all-providers widening is driven by the `moneyHeadlessAllProviders`
     // remote feature flag, which the controller reads itself through the
     // `RemoteFeatureFlagController:getState` messenger action per quote call.
-    // Default redirect URL for the widened quote fetch. MM Pay's quote
-    // request omits `redirectUrl`, so aggregator quotes would come back without
-    // the buy-widget URL the headless Checkout WebView needs; supply the same
-    // callback base the UB2 flow uses so the widened path can open the WebView.
-    // TODO(TRAM-3757): Derive this default redirect URL inside RampsController
-    // from its RampsEnvironment (RampsService.getBaseUrl) instead of injecting
-    // it from the client here; this callback duplicates a value core already has.
-    getDefaultRedirectUrl: () => getRampCallbackBaseUrl(),
+    // The widened-path default redirect URL is now derived inside core via
+    // `RampsService:getDefaultRedirectCallbackUrl` (same environment as the
+    // service). Keep that action delegated in the controller messenger.
   });
 
   let orderSubscriptionsRegistered = false;

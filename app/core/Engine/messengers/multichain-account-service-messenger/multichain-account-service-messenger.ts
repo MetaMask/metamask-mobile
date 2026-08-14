@@ -43,6 +43,7 @@ export function getMultichainAccountServiceMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'SnapController:handleRequest',
       'SnapAccountService:ensureReady',
+      'SnapAccountService:getCapabilities',
     ],
     events: [
       'AccountsController:accountAdded',

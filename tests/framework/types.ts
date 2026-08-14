@@ -20,7 +20,7 @@ export interface DeviceMatrix {
 
 // Gestures
 
-import { LanguageAndLocale } from 'detox/detox';
+import { LanguageAndLocale } from './legacy-detox-shim';
 import { DappVariants } from './Constants.ts';
 import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
@@ -114,12 +114,16 @@ export interface GestureOptions {
   checkStability?: boolean;
   checkVisibility?: boolean;
   checkEnabled?: boolean;
+  /** Appium: when false, skip waitForDisplayed (XCUITest visible=false nodes). */
+  checkForDisplayed?: boolean;
   elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 
 export interface TapOptions extends GestureOptions {
   delay?: number; // Delay before the tap action
   waitForElementToDisappear?: boolean; // If true, waits for the element to disappear after tapping
+  /** Appium: stricter enabled polling before tap (PlaywrightGestures.waitUntilInteractive) */
+  waitForInteractive?: boolean;
 }
 
 export interface TypeTextOptions extends GestureOptions {

@@ -48,6 +48,8 @@ export const HOME_TAB_ICONS = {
   exploreSelected: () => nativeTabIcon('magnifyingglass', 'search'),
   money: () => nativeTabIcon('dollarsign.circle', 'attach-money'),
   moneySelected: () => nativeTabIcon('dollarsign.circle.fill', 'attach-money'),
+  activity: () => nativeTabIcon('clock', 'schedule'),
+  activitySelected: () => nativeTabIcon('clock.fill', 'schedule'),
   rewards: () => nativeTabIcon('gift', 'card-giftcard'),
   rewardsSelected: () => nativeTabIcon('gift.fill', 'card-giftcard'),
 } as const;

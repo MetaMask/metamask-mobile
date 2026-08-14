@@ -35,10 +35,7 @@ import {
 import StorageWrapper from '../../../store/storage-wrapper';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
-import {
-  PERPS_GTM_MODAL_SHOWN,
-  PREDICT_GTM_MODAL_SHOWN,
-} from '../../../constants/storage';
+import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
@@ -118,6 +115,9 @@ import {
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
+  HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+  HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
   HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
@@ -141,7 +141,8 @@ import Logger from '../../../util/Logger';
 import BrazeBanner from '../../UI/BrazeBanner';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
-import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
+import { NetworkConnectionBannerContent } from '../../UI/NetworkConnectionBanner';
+import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 
 import {
   SwapBridgeNavigationLocation,
@@ -167,10 +168,7 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
-import {
-  selectPredictEnabledFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
-} from '../../UI/Predict/selectors/featureFlags';
+import { useGetPerpsHomeNavigationTarget } from '../../UI/Perps/utils/perpsModeSwitch';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -200,6 +198,9 @@ const createStyles = ({ colors }: Theme) =>
       flexDirection: 'column',
       gap: 16,
       paddingBottom: 12,
+    },
+    treatmentBannerContainer: {
+      paddingBottom: 16,
     },
     tabContainer: {
       flex: 1,
@@ -504,11 +505,6 @@ const Wallet = ({
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
-  const isPredictGTMModalEnabled = useSelector(
-    selectPredictGtmOnboardingModalEnabledFlag,
-  );
-
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -534,6 +530,8 @@ const Wallet = ({
   );
   const isMoneyAccountVisible =
     isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const showMoneyBalanceCard =
+    isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
 
   /**
    * Provider configuration for the current selected network
@@ -769,26 +767,6 @@ const Wallet = ({
     }
   }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
-  const checkAndNavigateToPredictGTM = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(PREDICT_GTM_MODAL_SHOWN);
-
-    if (hasSeenModal !== 'true') {
-      navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.GTM_MODAL,
-      });
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (isPredictFlagEnabled && isPredictGTMModalEnabled) {
-      checkAndNavigateToPredictGTM();
-    }
-  }, [
-    isPredictFlagEnabled,
-    isPredictGTMModalEnabled,
-    checkAndNavigateToPredictGTM,
-  ]);
-
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 
   useEffect(() => {
@@ -894,6 +872,19 @@ const Wallet = ({
     HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
   );
 
+  const {
+    variant: balanceBreakdownVariant,
+    isActive: isBalanceBreakdownExperimentActive,
+  } = useABTest(
+    HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+    HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
+    HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
+    ? balanceBreakdownVariant.layout
+    : null;
+
   const discoveryPillsIconStyle = discoveryPillsVariant.iconStyle;
   const showDiscoveryPills =
     discoveryPillsVariant.showPills &&
@@ -902,12 +893,14 @@ const Wallet = ({
 
   const isPerpsEnabled = isPerpsFlagEnabled;
 
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+
   const handlePerpsTabDeepLink = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'deeplink' },
+    const { screen, params } = getPerpsHomeNavigationTarget({
+      source: 'deeplink',
     });
-  }, [navigation]);
+    navigation.navigate(Routes.PERPS.ROOT, { screen, params });
+  }, [navigation, getPerpsHomeNavigationTarget]);
 
   const handleNetworkSelectorDeepLink = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1078,8 +1071,15 @@ const Wallet = ({
       </View>
     ) : null;
 
-  const bannerContent = (
-    <View style={styles.banner}>
+  const networkConnectionBanner = useNetworkConnectionBanner();
+  const hasBannerContent =
+    !basicFunctionalityEnabled ||
+    networkConnectionBanner.networkConnectionBannerState.visible;
+  const bannerContent = hasBannerContent ? (
+    <View
+      style={styles.banner}
+      testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT}
+    >
       {!basicFunctionalityEnabled ? (
         <BannerAlert
           severity={BannerAlertSeverity.Error}
@@ -1094,9 +1094,9 @@ const Wallet = ({
           }
         />
       ) : null}
-      <NetworkConnectionBanner />
+      <NetworkConnectionBannerContent {...networkConnectionBanner} />
     </View>
-  );
+  ) : null;
 
   /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
   const walletHomeAccountGroupBalanceProps = {
@@ -1133,18 +1133,51 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
-  const portfolioHeader = (
+  // Hide growth banners when money account is enabled but user is geo-blocked.
+  const growthBanner =
+    !isMoneyAccountEnabled || isMoneyAccountGeoEligible
+      ? homeGrowthBannerContent
+      : null;
+
+  const hasContentBeforeBalanceBreakdown = Boolean(
+    walletHomeMainAssetDetailsActions || growthBanner || homepageDiscoveryPills,
+  );
+  const contentBeforeBalanceBreakdown = hasContentBeforeBalanceBreakdown ? (
+    <>
+      {walletHomeMainAssetDetailsActions}
+      {growthBanner}
+      {homepageDiscoveryPills}
+    </>
+  ) : null;
+
+  const portfolioHeader = balanceBreakdownLayout ? (
+    hasBannerContent ? (
+      <View
+        style={styles.treatmentBannerContainer}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER}
+      >
+        {bannerContent}
+      </View>
+    ) : null
+  ) : (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
-      {/* Hide growth banners when money account is enabled but user is geo-blocked */}
-      {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
-        homeGrowthBannerContent}
+      {growthBanner}
       {homepageDiscoveryPills}
-      {isMoneyAccountVisible && <MoneyBalanceCard />}
+      {showMoneyBalanceCard && <MoneyBalanceCard />}
     </View>
   );
+
+  const balanceBreakdownSectionProps = balanceBreakdownLayout
+    ? {
+        accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
+        hideRows: inWalletHomePostOnboardingFlow,
+        layout: balanceBreakdownLayout,
+        children: contentBeforeBalanceBreakdown,
+      }
+    : undefined;
 
   const renderLoader = useCallback(
     () => (
@@ -1203,7 +1236,12 @@ const Wallet = ({
                     }}
                   >
                     {portfolioHeader}
-                    <Homepage ref={homepageRef} />
+                    <Homepage
+                      ref={homepageRef}
+                      balanceBreakdownSectionProps={
+                        balanceBreakdownSectionProps
+                      }
+                    />
                   </ConditionalScrollView>
                 </HomepageScrollContext.Provider>
               </View>

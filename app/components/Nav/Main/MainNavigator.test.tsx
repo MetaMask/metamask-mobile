@@ -34,6 +34,8 @@ jest.mock('./NativeBottomTabNavigator/tabIcons', () => ({
     exploreSelected: () => ({ type: 'sfSymbol', name: 'magnifyingglass' }),
     money: () => ({ type: 'sfSymbol', name: 'dollarsign.circle' }),
     moneySelected: () => ({ type: 'sfSymbol', name: 'dollarsign.circle.fill' }),
+    activity: () => ({ type: 'sfSymbol', name: 'clock' }),
+    activitySelected: () => ({ type: 'sfSymbol', name: 'clock.fill' }),
     rewards: () => ({ type: 'sfSymbol', name: 'gift' }),
     rewardsSelected: () => ({ type: 'sfSymbol', name: 'gift.fill' }),
   },
@@ -83,6 +85,22 @@ jest.mock('../../UI/Predict', () => {
   };
 });
 
+jest.mock('../../UI/Trending/contexts', () => {
+  const { Fragment } = jest.requireActual('react');
+  return {
+    TrendingQuickBuySheetProvider: ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => jest.requireActual('react').createElement(Fragment, null, children),
+    useTrendingQuickBuySheet: () => ({
+      openQuickBuy: jest.fn(),
+      closeQuickBuy: jest.fn(),
+      isQuickBuyOpen: false,
+    }),
+  };
+});
+
 jest.mock('../../UI/MarketInsights', () => ({
   MarketInsightsView: () => 'MarketInsightsView',
   selectMarketInsightsEnabled: (state: unknown) =>
@@ -106,10 +124,16 @@ jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
   default: () => null,
 }));
 
-const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
+const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(true);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
+}));
+
+const mockSelectIsMoneyAccountGeoEligible = jest.fn().mockReturnValue(true);
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: (state: unknown) =>
+    mockSelectIsMoneyAccountGeoEligible(state),
 }));
 
 describe('MainNavigator', () => {
@@ -148,7 +172,7 @@ describe('MainNavigator', () => {
       );
     };
 
-    it('registers Home, Explore, Trade, Money, and Rewards tabs', () => {
+    it('registers Home, Explore, Money, Rewards, and Trade tabs', () => {
       const tabScreens = getHomeTabScreens();
       const names = tabScreens.map(
         (screen: ReactTestInstance) => screen.props.name as string,
@@ -157,9 +181,9 @@ describe('MainNavigator', () => {
       expect(names).toEqual([
         Routes.WALLET.HOME,
         Routes.TRENDING_VIEW,
-        Routes.MODAL.TRADE_WALLET_ACTIONS,
         Routes.MONEY.ROOT,
         Routes.REWARDS_VIEW,
+        Routes.MODAL.TRADE_WALLET_ACTIONS,
       ]);
     });
 
@@ -171,6 +195,16 @@ describe('MainNavigator', () => {
       );
 
       expect(tradeScreen?.props?.options?.tabBarSelectionEnabled).toBe(false);
+    });
+
+    it('assigns the iOS search system item to Trade so it is isolated from the tab pill', () => {
+      const tabScreens = getHomeTabScreens();
+      const tradeScreen = tabScreens.find(
+        (screen: ReactTestInstance) =>
+          screen.props.name === Routes.MODAL.TRADE_WALLET_ACTIONS,
+      );
+
+      expect(tradeScreen?.props?.options?.tabBarSystemItem).toBe('search');
     });
 
     it('does not register Browser or Activity as home tabs', () => {
@@ -894,7 +928,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes StakeScreens route', () => {
@@ -979,7 +1013,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Asset screen', () => {
@@ -1092,7 +1126,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1107,7 +1141,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
   });
 
@@ -1615,8 +1649,9 @@ describe('MainNavigator', () => {
           .map((child) => child.props.name as string);
       };
 
-      it('always includes Money as a home tab', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      it('includes Money as a home tab when the account is enabled and geo-eligible', () => {
+        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+        mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 

@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
+import { EncapsulatedElementType, type ScrollContainer } from '../../framework';
 
 class SnapSettingsView {
   get enabledToggle(): EncapsulatedElementType {
@@ -11,8 +11,8 @@ class SnapSettingsView {
     return Matchers.getElementByID('snap-settings-remove-button');
   }
 
-  get snapDetailsScrollViewMatcher(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier('snap-settings-scrollview');
+  get snapDetailsScrollViewMatcher(): ScrollContainer {
+    return Matchers.scrollContainer('snap-settings-scrollview');
   }
 
   get backButton(): EncapsulatedElementType {

@@ -2,6 +2,8 @@
 
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { PredictMarketListOrder } from '../constants/flags';
+import type { PredictPaymentMethodValue } from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -17,6 +19,12 @@ export enum ActiveOrderState {
   PLACING_ORDER = 'placing_order',
   SUCCESS = 'success',
 }
+
+/**
+ * Which leg of a PWAT buy failed. Defaults to `'order'` when omitted so
+ * existing failure UX (Retry-only) is preserved for non-payment failures.
+ */
+export type PredictOrderErrorStage = 'payment' | 'order';
 
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
@@ -129,7 +137,10 @@ export type PredictMarket = {
   childMarketIds?: string[];
   isHighlighted?: boolean;
   priceToBeat?: number;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 };
+
+export type CryptoTwapWindowSeconds = 30 | 60;
 
 export type PredictSeries = {
   id: string;
@@ -153,16 +164,24 @@ export type PredictCategory =
   | 'crypto'
   | 'politics'
   | 'hot'
-  | 'world-cup'
   | 'wimbledon';
 
 // Sports league types
 export type PredictSportsLeague =
   | 'nfl'
+  | 'cfb'
+  | 'cfl'
   | 'nba'
   | 'wnba'
   | 'mlb'
+  | 'kbo'
+  | 'npb'
+  | 'cpbl'
   | 'nhl'
+  | 'shl'
+  | 'khl'
+  | 'cehl'
+  | 'dehl'
   | 'ucl'
   | 'fif'
   | 'lal'
@@ -175,6 +194,8 @@ export type PredictSportsLeague =
   | 'bun'
   | 'chi'
   | 'epl'
+  | 'elc'
+  | 'bel1'
   | 'cze1'
   | 'j1100'
   | 'j2100'
@@ -202,9 +223,18 @@ export type PredictSportsLeague =
   | 'dfb'
   | 'cde'
   | 'fifwc'
+  | 'usc'
+  | 'efa'
+  | 'clf'
+  | 'saf1'
   | 'atp'
   | 'wta'
-  | 'itf';
+  | 'itf'
+  | 'cs2'
+  | 'lol'
+  | 'dota2'
+  | 'val'
+  | 'r6siege';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -281,6 +311,11 @@ export interface CryptoPriceUpdate {
   symbol: string;
   price: number;
   timestamp: number;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
+}
+
+export interface CryptoPriceSubscriptionOptions {
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 export interface OrderbookLevel {
@@ -636,16 +671,23 @@ export interface GetMarketsResult {
 export interface PredictMarketListParams {
   tags?: string[]; // tag IDs -> tag_id (multi).
   tagSlugs?: string[]; // tag slugs -> tag_slug (multi). Parallel to `tags` (IDs); both ride /events/keyset.
+  excludedTags?: string[]; // tag IDs -> exclude_tag_id (multi).
   series?: string[]; // series IDs -> series_id (multi)
-  order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  order?: PredictMarketListOrder;
   // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
   status?: 'open' | 'closed' | 'resolved';
   live?: boolean;
+  // Raw query string override for `/events/keyset` without a leading `?`.
+  queryParams?: string;
+  // Relative lower bound computed in minutes when the request is built -> start_time_min.
+  startTimeMinMinutesAgo?: number;
   // Free-text title filter. The provider maps this to Polymarket's
   // `title_search` query param, which composes with cursor pagination, so
   // search stays on the same feed endpoint (handled in the provider layer, not
   // the UI). Blank/whitespace is ignored (browse mode).
   search?: string;
+  /** Raw Polymarket query params that override matching generated params. */
+  customQueryParams?: string;
   limit?: number;
   afterCursor?: string | null;
 }
@@ -750,12 +792,52 @@ export type OrderResult = Result<{
   txHashes?: string[];
 }>;
 
+export interface PredictBuyAttempt {
+  attemptId: string;
+  amountUsd: number;
+  paymentMethod: PredictPaymentMethodValue;
+}
+
 export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
   transactionId?: string;
   activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: PredictTradeAnalyticsProperties;
+  attempt?: PredictBuyAttempt;
+}
+
+/**
+ * Order context kept in memory between a pay-with-any-token deposit and the
+ * order leg that runs once the deposit confirms. `depositedAmount` is recorded
+ * at deposit confirmation because the amount is no longer available if the
+ * order leg later fails.
+ */
+export interface PendingOrderPreview {
+  preview: OrderPreview;
+  signerAddress: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+  depositedAmount?: number;
+  attempt?: PlaceOrderParams['attempt'];
+}
+
+export interface PredictBuyAttemptContext {
+  attempt: PredictBuyAttempt;
+  address: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+}
+
+export interface StartPredictBuyAttemptArgs {
+  amountUsd: number;
+  paymentMethod: PredictBuyAttempt['paymentMethod'];
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
 }
 
 export interface PreviewOrderParams {

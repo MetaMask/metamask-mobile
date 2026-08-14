@@ -8,9 +8,10 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
-import { ConnectedAccountsSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
-import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
-import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
+import {
+  ConnectedAccountModalSelectorsText,
+  ConnectedAccountsSelectorsIDs,
+} from '../../../app/components/Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { sleep } from '../../framework';
 
 class DappConnectionModal {
@@ -50,8 +51,9 @@ class DappConnectionModal {
   get permissionsTabButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '//android.view.ViewGroup[@content-desc="Permissions"]',
+        PlaywrightMatchers.getElementByText(
+          ConnectedAccountModalSelectorsText.PERMISSION_LINK,
+          true,
         ),
     });
   }
@@ -59,36 +61,27 @@ class DappConnectionModal {
   get editNetworksButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '(//android.widget.TextView[@text="Edit"])[2]',
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
         ),
     });
   }
 
   get updateNetworksButton(): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '//android.widget.Button[@content-desc="Update"]',
-        ),
+      appium: () => PlaywrightMatchers.getElementByText('Update', true),
     });
   }
 
   getAccountButton(accountName: string): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `//android.widget.TextView[@resource-id="${AccountCellIds.ADDRESS}" and @text="${accountName}"]`,
-        ),
+      appium: () => PlaywrightMatchers.getElementByText(accountName, true),
     });
   }
 
   getNetworkButton(networkName: string): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `//android.widget.TextView[@resource-id="${CellComponentSelectorsIDs.BASE_TITLE}" and @text="${networkName}"]`,
-        ),
+      appium: () => PlaywrightMatchers.getElementByText(networkName, true),
     });
   }
 

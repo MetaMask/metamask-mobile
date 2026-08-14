@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-// 620 / 400 is the native size of the MainTilt artboard in card_tilt_v1.2.riv.
+// 620 / 400 is the native size of the MainTilt artboard in card_tilt_v1.3.riv.
 const styles = StyleSheet.create({
   riveContainer: {
     width: 150,

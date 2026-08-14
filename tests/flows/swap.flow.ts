@@ -41,10 +41,9 @@ export async function runEthToBaseBridgeFlow(
   // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
   await QuoteView.tapSourceAmountInput();
   await QuoteView.enterAmount(quantity);
-  await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
-    timeout: 60000,
-    description: 'Network fee label visible',
-  });
+  // Destination amount is above the keypad; "Network fee" text can exist but
+  // report not displayed while the BottomSheet keypad is open.
+  await QuoteView.waitForQuoteReady({ timeout: 60000 });
   await QuoteView.dismissKeypad();
   await Assertions.expectElementToBeVisible(QuoteView.confirmBridge, {
     description: 'Confirm bridge button visible',

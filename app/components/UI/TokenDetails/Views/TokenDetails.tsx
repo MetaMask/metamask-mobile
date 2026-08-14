@@ -62,6 +62,16 @@ import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
+import {
+  MoneyAssetOverviewBalanceCta,
+  MoneyAssetOverviewBalanceCtaSkeleton,
+  MoneyAssetOverviewBalanceDescription,
+  MoneyAssetOverviewBalanceDescriptionSkeleton,
+} from '../../Money/components/MoneyAssetOverviewBalanceCta';
+import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import { TextColor } from '../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../locales/i18n';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -97,7 +107,14 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       isMarketInsightsDisplayed: boolean;
       severity: string | undefined;
       hasPerpsMarket: boolean;
-      stickyButtonsShown: 'both' | 'buy' | 'swap' | undefined;
+      stickyButtonsShown:
+        | 'both'
+        | 'buy'
+        | 'swap'
+        | 'swap_earn'
+        | 'earn_buy'
+        | 'earn'
+        | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
       const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
@@ -155,7 +172,9 @@ const TokenDetails: React.FC<{
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-  onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
+  onStickyButtonsResolved?: (
+    shown: 'both' | 'buy' | 'swap' | 'swap_earn' | 'earn_buy' | 'earn' | null,
+  ) => void;
   onCtaClicked?: () => void;
   onPerpsMarketResolved?: (result: {
     hasPerpsMarket: boolean;
@@ -168,7 +187,7 @@ const TokenDetails: React.FC<{
   onCtaClicked,
   onPerpsMarketResolved,
 }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
@@ -319,6 +338,16 @@ const TokenDetails: React.FC<{
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
   const hasBalanceValue = Boolean(balance) && balance !== '0';
+  const isNativeToken = Boolean(token.isETH || token.isNative);
+  const privacyMode = useSelector(selectPrivacyMode);
+  const moneyAssetOverviewCtas = useMoneyAssetOverviewCtas({
+    asset: token,
+    balanceFiatUsd,
+    hasBalance: hasBalanceValue,
+  });
+  const isMoneyFooterCtaActive =
+    moneyAssetOverviewCtas.isFooterCtaLoading ||
+    moneyAssetOverviewCtas.isFooterCtaVisible;
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -329,6 +358,51 @@ const TokenDetails: React.FC<{
     token,
     networkName,
   });
+
+  const { moneyBalanceCta, moneyBalanceDescription } = useMemo(() => {
+    if (moneyAssetOverviewCtas.isBalanceCtaLoading) {
+      return {
+        moneyBalanceCta: <MoneyAssetOverviewBalanceCtaSkeleton />,
+        moneyBalanceDescription: (
+          <MoneyAssetOverviewBalanceDescriptionSkeleton />
+        ),
+      };
+    }
+
+    if (
+      !moneyAssetOverviewCtas.isBalanceCtaVisible ||
+      moneyAssetOverviewCtas.apyPercent === undefined ||
+      moneyAssetOverviewCtas.projectedEarningsFormatted === undefined
+    ) {
+      return {
+        moneyBalanceCta: undefined,
+        moneyBalanceDescription: undefined,
+      };
+    }
+
+    return {
+      moneyBalanceCta: (
+        <MoneyAssetOverviewBalanceCta
+          onStartEarning={moneyAssetOverviewCtas.onBalancePress}
+        />
+      ),
+      moneyBalanceDescription: (
+        <MoneyAssetOverviewBalanceDescription
+          privacyMode={privacyMode}
+          projectedEarnings={moneyAssetOverviewCtas.projectedEarningsFormatted}
+          tokenSymbol={token.symbol}
+        />
+      ),
+    };
+  }, [
+    moneyAssetOverviewCtas.apyPercent,
+    moneyAssetOverviewCtas.isBalanceCtaLoading,
+    moneyAssetOverviewCtas.isBalanceCtaVisible,
+    moneyAssetOverviewCtas.onBalancePress,
+    moneyAssetOverviewCtas.projectedEarningsFormatted,
+    privacyMode,
+    token.symbol,
+  ]);
 
   const handleBuy = useCallback(() => {
     onCtaClicked?.();
@@ -353,6 +427,47 @@ const TokenDetails: React.FC<{
     });
   }, [navigation, token.symbol, token.ticker, currentPriceUsd, caip19AssetId]);
 
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleCopyAddress = useCallback(() => {
+    trackActionTapped(TokenDetailsAction.CopyTokenAddress);
+  }, [trackActionTapped]);
+
+  const handleMarketInsightsDisclaimerPress = useCallback(() => {
+    setIsInsightsDisclaimerVisible(true);
+  }, []);
+
+  const starButton = useMemo(
+    () => (
+      <WatchlistStarButton
+        assetId={caip19AssetId}
+        assetType={isNativeToken ? 'native' : 'erc20'}
+        hasBalance={hasBalanceValue}
+        source="token_details"
+      />
+    ),
+    [caip19AssetId, isNativeToken, hasBalanceValue],
+  );
+
+  const moneyEarnCta = useMemo(
+    () =>
+      isMoneyFooterCtaActive
+        ? {
+            isLoading: moneyAssetOverviewCtas.isFooterCtaLoading,
+            label: moneyAssetOverviewCtas.footerLabelLocalized,
+            onPress: moneyAssetOverviewCtas.onFooterPress,
+          }
+        : undefined,
+    [
+      isMoneyFooterCtaActive,
+      moneyAssetOverviewCtas.isFooterCtaLoading,
+      moneyAssetOverviewCtas.footerLabelLocalized,
+      moneyAssetOverviewCtas.onFooterPress,
+    ],
+  );
+
   const {
     transactions,
     submittedTxs,
@@ -363,6 +478,7 @@ const TokenDetails: React.FC<{
     conversionRate,
     currentCurrency: txCurrentCurrency,
     isNonEvmAsset: txIsNonEvmAsset,
+    bridgeArrivalTxs,
   } = useTokenTransactions(token);
 
   const hasTransactions =
@@ -375,6 +491,21 @@ const TokenDetails: React.FC<{
       <AssetOverviewContent
         token={token}
         balance={balance}
+        balanceCta={moneyBalanceCta}
+        balanceDescription={moneyBalanceDescription}
+        balancePriceChangeOverride={
+          moneyAssetOverviewCtas.isBalanceCtaVisible &&
+          moneyAssetOverviewCtas.apyPercent !== undefined
+            ? strings('money.asset_overview.balance_cta.earn_apy', {
+                apy: moneyAssetOverviewCtas.apyPercent,
+              })
+            : undefined
+        }
+        balancePriceChangeOverrideColor={
+          moneyAssetOverviewCtas.isBalanceCtaVisible
+            ? TextColor.Success
+            : undefined
+        }
         mainBalance={fiatBalance ?? ''}
         secondaryBalance={tokenFormattedBalance}
         currentPrice={currentPrice}
@@ -391,9 +522,7 @@ const TokenDetails: React.FC<{
         onSend={handleSend}
         onReceive={onReceive}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        onMarketInsightsDisclaimerPress={() =>
-          setIsInsightsDisclaimerVisible(true)
-        }
+        onMarketInsightsDisclaimerPress={handleMarketInsightsDisclaimerPress}
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
@@ -419,8 +548,6 @@ const TokenDetails: React.FC<{
     </>
   );
 
-  const isNativeToken = Boolean(token.isETH || token.isNative);
-
   const renderLoader = () => (
     <View style={styles.loader}>
       <ActivityIndicator style={styles.loader} size="small" />
@@ -431,16 +558,9 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         token={token}
         securityData={securityData}
-        onBackPress={() => navigation.goBack()}
+        onBackPress={handleBackPress}
         onSharePress={handleShare}
-        starButton={
-          <WatchlistStarButton
-            assetId={caip19AssetId}
-            assetType={isNativeToken ? 'native' : 'erc20'}
-            hasBalance={hasBalanceValue}
-            source="token_details"
-          />
-        }
+        starButton={starButton}
         onPriceAlertPress={
           isPriceAlertsChainSupported &&
           (currentPriceUsd ?? 0) > 0 &&
@@ -448,9 +568,7 @@ const TokenDetails: React.FC<{
             ? handlePriceAlertPress
             : undefined
         }
-        onCopyAddress={() =>
-          trackActionTapped(TokenDetailsAction.CopyTokenAddress)
-        }
+        onCopyAddress={handleCopyAddress}
       />
 
       {txLoading ? (
@@ -462,6 +580,7 @@ const TokenDetails: React.FC<{
           navigation={navigation}
           selectedAddress={selectedAddress}
           chainId={token.chainId as SupportedCaipChainId}
+          bridgeArrivalTransactions={bridgeArrivalTxs}
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
@@ -493,6 +612,8 @@ const TokenDetails: React.FC<{
           balanceFiatUsd={balanceFiatUsd}
           networkName={networkName}
           currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyEarnCta={moneyEarnCta}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
           useAmbientColor={useAmbientColor}
@@ -542,7 +663,14 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
-    'both' | 'buy' | 'swap' | null | undefined
+    | 'both'
+    | 'buy'
+    | 'swap'
+    | 'swap_earn'
+    | 'earn_buy'
+    | 'earn'
+    | null
+    | undefined
   >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);

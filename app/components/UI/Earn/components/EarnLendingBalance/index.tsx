@@ -6,40 +6,20 @@ import React, { useMemo, useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
-import AssetElement from '../../../AssetElement';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { setMusdConversionAssetDetailCtaSeen } from '../../../../../actions/user';
 import { toHexadecimal } from '../../../../../util/number';
 import Earnings from '../Earnings';
-import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
 import { trace, TraceName } from '../../../../../util/trace';
 import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewCta';
@@ -48,15 +28,11 @@ import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
 import {
   Button,
   ButtonVariant,
-  ButtonSize,
   Text as DesignSystemText,
 } from '@metamask/design-system-react-native';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
-  RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
-  RECEIPT_TOKEN_LABEL: 'receipt-token-label',
   WITHDRAW_BUTTON: 'withdraw-button',
-  DEPOSIT_BUTTON: 'deposit-button',
 };
 
 export interface EarnLendingBalanceProps {
@@ -71,10 +47,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const networkConfigurationByChainId = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
-  );
-
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
   );
@@ -82,7 +54,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
-  const privacyMode = useSelector(selectPrivacyMode);
 
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -93,34 +64,21 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const isAssetReceiptToken = useSelector((state: RootState) =>
     selectEarnOutputToken(state, asset),
   );
-  const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
 
   const userHasLendingPositions = useMemo(
     () => new BigNumber(receiptToken?.balanceMinimalUnit ?? '0').gt(0),
     [receiptToken?.balanceMinimalUnit],
   );
 
-  const userHasUnderlyingTokensAvailableToLend = useMemo(
-    () => new BigNumber(earnToken?.balanceMinimalUnit ?? '0').gt(0),
-    [earnToken?.balanceMinimalUnit],
-  );
-
   const { styles } = useStyles(styleSheet, {
     userHasLendingPositions,
   });
 
-  const emitLendingActionButtonMetaMetric = (
-    action: 'deposit' | 'withdrawal',
-  ) => {
-    const event =
-      action === 'deposit'
-        ? MetaMetricsEvents.EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED
-        : MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED;
-
+  const emitLendingWithdrawalButtonMetaMetric = () => {
     trackEvent(
-      createEventBuilder(event)
+      createEventBuilder(MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED)
         .addProperties({
-          action_type: action,
+          action_type: 'withdrawal',
           token: earnToken?.symbol,
           network: network?.name,
           user_earn_token_balance: earnToken?.balanceFormatted,
@@ -150,7 +108,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const handleNavigateToWithdrawalInputScreen = async () => {
     trace({ name: TraceName.EarnWithdrawScreen });
-    emitLendingActionButtonMetaMetric('withdrawal');
+    emitLendingWithdrawalButtonMetaMetric();
     const networkClientId = getNetworkClientId(asset);
     if (!networkClientId) return;
     try {
@@ -159,24 +117,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         screen: Routes.STAKING.UNSTAKE,
         params: {
           token: receiptToken,
-        },
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleNavigateToDepositInputScreen = async () => {
-    trace({ name: TraceName.EarnDepositScreen });
-    emitLendingActionButtonMetaMetric('deposit');
-    const networkClientId = getNetworkClientId(asset);
-    if (!networkClientId) return;
-    try {
-      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: earnToken,
         },
       });
     } catch (error) {
@@ -220,114 +160,35 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
       return renderMusdConversionCta();
     }
 
-    const shouldRenderLendingEmptyStateCta =
-      !isAssetReceiptToken &&
-      !userHasLendingPositions &&
-      earnToken?.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
-
-    if (shouldRenderLendingEmptyStateCta) {
-      return (
-        <View style={styles.EarnEmptyStateCta}>
-          <EarnEmptyStateCta token={asset} />
-        </View>
-      );
-    }
     return null;
   };
 
   return (
-    // Receipt Token Balance
     <View>
-      {receiptToken?.balanceFiat &&
-        Boolean(receiptToken?.balanceFormatted) &&
-        receiptToken?.chainId &&
-        Boolean(receiptToken?.name) &&
-        !isAssetReceiptToken &&
-        userHasLendingPositions && (
-          <AssetElement
-            asset={receiptToken as TokenI}
-            balance={receiptToken.balanceFiat}
-            privacyMode={privacyMode}
-            hideSecondaryBalanceInPrivacyMode={false}
-            secondaryBalanceElement={
-              <PercentageChange value={pricePercentChange1d ?? 0} />
-            }
-          >
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              style={styles.badgeWrapper}
-              badgeElement={
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={NetworkBadgeSource(receiptToken.chainId as Hex)}
-                  name={networkConfigurationByChainId?.name}
-                />
-              }
-            >
-              <AvatarToken
-                name={asset.symbol}
-                imageSource={{ uri: asset.image }}
-                size={AvatarSize.Lg}
-                testID={
-                  EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO
-                }
-              />
-            </BadgeWrapper>
-            <View style={styles.balances}>
-              <Text
-                variant={TextVariant.BodyMD}
-                testID={EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL}
-              >
-                {receiptToken.name}
-              </Text>
-              <SensitiveText
-                variant={TextVariant.BodySM}
-                style={styles.tokenAmount}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-              >
-                {receiptToken.balanceFormatted}
-              </SensitiveText>
-            </View>
-          </AssetElement>
-        )}
       {renderCta()}
-      {/* Buttons */}
-      {userHasLendingPositions && (
-        <View style={[styles.container, styles.buttonsContainer]}>
-          {Boolean(receiptToken) && (
-            <Button
-              variant={ButtonVariant.Secondary}
-              style={styles.button}
-              size={ButtonSize.Md}
-              onPress={handleNavigateToWithdrawalInputScreen}
-              testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
-            >
-              <DesignSystemText>{strings('earn.withdraw')}</DesignSystemText>
-            </Button>
-          )}
-          {userHasUnderlyingTokensAvailableToLend &&
-            !isAssetReceiptToken &&
-            isEligible && (
-              <Button
-                variant={ButtonVariant.Secondary}
-                style={styles.button}
-                size={ButtonSize.Md}
-                onPress={handleNavigateToDepositInputScreen}
-                testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
-              >
-                <DesignSystemText>
-                  {strings('earn.deposit_more')}
-                </DesignSystemText>
-              </Button>
-            )}
-        </View>
-      )}
-      {isAssetReceiptToken && (
-        <View style={styles.earnings}>
-          <Earnings asset={asset} />
-        </View>
-      )}
+      {isAssetReceiptToken &&
+        userHasLendingPositions &&
+        Boolean(receiptToken) && (
+          <View style={styles.earnings}>
+            <Earnings
+              asset={asset}
+              lendingAction={
+                <View style={[styles.container, styles.buttonsContainer]}>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    style={styles.button}
+                    onPress={handleNavigateToWithdrawalInputScreen}
+                    testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
+                  >
+                    <DesignSystemText>
+                      {strings('earn.withdraw_from_aave')}
+                    </DesignSystemText>
+                  </Button>
+                </View>
+              }
+            />
+          </View>
+        )}
     </View>
   );
 };

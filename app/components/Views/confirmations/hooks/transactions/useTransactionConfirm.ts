@@ -12,10 +12,8 @@ import {
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { isHardwareAccount } from '../../../../../util/address';
-import {
-  navigateWithDetails,
-  useParams,
-} from '../../../../../util/navigation/navUtils';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import {
   ConfirmationParams,
   PayWithOption,
@@ -56,6 +54,7 @@ export function useTransactionConfirm() {
   const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
+  const navigateToPerpsHome = useNavigateToPerpsHome();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
   const { payWithOption } = useParams<ConfirmationParams>({});
@@ -175,12 +174,7 @@ export function useTransactionConfirm() {
             params: { screen: Routes.MONEY.HOME },
           });
         } else {
-          // Cross-navigator jump into the Perps stack; PerpsHome's param list
-          // is owned/typed by the Perps feature.
-          navigateWithDetails(navigation, [
-            Routes.PERPS.ROOT,
-            { screen: Routes.PERPS.PERPS_HOME },
-          ]);
+          navigateToPerpsHome();
         }
       } else if (type === TransactionType.predictDeposit) {
         if (payWithOption === PayWithOption.MoneyAccount) {
@@ -224,6 +218,7 @@ export function useTransactionConfirm() {
       isGaslessSupported,
       isGaslessSupportedSTX,
       navigation,
+      navigateToPerpsHome,
       musdConversionNavigateOnConfirm,
       onFiatConfirm,
       onRequestConfirm,

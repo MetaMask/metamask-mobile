@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
@@ -47,6 +47,7 @@ const mockSetOptions = jest.fn();
 const mockGetParent = jest.fn(() => ({
   setOptions: mockSetOptions,
 }));
+const mockReset = jest.fn();
 let mockRouteParams: Record<string, unknown> = {
   source: 'main_action_button',
 };
@@ -58,6 +59,7 @@ jest.mock('@react-navigation/native', () => ({
     canGoBack: mockCanGoBack,
     getParent: mockGetParent,
     setOptions: mockSetOptions,
+    reset: mockReset,
   }),
   useRoute: () => ({
     params: mockRouteParams,
@@ -92,6 +94,27 @@ const expectNativeHeaderSearchConfigured = () => {
     }),
   );
 };
+
+jest.mock('../../components/PerpsModeToggle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(TouchableOpacity, {
+        testID: 'perps-mode-toggle',
+      }),
+    PerpsMode: { Lite: 'lite', Pro: 'pro' },
+  };
+});
+
+jest.mock('../../utils/openPerpsModeSelection', () => ({
+  openPerpsModeSelectionIfNeeded: jest.fn(async () => false),
+}));
+
+jest.mock('../../utils/perpsModeSwitch', () => ({
+  buildDefaultProMarket: jest.fn(() => ({ symbol: 'BTC' })),
+}));
 
 // Mock Redux - default feedback disabled
 const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
@@ -147,6 +170,17 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   usePerpsHomeSectionTracking: () => mockUsePerpsHomeSectionTracking(),
+  usePerpsMode: jest.fn(() => ({
+    mode: 'lite',
+    setMode: jest.fn(),
+  })),
+}));
+
+const mockHasCompletedPerpsModeSelection = jest.fn(() =>
+  Promise.resolve(false),
+);
+jest.mock('../../utils/perpsModeSelectionStorage', () => ({
+  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
 }));
 
 // Mock direct import of usePerpsCategories (used for sections_displayed gating)
@@ -254,7 +288,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 // Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
     ButtonIcon: ({
@@ -263,7 +297,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: {
       testID?: string;
       onPress?: () => void;
-    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    }) => ReactActual.createElement(TouchableOpacity, { testID, onPress }),
     Box: 'Box',
   };
 });
@@ -536,6 +570,7 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();

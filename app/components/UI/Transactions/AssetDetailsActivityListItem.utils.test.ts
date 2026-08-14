@@ -203,6 +203,174 @@ describe('AssetDetailsActivityListItem utils', () => {
     });
   });
 
+  describe('swap enrichment from the bridge/swaps quote', () => {
+    const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const SWAP_ROUTER = '0x0439e60f02a8900a951603950d8d4527f400c3f1';
+
+    // `swapMetaData` is a legacy SwapsController field that never made it onto
+    // TransactionMeta, so it is declared here rather than cast at each call.
+    type LegacySwapOverrides = Partial<TransactionWithImportTime> & {
+      swapMetaData?: { token_from?: string; token_to?: string };
+    };
+
+    const createSwap = (overrides: LegacySwapOverrides = {}) =>
+      createTransaction({
+        type: TransactionType.swap,
+        txParams: { from: '0x123', to: SWAP_ROUTER, value: '0x0' },
+        ...overrides,
+      } as Partial<TransactionWithImportTime>);
+
+    // Unified swaps keep both legs in the quote, not on the TransactionMeta.
+    const createBridgeHistoryItem = (status?: {
+      destChain?: { txHash: string };
+    }) =>
+      ({
+        quote: {
+          srcChainId: '0x1',
+          destChainId: '0x1',
+          srcAsset: {
+            address: USDC_ADDRESS,
+            symbol: 'USDC',
+            decimals: 6,
+            assetId: 'eip155:1/erc20:0xa0b8',
+          },
+          destAsset: { address: '0x0', symbol: 'ETH', decimals: 18 },
+          srcTokenAmount: '10000',
+          destTokenAmount: '3000000000000',
+        },
+        ...(status ? { status } : {}),
+      }) as never;
+
+    const bridgeHistoryItem = createBridgeHistoryItem();
+    const completedBridgeHistoryItem = createBridgeHistoryItem({
+      destChain: { txHash: '0xdest' },
+    });
+
+    it('resolves a complete swap when the quote is available', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createSwap(),
+        assetSymbol: 'USDC',
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1',
+        bridgeHistoryItem,
+      });
+
+      expect(item.type).toBe('swap');
+      expect(item.data).toEqual(
+        expect.objectContaining({
+          sourceToken: expect.objectContaining({
+            direction: 'out',
+            symbol: 'USDC',
+            amount: '10000',
+            decimals: 6,
+          }),
+          destinationToken: expect.objectContaining({
+            direction: 'in',
+            symbol: 'ETH',
+            amount: '3000000000000',
+            decimals: 18,
+          }),
+        }),
+      );
+    });
+
+    it('degrades to swapIncomplete without the quote, which is the bug this enrichment fixes', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createSwap(),
+        assetSymbol: 'USDC',
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1',
+      });
+
+      expect(item.type).toBe('swapIncomplete');
+    });
+
+    it('falls back to legacy swapMetaData symbols when there is no quote', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createSwap({
+          swapMetaData: { token_from: 'USDC', token_to: 'ETH' },
+        }),
+        assetSymbol: 'USDC',
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1',
+      });
+
+      expect(item.type).toBe('swap');
+      expect(item.data).toEqual(
+        expect.objectContaining({
+          sourceToken: expect.objectContaining({ symbol: 'USDC' }),
+          destinationToken: expect.objectContaining({ symbol: 'ETH' }),
+        }),
+      );
+    });
+
+    it('prefers the quote over legacy symbols, so amounts and decimals survive', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createSwap({
+          swapMetaData: { token_from: 'STALE', token_to: 'STALE' },
+        }),
+        assetSymbol: 'USDC',
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1',
+        bridgeHistoryItem,
+      });
+
+      expect(item.data).toEqual(
+        expect.objectContaining({
+          sourceToken: expect.objectContaining({ symbol: 'USDC' }),
+          destinationToken: expect.objectContaining({ symbol: 'ETH' }),
+        }),
+      );
+    });
+
+    it('marks a bridge as successful once the destination leg lands', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createSwap({ type: TransactionType.bridge }),
+        assetSymbol: 'USDC',
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1',
+        bridgeHistoryItem: completedBridgeHistoryItem,
+      });
+
+      expect(item.type).toBe('bridge');
+      expect(item.status).toBe('success');
+    });
+
+    it('adds no override while the destination leg is unresolved, so the local status stands', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createSwap({
+          type: TransactionType.bridge,
+          status: TransactionStatus.submitted,
+        }),
+        assetSymbol: 'USDC',
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1',
+        bridgeHistoryItem,
+      });
+
+      if (item.raw?.type !== 'localTransaction') {
+        throw new Error('Expected local transaction activity item');
+      }
+      expect(item.raw.data.activityStatus).toBeUndefined();
+      expect(item.status).toBe('pending');
+    });
+
+    it('does not apply the bridge status override to a same-chain swap', () => {
+      const item = mapTransactionToActivityItem({
+        transaction: createSwap(),
+        assetSymbol: 'USDC',
+        nativeAssetSymbol: 'ETH',
+        currentChainId: '0x1',
+        bridgeHistoryItem: completedBridgeHistoryItem,
+      });
+
+      if (item.raw?.type !== 'localTransaction') {
+        throw new Error('Expected local transaction activity item');
+      }
+      expect(item.raw.data.activityStatus).toBeUndefined();
+    });
+  });
+
   describe('nativeAssetSymbol resolution', () => {
     it('uses the explicit nativeAssetSymbol when provided', () => {
       const item = mapTransactionToActivityItem({

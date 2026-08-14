@@ -3,7 +3,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
-import { unlockIfLockScreenVisible } from './unlockHelpers';
+import { unlockIfLockScreenVisible } from '../../flows/wallet.flow';
 
 const logger = createLogger({
   name: 'AndroidScreenHelpers',

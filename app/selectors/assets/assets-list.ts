@@ -60,6 +60,7 @@ import {
   getTokensControllerAllIgnoredTokens,
   getTokensControllerAllTokens,
 } from './assets-migration';
+import { isAssetSupportActivation } from '../stellar/stellar-assets';
 import { filterExcludedAssets } from '../../enablement/assets/networks-customization';
 
 /**
@@ -343,6 +344,7 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -497,6 +499,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;

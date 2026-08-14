@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { Box } from '@metamask/design-system-react-native';
 import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import StakingBalance from '../../../Stake/components/StakingBalance/StakingBalance';
@@ -49,7 +50,11 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
 
   // EVM staking: only when stakeable and not a staked output token
   if (isStakeableToken && !asset.isStaked) {
-    return <StakingBalance asset={asset} />;
+    return (
+      <Box twClassName="px-4">
+        <StakingBalance asset={asset} />
+      </Box>
+    );
   }
 
   if (!asset.chainId) return null;

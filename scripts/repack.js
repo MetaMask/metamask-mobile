@@ -64,19 +64,33 @@ function getKeystoreConfig() {
 
 /**
  * Repack Android APK
- * Currently supports 'flask' and 'main' build types
+ * Currently supports 'flask' and 'main' build types.
+ *
+ * Optional path overrides (used by performance BrowserStack fingerprint reuse):
+ *   REPACK_SOURCE_APK, REPACK_OUTPUT_APK, REPACK_WORKING_DIR, REPACK_SOURCEMAP_PATH
  */
 async function repackAndroid() {
   const startTime = Date.now();
-  const sourceApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
-  const repackedApk = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
-  const finalApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
-  const sourcemapPath = 'sourcemaps/android/index.android.bundle.map';
-  const workingDir = 'android/app/build/repack-working-main';
+  const sourceApk =
+    process.env.REPACK_SOURCE_APK ||
+    'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const repackedApk =
+    process.env.REPACK_OUTPUT_APK ||
+    'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
+  const finalApk =
+    process.env.REPACK_FINAL_APK ||
+    'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const sourcemapPath =
+    process.env.REPACK_SOURCEMAP_PATH ||
+    'sourcemaps/android/index.android.bundle.map';
+  const workingDir =
+    process.env.REPACK_WORKING_DIR || 'android/app/build/repack-working-main';
 
   try {
     logger.info('🚀 Starting Android E2E APK repack process...');
     logger.info(`Source APK: ${sourceApk}`);
+    logger.info(`Output APK: ${finalApk}`);
+    logger.info(`Working dir: ${workingDir}`);
 
     // Verify source APK exists
     if (!fs.existsSync(sourceApk)) {

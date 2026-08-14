@@ -85,6 +85,8 @@ import {
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
+import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
+import { getIsAssetRequireActivate } from '../../../../../selectors/stellar/stellar-assets';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -193,6 +195,10 @@ export const TokenListItem = React.memo(
         chainId: assetKey.chainId as string,
         isStaked: assetKey.isStaked,
       }),
+    );
+
+    const isAssetInactive = useSelector((state: RootState) =>
+      getIsAssetRequireActivate(state, { assetId: asset?.address ?? '' }),
     );
 
     const { isStockToken } = useRWAToken();
@@ -642,6 +648,7 @@ export const TokenListItem = React.memo(
                       caipAssetId={caipAssetIdForSecurity}
                     />
                   )}
+                {isAssetInactive ? <AssetInactiveBadge /> : null}
               </View>
 
               {renderEarnCta()}

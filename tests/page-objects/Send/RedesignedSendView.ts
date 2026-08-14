@@ -5,20 +5,16 @@ import {
   Utilities,
   Assertions,
   EncapsulatedElementType,
+  getDriver,
 } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class SendView {
-  get ethereumTokenButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('Ethereum');
+  get ethTokenAssetButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(getAssetTestId('ETH'), 0);
   }
 
   get erc20TokenButton(): EncapsulatedElementType {
@@ -30,7 +26,7 @@ class SendView {
   }
 
   get zeroButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('0', 1);
+    return Matchers.getElementByID('keypad-key-0');
   }
 
   get amountFiveButton(): EncapsulatedElementType {
@@ -90,30 +86,34 @@ class SendView {
   }
 
   async selectEthereumToken(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.ethereumTokenButton, {
+    // Asset list can still re-render (duplicate rows hydrating) when tapped.
+    // The tap may highlight the row without firing onPress, so we wait for
+    // stability and retry until Amount.
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+          return;
+        } catch {
+          // Still on the asset picker
+        }
+
+        await Gestures.waitAndTap(this.ethTokenAssetButton, {
           elemDescription: 'Select ethereum token',
+          checkStability: true,
+          delay: 1000,
         });
+
+        await Utilities.waitForElementToBeVisible(this.amountScreen, 5000);
       },
-      appium: async () => {
-        // Tap the Ethereum network filter chip (chainId 0x1) to filter tokens
-        const networkChip = await PlaywrightMatchers.getElementById(
-          getNetworkFilterTestId('0x1'),
-        );
-        await PlaywrightGestures.scrollIntoView(networkChip);
-        await PlaywrightGestures.waitAndTap(networkChip);
-        // Tap the first ETH token row (no testID in production, use text)
-        const ethToken = await PlaywrightMatchers.getElementByText('ETH');
-        await PlaywrightGestures.waitAndTap(ethToken);
+      {
+        timeout: 25000,
+        description: 'Select ethereum token and open amount screen',
       },
-    });
+    );
   }
 
   async selectERC20Token(): Promise<void> {
-    // With device.disableSynchronization(), the asset list can still re-render
-    // (duplicate rows hydrating) when Detox taps. The tap may highlight the row
-    // without firing onPress, so we wait for stability and retry until Amount.
     await Utilities.executeWithRetry(
       async () => {
         try {
@@ -163,66 +163,41 @@ class SendView {
   }
 
   async pressContinueButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.continueButton, {
-          elemDescription: 'Continue button',
-        });
-      },
-      appium: async () => {
-        const el = await PlaywrightMatchers.getElementByText('Continue');
-        await PlaywrightGestures.waitAndTap(el);
-      },
+    await Gestures.waitAndTap(this.continueButton, {
+      elemDescription: 'Continue button',
     });
   }
 
   async inputRecipientAddress(address: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.typeText(this.recipientAddressInput, address, {
-          elemDescription: 'Enter recipient address',
-          hideKeyboard: true,
-        });
-      },
-      appium: async () => {
-        const isIOS = await PlatformDetector.isIOS();
-        let el;
-        if (isIOS) {
-          // On iOS, the input has AXUniqueId "textfield" instead of "recipient-address-input"
-          el = await PlaywrightMatchers.getElementById('textfield');
-        } else {
-          el = await PlaywrightMatchers.getElementById(
-            RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-          );
-        }
-        await PlaywrightGestures.typeText(el, address);
-        await PlaywrightGestures.hideKeyboard();
-      },
-    });
+    if (PlatformDetector.isIOS()) {
+      const wrapper = Matchers.getElementByID('textfield');
+      await Gestures.waitAndTap(wrapper, {
+        elemDescription: 'Recipient address textfield wrapper',
+      });
+      await Gestures.typeViaIosKeyboard(address);
+    } else {
+      await Gestures.typeText(this.recipientAddressInput, address, {
+        elemDescription: 'Enter recipient address',
+        hideKeyboard: false,
+      });
+    }
+
+    const drv = getDriver();
+    if (drv) {
+      try {
+        await drv.hideKeyboard();
+      } catch {
+        // Keyboard may already be dismissed.
+      }
+    }
   }
 
   async pressReviewButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
-        await Utilities.waitForElementToBeEnabled(this.reviewButton);
-        await Utilities.waitForElementToStopMoving(this.reviewButton, {
-          timeout: 10000,
-          interval: 250,
-          stableCount: 3,
-        });
-        await Gestures.waitAndTap(this.reviewButton, {
-          elemDescription: 'Review button',
-          checkStability: false,
-          timeout: 20000,
-        });
-      },
-      appium: async () => {
-        const el = await PlaywrightMatchers.getElementById(
-          RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-        );
-        await PlaywrightGestures.waitAndTap(el);
-      },
+    await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
+    await Utilities.waitForElementToBeEnabled(this.reviewButton);
+    await Gestures.waitAndTap(this.reviewButton, {
+      elemDescription: 'Review button',
+      timeout: 20000,
     });
   }
 
@@ -234,40 +209,20 @@ class SendView {
 
   /**
    * Enter an amount by tapping individual numpad digits.
-   * Works in both Detox and Playwright/Appium contexts.
    * @param amount - The amount string to enter (e.g., '1', '0.5', '100')
    */
   async enterAmountViaNumpad(amount: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        for (const digit of amount.split('')) {
-          // The numpad "0" is the second element matching text "0" on screen
-          const el =
-            digit === '0'
-              ? Matchers.getElementByText('0', 1)
-              : Matchers.getElementByText(digit);
-          await Gestures.waitAndTap(el, {
-            elemDescription: `Numpad digit ${digit}`,
-          });
-        }
-      },
-      appium: async () => {
-        const isAndroid = await PlatformDetector.isAndroid();
-        for (const digit of amount.split('')) {
-          let el: PlaywrightElement;
-          const keyName =
-            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-          if (isAndroid) {
-            el = await PlaywrightMatchers.getElementByText(digit);
-          } else {
-            el = await PlaywrightMatchers.getElementByXPath(
-              `//*[contains(@name,'${keyName}')]`,
-            );
-          }
-          await PlaywrightGestures.waitAndTap(el, { delay: 300 });
-        }
-      },
-    });
+    const isAndroid = PlatformDetector.isAndroid();
+    for (const digit of amount.split('')) {
+      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+      const el = isAndroid
+        ? Matchers.getElementByText(digit)
+        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
+      await Gestures.waitAndTap(el, {
+        elemDescription: `Numpad digit ${digit}`,
+        delay: 300,
+      });
+    }
   }
 
   /**
@@ -276,17 +231,9 @@ class SendView {
    * @param accountName - The account name to select (e.g., 'Account 2')
    */
   async selectRecipientAccount(accountName: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        const el = Matchers.getElementByText(accountName);
-        await Gestures.waitAndTap(el, {
-          elemDescription: `Select recipient account: ${accountName}`,
-        });
-      },
-      appium: async () => {
-        const el = await PlaywrightMatchers.getElementByText(accountName);
-        await PlaywrightGestures.waitAndTap(el);
-      },
+    const el = Matchers.getElementByText(accountName);
+    await Gestures.waitAndTap(el, {
+      elemDescription: `Select recipient account: ${accountName}`,
     });
   }
 

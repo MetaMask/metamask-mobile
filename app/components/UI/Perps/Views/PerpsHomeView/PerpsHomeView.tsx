@@ -25,6 +25,7 @@ import {
   ButtonSize,
   TextColor,
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   IconColor,
   IconName,
@@ -44,11 +45,13 @@ import {
   formatPerpsBalance,
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
   usePerpsHomeSectionTracking,
+  usePerpsMode,
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
@@ -68,7 +71,11 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
+  selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
+import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
+import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -80,17 +87,13 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
   selectPerpsNetwork,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
-import {
-  WhatsHappeningSource,
-  MAX_ITEMS_DISPLAYED,
-} from '../../../../UI/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
   useWhatsHappening,
   isWhatsHappeningSectionVisible,
@@ -154,6 +157,39 @@ const PerpsHomeView = () => {
     selectPerpsRecentlyAddedEnabledFlag,
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const handleModeChange = useCallback(
+    async (nextMode: PerpsMode): Promise<boolean> => {
+      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+        entry: 'home',
+        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
+      if (openedChooser) {
+        return false;
+      }
+
+      // Chooser already completed — flip immediately without the sheet.
+      setPerpsMode(nextMode);
+      // Discard Perps Home while Pro is active (TAT-3612).
+      if (nextMode === PerpsMode.Pro) {
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: buildDefaultProMarket(),
+                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+              },
+            },
+          ],
+        });
+      }
+      return true;
+    },
+    [navigation, setPerpsMode],
+  );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
   // one recently listed market — see useHasNewMarkets).
@@ -171,7 +207,7 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
-  const whatsHappeningFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const whatsHappeningFeed = useWhatsHappening();
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
     isWhatsHappeningSectionVisible({
@@ -513,14 +549,29 @@ const PerpsHomeView = () => {
         title: '',
         headerRightContainerStyle: styles.nativeHeaderRightContainer,
         headerRight: () => (
-          <ButtonIcon
-            iconName={IconName.Search}
-            size={ButtonIconSize.Md}
-            iconProps={{ color: IconColor.IconDefault }}
-            onPress={handleSearchToggle}
-            accessibilityLabel="Search"
-            testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
-          />
+          <Box
+            accessible={false}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <ButtonIcon
+              iconName={IconName.Search}
+              size={ButtonIconSize.Md}
+              iconProps={{ color: IconColor.IconDefault }}
+              onPress={handleSearchToggle}
+              accessibilityLabel="Search"
+              testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
+            />
+            {isPerpsProModeEnabled ? (
+              <PerpsModeToggle
+                mode={perpsMode}
+                onChange={handleModeChange}
+                variant="active"
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+              />
+            ) : null}
+          </Box>
         ),
       });
 
@@ -531,7 +582,14 @@ const PerpsHomeView = () => {
           headerRightContainerStyle: undefined,
         });
       };
-    }, [navigation, handleSearchToggle, styles.nativeHeaderRightContainer]),
+    }, [
+      navigation,
+      handleSearchToggle,
+      styles.nativeHeaderRightContainer,
+      isPerpsProModeEnabled,
+      perpsMode,
+      handleModeChange,
+    ]),
   );
 
   const handleWhatsHappeningHeaderPress = useCallback(() => {

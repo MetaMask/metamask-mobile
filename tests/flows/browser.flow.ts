@@ -4,6 +4,7 @@ import Matchers from '../framework/Matchers';
 import Utilities, { sleep } from '../framework/Utilities';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestDApp from '../page-objects/Browser/TestDApp';
+import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
@@ -20,6 +21,9 @@ import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers
 import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 
+/** Dapp <h1 id="logo-text">; always at the top of the page, unlike the action buttons. */
+const TEST_DAPP_LOAD_LABEL = 'E2E Test Dapp';
+
 /**
  * Waits for the test dapp to load.
  * @async
@@ -28,6 +32,21 @@ import { getDappUrl } from '../framework/fixtures/FixtureUtils';
  * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
  */
 export const waitForTestDappToLoad = async (): Promise<void> => {
+  if (PlatformDetector.isAndroidAppium()) {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+      {
+        description: 'Browser WebView native container',
+        timeout: 30_000,
+      },
+    );
+    await Assertions.expectTextDisplayed(TEST_DAPP_LOAD_LABEL, {
+      timeout: 30_000,
+      description: 'Test dapp heading should be visible',
+    });
+    return;
+  }
+
   if (FrameworkDetector.isAppium()) {
     await Assertions.expectElementToBeVisible(
       PlaywrightMatchers.getElementByText(getDappUrl(0)),
@@ -225,4 +244,15 @@ export const openUrlInBrowserView = async (): Promise<void> => {
       elemDescription: 'URL input box',
     },
   );
+};
+
+/**
+ * Opens the in-app test dapp and completes the default connect sheet approval.
+ * Assumes the browser tab is already open (e.g. after {@link navigateToBrowserView}).
+ */
+export const connectToTestDapp = async (): Promise<void> => {
+  await BrowserView.navigateToTestDApp();
+  await waitForTestDappToLoad();
+  await TestDApp.tapDappConnectButton();
+  await ConnectBottomSheet.tapConnectButton();
 };

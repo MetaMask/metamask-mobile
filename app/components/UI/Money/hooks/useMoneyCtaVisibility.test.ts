@@ -1,39 +1,39 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import type { TokenI } from '../../Tokens/types';
-import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
 import {
+  selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
+  selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
-  selectMoneyDepositCtaTokens,
-  selectMoneyEarnBannerTokens,
+  selectMoneyDepositCtaTokenAddresses,
+  selectMoneyDepositMinBalance,
 } from '../selectors/featureFlags';
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
-import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
+import {
+  useMoneyAssetOverviewCtaVisibility,
+  useMoneyCtaVisibility,
+} from './useMoneyCtaVisibility';
 
 jest.mock('react-redux');
 jest.mock('../../../../selectors/featureFlagController/moneyAccount');
 jest.mock('../../../../selectors/moneyAccountController');
+jest.mock('../../../../selectors/featureFlagController/confirmations');
 jest.mock('../../../../reducers/user/selectors');
 jest.mock('../selectors/featureFlags');
 jest.mock('../selectors/eligibility');
-jest.mock('../../Earn/utils/wildcardTokenList');
 jest.mock('./useMoneyDepositTokens');
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockIsTokenInWildcardList = jest.mocked(isTokenInWildcardList);
 const mockUseMoneyDepositTokens = jest.mocked(useMoneyDepositTokens);
 
-const actualIsTokenInWildcardList = jest.requireActual<
-  typeof import('../../Earn/utils/wildcardTokenList')
->('../../Earn/utils/wildcardTokenList').isTokenInWildcardList;
-
 const ctaToken = {
-  address: '0xAbC',
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: '0x1',
   symbol: 'USDC',
 } as TokenI;
@@ -43,22 +43,34 @@ const createToken = (overrides: Partial<TokenI> = {}) =>
 
 interface SelectorState {
   ctaEnabled: boolean;
-  ctaTokens: Record<string, string[]>;
+  assetOverviewFooterCtaEnabled: boolean;
+  assetOverviewBalanceCtaEnabled: boolean;
+  ctaTokenAddresses: Record<string, string[]>;
   geoEligible: boolean;
   vaultConfig: object | undefined;
   primaryMoneyAccount: { address?: string } | undefined;
   earnBannerEnabled: boolean;
-  earnBannerTokens: Record<string, string[]>;
   earnBannerDismissedTokens: Record<string, boolean>;
+  blockedTokens: {
+    default: {
+      chainIds?: string[];
+      tokens?: { address: string; chainId: string }[];
+    };
+    overrides: Record<string, unknown>;
+  };
+  minDepositBalanceUsd: number;
 }
 
 const setupSelectors = ({
   ctaEnabled = true,
-  ctaTokens = { '*': ['USDC'] },
+  assetOverviewFooterCtaEnabled = true,
+  assetOverviewBalanceCtaEnabled = true,
+  ctaTokenAddresses = { '0x1': [ctaToken.address] },
   geoEligible = true,
   earnBannerEnabled = true,
-  earnBannerTokens = { '0x1': ['USDC'] },
   earnBannerDismissedTokens = {},
+  blockedTokens = { default: { chainIds: [], tokens: [] }, overrides: {} },
+  minDepositBalanceUsd = 0.01,
   ...options
 }: Partial<SelectorState> = {}) => {
   const vaultConfig = 'vaultConfig' in options ? options.vaultConfig : {};
@@ -71,8 +83,14 @@ const setupSelectors = ({
     if (selector === selectIsMoneyTokenListItemCtaEnabledFlag) {
       return ctaEnabled;
     }
-    if (selector === selectMoneyDepositCtaTokens) {
-      return ctaTokens;
+    if (selector === selectIsMoneyAssetOverviewFooterCtaEnabledFlag) {
+      return assetOverviewFooterCtaEnabled;
+    }
+    if (selector === selectIsMoneyAssetOverviewBalanceCtaEnabledFlag) {
+      return assetOverviewBalanceCtaEnabled;
+    }
+    if (selector === selectMoneyDepositCtaTokenAddresses) {
+      return ctaTokenAddresses;
     }
     if (selector === selectIsMoneyAccountGeoEligible) {
       return geoEligible;
@@ -86,11 +104,14 @@ const setupSelectors = ({
     if (selector === selectIsMoneyEarnBannerEnabledFlag) {
       return earnBannerEnabled;
     }
-    if (selector === selectMoneyEarnBannerTokens) {
-      return earnBannerTokens;
-    }
     if (selector === selectMoneyEarnBannerDismissedTokens) {
       return earnBannerDismissedTokens;
+    }
+    if (selector === selectMetaMaskPayTokensFlags) {
+      return { blockedTokens };
+    }
+    if (selector === selectMoneyDepositMinBalance) {
+      return minDepositBalanceUsd;
     }
     return undefined;
   });
@@ -103,14 +124,13 @@ describe('useMoneyCtaVisibility', () => {
     mockUseMoneyDepositTokens.mockReturnValue({
       tokens: [ctaToken],
     } as ReturnType<typeof useMoneyDepositTokens>);
-    mockIsTokenInWildcardList.mockReturnValue(true);
   });
 
   it('returns true for an allowlisted earnable token with different address casing', () => {
     const { result } = renderHook(() => useMoneyCtaVisibility());
 
     const isVisible = result.current.shouldShowMoneyTokenListItemCta(
-      createToken({ address: '0xabc', chainId: '0X1' }),
+      createToken({ address: ctaToken.address.toLowerCase() }),
     );
 
     expect(isVisible).toBe(true);
@@ -156,8 +176,12 @@ describe('useMoneyCtaVisibility', () => {
     );
   });
 
-  it('returns false when token symbol is absent from configured wildcard list', () => {
-    mockIsTokenInWildcardList.mockReturnValue(false);
+  it('returns false when token address is absent from configured address list', () => {
+    setupSelectors({
+      ctaTokenAddresses: {
+        '0x1': ['0xdAC17F958D2ee523a2206206994597C13D831ec7'],
+      },
+    });
 
     const { result } = renderHook(() => useMoneyCtaVisibility());
 
@@ -176,18 +200,188 @@ describe('useMoneyCtaVisibility', () => {
     expect(result.current.shouldShowMoneyTokenListItemCta(asset)).toBe(false);
   });
 
+  describe('Asset Overview CTAs', () => {
+    it('shows footer CTA for an allowlisted token that is not held', () => {
+      mockUseMoneyDepositTokens.mockReturnValue({
+        isNoFeeToken: jest.fn(),
+        tokens: [],
+      } as ReturnType<typeof useMoneyDepositTokens>);
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewFooterCta(ctaToken),
+      ).toBe(true);
+    });
+
+    it('hides footer CTA when its feature flag is disabled', () => {
+      setupSelectors({ assetOverviewFooterCtaEnabled: false });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewFooterCta(ctaToken),
+      ).toBe(false);
+    });
+
+    it('hides footer CTA for a same-symbol asset with another address', () => {
+      const customUsdc = createToken({
+        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewFooterCta(customUsdc),
+      ).toBe(false);
+    });
+
+    it('hides footer CTA for a configured address on another chain', () => {
+      const assetOnAnotherChain = createToken({ chainId: '0xa4b1' });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewFooterCta(
+          assetOnAnotherChain,
+        ),
+      ).toBe(false);
+    });
+
+    it('shows balance CTA only for a held deposit-eligible token', () => {
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewBalanceCta(ctaToken),
+      ).toBe(true);
+    });
+
+    it('hides balance CTA for a token that is not held', () => {
+      mockUseMoneyDepositTokens.mockReturnValue({
+        isNoFeeToken: jest.fn(),
+        tokens: [],
+      } as ReturnType<typeof useMoneyDepositTokens>);
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewBalanceCta(ctaToken),
+      ).toBe(false);
+    });
+
+    it('hides balance CTA when its feature flag is disabled', () => {
+      setupSelectors({ assetOverviewBalanceCtaEnabled: false });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewBalanceCta(ctaToken),
+      ).toBe(false);
+    });
+  });
+
+  describe('useMoneyAssetOverviewCtaVisibility', () => {
+    it('does not subscribe to deposit tokens for a single-asset overview', () => {
+      renderHook(() => useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100));
+
+      expect(mockUseMoneyDepositTokens).not.toHaveBeenCalled();
+    });
+
+    it('marks footer CTA eligible for an allowlisted token that is not held', () => {
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, false, undefined),
+      );
+
+      expect(result.current.isFooterCtaEligible).toBe(true);
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+    });
+
+    it('marks balance CTA eligible only when the allowlisted token has a balance above the deposit minimum', () => {
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isBalanceCtaEligible).toBe(true);
+      expect(result.current.isFooterCtaEligible).toBe(true);
+    });
+
+    it('hides balance CTA when the fiat balance is below the money deposit minimum', () => {
+      setupSelectors({ minDepositBalanceUsd: 5 });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 1),
+      );
+
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+      // Footer CTA does not depend on the deposit minimum.
+      expect(result.current.isFooterCtaEligible).toBe(true);
+    });
+
+    it('hides balance CTA when the token is blocked for money account deposits', () => {
+      setupSelectors({
+        blockedTokens: {
+          default: {
+            tokens: [
+              {
+                address: ctaToken.address,
+                chainId: ctaToken.chainId as string,
+              },
+            ],
+          },
+          overrides: {},
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+      // Footer CTA does not depend on the deposit blocklist.
+      expect(result.current.isFooterCtaEligible).toBe(true);
+    });
+
+    it('hides footer CTA when its feature flag is disabled', () => {
+      setupSelectors({ assetOverviewFooterCtaEnabled: false });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isFooterCtaEligible).toBe(false);
+    });
+
+    it('hides balance CTA when its feature flag is disabled', () => {
+      setupSelectors({ assetOverviewBalanceCtaEnabled: false });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+      );
+
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+    });
+
+    it('hides both CTAs when the token is not allowlisted', () => {
+      const customUsdc = createToken({
+        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      });
+
+      const { result } = renderHook(() =>
+        useMoneyAssetOverviewCtaVisibility(customUsdc, true, 100),
+      );
+
+      expect(result.current.isFooterCtaEligible).toBe(false);
+      expect(result.current.isBalanceCtaEligible).toBe(false);
+    });
+  });
+
   describe('shouldShowMoneyEarnBanner', () => {
-    it('returns true for an allowlisted token when the banner is enabled and the account is ready', () => {
+    it('returns true for a configured token address when the banner is enabled and the account is ready', () => {
       const { result } = renderHook(() => useMoneyCtaVisibility());
 
       const isVisible = result.current.shouldShowMoneyEarnBanner(ctaToken);
 
       expect(isVisible).toBe(true);
-      expect(mockIsTokenInWildcardList).toHaveBeenCalledWith(
-        ctaToken.symbol,
-        { '0x1': ['USDC'] },
-        '0x1',
-      );
     });
 
     it('returns false when the earn banner feature flag is disabled', () => {
@@ -232,17 +426,28 @@ describe('useMoneyCtaVisibility', () => {
       expect(result.current.shouldShowMoneyEarnBanner(asset)).toBe(false);
     });
 
-    it('returns false when token symbol is absent from configured wildcard list', () => {
-      mockIsTokenInWildcardList.mockReturnValue(false);
+    it('returns false when no CTA token addresses are configured', () => {
+      setupSelectors({ ctaTokenAddresses: {} });
 
       const { result } = renderHook(() => useMoneyCtaVisibility());
 
       expect(result.current.shouldShowMoneyEarnBanner(ctaToken)).toBe(false);
     });
 
-    it('returns false when the token is only listed on another chain', () => {
-      mockIsTokenInWildcardList.mockImplementation(actualIsTokenInWildcardList);
-      setupSelectors({ earnBannerTokens: { '0x2105': ['USDC'] } });
+    it('returns false when the token address is not configured', () => {
+      setupSelectors({
+        ctaTokenAddresses: {
+          '0x1': ['0xdAC17F958D2ee523a2206206994597C13D831ec7'],
+        },
+      });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(result.current.shouldShowMoneyEarnBanner(ctaToken)).toBe(false);
+    });
+
+    it('returns false when the token address is configured on another chain', () => {
+      setupSelectors({ ctaTokenAddresses: { '0x2105': [ctaToken.address] } });
 
       const { result } = renderHook(() => useMoneyCtaVisibility());
 
@@ -251,7 +456,9 @@ describe('useMoneyCtaVisibility', () => {
 
     it('returns false when the token has been dismissed', () => {
       setupSelectors({
-        earnBannerDismissedTokens: { '0x1-0xabc': true },
+        earnBannerDismissedTokens: {
+          [`0x1-${ctaToken.address.toLowerCase()}`]: true,
+        },
       });
 
       const { result } = renderHook(() => useMoneyCtaVisibility());
@@ -259,10 +466,7 @@ describe('useMoneyCtaVisibility', () => {
       expect(result.current.shouldShowMoneyEarnBanner(ctaToken)).toBe(false);
     });
 
-    it('matches the token symbol case-insensitively', () => {
-      mockIsTokenInWildcardList.mockImplementation(actualIsTokenInWildcardList);
-      setupSelectors({ earnBannerTokens: { '0x1': ['mUSD'] } });
-
+    it('returns true for a configured address with a different token symbol', () => {
       const { result } = renderHook(() => useMoneyCtaVisibility());
 
       const isVisible = result.current.shouldShowMoneyEarnBanner(
@@ -270,15 +474,6 @@ describe('useMoneyCtaVisibility', () => {
       );
 
       expect(isVisible).toBe(true);
-    });
-
-    it('matches tokens listed under the chain wildcard', () => {
-      mockIsTokenInWildcardList.mockImplementation(actualIsTokenInWildcardList);
-      setupSelectors({ earnBannerTokens: { '*': ['USDC'] } });
-
-      const { result } = renderHook(() => useMoneyCtaVisibility());
-
-      expect(result.current.shouldShowMoneyEarnBanner(ctaToken)).toBe(true);
     });
   });
 });

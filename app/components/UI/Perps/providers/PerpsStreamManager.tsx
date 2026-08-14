@@ -69,12 +69,14 @@ interface StreamSubscription<T> {
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
-  hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
+  hasReceivedFirstFreshUpdate?: boolean;
   // Symbols this subscriber cares about. When present, the channel can dispatch
   // an update only to subscribers registered for the symbols that changed,
   // instead of iterating every subscriber on every tick. Used by the price channel.
   symbols?: string[];
 }
+
+type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic';
 
 // Base class for any stream type
 abstract class StreamChannel<T> {
@@ -114,7 +116,10 @@ abstract class StreamChannel<T> {
   protected deferConnectTimer: ReturnType<typeof setTimeout> | null = null;
   private static readonly MAX_CONNECT_RETRIES = 150; // 30s at 200ms
 
-  protected notifySubscribers(updates: T) {
+  protected notifySubscribers(
+    updates: T,
+    source: StreamUpdateSource = 'fresh',
+  ) {
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
       return;
@@ -122,7 +127,7 @@ abstract class StreamChannel<T> {
 
     this.lastDeliveredAt = Date.now();
     this.subscribers.forEach((subscriber) => {
-      this.deliverToSubscriber(subscriber, updates);
+      this.deliverToSubscriber(subscriber, updates, source);
     });
   }
 
@@ -182,7 +187,7 @@ abstract class StreamChannel<T> {
           return;
         }
         notifiedIds.add(id);
-        this.deliverToSubscriber(subscriber, updates);
+        this.deliverToSubscriber(subscriber, updates, 'fresh');
       });
     }
   }
@@ -192,12 +197,34 @@ abstract class StreamChannel<T> {
    * semantics. Shared by {@link notifySubscribers} and
    * {@link notifySubscribersForSymbols} so both dispatch paths behave identically.
    */
-  private deliverToSubscriber(subscriber: StreamSubscription<T>, updates: T) {
-    // Check if this is the first update for this subscriber
-    if (!subscriber.hasReceivedFirstUpdate) {
+  private deliverToSubscriber(
+    subscriber: StreamSubscription<T>,
+    updates: T,
+    source: StreamUpdateSource,
+  ) {
+    // Optimistic state is derived from the latest channel cache, so it
+    // supersedes any older fresh update waiting behind the throttle.
+    if (source === 'optimistic') {
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
       subscriber.callback(updates);
-      subscriber.hasReceivedFirstUpdate = true;
-      return; // Don't set up throttle for the first update
+      return;
+    }
+
+    // Cache-derived updates render immediately but do not consume the first
+    // fresh delivery exemption for the current connection epoch.
+    if (source === 'cache') {
+      subscriber.callback(updates);
+      return;
+    }
+
+    if (!subscriber.hasReceivedFirstFreshUpdate) {
+      subscriber.callback(updates);
+      subscriber.hasReceivedFirstFreshUpdate = true;
+      return;
     }
 
     // If no throttling (throttleMs is 0 or undefined), notify immediately
@@ -296,7 +323,7 @@ abstract class StreamChannel<T> {
     const subscription: StreamSubscription<T> = {
       id,
       ...params,
-      hasReceivedFirstUpdate: false, // Initialize as false
+      hasReceivedFirstFreshUpdate: false,
     };
     this.subscribers.set(id, subscription);
     this.indexSubscriptionSymbols(subscription);
@@ -305,8 +332,8 @@ abstract class StreamChannel<T> {
     const cached = this.getCachedData();
     if (cached != null) {
       params.callback(cached);
-      // Mark as having received first update since we provided cached data
-      subscription.hasReceivedFirstUpdate = true;
+      // Cached data renders immediately but must not consume the first fresh
+      // update exemption. The first live snapshot should also bypass throttling.
     }
 
     // Ensure WebSocket connected
@@ -458,6 +485,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.hasReceivedFirstFreshUpdate = false;
     });
 
     if (this.wsSubscription) {
@@ -514,7 +542,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
-      subscriber.hasReceivedFirstUpdate = false;
+      subscriber.hasReceivedFirstFreshUpdate = false;
     });
 
     // Disconnect the old WebSocket subscription to stop receiving old account data
@@ -604,11 +632,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // If we have a prewarm subscription, we're already subscribed to all markets
     // No need to create another subscription
     if (this.prewarmUnsubscribe) {
-      // Just notify subscribers with cached data
-      const cached = this.getCachedData();
-      if (cached) {
-        this.notifySubscribers(cached);
-      }
+      // subscribe() already delivered any cached value. The next notification
+      // must come from the live prewarm stream so it keeps the first-live bypass.
       return;
     }
 
@@ -1018,6 +1043,64 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   }
 
   /**
+   * Apply optimistic price and/or size updates to an open order before the
+   * venue confirms the edit. WebSocket delivery reconciles the cache afterward.
+   */
+  public updateOrderOptimistic(
+    orderId: string,
+    edit: { limitPrice?: string; size?: string },
+  ): void {
+    const { limitPrice, size } = edit;
+    if (limitPrice === undefined && size === undefined) {
+      return;
+    }
+
+    const cachedOrders = this.cache.get('orders');
+    if (!cachedOrders) {
+      DevLogger.log(
+        'OrderStreamChannel: Cannot apply optimistic update - no cached orders',
+      );
+      return;
+    }
+
+    const orderIndex = cachedOrders.findIndex(
+      (order) => order.orderId === orderId,
+    );
+    if (orderIndex === -1) {
+      DevLogger.log(
+        `OrderStreamChannel: Cannot apply optimistic update - order not found for ${orderId}`,
+      );
+      return;
+    }
+
+    const updatedOrders = cachedOrders.map((order, index) => {
+      if (index !== orderIndex) {
+        return order;
+      }
+
+      return {
+        ...order,
+        ...(limitPrice !== undefined ? { price: limitPrice } : {}),
+        ...(size !== undefined
+          ? { size, originalSize: size, remainingSize: size }
+          : {}),
+      };
+    });
+
+    DevLogger.log('OrderStreamChannel: Applying optimistic order edit', {
+      orderId,
+      limitPrice,
+      size,
+    });
+
+    this.cache.set('orders', updatedOrders);
+    // Notify UI subscribers only — do NOT call handlePerpsCufOrdersDelivered.
+    // The WS delivery path (:994) ends PerpsEditOrder spans; optimistic paint
+    // must not, or CUF would measure local cache updates instead of venue confirmation.
+    this.notifySubscribers(updatedOrders, 'optimistic');
+  }
+
+  /**
    * Pre-warm the channel by creating a persistent subscription
    * This keeps the WebSocket connection alive and caches data continuously
    * @returns Cleanup function to call when leaving Perps environment
@@ -1281,7 +1364,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
     // Update cache and notify subscribers immediately
     this.cache.set('positions', updatedPositions);
-    this.notifySubscribers(updatedPositions);
+    this.notifySubscribers(updatedPositions, 'optimistic');
   }
 }
 
@@ -1955,8 +2038,8 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         cacheValidForMs: this.CACHE_DURATION - cacheAge,
         providerId: currentProviderId,
       });
-      // Notify subscribers with cached data immediately
-      this.notifySubscribers(cached);
+      // subscribe() already delivered this cache. Existing subscribers already
+      // render it, so wait for the next fresh fetch before notifying again.
     }
   }
 
@@ -2011,7 +2094,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           this.cache.set('markets', cachedForProvider);
           this.lastFetchTime = Date.now();
           this.cachedProviderId = controllerNetworkKey;
-          this.notifySubscribers(cachedForProvider);
+          this.notifySubscribers(cachedForProvider, 'cache');
           return;
         }
 
@@ -2091,7 +2174,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
               marketCount: existing.length,
             },
           );
-          this.notifySubscribers(existing);
+          this.notifySubscribers(existing, 'cache');
         }
       } finally {
         this.fetchPromise = null;
@@ -2185,7 +2268,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       subscriber.pendingUpdate = undefined;
 
       if (!preserveCache) {
-        subscriber.hasReceivedFirstUpdate = false;
+        subscriber.hasReceivedFirstFreshUpdate = false;
         subscriber.callback([]);
       }
     });

@@ -68,7 +68,6 @@ import PredictWithdrawUnavailableSheet, {
 } from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
-import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import PredictFeedBanner from '../../components/PredictFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
@@ -214,11 +213,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         )}
         <PredictFeedBanner
           position={PredictFeedBannerPosition.AfterFeaturedCarousel}
-          containerClassName="px-4 pb-3"
-        />
-        <PredictWorldCupMainFeedBanner variant="compact" />
-        <PredictFeedBanner
-          position={PredictFeedBannerPosition.AfterWorldCupBanner}
           containerClassName="px-4 pb-3"
         />
       </Animated.View>

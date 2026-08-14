@@ -4,6 +4,8 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import SocialTradersTabsView from './SocialTradersTabsView';
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
@@ -160,6 +162,25 @@ describe('SocialTradersTabsView', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-top-traders')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-feed')).toBeOnTheScreen();
+  });
+
+  describe('safe area layout', () => {
+    it('excludes bottom safe area so the scroll list extends to the screen edge', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.CONTAINER).props
+          .edges,
+      ).toEqual(SCROLLABLE_SCREEN_SAFE_AREA_EDGES);
+    });
+
+    it('keeps the top inset on the header to prevent layout shift on push', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expectHeaderIncludesTopInset(
+        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.HEADER),
+      );
+    });
   });
 
   it('renders the tabbed screen title from the feed i18n key', () => {

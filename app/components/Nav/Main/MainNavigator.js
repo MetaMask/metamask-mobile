@@ -122,6 +122,7 @@ import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -136,6 +137,7 @@ import {
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
@@ -153,11 +155,11 @@ import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactions
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
-import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import { createNativeBottomTabNavigator } from './NativeBottomTabNavigator';
 import { HOME_TAB_ICONS } from './NativeBottomTabNavigator/tabIcons';
 import { strings } from '../../../../locales/i18n';
 import { useMoneyNavigation } from '../../UI/Money/hooks/useMoneyNavigation';
+import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
@@ -600,12 +602,21 @@ const SettingsFlow = () => {
   );
 };
 
+// Replaces `unmountOnBlur` (removed in React Navigation v7).
+const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
+const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
+
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors } = useTheme();
   const { navigateToMoneyHome } = useMoneyNavigation();
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -634,8 +645,9 @@ const HomeTabs = () => {
 
   return (
     /*
-     * PredictPreviewSheetProvider is mounted here (above Tab.Navigator) so its
-     * BottomSheet renders inside the full-viewport Home screen card.
+     * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
+     * mounted here (above Tab.Navigator) so their BottomSheets render inside
+     * the full-viewport Home screen card.
      * BottomSheet uses `absolute inset-0` (see
      * @metamask/design-system-react-native) and would be clipped by an
      * individual tab's content area if mounted lower in the tree.
@@ -646,135 +658,159 @@ const HomeTabs = () => {
      * Retry toasts so we don't double-fire when both are mounted.
      */
     <PredictPreviewSheetProvider>
-      {isMoneyAccountEnabled ? (
-        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-      ) : null}
-      <Tab.Navigator
-        initialRouteName={Routes.WALLET.HOME}
-        screenOptions={nativeScreenOptions}
-      >
-        <Tab.Screen
-          name={Routes.WALLET.HOME}
-          component={WalletTabStackFlow}
-          options={{
-            title: strings('bottom_nav.home'),
-            tabBarTestID: 'tab-bar-item-Wallet',
-            tabBarIcon: ({ focused }) =>
-              focused ? HOME_TAB_ICONS.homeSelected() : HOME_TAB_ICONS.home(),
-          }}
-          listeners={{
-            tabPress: () => {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
-                  .addProperties({
-                    number_of_accounts: accountsLength,
-                    chain_id: getDecimalChainId(chainId),
-                  })
-                  .build(),
-              );
-            },
-          }}
-        />
+      <TrendingQuickBuySheetProvider>
+        {isMoneyAccountEnabled ? (
+          <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+        ) : null}
+        <Tab.Navigator
+          initialRouteName={Routes.WALLET.HOME}
+          screenOptions={nativeScreenOptions}
+        >
+          <Tab.Screen
+            name={Routes.WALLET.HOME}
+            component={WalletTabStackFlow}
+            options={{
+              title: strings('bottom_nav.home'),
+              tabBarTestID: 'tab-bar-item-Wallet',
+              tabBarIcon: ({ focused }) =>
+                focused ? HOME_TAB_ICONS.homeSelected() : HOME_TAB_ICONS.home(),
+            }}
+            listeners={{
+              tabPress: () => {
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
+                    .addProperties({
+                      number_of_accounts: accountsLength,
+                      chain_id: getDecimalChainId(chainId),
+                    })
+                    .build(),
+                );
+              },
+            }}
+          />
 
-        <Tab.Screen
-          name={Routes.TRENDING_VIEW}
-          component={ExploreHome}
-          options={{
-            title: strings('bottom_nav.trending'),
-            tabBarTestID: 'tab-bar-item-Trending',
-            lazy: false,
-            tabBarIcon: ({ focused }) =>
-              focused
-                ? HOME_TAB_ICONS.exploreSelected()
-                : HOME_TAB_ICONS.explore(),
-          }}
-          listeners={{
-            tabPress: () => {
-              trackEvent(
-                createEventBuilder(
-                  MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
-                ).build(),
-              );
-              TrendingFeedSessionManager.getInstance().enableAppStateListener();
-              TrendingFeedSessionManager.getInstance().startSession(
-                'tab_press',
-              );
-            },
-            blur: () => {
-              TrendingFeedSessionManager.getInstance().endSession();
-              TrendingFeedSessionManager.getInstance().disableAppStateListener();
-            },
-          }}
-        />
+          <Tab.Screen
+            name={Routes.TRENDING_VIEW}
+            component={ExploreHome}
+            options={{
+              title: strings('bottom_nav.trending'),
+              tabBarTestID: 'tab-bar-item-Trending',
+              lazy: false,
+              tabBarIcon: ({ focused }) =>
+                focused
+                  ? HOME_TAB_ICONS.exploreSelected()
+                  : HOME_TAB_ICONS.explore(),
+            }}
+            listeners={{
+              tabPress: () => {
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
+                  ).build(),
+                );
+                TrendingFeedSessionManager.getInstance().enableAppStateListener();
+                TrendingFeedSessionManager.getInstance().startSession(
+                  'tab_press',
+                );
+              },
+              blur: () => {
+                TrendingFeedSessionManager.getInstance().endSession();
+                TrendingFeedSessionManager.getInstance().disableAppStateListener();
+              },
+            }}
+          />
 
-        <Tab.Screen
-          name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-          component={WalletTabStackFlow}
-          options={{
-            title: strings('bottom_nav.trade'),
-            tabBarTestID: 'tab-bar-item-Trade',
-            // Trade opens a modal instead of switching tabs
-            tabBarSelectionEnabled: false,
-            tabBarIcon: ({ focused }) =>
-              focused ? HOME_TAB_ICONS.tradeSelected() : HOME_TAB_ICONS.trade(),
-          }}
-          listeners={({ navigation }) => ({
-            tabPress: () => {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED)
-                  .addProperties({
-                    text: '',
-                    chain_id: getDecimalChainId(chainId),
-                  })
-                  .build(),
-              );
-              navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: Routes.MODAL.WALLET_ACTIONS,
-              });
-            },
-          })}
-        />
+          {isMoneyAccountVisible ? (
+            <Tab.Screen
+              name={Routes.MONEY.ROOT}
+              component={MoneyTabScreenStack}
+              options={{
+                title: strings('bottom_nav.money'),
+                tabBarTestID: 'tab-bar-item-Money',
+                tabBarIcon: ({ focused }) =>
+                  focused
+                    ? HOME_TAB_ICONS.moneySelected()
+                    : HOME_TAB_ICONS.money(),
+              }}
+              listeners={{
+                tabPress: () => {
+                  trackMoneyTabPressRef.current?.();
+                  navigateToMoneyHome();
+                },
+              }}
+            />
+          ) : (
+            <Tab.Screen
+              name={Routes.TRANSACTIONS_VIEW}
+              component={TransactionsHomeUnmountOnTabBlur}
+              options={{
+                title: strings('bottom_nav.activity'),
+                tabBarTestID: 'tab-bar-item-Activity',
+                tabBarIcon: ({ focused }) =>
+                  focused
+                    ? HOME_TAB_ICONS.activitySelected()
+                    : HOME_TAB_ICONS.activity(),
+                freezeOnBlur: false,
+              }}
+            />
+          )}
 
-        <Tab.Screen
-          name={Routes.MONEY.ROOT}
-          component={MoneyTabScreenStack}
-          options={{
-            title: strings('bottom_nav.money'),
-            tabBarTestID: 'tab-bar-item-Money',
-            tabBarIcon: ({ focused }) =>
-              focused ? HOME_TAB_ICONS.moneySelected() : HOME_TAB_ICONS.money(),
-          }}
-          listeners={{
-            tabPress: () => {
-              trackMoneyTabPressRef.current?.();
-              navigateToMoneyHome();
-            },
-          }}
-        />
+          <Tab.Screen
+            name={Routes.REWARDS_VIEW}
+            component={RewardsHomeUnmountOnTabBlur}
+            options={{
+              title: strings('bottom_nav.rewards'),
+              tabBarTestID: 'tab-bar-item-Rewards',
+              tabBarIcon: ({ focused }) =>
+                focused
+                  ? HOME_TAB_ICONS.rewardsSelected()
+                  : HOME_TAB_ICONS.rewards(),
+              freezeOnBlur: false,
+            }}
+            listeners={{
+              tabPress: () => {
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.NAVIGATION_TAPS_REWARDS,
+                  ).build(),
+                );
+              },
+            }}
+          />
 
-        <Tab.Screen
-          name={Routes.REWARDS_VIEW}
-          component={RewardsHome}
-          options={{
-            title: strings('bottom_nav.rewards'),
-            tabBarTestID: 'tab-bar-item-Rewards',
-            tabBarIcon: ({ focused }) =>
-              focused
-                ? HOME_TAB_ICONS.rewardsSelected()
-                : HOME_TAB_ICONS.rewards(),
-          }}
-          listeners={{
-            tabPress: () => {
-              trackEvent(
-                createEventBuilder(
-                  MetaMetricsEvents.NAVIGATION_TAPS_REWARDS,
-                ).build(),
-              );
-            },
-          }}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-        />
-      </Tab.Navigator>
+          <Tab.Screen
+            name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+            component={WalletTabStackFlow}
+            options={{
+              title: strings('bottom_nav.trade'),
+              tabBarTestID: 'tab-bar-item-Trade',
+              // Trade opens a modal instead of switching tabs
+              tabBarSelectionEnabled: false,
+              // iOS 26+ only isolates UITabBarSystemItem.search from the pill.
+              tabBarSystemItem: 'search',
+              tabBarIcon: ({ focused }) =>
+                focused
+                  ? HOME_TAB_ICONS.tradeSelected()
+                  : HOME_TAB_ICONS.trade(),
+            }}
+            listeners={({ navigation }) => ({
+              tabPress: () => {
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED)
+                    .addProperties({
+                      text: '',
+                      chain_id: getDecimalChainId(chainId),
+                    })
+                    .build(),
+                );
+                navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                  screen: Routes.MODAL.WALLET_ACTIONS,
+                });
+              },
+            })}
+          />
+        </Tab.Navigator>
+      </TrendingQuickBuySheetProvider>
     </PredictPreviewSheetProvider>
   );
 };
@@ -817,12 +853,16 @@ const AddBookmarkView = () => (
   </NativeStack.Navigator>
 );
 
-const OfflineModeView = () => (
+const OfflineModeView = (props) => (
   <NativeStack.Navigator>
     <NativeStack.Screen
       name="OfflineMode"
       component={OfflineMode}
       options={OfflineMode.navigationOptions}
+      initialParams={{
+        autoDismissOnReconnect:
+          props.route.params?.autoDismissOnReconnect === true,
+      }}
     />
   </NativeStack.Navigator>
 );

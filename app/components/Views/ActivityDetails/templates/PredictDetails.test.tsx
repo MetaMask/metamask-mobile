@@ -1,8 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import Routes from '../../../../constants/navigation/Routes';
+import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { PredictDetails } from './PredictDetails';
 
 const mockNavigate = jest.fn();
@@ -27,6 +29,10 @@ jest.mock(
   },
 );
 
+/**
+ * @param overrides - Fields to replace on the base row.
+ * @returns A Predict row, on the injected Polygon chain id.
+ */
 function predictItem(overrides: Partial<ActivityListItem>): ActivityListItem {
   return {
     type: 'predictionPlaced',
@@ -38,6 +44,9 @@ function predictItem(overrides: Partial<ActivityListItem>): ActivityListItem {
     ...overrides,
   } as ActivityListItem;
 }
+
+/** Real network configurations, so chain ids resolve to display names. */
+const stateWithNetworks = { engine: { backgroundState } };
 
 describe('PredictDetails', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -249,4 +258,123 @@ describe('PredictDetails', () => {
     expect(getByText('Add funds')).toBeOnTheScreen();
     expect(getByText('Fund again')).toBeOnTheScreen();
   });
+
+  it('renders MetaMask Pay network fee, bridge fee and total for a funded account', () => {
+    const { getByText } = renderWithProvider(
+      <PredictDetails
+        item={addFundsItemWithPayMetadata({
+          networkFeeFiat: '0',
+          bridgeFeeFiat: '0.04',
+          totalFiat: '0.14',
+        })}
+      />,
+    );
+
+    expect(getByText('Network fee')).toBeOnTheScreen();
+    // A sponsored network fee is recorded as zero and must still show.
+    expect(getByText('$0')).toBeOnTheScreen();
+    expect(getByText('Bridge fee')).toBeOnTheScreen();
+    expect(getByText('$0.04')).toBeOnTheScreen();
+    expect(getByText('Total amount')).toBeOnTheScreen();
+    expect(getByText('$0.14')).toBeOnTheScreen();
+  });
+
+  it('omits the fee section when the funding transaction has no MetaMask Pay metadata', () => {
+    const { queryByText } = renderWithProvider(
+      <PredictDetails item={addFundsItemWithPayMetadata(undefined)} />,
+    );
+
+    expect(queryByText('Network fee')).toBeNull();
+    expect(queryByText('Total amount')).toBeNull();
+    // The step timeline still renders without a fee section above it.
+    expect(queryByText('Steps (2 completed)')).not.toBeNull();
+  });
+
+  describe('Network row', () => {
+    // Every Predict row carries the same injected chain id (Polygon), so the
+    // row's own chain can't describe where the user paid.
+    it('omits the row entirely for a deposit', () => {
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PredictDetails
+          item={addFundsItemWithPayMetadata({ chainId: '0x1' })}
+        />,
+        { state: stateWithNetworks },
+      );
+
+      expect(queryByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW)).toBeNull();
+      expect(queryByText('Polygon')).toBeNull();
+    });
+
+    it('names the payment chain on a withdrawal, not the injected Predict chain', () => {
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <PredictDetails
+          item={fundsItemWithPayMetadata('predictionsWithdrawFunds', {
+            chainId: '0x1',
+          })}
+        />,
+        { state: stateWithNetworks },
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW),
+      ).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(queryByText('Polygon')).toBeNull();
+    });
+
+    it("falls back to the row's chain on a withdrawal Pay did not route", () => {
+      const { getByTestId, getByText } = renderWithProvider(
+        <PredictDetails
+          item={fundsItemWithPayMetadata('predictionsWithdrawFunds', undefined)}
+        />,
+        { state: stateWithNetworks },
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW),
+      ).toBeOnTheScreen();
+      expect(getByText('Polygon')).toBeOnTheScreen();
+    });
+  });
 });
+
+/**
+ * @param metamaskPay - Pay metadata for the backing local transaction.
+ * @returns A Predict deposit row.
+ */
+function addFundsItemWithPayMetadata(
+  metamaskPay: Record<string, string> | undefined,
+): ActivityListItem {
+  return fundsItemWithPayMetadata('predictionsAddFunds', metamaskPay);
+}
+
+/**
+ * @param type - Whether the row is a deposit or a withdrawal.
+ * @param metamaskPay - Pay metadata for the backing local transaction.
+ * @returns The activity row.
+ */
+function fundsItemWithPayMetadata(
+  type: 'predictionsAddFunds' | 'predictionsWithdrawFunds',
+  metamaskPay: Record<string, string> | undefined,
+): ActivityListItem {
+  return predictItem({
+    type,
+    hash: '0xfund',
+    data: {
+      token: {
+        amount: '100000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: type === 'predictionsAddFunds' ? 'in' : 'out',
+      },
+    },
+    raw: {
+      type: 'localTransaction',
+      data: {
+        primaryTransaction: { id: 'tx-1', chainId: '0x89', metamaskPay },
+        initialTransaction: { id: 'tx-1', chainId: '0x89' },
+        transactions: [],
+      },
+    },
+  } as unknown as Partial<ActivityListItem>);
+}

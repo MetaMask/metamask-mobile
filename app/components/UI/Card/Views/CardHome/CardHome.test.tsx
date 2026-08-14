@@ -298,6 +298,18 @@ jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
 }));
 
+jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    region: null,
+    onboardingDocuments: [],
+    permanentDocuments: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
 const mockResumePendingAction = jest.fn();
 let mockImmersvePendingAction: { type: string } | null = null;
 jest.mock('./hooks/useImmersveCardProvisioning', () => ({
@@ -394,13 +406,13 @@ jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
   default: () => mockUseMoneyAccountCardLinkage(),
 }));
 
-const mockUseMoneyAccountBalance = jest.fn(() => ({
+const mockUseMoneyVaultApy = jest.fn(() => ({
   apyPercent: undefined as number | undefined,
 }));
 
-jest.mock('../../../Money/hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../../Money/hooks/useMoneyVaultApy', () => ({
   __esModule: true,
-  default: () => mockUseMoneyAccountBalance(),
+  default: () => mockUseMoneyVaultApy(),
 }));
 
 const mockFetchCardDetailsToken = jest.fn();
@@ -628,10 +640,13 @@ const BAANX_CAPABILITIES = {
   supportsPushProvisioning: true,
   onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
   supportsPinView: true,
+  supportsPinSet: false,
   supportsCashback: true,
   supportsCredit: true,
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
+  supportsTransactionHistory: true,
+  supportsMoneyAccountLinking: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
@@ -851,9 +866,6 @@ function setupMockSelectors(
       return config.selectedAccount;
     if (selectorString.includes('selectCardholderAccounts'))
       return config.cardholderAccounts;
-    if (selectorString.includes('selectEvmTokens')) return [mockPriorityToken];
-    if (selectorString.includes('selectEvmTokenFiatBalances'))
-      return ['1000.00'];
 
     return [];
   });
@@ -1548,6 +1560,9 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).not.toBeOnTheScreen();
       expect(screen.getByText('Unlink Money account')).toBeOnTheScreen();
       expect(
         screen.getByText('Change your Card funding source'),
@@ -1571,6 +1586,9 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
       ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('hides the unlink row when there is no active primary Money Account', () => {
@@ -2837,14 +2855,16 @@ describe('CardHome Component', () => {
   });
 
   describe('Data refresh on focus', () => {
-    it('calls refetch when the screen gains focus', () => {
-      mockRefetchAllData.mockClear();
+    it('calls fetchCardHomeData when the screen gains focus', () => {
+      const fetchSpy = Engine.context.CardController
+        .fetchCardHomeData as jest.Mock;
+      fetchSpy.mockClear();
 
       jest.mocked(useFocusEffect).mockImplementation((cb) => cb());
 
       render();
 
-      expect(mockRefetchAllData).toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledWith();
 
       jest.mocked(useFocusEffect).mockImplementation(jest.fn());
     });
@@ -4501,9 +4521,9 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('does not show view pin button for international virtual card', () => {
-        // Given: International user with virtual card
-        mockGetCapabilities.mockReturnValue({ supportsPinView: false });
+      it('does not show view pin button when card hasPin is false', () => {
+        // Given: Card issued without a PIN (provider still supports PIN view)
+        mockGetCapabilities.mockReturnValue({ supportsPinView: true });
         setupMockSelectors({
           isAuthenticated: true,
           userLocation: 'international',
@@ -4511,7 +4531,7 @@ describe('CardHome Component', () => {
         setupLoadCardDataMock({
           isAuthenticated: true,
 
-          cardDetails: { type: CardType.VIRTUAL },
+          cardDetails: { type: CardType.VIRTUAL, hasPin: false },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
@@ -4526,12 +4546,12 @@ describe('CardHome Component', () => {
       });
 
       it('shows view pin button for US user with virtual card', () => {
-        // Given: US user with virtual card
+        // Given: US user with virtual card that has a PIN
         setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
         setupLoadCardDataMock({
           isAuthenticated: true,
 
-          cardDetails: { type: CardType.VIRTUAL },
+          cardDetails: { type: CardType.VIRTUAL, hasPin: true },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
@@ -4546,7 +4566,7 @@ describe('CardHome Component', () => {
       });
 
       it('shows view pin button for international user with metal card', () => {
-        // Given: International user with metal card
+        // Given: International user with metal card that has a PIN
         setupMockSelectors({
           isAuthenticated: true,
           userLocation: 'international',
@@ -4554,7 +4574,7 @@ describe('CardHome Component', () => {
         setupLoadCardDataMock({
           isAuthenticated: true,
 
-          cardDetails: { type: CardType.METAL },
+          cardDetails: { type: CardType.METAL, hasPin: true },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
@@ -4562,7 +4582,7 @@ describe('CardHome Component', () => {
         // When: component renders
         render();
 
-        // Then: view pin button is shown (non-virtual card)
+        // Then: view pin button is shown
         expect(
           screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
         ).toBeOnTheScreen();
@@ -4971,6 +4991,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'FREEZE_CARD_BUTTON',
         });
       });
@@ -5209,6 +5230,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'UNFREEZE_CARD_BUTTON',
         });
       });
@@ -5294,6 +5316,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'UNFREEZE_CARD_BUTTON',
         });
       });
@@ -6920,7 +6943,7 @@ describe('CardHome Component', () => {
     it('advertises 1% mUSD back for virtual cardholders', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: 4 });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
 
       render();
 
@@ -6961,7 +6984,7 @@ describe('CardHome Component', () => {
         isError: false,
         refetch: mockRefetchAllData,
       });
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: 4 });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
 
       render();
 
@@ -6972,7 +6995,7 @@ describe('CardHome Component', () => {
     it('renders the no-APY subtitle and omits the APY bullet when apyPercent is undefined', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: undefined });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: undefined });
 
       render();
 
@@ -6985,7 +7008,7 @@ describe('CardHome Component', () => {
     it('interpolates apyPercent into the subtitle and APY bullet when defined', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: 4 });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
 
       render();
 

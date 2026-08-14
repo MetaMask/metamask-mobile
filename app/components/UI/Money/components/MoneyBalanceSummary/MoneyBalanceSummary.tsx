@@ -71,6 +71,7 @@ const MoneyBalanceSummary = ({
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
+              numberOfLines={1}
             >
               {strings('money.apy_label', { percentage: apy })}
             </Text>

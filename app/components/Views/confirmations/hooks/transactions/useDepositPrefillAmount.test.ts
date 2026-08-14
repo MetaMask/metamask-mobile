@@ -16,10 +16,16 @@ import { isRouteToken } from '../../utils/relayFixedSpread';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { resolveABTestAssignment } from '../../../../../util/abTest';
+import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
 
 jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
   ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
   getMoneyAccountDepositIntent: jest.fn(),
+}));
+
+jest.mock('../../../../../util/abTest', () => ({
+  resolveABTestAssignment: jest.fn(),
 }));
 
 jest.mock(
@@ -66,6 +72,16 @@ const selectAccountOverrideMock =
 const getMoneyAccountDepositIntentMock = jest.mocked(
   getMoneyAccountDepositIntent,
 );
+const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
+
+function mockDepositPrefillAbVariant(
+  variant: MoneyAccountDepositPrefillVariant = MoneyAccountDepositPrefillVariant.Treatment,
+) {
+  resolveABTestAssignmentMock.mockReturnValue({
+    variantName: variant,
+    isActive: true,
+  });
+}
 
 function makeTransactionMeta(
   overrides?: Partial<TransactionMeta>,
@@ -143,6 +159,7 @@ function runHook() {
 describe('useDepositPrefillAmount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Treatment);
     setupMocks();
   });
 
@@ -157,19 +174,46 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current).toEqual({
         prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
         enabled: false,
         isLoading: false,
         hasPrefilled: false,
       });
     });
 
-    it('returns enabled when intent is addMusd', () => {
-      setupMocks({ depositIntent: 'addMusd' });
+    it('does not enable amount prefill for addMusd when kill-switch/A/B are off', () => {
+      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+      setupMocks({
+        depositIntent: 'addMusd',
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {},
+      });
 
       const { result } = runHook();
 
-      expect(result.current.enabled).toBe(true);
-      expect(result.current.hasPrefilled).toBe(true);
+      // addMusd amount autofill is owned by useTransactionCustomAmount at 100%.
+      expect(result.current.enabled).toBe(false);
+      expect(result.current.hasPrefilled).toBe(false);
+    });
+
+    it('returns disabled for card intent even when treatment and flag enabled', () => {
+      setupMocks({ depositIntent: 'card' });
+
+      const { result } = runHook();
+
+      expect(result.current.enabled).toBe(false);
+      expect(result.current.hasPrefilled).toBe(false);
+    });
+
+    it('returns disabled for control A/B variant even when flag override enabled', () => {
+      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+      setupMocks();
+
+      const { result } = runHook();
+
+      expect(result.current.enabled).toBe(false);
+      expect(result.current.hasPrefilled).toBe(false);
     });
 
     it('returns enabled when flag has override for moneyAccountDeposit', () => {
@@ -179,6 +223,24 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.hasPrefilled).toBe(true);
       expect(result.current.prefillAmount).toBeDefined();
+    });
+
+    it('does not apply the money-account A/B gate for non-deposit transaction types', () => {
+      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+      setupMocks({
+        transactionMeta: makeTransactionMeta({
+          type: TransactionType.perpsDeposit,
+        }),
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {
+          perpsDeposit: { enabled: true },
+        },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.enabled).toBe(true);
+      expect(result.current.hasPrefilled).toBe(true);
     });
   });
 
@@ -192,6 +254,8 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(100);
+      expect(result.current.isLimitCapped).toBe(false);
     });
 
     it('computes 50% for non-stablecoin', () => {
@@ -203,6 +267,8 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(50);
+      expect(result.current.isLimitCapped).toBe(false);
     });
 
     it('caps at deposit limit when balance exceeds it', () => {
@@ -215,6 +281,8 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.prefillAmount).toBe('100000');
+      expect(result.current.percentage).toBe(100);
+      expect(result.current.isLimitCapped).toBe(true);
     });
 
     it('returns undefined when no payToken', () => {

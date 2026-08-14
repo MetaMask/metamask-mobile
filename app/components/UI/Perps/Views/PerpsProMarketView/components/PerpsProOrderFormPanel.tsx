@@ -1,61 +1,236 @@
 import { Box } from '@metamask/design-system-react-native';
-import type { OrderType } from '@metamask/perps-controller';
-import React, { useState } from 'react';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import type { PerpsMarketData } from '@metamask/perps-controller';
+import React, { useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import { useStyles } from '../../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
+import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
+import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
+import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
+import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
+import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
+import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
+import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
-import type { PerpsProOrderDirection } from './PerpsProOrderForm/PerpsProOrderForm.types';
+import { createStyles } from './PerpsProOrderFormPanel.styles';
+import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 
 export interface PerpsProOrderFormPanelProps {
-  orderType: OrderType;
-  onOrderTypeButtonPress: () => void;
+  market: PerpsMarketData;
+  isOrderBookCollapsed?: boolean;
+  onExpandOrderBook?: () => void;
 }
 
+/**
+ * Inline Pro order form.
+ *
+ * Must render within a `PerpsOrderProvider`. The provider is owned by
+ * `PerpsProMarketView` so it wraps both this panel and the order book column,
+ * letting an order-book row tap prefill the limit price here (TAT-3643).
+ */
 const PerpsProOrderFormPanel = ({
-  orderType,
-  onOrderTypeButtonPress,
+  market,
+  isOrderBookCollapsed,
+  onExpandOrderBook,
 }: PerpsProOrderFormPanelProps) => {
-  const [direction, setDirection] = useState<PerpsProOrderDirection>('long');
-  const [limitPrice, setLimitPrice] = useState('');
-  const [size, setSize] = useState('');
-  const [balancePercentage, setBalancePercentage] = useState(0);
-  const [reduceOnly, setReduceOnly] = useState(false);
+  const {
+    direction,
+    onDirectionChange,
+    leverage,
+    onLeveragePress,
+    orderType,
+    onOrderTypeButtonPress,
+    limitPrice,
+    onLimitPriceChange,
+    onLimitPriceBlur,
+    onUseMidPricePress,
+    sizeInput,
+    sizeSlider,
+    availableBalance,
+    onAddFundsPress,
+    reduceOnly,
+    onReduceOnlyChange,
+    isTPSLConfigured,
+    onTPSLPress,
+    notices,
+    summary,
+    isPlaceOrderDisabled,
+    isPlaceOrderLoading,
+    onPlaceOrderPress,
+    isLeverageVisible,
+    minLeverage,
+    maxLeverage,
+    currentPrice,
+    onLeverageConfirm,
+    closeLeverage,
+    isSlippageVisible,
+    maxSlippageBps,
+    onSlippageSave,
+    closeSlippage,
+    isOrderTypeVisible,
+    onOrderTypeSelect,
+    closeOrderType,
+    isEligibilityModalVisible,
+    closeEligibilityModal,
+    selectedTooltip,
+    closeTooltip,
+    feeMetamaskFeeRate,
+    feeProtocolFeeRate,
+    feeOriginalMetamaskFeeRate,
+    feeDiscountPercentage,
+  } = usePerpsProOrderForm({ market });
+
+  const { styles } = useStyles(createStyles, {});
+  const isProModeActive = useIsPerpsProModeActive();
+  const isTriggeredOrdersEnabled = useSelector(
+    selectPerpsProTriggeredOrdersEnabledFlag,
+  );
+  const showTriggeredTypes = isProModeActive && isTriggeredOrdersEnabled;
+
+  const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
+  const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
+  const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
 
   return (
     <Box
       testID={PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL}
-      twClassName="flex-1 py-4"
+      collapsable={false}
+      style={styles.panel}
     >
       <PerpsProOrderForm
         direction={direction}
-        onDirectionChange={setDirection}
+        onDirectionChange={onDirectionChange}
+        isOrderBookCollapsed={isOrderBookCollapsed}
+        onExpandOrderBook={onExpandOrderBook}
         marginModeLabel={strings('perps.pro_order_form.isolated')}
-        leverageLabel="3x"
+        onMarginModePress={openMarginMode}
+        leverageLabel={`${leverage}x`}
+        onLeveragePress={onLeveragePress}
         orderType={orderType}
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
-        onLimitPriceChange={setLimitPrice}
-        size={size}
-        onSizeChange={setSize}
-        balancePercentage={balancePercentage}
-        onBalancePercentageChange={setBalancePercentage}
-        availableBalance={strings(
-          'perps.pro_order_form.available_balance_unavailable',
-        )}
+        onLimitPriceChange={onLimitPriceChange}
+        onLimitPriceBlur={onLimitPriceBlur}
+        onUseMidPricePress={onUseMidPricePress}
+        sizeInput={sizeInput}
+        sizeSlider={sizeSlider}
+        availableBalance={availableBalance}
+        onAddFundsPress={onAddFundsPress}
         reduceOnly={reduceOnly}
-        onReduceOnlyChange={setReduceOnly}
-        isTPSLConfigured={false}
-        notices={[]}
-        summary={{
-          margin: '--',
-          liquidationPrice: '--',
-          slippage: '--',
-        }}
+        onReduceOnlyChange={onReduceOnlyChange}
+        isTPSLConfigured={isTPSLConfigured}
+        onTPSLPress={onTPSLPress}
+        notices={notices}
+        summary={summary}
         placeOrderLabel={strings('perps.pro_order_form.place_order')}
         placeOrderIntent={direction}
-        isPlaceOrderDisabled
-        onPlaceOrderPress={() => undefined}
+        isPlaceOrderDisabled={isPlaceOrderDisabled}
+        isPlaceOrderLoading={isPlaceOrderLoading}
+        onPlaceOrderPress={onPlaceOrderPress}
       />
+      {/*
+        The order form is rendered inside the width-constrained left column of
+        PerpsProMarketLayout. The design-system BottomSheet positions itself with
+        `absolute inset-0`, so without a Modal it would be clipped to that column
+        instead of overlaying the full screen (as it does in lite). Wrapping each
+        sheet in PerpsProModalPortal renders it from the root at full width and
+        supplies the Android-native gesture hierarchy required by BottomSheet
+        and Slider gestures.
+      */}
+      {isOrderTypeVisible && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeOrderType}
+        >
+          <PerpsOrderTypeBottomSheet
+            isVisible
+            onClose={closeOrderType}
+            onSelect={onOrderTypeSelect}
+            currentOrderType={orderType}
+            asset={market.symbol}
+            direction={direction}
+            title={strings('perps.pro_order_form.choose_order_type')}
+            showSelectedIcon
+            showTriggeredTypes={showTriggeredTypes}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isLeverageVisible && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeLeverage}
+        >
+          <PerpsLeverageBottomSheet
+            isVisible
+            onClose={closeLeverage}
+            onConfirm={onLeverageConfirm}
+            leverage={leverage}
+            minLeverage={minLeverage}
+            maxLeverage={maxLeverage}
+            currentPrice={currentPrice}
+            direction={direction}
+            asset={market.symbol}
+            limitPrice={limitPrice}
+            orderType={orderType}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isSlippageVisible && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeSlippage}
+        >
+          <PerpsSlippageBottomSheet
+            isVisible
+            currentValueBps={maxSlippageBps}
+            onClose={closeSlippage}
+            onSave={onSlippageSave}
+          />
+        </PerpsProModalPortal>
+      )}
+      {selectedTooltip && (
+        <PerpsProModalPortal animationType="fade" onRequestClose={closeTooltip}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={closeTooltip}
+            contentKey={selectedTooltip}
+            key={selectedTooltip}
+            buttonLocation={
+              PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN
+            }
+            data={
+              selectedTooltip === 'fees'
+                ? {
+                    metamaskFeeRate: feeMetamaskFeeRate,
+                    protocolFeeRate: feeProtocolFeeRate,
+                    originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
+                    feeDiscountPercentage,
+                  }
+                : undefined
+            }
+          />
+        </PerpsProModalPortal>
+      )}
+      {isEligibilityModalVisible && (
+        <PerpsProModalPortal onRequestClose={closeEligibilityModal}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={closeEligibilityModal}
+            contentKey={'geo_block'}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isMarginModeVisible && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeMarginMode}
+        >
+          <PerpsMarginModeBottomSheet isVisible onClose={closeMarginMode} />
+        </PerpsProModalPortal>
+      )}
     </Box>
   );
 };

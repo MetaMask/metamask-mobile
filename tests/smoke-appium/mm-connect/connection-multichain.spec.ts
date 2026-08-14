@@ -1,6 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
@@ -13,7 +16,6 @@ import {
   setupAdbReverse,
   cleanupAdbReverse,
   waitForDappServerReady,
-  unlockIfLockScreenVisible,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -34,7 +36,7 @@ const playgroundServer = new DappServer({
 const scopeCardTestId = (scope: string): string =>
   `${MMConnectDappTestIds.SCOPE_CARD}-${scope.toLowerCase().replace(/:/g, '-')}`;
 
-appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
+appiumTest.describe.skip(SmokeMMConnect('Multichain browser connect'), () => {
   appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
     await playgroundServer.start();

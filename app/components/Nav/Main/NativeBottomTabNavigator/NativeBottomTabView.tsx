@@ -339,6 +339,7 @@ export default function NativeBottomTabView({
             tabBarAccessibilityLabel,
             tabBarTestID,
             tabBarButtonTestID,
+            tabBarSystemItem,
           } = options;
 
           const tabTitle = getTabTitle(options, route.name);
@@ -392,6 +393,7 @@ export default function NativeBottomTabView({
                 selectedIcon: selectedIcon?.ios,
                 standardAppearance: iosAppearance,
                 scrollEdgeAppearance: iosAppearance,
+                systemItem: tabBarSystemItem,
               }}
             >
               <View style={styles.flex} collapsable={false}>

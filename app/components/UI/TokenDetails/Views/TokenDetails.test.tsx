@@ -8,7 +8,6 @@ import {
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
-import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import {
   selectDepositActiveFlag,
@@ -16,11 +15,21 @@ import {
 } from '../../../../selectors/featureFlagController/deposit';
 import Routes from '../../../../constants/navigation/Routes';
 import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
-import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
+import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
+const mockUseMoneyAssetOverviewCtas = jest.fn();
+
+jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
+  useMoneyAssetOverviewCtas: () => mockUseMoneyAssetOverviewCtas(),
+}));
+
+jest.mock('../../Money/components/MoneyAssetOverviewBalanceCta', () => ({
+  MoneyAssetOverviewBalanceCta: () => null,
+  MoneyAssetOverviewBalanceCtaSkeleton: () => null,
+}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: (state: unknown) => unknown) =>
@@ -302,10 +311,6 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   })),
 }));
 
-jest.mock('../../Earn/selectors/featureFlags', () => ({
-  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
-}));
-
 jest.mock('../../../../reducers/fiatOrders', () => ({
   getRampNetworks: jest.fn(() => []),
 }));
@@ -415,6 +420,18 @@ jest.mock('../../../../util/haptics', () => ({
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMoneyAssetOverviewCtas.mockReturnValue({
+      apyPercent: undefined,
+      footerLabel: undefined,
+      isBalanceCtaLoading: false,
+      isBalanceCtaVisible: false,
+      isFooterCtaEligible: false,
+      isFooterCtaLoading: false,
+      isFooterCtaVisible: false,
+      onBalancePress: jest.fn(),
+      onFooterPress: jest.fn(),
+      projectedEarningsFormatted: undefined,
+    });
     mockBeforeRemoveListener = undefined;
     mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
@@ -467,7 +484,6 @@ describe('TokenDetails', () => {
       if (selector === selectCurrencyRates)
         // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
         return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
@@ -576,6 +592,28 @@ describe('TokenDetails', () => {
       );
     });
 
+    it('opens AssetDetailsQuickBuy when an eligible token has unresolved APY', () => {
+      mockUseMoneyAssetOverviewCtas.mockReturnValue({
+        apyPercent: undefined,
+        footerLabel: undefined,
+        isBalanceCtaLoading: false,
+        isBalanceCtaVisible: false,
+        isFooterCtaEligible: true,
+        isFooterCtaLoading: false,
+        isFooterCtaVisible: false,
+        onBalancePress: jest.fn(),
+        onFooterPress: jest.fn(),
+        projectedEarningsFormatted: undefined,
+      });
+      const { getByTestId } = render(<TokenDetails />);
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON));
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: true }),
+      );
+    });
+
     it('hides the lightning button and does not mount AssetDetailsQuickBuy when the control variant is assigned', () => {
       mockUseABTest.mockImplementation((key: string) => {
         if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
@@ -665,7 +703,6 @@ describe('TokenDetails', () => {
         return { '0x1': { nativeCurrency: 'ETH' } };
       if (selector === selectCurrencyRates)
         return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
@@ -841,7 +878,6 @@ describe('TokenDetails', () => {
         if (selector === selectNetworkConfigurations)
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates) return {};
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
@@ -945,7 +981,6 @@ describe('TokenDetails', () => {
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates)
           return { ETH: { conversionRate: 2800, usdConversionRate: 3000 } };
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
