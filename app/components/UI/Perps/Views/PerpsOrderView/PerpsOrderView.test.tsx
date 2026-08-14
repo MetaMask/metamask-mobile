@@ -496,9 +496,9 @@ jest.mock(
 // The reactive pay-token balance, as opposed to the stale snapshot carried on
 // `payToken.balanceUsd`.
 const mockUsePayTokenAccountBalance = jest.fn<
-  { balanceUsd: string; balanceRaw: string },
+  { balanceUsd: string; balanceRaw: string; isResolved: boolean },
   unknown[]
->(() => ({ balanceUsd: '0', balanceRaw: '0' }));
+>(() => ({ balanceUsd: '0', balanceRaw: '0', isResolved: false }));
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance',
   () => ({
@@ -1747,10 +1747,11 @@ describe('PerpsOrderView', () => {
       ).toBeUndefined();
     });
 
-    it('states a funding message when a resolved balance still cannot cover the trade and validation withheld its error', async () => {
-      // Arrange — the balance has resolved and the pay-token check itself is
-      // satisfied, so the only thing left to explain the blocked order is the
-      // balance error validation withheld for this flow.
+    it('drops the withheld balance error once a sufficient balance resolves', async () => {
+      // Arrange — while the balance was unresolved the form validated against
+      // the Perps balance and validation withheld an insufficiency for it.
+      // Validation is debounced, so that flag is still set for a beat after a
+      // sufficient live balance lands.
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
       mockUseTransactionPayToken.mockReturnValue({
         payToken: {
@@ -1762,11 +1763,6 @@ describe('PerpsOrderView', () => {
         setPayToken: jest.fn(),
         isNative: true,
       });
-      mockUsePayTokenAccountBalance.mockReturnValue({
-        balanceUsd: '1000',
-        balanceRaw: '1',
-        isResolved: true,
-      });
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         errors: [],
         warnings: [],
@@ -1774,19 +1770,40 @@ describe('PerpsOrderView', () => {
         isValidating: false,
         hasSuppressedBalanceError: true,
       });
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: '0',
+        balanceRaw: '0',
+        isResolved: false,
+      });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          balanceForValidation: 1000,
+          maxPossibleAmount: 3000,
+        }),
+      );
 
-      // Act
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // Assert
+      // Act — the live balance resolves and comfortably covers the margin.
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: '1000',
+        balanceRaw: '1',
+        isResolved: true,
+      });
+      rerender(<PerpsOrderView />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Assert — the stale flag must not outvote the balance that just resolved.
       expect(
-        screen.getByTestId(
+        screen.queryByTestId(
           PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
         ),
-      ).toHaveTextContent(cannotCoverTradeCopy);
+      ).toBeNull();
     });
 
     it('omits any funding message while the selected pay token balance is still loading', async () => {

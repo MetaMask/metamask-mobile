@@ -1755,14 +1755,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         amount: minimumOrderAmount.toString(),
       });
     }
-    // `hasInsufficientPayTokenBalance` cannot answer while `payToken` is still
-    // undefined, so also cover the case where validation withheld its balance
-    // message for this flow — otherwise the order is blocked with nothing on
-    // screen explaining why.
-    if (
-      hasInsufficientPayTokenBalance ||
-      orderValidation.hasSuppressedBalanceError
-    ) {
+    // Only the live check may answer here. Validation is debounced, so its
+    // suppression flag can still describe the pre-switch balance for a beat
+    // after a sufficient one resolves — reading it would state a shortfall the
+    // user no longer has. (It cannot cover the missing-`payToken` case either:
+    // the balance reads unresolved then, so this memo has already returned.)
+    if (hasInsufficientPayTokenBalance) {
       return strings(
         'perps.order.validation.insufficient_funds_to_cover_trade',
       );
@@ -1774,7 +1772,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isBelowMinimumOrderAmount,
     isPayBalanceLoading,
     minimumOrderAmount,
-    orderValidation.hasSuppressedBalanceError,
   ]);
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)

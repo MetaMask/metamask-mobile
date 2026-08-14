@@ -88,6 +88,7 @@ describe('usePayWithPreferredToken', () => {
     usePayTokenAccountBalanceMock.mockReturnValue({
       balanceUsd: TOKEN_MOCK.balanceUsd,
       balanceRaw: TOKEN_MOCK.balanceRaw,
+      isResolved: true,
     });
   });
 
