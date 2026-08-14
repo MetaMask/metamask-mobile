@@ -15,4 +15,4 @@ export const TopTradersViewSelectorsIDs = {
   PINNED_TIMEFRAME_SELECTOR: 'top-traders-view-pinned-timeframe-selector',
   SORT_SELECTOR: 'top-traders-view-sort-selector',
   PINNED_SORT_SELECTOR: 'top-traders-view-pinned-sort-selector',
-};
+} as const;

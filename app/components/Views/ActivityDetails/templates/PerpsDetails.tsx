@@ -30,8 +30,8 @@ import {
   ActivityDetailsPerpsStepTimeline,
   ActivityDetailsStatus,
   ActivityDetailsTemplateFrame,
-  formatActivityTokenAmount,
   useActivityPayFiat,
+  useFormatActivityTokenAmount,
 } from '../components';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import {
@@ -51,8 +51,10 @@ import {
   type PerpsTransaction,
 } from '../components/ActivityDetailsPerps.utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { usePerpsOrderFees } from '../../../UI/Perps/hooks';
+import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
+import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 
 /**
  * The local row's activity status in the terms the step timeline speaks. A
@@ -200,11 +202,19 @@ function OrderDetails({
   const handleTryAgain = useTradeAgain(transaction.asset);
   const shouldShowTryAgain =
     item.status === 'cancelled' || item.status === 'failed';
-  const isFilled = item.status === 'success';
-  const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
-    orderType: order?.type ?? 'market',
-    amount: isFilled ? (order?.size ?? '0') : '0',
-  });
+  const {
+    totalFee,
+    isLoading: isFeeLoading,
+    hasError: hasFeeError,
+  } = usePerpsRecordedOrderFees(
+    order?.orderId,
+    transaction.asset,
+    transaction.timestamp,
+  );
+  const totalFeeValue =
+    isFeeLoading || hasFeeError || totalFee === undefined
+      ? '—'
+      : formatPerpsOrderFee(totalFee);
 
   return (
     <ActivityDetailsTemplateFrame
@@ -238,16 +248,8 @@ function OrderDetails({
       details={
         <ActivityDetailSection>
           <ActivityDetailRow
-            label={strings('perps.transactions.order.metamask_fee')}
-            value={formatPerpsOrderFee(metamaskFee, isFilled)}
-          />
-          <ActivityDetailRow
-            label={strings('perps.transactions.order.hyperliquid_fee')}
-            value={formatPerpsOrderFee(protocolFee, isFilled)}
-          />
-          <ActivityDetailRow
             label={strings('perps.transactions.order.total_fee')}
-            value={formatPerpsOrderFee(totalFee, isFilled)}
+            value={totalFeeValue}
           />
         </ActivityDetailSection>
       }
@@ -417,6 +419,7 @@ function FundsDetails({
 function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
   const openPerpsHome = useNavigateToPerpsHome();
   const pay = useActivityPayFiat(item);
+  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const isDeposit = item.type === 'perpsAddFunds';
   const token = 'token' in item.data ? item.data.token : undefined;
 
@@ -475,7 +478,13 @@ export function PerpsDetails({ item }: { item: ActivityListItem }) {
   }
 
   if (transaction.type === 'order') {
-    return <OrderDetails item={perpsItem} transaction={transaction} />;
+    return (
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>
+          <OrderDetails item={perpsItem} transaction={transaction} />
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    );
   }
 
   if (transaction.type === 'funding') {

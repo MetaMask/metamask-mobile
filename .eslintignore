@@ -12,7 +12,6 @@ ios
 jest.preprocessor.js
 node_modules
 CHANGELOG.md
-wdio
 /app/util/test/testSetup.js
 junitProperties.js
 /tests/scripts/ai-e2e-tags-selector.ts
