@@ -7,8 +7,14 @@ import React, {
 } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  type RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { MoneyNavigationParamList } from '../../types/navigation';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
@@ -91,7 +97,6 @@ import {
   useMoneyHomePerformance,
   type MoneyHomeSegment,
 } from '../../hooks/useMoneyHomePerformance';
-import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
@@ -112,6 +117,7 @@ const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<MoneyNavigationParamList, 'MoneyHome'>>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -149,7 +155,25 @@ const MoneyHomeView = () => {
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
 
-  useMountEffect(trackScreenViewed);
+  const trackMoneyHomeViewed = useCallback(
+    () =>
+      trackScreenViewed({
+        entry_point: route.params?.entryPoint,
+      }),
+    [route.params?.entryPoint, trackScreenViewed],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      trackMoneyHomeViewed();
+
+      return () => {
+        if (route.params?.entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [navigation, route.params?.entryPoint, trackMoneyHomeViewed]),
+  );
 
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
