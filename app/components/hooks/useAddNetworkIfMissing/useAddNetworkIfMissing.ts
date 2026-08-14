@@ -55,6 +55,7 @@ export const useAddNetworkIfMissingMutation = (): UseMutationResult<
 
   return useMutation<Network | null, Error, string | undefined>({
     mutationFn: addNetworkIfMissing,
+    cacheTime: 0,
     onError: (error, chainId) =>
       Logger.error(error, {
         message: 'Failed to add missing network',
@@ -81,9 +82,7 @@ export const useAddNetworkIfMissingQuery = ({
     queryKey: ['add-network-if-missing', chainId ?? null],
     queryFn: () => addNetworkIfMissing(chainId),
     enabled,
-    // A write rather than a refetchable read: a chain that needs no add
-    // resolves with `null` and leaves the network list untouched, so the only
-    // way it runs again is re-entering the screen once the cache has expired.
+    staleTime: 0,
     retry: false,
     refetchOnWindowFocus: false,
     onError: (error) =>
