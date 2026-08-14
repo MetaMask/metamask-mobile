@@ -34,8 +34,11 @@ import {
   type SetTokenIndicatorsAction,
   type SetOnboardingStepperStepAction,
   type SetAppInstallEventFiredAction,
+  type SetPendingAppInstallAction,
+  type ClearPendingAppInstallAction,
   UserActionType,
 } from './types';
+import { type PendingAppInstall } from '../../reducers/user/types';
 
 export * from './types';
 
@@ -317,5 +320,26 @@ export function setOnboardingStepperStep(
 export function setAppInstallEventFired(): SetAppInstallEventFiredAction {
   return {
     type: UserActionType.SET_APP_INSTALL_EVENT_FIRED,
+  };
+}
+
+/**
+ * Action to record an install that is waiting for an analytics consent decision.
+ */
+export function setPendingAppInstall(
+  pendingAppInstall: PendingAppInstall,
+): SetPendingAppInstallAction {
+  return {
+    type: UserActionType.SET_PENDING_APP_INSTALL,
+    payload: { pendingAppInstall },
+  };
+}
+
+/**
+ * Action to drop a pending install, used when the user declines analytics.
+ */
+export function clearPendingAppInstall(): ClearPendingAppInstallAction {
+  return {
+    type: UserActionType.CLEAR_PENDING_APP_INSTALL,
   };
 }

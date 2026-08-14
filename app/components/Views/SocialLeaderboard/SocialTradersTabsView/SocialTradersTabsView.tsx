@@ -27,10 +27,8 @@ import Animated, {
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import { playSelection } from '../../../../util/haptics';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
+import { useOpenSocialNotificationPreferences } from '../hooks/useOpenSocialNotificationPreferences';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
@@ -44,7 +42,7 @@ import FeedSpotBuyAction, {
 import TopTradersView from '../TopTradersView';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
+import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import {
   TabsBar,
   type TabItem,
@@ -249,10 +247,8 @@ const SocialTradersTabsView: React.FC = () => {
     flushPendingBuy();
   }, [feedHasSpotItem, flushPendingBuy]);
 
-  const {
-    hasNotificationPreferences,
-    isLoading: isLoadingNotificationPreferences,
-  } = useNotificationStoragePreferences();
+  const { openNotificationPreferences } =
+    useOpenSocialNotificationPreferences();
 
   // `content` is unused: the pages live in the PagerView below so they stay
   // swipeable, and TabsBar renders the bar only.
@@ -323,32 +319,6 @@ const SocialTradersTabsView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleNotificationPreferencesPress = useCallback(() => {
-    if (isLoadingNotificationPreferences) {
-      return;
-    }
-
-    if (!hasNotificationPreferences) {
-      navigation.navigate(Routes.SETTINGS_VIEW, {
-        screen: Routes.SETTINGS.NOTIFICATIONS,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-      params: {
-        type: 'socialAI',
-        title: strings('app_settings.notifications_opts.social_ai_title'),
-        description: strings('app_settings.notifications_opts.social_ai_desc'),
-      },
-    });
-  }, [
-    hasNotificationPreferences,
-    isLoadingNotificationPreferences,
-    navigation,
-  ]);
-
   return (
     // Top and bottom edges are deliberately off — see
     // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
@@ -373,7 +343,7 @@ const SocialTradersTabsView: React.FC = () => {
         endButtonIconProps={[
           {
             iconName: IconName.Notification,
-            onPress: handleNotificationPreferencesPress,
+            onPress: openNotificationPreferences,
             testID: SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON,
           },
         ]}

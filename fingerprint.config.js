@@ -169,7 +169,6 @@ const config = {
     '.github/scripts/e2e-create-json-test-report.mjs',
     '.github/scripts/e2e-extract-test-results.mjs',
     '.github/scripts/e2e-freeze-timings.mjs',
-    '.github/scripts/e2e-merge-detox-junit-reports.mjs',
     '.github/scripts/e2e-merge-test-results.mjs',
     '.github/scripts/e2e-report-fixture-validation.mjs',
     '.github/scripts/e2e-smart-selection.mjs',
@@ -255,13 +254,11 @@ const config = {
     '.github/workflows/docker.yml',
 
     // Run or report on tests against an already-built app artifact - can't change the
-    // compiled binary. (`detox build-framework-cache` only builds Detox's own test-runner
-    // framework cache, not the app.)
+    // compiled binary.
     '.github/workflows/run-appium-e2e-workflow.yml',
     '.github/workflows/run-appium-smoke-tests-android.yml',
     '.github/workflows/run-appium-smoke-tests-ios.yml',
     '.github/workflows/run-e2e-api-specs.yml',
-    '.github/workflows/run-e2e-workflow.yml',
     '.github/workflows/performance-test-runner.yml',
     '.github/workflows/update-e2e-fixtures.yml',
     '.github/workflows/upload-to-testflight.yml',

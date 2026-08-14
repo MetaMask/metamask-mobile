@@ -109,7 +109,7 @@ export class EmulatorConfigBuilder {
         'appium:waitForQuiescence': false, // Don't wait for app idle
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
-        'appium:waitForIdleTimeout': 0, // Don't wait for idle
+        'appium:settings[waitForIdleTimeout]': 0, // Don't wait for idle
         ...(usePreinstalledWda
           ? {
               // WDA was simctl-installed in prepare-ios-appium-runner; launch only.

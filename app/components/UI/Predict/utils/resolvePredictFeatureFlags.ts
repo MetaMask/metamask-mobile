@@ -5,6 +5,7 @@ import {
 import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
@@ -21,12 +22,14 @@ import {
 import {
   parse,
   PredictFeeCollectionSchema,
+  PredictHiddenMarketsSchema,
   PredictSportsFeedSchema,
   PredictWimbledonTabSchema,
 } from '../schemas';
 import {
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
+  PredictHiddenMarketsFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
   PredictWimbledonTabFlag,
@@ -35,7 +38,6 @@ import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
-  localOverrides?: Record<string, unknown>;
 }
 
 function resolveVersionGatedBooleanFlag(
@@ -51,7 +53,9 @@ function resolveVersionGatedBooleanFlag(
 
 /**
  * Resolves the Predict feature flags used by both the controller and selectors.
- * Local overrides take precedence over remote values when both are present.
+ *
+ * Reads the effective flag values from `remoteFeatureFlags`, which already has
+ * `localOverrides` applied, so the dev override screen still works.
  *
  * @param rawState - Raw RemoteFeatureFlagController state slices used by Predict.
  * @returns The normalized Predict feature flag set.
@@ -61,7 +65,6 @@ export function resolvePredictFeatureFlags(
 ): PredictFeatureFlags {
   const flags = {
     ...(rawState.remoteFeatureFlags ?? {}),
-    ...(rawState.localOverrides ?? {}),
   };
 
   const liveSportsFlag =
@@ -82,6 +85,23 @@ export function resolvePredictFeatureFlags(
     )
       ? rawMarketHighlightsFlag
       : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
+  const rawHiddenMarketsFlag =
+    unwrapRemoteFeatureFlag<PredictHiddenMarketsFlag>(
+      flags.predictHiddenMarkets,
+    );
+  const parsedHiddenMarketsFlag = rawHiddenMarketsFlag
+    ? parse(
+        rawHiddenMarketsFlag,
+        PredictHiddenMarketsSchema,
+        DEFAULT_HIDDEN_MARKETS_FLAG,
+      )
+    : DEFAULT_HIDDEN_MARKETS_FLAG;
+  const hiddenMarketsFlag =
+    rawHiddenMarketsFlag &&
+    validatedVersionGatedFeatureFlag(parsedHiddenMarketsFlag)
+      ? parsedHiddenMarketsFlag
+      : DEFAULT_HIDDEN_MARKETS_FLAG;
 
   const feeCollection = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
@@ -164,6 +184,7 @@ export function resolvePredictFeatureFlags(
     enabledSportsMarketTypes,
     nonRegTimeSportsMarketTypes,
     marketHighlightsFlag,
+    hiddenMarketsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,

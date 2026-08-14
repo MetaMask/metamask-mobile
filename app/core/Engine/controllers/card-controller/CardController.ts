@@ -85,13 +85,9 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import {
-  resolveCardFeatureFlag,
-  type CardFeatureFlag,
+  readCardFeatureFlag,
+  resolveCardProviderForCountry,
 } from '../../../../selectors/featureFlagController/card';
-import {
-  deriveCountryProviderMap,
-  getProviderForCountry,
-} from './provider-map';
 import {
   ImmersveProvider,
   type CardResumeInfo,
@@ -349,11 +345,7 @@ export class CardController extends BaseController<
       const featureState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
       );
-      const cardFeature = resolveCardFeatureFlag(
-        featureState.remoteFeatureFlags?.cardFeature as
-          | CardFeatureFlag
-          | undefined,
-      );
+      const cardFeature = readCardFeatureFlag(featureState.remoteFeatureFlags);
       const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
       if (!accountsApiUrl) return;
 
@@ -413,27 +405,10 @@ export class CardController extends BaseController<
       'RemoteFeatureFlagController:getState',
     );
 
-    const cardFeature = resolveCardFeatureFlag(
-      featureState.remoteFeatureFlags?.cardFeature as
-        | CardFeatureFlag
-        | undefined,
+    return resolveCardProviderForCountry(
+      featureState.remoteFeatureFlags,
+      country,
     );
-
-    if (cardFeature.immersve?.enabled) {
-      const immersveCountries = cardFeature.immersveCountries ?? [];
-      const map = deriveCountryProviderMap(
-        Object.fromEntries(
-          immersveCountries.map((c) => [c, true] as [string, boolean]),
-        ),
-        CardProviderIds.Immersve,
-      );
-      const provider = getProviderForCountry(country, map);
-      if (provider) {
-        return provider;
-      }
-    }
-
-    return DEFAULT_CARD_PROVIDER_ID;
   }
 
   /**

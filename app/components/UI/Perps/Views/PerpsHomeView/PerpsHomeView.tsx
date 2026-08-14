@@ -27,7 +27,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  HeaderStandard,
   HeaderStandardAnimated,
   IconName,
   useHeaderStandardAnimated,
@@ -95,10 +94,7 @@ import {
 } from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
-import {
-  WhatsHappeningSource,
-  MAX_ITEMS_DISPLAYED,
-} from '../../../../UI/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
   useWhatsHappening,
   isWhatsHappeningSectionVisible,
@@ -165,13 +161,13 @@ const PerpsHomeView = () => {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
-    async (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode): Promise<boolean> => {
       const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
         entry: 'home',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       });
       if (openedChooser) {
-        return;
+        return false;
       }
 
       // Chooser already completed — flip immediately without the sheet.
@@ -191,6 +187,7 @@ const PerpsHomeView = () => {
           ],
         });
       }
+      return true;
     },
     [navigation, setPerpsMode],
   );
@@ -211,7 +208,7 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
-  const whatsHappeningFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const whatsHappeningFeed = useWhatsHappening();
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
     isWhatsHappeningSectionVisible({
@@ -1067,65 +1064,46 @@ const PerpsHomeView = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      {isPerpsProModeEnabled ? (
-        // Pro mode: persistent active-mode pill beside search in the top nav
-        // (the animated compact title would only appear on scroll).
-        // h-16 (64px) matches the Figma header (HeaderBase defaults to 56px).
-        <HeaderStandard
-          includesTopInset
-          twClassName="h-16"
-          title={perpsScreenTitle}
-          onBack={handleBackPress}
-          backButtonProps={{
-            accessibilityLabel: 'Back',
-            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-          }}
-          endAccessory={
-            <Box
-              accessible={false}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              <ButtonIcon
-                iconName={IconName.Search}
-                size={ButtonIconSize.Md}
-                onPress={handleSearchToggle}
-                accessibilityLabel="Search"
-                testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
-              />
+      {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
+      <HeaderStandardAnimated
+        includesTopInset
+        // h-16 (64px) matches the Figma header when the Lite pill is shown
+        // (HeaderBase defaults to 56px).
+        twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
+        scrollY={headerScrollY}
+        titleSectionHeight={titleSectionHeightSv}
+        title={perpsScreenTitle}
+        onBack={handleBackPress}
+        backButtonProps={{
+          accessibilityLabel: 'Back',
+          testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+        }}
+        endAccessory={
+          <Box
+            accessible={false}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <ButtonIcon
+              iconName={IconName.Search}
+              size={ButtonIconSize.Md}
+              onPress={handleSearchToggle}
+              accessibilityLabel="Search"
+              testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
+            />
+            {isPerpsProModeEnabled ? (
               <PerpsModeToggle
                 mode={perpsMode}
                 onChange={handleModeChange}
                 variant="active"
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
               />
-            </Box>
-          }
-          testID="perps-home"
-        />
-      ) : (
-        <HeaderStandardAnimated
-          includesTopInset
-          scrollY={headerScrollY}
-          titleSectionHeight={titleSectionHeightSv}
-          title={perpsScreenTitle}
-          onBack={handleBackPress}
-          backButtonProps={{
-            accessibilityLabel: 'Back',
-            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-          }}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Search,
-              onPress: handleSearchToggle,
-              accessibilityLabel: 'Search',
-              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-            },
-          ]}
-          testID="perps-home"
-        />
-      )}
+            ) : null}
+          </Box>
+        }
+        testID="perps-home"
+      />
 
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView

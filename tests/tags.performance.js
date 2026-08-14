@@ -43,6 +43,7 @@ export const PerformanceLaunch = '@PerformanceLaunch';
 export const PerformanceAssetLoading = '@PerformanceAssetLoading';
 export const PerformancePredict = '@PerformancePredict';
 export const PerformancePreps = '@PerformancePreps';
+export const PerformanceMoney = '@PerformanceMoney';
 
 export const performanceTags = {
   performanceAccountList: {
@@ -84,5 +85,10 @@ export const performanceTags = {
     tag: '@PerformancePreps:',
     description:
       'Perpetuals trading performance - covers perps market loading, position management, add funds flow, and order execution',
+  },
+  performanceMoney: {
+    tag: '@PerformanceMoney:',
+    description:
+      'Money account performance - covers Money Home balance and activity content loading for empty and funded accounts',
   },
 };
