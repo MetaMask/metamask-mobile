@@ -175,6 +175,29 @@ const Settings = ({
   const themeTitle = strings('app_settings.theme_title', {
     theme: themeLabel,
   });
+  const renderSetting = (
+    title: string,
+    description: string,
+    content: React.ReactNode,
+    first = false,
+  ) => (
+    <View
+      style={first ? [styles.setting, styles.firstSetting] : styles.setting}
+    >
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {title}
+      </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+        style={styles.desc}
+      >
+        {description}
+      </Text>
+      <View style={styles.accessory}>{content}</View>
+    </View>
+  );
   const [currentLanguage, setCurrentLanguage] = useState(
     I18n.locale.substr(0, 2),
   );
@@ -263,117 +286,61 @@ const Settings = ({
       />
       <ScrollView style={styles.content}>
         <View style={styles.inner}>
-          <View style={[styles.setting, styles.firstSetting]}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('app_settings.conversion_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.conversion_desc')}
-            </Text>
-            <View style={styles.accessory}>
-              <SelectComponent
-                testID={GENERAL_SETTINGS_CURRENCY_SELECTOR}
-                selectedValue={currentCurrency}
-                onValueChange={selectCurrency}
-                label={strings('app_settings.current_conversion')}
-                options={infuraCurrencyOptions}
-              />
-            </View>
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('app_settings.primary_currency_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.primary_currency_desc')}
-            </Text>
-            <View style={styles.accessory}>
-              <PickComponent
-                pick={selectPrimaryCurrency}
-                textFirst={strings('app_settings.primary_currency_text_first')}
-                valueFirst={'ETH'}
-                textSecond={strings(
-                  'app_settings.primary_currency_text_second',
-                )}
-                valueSecond={'Fiat'}
-                selectedValue={primaryCurrency}
-              />
-            </View>
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('app_settings.current_language')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.language_desc')}
-            </Text>
-            <View style={styles.accessory}>
-              <SelectComponent
-                selectedValue={currentLanguage}
-                onValueChange={selectLanguage}
-                label={strings('app_settings.current_language')}
-                options={languageOptions}
-              />
-            </View>
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {themeTitle}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.theme_description')}
-            </Text>
-            <View style={styles.accessory}>
-              <SelectComponent
-                testID={GENERAL_SETTINGS_THEME_SELECTOR}
-                selectedValue={appTheme}
-                onValueChange={selectTheme}
-                label={themeTitle}
-                options={themeOptions}
-              />
-            </View>
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('app_settings.search_engine')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.engine_desc')}
-            </Text>
-            <View style={styles.accessory}>
-              <SelectComponent
-                selectedValue={searchEngine}
-                onValueChange={selectSearchEngine}
-                label={strings('app_settings.search_engine')}
-                options={searchEngineOptions}
-              />
-            </View>
-          </View>
+          {renderSetting(
+            strings('app_settings.conversion_title'),
+            strings('app_settings.conversion_desc'),
+            <SelectComponent
+              testID={GENERAL_SETTINGS_CURRENCY_SELECTOR}
+              selectedValue={currentCurrency}
+              onValueChange={selectCurrency}
+              label={strings('app_settings.current_conversion')}
+              options={infuraCurrencyOptions}
+            />,
+            true,
+          )}
+          {renderSetting(
+            strings('app_settings.primary_currency_title'),
+            strings('app_settings.primary_currency_desc'),
+            <PickComponent
+              pick={selectPrimaryCurrency}
+              textFirst={strings('app_settings.primary_currency_text_first')}
+              valueFirst={'ETH'}
+              textSecond={strings('app_settings.primary_currency_text_second')}
+              valueSecond={'Fiat'}
+              selectedValue={primaryCurrency}
+            />,
+          )}
+          {renderSetting(
+            strings('app_settings.current_language'),
+            strings('app_settings.language_desc'),
+            <SelectComponent
+              selectedValue={currentLanguage}
+              onValueChange={selectLanguage}
+              label={strings('app_settings.current_language')}
+              options={languageOptions}
+            />,
+          )}
+          {renderSetting(
+            themeTitle,
+            strings('app_settings.theme_description'),
+            <SelectComponent
+              testID={GENERAL_SETTINGS_THEME_SELECTOR}
+              selectedValue={appTheme}
+              onValueChange={selectTheme}
+              label={themeTitle}
+              options={themeOptions}
+            />,
+          )}
+          {renderSetting(
+            strings('app_settings.search_engine'),
+            strings('app_settings.engine_desc'),
+            <SelectComponent
+              selectedValue={searchEngine}
+              onValueChange={selectSearchEngine}
+              label={strings('app_settings.search_engine')}
+              options={searchEngineOptions}
+            />,
+          )}
           <SettingsToggleRow
             title={strings('app_settings.hide_zero_balance_tokens_title')}
             description={strings('app_settings.hide_zero_balance_tokens_desc')}
@@ -386,27 +353,16 @@ const Settings = ({
             value={hapticsEnabled}
             onValueChange={setHapticsEnabled}
           />
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('app_settings.accounts_identicon_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.accounts_identicon_desc')}
-            </Text>
-            <View style={styles.accessory}>
-              <AvatarTypeSelector
-                address={selectedAddress}
-                onChange={setAvatarAccountType}
-                selectedType={avatarAccountType}
-                styles={styles}
-              />
-            </View>
-          </View>
+          {renderSetting(
+            strings('app_settings.accounts_identicon_title'),
+            strings('app_settings.accounts_identicon_desc'),
+            <AvatarTypeSelector
+              address={selectedAddress}
+              onChange={setAvatarAccountType}
+              selectedType={avatarAccountType}
+              styles={styles}
+            />,
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
