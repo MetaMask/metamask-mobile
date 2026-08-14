@@ -9,7 +9,6 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../app/constants/on-ramp';
 import type { FiatOrder } from '../../../app/reducers/fiatOrders/types';
-import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../app/components/UI/Earn/components/MerklRewards/constants';
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -492,7 +491,6 @@ export const activityCvCrossChainSwapBridgeHistoryEntry = {
   slippagePercentage: 0,
 };
 
-
 /**
  * Submitted cross-chain swap for ActivityDetails pending status CV.
  * Same quote shape as the confirmed fixture; status is still in-flight.
@@ -791,6 +789,9 @@ const ERC20_TRANSFER_TOPIC =
 
 const addressTopic = (address: string): string =>
   `0x${address.slice(2).toLowerCase().padStart(64, '0')}`;
+
+/** Merkl distributor that emits the mUSD Transfer on claim (see Earn musd utils). */
+const MERKL_DISTRIBUTOR_ADDRESS = '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae';
 
 /**
  * Confirmed Merkl mUSD claim on Linea with receipt payout.
@@ -1217,7 +1218,6 @@ export const initialStateActivityWithRampOrders = (orders: FiatOrder[]) =>
         },
       },
     } as unknown as DeepPartial<RootState>);
-
 
 export const ACTIVITY_CV_SOLANA_ACCOUNT_ID = 'activity-cv-solana-acc';
 
