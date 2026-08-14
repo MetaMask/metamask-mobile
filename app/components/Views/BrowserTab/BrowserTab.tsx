@@ -1515,10 +1515,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // MarketInsightsView is in the stack navigator so goBack() works correctly.
         navigation.goBack();
       } else if (fromMoney) {
-        navigation.navigate(Routes.HOME_TABS, {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        });
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
       } else {
         // Navigate to TrendingView/TrendingFeed
         // Note: We use explicit navigation instead of goBack() because the browser

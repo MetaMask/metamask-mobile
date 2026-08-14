@@ -163,7 +163,11 @@ describe('ConfirmAddAsset', () => {
     await userEvent.press(importButton);
 
     expect(mockAddTokenList).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.WALLET.TOKENS_FULL_VIEW,
+      undefined,
+      { pop: true },
+    );
   });
 
   it('shows loading feedback and prevents duplicate import presses', async () => {
@@ -198,7 +202,11 @@ describe('ConfirmAddAsset', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.WALLET.TOKENS_FULL_VIEW,
+        undefined,
+        { pop: true },
+      );
     });
   });
 
@@ -227,6 +235,8 @@ describe('ConfirmAddAsset', () => {
     expect(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON)).toBeEnabled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.WALLET.TOKENS_FULL_VIEW,
+      undefined,
+      { pop: true },
     );
   });
 
