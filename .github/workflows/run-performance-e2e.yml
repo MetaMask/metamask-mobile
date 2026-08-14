@@ -78,6 +78,14 @@ on:
         required: false
         type: boolean
         default: false
+      he_region:
+        description: 'HyperExecute region (us or eu)'
+        required: false
+        type: choice
+        options:
+          - us
+          - eu
+        default: us
   workflow_call:
     inputs:
       description:
@@ -166,6 +174,11 @@ on:
         required: false
         type: boolean
         default: false
+      he_region:
+        description: 'HyperExecute region (us or eu)'
+        required: false
+        type: string
+        default: 'us'
 
 permissions:
   contents: write
@@ -769,6 +782,7 @@ jobs:
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
       # LT_ACCESS_KEY via secrets: inherit (secrets.* illegal in reusable-workflow `with:`)
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+      he_region: ${{ inputs.he_region || 'us' }}
     secrets: inherit
 
   run-android-onboarding-tests-testmu-standard:
@@ -963,6 +977,7 @@ jobs:
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
       # LT_ACCESS_KEY via secrets: inherit (secrets.* illegal in reusable-workflow `with:`)
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+      he_region: ${{ inputs.he_region || 'us' }}
     secrets: inherit
 
   run-android-imported-wallet-tests-testmu-standard:

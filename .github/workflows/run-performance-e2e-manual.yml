@@ -60,6 +60,14 @@ on:
         required: false
         type: string
         default: ''
+      he_region:
+        description: 'HyperExecute region (us or eu)'
+        required: false
+        type: choice
+        options:
+          - us
+          - eu
+        default: us
 
 permissions:
   contents: write
@@ -113,4 +121,5 @@ jobs:
       performance_tags: ${{ inputs.performance_tags }}
       reuse_main_builds: ${{ inputs.build_variant == 'e2e' && inputs.reuse_main_builds }}
       source_fingerprint: ${{ inputs.source_fingerprint }}
+      he_region: ${{ inputs.he_region || 'us' }}
     secrets: inherit
