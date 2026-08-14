@@ -1,6 +1,10 @@
-import { encapsulatedAction, sleep, createLogger } from '../../framework';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import {
+  createLogger,
+  Gestures,
+  Matchers,
+  sleep,
+  type EncapsulatedElementType,
+} from '../../framework';
 import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { unlockIfLockScreenVisible } from '../../flows/wallet.flow';
@@ -35,71 +39,70 @@ class AndroidScreenHelpers {
    * the sheet — unlock when the password screen is visible, then keep waiting.
    */
   async tapOpenDeeplinkWithMetaMask(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        PlaywrightUtilities.collapseStatusBar();
+    PlaywrightUtilities.collapseStatusBar();
 
-        const deadline = Date.now() + CHOOSER_TIMEOUT_MS;
-        while (Date.now() < deadline) {
-          PlaywrightUtilities.collapseStatusBar();
+    const deadline = Date.now() + CHOOSER_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      PlaywrightUtilities.collapseStatusBar();
 
-          await unlockIfLockScreenVisible();
+      await unlockIfLockScreenVisible();
 
-          if (await this.isConnectSheetVisible()) {
-            logger.debug(
-              'MetaMask connect sheet already visible; skipping chooser',
-            );
-            return;
+      if (await this.isConnectSheetVisible()) {
+        logger.debug(
+          'MetaMask connect sheet already visible; skipping chooser',
+        );
+        return;
+      }
+
+      for (const xpath of CHOOSER_METAMASK_XPATHS) {
+        let option: EncapsulatedElementType;
+        try {
+          option = Matchers.getElementByNativeXPath(xpath);
+          const resolved = await option;
+          if (!(await resolved.isVisible())) {
+            continue;
           }
-
-          for (const xpath of CHOOSER_METAMASK_XPATHS) {
-            let option;
-            try {
-              option = await PlaywrightMatchers.getElementByXPath(xpath);
-              if (!(await option.isVisible())) {
-                continue;
-              }
-            } catch {
-              // Selector not present; try next XPath.
-              continue;
-            }
-
-            await PlaywrightGestures.waitAndTap(option, {
-              timeout: 3_000,
-              delay: 200,
-            });
-            await this.tapJustOnceIfPresent();
-            // After chooser, lock screen or connect sheet may appear.
-            // Do not catch here — failures after tap must surface clearly.
-            const sheetDeadline = Date.now() + 20_000;
-            while (Date.now() < sheetDeadline) {
-              await unlockIfLockScreenVisible();
-              if (await this.isConnectSheetVisible()) {
-                return;
-              }
-              await sleep(POLL_MS);
-            }
-            throw new Error(
-              'Tapped MetaMask in Android deeplink chooser, but connect sheet did not appear within 20s',
-            );
-          }
-
-          await sleep(POLL_MS);
+        } catch {
+          // Selector not present; try next XPath.
+          continue;
         }
 
+        await Gestures.waitAndTap(option, {
+          timeout: 3_000,
+          delay: 200,
+          elemDescription: 'Android MetaMask chooser option',
+        });
+        await this.tapJustOnceIfPresent();
+        // After chooser, lock screen or connect sheet may appear.
+        // Do not catch here — failures after tap must surface clearly.
+        const sheetDeadline = Date.now() + 20_000;
+        while (Date.now() < sheetDeadline) {
+          await unlockIfLockScreenVisible();
+          if (await this.isConnectSheetVisible()) {
+            return;
+          }
+          await sleep(POLL_MS);
+        }
         throw new Error(
-          `Android MetaMask deeplink chooser / connect sheet not shown after ${CHOOSER_TIMEOUT_MS}ms`,
+          'Tapped MetaMask in Android deeplink chooser, but connect sheet did not appear within 20s',
         );
-      },
-    });
+      }
+
+      await sleep(POLL_MS);
+    }
+
+    throw new Error(
+      `Android MetaMask deeplink chooser / connect sheet not shown after ${CHOOSER_TIMEOUT_MS}ms`,
+    );
   }
 
   private async isConnectSheetVisible(): Promise<boolean> {
     try {
-      const connectButton = await PlaywrightMatchers.getElementById(
+      const connectButton = Matchers.getElementByID(
         ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
       );
-      return await connectButton.isVisible();
+      const resolved = await Promise.resolve(connectButton);
+      return await resolved.isVisible();
     } catch {
       return false;
     }
@@ -108,11 +111,13 @@ class AndroidScreenHelpers {
   private async tapJustOnceIfPresent(): Promise<void> {
     for (const xpath of JUST_ONCE_XPATHS) {
       try {
-        const button = await PlaywrightMatchers.getElementByXPath(xpath);
-        if (await button.isVisible()) {
-          await PlaywrightGestures.waitAndTap(button, {
+        const button = Matchers.getElementByNativeXPath(xpath);
+        const resolved = await button;
+        if (await resolved.isVisible()) {
+          await Gestures.waitAndTap(button, {
             timeout: 2_000,
             delay: 100,
+            elemDescription: 'Android Just once button',
           });
           return;
         }
