@@ -1424,15 +1424,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         if (!orderValidation.isValid) {
           // The order can be invalid with no message when the balance error was
           // withheld for the pay-with-token flow, and the post-deposit re-entry
-          // above reaches here without the disabled button in the way. Never
-          // hand `undefined` to the toast or to telemetry.
-          const firstError =
-            orderValidation.errors[0] ??
-            (orderValidation.hasSuppressedBalanceError
+          // above reaches here without the disabled button in the way.
+          const suppressedFundingError =
+            orderValidation.hasSuppressedBalanceError
               ? strings(
                   'perps.order.validation.insufficient_funds_to_cover_trade',
                 )
-              : strings('perps.order.validation.failed'));
+              : undefined;
+          const firstError =
+            orderValidation.errors[0] ?? suppressedFundingError;
+          // The toast already titles itself "Order validation failed", so an
+          // absent detail line stays absent rather than repeating the title.
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
               firstError,
@@ -1443,7 +1445,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           track(MetaMetricsEvents.PERPS_ERROR, {
             [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
               PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+              firstError ?? strings('perps.order.validation.failed'),
             [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
               PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
             [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:

@@ -1277,6 +1277,21 @@ describe('usePerpsToasts', () => {
           { label: 'Insufficient balance', isBold: false },
         ]);
       });
+
+      it('returns a single line when no detail is available', () => {
+        // Arrange
+        const { result } = renderHook(() => usePerpsToasts());
+
+        // Act — the title is already "Order validation failed", so an absent
+        // detail must not be padded out with a copy of that title.
+        const config =
+          result.current.PerpsToastOptions.formValidation.orderForm.validationError();
+
+        // Assert
+        expect(config.labelOptions).toEqual([
+          { label: 'Order validation failed', isBold: true },
+        ]);
+      });
     });
 
     describe('dataFetching.market', () => {

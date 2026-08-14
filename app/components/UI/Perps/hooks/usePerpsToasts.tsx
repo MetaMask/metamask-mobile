@@ -201,7 +201,7 @@ export interface PerpsToastOptionsConfig {
   };
   formValidation: {
     orderForm: {
-      validationError: (error: string) => PerpsToastOptions;
+      validationError: (error?: string) => PerpsToastOptions;
       limitPriceRequired: PerpsToastOptions;
     };
   };
@@ -1051,7 +1051,7 @@ const usePerpsToasts = (): {
       },
       formValidation: {
         orderForm: {
-          validationError: (error: string) => ({
+          validationError: (error?: string) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.failed'),
