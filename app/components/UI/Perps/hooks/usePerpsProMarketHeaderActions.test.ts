@@ -189,10 +189,12 @@ describe('usePerpsProMarketHeaderActions', () => {
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
 
+    let applied: boolean | void = false;
     await act(async () => {
-      result.current.handlePerpsModeChange(PerpsMode.Lite);
+      applied = await result.current.handlePerpsModeChange(PerpsMode.Lite);
     });
 
+    expect(applied).toBe(true);
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
     expect(mockDropPerpsHomeFromStackHistory).not.toHaveBeenCalled();
   });
@@ -216,10 +218,12 @@ describe('usePerpsProMarketHeaderActions', () => {
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
 
+    let applied: boolean | void = true;
     await act(async () => {
-      result.current.handlePerpsModeChange(PerpsMode.Lite);
+      applied = await result.current.handlePerpsModeChange(PerpsMode.Lite);
     });
 
+    expect(applied).toBe(false);
     expect(mockOpenPerpsModeSelectionIfNeeded).toHaveBeenCalledWith(
       expect.anything(),
       {

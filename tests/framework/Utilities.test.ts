@@ -1,5 +1,7 @@
 import Utilities from './Utilities.ts';
 import { RetryOptions } from './types.ts';
+import { FrameworkDetector, TestFramework } from './FrameworkDetector.ts';
+import type { EncapsulatedElementType } from './EncapsulatedElement.ts';
 
 describe('Utilities.executeWithRetry', () => {
   let consoleLogSpy: jest.SpyInstance;
@@ -168,5 +170,50 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(mockOperation).toHaveBeenCalledTimes(3);
     });
+  });
+});
+
+describe('Utilities.getElementText', () => {
+  afterEach(() => {
+    FrameworkDetector.reset();
+  });
+
+  it('returns text content from an Appium element', async () => {
+    FrameworkDetector.setFramework(TestFramework.APPIUM);
+    const textContent = jest.fn().mockResolvedValue('$12.34');
+    const encapsulatedElement = Promise.resolve({
+      textContent,
+    }) as unknown as EncapsulatedElementType;
+
+    const result = await Utilities.getElementText(encapsulatedElement);
+
+    expect(result).toBe('$12.34');
+    expect(textContent).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns text attribute from a Detox element', async () => {
+    FrameworkDetector.setFramework(TestFramework.DETOX);
+    const getAttributes = jest
+      .fn()
+      .mockResolvedValue({ text: '$56.78', label: 'Balance' });
+    const encapsulatedElement = {
+      getAttributes,
+    } as unknown as EncapsulatedElementType;
+
+    const result = await Utilities.getElementText(encapsulatedElement);
+
+    expect(result).toBe('$56.78');
+    expect(getAttributes).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns label when Detox element has no text attribute', async () => {
+    FrameworkDetector.setFramework(TestFramework.DETOX);
+    const encapsulatedElement = {
+      getAttributes: jest.fn().mockResolvedValue({ label: 'Balance' }),
+    } as unknown as EncapsulatedElementType;
+
+    const result = await Utilities.getElementText(encapsulatedElement);
+
+    expect(result).toBe('Balance');
   });
 });

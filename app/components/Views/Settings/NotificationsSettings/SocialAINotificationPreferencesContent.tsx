@@ -123,11 +123,18 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
 export interface SocialAINotificationPreferencesContentProps {
   showPushToggle?: boolean;
   withHorizontalPadding?: boolean;
+  /**
+   * Forces the dependent Trading Signals UI (thresholds, traders) into the
+   * disabled/greyed-out look — same as when both channels are off. Used by
+   * the feature notifications gate while the master toggle is still off.
+   */
+  disabled?: boolean;
 }
 
 const SocialAINotificationPreferencesContent = ({
   showPushToggle = true,
   withHorizontalPadding = true,
+  disabled = false,
 }: SocialAINotificationPreferencesContentProps) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
@@ -163,7 +170,9 @@ const SocialAINotificationPreferencesContent = ({
 
   const showPreferencesSkeleton = isLoadingPreferences;
   const tradingSignalsChannelsDisabled =
-    isLoadingPreferences || areTradingSignalsChannelsDisabled(preferences);
+    disabled ||
+    isLoadingPreferences ||
+    areTradingSignalsChannelsDisabled(preferences);
 
   const handleSetEnabled = useCallback(
     (value: boolean) => {

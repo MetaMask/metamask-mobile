@@ -1,13 +1,13 @@
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
 import React, { useMemo } from 'react';
-import { TOP_TRADERS_QUICK_BUY_FEATURES } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/features';
-import { QuickBuy } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/quickBuy';
-import type { QuickBuySheetSource } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import { TOP_TRADERS_QUICK_BUY_FEATURES } from '../../QuickBuy/features';
+import { QuickBuy } from '../../QuickBuy/quickBuy';
+import type { QuickBuySheetSource } from '../../QuickBuy/analytics';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyTarget,
-} from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/types';
+} from '../../QuickBuy/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
 export interface AssetDetailsQuickBuyProps {

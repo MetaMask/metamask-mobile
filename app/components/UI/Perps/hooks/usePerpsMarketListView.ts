@@ -77,6 +77,7 @@ interface UsePerpsMarketListViewReturn {
     searchQuery: string;
     setSearchQuery: (query: string) => void;
     clearSearch: () => void;
+    searchResultCount: number;
   };
   /**
    * Sort state and controls
@@ -384,6 +385,7 @@ export const usePerpsMarketListView = ({
       searchQuery: searchHook.searchQuery,
       setSearchQuery: searchHook.setSearchQuery,
       clearSearch: searchHook.clearSearch,
+      searchResultCount: searchHook.filteredMarkets.length,
     },
     sortState: {
       selectedOptionId: sortingHook.selectedOptionId,

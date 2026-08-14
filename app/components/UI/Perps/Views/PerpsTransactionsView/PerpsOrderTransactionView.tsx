@@ -20,7 +20,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
-import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
+import {
+  usePerpsBlockExplorerUrl,
+  usePerpsRecordedOrderFees,
+} from '../../hooks';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
@@ -30,8 +33,10 @@ import {
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 
-const PerpsOrderTransactionView: React.FC = () => {
+const PerpsOrderTransactionViewContent: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -44,10 +49,15 @@ const PerpsOrderTransactionView: React.FC = () => {
   const transaction = route.params?.transaction;
 
   // Call hooks before conditional return
-  const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
-    orderType: transaction?.order?.type ?? 'market',
-    amount: transaction?.order?.size ?? '0',
-  });
+  const {
+    totalFee,
+    isLoading: isFeeLoading,
+    hasError: hasFeeError,
+  } = usePerpsRecordedOrderFees(
+    transaction?.order?.orderId,
+    transaction?.asset ?? '',
+    transaction?.timestamp,
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -110,24 +120,19 @@ const PerpsOrderTransactionView: React.FC = () => {
     },
   ];
 
-  const isFilled = transaction.order?.text === 'Filled';
-
-  // Fee breakdown - use PRICE_RANGES_UNIVERSAL to show exact values instead of "< $0.01"
+  // Use universal ranges to show the exact recorded fee instead of "< $0.01".
   const formatFee = (fee: number) =>
     formatPerpsFiat(fee, { ranges: PRICE_RANGES_UNIVERSAL });
 
+  const feeValue =
+    isFeeLoading || hasFeeError || totalFee === undefined
+      ? '—'
+      : formatFee(totalFee);
+
   const feeRows = [
     {
-      label: strings('perps.transactions.order.metamask_fee'),
-      value: formatFee(isFilled ? metamaskFee : 0),
-    },
-    {
-      label: strings('perps.transactions.order.hyperliquid_fee'),
-      value: formatFee(isFilled ? protocolFee : 0),
-    },
-    {
       label: strings('perps.transactions.order.total_fee'),
-      value: formatFee(isFilled ? totalFee : 0),
+      value: feeValue,
     },
   ];
 
@@ -176,7 +181,7 @@ const PerpsOrderTransactionView: React.FC = () => {
             {/* Separator between sections */}
             <View style={styles.sectionSeparator} />
 
-            {/* Fee breakdown */}
+            {/* Recorded execution fee */}
             {feeRows.map((detail, index) => (
               <View
                 key={`fee-${index}`}
@@ -217,5 +222,13 @@ const PerpsOrderTransactionView: React.FC = () => {
     </ScreenView>
   );
 };
+
+const PerpsOrderTransactionView: React.FC = () => (
+  <PerpsConnectionProvider suppressErrorView>
+    <PerpsStreamProvider>
+      <PerpsOrderTransactionViewContent />
+    </PerpsStreamProvider>
+  </PerpsConnectionProvider>
+);
 
 export default PerpsOrderTransactionView;

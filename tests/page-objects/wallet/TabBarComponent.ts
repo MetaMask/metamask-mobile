@@ -63,6 +63,10 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
+  get tabBarMoneyButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(TabBarSelectorIDs.MONEY);
+  }
+
   get homeButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText('Home'),
@@ -234,6 +238,13 @@ class TabBarComponent {
         description: 'Tap Rewards Button',
       },
     );
+  }
+
+  async tapMoney(): Promise<void> {
+    await Gestures.waitAndTap(this.tabBarMoneyButton, {
+      elemDescription: 'Tab Bar - Money Button',
+      timeout: 5000,
+    });
   }
 }
 

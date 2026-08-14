@@ -110,7 +110,7 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 // QuickBuy provider/controller (bridge selectors, NetworkController, …). This
 // file intentionally uses a minimal Redux store, so we stub the sheet here.
 const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
-jest.mock('./components/QuickBuy', () => ({
+jest.mock('../../../UI/QuickBuy', () => ({
   __esModule: true,
   default: (props: unknown) => mockTraderPositionQuickBuy(props),
   positionToQuickBuyTarget: (position: {
@@ -147,7 +147,7 @@ jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
 }));
 
-jest.mock('./components/QuickBuy/hooks/useQuickBuySetup', () => ({
+jest.mock('../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: () => ({
     chainId: '0x2105',
     destToken: {
