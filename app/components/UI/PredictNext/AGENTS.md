@@ -11,7 +11,8 @@ Read, in order:
 3. Accepted Kalshi ADRs linked from `README.md`.
 4. `docs/architecture.md` — stable boundaries and invariants.
 5. `docs/canonical-read-model-and-api.md` — agreed working direction for public read types and routes.
-6. The Jira issue being implemented.
+6. `docs/ui-components.md` — composition rules for PredictNext core UI work.
+7. The Jira issue being implemented.
 
 ## Scope
 
@@ -39,6 +40,7 @@ Proposed ADRs and examples in these docs are working direction, not accepted con
 - Create Predict-local ADRs under `docs/adr/` only for durable, non-obvious decisions not governed elsewhere.
 - Never put credentials, bearer tokens, OTPs, PII/KYC values, or transfer-authorization material in Redux, persisted mobile storage, logs, analytics, traces, or fixtures.
 - Follow repository TypeScript, testing, design-system, and security guidance.
+- For core UI, follow `docs/ui-components.md`: prefer explicit variants and children-based composition, avoid boolean mode props, and use compound components only where independently useful parts or shared state justify them.
 - Work one behavior at a time: red → green → refactor.
 
 ## Agent readiness
