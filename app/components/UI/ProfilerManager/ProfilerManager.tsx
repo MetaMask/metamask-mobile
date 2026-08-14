@@ -48,6 +48,10 @@ const styles = StyleSheet.create({
     top: 6,
     left: 0,
   },
+  e2eProfilerError: {
+    top: 8,
+    left: 0,
+  },
 });
 
 interface ProfilerManagerProps {
@@ -60,6 +64,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [lastProfilePath, setLastProfilePath] = useState<string | null>(null);
+  const [profilerError, setProfilerError] = useState<string | null>(null);
   const appId = getBundleId();
   const tw = useTailwind();
 
@@ -68,6 +73,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
   }, []);
 
   const startProfiler = useCallback(async () => {
+    setProfilerError(null);
     try {
       const appVersion = getVersion();
       const timestamp = Date.now();
@@ -77,12 +83,19 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
       setIsRecording(true);
       setSessionId(newSessionId);
     } catch (error) {
-      // fail silently
+      if (process.env.METAMASK_ENVIRONMENT === 'e2e') {
+        setProfilerError(`startProfiling failed: ${String(error)}`);
+      }
     }
   }, [appId]);
 
   const stopProfiler = useCallback(async () => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      if (process.env.METAMASK_ENVIRONMENT === 'e2e') {
+        setProfilerError('stopProfiling skipped: no active profiling session');
+      }
+      return;
+    }
 
     try {
       const path = await stopProfiling(
@@ -96,7 +109,9 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
         }
       }
     } catch (error) {
-      // fail silently
+      if (process.env.METAMASK_ENVIRONMENT === 'e2e') {
+        setProfilerError(`stopProfiling failed: ${String(error)}`);
+      }
     }
     setIsRecording(false);
     setSessionId(null);
@@ -185,6 +200,16 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
               importantForAccessibility="yes"
               onPress={() => undefined}
               style={[styles.e2eToggle, styles.e2eResultReady]}
+            />
+          )}
+          {profilerError && (
+            <Pressable
+              testID="e2e-profiler-error"
+              accessibilityLabel={`e2e-profiler-error:${profilerError}`}
+              accessible
+              importantForAccessibility="yes"
+              onPress={() => undefined}
+              style={[styles.e2eToggle, styles.e2eProfilerError]}
             />
           )}
         </>

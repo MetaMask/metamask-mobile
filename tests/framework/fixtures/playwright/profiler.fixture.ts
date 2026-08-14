@@ -1,4 +1,5 @@
 import type { Fixtures, TestInfo } from '@playwright/test';
+import type { ChainablePromiseElement } from 'webdriverio';
 import { copyProfilerResult } from '../../services/appium/Profiler';
 import type {
   CurrentDeviceDetails,
@@ -21,13 +22,31 @@ async function startProfiler(driver: WebdriverIO.Browser): Promise<void> {
   await recordingReady.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
 }
 
+async function isDisplayed(element: ChainablePromiseElement): Promise<boolean> {
+  try {
+    return await element.isDisplayed();
+  } catch {
+    return false;
+  }
+}
+
 async function stopProfiler(driver: WebdriverIO.Browser): Promise<void> {
   const stop = await driver.$('~e2e-profiler-stop');
   await stop.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
   await stop.click();
 
   const resultReady = await driver.$('~e2e-profiler-result-ready');
-  await resultReady.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
+  const profilerError = await driver.$('~e2e-profiler-error');
+  await driver.waitUntil(
+    async () =>
+      (await isDisplayed(resultReady)) || (await isDisplayed(profilerError)),
+    { timeout: ELEMENT_TIMEOUT_MS },
+  );
+
+  if (await isDisplayed(profilerError)) {
+    const errorLabel = await profilerError.getAttribute('content-desc');
+    throw new Error(errorLabel || 'The app reported an unknown profiler error');
+  }
 }
 
 export const profilerFixture: Fixtures<TestLevelFixtures, WorkerLevelFixtures> =
