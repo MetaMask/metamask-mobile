@@ -42,6 +42,7 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { useHomepageReady } from '../../hooks/useHomepageReady';
+import type { HomepageReadyContentState } from '../../../../../core/Performance/HomepageReady';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -57,6 +58,24 @@ interface TokensSectionProps {
 }
 
 const MAX_TOKENS_DISPLAYED = 5;
+
+/**
+ * Gets the homepage-ready state from the token section's terminal states.
+ */
+const getHomepageReadyContentState = (
+  showTokensError: boolean,
+  isZeroBalanceAccount: boolean,
+): HomepageReadyContentState => {
+  if (showTokensError) {
+    return 'error';
+  }
+
+  if (isZeroBalanceAccount) {
+    return 'empty';
+  }
+
+  return 'filled';
+};
 
 /**
  * TokensSection - Displays user's token balances on the homepage
@@ -182,11 +201,10 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
     const contentReady =
       showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0;
-    const contentState = showTokensError
-      ? ('error' as const)
-      : isZeroBalanceAccount
-        ? ('empty' as const)
-        : ('filled' as const);
+    const contentState = getHomepageReadyContentState(
+      showTokensError,
+      isZeroBalanceAccount,
+    );
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,

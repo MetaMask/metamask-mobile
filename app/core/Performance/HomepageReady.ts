@@ -27,6 +27,11 @@ interface CancelHomepageReadyTraceOptions {
 let startedAt: number | null = null;
 
 /**
+ * Returns whether an entry point has already started the Homepage Ready CUF.
+ */
+export const isHomepageReadyTraceActive = () => startedAt !== null;
+
+/**
  * Starts the app-open/unlock to usable homepage CUF.
  *
  * The guard allows cold-start and unlock entry points to call this safely

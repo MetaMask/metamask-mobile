@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { FullWindowOverlay } from 'react-native-screens';
 import { useRoute } from '@react-navigation/native';
 import {
@@ -132,7 +132,10 @@ import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
 import { endTrace, TraceName } from '../../../util/trace';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Performance } from '../../../core/Performance';
-import { startHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
+import {
+  isHomepageReadyTraceActive,
+  startHomepageReadyTrace,
+} from '../../../core/Performance/HomepageReady';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
@@ -1452,17 +1455,29 @@ const App: React.FC = () => {
   );
   const existingUser = useSelector(selectExistingUser);
   const isUnlocked = useSelector(selectIsUnlocked);
+  const hasStartedColdHomepageReadyTrace = useRef(false);
+  const homepageReadyTraceWasActive = isHomepageReadyTraceActive();
 
-  useState(() => {
-    if (existingUser && isUnlocked) {
-      startHomepageReadyTrace({
-        source: 'app_open',
-        appStartType: 'cold',
-        startTime: Performance.appLaunchTime,
-      });
+  useEffect(() => {
+    if (
+      hasStartedColdHomepageReadyTrace.current ||
+      !existingUser ||
+      !isUnlocked
+    ) {
+      return;
     }
-    return true;
-  });
+
+    hasStartedColdHomepageReadyTrace.current = true;
+    if (homepageReadyTraceWasActive) {
+      return;
+    }
+
+    startHomepageReadyTrace({
+      source: 'app_open',
+      appStartType: 'cold',
+      startTime: Performance.appLaunchTime,
+    });
+  }, [existingUser, homepageReadyTraceWasActive, isUnlocked]);
 
   useEffect(() => {
     async function startApp() {

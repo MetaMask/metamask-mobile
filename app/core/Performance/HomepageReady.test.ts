@@ -2,6 +2,7 @@ import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import {
   cancelHomepageReadyTrace,
   endHomepageReadyTrace,
+  isHomepageReadyTraceActive,
   resetHomepageReadyTraceForTesting,
   startHomepageReadyTrace,
 } from './HomepageReady';
@@ -59,6 +60,19 @@ describe('HomepageReady', () => {
     });
 
     expect(mockTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports whether a trace is active', () => {
+    expect(isHomepageReadyTraceActive()).toBe(false);
+
+    startHomepageReadyTrace({
+      source: 'app_open',
+      appStartType: 'cold',
+    });
+    expect(isHomepageReadyTraceActive()).toBe(true);
+
+    endHomepageReadyTrace({ contentState: 'filled' });
+    expect(isHomepageReadyTraceActive()).toBe(false);
   });
 
   it('ends an active trace with the rendered content state', () => {

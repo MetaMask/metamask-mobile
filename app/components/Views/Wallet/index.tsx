@@ -756,13 +756,9 @@ const Wallet = ({
     HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
   );
 
-  const assignedBalanceBreakdownLayout = isBalanceBreakdownExperimentActive
+  const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
     ? balanceBreakdownVariant.layout
     : null;
-  const balanceBreakdownLayout =
-    __DEV__ && process.env.NODE_ENV !== 'test'
-      ? ('allocation' as const)
-      : assignedBalanceBreakdownLayout;
 
   const discoveryPillsIconStyle = discoveryPillsVariant.iconStyle;
   const showDiscoveryPills =

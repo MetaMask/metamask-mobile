@@ -18,6 +18,7 @@ import {
   PartialState,
 } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
+import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { View as MockView } from 'react-native';
@@ -32,9 +33,11 @@ import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRe
 import Logger from '../../../util/Logger';
 
 const mockStartHomepageReadyTrace = jest.fn();
+const mockIsHomepageReadyTraceActive = jest.fn(() => false);
 jest.mock('../../../core/Performance/HomepageReady', () => ({
   startHomepageReadyTrace: (...args: unknown[]) =>
     mockStartHomepageReadyTrace(...args),
+  isHomepageReadyTraceActive: () => mockIsHomepageReadyTraceActive(),
 }));
 
 const initialState: DeepPartial<RootState> = {
@@ -411,6 +414,7 @@ describe('App', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsHomepageReadyTraceActive.mockReturnValue(false);
     mockNavigate.mockClear();
   });
 
@@ -1421,6 +1425,26 @@ describe('App', () => {
   });
 
   describe('Performance tracing', () => {
+    const getHomepageReadyState = (
+      isUnlocked: boolean,
+    ): DeepPartial<RootState> => ({
+      ...initialState,
+      user: {
+        ...initialState.user,
+        existingUser: true,
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine?.backgroundState,
+          KeyringController: {
+            ...backgroundState.KeyringController,
+            isUnlocked,
+          },
+        },
+      },
+    });
+
     const renderApp = (state: DeepPartial<RootState> = initialState) => {
       const mockStore = configureMockStore();
       const store = mockStore(state);
@@ -1449,25 +1473,7 @@ describe('App', () => {
     });
 
     it('starts Homepage Ready at app open for an unlocked existing user', () => {
-      const state: DeepPartial<RootState> = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser: true,
-        },
-        engine: {
-          ...initialState.engine,
-          backgroundState: {
-            ...initialState.engine?.backgroundState,
-            KeyringController: {
-              ...backgroundState.KeyringController,
-              isUnlocked: true,
-            },
-          },
-        },
-      };
-
-      renderApp(state);
+      renderApp(getHomepageReadyState(true));
 
       expect(mockStartHomepageReadyTrace).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1478,25 +1484,81 @@ describe('App', () => {
     });
 
     it('does not start Homepage Ready before credentials for a locked user', () => {
-      const state: DeepPartial<RootState> = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser: true,
-        },
-        engine: {
-          ...initialState.engine,
-          backgroundState: {
-            ...initialState.engine?.backgroundState,
-            KeyringController: {
-              ...backgroundState.KeyringController,
-              isUnlocked: false,
-            },
-          },
-        },
-      };
+      renderApp(getHomepageReadyState(false));
 
-      renderApp(state);
+      expect(mockStartHomepageReadyTrace).not.toHaveBeenCalled();
+    });
+
+    it('starts Homepage Ready when the unlocked state becomes available after mount', () => {
+      const lockedState = getHomepageReadyState(false);
+      const unlockedState = getHomepageReadyState(true);
+      const store = createStore((state, action) => {
+        if (action.type === 'TEST/UNLOCKED_STATE_AVAILABLE') {
+          return unlockedState;
+        }
+        if (action.type === 'TEST/LOCKED') {
+          return lockedState;
+        }
+        return state ?? lockedState;
+      }, lockedState);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      render(<App />, { wrapper: Providers });
+      expect(mockStartHomepageReadyTrace).not.toHaveBeenCalled();
+
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/LOCKED' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+
+      expect(mockStartHomepageReadyTrace).toHaveBeenCalledTimes(1);
+      expect(mockStartHomepageReadyTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'app_open',
+          appStartType: 'cold',
+        }),
+      );
+    });
+
+    it('preserves an unlock trace when the unlocked state becomes available', () => {
+      const lockedState = getHomepageReadyState(false);
+      const unlockedState = getHomepageReadyState(true);
+      const store = createStore(
+        (state, action) =>
+          action.type === 'TEST/UNLOCKED_STATE_AVAILABLE'
+            ? unlockedState
+            : (state ?? lockedState),
+        lockedState,
+      );
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      render(<App />, { wrapper: Providers });
+      mockIsHomepageReadyTraceActive.mockReturnValue(true);
+
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
 
       expect(mockStartHomepageReadyTrace).not.toHaveBeenCalled();
     });
