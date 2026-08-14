@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -11,8 +11,8 @@ import {
   FontWeight,
   Icon,
   IconColor,
-  IconName,
   IconSize,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -22,19 +22,31 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { Hex } from '@metamask/utils';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { TokenI } from '../../../Tokens/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import {
+  LENDING_FAQ_URL,
+  MONEY_LANDING_URL,
+  POOLED_STAKING_FAQ_URL,
+  TRON_STAKING_FAQ_URL,
+} from '../../../../../constants/urls';
 import { strings } from '../../../../../../locales/i18n';
-import EarnStrategyCard, {
-  EarnStrategyRiskLevel,
-} from '../../components/EarnStrategyCard';
+import EarnStrategyCard from '../../components/EarnStrategyCard';
 import EarnStrategyInfoRow from '../../components/EarnStrategyInfoRow';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import useEarnAssetStrategies from '../../hooks/useEarnAssetStrategies';
+import { useStablecoinLendingRedirect } from '../../hooks/useStablecoinLendingRedirect';
+import useStakingChain from '../../../Stake/hooks/useStakingChain';
+import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
+import type { EarnAssetId, EarnExperienceType } from '../../types/earnAssets';
 
 export interface EarnStrategySelectionViewRouteParams {
-  token: TokenI;
+  assetId: EarnAssetId;
 }
 
 type EarnStrategySelectionRoute = RouteProp<
@@ -42,91 +54,114 @@ type EarnStrategySelectionRoute = RouteProp<
   'params'
 >;
 
-// TODO: Add pooled-staking config when wiring up real asset data. We'll need a function that takes in an asset and returns the strategy configs for it.
-const strategyConfigs = [
-  {
-    id: 'money',
-    risk: EarnStrategyRiskLevel.Recommended,
-    titleKey: 'earn.strategy_selection.strategies.money.title',
-    subtitleKey: 'earn.strategy_selection.strategies.money.subtitle',
-    tertiaryTextKey: 'earn.strategy_selection.strategies.money.tertiary_text',
-  },
-  {
-    id: 'lending',
-    risk: EarnStrategyRiskLevel.Medium,
-    titleKey: 'earn.strategy_selection.strategies.lending.title',
-    subtitleKey: 'earn.strategy_selection.strategies.lending.subtitle',
-    tertiaryTextKey: 'earn.strategy_selection.strategies.lending.tertiary_text',
-  },
-] as const;
-
-type StrategyId = 'money' | 'lending';
-
-interface InfoRowConfig {
-  id: string;
-  icon: IconName;
-  textKey: string;
-}
-
-const infoRowConfigs: Record<StrategyId, InfoRowConfig[]> = {
-  money: [
-    {
-      id: '1',
-      icon: IconName.Chart,
-      textKey: 'earn.strategy_selection.info_rows.money_account.row_1',
-    },
-    {
-      id: '2',
-      icon: IconName.Lock,
-      textKey: 'earn.strategy_selection.info_rows.money_account.row_2',
-    },
-    {
-      id: '3',
-      icon: IconName.SecurityTick,
-      textKey: 'earn.strategy_selection.info_rows.money_account.row_3',
-    },
-  ],
-  lending: [
-    {
-      id: '1',
-      icon: IconName.Chart,
-      textKey: 'earn.strategy_selection.info_rows.lending.row_1',
-    },
-    {
-      id: '2',
-      icon: IconName.Lock,
-      textKey: 'earn.strategy_selection.info_rows.lending.row_2',
-    },
-    {
-      id: '3',
-      icon: IconName.SecurityTick,
-      textKey: 'earn.strategy_selection.info_rows.lending.row_3',
-    },
-  ],
+const FAQ_URL_BY_EXPERIENCE: Record<EarnExperienceType, string> = {
+  MONEY_ACCOUNT_DEPOSIT: MONEY_LANDING_URL,
+  [EARN_EXPERIENCES.POOLED_STAKING]: POOLED_STAKING_FAQ_URL,
+  [EARN_EXPERIENCES.STABLECOIN_LENDING]: LENDING_FAQ_URL,
+  [EARN_EXPERIENCES.TRX_STAKING]: TRON_STAKING_FAQ_URL,
 };
 
 const EarnStrategySelectionView = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionRoute>();
-  const { token } = params;
-  const tokenLabel = token.ticker ?? token.symbol ?? token.name ?? '';
-  const [selectedStrategyId, setSelectedStrategyId] =
-    useState<StrategyId>('money');
+  const { assetId } = params;
+  const { asset, strategies, isLoading, hasError } =
+    useEarnAssetStrategies(assetId);
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
+  const { isStakingSupportedChain } = useStakingChain();
+  const { initiateDeposit } = useMoneyAccountDeposit();
+  const handleLendingRedirect = useStablecoinLendingRedirect({ asset });
 
-  const handleNoop = useCallback(() => undefined, []);
+  useEffect(() => {
+    if (
+      strategies.length > 0 &&
+      !strategies.some(({ id }) => id === selectedStrategyId)
+    ) {
+      setSelectedStrategyId(strategies[0].id);
+    }
+  }, [selectedStrategyId, strategies]);
+
+  const selectedStrategy = useMemo(
+    () => strategies.find(({ id }) => id === selectedStrategyId),
+    [selectedStrategyId, strategies],
+  );
+  const tokenLabel = asset?.ticker ?? asset?.symbol ?? asset?.name ?? '';
+
+  const handleGetStartedPress = useCallback(async () => {
+    if (!selectedStrategy || !asset) return;
+
+    const experienceType = selectedStrategy.experience.type;
+
+    if (experienceType === 'MONEY_ACCOUNT_DEPOSIT') {
+      if (!asset.chainId) {
+        throw new Error('Earn strategy asset is missing a chain ID');
+      }
+
+      await initiateDeposit({
+        preferredPaymentToken: {
+          address: asset.address as Hex,
+          chainId: asset.chainId as Hex,
+        },
+        intent: 'convert',
+      });
+      return;
+    }
+
+    if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      await handleLendingRedirect();
+      return;
+    }
+
+    if (
+      experienceType === EARN_EXPERIENCES.POOLED_STAKING &&
+      !isStakingSupportedChain
+    ) {
+      await Engine.context.MultichainNetworkController.setActiveNetwork(
+        'mainnet',
+      );
+    }
+
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+      },
+    });
+  }, [
+    asset,
+    handleLendingRedirect,
+    initiateDeposit,
+    isStakingSupportedChain,
+    navigation,
+    selectedStrategy,
+  ]);
+
+  const handleLearnMorePress = useCallback(() => {
+    if (!selectedStrategy) return;
+
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: FAQ_URL_BY_EXPERIENCE[selectedStrategy.experience.type],
+        timestamp: Date.now(),
+        fromEarnStrategySelection: true,
+      },
+    });
+  }, [navigation, selectedStrategy]);
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
-  const handleStrategyPress = useCallback((strategyId: StrategyId) => {
+  const handleStrategyPress = useCallback((strategyId: string) => {
     setSelectedStrategyId(strategyId);
   }, []);
-  const selectedInfoRows = infoRowConfigs[selectedStrategyId];
 
   return (
     <SafeAreaView
       edges={['top', 'bottom']}
       style={tw.style('flex-1 bg-default')}
+      testID="earn-strategy-selection-view"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -134,10 +169,11 @@ const EarnStrategySelectionView = () => {
         twClassName="px-4 py-2"
       >
         <ButtonIcon
-          iconName={IconName.ArrowLeft}
+          iconName="ArrowLeft"
           size={ButtonIconSize.Md}
           onPress={handleBackPress}
           accessibilityLabel={strings('navigation.back')}
+          testID="earn-strategy-selection-back-button"
         />
       </Box>
 
@@ -158,45 +194,85 @@ const EarnStrategySelectionView = () => {
             color={TextColor.TextAlternative}
             twClassName="mt-2"
           >
-            {/* TODO: Only render the "for free" portion of the subtitle if the strategy is "money" and the fee is paid by MetaMask */}
-            {strings('earn.strategy_selection.subtitle', {
+            {strings('earn.strategy_selection.subtitle_generic', {
               asset: tokenLabel,
             })}
           </Text>
 
-          <Box flexDirection={BoxFlexDirection.Row} gap={3} twClassName="mt-7">
-            {strategyConfigs.map((strategy) => (
-              <EarnStrategyCard
-                key={strategy.id}
-                risk={strategy.risk}
-                title={strings(strategy.titleKey)}
-                subtitle={strings(strategy.subtitleKey, {
-                  asset: tokenLabel,
-                })}
-                tertiaryText={strings(strategy.tertiaryTextKey)}
-                selected={selectedStrategyId === strategy.id}
-                onPress={() => handleStrategyPress(strategy.id)}
-              />
-            ))}
-          </Box>
+          {isLoading ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              gap={3}
+              twClassName="mt-7"
+              testID="earn-strategy-selection-loading"
+            >
+              <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
+              <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
+            </Box>
+          ) : !asset ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.ErrorDefault}
+              twClassName="mt-7"
+              testID="earn-strategy-selection-error"
+            >
+              {strings('earn_module.asset_unavailable')}
+            </Text>
+          ) : (
+            <>
+              {hasError && (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  twClassName="mt-7"
+                  testID="earn-strategy-selection-degraded"
+                >
+                  {strings('earn_module.rate_unavailable')}
+                </Text>
+              )}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                gap={3}
+                twClassName="mt-7"
+              >
+                {strategies.map((strategy) => (
+                  <EarnStrategyCard
+                    key={strategy.id}
+                    risk={strategy.risk}
+                    title={strategy.title}
+                    subtitle={strategy.subtitle}
+                    tertiaryText={strategy.tertiaryText}
+                    selected={selectedStrategyId === strategy.id}
+                    onPress={() => handleStrategyPress(strategy.id)}
+                    testID={`earn-strategy-card-${strategy.id}`}
+                  />
+                ))}
+              </Box>
+            </>
+          )}
 
-          <Box gap={4} twClassName="mt-7">
-            {selectedInfoRows.map((infoRow) => (
-              <EarnStrategyInfoRow
-                key={infoRow.id}
-                text={strings(infoRow.textKey)}
-                startAccessory={
-                  <Box twClassName="h-8 w-8 items-center justify-center rounded-full bg-muted">
-                    <Icon
-                      name={infoRow.icon}
-                      size={IconSize.Sm}
-                      color={IconColor.SuccessDefault}
-                    />
-                  </Box>
-                }
-              />
-            ))}
-          </Box>
+          {selectedStrategy && (
+            <Box gap={4} twClassName="mt-7">
+              {selectedStrategy.infoRows.map((infoRow) => (
+                <EarnStrategyInfoRow
+                  key={infoRow.id}
+                  text={infoRow.text}
+                  startAccessory={
+                    <Box
+                      twClassName="h-8 w-8 items-center justify-center rounded-full bg-muted"
+                      accessible={false}
+                    >
+                      <Icon
+                        name={infoRow.icon}
+                        size={IconSize.Sm}
+                        color={IconColor.SuccessDefault}
+                      />
+                    </Box>
+                  }
+                />
+              ))}
+            </Box>
+          )}
         </ScrollView>
       </Box>
 
@@ -205,14 +281,18 @@ const EarnStrategySelectionView = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={handleNoop}
+          isDisabled={!selectedStrategy}
+          onPress={handleGetStartedPress}
+          testID="earn-strategy-selection-get-started-button"
         >
           {strings('earn.strategy_selection.get_started')}
         </Button>
         <Button
           variant={ButtonVariant.Tertiary}
           isFullWidth
-          onPress={handleNoop}
+          isDisabled={!selectedStrategy}
+          onPress={handleLearnMorePress}
+          testID="earn-strategy-selection-learn-more-button"
         >
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('earn.strategy_selection.learn_more')}

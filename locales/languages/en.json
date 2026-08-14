@@ -7471,9 +7471,12 @@
     "strategy_selection": {
       "title": "Choose how to earn",
       "subtitle": "Earn more with your Money account — move your {{asset}} for free.",
+      "subtitle_generic": "Choose an earning strategy for your {{asset}}.",
       "tags": {
         "recommended": "Recommended",
-        "more_risk": "More risk"
+        "low_risk": "Low risk",
+        "medium_risk": "Medium risk",
+        "high_risk": "High risk"
       },
       "strategies": {
         "money": {
@@ -7485,11 +7488,21 @@
           "title": "2.1% APR",
           "subtitle": "Lend {{asset}}",
           "tertiary_text": "Lower yield"
+        },
+        "pooled_staking": {
+          "title": "Variable APY",
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "Pooled staking · variable yield"
+        },
+        "trx_staking": {
+          "title": "Variable APY",
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "TRON staking · variable yield"
         }
       },
       "info_rows": {
         "money_account": {
-          "row_1": "Unlock 6.2% APY — auto-earning, compounding yield",
+          "row_1": "Unlock {{percentage}}% APY — auto-earning, compounding yield",
           "row_2": "Full liquidity, no lockups — trade or withdraw anytime",
           "row_3": "Secured in mUSD, a 1:1 dollar-backed stablecoin you can send across your MetaMask wallets"
         },
@@ -7497,6 +7510,16 @@
           "row_1": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
           "row_2": "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
           "row_3": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+        },
+        "pooled_staking": {
+          "row_1": "Earn variable staking rewards on your ETH.",
+          "row_2": "Your ETH is pooled with other MetaMask users.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        },
+        "trx_staking": {
+          "row_1": "Earn variable rewards by staking TRX.",
+          "row_2": "Staked TRX supports the TRON network.",
+          "row_3": "Staking rewards and withdrawal times can vary."
         }
       },
       "get_started": "Get started",
@@ -10883,7 +10906,7 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
-      "earn": "Earn",
+      "earn_strategies": "Earn strategies",
       "more": {
         "title": "More",
         "import_token": "Import a token",

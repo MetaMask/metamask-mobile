@@ -205,7 +205,7 @@ const getHeldEarnExperiences = ({
  * Builds the shared Earn asset catalogue from existing asset, Earn, Money,
  * lending, and staking authorities.
  */
-const useEarnAssets = () => {
+const useEarnAssetCatalogue = () => {
   const preferredCurrency = useSelector(selectCurrentCurrency);
   const { isMoneyAccountVisible } = useMoneyAccountVisibility();
   const {
@@ -560,4 +560,4 @@ const useEarnAssets = () => {
   );
 };
 
-export default useEarnAssets;
+export default useEarnAssetCatalogue;

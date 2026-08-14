@@ -1,49 +1,17 @@
 // TODO: Review entire file.
-import type { LendingMarket } from '@metamask/stake-sdk';
-import type { TokenI } from '../../../Tokens/types';
-import type { EARN_EXPERIENCES } from '../../constants/experiences';
+import type {
+  EarnAsset,
+  EarnExperience,
+  EarnRateStatus,
+} from '../../types/earnAssets';
+import { getEarnAssetFiatNumber, hasEarnAssetBalance } from '../earnAssets';
 
 export const EARN_SECTION_ASSET_LIMIT = 5;
 
-export type EarnSectionAssetSource =
-  | 'money-deposit'
-  | 'held-earn'
-  | 'lending-market'
-  | 'eth-staking'
-  | 'trx-staking';
-
-export type EarnSectionRateStatus =
-  | 'ready'
-  | 'loading'
-  | 'error'
-  | 'unavailable';
-
-export type EarnSectionExperienceType =
-  | EARN_EXPERIENCES
-  | 'MONEY_ACCOUNT_DEPOSIT';
-
-export interface EarnSectionExperience {
-  id: string;
-  type: EarnSectionExperienceType;
-  source: EarnSectionAssetSource;
-  ratePercent?: number;
-  rateStatus: EarnSectionRateStatus;
-  market?: LendingMarket;
-}
-
-export interface EarnSectionAssetCandidate {
-  key: string;
-  token: TokenI;
-  experiences: EarnSectionExperience[];
-  hasBalance: boolean;
-  balanceFiatNumber?: number;
-  balanceFiat?: string;
-}
-
-export interface EarnSectionRankedAsset extends EarnSectionAssetCandidate {
+export interface EarnSectionRankedAsset extends EarnAsset {
   highestRatePercent?: number;
-  highestRateExperience?: EarnSectionExperience;
-  rateStatus: EarnSectionRateStatus;
+  highestRateExperience?: EarnExperience;
+  rateStatus: EarnRateStatus;
 }
 
 export type EarnSectionAssetSlot =
@@ -57,87 +25,44 @@ export type EarnSectionAssetSlot =
       key: string;
     };
 
-/**
- * Builds the stable identity used to merge an asset offered by multiple Earn
- * experiences. Chain ID remains part of the identity because the same token
- * address can represent different assets on different networks.
- */
-export const buildEarnSectionAssetKey = (
-  chainId: string | undefined,
-  address: string,
-) => `${chainId?.toLowerCase() ?? 'unknown'}:${address.toLowerCase()}`;
-
 const getRateStatus = (
-  experiences: EarnSectionExperience[],
-): EarnSectionRateStatus => {
-  if (experiences.some(({ ratePercent }) => ratePercent !== undefined)) {
+  experiences: readonly EarnExperience[],
+): EarnRateStatus => {
+  if (experiences.some(({ rate }) => rate.percentage !== undefined)) {
     return 'ready';
   }
-  if (experiences.some(({ rateStatus }) => rateStatus === 'loading')) {
+  if (experiences.some(({ rate }) => rate.status === 'loading')) {
     return 'loading';
   }
-  if (experiences.some(({ rateStatus }) => rateStatus === 'error')) {
+  if (experiences.some(({ rate }) => rate.status === 'error')) {
     return 'error';
   }
   return 'unavailable';
 };
 
-const getHighestRatePercent = (experiences: EarnSectionExperience[]) =>
-  experiences.reduce<number | undefined>((highest, { ratePercent }) => {
-    if (ratePercent === undefined || !Number.isFinite(ratePercent)) {
+const getHighestRatePercent = (experiences: readonly EarnExperience[]) =>
+  experiences.reduce<number | undefined>((highest, { rate }) => {
+    if (rate.percentage === undefined || !Number.isFinite(rate.percentage)) {
       return highest;
     }
-    return highest === undefined ? ratePercent : Math.max(highest, ratePercent);
+    return highest === undefined
+      ? rate.percentage
+      : Math.max(highest, rate.percentage);
   }, undefined);
 
-const getHighestRateExperience = (experiences: EarnSectionExperience[]) =>
-  experiences.reduce<EarnSectionExperience | undefined>(
-    (highest, experience) => {
-      if (
-        experience.ratePercent === undefined ||
-        !Number.isFinite(experience.ratePercent)
-      ) {
-        return highest;
-      }
-      return highest?.ratePercent !== undefined &&
-        highest.ratePercent >= experience.ratePercent
-        ? highest
-        : experience;
-    },
-    undefined,
-  );
-
-const preferCandidate = (
-  current: EarnSectionAssetCandidate,
-  incoming: EarnSectionAssetCandidate,
-) => {
-  if (incoming.hasBalance && !current.hasBalance) {
-    return incoming;
-  }
-  if (
-    incoming.hasBalance === current.hasBalance &&
-    incoming.balanceFiatNumber !== undefined &&
-    current.balanceFiatNumber === undefined
-  ) {
-    return incoming;
-  }
-  return current;
-};
-
-const mergeExperiences = (
-  current: EarnSectionExperience[],
-  incoming: EarnSectionExperience[],
-) => {
-  const byId = new Map(
-    current.map((experience) => [experience.id, experience]),
-  );
-  incoming.forEach((experience) => {
-    if (!byId.has(experience.id)) {
-      byId.set(experience.id, experience);
+const getHighestRateExperience = (experiences: readonly EarnExperience[]) =>
+  experiences.reduce<EarnExperience | undefined>((highest, experience) => {
+    if (
+      experience.rate.percentage === undefined ||
+      !Number.isFinite(experience.rate.percentage)
+    ) {
+      return highest;
     }
-  });
-  return [...byId.values()];
-};
+    return highest?.rate.percentage !== undefined &&
+      highest.rate.percentage >= experience.rate.percentage
+      ? highest
+      : experience;
+  }, undefined);
 
 const compareKnownNumbersDescending = (
   first: number | undefined,
@@ -152,51 +77,36 @@ const compareKnownNumbersDescending = (
 const compareByKey = (
   first: EarnSectionRankedAsset,
   second: EarnSectionRankedAsset,
-) => first.key.localeCompare(second.key);
+) => first.assetId.localeCompare(second.assetId);
 
 /**
- * Merges overlapping experiences, ranks held assets before discovery assets,
- * and pads the result so EarnSection always renders exactly five asset slots.
+ * Ranks held assets before discovery assets and pads the result so EarnSection
+ * always renders exactly five asset slots.
  */
 export const rankEarnSectionAssets = (
-  candidates: EarnSectionAssetCandidate[],
+  assets: readonly EarnAsset[],
   limit = EARN_SECTION_ASSET_LIMIT,
 ): EarnSectionAssetSlot[] => {
-  const candidatesByKey = candidates.reduce((accumulator, candidate) => {
-    const current = accumulator.get(candidate.key);
-    if (!current) {
-      accumulator.set(candidate.key, candidate);
-      return accumulator;
-    }
-
-    const preferred = preferCandidate(current, candidate);
-    accumulator.set(candidate.key, {
-      ...preferred,
-      experiences: mergeExperiences(current.experiences, candidate.experiences),
-    });
-    return accumulator;
-  }, new Map<string, EarnSectionAssetCandidate>());
-
-  const rankedAssets = [...candidatesByKey.values()].map(
-    (candidate): EarnSectionRankedAsset => ({
-      ...candidate,
-      highestRatePercent: getHighestRatePercent(candidate.experiences),
-      highestRateExperience: getHighestRateExperience(candidate.experiences),
-      rateStatus: getRateStatus(candidate.experiences),
+  const rankedAssets = assets.map(
+    (asset): EarnSectionRankedAsset => ({
+      ...asset,
+      highestRatePercent: getHighestRatePercent(asset.experiences),
+      highestRateExperience: getHighestRateExperience(asset.experiences),
+      rateStatus: getRateStatus(asset.experiences),
     }),
   );
 
   const held = rankedAssets
-    .filter(({ hasBalance }) => hasBalance)
+    .filter(hasEarnAssetBalance)
     .sort(
       (first, second) =>
         compareKnownNumbersDescending(
-          first.balanceFiatNumber,
-          second.balanceFiatNumber,
+          getEarnAssetFiatNumber(first),
+          getEarnAssetFiatNumber(second),
         ) || compareByKey(first, second),
     );
   const unheld = rankedAssets
-    .filter(({ hasBalance }) => !hasBalance)
+    .filter((asset) => !hasEarnAssetBalance(asset))
     .sort(
       (first, second) =>
         compareKnownNumbersDescending(
@@ -209,7 +119,7 @@ export const rankEarnSectionAssets = (
     .slice(0, limit)
     .map((asset) => ({
       kind: 'asset',
-      key: asset.key,
+      key: asset.assetId,
       asset,
     }));
 

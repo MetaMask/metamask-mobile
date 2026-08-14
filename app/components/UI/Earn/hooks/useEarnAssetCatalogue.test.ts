@@ -13,7 +13,7 @@ import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
-import useEarnAssets from './useEarnAssets';
+import useEarnAssetCatalogue from './useEarnAssetCatalogue';
 
 jest.mock('react-redux');
 jest.mock('@metamask/bridge-controller', () => ({
@@ -211,7 +211,7 @@ const mockDependencies = () => {
   });
 };
 
-describe('useEarnAssets', () => {
+describe('useEarnAssetCatalogue', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReset();
@@ -228,7 +228,7 @@ describe('useEarnAssets', () => {
   });
 
   it('merges Money and lending experiences for the same underlying asset', () => {
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     const usdc = result.current.assets.find(
       ({ assetId }) => assetId === USDC_ASSET_ID,
@@ -272,7 +272,7 @@ describe('useEarnAssets', () => {
     });
     mockFormatAddressToAssetId.mockReturnValue(POL_ASSET_ID);
 
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     [USDC_ASSET_ID, POL_ASSET_ID, ETH_ASSET_ID].forEach((expectedAssetId) => {
       const asset = result.current.assets.find(
@@ -285,7 +285,7 @@ describe('useEarnAssets', () => {
   });
 
   it('omits unheld lending output tokens', () => {
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     expect(
       result.current.assets.some(({ address }) => address === AUSDC_ADDRESS),
@@ -298,7 +298,7 @@ describe('useEarnAssets', () => {
       earnOutputTokens: [createEarnToken(AUSDC_ADDRESS, 'output')],
     });
 
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     expect(
       result.current.assets.some(({ address }) => address === AUSDC_ADDRESS),
@@ -327,7 +327,7 @@ describe('useEarnAssets', () => {
       earnOutputTokens: [],
     });
 
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     const eth = result.current.assets.find(
       ({ assetId: candidateId }) => candidateId === 'eip155:1/slip44:60',
@@ -378,7 +378,7 @@ describe('useEarnAssets', () => {
       refetch: refetchTrxApy,
     });
 
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
     const trxAsset = result.current.assets.find(
       ({ assetId }) => assetId === TRX_ASSET_ID,
     );
@@ -409,7 +409,7 @@ describe('useEarnAssets', () => {
       refetch: refetchTrxApy,
     });
 
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     expect(result.current.isLoading).toBe(true);
     expect(
@@ -429,7 +429,7 @@ describe('useEarnAssets', () => {
       refetch: refetchTrxApy,
     });
 
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     expect(result.current.hasError).toBe(true);
     expect(
@@ -441,7 +441,7 @@ describe('useEarnAssets', () => {
   it('refreshes the TRX APY when TRX staking is enabled', async () => {
     mockUseSelector.mockReset();
     mockSelectorValues({ isTrxStakingEnabled: true });
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     await act(async () => {
       await result.current.refresh();
@@ -464,14 +464,14 @@ describe('useEarnAssets', () => {
       error: null,
     });
 
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     expect(result.current.hasError).toBe(true);
   });
 
   it('rejects refresh when an upstream refresh fails', async () => {
     refreshLendingMarkets.mockRejectedValue(new Error('Lending unavailable'));
-    const { result } = renderHook(() => useEarnAssets());
+    const { result } = renderHook(() => useEarnAssetCatalogue());
 
     const refreshPromise = act(async () => result.current.refresh());
 

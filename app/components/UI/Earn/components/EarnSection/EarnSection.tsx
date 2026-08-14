@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -43,8 +44,16 @@ import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSecti
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { useNavigation } from '@react-navigation/native';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { truncateNumber } from '../../utils';
+import {
+  getEarnAssetFiatDisplay,
+  hasEarnAssetBalance,
+} from '../../utils/earnAssets';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import useMoneyAccountVisibility from '../../../Money/hooks/useMoneyAccountVisibility';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import type { EarnAsset } from '../../types/earnAssets';
 
 interface EarnSectionProps {
   sectionIndex: number;
@@ -72,6 +81,7 @@ const renderEarnAssetIcon = (token: TokenI) => {
   );
 };
 
+// TODO: Breakout and standardize since we'll use new tag in other places.
 const renderNewTag = () => (
   <Tag
     severity={TagSeverity.Info}
@@ -87,6 +97,14 @@ const renderNewTag = () => (
       {strings('earn_module.new_tag')}
     </Text>
   </Tag>
+);
+
+const renderSuccessChevron = () => (
+  <Icon
+    name={IconName.ArrowRight}
+    color={IconColor.SuccessDefault}
+    size={IconSize.Xs}
+  />
 );
 
 const renderAssetCardSkeleton = (key: string) => (
@@ -122,14 +140,22 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
 
+    const { isMoneyAccountVisible } = useMoneyAccountVisibility();
+
     const sectionViewRef = useRef<View>(null);
-    const {
-      assetSlots,
-      moneyAccountToken,
-      moneyApyPercent,
-      isLoading,
-      refresh,
-    } = useEarnSectionAssets();
+    const { assetSlots, hasMoreAssets, moneyApyPercent, isLoading, refresh } =
+      useEarnSectionAssets();
+
+    const { totalFiatFormatted: moneyAccountBalanceFiat } =
+      useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
+
+    const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
+      useMoneyNavigation();
+
+    const earnSectionItemCount =
+      assetSlots.length +
+      (isMoneyAccountVisible ? 1 : 0) +
+      (!isLoading && hasMoreAssets ? 1 : 0);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -140,8 +166,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: false,
-      // TODO: Breakout 7 into constant.
-      itemCount: 7,
+      itemCount: earnSectionItemCount,
     });
 
     useSectionPerformance({
@@ -158,10 +183,28 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     };
 
     const handleAssetCardPress = useCallback(
-      (token: TokenI) => {
+      (asset: EarnAsset) => {
+        if (!hasEarnAssetBalance(asset)) {
+          navigation.navigate('Asset', {
+            address: asset.address,
+            chainId: asset.chainId,
+            symbol: asset.symbol,
+            name: asset.name,
+            decimals: asset.decimals,
+            image: asset.image,
+            balance: asset.balance ?? '0',
+            isNative: asset.isNative,
+            isETH: asset.isETH,
+            aggregators: asset.aggregators,
+            rwaData: asset.rwaData,
+            source: TokenDetailsSource.HomeSection,
+          });
+          return;
+        }
+
         navigation.navigate(Routes.EARN.ROOT, {
           screen: Routes.EARN.STRATEGY_SELECTION,
-          params: { token },
+          params: { assetId: asset.assetId },
         });
       },
       [navigation],
@@ -172,12 +215,28 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       alert('Under construction 🚧');
     };
 
+    const moneyAccountCardSecondaryText = useMemo(() => {
+      if (isOnboardingRedirectNeeded && moneyAccountBalanceFiat === '0') {
+        return strings('earn_module.get_started');
+      }
+
+      if (!isOnboardingRedirectNeeded && moneyAccountBalanceFiat === '0') {
+        return strings('earn_module.start_earning');
+      }
+
+      return moneyAccountBalanceFiat;
+    }, [isOnboardingRedirectNeeded, moneyAccountBalanceFiat]);
+
+    const handleMoneyAccountCardPress = useCallback(() => {
+      navigateToMoneyHome();
+    }, [navigateToMoneyHome]);
+
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box testID="earn-section">
           <SectionDivider />
           <SectionHeader
-            title={strings('homepage.sections.earn')}
+            title={strings('homepage.sections.earn_strategies')}
             isInteractive
             onPress={handleHeaderPress}
             testID={homepageSectionTitleTestId(HomeSectionNames.EARN)}
@@ -187,25 +246,32 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={tw.style('gap-3 px-4 pb-3 pt-3')}
           >
-            <EarnSectionAssetCard
-              icon={
-                <MoneyBalanceIcon width={40} height={40} name="money-balance" />
-              }
-              tag={renderNewTag()}
-              primaryText={strings('earn_module.money_account')}
-              secondaryText={strings('earn_module.get_started')}
-              tertiaryText={
-                moneyApyPercent === undefined
-                  ? // TODO: Render Loading skeleton for card when rate is loading. Only show rate_unavailable when rate is missing and not actively fetching.
-                    strings('earn_module.rate_unavailable')
-                  : strings('earn_module.rate_apy', {
-                      percentage: truncateNumber(moneyApyPercent),
-                    })
-              }
-              testID="earn-section-money-account-card"
-              onPress={() => handleAssetCardPress(moneyAccountToken)}
-            />
-            {/* TODO: Bug isLoading is always true */}
+            {/* Money Account Card */}
+            {isMoneyAccountVisible && (
+              <EarnSectionAssetCard
+                icon={
+                  <MoneyBalanceIcon
+                    width={40}
+                    height={40}
+                    name="money-balance"
+                  />
+                }
+                tag={renderNewTag()}
+                primaryText={strings('earn_module.money_account')}
+                secondaryText={moneyAccountCardSecondaryText}
+                tertiaryText={
+                  moneyApyPercent === undefined
+                    ? // TODO: Render Loading skeleton for card when rate is loading. Only show rate_unavailable when rate is missing and not actively fetching.
+                      strings('earn_module.rate_unavailable')
+                    : strings('earn_module.rate_apy', {
+                        percentage: truncateNumber(moneyApyPercent),
+                      })
+                }
+                tertiaryAccessory={renderSuccessChevron()}
+                testID="earn-section-money-account-card"
+                onPress={handleMoneyAccountCardPress}
+              />
+            )}
             {isLoading
               ? assetSlots.map(({ key }) => renderAssetCardSkeleton(key))
               : assetSlots.map((slot, index) => {
@@ -214,9 +280,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   }
 
                   const { asset } = slot;
+                  const hasAssetBalance = hasEarnAssetBalance(asset);
                   const isApr =
-                    asset.highestRateExperience?.type ===
-                    EARN_EXPERIENCES.STABLECOIN_LENDING;
+                    asset.highestRateExperience?.rate.type === 'APR';
                   const rateText =
                     asset.highestRatePercent === undefined
                       ? strings('earn_module.rate_unavailable')
@@ -234,39 +300,44 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   return (
                     <EarnSectionAssetCard
                       key={slot.key}
-                      icon={renderEarnAssetIcon(asset.token)}
-                      primaryText={asset.token.ticker ?? asset.token.symbol}
+                      icon={renderEarnAssetIcon(asset)}
+                      primaryText={asset.ticker ?? asset.symbol}
                       secondaryText={
-                        asset.hasBalance
-                          ? (asset.balanceFiat ??
+                        hasAssetBalance
+                          ? (getEarnAssetFiatDisplay(asset) ??
                             strings('earn_module.balance_unavailable'))
                           : strings('earn_module.get_started')
                       }
                       tertiaryText={rateText}
+                      tertiaryAccessory={
+                        hasAssetBalance ? renderSuccessChevron() : undefined
+                      }
                       testID={`earn-section-asset-${index}-card`}
-                      onPress={() => handleAssetCardPress(asset.token)}
+                      onPress={() => handleAssetCardPress(asset)}
                     />
                   );
                 })}
-            <EarnSectionCard
-              testID="earn-section-view-more-card"
-              onPress={handleViewMoreCardPress}
-            >
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="w-full flex-1 gap-2"
+            {!isLoading && hasMoreAssets && (
+              <EarnSectionCard
+                testID="earn-section-view-more-card"
+                onPress={handleViewMoreCardPress}
               >
-                <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  numberOfLines={1}
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Center}
+                  twClassName="w-full flex-1 gap-2"
                 >
-                  {strings('earn_module.view_more')}
-                </Text>
-              </Box>
-            </EarnSectionCard>
+                  <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    numberOfLines={1}
+                  >
+                    {strings('earn_module.view_more')}
+                  </Text>
+                </Box>
+              </EarnSectionCard>
+            )}
           </ScrollView>
         </Box>
       </View>

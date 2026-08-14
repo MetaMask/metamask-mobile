@@ -16,6 +16,7 @@ export interface EarnSectionAssetCardProps {
   primaryText: ReactNode;
   secondaryText: ReactNode;
   tertiaryText: ReactNode;
+  tertiaryAccessory?: ReactNode;
   onPress?: () => void;
   testID?: string;
 }
@@ -26,6 +27,7 @@ const EarnSectionAssetCard = ({
   primaryText,
   secondaryText,
   tertiaryText,
+  tertiaryAccessory,
   onPress,
   testID,
 }: EarnSectionAssetCardProps) => (
@@ -53,14 +55,21 @@ const EarnSectionAssetCard = ({
       >
         {secondaryText}
       </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.SuccessDefault}
-        numberOfLines={1}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
         twClassName="mt-1"
       >
-        {tertiaryText}
-      </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.SuccessDefault}
+          numberOfLines={1}
+        >
+          {tertiaryText}
+        </Text>
+        {tertiaryAccessory}
+      </Box>
     </Box>
   </EarnSectionCard>
 );

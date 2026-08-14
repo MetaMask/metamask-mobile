@@ -25,15 +25,15 @@ const strategyRiskTagConfig: Record<
   },
   [EarnStrategyRiskLevel.Low]: {
     severity: TagSeverity.Success,
-    labelKey: 'earn.strategy_selection.tags.more_risk',
+    labelKey: 'earn.strategy_selection.tags.low_risk',
   },
   [EarnStrategyRiskLevel.Medium]: {
     severity: TagSeverity.Warning,
-    labelKey: 'earn.strategy_selection.tags.more_risk',
+    labelKey: 'earn.strategy_selection.tags.medium_risk',
   },
   [EarnStrategyRiskLevel.High]: {
     severity: TagSeverity.Danger,
-    labelKey: 'earn.strategy_selection.tags.more_risk',
+    labelKey: 'earn.strategy_selection.tags.high_risk',
   },
 };
 
