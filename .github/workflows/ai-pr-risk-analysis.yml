@@ -41,7 +41,7 @@ jobs:
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
       - name: Run AI PR Analysis
-        uses: MetaMask/ai-analyzer@9ff2c43af75a27192a4d9c7ae6da00919391b2fd
+        uses: ./.ai-analyzer-action
         with:
           mode: pr-risk-analysis
           add-comment: false
@@ -53,4 +53,3 @@ jobs:
           gate-override-base-pattern: '^release/'
           gate-override-author: 'runway-github[bot]'
           gate-override-title-pattern: 'cherry.?pick'
-
