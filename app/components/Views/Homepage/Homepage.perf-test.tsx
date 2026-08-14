@@ -34,7 +34,7 @@ jest.mock('./Sections/Tokens/hooks/usePopularTokens', () => ({
   }),
 }));
 
-jest.mock('../../UI/Money/hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../UI/Money/hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: () => ({
     apyPercent: undefined,

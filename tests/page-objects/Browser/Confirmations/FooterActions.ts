@@ -1,10 +1,14 @@
 import { ConfirmationFooterSelectorIDs } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import Assertions from '../../../framework/Assertions';
 import { encapsulatedAction } from '../../../framework/encapsulatedAction';
 import { EncapsulatedElementType } from '../../../framework/EncapsulatedElement';
+import { FrameworkDetector } from '../../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../../framework/PlaywrightGestures';
+import Utilities, { sleep } from '../../../framework/Utilities';
+import ToastModal from '../../wallet/ToastModal';
 
 class FooterActions {
   get confirmButton(): EncapsulatedElementType {
@@ -15,6 +19,36 @@ class FooterActions {
 
   get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
+  }
+
+  async waitForConfirmButton(timeout = 30_000): Promise<void> {
+    await Assertions.expectElementToExist(this.confirmButton, {
+      timeout,
+      description: 'confirm-button',
+    });
+  }
+
+  /**
+   * Wait until confirm-button leaves the hierarchy (does not use isDisplayed).
+   * BottomSheet children often report isDisplayed=false while still present.
+   */
+  async waitForConfirmButtonGone(timeout = 30_000): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      await Utilities.waitForElementToDisappear(this.confirmButton, timeout);
+      return;
+    }
+
+    const el = await PlaywrightMatchers.getElementById(
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    );
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      if (!(await el.unwrap().isExisting())) {
+        return;
+      }
+      await sleep(250);
+    }
+    throw new Error(`confirm-button still in hierarchy after ${timeout}ms`);
   }
 
   async tapConfirmButton(timeout?: number): Promise<void> {
@@ -30,15 +64,44 @@ class FooterActions {
         });
       },
       appium: async () => {
+        await ToastModal.waitForToastToDismiss({ appearTimeout: 2_000 });
+
+        const isAndroid = PlatformDetector.isAndroid();
+        const readyTimeout = timeout ?? 30_000;
         const el = await PlaywrightMatchers.getElementById(
           ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
         );
-        await PlaywrightGestures.waitAndTap(el, {
-          timeout,
-          checkForDisplayed: true,
-          checkForEnabled: true,
-        });
+
+        await Utilities.waitUntil(
+          async () => {
+            if (!(await el.unwrap().isExisting())) {
+              return false;
+            }
+            if (isAndroid && !(await el.unwrap().isEnabled())) {
+              return false;
+            }
+            return true;
+          },
+          { interval: 1_000, timeout: readyTimeout },
+        );
+
+        await sleep(300);
+        await el.unwrap().click();
+
+        await this.waitForConfirmButtonGone(readyTimeout);
       },
+    });
+  }
+
+  /**
+   * Taps Confirm and waits for the confirmation footer to unmount, signalling
+   * the confirmation has been processed.
+   */
+  async tapConfirmAndExpectConfirmationUnmount(timeout = 25000): Promise<void> {
+    await this.tapConfirmButton();
+    await Assertions.expectElementToNotBeVisible(this.confirmButton, {
+      timeout,
+      description: 'Wait for confirmation to process',
     });
   }
 

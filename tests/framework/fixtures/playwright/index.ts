@@ -5,6 +5,7 @@ import { currentDeviceDetailsFixture } from './currentDeviceDetails.fixture.ts';
 import { workerDeviceProviderFixture } from './deviceProvider.fixture.ts';
 import { driverFixture } from './driver.fixture.ts';
 import { performanceTrackerFixture } from './performanceTracker.fixture.ts';
+import { phaseTimerFixture } from './phaseTimer.fixture.ts';
 
 export type {
   CurrentDeviceDetails,
@@ -23,4 +24,5 @@ export const test = base.extend<TestLevelFixtures, WorkerLevelFixtures>({
   ...currentDeviceDetailsFixture,
   ...driverFixture,
   ...performanceTrackerFixture,
+  ...phaseTimerFixture,
 });

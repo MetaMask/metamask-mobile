@@ -11,6 +11,7 @@ interface RequestOptions {
   tokenSet?: CardAuthTokens;
   timeout?: number;
   headers?: Record<string, string>;
+  baseURL?: string;
 }
 
 export class ImmersveService {
@@ -36,16 +37,18 @@ export class ImmersveService {
     }
 
     if (__DEV__) {
+      const isSetPin = path.includes('/set-pin');
       Logger.log('[ImmersveService]', 'request', path, {
         method: opts.method ?? 'GET',
         headers,
-        body: opts.body,
+        // Never log PIN or other sensitive set-pin body fields.
+        body: isSetPin ? '[redacted]' : opts.body,
       });
     }
 
     try {
       const response = await this.client.request<T>({
-        baseURL: this.getBaseUrl(),
+        baseURL: opts.baseURL ?? this.getBaseUrl(),
         url: path,
         method: opts.method ?? 'GET',
         headers,

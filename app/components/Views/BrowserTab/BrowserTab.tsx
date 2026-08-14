@@ -71,6 +71,7 @@ import {
   sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { useNavigateToPerpsHome } from '../../UI/Perps/utils/perpsModeSwitch';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
@@ -171,6 +172,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     // Opted out of the React Compiler since it's a large component and we don't want to risk breaking changes.
     'use no memo';
     const navigation = useNavigation();
+    const navigateToPerpsHome = useNavigateToPerpsHome();
     const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);
@@ -1496,10 +1498,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const handleClosePress = useCallback(() => {
       if (fromPerps) {
-        // If opened from Perps, navigate back to PerpsHome
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-        });
+        navigateToPerpsHome();
       } else if (fromBenefit) {
         navigation.goBack();
       } else if (fromCard) {
@@ -1531,6 +1530,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       }
     }, [
       navigation,
+      navigateToPerpsHome,
       fromPerps,
       fromBenefit,
       fromCard,

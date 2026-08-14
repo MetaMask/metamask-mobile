@@ -94,6 +94,16 @@ import {
   isBiometricUnlockCancelledByUser,
 } from '../../../core/Authentication/utils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import {
+  getLoginInteractionEndData,
+  getLoginPerformanceTags,
+  markLoginInteractionCompleted,
+} from './loginPerformanceTags';
+import {
+  cancelHomepageReadyTrace,
+  startHomepageReadyTrace,
+  type HomepageReadyTraceToken,
+} from '../../../core/Performance/HomepageReady';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -128,11 +138,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     checkIsSeedlessPasswordOutdated,
   } = useAuthentication();
   const { capabilities } = useAuthCapabilities();
+  const isLocked = Boolean(route.params?.locked);
+  const loginPerformanceTags = useRef(getLoginPerformanceTags(isLocked));
 
   useEffect(() => {
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
+      tags: loginPerformanceTags.current,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
     setStartFoxAnimation('Start');
@@ -300,13 +313,23 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    endTrace({ name: TraceName.LoginUserInteraction });
+    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
+      startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: loginPerformanceTags.current.app_start_type,
+      });
+    endTrace({
+      name: TraceName.LoginUserInteraction,
+      data: getLoginInteractionEndData(),
+    });
+    markLoginInteractionCompleted();
 
     try {
       await trace(
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
+          tags: loginPerformanceTags.current,
         },
         async () => {
           const isSeedlessPasswordOutdated =
@@ -337,6 +360,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
+      cancelHomepageReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: homepageReadyTraceToken,
+      });
       await handleLoginError(loginErr as Error);
     }
     setLoading(false);
@@ -358,17 +385,33 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
+      startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: loginPerformanceTags.current.app_start_type,
+      });
+    endTrace({
+      name: TraceName.LoginUserInteraction,
+      data: getLoginInteractionEndData(),
+    });
+    markLoginInteractionCompleted();
+
     try {
       await trace(
         {
           name: TraceName.LoginBiometricAuthentication,
           op: TraceOperation.Login,
+          tags: loginPerformanceTags.current,
         },
         async () => {
           await unlockWallet();
         },
       );
     } catch (loginerror) {
+      cancelHomepageReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: homepageReadyTraceToken,
+      });
       await handleLoginError(loginerror as Error);
     }
     setLoading(false);

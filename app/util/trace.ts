@@ -8,6 +8,7 @@ import {
   type StartSpanOptions,
   type Span,
   withIsolationScope,
+  startNewTrace,
   SPAN_STATUS_ERROR,
 } from '@sentry/core';
 import performance from 'react-native-performance';
@@ -37,6 +38,7 @@ export enum TraceName {
   AppStartBiometricAuthentication = 'App start Biometrics Authentication',
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
+  HomepageReady = 'Homepage Ready',
   NavInit = 'Navigation Initialization',
   Login = 'Login',
   NetworkSwitch = 'Network Switch',
@@ -59,6 +61,9 @@ export enum TraceName {
   LoadDepositExperience = 'Load Deposit Experience',
   DepositContinueFlow = 'Deposit Continue Flow',
   DepositInputOtp = 'Deposit Input OTP',
+  RampBuyToOrderDetails = 'Ramp Buy To Order Details',
+  RampBuyContinueToCheckout = 'Ramp Buy Continue To Checkout',
+  RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -116,6 +121,8 @@ export enum TraceName {
   OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  SwapQuoteFetch = 'Swap Quote Fetch',
+  SwapTokenSearch = 'Swap Token Search',
   Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
@@ -264,6 +271,8 @@ export enum TraceName {
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
+  MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
+  MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
 }
 
 export enum TraceOperation {
@@ -273,6 +282,7 @@ export enum TraceOperation {
   EngineInitialization = 'engine.initialization',
   StorageRehydration = 'storage.rehydration',
   UIStartup = 'ui.startup',
+  HomepagePerformance = 'homepage.performance',
   NavInit = 'navigation.initialization',
   NetworkSwitch = 'network.switch',
   SwitchBuiltInNetwork = 'switch.to.built.in.network',
@@ -329,6 +339,7 @@ export enum TraceOperation {
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
+  RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
@@ -385,8 +396,9 @@ function rememberOnboardingAccountType(
 }
 
 /**
- * Resolve the attributes a span starts with, adding the journey's account type to
- * onboarding spans that do not already set one of their own.
+ * Resolve the attributes a span starts with. Tags are mirrored into attributes,
+ * with data taking precedence, and onboarding spans inherit the journey's account
+ * type when they do not set one of their own.
  *
  * @param request - The trace request being started.
  * @returns The attributes to open the span with.
@@ -394,17 +406,27 @@ function rememberOnboardingAccountType(
 function getSpanAttributes(
   request: TraceRequest,
 ): Record<string, TraceValue> | undefined {
-  const { data, op } = request;
+  const { data, op, tags } = request;
+  const attributes =
+    data || tags
+      ? {
+          ...tags,
+          ...data,
+        }
+      : undefined;
 
   if (
     !op?.startsWith(ONBOARDING_OP_PREFIX) ||
     onboardingAccountType === undefined ||
-    data?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
+    attributes?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
   ) {
-    return data;
+    return attributes;
   }
 
-  return { ...data, [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType };
+  return {
+    ...attributes,
+    [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType,
+  };
 }
 
 export interface PendingTrace {
@@ -454,6 +476,9 @@ export interface TraceRequest {
    * If provided, the trace will be nested under the parent trace.
    */
   parentContext?: TraceContext;
+
+  /** Root transaction; without parentContext also starts a fresh Sentry trace ID. */
+  forceTransaction?: boolean;
 
   /**
    * Override the start time of the trace.
@@ -1085,7 +1110,7 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { name, parentContext, startTime, op } = request;
+  const { name, parentContext, startTime, op, forceTransaction } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
@@ -1094,10 +1119,15 @@ function startSpan<T>(
     op: op || OP_DEFAULT,
     parentSpan,
     startTime,
+    forceTransaction,
   };
 
   return withIsolationScope((scope) => {
     setScopeTags(scope, request);
+
+    if (forceTransaction && !parentSpan) {
+      return startNewTrace(() => callback(spanOptions));
+    }
 
     return callback(spanOptions);
   }) as T;

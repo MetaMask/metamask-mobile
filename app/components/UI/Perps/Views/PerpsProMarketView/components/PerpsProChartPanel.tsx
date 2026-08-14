@@ -48,7 +48,7 @@ import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
 } from '../../../components/TradingViewChart';
-import PerpsProMarketSummary from './PerpsProMarketSummary';
+import PerpsMarketSummary from '../../../components/PerpsMarketSummary';
 
 const PRO_CHART_HEIGHT = 288;
 /**
@@ -247,9 +247,12 @@ const PerpsProChartPanel = ({
 
   return (
     <>
-      <PerpsProMarketSummary
+      <PerpsMarketSummary
         symbol={symbol}
         currentPrice={syncedChartCurrentPrice}
+        testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
+        testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
+        testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
         endAccessory={
           <ButtonIcon
             iconName={IconName.Candlestick}

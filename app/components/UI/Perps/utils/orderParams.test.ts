@@ -2,6 +2,7 @@ import { ORDER_SLIPPAGE_CONFIG } from '@metamask/perps-controller';
 import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
+  buildEditOrderParamsFromOrder,
 } from './orderParams';
 
 const trackingData = buildPerpsOrderTrackingData({
@@ -96,6 +97,22 @@ describe('buildPerpsOrderParams', () => {
     expect(withTpSl.takeProfitPrice).toBe('95000');
     expect(withTpSl).not.toHaveProperty('stopLossPrice');
   });
+
+  it('omits TP/SL when reduceOnly is true even if values are present', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'market',
+      reduceOnly: true,
+      isFullClose: true,
+      takeProfitPrice: '95000',
+      stopLossPrice: '80000',
+    });
+
+    expect(params.reduceOnly).toBe(true);
+    expect(params.isFullClose).toBe(true);
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
+  });
 });
 
 describe('buildPerpsOrderTrackingData', () => {
@@ -152,5 +169,102 @@ describe('buildPerpsOrderTrackingData', () => {
     // Assert
     expect(withRate.hlFeeRate).toBe(0.02);
     expect(withoutRate).not.toHaveProperty('hlFeeRate');
+  });
+});
+
+describe('buildEditOrderParamsFromOrder', () => {
+  const order = {
+    orderId: 'order-1',
+    symbol: 'ETH',
+    side: 'sell' as const,
+    size: '2',
+    originalSize: '2',
+    remainingSize: '2',
+    filledSize: '0',
+    price: '3000',
+    orderType: 'limit' as const,
+    status: 'open' as const,
+    timestamp: 1_711_756_800_000, // 2024-03-30T00:00:00.000Z — fixed for determinism
+    reduceOnly: true,
+    isTrigger: false,
+  };
+
+  it('builds limit edit params with updated price and reduce-only flag', () => {
+    const params = buildEditOrderParamsFromOrder({
+      order,
+      newLimitPrice: '3100',
+      trackingData: { totalFee: 0, marketPrice: 3100, source: 'test' },
+    });
+
+    expect(params).toEqual(
+      expect.objectContaining({
+        symbol: 'ETH',
+        isBuy: false,
+        size: '2',
+        orderType: 'limit',
+        price: '3100',
+        reduceOnly: true,
+        currentPrice: 3100,
+        priceAtCalculation: 3100,
+        trackingData: expect.objectContaining({ source: 'test' }),
+      }),
+    );
+  });
+
+  it('builds limit edit params with updated size', () => {
+    const params = buildEditOrderParamsFromOrder({
+      order,
+      newSize: '1.5',
+      trackingData: { totalFee: 0, marketPrice: 3000, source: 'test' },
+    });
+
+    expect(params).toEqual(
+      expect.objectContaining({
+        symbol: 'ETH',
+        isBuy: false,
+        size: '1.5',
+        orderType: 'limit',
+        price: '3000',
+        reduceOnly: true,
+        currentPrice: 3000,
+        priceAtCalculation: 3000,
+      }),
+    );
+  });
+
+  it('includes effective leverage in edit params when provided', () => {
+    const params = buildEditOrderParamsFromOrder({
+      order,
+      newLimitPrice: '3100',
+      leverage: 5,
+      trackingData: { totalFee: 0, marketPrice: 3100, source: 'test' },
+    });
+
+    expect(params).toEqual(
+      expect.objectContaining({
+        leverage: 5,
+        price: '3100',
+      }),
+    );
+  });
+
+  it('preserves attached take-profit and stop-loss prices on edit', () => {
+    const params = buildEditOrderParamsFromOrder({
+      order: {
+        ...order,
+        takeProfitPrice: '3500',
+        stopLossPrice: '2500',
+      },
+      newLimitPrice: '3100',
+      trackingData: { totalFee: 0, marketPrice: 3100, source: 'test' },
+    });
+
+    expect(params).toEqual(
+      expect.objectContaining({
+        takeProfitPrice: '3500',
+        stopLossPrice: '2500',
+        price: '3100',
+      }),
+    );
   });
 });

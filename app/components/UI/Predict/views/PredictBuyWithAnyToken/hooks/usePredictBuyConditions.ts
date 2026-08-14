@@ -266,29 +266,6 @@ export const usePredictBuyConditions = ({
     }
   }, [isPredictBalanceSelected]);
 
-  // Fail-closed: a Pay-with-any-token bet (ERC20 funding, not the existing
-  // Predict balance) needs a usable route to pUSD. Once the pay system has
-  // settled and stopped loading, an empty quote set means no fundable route, so
-  // block the bet instead of letting an underfunded deposit reach the chain and
-  // revert.
-  const isPayRouteUnavailable = useMemo(
-    () =>
-      !isPredictBalanceSelected &&
-      currentValue > 0 &&
-      !isBelowMinimum &&
-      !isPaySystemSettling &&
-      !isPayFeesLoading &&
-      !quotes?.length,
-    [
-      isPredictBalanceSelected,
-      currentValue,
-      isBelowMinimum,
-      isPaySystemSettling,
-      isPayFeesLoading,
-      quotes,
-    ],
-  );
-
   // Only surface token-insufficiency once the pay system has fully settled,
   // the amount is above the minimum bet (a below-minimum amount should surface
   // the minimum-bet error, not a payment CTA), and the amount is non-zero.
@@ -298,7 +275,7 @@ export const usePredictBuyConditions = ({
       !isBelowMinimum &&
       !isPaySystemSettling &&
       !isPayFeesLoading &&
-      (isInsufficientBalance || hasBlockingPayAlerts || isPayRouteUnavailable),
+      (isInsufficientBalance || hasBlockingPayAlerts),
     [
       currentValue,
       isBelowMinimum,
@@ -306,7 +283,6 @@ export const usePredictBuyConditions = ({
       isPayFeesLoading,
       isInsufficientBalance,
       hasBlockingPayAlerts,
-      isPayRouteUnavailable,
     ],
   );
 
@@ -343,8 +319,7 @@ export const usePredictBuyConditions = ({
       !isBalanceLoading &&
       !isPayFeesLoading &&
       !hasBlockingPayAlerts &&
-      !isPaymentSelectorNavigationLocked &&
-      !isPayRouteUnavailable,
+      !isPaymentSelectorNavigationLocked,
     [
       isPaySystemSettling,
       isConfirming,
@@ -356,7 +331,6 @@ export const usePredictBuyConditions = ({
       isPayFeesLoading,
       hasBlockingPayAlerts,
       isPaymentSelectorNavigationLocked,
-      isPayRouteUnavailable,
     ],
   );
 
@@ -369,7 +343,6 @@ export const usePredictBuyConditions = ({
     isBelowMinimum,
     isInsufficientBalance,
     isCurrentTokenInsufficient,
-    isPayRouteUnavailable,
     hasAlternativeBalance,
     isRateLimited,
     canPlaceBet,

@@ -34,6 +34,7 @@ export const getExploreSearchResultCount = (
 };
 
 export type SearchInteractionType =
+  | 'opened'
   | 'result_clicked'
   | 'scrolled'
   | 'tab_switched'
@@ -42,9 +43,14 @@ export type SearchInteractionType =
 /** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
 
+/** Surface the user tapped to open search. Only set on `opened`. */
+export type SearchEntryPoint = 'home' | 'explore';
+
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;
   search_query: string;
+  /** Only set on `opened`. */
+  entry_point?: SearchEntryPoint;
   /** Only set on result_clicked when tab_name is 'all'. */
   section_name?: SearchFeedId;
   tab_name?: SearchFeedPill;
@@ -168,6 +174,24 @@ export const trackExploreSearchEvent = (
       .addProperties(properties as unknown as Record<string, unknown>)
       .build(),
   );
+};
+
+/**
+ * Fired when the user opens the search screen, so opens can be attributed to
+ * the surface they came from. Called from the tap handler rather than on screen
+ * mount, so a remount (or a deeplink into search) never duplicates the event.
+ *
+ * `search_query` is sent as an empty string: the schema requires the property
+ * and the user has not typed anything yet.
+ */
+export const trackExploreSearchOpened = (
+  entryPoint: SearchEntryPoint,
+): void => {
+  trackExploreSearchEvent({
+    interaction_type: 'opened',
+    search_query: '',
+    entry_point: entryPoint,
+  });
 };
 
 /**

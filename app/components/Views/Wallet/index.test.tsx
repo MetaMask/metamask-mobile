@@ -63,16 +63,6 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(() => false),
 }));
 
-// Mock the Predict feature flag selector - will be controlled per test
-let mockPredictEnabled = true;
-let mockPredictGTMModalEnabled = false;
-jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
-  selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
-  selectPredictGtmOnboardingModalEnabledFlag: jest.fn(
-    () => mockPredictGTMModalEnabled,
-  ),
-}));
-
 // Control Money account feature flag per test (default false so existing tests are unaffected)
 let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
@@ -780,8 +770,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
-  mockPredictEnabled = true;
-  mockPredictGTMModalEnabled = false;
   mockMoneyAccountEnabled = false;
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
@@ -1220,16 +1208,12 @@ describe('Wallet', () => {
       // Reset flags to default state
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
-      mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
       // Reset mocks and flags
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
-      mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
       jest.clearAllMocks();
     });
 
@@ -1986,6 +1970,13 @@ describe('Homepage balance breakdown ABC test', () => {
           children: expect.anything(),
           hideRows: false,
           layout,
+          transactionActiveAbTests: [
+            {
+              key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+              value: variantName,
+              key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown=${variantName}`,
+            },
+          ],
         }),
       }),
     );

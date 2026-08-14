@@ -146,10 +146,8 @@ export async function handleAgenticCliQrLogin({
         id: `${conn.id}-cli-link-success`,
         autodismiss: 3000,
         title: strings('sdk_connect_v2.show_cli_link_success.title'),
+        description: '',
         status: 'success',
-        description: strings(
-          'sdk_connect_v2.show_cli_link_success.description',
-        ),
       }),
     );
 

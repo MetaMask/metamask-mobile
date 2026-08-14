@@ -151,6 +151,7 @@ describe('usePerpsPositionForAsset', () => {
       getAccountState: jest.fn(),
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       subscribeToPrices: jest.fn(),

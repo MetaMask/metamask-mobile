@@ -1,8 +1,13 @@
-import { ListItemSelect } from '@metamask/design-system-react-native';
-import React, { useCallback, useState } from 'react';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  ListItemSelect,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
-import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
 import ProPositionSideFilterIcon from './ProPositionSideFilterIcon';
+import PerpsProModalPortal from './PerpsProModalPortal';
 import {
   PRO_POSITION_SIDE_FILTER_OPTIONS,
   type ProPositionSideFilter,
@@ -17,7 +22,8 @@ export interface PerpsProPositionsSideFilterSheetProps {
 }
 
 /**
- * Bottom sheet for filtering Pro positions by all sides, long, or short.
+ * Bottom sheet for filtering Pro positions or orders by all sides, long, or
+ * short. Applies immediately on selection — no separate Apply button.
  */
 const PerpsProPositionsSideFilterSheet = ({
   isVisible,
@@ -26,46 +32,60 @@ const PerpsProPositionsSideFilterSheet = ({
   onClose,
   testID = 'perps-pro-positions-side-filter-sheet',
 }: PerpsProPositionsSideFilterSheetProps) => {
-  const [draftSideFilter, setDraftSideFilter] =
-    useState<ProPositionSideFilter>(sideFilter);
+  const sheetRef = useRef<BottomSheetRef>(null);
 
-  const resetDraft = useCallback(() => {
-    setDraftSideFilter(sideFilter);
-  }, [sideFilter]);
+  useEffect(() => {
+    if (isVisible) {
+      sheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
-  const handleApply = useCallback(() => {
-    onApply(draftSideFilter);
-  }, [draftSideFilter, onApply]);
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(onClose);
+  }, [onClose]);
+
+  const handleSelect = useCallback(
+    (option: ProPositionSideFilter) => {
+      onApply(option);
+      handleClose();
+    },
+    [onApply, handleClose],
+  );
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
-    <PerpsProPositionsOptionSheet
-      isVisible={isVisible}
-      title={strings('perps.market_type.filter_by')}
-      onClose={onClose}
-      onApply={handleApply}
-      onOpen={resetDraft}
-      testID={testID}
-    >
-      {PRO_POSITION_SIDE_FILTER_OPTIONS.map((option) => {
-        const isSelected = draftSideFilter === option.id;
+    <PerpsProModalPortal onRequestClose={handleClose}>
+      <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{ testID: `${testID}-close` }}
+        >
+          {strings('perps.market_type.filter_by')}
+        </BottomSheetHeader>
+        {PRO_POSITION_SIDE_FILTER_OPTIONS.map((option) => {
+          const isSelected = sideFilter === option.id;
 
-        return (
-          <ListItemSelect
-            key={option.id}
-            title={strings(option.labelKey)}
-            isSelected={isSelected}
-            showSelectedIcon
-            startAccessory={
-              <ProPositionSideFilterIcon sideFilter={option.id} />
-            }
-            onPress={() => setDraftSideFilter(option.id)}
-            testID={`${testID}-option-${option.id}`}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: isSelected }}
-          />
-        );
-      })}
-    </PerpsProPositionsOptionSheet>
+          return (
+            <ListItemSelect
+              key={option.id}
+              title={strings(option.labelKey)}
+              isSelected={isSelected}
+              showSelectedIcon
+              startAccessory={
+                <ProPositionSideFilterIcon sideFilter={option.id} />
+              }
+              onPress={() => handleSelect(option.id)}
+              testID={`${testID}-option-${option.id}`}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected }}
+            />
+          );
+        })}
+      </BottomSheet>
+    </PerpsProModalPortal>
   );
 };
 

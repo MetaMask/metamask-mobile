@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { selectIsCardAuthenticated } from '../../../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectCardActiveProviderId,
+} from '../../../../../../selectors/cardController';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
@@ -8,6 +11,7 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
 } from '../../../../Tokens/constants';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+import { withCardProvider } from '../../../util/metrics';
 
 interface UseCardHomeAnalyticsParams {
   data: CardHomeData | null | undefined;
@@ -27,11 +31,13 @@ export function useCardHomeAnalytics({
   rawFiatNumber,
 }: UseCardHomeAnalyticsParams) {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTracked = useRef(false);
 
   useEffect(() => {
-    if (hasTracked.current || isLoading) return;
+    // Wait for a known provider so we don't permanently lock provider: null.
+    if (hasTracked.current || isLoading || !activeProviderId) return;
 
     const hasValidBalance =
       balanceFormatted !== undefined &&
@@ -59,21 +65,23 @@ export function useCardHomeAnalytics({
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
-          .addProperties({
-            state: cardHomeState,
-            token_symbol_priority: data?.primaryFundingAsset?.symbol,
-            token_raw_balance_priority: hasPrimaryAsset
-              ? rawTokenBalance !== undefined && isNaN(rawTokenBalance)
-                ? 0
-                : rawTokenBalance
-              : undefined,
-            token_fiat_balance_priority: hasPrimaryAsset
-              ? rawFiatNumber !== undefined && isNaN(rawFiatNumber)
-                ? 0
-                : rawFiatNumber
-              : undefined,
-            token_chain_id_priority: data?.primaryFundingAsset?.chainId,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              state: cardHomeState,
+              token_symbol_priority: data?.primaryFundingAsset?.symbol,
+              token_raw_balance_priority: hasPrimaryAsset
+                ? rawTokenBalance !== undefined && isNaN(rawTokenBalance)
+                  ? 0
+                  : rawTokenBalance
+                : undefined,
+              token_fiat_balance_priority: hasPrimaryAsset
+                ? rawFiatNumber !== undefined && isNaN(rawFiatNumber)
+                  ? 0
+                  : rawFiatNumber
+                : undefined,
+              token_chain_id_priority: data?.primaryFundingAsset?.chainId,
+            }),
+          )
           .build(),
       );
     }
@@ -87,5 +95,6 @@ export function useCardHomeAnalytics({
     isLoading,
     isAuthenticated,
     hasSetupActions,
+    activeProviderId,
   ]);
 }

@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import type { ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import BottomSheet, {
@@ -9,7 +8,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import Cell, {
@@ -80,7 +78,6 @@ export default function NetworkListBottomSheet({
   displayEvmNetworksOnly?: boolean;
 }) {
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
 
@@ -140,7 +137,6 @@ export default function NetworkListBottomSheet({
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={() => setOpenNetworkSelector(false)}
-      style={tw.style(surfaceClass)}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
       <HeaderStandard
@@ -152,17 +148,19 @@ export default function NetworkListBottomSheet({
         }}
       />
 
-      <FlashList
-        data={filteredNetworkConfigurations}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
+      <Box
         style={tw.style(
+          'grow shrink flex-row min-h-[200px]',
           `max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`,
         )}
-        renderScrollComponent={
-          ScrollView as React.ComponentType<ScrollViewProps>
-        }
-      />
+      >
+        <FlashList
+          data={filteredNetworkConfigurations}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          renderScrollComponent={ScrollView}
+        />
+      </Box>
     </BottomSheet>
   );
 }
