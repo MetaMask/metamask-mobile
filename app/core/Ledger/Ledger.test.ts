@@ -86,14 +86,7 @@ const mockBridge = {
 // `connectLedgerHardware` accepts a Transport from the legacy adapter.
 const mockTransport = { id: 'mock-ble-transport' } as unknown as BleTransport;
 
-const legacyLedgerKeyring = new LegacyLedgerKeyring({
-  bridge: mockBridge as unknown as LedgerMobileBridge,
-});
-
-const ledgerKeyring = new LedgerKeyring({
-  legacyKeyring: legacyLedgerKeyring,
-  entropySource: 'test-entropy-source',
-});
+let ledgerKeyring: LedgerKeyring;
 
 function createRestrictedControllerMock(
   keyringController: typeof MockEngine.context.KeyringController,
@@ -130,6 +123,13 @@ function createRestrictedControllerMock(
 describe('Ledger core', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+
+    ledgerKeyring = new LedgerKeyring({
+      legacyKeyring: new LegacyLedgerKeyring({
+        bridge: mockBridge as unknown as LedgerMobileBridge,
+      }),
+      entropySource: 'test-entropy-source',
+    });
 
     // Reset AccountsController state that may have been modified by previous tests
     MockEngine.context.AccountsController.state.internalAccounts.accounts = {};
@@ -877,12 +877,6 @@ describe('Ledger core', () => {
 
   describe(`unlockLedgerWalletAccount`, () => {
     const mockAccountsController = MockEngine.context.AccountsController;
-    mockAccountsController.getAccountByAddress.mockReturnValue({
-      // @ts-expect-error: The account metadata type is hard to mock
-      metadata: {
-        name: 'Ledger 1',
-      },
-    });
 
     it(`calls keyring.createAccounts with the derivation path for the unlock index`, async () => {
       await unlockLedgerWalletAccount(1);
