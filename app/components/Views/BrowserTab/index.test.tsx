@@ -916,6 +916,34 @@ describe('BrowserTab', () => {
       expect(injectedResultScript).toContain('error');
     });
 
+    it('updates tab URL when onLoadEnd fires for a JS cross-origin redirect without onLoadStart', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const redirectedUrl = 'https://other-domain.com/page';
+      const { onLoadEnd } = screen.getByTestId('browser-webview').props;
+
+      await act(async () => {
+        onLoadEnd({
+          nativeEvent: {
+            url: redirectedUrl,
+            title: 'Redirect Target',
+            canGoBack: true,
+            canGoForward: false,
+          },
+        });
+      });
+
+      expect(mockProps.updateTabInfo).toHaveBeenCalledWith(1, {
+        url: redirectedUrl,
+      });
+    });
+
     it('routes Web Download messages to handleWebDownload', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,
