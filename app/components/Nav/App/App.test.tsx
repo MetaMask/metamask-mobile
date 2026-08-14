@@ -1492,7 +1492,7 @@ describe('App', () => {
     it('starts Homepage Ready when the unlocked state becomes available after mount', () => {
       const lockedState = getHomepageReadyState(false);
       const unlockedState = getHomepageReadyState(true);
-      const store = createStore((state, action) => {
+      const store = createStore((state: unknown | undefined, action) => {
         if (action.type === 'TEST/UNLOCKED_STATE_AVAILABLE') {
           return unlockedState;
         }
@@ -1500,7 +1500,7 @@ describe('App', () => {
           return lockedState;
         }
         return state ?? lockedState;
-      }, lockedState);
+      }, lockedState as unknown);
       const Providers = ({ children }: { children: React.ReactElement }) => (
         <NavigationContainer>
           <Provider store={store}>
@@ -1537,11 +1537,11 @@ describe('App', () => {
       const lockedState = getHomepageReadyState(false);
       const unlockedState = getHomepageReadyState(true);
       const store = createStore(
-        (state, action) =>
+        (state: unknown | undefined, action) =>
           action.type === 'TEST/UNLOCKED_STATE_AVAILABLE'
             ? unlockedState
             : (state ?? lockedState),
-        lockedState,
+        lockedState as unknown,
       );
       const Providers = ({ children }: { children: React.ReactElement }) => (
         <NavigationContainer>
