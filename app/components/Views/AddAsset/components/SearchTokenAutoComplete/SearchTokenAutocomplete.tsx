@@ -25,7 +25,12 @@ import {
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
-import { CaipAssetType, Hex, parseCaipAssetType } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -47,8 +52,11 @@ import {
 } from '../../utils/utils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import useAssetVisibility from '../../../../UI/TokenDetails/components/useAssetVisibility';
+import useAssetVisibility, {
+  type UseAssetVisibilityReturn,
+} from '../../../../UI/TokenDetails/components/useAssetVisibility';
 import { filterExcludedImportAssets } from '../../../../../enablement/assets/networks-customization';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface Props {
   /**
@@ -91,6 +99,48 @@ function assetIdBelongsToChain(assetId: string, caipChainId: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Adds one searched asset to the account that matches the asset's chain.
+ * Module-level so React Compiler can optimize the component (no useCallback to preserve).
+ */
+async function addSingleToken(
+  asset: ImportAsset,
+  selectInternalAccountByScope: (
+    scope: SupportedCaipChainId,
+  ) => InternalAccount | undefined,
+  handleAddCustomAsset: UseAssetVisibilityReturn['handleAddCustomAsset'],
+): Promise<boolean> {
+  const chainId = asset.chainId;
+  const isNonEvm = isNonEvmChainId(chainId);
+  const caipChainId = formatChainIdToCaip(chainId);
+  const account = selectInternalAccountByScope(
+    caipChainId as SupportedCaipChainId,
+  );
+  if (!account?.id) {
+    return false;
+  }
+
+  const assetId = isNonEvm
+    ? (asset.address as CaipAssetType)
+    : toAssetId(asset.address, caipChainId);
+  if (!assetId) {
+    return true;
+  }
+
+  await handleAddCustomAsset(
+    assetId,
+    {
+      address: asset.address,
+      symbol: asset.symbol,
+      name: asset.name ?? '',
+      decimals: asset.decimals ?? 0,
+      chainId: isNonEvm ? asset.chainId : caipChainId,
+    },
+    account.id,
+  );
+  return true;
 }
 
 /**
@@ -202,14 +252,22 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   );
 
   const getTokenAddedAnalyticsParams = useCallback(
-    ({ address, symbol }: { address: Hex; symbol: string }) => {
+    ({
+      address,
+      symbol,
+      chainId,
+    }: {
+      address: Hex;
+      symbol: string;
+      chainId: CaipChainId | Hex | null;
+    }) => {
+      const getAnalyticsChainId = () =>
+        chainId ? getDecimalChainId(chainId) : undefined;
       try {
         return {
           token_address: address,
           token_symbol: symbol,
-          chain_id: selectedChainId
-            ? getDecimalChainId(selectedChainId)
-            : undefined,
+          chain_id: getAnalyticsChainId(),
           source: 'Add token dropdown',
         };
       } catch (error) {
@@ -220,7 +278,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         return undefined;
       }
     },
-    [selectedChainId],
+    [],
   );
 
   const handleSelectAsset = useCallback(
@@ -249,43 +307,17 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   );
 
   const addTokens = useCallback(async () => {
-    if (!selectedChainId || selectedAssets.length === 0) {
-      return;
-    }
-
-    const isNonEvm = isNonEvmChainId(selectedChainId);
-    const caipChainId = formatChainIdToCaip(selectedChainId);
-    const account = selectInternalAccountByScope(
-      caipChainId as SupportedCaipChainId,
-    );
-
-    if (!account?.id) {
-      Logger.log(
-        'SearchTokenAutoComplete: No account found for selected chain',
-      );
+    if (selectedAssets.length === 0) {
       return;
     }
 
     try {
       await Promise.all(
         selectedAssets.map(async (asset) => {
-          const assetId = isNonEvm
-            ? (asset.address as CaipAssetType)
-            : toAssetId(asset.address, caipChainId);
-          if (!assetId) {
-            return;
-          }
-
-          await handleAddCustomAsset(
-            assetId,
-            {
-              address: asset.address,
-              symbol: asset.symbol,
-              name: asset.name ?? '',
-              decimals: asset.decimals ?? 0,
-              chainId: isNonEvm ? asset.chainId : caipChainId,
-            },
-            account.id,
+          await addSingleToken(
+            asset,
+            selectInternalAccountByScope,
+            handleAddCustomAsset,
           );
         }),
       );
@@ -300,6 +332,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       const analyticsParams = getTokenAddedAnalyticsParams({
         address: asset.address as Hex,
         symbol: asset.symbol,
+        chainId: asset.chainId,
       });
 
       if (analyticsParams) {
@@ -316,7 +349,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     createEventBuilder,
     selectInternalAccountByScope,
     selectedAssets,
-    selectedChainId,
     handleAddCustomAsset,
   ]);
 
