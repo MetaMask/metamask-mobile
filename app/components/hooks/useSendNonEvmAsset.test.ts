@@ -270,7 +270,7 @@ describe('useSendNonEvmAsset', () => {
 
       // A brand new object with the same values, as an unmemoized caller would pass
       asset = { ...mockAsset };
-      rerender();
+      rerender(undefined);
 
       expect(result.current.sendNonEvmAsset).toBe(firstSendNonEvmAsset);
     });
@@ -286,7 +286,7 @@ describe('useSendNonEvmAsset', () => {
 
       const updatedAsset = { ...mockAsset, address: 'updated-address' };
       asset = updatedAsset;
-      rerender();
+      rerender(undefined);
 
       await result.current.sendNonEvmAsset(InitSendLocation.HomePage);
 
