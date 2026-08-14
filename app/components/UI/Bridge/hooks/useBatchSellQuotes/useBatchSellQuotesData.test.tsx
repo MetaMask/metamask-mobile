@@ -151,7 +151,7 @@ runBatchSellQuoteDataCases(() => {
           box.current = mapToLegacyBatchSellQuoteData(
             value,
             sourceTokens,
-          ) as ReturnType<typeof useBatchSellQuoteData>;
+          ) as unknown as ReturnType<typeof useBatchSellQuoteData>;
         }}
       />
     </BatchSellQuotesProvider>,

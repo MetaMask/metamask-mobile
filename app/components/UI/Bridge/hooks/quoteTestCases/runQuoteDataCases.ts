@@ -43,7 +43,7 @@ export const mockUseIsInsufficientBalance = jest.fn();
 
 export const runQuoteDataCases = (
   render: (
-    state?: unknown,
+    state?: ReturnType<typeof createBridgeTestState>,
     options?: { latestSourceAtomicBalance?: BigNumber },
   ) => {
     result: { current: ReturnType<typeof useBridgeQuoteData> };
@@ -51,15 +51,10 @@ export const runQuoteDataCases = (
     rerender?: (props?: unknown) => void;
     unmount?: () => void;
   },
-  options: { implementation: 'legacy' | 'copied' } = {
+  _options: { implementation: 'legacy' | 'copied' } = {
     implementation: 'legacy',
   },
 ) => {
-  const { implementation } = options;
-  const itUnlessCopied = (name: string, fn: jest.ProvidesCallback) =>
-    // eslint-disable-next-line jest/no-disabled-tests
-    implementation === 'copied' ? it.skip(name, fn) : it(name, fn);
-
   describe('quote data cases', () => {
   let isQuoteExpired: jest.SpyInstance;
   let getQuoteRefreshRate: jest.SpyInstance;
@@ -1043,8 +1038,7 @@ export const runQuoteDataCases = (
     });
   });
 
-  // Copied source amount comes from config, not setSourceAmount.
-  itUnlessCopied('retries validation for the same requestId after validation throws', async () => {
+  it('retries validation for the same requestId after validation throws', async () => {
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(jest.fn());
@@ -1110,7 +1104,7 @@ export const runQuoteDataCases = (
     selectAppBridgeQuotes.clearCache();
     selectAppBridgeQuotes.memoizedResultFunc.clearCache();
     act(() => {
-      store.dispatch(setSourceAmount('2'));
+      store?.dispatch(setSourceAmount('2'));
     });
 
     await waitFor(() => {
@@ -1624,7 +1618,7 @@ export const runQuoteDataCases = (
       const { unmount } = render(testState);
 
       // Should not throw when unmounting
-      expect(() => unmount()).not.toThrow();
+      expect(() => unmount?.()).not.toThrow();
     });
   });
 
@@ -1711,7 +1705,7 @@ export const runQuoteDataCases = (
       // After the effect runs, selectedQuoteRequestId should be cleared in the store
       await waitFor(() => {
         expect(
-          (store.getState() as { bridge: { selectedQuoteRequestId?: string } })
+          (store?.getState() as { bridge: { selectedQuoteRequestId?: string } })
             .bridge.selectedQuoteRequestId,
         ).toBeUndefined();
       });
@@ -1840,8 +1834,7 @@ export const runQuoteDataCases = (
   });
 
   describe('memoization', () => {
-    // Copied config is a new object each render, so the result identity is not stable.
-    itUnlessCopied('keeps the same return object reference when inputs do not change', () => {
+    it('keeps the same return object reference when inputs do not change', () => {
       const bridgeQuotes = {
         ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
@@ -1854,7 +1847,7 @@ export const runQuoteDataCases = (
 
       const firstResult = result.current;
 
-      rerender({ state: testState });
+      rerender?.({ state: testState });
 
       expect(result.current).toStrictEqual(firstResult);
       expect(result.current).toBe(firstResult);

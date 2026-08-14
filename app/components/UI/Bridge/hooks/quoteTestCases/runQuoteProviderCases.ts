@@ -19,7 +19,9 @@ export const runQuoteProviderCases = ({
   renderOutsideProvider,
   missingProviderError,
 }: {
-  renderWithConsumers: (state: unknown) => void;
+  renderWithConsumers: (
+    state: ReturnType<typeof createBridgeTestState>,
+  ) => void;
   renderOutsideProvider: () => void;
   missingProviderError: string;
 }) => {

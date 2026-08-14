@@ -2,6 +2,7 @@ import { BigNumber } from 'ethers';
 import { act } from '@testing-library/react-native';
 
 import { isSolanaChainId } from '@metamask/bridge-controller';
+import { SolScope } from '@metamask/keyring-api';
 
 import '../../_mocks_/initialState';
 import { createBridgeTestState } from '../../testUtils';
@@ -45,14 +46,13 @@ const mockTrace = trace as jest.MockedFunction<typeof trace>;
 const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 export const runQuoteRequestCases = ({
-  implementation,
   render,
   debounceMs,
   expectedQuoteContext,
 }: {
   implementation: 'legacy' | 'copied';
   render: (
-    state?: unknown,
+    state?: ReturnType<typeof createBridgeTestState>,
     options?: { latestSourceAtomicBalance?: import('ethers').BigNumber },
   ) => {
     result: {
@@ -65,10 +65,6 @@ export const runQuoteRequestCases = ({
   debounceMs: number;
   expectedQuoteContext: unknown;
 }) => {
-  const itUnlessCopied = (name: string, fn: jest.ProvidesCallback) =>
-    // eslint-disable-next-line jest/no-disabled-tests
-    implementation === 'copied' ? it.skip(name, fn) : it(name, fn);
-
   describe('quote request cases', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -168,7 +164,7 @@ export const runQuoteRequestCases = ({
     await expect(
       act(async () => {
         result.current();
-        await result.current.flush();
+        await result.current.flush?.();
       }),
     ).rejects.toThrow(error);
 
@@ -283,12 +279,14 @@ export const runQuoteRequestCases = ({
     expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
   });
 
-  // Copied dest chain comes from destToken.chainId, not selectedDestChainId.
-  // Copied dest chain comes from destToken.chainId, not selectedDestChainId.
-  itUnlessCopied('skips update when destination chain ID is missing', async () => {
+  it('skips update when destination chain ID is missing', async () => {
+    const baseState = createBridgeTestState();
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {
         selectedDestChainId: undefined,
+        destToken: baseState.bridge.destToken
+          ? { ...baseState.bridge.destToken, chainId: undefined as never }
+          : undefined,
       },
     });
 
@@ -411,13 +409,11 @@ export const runQuoteRequestCases = ({
     });
   });
 
-  // Copied dest chain comes from destToken.chainId; this case uses a fake Solana hex id.
-  itUnlessCopied('uses destAddress as destWalletAddress when destination chain is Solana', async () => {
-    const solanaDestChainId = '0xfa'; // Solana chain ID
-    const evmSourceChainId = '0x1'; // Ethereum chain ID
+  it('uses destAddress as destWalletAddress when destination chain is Solana', async () => {
+    const solanaDestChainId = SolScope.Mainnet;
+    const evmSourceChainId = '0x1';
     const destSolanaAddress = 'FakeS0LanaAddr3ss111111111111111111111111111';
 
-    // Mock isSolanaChainId to return true for Solana chain ID and false for EVM chain ID
     (isSolanaChainId as jest.Mock).mockImplementation(
       (chainId) => chainId === solanaDestChainId,
     );
@@ -434,7 +430,7 @@ export const runQuoteRequestCases = ({
           name: 'Ethereum',
         },
         destToken: {
-          address: '0x0000000000000000000000000000000000000000',
+          address: '11111111111111111111111111111111',
           symbol: 'SOL',
           decimals: 9,
           chainId: solanaDestChainId,

@@ -67,7 +67,7 @@ export const runBatchSellQuoteRequestCases = ({
   helpers,
 }: {
   implementation: 'legacy' | 'copied';
-  render: (state?: unknown) => {
+  render: (state?: ReturnType<typeof createBridgeTestState>) => {
     result: {
       current: {
         updateBatchSellQuoteParams: ((...args: never[]) => unknown) & {
@@ -79,10 +79,10 @@ export const runBatchSellQuoteRequestCases = ({
   };
   debounceMs: number;
   helpers: {
-    getBatchSellSourceTokenAmount: getBatchSellSourceTokenAmount;
-    getBatchSellAtomicSourceAmount: getBatchSellAtomicSourceAmount;
-    hasValidBatchSellSourceAmounts: hasValidBatchSellSourceAmounts;
-    buildBatchSellQuoteRequestData?: buildBatchSellQuoteRequestData;
+    getBatchSellSourceTokenAmount: typeof getBatchSellSourceTokenAmount;
+    getBatchSellAtomicSourceAmount: typeof getBatchSellAtomicSourceAmount;
+    hasValidBatchSellSourceAmounts: typeof hasValidBatchSellSourceAmounts;
+    buildBatchSellQuoteRequestData?: typeof buildBatchSellQuoteRequestData;
   };
 }) => {
   const {

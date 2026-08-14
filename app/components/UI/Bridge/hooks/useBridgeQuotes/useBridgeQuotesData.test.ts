@@ -1,4 +1,6 @@
 import '../../_mocks_/initialState';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { BigNumber } from 'ethers';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useBridgeQuotes } from './index';
@@ -63,19 +65,23 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
 runQuoteDataCases(
   (state, options) =>
     renderHookWithProvider(
-      () =>
-        toLegacyQuoteDataResult(
-          useBridgeQuotes({
-            config: configFromBridgeState(state as never, {
-              latestSourceAtomicBalance:
-                options && 'latestSourceAtomicBalance' in options
-                  ? options.latestSourceAtomicBalance
-                  : BigNumber.from('10000000000000000000'),
-            }),
-            managedRequest: true,
+      () => {
+        const reduxState = useSelector(
+          (current: Parameters<typeof configFromBridgeState>[0]) => current,
+        );
+        const result = useBridgeQuotes({
+          config: configFromBridgeState(reduxState as never, {
+            latestSourceAtomicBalance:
+              options && 'latestSourceAtomicBalance' in options
+                ? options.latestSourceAtomicBalance
+                : BigNumber.from('10000000000000000000'),
           }),
-        ),
-      { state },
+          managedRequest: true,
+        });
+
+        return useMemo(() => toLegacyQuoteDataResult(result), [result]);
+      },
+      { state: state as never },
     ),
   { implementation: 'copied' },
 );

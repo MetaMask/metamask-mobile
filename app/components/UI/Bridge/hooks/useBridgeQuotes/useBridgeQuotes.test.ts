@@ -112,7 +112,7 @@ runQuoteRequestCases({
         useBridgeQuotes({
           config: configFromBridgeState(state as never, options),
         }),
-      { state },
+      { state: state as never },
     );
 
     return { result: { current: result.current.updateQuoteParams } };
@@ -124,9 +124,7 @@ describe('useBridgeQuotes batch sell request fields', () => {
     jest.clearAllMocks();
   });
 
-  // Copied currently sends false for these fields instead of omitting them.
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('omits gasIncluded, gasIncluded7702, and insufficientBal on Batch Sell quote request params', async () => {
+  it('omits gasIncluded, gasIncluded7702, and insufficientBal on Batch Sell quote request params', async () => {
     const testState = createBridgeTestState();
 
     const { result } = renderHookWithProvider(

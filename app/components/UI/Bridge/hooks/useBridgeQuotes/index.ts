@@ -65,9 +65,11 @@ const useBridgeQuotesRequest = ({
   config,
   managedRequest = false,
 }: {
-  config: Pick<
-    GenericQuoteRequest,
-    'srcTokenAmount' | 'slippage' | 'walletAddress' | 'destWalletAddress'
+  config: Partial<
+    Pick<
+      GenericQuoteRequest,
+      'srcTokenAmount' | 'slippage' | 'walletAddress' | 'destWalletAddress'
+    >
   > & {
     sourceToken?: BridgeToken;
     destToken?: BridgeToken;
@@ -156,7 +158,7 @@ const useBridgeQuotesRequest = ({
             ).toFixed(0)
           : '0';
 
-      const params: GenericQuoteRequest = {
+      const params = {
         srcChainId: getDecimalChainId(sourceToken.chainId),
         srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
         destChainId: getDecimalChainId(destChainId),
@@ -165,9 +167,11 @@ const useBridgeQuotesRequest = ({
         slippage: slippage ? Number(slippage) : undefined,
         walletAddress,
         destWalletAddress: destWalletAddress ?? walletAddress,
-        gasIncluded: isBatchSell ? false : gasIncluded,
-        gasIncluded7702: isBatchSell ? false : gasIncluded7702,
-        insufficientBal: isBatchSell ? false : insufficientBal,
+        ...(!isBatchSell && {
+          gasIncluded,
+          gasIncluded7702,
+          insufficientBal,
+        }),
       };
 
       const shouldTrace = !isBatchSell && isValidQuoteRequest(params);
@@ -301,10 +305,10 @@ const useBridgeQuotesData = ({
     quotesLastFetchedMs,
   );
 
-  const sourceAssetId = sourceToken
+  const sourceAssetId = sourceToken?.chainId
     ? formatAddressToAssetId(sourceToken.address, sourceToken.chainId)
     : undefined;
-  const destAssetId = destToken
+  const destAssetId = destToken?.chainId
     ? formatAddressToAssetId(destToken.address, destToken.chainId)
     : undefined;
 
