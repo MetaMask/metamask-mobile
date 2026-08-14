@@ -362,23 +362,21 @@ describe('AddDeviceToWallet', () => {
   describe('QR sync import navigation', () => {
     const pendingPayload = {
       version: 1 as const,
-      data: {
-        wallets: [
-          {
-            id: 'wallet:test' as `wallet:${string}`,
-            type: 'mnemonic' as const,
-            value: 'word1 word2 word3',
-            metadata: { name: 'Wallet 1' },
-            groups: [
-              {
-                id: 'wallet:test/0' as `wallet:${string}/${string}`,
-                groupIndex: 0,
-                metadata: { name: 'Account 1', pinned: false, hidden: false },
-              },
-            ],
-          },
-        ],
-      },
+      wallets: [
+        {
+          id: 'wallet:test' as `wallet:${string}`,
+          type: 'mnemonic' as const,
+          value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+          metadata: { name: 'Wallet 1' },
+          groups: [
+            {
+              id: 'wallet:test/0' as `wallet:${string}/${string}`,
+              groupIndex: 0,
+              metadata: { name: 'Account 1', pinned: false, hidden: false },
+            },
+          ],
+        },
+      ],
     };
 
     it('navigates to import when awaiting password with pending payload', async () => {

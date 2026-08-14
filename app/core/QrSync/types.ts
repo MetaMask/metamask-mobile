@@ -1,7 +1,4 @@
-import type {
-  AccountTreePayload,
-  VersionedState,
-} from '@metamask/account-tree-controller';
+import type { AccountTreePayload } from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 
 import {
@@ -104,7 +101,7 @@ export interface QrSyncSyncReadyMessage {
   type: typeof QrSyncActionTypes.SYNC_READY;
   version: QrSyncMessageVersion;
   deadline: number;
-  data: VersionedState<AccountTreePayload>;
+  data: AccountTreePayload;
 }
 
 /** E2E-only: plaintext SRP sync-ready inject payload (HAS_TEST_OVERRIDES). */

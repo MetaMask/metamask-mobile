@@ -2,7 +2,6 @@ import type {
   AccountGroupPayloadId,
   AccountTreePayload,
   AccountWalletPayloadId,
-  VersionedState,
 } from '@metamask/account-tree-controller';
 
 jest.mock('@metamask/account-tree-controller', () => {
@@ -38,25 +37,23 @@ import {
 
 const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
-const createPendingPayload = (): VersionedState<AccountTreePayload> => ({
+const createPendingPayload = (): AccountTreePayload => ({
   version: 1,
-  data: {
-    wallets: [
-      {
-        id: 'wallet:test' as AccountWalletPayloadId,
-        type: 'mnemonic',
-        value: 'word1 word2 word3',
-        metadata: { name: 'Test Wallet' },
-        groups: [
-          {
-            id: 'wallet:test/0' as AccountGroupPayloadId,
-            groupIndex: 0,
-            metadata: { name: 'Account 1', pinned: false, hidden: false },
-          },
-        ],
-      },
-    ],
-  },
+  wallets: [
+    {
+      id: 'wallet:test' as AccountWalletPayloadId,
+      type: 'mnemonic',
+      value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+      metadata: { name: 'Test Wallet' },
+      groups: [
+        {
+          id: 'wallet:test/0' as AccountGroupPayloadId,
+          groupIndex: 0,
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+      ],
+    },
+  ],
 });
 
 const createSecretsImportedState = (

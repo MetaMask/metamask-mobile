@@ -1,3 +1,4 @@
+import type { AccountTreeControllerImportStateAction } from '@metamask/account-tree-controller';
 import type {
   IKeyManager,
   SessionRequest,
@@ -80,29 +81,27 @@ const createSyncReadyWireMessage = (
       deadline: Date.now() + 60_000,
       data: {
         version: 1,
-        data: {
-          wallets: [
-            {
-              id: 'wallet:pk' as `wallet:${string}`,
-              type: 'private-key',
-              metadata: { name: 'Imported Accounts' },
-              groups: [
-                {
-                  id: 'wallet:pk/0xabc' as `wallet:${string}/${string}`,
-                  value: {
-                    privateKey: '0xabc',
-                    encoding: 'hexadecimal' as const,
-                  },
-                  metadata: {
-                    name: 'Imported Account 1',
-                    pinned: false,
-                    hidden: false,
-                  },
+        wallets: [
+          {
+            id: 'wallet:pk' as `wallet:${string}`,
+            type: 'private-key',
+            metadata: { name: 'Imported Accounts' },
+            groups: [
+              {
+                id: 'wallet:pk/0xabc' as `wallet:${string}/${string}`,
+                value: {
+                  privateKey: [0x0, 0xa, 0xb, 0xc],
+                  encoding: 'hexadecimal' as const,
                 },
-              ],
-            },
-          ],
-        },
+                metadata: {
+                  name: 'Imported Account 1',
+                  pinned: false,
+                  hidden: false,
+                },
+              },
+            ],
+          },
+        ],
       },
     };
   }
@@ -113,23 +112,21 @@ const createSyncReadyWireMessage = (
     deadline: Date.now() + 60_000,
     data: {
       version: 1,
-      data: {
-        wallets: [
-          {
-            id: 'wallet:test-primary' as `wallet:${string}`,
-            type: 'mnemonic',
-            value: 'word1 word2 word3',
-            metadata: { name: 'Wallet 1' },
-            groups: [
-              {
-                id: 'wallet:test-primary/0' as `wallet:${string}/${string}`,
-                groupIndex: 0,
-                metadata: { name: 'Account 1', pinned: false, hidden: false },
-              },
-            ],
-          },
-        ],
-      },
+      wallets: [
+        {
+          id: 'wallet:test-primary' as `wallet:${string}`,
+          type: 'mnemonic',
+          value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+          metadata: { name: 'Wallet 1' },
+          groups: [
+            {
+              id: 'wallet:test-primary/0' as `wallet:${string}/${string}`,
+              groupIndex: 0,
+              metadata: { name: 'Account 1', pinned: false, hidden: false },
+            },
+          ],
+        },
+      ],
     },
   };
 };
@@ -153,7 +150,11 @@ const buildMessengerWithImportState = (
   // a QrSyncController child with the action delegated down.
   const atcMessenger = new Messenger({
     namespace: 'AccountTreeController',
-  });
+  }) as unknown as Messenger<
+    'AccountTreeController',
+    AccountTreeControllerImportStateAction,
+    never
+  >;
   atcMessenger.registerActionHandler(
     'AccountTreeController:importState',
     mockImportState,
@@ -469,16 +470,14 @@ describe('QrSyncController', () => {
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
       expect(controller.state.pendingPayload).toMatchObject({
         version: 1,
-        data: {
-          wallets: [
-            {
-              type: 'mnemonic',
-              value: 'word1 word2 word3',
-              metadata: { name: 'Wallet 1' },
-              groups: [{ groupIndex: 0, metadata: { name: 'Account 1' } }],
-            },
-          ],
-        },
+        wallets: [
+          {
+            type: 'mnemonic',
+            value: expect.any(Array),
+            metadata: { name: 'Wallet 1' },
+            groups: [{ groupIndex: 0, metadata: { name: 'Account 1' } }],
+          },
+        ],
       });
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
@@ -540,7 +539,7 @@ describe('QrSyncController', () => {
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
       expect(controller.state.pendingPayload).toMatchObject({
         version: 1,
-        data: { wallets: [{ type: 'private-key' }] },
+        wallets: [{ type: 'private-key' }],
       });
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,

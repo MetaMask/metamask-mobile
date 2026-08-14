@@ -1,7 +1,4 @@
-import type {
-  AccountTreePayload,
-  VersionedState,
-} from '@metamask/account-tree-controller';
+import type { AccountTreePayload } from '@metamask/account-tree-controller';
 
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import type {

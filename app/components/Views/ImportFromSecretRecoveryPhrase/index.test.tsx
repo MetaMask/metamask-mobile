@@ -33,6 +33,13 @@ import {
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 
+jest.mock('@metamask/keyring-sdk', () => ({
+  encodeMnemonicWords: jest.fn(
+    () =>
+      'say devote wasp video cool lunch brief add fever uncover novel offer',
+  ),
+}));
+
 const mockQrSyncResetState = jest.fn();
 
 jest.mock('../../../core/Engine', () => ({
@@ -1303,27 +1310,25 @@ describe('ImportFromSecretRecoveryPhrase', () => {
             ...defaultQrSyncControllerState,
             pendingPayload: {
               version: 1 as const,
-              data: {
-                wallets: [
-                  {
-                    id: 'wallet:test-primary' as `wallet:${string}`,
-                    type: 'mnemonic' as const,
-                    value: qrSyncMnemonic,
-                    metadata: { name: 'Extension Wallet' },
-                    groups: [
-                      {
-                        id: 'wallet:test-primary/0' as `wallet:${string}/${string}`,
-                        groupIndex: 0,
-                        metadata: {
-                          name: 'Account 1',
-                          pinned: false,
-                          hidden: false,
-                        },
+              wallets: [
+                {
+                  id: 'wallet:test-primary' as `wallet:${string}`,
+                  type: 'mnemonic' as const,
+                  value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+                  metadata: { name: 'Extension Wallet' },
+                  groups: [
+                    {
+                      id: 'wallet:test-primary/0' as `wallet:${string}/${string}`,
+                      groupIndex: 0,
+                      metadata: {
+                        name: 'Account 1',
+                        pinned: false,
+                        hidden: false,
                       },
-                    ],
-                  },
-                ],
-              },
+                    },
+                  ],
+                },
+              ],
             },
           },
         },

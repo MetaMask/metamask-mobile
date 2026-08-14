@@ -261,27 +261,25 @@ describe('QRTabSwitcher', () => {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
         pendingPayload: {
           version: 1 as const,
-          data: {
-            wallets: [
-              {
-                id: 'wallet:test' as `wallet:${string}`,
-                type: 'mnemonic' as const,
-                value: 'word1 word2 word3',
-                metadata: { name: 'Wallet 1' },
-                groups: [
-                  {
-                    id: 'wallet:test/0' as `wallet:${string}/${string}`,
-                    groupIndex: 0,
-                    metadata: {
-                      name: 'Account 1',
-                      pinned: false,
-                      hidden: false,
-                    },
+          wallets: [
+            {
+              id: 'wallet:test' as `wallet:${string}`,
+              type: 'mnemonic' as const,
+              value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+              metadata: { name: 'Wallet 1' },
+              groups: [
+                {
+                  id: 'wallet:test/0' as `wallet:${string}/${string}`,
+                  groupIndex: 0,
+                  metadata: {
+                    name: 'Account 1',
+                    pinned: false,
+                    hidden: false,
                   },
-                ],
-              },
-            ],
-          },
+                },
+              ],
+            },
+          ],
         },
       },
       false,
@@ -299,9 +297,6 @@ describe('QRTabSwitcher', () => {
   });
 
   it('calls provisionFromMetadata and navigates home for existing users', async () => {
-    const mnemonic =
-      'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
-
     mockGetAccounts
       .mockResolvedValueOnce(['0xold'])
       .mockResolvedValueOnce(['0xold', '0xnew']);
@@ -311,27 +306,25 @@ describe('QRTabSwitcher', () => {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
         pendingPayload: {
           version: 1 as const,
-          data: {
-            wallets: [
-              {
-                id: 'wallet:test' as `wallet:${string}`,
-                type: 'mnemonic' as const,
-                value: mnemonic,
-                metadata: { name: 'Wallet 1' },
-                groups: [
-                  {
-                    id: 'wallet:test/0' as `wallet:${string}/${string}`,
-                    groupIndex: 0,
-                    metadata: {
-                      name: 'Account 1',
-                      pinned: false,
-                      hidden: false,
-                    },
+          wallets: [
+            {
+              id: 'wallet:test' as `wallet:${string}`,
+              type: 'mnemonic' as const,
+              value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+              metadata: { name: 'Wallet 1' },
+              groups: [
+                {
+                  id: 'wallet:test/0' as `wallet:${string}/${string}`,
+                  groupIndex: 0,
+                  metadata: {
+                    name: 'Account 1',
+                    pinned: false,
+                    hidden: false,
                   },
-                ],
-              },
-            ],
-          },
+                },
+              ],
+            },
+          ],
         },
       },
       true,

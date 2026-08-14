@@ -3,8 +3,8 @@ import {
   type AccountTreePayload,
   type AccountWalletPayloadId,
   type AccountGroupPayloadId,
-  type VersionedState,
 } from '@metamask/account-tree-controller';
+import { decodeMnemonicWords } from '@metamask/keyring-sdk';
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
@@ -226,27 +226,25 @@ export class QrSyncController extends BaseController<
 
     const pendingPayload: AccountTreePayload = {
       version: 1,
-      data: {
-        wallets: [
-          {
-            id: 'wallet:test-primary' as AccountWalletPayloadId,
-            type: 'mnemonic',
-            value: mnemonic,
-            metadata: { name: payload.walletName ?? 'Extension Wallet' },
-            groups: [
-              {
-                id: 'wallet:test-primary/0' as AccountGroupPayloadId,
-                groupIndex: 0,
-                metadata: {
-                  name: payload.accountName ?? 'Account 1',
-                  pinned: false,
-                  hidden: false,
-                },
+      wallets: [
+        {
+          id: 'wallet:test-primary' as AccountWalletPayloadId,
+          type: 'mnemonic',
+          value: Array.from(decodeMnemonicWords(mnemonic)),
+          metadata: { name: payload.walletName ?? 'Extension Wallet' },
+          groups: [
+            {
+              id: 'wallet:test-primary/0' as AccountGroupPayloadId,
+              groupIndex: 0,
+              metadata: {
+                name: payload.accountName ?? 'Account 1',
+                pinned: false,
+                hidden: false,
               },
-            ],
-          },
-        ],
-      },
+            },
+          ],
+        },
+      ],
     };
 
     if (!this.getIsOnboardingCompleted()) {

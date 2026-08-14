@@ -60,16 +60,14 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     );
     expect(controller.state.pendingPayload).toMatchObject({
       version: 1,
-      data: {
-        wallets: [
-          {
-            type: 'mnemonic',
-            value: TEST_MNEMONIC,
-            metadata: { name: 'Extension Wallet' },
-            groups: [{ groupIndex: 0, metadata: { name: 'Synced Account' } }],
-          },
-        ],
-      },
+      wallets: [
+        {
+          type: 'mnemonic',
+          value: expect.any(Array),
+          metadata: { name: 'Extension Wallet' },
+          groups: [{ groupIndex: 0, metadata: { name: 'Synced Account' } }],
+        },
+      ],
     });
   });
 
@@ -81,9 +79,9 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     });
 
     expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.EXISTING_USER);
-    expect(controller.state.pendingPayload?.data.wallets[0]).toMatchObject({
+    expect(controller.state.pendingPayload?.wallets[0]).toMatchObject({
       type: 'mnemonic',
-      value: TEST_MNEMONIC,
+      value: expect.any(Array),
       metadata: { name: 'Extension Wallet' },
       groups: [{ groupIndex: 0, metadata: { name: 'Account 1' } }],
     });

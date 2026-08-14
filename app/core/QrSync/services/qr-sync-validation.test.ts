@@ -2,7 +2,6 @@ import type {
   AccountGroupPayloadId,
   AccountTreePayload,
   AccountWalletPayloadId,
-  VersionedState,
 } from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 
@@ -41,25 +40,23 @@ const createSessionRequest = (
   ...overrides,
 });
 
-const defaultSyncReadyPayload = (): VersionedState<AccountTreePayload> => ({
+const defaultSyncReadyPayload = (): AccountTreePayload => ({
   version: 1,
-  data: {
-    wallets: [
-      {
-        id: 'wallet:test-primary' as AccountWalletPayloadId,
-        type: 'mnemonic',
-        value: 'word1 word2 word3',
-        metadata: { name: 'Wallet 1' },
-        groups: [
-          {
-            id: 'wallet:test-primary/0' as AccountGroupPayloadId,
-            groupIndex: 0,
-            metadata: { name: 'Account 1', pinned: false, hidden: false },
-          },
-        ],
-      },
-    ],
-  },
+  wallets: [
+    {
+      id: 'wallet:test-primary' as AccountWalletPayloadId,
+      type: 'mnemonic',
+      value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+      metadata: { name: 'Wallet 1' },
+      groups: [
+        {
+          id: 'wallet:test-primary/0' as AccountGroupPayloadId,
+          groupIndex: 0,
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+      ],
+    },
+  ],
 });
 
 const createSyncReadyMessage = (
@@ -228,45 +225,43 @@ describe('qr-sync-validation', () => {
       });
     });
 
-    it('passes through a multi-wallet versioned payload intact', () => {
-      const payload: VersionedState<AccountTreePayload> = {
+    it('passes through a multi-wallet payload intact', () => {
+      const payload: AccountTreePayload = {
         version: 1,
-        data: {
-          wallets: [
-            {
-              id: 'wallet:test-primary' as AccountWalletPayloadId,
-              type: 'mnemonic',
-              value: 'word1 word2 word3',
-              metadata: { name: 'Wallet 1' },
-              groups: [
-                {
-                  id: 'wallet:test-primary/0' as AccountGroupPayloadId,
-                  groupIndex: 0,
-                  metadata: { name: 'Account 1', pinned: false, hidden: false },
+        wallets: [
+          {
+            id: 'wallet:test-primary' as AccountWalletPayloadId,
+            type: 'mnemonic',
+            value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+            metadata: { name: 'Wallet 1' },
+            groups: [
+              {
+                id: 'wallet:test-primary/0' as AccountGroupPayloadId,
+                groupIndex: 0,
+                metadata: { name: 'Account 1', pinned: false, hidden: false },
+              },
+            ],
+          },
+          {
+            id: 'wallet:test-pk' as AccountWalletPayloadId,
+            type: 'private-key',
+            metadata: { name: 'Imported Accounts' },
+            groups: [
+              {
+                id: 'wallet:test-pk/0xabc' as AccountGroupPayloadId,
+                value: {
+                  privateKey: [0x0, 0xa, 0xb, 0xc],
+                  encoding: 'hexadecimal' as const,
                 },
-              ],
-            },
-            {
-              id: 'wallet:test-pk' as AccountWalletPayloadId,
-              type: 'private-key',
-              metadata: { name: 'Imported Accounts' },
-              groups: [
-                {
-                  id: 'wallet:test-pk/0xabc' as AccountGroupPayloadId,
-                  value: {
-                    privateKey: '0xabc',
-                    encoding: 'hexadecimal' as const,
-                  },
-                  metadata: {
-                    name: 'Imported Account 1',
-                    pinned: false,
-                    hidden: false,
-                  },
+                metadata: {
+                  name: 'Imported Account 1',
+                  pinned: false,
+                  hidden: false,
                 },
-              ],
-            },
-          ],
-        },
+              },
+            ],
+          },
+        ],
       };
 
       const result = parseQrSyncSyncReadyMessage(
@@ -312,13 +307,13 @@ describe('qr-sync-validation', () => {
       });
     });
 
-    it('returns INVALID_PAYLOAD when data is not a VersionedState payload', () => {
+    it('returns INVALID_PAYLOAD when data is not an AccountTreePayload', () => {
       const result = parseQrSyncSyncReadyMessage(
         {
           type: QrSyncActionTypes.SYNC_READY,
           version: QrSyncMessageVersion.V1,
           deadline: FUTURE_DEADLINE,
-          data: [] as unknown as VersionedState<AccountTreePayload>,
+          data: [] as unknown as AccountTreePayload,
         },
         FIXED_NOW,
       );
@@ -336,7 +331,7 @@ describe('qr-sync-validation', () => {
     it('returns INVALID_PAYLOAD when wallets array is empty', () => {
       const result = parseQrSyncSyncReadyMessage(
         createSyncReadyMessage({
-          data: { version: 1, data: { wallets: [] } },
+          data: { version: 1, wallets: [] },
         }),
         FIXED_NOW,
       );
@@ -366,25 +361,23 @@ describe('qr-sync-validation', () => {
 
   describe('validateQrSyncPayloadForOnboarding', () => {
     it('returns valid when payload has a mnemonic wallet with a value', () => {
-      const payload: VersionedState<AccountTreePayload> = {
+      const payload: AccountTreePayload = {
         version: 1,
-        data: {
-          wallets: [
-            {
-              id: 'wallet:test' as AccountWalletPayloadId,
-              type: 'mnemonic',
-              value: 'word1 word2 word3',
-              metadata: { name: 'Wallet 1' },
-              groups: [
-                {
-                  id: 'wallet:test/0' as AccountGroupPayloadId,
-                  groupIndex: 0,
-                  metadata: { name: 'Account 1', pinned: false, hidden: false },
-                },
-              ],
-            },
-          ],
-        },
+        wallets: [
+          {
+            id: 'wallet:test' as AccountWalletPayloadId,
+            type: 'mnemonic',
+            value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+            metadata: { name: 'Wallet 1' },
+            groups: [
+              {
+                id: 'wallet:test/0' as AccountGroupPayloadId,
+                groupIndex: 0,
+                metadata: { name: 'Account 1', pinned: false, hidden: false },
+              },
+            ],
+          },
+        ],
       };
 
       expect(validateQrSyncPayloadForOnboarding(payload)).toEqual({
@@ -393,18 +386,16 @@ describe('qr-sync-validation', () => {
     });
 
     it('returns invalid when no mnemonic wallet is present', () => {
-      const payload: VersionedState<AccountTreePayload> = {
+      const payload: AccountTreePayload = {
         version: 1,
-        data: {
-          wallets: [
-            {
-              id: 'wallet:test-pk' as AccountWalletPayloadId,
-              type: 'private-key',
-              metadata: { name: 'Imported Wallet' },
-              groups: [],
-            },
-          ],
-        },
+        wallets: [
+          {
+            id: 'wallet:test-pk' as AccountWalletPayloadId,
+            type: 'private-key',
+            metadata: { name: 'Imported Wallet' },
+            groups: [],
+          },
+        ],
       };
 
       expect(validateQrSyncPayloadForOnboarding(payload)).toEqual({
@@ -418,25 +409,23 @@ describe('qr-sync-validation', () => {
     });
 
     it('returns invalid when mnemonic wallet has no value', () => {
-      const payload: VersionedState<AccountTreePayload> = {
+      const payload: AccountTreePayload = {
         version: 1,
-        data: {
-          wallets: [
-            {
-              id: 'wallet:test' as AccountWalletPayloadId,
-              type: 'mnemonic',
-              // value intentionally omitted (metadata-only export)
-              metadata: { name: 'Wallet 1' },
-              groups: [
-                {
-                  id: 'wallet:test/0' as AccountGroupPayloadId,
-                  groupIndex: 0,
-                  metadata: { name: 'Account 1', pinned: false, hidden: false },
-                },
-              ],
-            },
-          ],
-        },
+        wallets: [
+          {
+            id: 'wallet:test' as AccountWalletPayloadId,
+            type: 'mnemonic',
+            // value intentionally omitted (metadata-only export)
+            metadata: { name: 'Wallet 1' },
+            groups: [
+              {
+                id: 'wallet:test/0' as AccountGroupPayloadId,
+                groupIndex: 0,
+                metadata: { name: 'Account 1', pinned: false, hidden: false },
+              },
+            ],
+          },
+        ],
       };
 
       expect(validateQrSyncPayloadForOnboarding(payload)).toEqual({
