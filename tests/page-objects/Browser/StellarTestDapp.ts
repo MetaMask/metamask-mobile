@@ -7,18 +7,28 @@ import Browser from './BrowserView';
 import Utilities, { BASE_DEFAULTS } from '../../framework/Utilities';
 import { StellarTestDappSelectorsWebIDs } from '../../selectors/Browser/StellarTestDapp.selectors';
 
-function getTestElement(
+const stellarTestDappPageUrl = (): string => getDappUrl(0);
+
+const getTestElement = (
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<WebElement> {
+): WebElement => {
   const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 
   return Matchers.getElementByXPath(
     BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
     xpath,
-  );
-}
+    stellarTestDappPageUrl(),
+  ) as WebElement;
+};
+
+const getTestElementByXPath = (xpath: string): WebElement =>
+  Matchers.getElementByXPath(
+    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    xpath,
+    stellarTestDappPageUrl(),
+  ) as WebElement;
 
 class StellarTestDapp {
   get connectButtonSelector(): WebElement {
@@ -34,8 +44,7 @@ class StellarTestDapp {
   }
 
   get metaMaskWalletOptionSelector(): WebElement {
-    return Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    return getTestElementByXPath(
       StellarTestDappSelectorsWebIDs.METAMASK_WALLET_OPTION_XPATH,
     );
   }
@@ -47,12 +56,12 @@ class StellarTestDapp {
   }
 
   get confirmApproveButtonSelector(): WebElement {
-    return Matchers.getElementByText('Approve');
+    return Matchers.getElementByText('Approve') as WebElement;
   }
 
   async navigateToStellarTestDApp(): Promise<void> {
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(getDappUrl(0));
+    await Browser.navigateToURL(stellarTestDappPageUrl());
     await this.waitForDappLoaded();
   }
 
