@@ -1,54 +1,20 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { InteractionManager, Platform, Share } from 'react-native';
-import { useSelector } from 'react-redux';
+import { fireEvent, render } from '@testing-library/react-native';
 import RewardsReferralView from './RewardsReferralView';
 
 const mockGoBack = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../util/Logger', () => ({
-  log: jest.fn(),
-}));
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = (..._args: unknown[]) => ({});
-    tw.style = jest.fn(() => ({}));
-    return tw;
-  },
+  useTailwind: () => ({ style: jest.fn(() => ({})) }),
 }));
-
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  createMockUseAnalyticsHook,
-  createMockEventBuilder,
-} from '../../../../util/test/analyticsMock';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
-
-jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const translations: Record<string, string> = {
-      'rewards.referral_title': 'Referrals',
-      'rewards.referral.actions.share_referral_link': 'Refer a friend',
-      'rewards.referral.actions.share_referral_subject':
-        'Join MetaMask Rewards',
-    };
-    return translations[key] || key;
-  },
+  strings: (key: string) =>
+    key === 'rewards.referral_title' ? 'Referrals' : key,
 }));
 
 jest.mock('../../../Views/ErrorBoundary', () => ({
@@ -58,216 +24,45 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
     view,
   }: {
     children: React.ReactNode;
-    navigation: unknown;
     view: string;
   }) => {
-    const ReactActual = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
-    return ReactActual.createElement(
-      View,
-      { testID: `error-boundary-${view.toLowerCase()}` },
-      children,
+    return (
+      <View testID={`error-boundary-${view.toLowerCase()}`}>{children}</View>
     );
   },
 }));
 
-jest.mock('../components/ReferralDetails/ReferralDetails', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(
-        View,
-        { testID: 'referral-details' },
-        ReactActual.createElement(Text, null, 'Referral Details Component'),
-      ),
-  };
-});
+jest.mock(
+  '../components/ReferralRevenueShareDashboard/ReferralRevenueShareDashboard',
+  () => {
+    const { View, Text } = jest.requireActual('react-native');
+    return () => (
+      <View testID="referral-revenue-share-dashboard">
+        <Text>Referral revenue share dashboard</Text>
+      </View>
+    );
+  },
+);
 
 describe('RewardsReferralView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .spyOn(Share, 'share')
-      .mockResolvedValue({ action: Share.sharedAction });
-    jest
-      .spyOn(InteractionManager, 'runAfterInteractions')
-      .mockImplementation((task) => {
-        if (task && typeof task === 'function') {
-          task();
-        }
-        return {
-          then: jest.fn(),
-          done: jest.fn(),
-          cancel: jest.fn(),
-        };
-      });
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
-    mockUseSelector.mockImplementation((selector) => {
-      // selectReferralCode
-      if (selector.name === 'selectReferralCode') return 'TESTCODE';
-      // selectReferralDetailsLoading
-      if (selector.name === 'selectReferralDetailsLoading') return false;
-      return undefined;
-    });
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
+  it('renders the referral dashboard in the MetaMask Rewards shell', () => {
+    const { getByText, getByTestId } = render(<RewardsReferralView />);
+
+    expect(getByText('Referrals')).toBeOnTheScreen();
+    expect(getByTestId('referral-revenue-share-dashboard')).toBeOnTheScreen();
+    expect(getByTestId('error-boundary-referralrewardsview')).toBeOnTheScreen();
   });
 
-  describe('rendering', () => {
-    it('renders without crashing', () => {
-      expect(() => render(<RewardsReferralView />)).not.toThrow();
-    });
+  it('navigates back from the header', () => {
+    const { getByTestId } = render(<RewardsReferralView />);
 
-    it('renders the header with the referral title', () => {
-      const { getByText } = render(<RewardsReferralView />);
+    fireEvent.press(getByTestId('header-back-button'));
 
-      expect(getByText('Referrals')).toBeOnTheScreen();
-    });
-
-    it('renders the ReferralDetails component', () => {
-      const { getByTestId, getByText } = render(<RewardsReferralView />);
-
-      expect(getByTestId('referral-details')).toBeOnTheScreen();
-      expect(getByText('Referral Details Component')).toBeOnTheScreen();
-    });
-
-    it('wraps content in ErrorBoundary with correct view name', () => {
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      expect(
-        getByTestId('error-boundary-referralrewardsview'),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('navigation', () => {
-    it('navigates back when the back button is pressed', () => {
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      fireEvent.press(getByTestId('header-back-button'));
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('analytics', () => {
-    it('tracks REWARDS_REFERRALS_VIEWED event on mount', async () => {
-      render(<RewardsReferralView />);
-
-      await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.REWARDS_REFERRALS_VIEWED,
-        );
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.REWARDS_PAGE_VIEWED,
-        );
-        expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-      });
-    });
-
-    it('tracks the event only once across re-renders', async () => {
-      const { rerender } = render(<RewardsReferralView />);
-
-      rerender(<RewardsReferralView />);
-      rerender(<RewardsReferralView />);
-
-      await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-      });
-    });
-  });
-
-  describe('sticky share button', () => {
-    it('renders the share button', () => {
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      expect(getByTestId('referral-share-button')).toBeOnTheScreen();
-    });
-
-    it('renders the share button with correct label', () => {
-      const { getByText } = render(<RewardsReferralView />);
-
-      expect(getByText('Refer a friend')).toBeOnTheScreen();
-    });
-
-    it('disables the share button when referral code is loading', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralDetailsLoading') return true;
-        return undefined;
-      });
-
-      const { getByTestId } = render(<RewardsReferralView />);
-      const button = getByTestId('referral-share-button');
-
-      expect(button).toBeDisabled();
-    });
-
-    it('disables the share button when referral code is absent', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
-        return undefined;
-      });
-
-      const { getByTestId } = render(<RewardsReferralView />);
-      const button = getByTestId('referral-share-button');
-
-      expect(button).toBeDisabled();
-    });
-
-    it('calls Share.share when the share button is pressed on Android', async () => {
-      Platform.OS = 'android';
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      fireEvent.press(getByTestId('referral-share-button'));
-
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalledWith({
-          message:
-            'Join MetaMask Rewards\nhttps://link.metamask.io/rewards?referral=TESTCODE',
-        });
-      });
-    });
-
-    it('calls Share.share when the share button is pressed on iOS', async () => {
-      Platform.OS = 'ios';
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      fireEvent.press(getByTestId('referral-share-button'));
-
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalledWith({
-          message: 'Join MetaMask Rewards',
-          url: 'https://link.metamask.io/rewards?referral=TESTCODE',
-        });
-      });
-    });
-  });
-
-  describe('component lifecycle', () => {
-    it('cleans up properly when unmounted', () => {
-      const { unmount } = render(<RewardsReferralView />);
-
-      expect(() => unmount()).not.toThrow();
-    });
-
-    it('handles multiple re-renders gracefully', () => {
-      const { rerender } = render(<RewardsReferralView />);
-
-      expect(() => {
-        rerender(<RewardsReferralView />);
-        rerender(<RewardsReferralView />);
-      }).not.toThrow();
-    });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

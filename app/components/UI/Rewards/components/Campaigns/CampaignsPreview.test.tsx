@@ -61,20 +61,6 @@ jest.mock('./CampaignTile', () => {
   };
 });
 
-jest.mock('./CampaignReminder', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ campaign }: { campaign: CampaignDto }) =>
-      ReactActual.createElement(
-        Text,
-        { testID: `campaign-reminder-${campaign.id}` },
-        `Reminder:${campaign.name}`,
-      ),
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -267,7 +253,7 @@ describe('CampaignsPreview', () => {
     expect(tiles).toHaveLength(2);
   });
 
-  it('renders CampaignReminder for a featured upcoming campaign', () => {
+  it('renders the artwork tile for a featured upcoming campaign', () => {
     const upcomingCampaign = createTestCampaign({
       id: 'upcoming-featured',
       name: 'Soon Campaign',
@@ -280,12 +266,9 @@ describe('CampaignsPreview', () => {
       campaigns: [upcomingCampaign],
     });
 
-    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
+    const { getByTestId } = render(<CampaignsPreview />);
 
-    expect(
-      getByTestId('campaign-reminder-upcoming-featured'),
-    ).toBeOnTheScreen();
-    expect(queryByTestId('campaign-tile-upcoming-featured')).toBeNull();
+    expect(getByTestId('campaign-tile-upcoming-featured')).toBeOnTheScreen();
   });
 
   it('renders SEASON_1 campaign type as interactive', () => {
