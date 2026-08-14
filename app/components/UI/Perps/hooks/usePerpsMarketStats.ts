@@ -6,7 +6,6 @@ import {
   calculate24hHighLow,
   type PriceUpdate,
 } from '@metamask/perps-controller';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   formatFundingRate,
   formatLargeNumber,
@@ -116,20 +115,6 @@ export const usePerpsMarketStats = (
       }
     };
   }, [symbol]);
-
-  useEffect(() => {
-    if (marketData.volume24h && marketData.openInterest) {
-      return;
-    }
-    DevLogger.log(
-      '[PR-TAT-3765] BUG_MARKER: 24h volume or OI missing; UI will show $0.00',
-      JSON.stringify({
-        symbol,
-        volume24h: marketData.volume24h,
-        openInterest: marketData.openInterest,
-      }),
-    );
-  }, [symbol, marketData.volume24h, marketData.openInterest]);
 
   // Calculate all statistics
   const stats = useMemo<MarketStats>(() => {
