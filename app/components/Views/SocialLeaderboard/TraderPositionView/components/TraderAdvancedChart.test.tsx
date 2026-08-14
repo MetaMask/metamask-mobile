@@ -12,6 +12,7 @@ import TraderAdvancedChart, {
   getRecommendedTradeFocusPeriod,
   getTradeFocusSpanMs,
   getPerpTradeFocusSpanMs,
+  getNextWiderPerpCandlePeriod,
   mapTradesToAdvancedMarkers,
 } from './TraderAdvancedChart';
 
@@ -189,6 +190,24 @@ describe('getPerpTradeFocusSpanMs', () => {
     expect(getPerpTradeFocusSpanMs(CandlePeriod.OneMonth, 30)).toBe(
       monthMs * 30,
     );
+  });
+});
+
+describe('getNextWiderPerpCandlePeriod', () => {
+  it('steps from 15min to 1h, then 4h, then 1d', () => {
+    expect(getNextWiderPerpCandlePeriod(CandlePeriod.FifteenMinutes)).toBe(
+      CandlePeriod.OneHour,
+    );
+    expect(getNextWiderPerpCandlePeriod(CandlePeriod.OneHour)).toBe(
+      CandlePeriod.FourHours,
+    );
+    expect(getNextWiderPerpCandlePeriod(CandlePeriod.OneDay)).toBe(
+      CandlePeriod.OneWeek,
+    );
+  });
+
+  it('returns null at the coarsest candle period', () => {
+    expect(getNextWiderPerpCandlePeriod(CandlePeriod.OneMonth)).toBeNull();
   });
 });
 
@@ -809,6 +828,67 @@ describe('TraderAdvancedChart', () => {
       spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
     });
     expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xsecond');
+  });
+
+  it('requests a coarser candle period when pagination has no history for the trade', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const oldTradeTime = recentBars[0].time - 7 * 24 * 60 * 60 * 1000;
+    const mockFetchOlder = jest.fn().mockResolvedValue({
+      requestId: 'focus-older',
+      seriesGeneration: 1,
+      bars: [],
+      noData: true,
+    });
+    const mockRequestCandlePeriod = jest.fn();
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        onRequestCandlePeriod={mockRequestCandlePeriod}
+        trades={[
+          {
+            intent: 'enter',
+            direction: 'buy',
+            tokenAmount: 1,
+            usdCost: 100,
+            timestamp: oldTradeTime / 1000,
+            transactionHash: '0xold',
+          },
+        ]}
+        focusRequest={{
+          id: '0xold',
+          timestamp: oldTradeTime / 1000,
+          nonce: 1,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchOlder).toHaveBeenCalled();
+    expect(mockFocusTime).not.toHaveBeenCalled();
+    expect(mockRequestCandlePeriod).toHaveBeenCalledWith(CandlePeriod.OneHour);
   });
 
   it('falls back to the legacy chart for a perp with insufficient adapter data', () => {

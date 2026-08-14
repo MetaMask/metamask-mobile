@@ -50,6 +50,8 @@ export interface TraderPositionChartSectionProps {
   focusRequest?: TradeFocusRequest;
   /** Request a wider period when the focused trade is older than loaded chart data. */
   onRequestTimePeriod?: (period: TimePeriod) => void;
+  /** Request a coarser candle period when perp history is unavailable for the focused trade. */
+  onRequestCandlePeriod?: (period: CandlePeriod) => void;
   /** Publishes header % change and latest price for perp positions. */
   onPerpMetricsChange?: (metrics: PerpMetrics) => void;
   /** Fired when the user taps a trade circle on the chart (the marker's trade id). */
@@ -77,6 +79,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   onScrubPercentChange,
   focusRequest,
   onRequestTimePeriod,
+  onRequestCandlePeriod,
   onPerpMetricsChange,
   onTradeMarkerPress,
   scrollPassthrough = false,
@@ -95,6 +98,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           trades={trades}
           focusRequest={focusRequest}
           onRequestTimePeriod={onRequestTimePeriod}
+          onRequestCandlePeriod={onRequestCandlePeriod}
           historicalPrices={historicalPrices}
           priceDiff={priceDiff}
           isPricesLoading={isPricesLoading}

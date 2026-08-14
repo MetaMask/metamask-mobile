@@ -1,5 +1,6 @@
 import type { Trade } from '@metamask/social-controllers';
 import {
+  CandlePeriod,
   TimeDuration,
   type CandlePeriod as CandlePeriodType,
 } from '@metamask/perps-controller';
@@ -98,6 +99,31 @@ export function getPerpTradeFocusSpanMs(
   const intervalMs = INTERVAL_MS[candlePeriod as string];
   if (!intervalMs) return TRADE_FOCUS_SPAN_MS['1D'];
   return intervalMs * visibleCandleCount;
+}
+
+/** Coarser candle periods used when the current interval has no history for a trade. */
+const PERP_FOCUS_CANDLE_PERIOD_ORDER: readonly CandlePeriodType[] = [
+  CandlePeriod.OneMinute,
+  CandlePeriod.ThreeMinutes,
+  CandlePeriod.FiveMinutes,
+  CandlePeriod.FifteenMinutes,
+  CandlePeriod.OneHour,
+  CandlePeriod.FourHours,
+  CandlePeriod.OneDay,
+  CandlePeriod.OneWeek,
+  CandlePeriod.OneMonth,
+];
+
+export function getNextWiderPerpCandlePeriod(
+  candlePeriod: CandlePeriodType,
+): CandlePeriodType | null {
+  const currentMs = INTERVAL_MS[candlePeriod as string] ?? 0;
+  return (
+    PERP_FOCUS_CANDLE_PERIOD_ORDER.find((period) => {
+      const periodMs = INTERVAL_MS[period as string];
+      return periodMs != null && periodMs > currentMs;
+    }) ?? null
+  );
 }
 
 export function getRecommendedTradeFocusPeriod(
@@ -336,6 +362,8 @@ export interface TraderAdvancedChartProps {
   focusRequest?: TradeFocusRequest;
   /** Request a wider period when the focused trade is older than loaded chart data (spot). */
   onRequestTimePeriod?: (period: TimePeriod) => void;
+  /** Request a coarser candle period when the focused trade has no history on the current interval (perps). */
+  onRequestCandlePeriod?: (period: CandlePeriodType) => void;
   /**
    * Price history for the spot fallback chart when OHLCV coverage is sparse.
    * Unused on the perp primary path (derived from adapter data on fallback).
@@ -383,6 +411,7 @@ const TraderPerpAdvancedChart = ({
   onChartIndexChange,
   onScrubPercentChange,
   onPerpMetricsChange,
+  onRequestCandlePeriod,
   onTradeMarkerPress,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
   scrollPassthrough = false,
@@ -390,6 +419,7 @@ const TraderPerpAdvancedChart = ({
   perpSymbol: string;
   selectedCandlePeriod: CandlePeriodType;
   onPerpMetricsChange?: (metrics: PerpMetrics) => void;
+  onRequestCandlePeriod?: (period: CandlePeriodType) => void;
 }) => {
   const { colors } = useTheme();
   const vsCurrency = CHART_VS_CURRENCY;
@@ -521,6 +551,7 @@ const TraderPerpAdvancedChart = ({
   useEffect(() => {
     if (!focusRequest || chartLoading || shouldFallback) return;
     if (handledFocusNonceRef.current === focusRequest.nonce) return;
+    if (!ohlcvSeriesKey.includes(`|${selectedCandlePeriod}`)) return;
 
     const tradeTime = tradeTimestampToMs(focusRequest.timestamp);
     const firstBarTime = ohlcvData[0]?.time;
@@ -574,6 +605,12 @@ const TraderPerpAdvancedChart = ({
             return;
           }
           if (response.noData) {
+            const widerPeriod =
+              getNextWiderPerpCandlePeriod(selectedCandlePeriod);
+            if (widerPeriod && onRequestCandlePeriod) {
+              onRequestCandlePeriod(widerPeriod);
+              return;
+            }
             handledFocusNonceRef.current = requestedNonce;
             return;
           }
@@ -609,6 +646,8 @@ const TraderPerpAdvancedChart = ({
     focusTradeOnChart,
     handleFetchOlderBarsRequest,
     ohlcvData,
+    ohlcvSeriesKey,
+    onRequestCandlePeriod,
     paginationEpoch,
     perpSymbol,
     selectedCandlePeriod,
@@ -972,6 +1011,7 @@ const TraderAdvancedChart = (props: TraderAdvancedChartProps) => {
         selectedCandlePeriod={props.selectedCandlePeriod}
         trades={props.trades}
         focusRequest={props.focusRequest}
+        onRequestCandlePeriod={props.onRequestCandlePeriod}
         chartType={props.chartType}
         onChartIndexChange={props.onChartIndexChange}
         onScrubPercentChange={props.onScrubPercentChange}

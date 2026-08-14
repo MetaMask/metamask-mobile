@@ -451,6 +451,21 @@ const TraderPositionView = () => {
     [setAutomaticTimePeriod],
   );
 
+  const handleRequestFocusCandlePeriod = useCallback(
+    (candlePeriod: CandlePeriod) => {
+      setSelectedCandlePeriod(candlePeriod);
+      setFocusRequest((current) =>
+        current
+          ? {
+              ...current,
+              spanMs: getPerpTradeFocusSpanMs(candlePeriod),
+            }
+          : current,
+      );
+    },
+    [],
+  );
+
   const handleTradePress = useCallback(
     (trade: Trade) => {
       focusNonceRef.current += 1;
@@ -749,6 +764,7 @@ const TraderPositionView = () => {
               onScrubPercentChange={setScrubPercent}
               focusRequest={focusRequest}
               onRequestTimePeriod={handleRequestFocusTimePeriod}
+              onRequestCandlePeriod={handleRequestFocusCandlePeriod}
               onPerpMetricsChange={setPerpMetrics}
               onTradeMarkerPress={
                 chartAssetId || isPerp ? handleMarkerPress : undefined
