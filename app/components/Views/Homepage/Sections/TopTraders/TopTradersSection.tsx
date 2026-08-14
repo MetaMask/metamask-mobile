@@ -38,7 +38,7 @@ import {
 import { usePrefetchTraderProfiles, useTopTraders } from './hooks';
 import type { TopTrader } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useOpenTradingSignalsSetup } from '../../../SocialLeaderboard/hooks/useOpenTradingSignalsSetup';
+import { useFollowWithNotificationSetup } from '../../../SocialLeaderboard/hooks/useFollowWithNotificationSetup';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -78,7 +78,7 @@ const TopTradersSection = forwardRef<
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -204,21 +204,17 @@ const TopTradersSection = forwardRef<
   const handleFollowPress = useCallback(
     async (traderId: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      const wasFollowing = trader?.isFollowing ?? false;
-      const performFollow = () =>
+      await followWithSetup(trader?.isFollowing ?? false, () =>
         toggleFollow(traderId, {
           source: 'home_carousel',
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
           traderAvatarUri: trader?.avatarUri,
-        });
-      if (!wasFollowing && openSetupIfNeeded(performFollow)) {
-        return;
-      }
-      await performFollow();
+        }),
+      );
     },
-    [traders, toggleFollow, openSetupIfNeeded],
+    [traders, toggleFollow, followWithSetup],
   );
 
   const onViewableItemsChanged = useRef(

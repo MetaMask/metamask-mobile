@@ -387,6 +387,58 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(screen.getAllByText('April 9, 1:45 PM').length).toBeGreaterThan(0);
   });
 
+  it('shows settlement information for TWAP markets', () => {
+    const market = createMockMarket({
+      priceToBeat: 78000,
+      twapWindowSeconds: 30,
+    });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(
+      screen.getByTestId(
+        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(
+        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(
+        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_SHEET,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('How this market settles')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "This market settles on BTC's average price over 30 seconds, not the price at the exact moment it closes.",
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not show settlement information for non-TWAP markets', () => {
+    render(
+      <PredictCryptoUpDownDetails
+        market={createMockMarket()}
+        onBack={mockOnBack}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders the share button in the header end area', () => {
     const market = createMockMarket();
 

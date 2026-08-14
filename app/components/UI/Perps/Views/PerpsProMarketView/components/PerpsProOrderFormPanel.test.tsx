@@ -16,6 +16,18 @@ import {
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 
+const mockUseSelector = jest.fn();
+const mockUseIsPerpsProModeActive = jest.fn();
+const mockOrderTypeBottomSheet = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+jest.mock('../../../utils/perpsModeSwitch', () => ({
+  useIsPerpsProModeActive: () => mockUseIsPerpsProModeActive(),
+}));
+
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
 
@@ -102,29 +114,26 @@ jest.mock('./PerpsProOrderForm/usePerpsProOrderForm', () => ({
 }));
 
 // Lightweight sheet mocks that surface their key callbacks for wiring assertions.
-jest.mock(
-  '../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView',
-  () => {
-    const { Pressable: P } = jest.requireActual('react-native');
-    const ReactActual = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: ({
-        isVisible,
-        onSelect,
-      }: {
-        isVisible: boolean;
-        onSelect: (type: string) => void;
-      }) =>
-        isVisible
-          ? ReactActual.createElement(P, {
-              testID: 'mock-order-type-select',
-              onPress: () => onSelect('limit'),
-            })
-          : null,
-    };
-  },
-);
+jest.mock('../../../components/PerpsOrderTypeBottomSheet', () => {
+  const { Pressable: P } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: (props: {
+      isVisible: boolean;
+      onSelect: (type: string) => void;
+      showTriggeredTypes: boolean;
+    }) => {
+      mockOrderTypeBottomSheet(props);
+      return props.isVisible
+        ? ReactActual.createElement(P, {
+            testID: 'mock-order-type-select',
+            onPress: () => props.onSelect('limit'),
+          })
+        : null;
+    },
+  };
+});
 
 jest.mock('../../../components/PerpsLeverageBottomSheet', () => {
   const { Pressable: P } = jest.requireActual('react-native');
@@ -187,6 +196,8 @@ const renderPanel = (
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue(true);
+    mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
     Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);
@@ -371,6 +382,48 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onOrderTypeSelect).toHaveBeenCalledWith('limit');
+  });
+
+  it('shows triggered types when Pro mode and its remote flag are enabled', () => {
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        asset: 'BTC',
+        direction: 'long',
+        showSelectedIcon: true,
+        showTriggeredTypes: true,
+        title: 'Choose order type',
+      }),
+    );
+  });
+
+  it('hides triggered types when Pro mode is inactive', () => {
+    mockUseIsPerpsProModeActive.mockReturnValue(false);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showTriggeredTypes: false,
+      }),
+    );
+  });
+
+  it('hides triggered types when the remote flag is disabled', () => {
+    mockUseSelector.mockReturnValue(false);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showTriggeredTypes: false,
+      }),
+    );
   });
 
   it('renders the fees tooltip when a tooltip is selected', () => {
