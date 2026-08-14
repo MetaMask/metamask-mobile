@@ -928,6 +928,9 @@ export default class Gestures {
       direction?: 'up' | 'down' | 'left' | 'right';
       maxScrolls?: number;
       scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
     },
   ): Promise<void> {
     if (!FrameworkDetector.isAppium()) {
@@ -938,6 +941,38 @@ export default class Gestures {
       scrollParams: { direction: options?.direction ?? 'down' },
       maxScrolls: options?.maxScrolls,
       scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
+    });
+  }
+
+  /**
+   * Appium: scroll into view, then nudge clear of the bottom nav bar when
+   * the target would otherwise sit in the bottom 15% of the screen.
+   */
+  static async scrollIntoViewFullyVisible(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.scrollIntoViewFullyVisible is Appium only');
+    }
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoViewFullyVisible(target, {
+      scrollParams: { direction: options?.direction ?? 'down' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
     });
   }
 }
