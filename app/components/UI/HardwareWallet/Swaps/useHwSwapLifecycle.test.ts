@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { toast } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
@@ -60,21 +61,15 @@ jest.mock('@react-navigation/native', () => ({
   useIsFocused: jest.fn(),
 }));
 
-jest.mock('../../../../component-library/components/Toast', () => {
-  const R = require('react'); // eslint-disable-line @typescript-eslint/no-require-imports
-  const showToast = jest.fn();
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    getMockShowToast: () => showToast,
-    ToastContext: R.createContext({
-      toastRef: { current: { showToast } },
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
     }),
-    ToastVariants: { Icon: 'icon' },
   };
 });
-
-jest.mock('../../../../component-library/components/Icons/Icon', () => ({
-  IconName: { Check: 'check' },
-}));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -83,13 +78,6 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockUseIsFocused = useIsFocused as jest.MockedFunction<
   typeof useIsFocused
 >;
-
-const getMockShowToast = () =>
-  (
-    jest.requireMock('../../../../component-library/components/Toast') as {
-      getMockShowToast: () => jest.Mock;
-    }
-  ).getMockShowToast();
 
 const strategy: FlowStrategy = {
   flow: Flow.Send,
@@ -149,7 +137,7 @@ describe('useHwSwapLifecycle safety net', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-    expect(getMockShowToast()).toHaveBeenCalled();
+    expect(toast).toHaveBeenCalled();
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
@@ -182,7 +170,7 @@ describe('useHwSwapLifecycle safety net', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-    expect(getMockShowToast()).toHaveBeenCalled();
+    expect(toast).toHaveBeenCalled();
   });
 
   it('navigates to activity and shows toast for non-QR wallets when all steps are signed', () => {
@@ -194,7 +182,7 @@ describe('useHwSwapLifecycle safety net', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-    expect(getMockShowToast()).toHaveBeenCalled();
+    expect(toast).toHaveBeenCalled();
   });
 
   it('does not re-navigate after HwQrScanner already reset progress to Idle', () => {
@@ -215,7 +203,7 @@ describe('useHwSwapLifecycle safety net', () => {
     const { rerender } = renderLifecycle(true);
     expect(mockSubmit).toHaveBeenCalled();
     mockNavigate.mockClear();
-    getMockShowToast().mockClear();
+    jest.mocked(toast).mockClear();
 
     mockUseSelector.mockReturnValue(allStepsSignedWaiting);
     rerender({ isQr: true });
@@ -228,6 +216,6 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(getMockShowToast()).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 });

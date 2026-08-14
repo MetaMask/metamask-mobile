@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // external dependencies
@@ -26,14 +26,18 @@ import {
   selectAccountGroups,
   selectSelectedAccountGroup,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { RootState } from '../../../../reducers';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  toast,
+} from '@metamask/design-system-react-native';
+import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 
 const MultichainAccountsConnectedList = ({
   privacyMode,
@@ -50,7 +54,6 @@ const MultichainAccountsConnectedList = ({
     itemHeight: 64,
     numOfAccounts: selectedAccountGroups.length,
   });
-  const { toastRef } = useContext(ToastContext);
   const accountAvatarType = useSelector(selectAvatarAccountType);
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -81,18 +84,15 @@ const MultichainAccountsConnectedList = ({
         (group) => group.id === accountGroup.id,
       )?.metadata.name;
 
-      const labelOptions = [
-        {
-          label: `${activeAccountName} `,
-          isBold: true,
-        },
-        { label: `${strings('toast.now_active')}` },
-      ];
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
-        labelOptions,
-        accountAddress: address,
-        accountAvatarType,
+      toast({
+        title: `${activeAccountName} ${strings('toast.now_active')}`,
+        startAccessory: (
+          <AvatarAccount
+            address={address ?? ''}
+            size={AvatarAccountSize.Md}
+            variant={getAvatarAccountVariant(accountAvatarType)}
+          />
+        ),
         hasNoTimeout: false,
       });
       navigation.navigate(Routes.BROWSER.HOME);
@@ -102,7 +102,6 @@ const MultichainAccountsConnectedList = ({
       navigation,
       iconSeedAddresses,
       accountAvatarType,
-      toastRef,
       accountGroups,
     ],
   );

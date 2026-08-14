@@ -1,7 +1,6 @@
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import { resetHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
-import { ToastVariants } from '../../../../component-library/components/Toast';
-import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { completeHwSwapSuccess } from './hwSwapSuccess';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -14,11 +13,19 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   })),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
+
 describe('completeHwSwapSuccess', () => {
   const mockDispatch = jest.fn();
   const mockNavigate = jest.fn();
-  const mockShowToast = jest.fn();
-  const mockCloseToast = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -28,35 +35,17 @@ describe('completeHwSwapSuccess', () => {
     completeHwSwapSuccess({
       dispatch: mockDispatch,
       navigation: { navigate: mockNavigate },
-      toastRef: {
-        current: { showToast: mockShowToast, closeToast: mockCloseToast },
-      },
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith({
-      variant: ToastVariants.Icon,
-      iconName: ToastIconName.Check,
+    expect(toast).toHaveBeenCalledWith({
+      title: 'bridge.hardware_wallet_progress.submitted_title',
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
-      labelOptions: [
-        { label: 'bridge.hardware_wallet_progress.submitted_title' },
-      ],
     });
     expect(resetHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/resetHardwareWalletsSwaps',
     });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-  });
-
-  it('still resets and navigates when toast ref is unavailable', () => {
-    completeHwSwapSuccess({
-      dispatch: mockDispatch,
-      navigation: { navigate: mockNavigate },
-      toastRef: undefined,
-    });
-
-    expect(mockShowToast).not.toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 });
