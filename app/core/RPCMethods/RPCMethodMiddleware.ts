@@ -28,7 +28,7 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
-import PPOMUtil from '../../lib/ppom/ppom-util';
+import PPOMUtil, { type PPOMRequest } from '../../lib/ppom/ppom-util';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -449,9 +449,9 @@ export const getRpcMethodMiddleware = ({
    * requests keep their origin, which the wallet itself verified by loading
    * the page.
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sanitizeRequestForPPOM = (req: any) => {
+  const sanitizeRequestForPPOM = <Request extends PPOMRequest>(
+    req: Request,
+  ) => {
     const isVerifiableOrigin =
       getSource() === AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     return isVerifiableOrigin ? req : { ...req, origin: undefined };
@@ -461,9 +461,7 @@ export const getRpcMethodMiddleware = ({
    * Validate a request with PPOM, dropping `req.origin` for remote
    * transports (see {@link sanitizeRequestForPPOM}).
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const validateRequestWithPPOM = (req: any) =>
+  const validateRequestWithPPOM = (req: PPOMRequest) =>
     PPOMUtil.validateRequest(sanitizeRequestForPPOM(req));
 
   const hooks = getRpcMethodMiddlewareHooks({
