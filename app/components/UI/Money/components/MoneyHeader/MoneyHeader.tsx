@@ -37,12 +37,11 @@ const MoneyHeader = ({ onMenuPress, onGetProPress }: MoneyHeaderProps) => {
           {isProSubscriptionEnabled && (
             <Button
               size={ButtonSize.Md}
-              startIconName={IconName.Gift}
               onPress={onGetProPress}
               testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-              accessibilityLabel={strings('money.get_pro')}
+              accessibilityLabel={strings('pro_subscription.join_pro')}
             >
-              {strings('money.get_pro')}
+              {strings('pro_subscription.join_pro')}
             </Button>
           )}
           <ButtonIcon

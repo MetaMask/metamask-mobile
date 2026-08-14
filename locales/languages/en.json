@@ -7572,7 +7572,6 @@
   },
   "money": {
     "title": "Money",
-    "get_pro": "Get Pro",
     "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -10792,5 +10791,50 @@
     "activate_error": "Something went wrong while adding this trustline. Try again.",
     "deactivate_error": "Something went wrong while removing this trustline. Try again.",
     "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
+  },
+  "pro_subscription": {
+    "title": "Earn more with Pro",
+    "description": "$4.99/mo ($49.99 for annual membership)",
+    "join_pro": "Join Pro",
+    "benefits": {
+      "apy": {
+        "title": "Up to 7% APY on Money account",
+        "subtitle": "Paid in mUSD, no lockups"
+      },
+      "cashback": {
+        "title": "3% mUSD back on card purchases",
+        "subtitle": "Up to $1,000/mo, worldwide"
+      },
+      "member_pricing": {
+        "title": "Member pricing on trades",
+        "subtitle": "Including swaps, perps, and predictions"
+      },
+      "atm_fees": {
+        "title": "No added ATM or FX fees",
+        "subtitle": "Physical card included"
+      },
+      "protection": {
+        "title": "Up to $10,000 in protection",
+        "subtitle": "On eligible extension transactions"
+      },
+      "support": {
+        "title": "Real human support, around the clock",
+        "subtitle": "Response in minutes"
+      }
+    },
+    "plans": {
+      "annual": {
+        "label": "Annual",
+        "price": "$49.99",
+        "sub_price": "($4.15/mo)",
+        "badge": "2 months free",
+        "cta": "Join Pro for $4.15/month"
+      },
+      "monthly": {
+        "label": "Monthly",
+        "price": "$4.99/mo",
+        "cta": "Join Pro for $4.99/month"
+      }
+    }
   }
 }

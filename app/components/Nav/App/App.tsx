@@ -182,6 +182,7 @@ import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWallet
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import DesignerModeOverlay from '../../UI/DesignerMode';
+import BenefitsFullPageModal from '../../Views/ProSubscription/BenefitsFullPageModal';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1379,6 +1380,16 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
         component={PayWithBottomSheet}
+      />
+      <NativeStack.Screen
+        name={Routes.PRO_SUBSCRIPTION.BENEFITS_FULL_PAGE_MODAL}
+        component={BenefitsFullPageModal}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
       />
       <NativeStack.Screen
         name={Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM}

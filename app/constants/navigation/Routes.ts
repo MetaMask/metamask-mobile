@@ -604,6 +604,14 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
+  PRO_SUBSCRIPTION: {
+    /** Full-screen benefits modal for the MetaMask Pro subscription (SUB-992). */
+    BENEFITS_FULL_PAGE_MODAL: 'BenefitsFullPageModal',
+    /** Benefit-detail bottom sheet (SUB-993 — stub target). */
+    BENEFIT_DETAIL_SHEET: 'ProBenefitDetailSheet',
+    /** Post-purchase success screen (SUB-994 — stub target). */
+    SUCCESS: 'ProSubscriptionSuccess',
+  },
 } as const;
 
 export default Routes;

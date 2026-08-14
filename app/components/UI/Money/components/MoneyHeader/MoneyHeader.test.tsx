@@ -89,7 +89,7 @@ describe('MoneyHeader', () => {
       );
 
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('money.get_pro'),
+        strings('pro_subscription.join_pro'),
       );
     });
 
