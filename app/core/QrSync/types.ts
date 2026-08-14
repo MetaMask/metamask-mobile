@@ -6,12 +6,7 @@ import {
   QrSyncMessageVersion,
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from './constants';
-
-/** Secret entry kinds (`sync-ready` wire payload and mobile controller state). */
-export type QrSyncSecretType =
-  (typeof QrSyncSecretTypes)[keyof typeof QrSyncSecretTypes];
 
 // --- Session lifecycle and protocol ---
 

@@ -20,19 +20,13 @@ import {
 
 const SERVICE_NAME = 'QrSyncProvisioningService' as const;
 
-export interface QrSyncProvisioningServiceImportFromPayloadAction {
-  type: `${typeof SERVICE_NAME}:importFromPayload`;
-  handler: QrSyncProvisioningService['importFromPayload'];
-}
-
 export interface QrSyncProvisioningServiceProvisionFromMetadataAction {
   type: `${typeof SERVICE_NAME}:provisionFromMetadata`;
   handler: QrSyncProvisioningService['provisionFromMetadata'];
 }
 
 export type QrSyncProvisioningServiceActions =
-  | QrSyncProvisioningServiceImportFromPayloadAction
-  | QrSyncProvisioningServiceProvisionFromMetadataAction;
+  QrSyncProvisioningServiceProvisionFromMetadataAction;
 
 type QrSyncProvisioningServiceAllowedActions =
   | QrSyncProvisioningServiceActions
@@ -66,33 +60,8 @@ export class QrSyncProvisioningService {
   }) {
     this.#messenger = messenger;
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:importFromPayload`,
-      this.importFromPayload.bind(this),
-    );
-    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:provisionFromMetadata`,
       this.provisionFromMetadata.bind(this),
-    );
-  }
-
-  /**
-   * Imports the pending `AccountTreePayload` into the account tree.
-   *
-   * Delegates to `AccountTreeController:importState`, which imports any missing
-   * secrets and applies all metadata (wallet names, group names, pin/hide).
-   * Existing wallets (e.g. the primary wallet already in the vault) are matched
-   * by entropy source ID and have metadata applied without re-import.
-   */
-  async importFromPayload(): Promise<void> {
-    const { pendingPayload } = this.#getQrSyncControllerState();
-
-    if (!pendingPayload) {
-      return;
-    }
-
-    await this.#messenger.call(
-      'AccountTreeController:importState',
-      await AccountTreeSnapshot.deserialize(pendingPayload),
     );
   }
 

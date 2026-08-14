@@ -103,56 +103,11 @@ describe('QrSyncProvisioningService', () => {
     });
   });
 
-  it('registers importFromPayload and provisionFromMetadata on the service messenger', () => {
-    expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-      'QrSyncProvisioningService:importFromPayload',
-      expect.any(Function),
-    );
+  it('registers provisionFromMetadata on the service messenger', () => {
     expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
       'QrSyncProvisioningService:provisionFromMetadata',
       expect.any(Function),
     );
-  });
-
-  describe('importFromPayload', () => {
-    it('calls AccountTreeController:importState with the pending payload', async () => {
-      const pendingPayload = createPendingPayload();
-      mockMessenger.call = jest.fn((action: string) => {
-        if (action === 'QrSyncController:getState') {
-          return createSecretsImportedState({ pendingPayload });
-        }
-        return undefined;
-      });
-      const importService = new QrSyncProvisioningService({
-        messenger: asProvisioningMessenger(mockMessenger),
-      });
-
-      await importService.importFromPayload();
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'AccountTreeController:importState',
-        pendingPayload,
-      );
-    });
-
-    it('no-ops when pending payload is null', async () => {
-      mockMessenger.call = jest.fn((action: string) => {
-        if (action === 'QrSyncController:getState') {
-          return createSecretsImportedState({ pendingPayload: null });
-        }
-        return undefined;
-      });
-      const importService = new QrSyncProvisioningService({
-        messenger: asProvisioningMessenger(mockMessenger),
-      });
-
-      await importService.importFromPayload();
-
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'AccountTreeController:importState',
-        expect.anything(),
-      );
-    });
   });
 
   describe('provisionFromMetadata', () => {

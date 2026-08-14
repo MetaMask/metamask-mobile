@@ -124,11 +124,3 @@ export const QrSyncActionTypes = {
    */
   SYNC_ERROR: 'sync-error',
 } as const;
-
-/**
- * Secret entry `type` values in the `sync-ready` payload and mobile controller state.
- */
-export const QrSyncSecretTypes = {
-  MNEMONIC: 'Mnemonic',
-  PRIVATE_KEY: 'PrivateKey',
-} as const;

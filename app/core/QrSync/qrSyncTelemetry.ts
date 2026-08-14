@@ -28,14 +28,9 @@ export type QrSyncSurface =
 export const QrSyncOperations = {
   CLASSIFY_SCAN_CONTENT: 'classify_scan_content',
   SUBMIT_SCANNED_PAYLOAD: 'submit_scanned_payload',
-  IMPORT_REMAINING_SECRETS: 'import_remaining_secrets',
   EXISTING_USER_IMPORT_NAVIGATION: 'existing_user_import_navigation',
   PROVISION_FROM_METADATA: 'provision_from_metadata',
-  IMPORT_SECRETS_UNKNOWN_TYPE: 'import_secrets_unknown_type',
-  IMPORT_SECRETS_TO_VAULT: 'import_secrets_to_vault',
   USER_STORAGE_RECONCILIATION: 'user_storage_reconciliation',
-  IMPORT_REMAINING_SECRETS_FINALIZE: 'import_remaining_secrets_finalize',
-  ENRICH_PRIMARY_PROVISIONING_ENTRY: 'enrich_primary_provisioning_entry',
   TERMINATE_WITH_ERROR: 'terminate_with_error',
 } as const;
 
@@ -49,10 +44,7 @@ export const QrSyncTelemetrySources = {
   FINISH_EXISTING_USER_WITHOUT_MNEMONIC:
     'finishExistingUserSyncWithoutMnemonic',
   USE_QR_SYNC_IMPORT_NAVIGATION: 'useQrSyncImportNavigation',
-  PROVISIONING_IMPORT_SECRETS: 'QrSyncProvisioningService.importSecretsToVault',
   PROVISIONING_RECONCILE: 'QrSyncProvisioningService.reconcileWithUserStorage',
-  CONTROLLER_IMPORT_REMAINING: 'QrSyncController.importRemainingSecrets',
-  CONTROLLER_ENRICH_PRIMARY: 'QrSyncController.enrichPrimaryProvisioningEntry',
   CONTROLLER: 'QrSyncController',
   FINALIZE_ONBOARDING: 'finalizeOnboardingCompletion',
 } as const;

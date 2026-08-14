@@ -157,7 +157,7 @@ describe('qrSyncTelemetry', () => {
     it('sets feature:qr-sync tags and scrubs injected secrets from extras', () => {
       const options = buildQrSyncLoggerErrorOptions({
         surface: QrSyncSurfaces.IMPORT,
-        operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
+        operation: QrSyncOperations.PROVISION_FROM_METADATA,
         error: new Error('vault import failed'),
         errorCode: 'SYNC_FAILED',
         phase: 'reviewing-import',
@@ -174,7 +174,7 @@ describe('qrSyncTelemetry', () => {
         expect.objectContaining({
           feature: QR_SYNC_SENTRY_FEATURE,
           surface: QrSyncSurfaces.IMPORT,
-          operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
+          operation: QrSyncOperations.PROVISION_FROM_METADATA,
           errorCode: 'SYNC_FAILED',
         }),
       );
