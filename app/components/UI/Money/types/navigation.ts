@@ -2,6 +2,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
 import type { AccountsApiActivity } from './moneyActivity';
 import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
+import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 
 export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
@@ -12,8 +13,7 @@ export interface MoneyPreferredPaymentToken {
   chainId: Hex;
 }
 
-export interface MoneyOnboardingParams {
-  entryPoint?: string;
+export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: {
     type: MoneyPostOnboardingRedirectType;
     preferredPaymentToken?: MoneyPreferredPaymentToken;
@@ -26,7 +26,7 @@ export interface MoneyOnboardingParams {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyScreensStackParamList = {
-  MoneyHome: { entryPoint?: string } | undefined;
+  MoneyHome: NavigationAnalyticsRouteParams | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };
