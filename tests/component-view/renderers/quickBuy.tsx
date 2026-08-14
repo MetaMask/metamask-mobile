@@ -14,7 +14,7 @@ export const QUICK_BUY_SHEET_ROUTE = 'QuickBuySheet';
 export const DEFAULT_QUICK_BUY_TARGET: QuickBuyTarget = {
   tokenAddress: USDC_DEST.address,
   tokenSymbol: USDC_DEST.symbol,
-  tokenName: USDC_DEST.name,
+  tokenName: USDC_DEST.name ?? 'USD Coin',
   chain: 'eip155:1',
 };
 
