@@ -2,14 +2,15 @@ import React from 'react';
 import { BigNumber } from 'ethers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from './BridgeQuoteDataContext';
+  BridgeQuotesProvider,
+  useBridgeQuotesContext,
+} from './BridgeQuotesProvider';
 import {
   mockUseIsInsufficientBalance,
   mockValidateBridgeTx,
   runQuoteProviderCases,
 } from '../quoteTestCases/runQuoteProviderCases';
+import { configFromBridgeState } from '../quoteTestCases/configFromBridgeState';
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -37,6 +38,23 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       })),
     },
+    BridgeController: {
+      updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
+    },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x1234567890123456789012345678901234567890'],
+            type: 'HD Key Tree',
+            metadata: {
+              id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
+              name: '',
+            },
+          },
+        ],
+      },
+    },
   },
 }));
 
@@ -47,24 +65,26 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
 }));
 
 function Consumer() {
-  useBridgeQuoteDataContext();
+  useBridgeQuotesContext();
   return null;
 }
 
 runQuoteProviderCases({
   missingProviderError:
-    'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider',
+    'useBridgeQuotesContext must be used within BridgeQuotesProvider',
   renderWithConsumers: (state) => {
     renderWithProvider(
-      <BridgeQuoteDataProvider
-        latestSourceAtomicBalance={BigNumber.from('1000000000')}
+      <BridgeQuotesProvider
+        config={configFromBridgeState(state as never, {
+          latestSourceAtomicBalance: BigNumber.from('1000000000'),
+        })}
       >
         <Consumer />
         <Consumer />
         <Consumer />
         <Consumer />
         <Consumer />
-      </BridgeQuoteDataProvider>,
+      </BridgeQuotesProvider>,
       { state },
     );
   },

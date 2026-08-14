@@ -16,7 +16,7 @@ const BatchSellQuotesContext = createContext<ReturnType<
   typeof useBatchSellQuotes
 > | null>(null);
 
-const CollectBridgeQuote = ({
+function CollectBridgeQuote({
   assetId,
   rows,
   index,
@@ -34,7 +34,7 @@ const CollectBridgeQuote = ({
       Record<CaipAssetType, ReturnType<typeof useBridgeQuotes>>
     >,
   ) => React.ReactNode;
-}) => {
+}) {
   const result = useBridgeQuotesContext();
 
   return (
@@ -46,9 +46,9 @@ const CollectBridgeQuote = ({
       {children}
     </NestBridgeQuotes>
   );
-};
+}
 
-const NestBridgeQuotes = ({
+function NestBridgeQuotes({
   rows,
   index,
   quotesByAssetId,
@@ -64,7 +64,7 @@ const NestBridgeQuotes = ({
       Record<CaipAssetType, ReturnType<typeof useBridgeQuotes>>
     >,
   ) => React.ReactNode;
-}) => {
+}) {
   if (index >= rows.length) {
     return children(quotesByAssetId);
   }
@@ -83,7 +83,7 @@ const NestBridgeQuotes = ({
       </CollectBridgeQuote>
     </BridgeQuotesProvider>
   );
-};
+}
 
 const BatchSellQuotesValueProvider = ({
   config,
