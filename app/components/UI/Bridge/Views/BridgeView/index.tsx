@@ -171,7 +171,6 @@ const BridgeView = () => {
     () =>
       Gesture.Pan()
         .withTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE)
-        .enabled(showTabsBar)
         .activeOffsetX([-50, 50])
         .failOffsetY([-15, 15])
         .maxPointers(1)
@@ -187,7 +186,7 @@ const BridgeView = () => {
             }
           }
         }),
-    [goToPreviousTab, goToNextTab, showTabsBar],
+    [goToPreviousTab, goToNextTab],
   );
 
   // A tab can disappear if its feature flag flips off while it's active

@@ -2626,7 +2626,7 @@ describe('BridgeView', () => {
       });
     });
 
-    it('does not navigate back on a right swipe over the tab content when the tabs bar is hidden', async () => {
+    it('navigates back on a right swipe over the tab content when the tabs bar is hidden', async () => {
       renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
@@ -2641,7 +2641,7 @@ describe('BridgeView', () => {
         await Promise.resolve();
       });
 
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 });
