@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   Image,
   View,
@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,7 +20,8 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import MM_CARD_ONBOARDING_FAILED from '../../../../../images/mm-card-onboarding-failed.png';
 import {
   Box,
@@ -55,6 +56,8 @@ const KYCFailed = () => {
   const dispatch = useDispatch();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const hasTrackedView = useRef(false);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   const dynamicStyles = useMemo<{
@@ -91,14 +94,22 @@ const KYCFailed = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    // Wait for a known provider so we don't fire with a Baanx fallback then
+    // again when Immersve resolves (duplicate / misattributed views).
+    if (hasTrackedView.current || !activeProviderId) {
+      return;
+    }
+    hasTrackedView.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.KYC_FAILED,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.KYC_FAILED,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME);

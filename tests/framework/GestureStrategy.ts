@@ -42,6 +42,8 @@ export interface UnifiedGestureOptions {
   checkForEnabled?: boolean;
   /** Stricter enabled polling (Android attrs + stable reads) — Appium only */
   waitForInteractive?: boolean;
+  /** Wait for element position to stabilize before tap — Appium only */
+  checkForStable?: boolean;
   /** Consecutive interactive polls required before tap — Appium only */
   enabledStableReads?: number;
   /** Extra wait (ms) after enabled/interactive, before click — Appium only */
@@ -420,6 +422,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
       checkForDisplayed: opts?.checkForDisplayed ?? true,
       checkForEnabled: opts?.checkForEnabled,
       waitForInteractive: opts?.waitForInteractive,
+      checkForStable: opts?.checkForStable,
       enabledStableReads: opts?.enabledStableReads,
       postEnabledSettleMs: opts?.postEnabledSettleMs,
     });
@@ -448,13 +451,25 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * Replace text in an element
    * @param elem - The element to replace text in
    * @param text - The text to replace
+   * @param opts - Optional timeout / readiness options
    * @returns A promise that resolves when the replace text is complete
    */
   async replaceText(
     elem: EncapsulatedElementType,
     text: string,
+    opts?: UnifiedGestureOptions,
   ): Promise<void> {
+    const timeout = opts?.timeout ?? 15_000;
     const el = await asPlaywrightElement(elem);
+    // Wait for a fresh displayed node before clearValue — otherwise Appium
+    // fails with "Can't call clearValue ... because element wasn't found"
+    // when navigation to the input screen is still settling.
+    await el.waitForDisplayed({
+      timeout,
+      timeoutMsg: opts?.description
+        ? `${opts.description} was not displayed within ${timeout}ms`
+        : `Element was not displayed within ${timeout}ms before replaceText`,
+    });
     await el.clear();
     await el.fill(text);
   }
@@ -557,6 +572,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
     const scrollableElement =
       await AppiumGestureStrategy.resolveScrollableElement(scrollView);
 
+    // Cap scrolls so a missing target fails in tens of seconds instead of
+    // burning a 3-minute Playwright timeout (each miss is ~5s of findElement).
+    const maxScrolls = opts?.timeout
+      ? Math.max(3, Math.min(12, Math.ceil(opts.timeout / 5000)))
+      : 10;
+
     await PlaywrightGestures.scrollIntoView(el, {
       scrollParams: {
         direction: AppiumGestureStrategy.toScrollIntoViewDirection(
@@ -564,6 +585,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
         ),
       },
       scrollableElement,
+      maxScrolls,
     });
   }
 

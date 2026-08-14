@@ -112,8 +112,8 @@ export function shouldShowPerpsPnl(fill: PerpsTransaction['fill']): boolean {
   );
 }
 
-export function formatPerpsOrderFee(fee: number, isFilled: boolean): string {
-  return formatPerpsFiat(isFilled ? fee : 0, {
+export function formatPerpsOrderFee(fee: number): string {
+  return formatPerpsFiat(fee, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
 }

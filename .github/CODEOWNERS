@@ -50,7 +50,6 @@ scripts/build.sh                                            @MetaMask/mobile-pla
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
 .github/workflows/generate-build-version.yml                @MetaMask/mobile-platform
-.github/workflows/commit-build-version.yml                  @MetaMask/mobile-platform
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 .github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
@@ -218,6 +217,7 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
 app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
+app/components/UI/QuickBuy/                                          @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
@@ -233,6 +233,7 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/SocialLeaderboard/**                                              @MetaMask/social-ai
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
+**/QuickBuy/**                                                       @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
 
 # Predict Team
@@ -372,10 +373,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-android.yml            @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
-.github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-android-flask.yml         @MetaMask/qa
-.github/workflows/run-e2e-smoke-tests-ios-flask.yml             @MetaMask/qa
 .github/workflows/rerun-ci-on-skipped-e2e-labels.yml            @MetaMask/qa
 .github/workflows/update-e2e-fixtures.yml                       @MetaMask/qa
 .github/workflows/qa-stats.yml                                  @MetaMask/qa

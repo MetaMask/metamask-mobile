@@ -17,6 +17,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { IconName } from '../../Icons/Icon';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../../locales/i18n';
@@ -99,7 +100,12 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             });
             break;
           case Routes.TRANSACTIONS_VIEW:
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+            navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+              screen: Routes.TRANSACTIONS_VIEW,
+              params: {
+                entryPoint: ActivityScreenEntryPoint.BottomNavClick,
+              },
+            });
             break;
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);

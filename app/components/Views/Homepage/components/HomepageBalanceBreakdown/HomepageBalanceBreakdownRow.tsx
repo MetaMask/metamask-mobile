@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, View, type ViewStyle } from 'react-native';
+import { View, type ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -10,13 +10,14 @@ import {
   Icon,
   IconColor,
   IconSize,
+  ListItem,
+  ListItemVariant,
   SensitiveText,
   SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -36,6 +37,13 @@ const getAllocationColorStyle = (slice: SliceData): ViewStyle => ({
   backgroundColor: slice.color,
 });
 
+const allocationDotStyle: ViewStyle = {
+  width: 8,
+  height: 8,
+  borderRadius: 999,
+  marginRight: 4,
+};
+
 export interface HomepageBalanceBreakdownRowProps {
   slice: SliceData;
   userCurrency: string;
@@ -49,7 +57,6 @@ const HomepageBalanceBreakdownRow = ({
   onPress,
   layout,
 }: HomepageBalanceBreakdownRowProps) => {
-  const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const { formatCurrency } = useFormatters();
   const isLoading = slice.status === 'loading';
@@ -60,10 +67,14 @@ const HomepageBalanceBreakdownRow = ({
           style: 'percent',
           maximumFractionDigits: 0,
         });
+  const formattedValue = formatCurrency(slice.valueFiat, userCurrency);
+  const zeroValue = formatCurrency(0, userCurrency);
   const displayValue =
     slice.status === 'error' || slice.status === 'ineligible'
       ? '—'
-      : formatCurrency(slice.valueFiat, userCurrency);
+      : slice.valueFiat > 0 && formattedValue === zeroValue
+        ? `<${formattedValue}`
+        : formattedValue;
   const valueColor =
     slice.status === 'ready' && slice.valueFiat === 0
       ? TextColor.TextAlternative
@@ -94,139 +105,133 @@ const HomepageBalanceBreakdownRow = ({
   const iconName = SLICE_ICONS[slice.key];
   const iconSymbol = SLICE_ICON_SYMBOLS[slice.key];
 
-  return (
-    <Pressable
-      accessibilityLabel={accessibilityLabel}
-      accessibilityRole="button"
-      onPress={onPress}
-      testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
-      style={({ pressed }) =>
-        tw.style('flex-row items-center', 'min-h-10', pressed && 'opacity-80')
-      }
+  const avatar = showIcon ? (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName="h-8 w-8 rounded-full bg-muted"
     >
-      {showIcon ? (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="h-8 w-8 rounded-full bg-muted"
+      {iconName ? (
+        <Icon
+          color={IconColor.IconDefault}
+          name={iconName}
+          size={IconSize.Md}
+          testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
+        />
+      ) : (
+        <Text
+          color={TextColor.TextDefault}
+          fontWeight={FontWeight.Medium}
+          testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
+          variant={TextVariant.HeadingSm}
         >
-          {iconName ? (
-            <Icon
-              color={IconColor.IconDefault}
-              name={iconName}
-              size={IconSize.Md}
-              testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
-            />
-          ) : (
+          {iconSymbol}
+        </Text>
+      )}
+    </Box>
+  ) : undefined;
+
+  const title = (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      flexDirection={BoxFlexDirection.Row}
+      twClassName="min-w-0 flex-1"
+      gap={2}
+    >
+      <Box
+        alignItems={BoxAlignItems.Center}
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="min-w-0 shrink"
+        gap={1}
+      >
+        {showAllocationDot ? (
+          <View
+            testID={HomepageBalanceBreakdownTestIds.DOT(slice.key)}
+            style={[allocationDotStyle, getAllocationColorStyle(slice)]}
+          />
+        ) : null}
+        <Text
+          color={TextColor.TextDefault}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+          twClassName="shrink"
+          variant={TextVariant.BodyMd}
+        >
+          {getSliceLabel(slice.key)}
+        </Text>
+        {percentageLabel ? (
+          <>
             <Text
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Medium}
-              testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
-              variant={TextVariant.HeadingSm}
-            >
-              {iconSymbol}
-            </Text>
-          )}
-        </Box>
-      ) : null}
-      <Box twClassName={showIcon ? 'ml-3 min-w-0 flex-1' : 'min-w-0 flex-1'}>
-        <Box
-          alignItems={BoxAlignItems.Center}
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-          gap={3}
-        >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="min-w-0 flex-1"
-            gap={2}
-          >
-            <Box
-              alignItems={BoxAlignItems.Center}
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="min-w-0 shrink"
-              gap={1}
-            >
-              {showAllocationDot ? (
-                <View
-                  testID={HomepageBalanceBreakdownTestIds.DOT(slice.key)}
-                  style={[
-                    tw.style('h-2 w-2 rounded-full mr-1'),
-                    getAllocationColorStyle(slice),
-                  ]}
-                />
-              ) : null}
-              <Text
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Medium}
-                numberOfLines={1}
-                twClassName="shrink"
-                variant={TextVariant.BodyMd}
-              >
-                {getSliceLabel(slice.key)}
-              </Text>
-              {percentageLabel ? (
-                <>
-                  <Text
-                    color={TextColor.TextAlternative}
-                    variant={TextVariant.BodyMd}
-                  >
-                    •
-                  </Text>
-                  <SensitiveText
-                    color={TextColor.TextAlternative}
-                    isHidden={privacyMode}
-                    length={SensitiveTextLength.Short}
-                    testID={HomepageBalanceBreakdownTestIds.PERCENTAGE(
-                      slice.key,
-                    )}
-                    variant={TextVariant.BodyMd}
-                  >
-                    {percentageLabel}
-                  </SensitiveText>
-                </>
-              ) : null}
-            </Box>
-            {slice.key === 'money' && slice.apyLoading ? (
-              <Skeleton
-                height={20}
-                testID={HomepageBalanceBreakdownTestIds.APY_SKELETON}
-                twClassName="shrink-0"
-                width={60}
-              />
-            ) : moneyApy !== undefined ? (
-              <Box
-                testID={HomepageBalanceBreakdownTestIds.APY}
-                twClassName="shrink-0 rounded-md bg-success-muted px-1.5 py-0.5"
-              >
-                <Text
-                  color={TextColor.SuccessDefault}
-                  fontWeight={FontWeight.Medium}
-                  variant={TextVariant.BodySm}
-                >
-                  {apyLabel}
-                </Text>
-              </Box>
-            ) : null}
-          </Box>
-          <Skeleton
-            hideChildren={isLoading}
-            testID={HomepageBalanceBreakdownTestIds.SKELETON(slice.key)}
-          >
-            <SensitiveText
-              color={valueColor}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Medium}
-              testID={HomepageBalanceBreakdownTestIds.VALUE(slice.key)}
+              color={TextColor.TextAlternative}
               variant={TextVariant.BodyMd}
             >
-              {displayValue}
+              •
+            </Text>
+            <SensitiveText
+              color={TextColor.TextAlternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={HomepageBalanceBreakdownTestIds.PERCENTAGE(slice.key)}
+              variant={TextVariant.BodyMd}
+            >
+              {percentageLabel}
             </SensitiveText>
-          </Skeleton>
-        </Box>
+          </>
+        ) : null}
       </Box>
-    </Pressable>
+      {slice.key === 'money' && slice.apyLoading ? (
+        <Skeleton
+          height={20}
+          testID={HomepageBalanceBreakdownTestIds.APY_SKELETON}
+          twClassName="shrink-0"
+          width={60}
+        />
+      ) : moneyApy !== undefined ? (
+        <Box
+          testID={HomepageBalanceBreakdownTestIds.APY}
+          twClassName="shrink-0 rounded-md bg-success-muted px-1.5 py-0.5"
+        >
+          <Text
+            color={TextColor.SuccessDefault}
+            fontWeight={FontWeight.Medium}
+            variant={TextVariant.BodySm}
+          >
+            {apyLabel}
+          </Text>
+        </Box>
+      ) : null}
+    </Box>
+  );
+
+  const value = (
+    <Skeleton
+      hideChildren={isLoading}
+      testID={HomepageBalanceBreakdownTestIds.SKELETON(slice.key)}
+    >
+      <SensitiveText
+        color={valueColor}
+        isHidden={privacyMode}
+        length={SensitiveTextLength.Medium}
+        testID={HomepageBalanceBreakdownTestIds.VALUE(slice.key)}
+        variant={TextVariant.BodyMd}
+      >
+        {displayValue}
+      </SensitiveText>
+    </Skeleton>
+  );
+
+  return (
+    <ListItem
+      accessibilityLabel={accessibilityLabel}
+      avatar={avatar}
+      isInteractive
+      onPress={onPress}
+      testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
+      title={title}
+      twClassName="min-h-10 py-0"
+      value={value}
+      variant={ListItemVariant.OneLine}
+    />
   );
 };
 

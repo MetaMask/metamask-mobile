@@ -9,6 +9,7 @@ import Routes from '../../../app/constants/navigation/Routes';
 import ActivityScreen from '../../../app/components/Views/ActivityScreen/ActivityScreen';
 import ActivityList from '../../../app/components/Views/ActivityList';
 import ActivityView from '../../../app/components/Views/ActivityView';
+import ActivityDetails from '../../../app/components/Views/ActivityDetails';
 import ActivityTypeFilterSheet from '../../../app/components/Views/ActivityScreen/components/ActivityTypeFilterSheet';
 import PerpsActivityFilterSheet from '../../../app/components/Views/ActivityScreen/components/PerpsActivityFilterSheet';
 import ActivityNetworkFilterSheet from '../../../app/components/Views/ActivityScreen/components/ActivityNetworkFilterSheet';
@@ -283,5 +284,41 @@ export function renderActivityViewWithRoutes(
     { name: Routes.TRANSACTIONS_VIEW },
     options.extraRoutes,
     { state },
+  );
+}
+
+interface RenderActivityDetailsViewOptions {
+  overrides?: DeepPartial<RootState>;
+  state?: DeepPartial<RootState>;
+  initialParams: {
+    chainId: string;
+    txIdentifier: string;
+    preloadKey?: string;
+  };
+  extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
+}
+
+function ActivityDetailsWithProviders() {
+  return React.createElement(
+    HardwareWalletProvider,
+    null,
+    React.createElement(ActivityDetails),
+  );
+}
+
+/**
+ * Mounts redesigned ActivityDetails with route params.
+ */
+export function renderActivityDetailsView(
+  options: RenderActivityDetailsViewOptions,
+): ReturnType<typeof renderScreenWithRoutes> {
+  const state = buildActivityState(options);
+
+  return renderScreenWithRoutes(
+    ActivityDetailsWithProviders,
+    { name: Routes.ACTIVITY_DETAILS },
+    options.extraRoutes ?? [],
+    { state },
+    options.initialParams,
   );
 }

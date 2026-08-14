@@ -16,7 +16,7 @@ export const SLICE_ICON_SYMBOLS: Partial<Record<SliceKey, string>> = {
 const SLICE_LABEL_KEYS = {
   money: 'homepage.sections.money',
   tokens: 'homepage.sections.tokens',
-  perps: 'homepage.sections.perpetuals',
+  perps: 'homepage.sections.perps',
   predict: 'homepage.sections.predictions',
   defi: 'homepage.sections.defi',
 } as const;
