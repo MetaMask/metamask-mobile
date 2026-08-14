@@ -52,5 +52,42 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: {},
     },
+    {
+      urlEndpoint: hyperliquidInfoEndpoint,
+      requestBody: {
+        type: 'clearinghouseState',
+      },
+      ignoreFields: ['user', 'dex'],
+      responseCode: 200,
+      response: {
+        marginSummary: {
+          accountValue: '0',
+          totalNtlPos: '0',
+          totalRawUsd: '0',
+          totalMarginUsed: '0',
+        },
+        crossMarginSummary: {
+          accountValue: '0',
+          totalNtlPos: '0',
+          totalRawUsd: '0',
+          totalMarginUsed: '0',
+        },
+        crossMaintenanceMarginUsed: '0',
+        withdrawable: '0',
+        assetPositions: [],
+        time: 0,
+      },
+    },
+    {
+      urlEndpoint: hyperliquidInfoEndpoint,
+      requestBody: {
+        type: 'spotClearinghouseState',
+      },
+      ignoreFields: ['user'],
+      responseCode: 200,
+      response: {
+        balances: [],
+      },
+    },
   ],
 };
