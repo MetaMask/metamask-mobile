@@ -22,7 +22,7 @@ const mockUseABTest = jest.mocked(useABTest);
 describe('useMoneyAccountDepositPrefillEnabled', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue({ enabled: true });
+    mockUseSelector.mockReturnValue(true);
     mockUseABTest.mockReturnValue({
       variant:
         MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[

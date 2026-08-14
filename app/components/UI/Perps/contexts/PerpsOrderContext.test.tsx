@@ -43,6 +43,7 @@ describe('PerpsOrderContext', () => {
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    setMaxPossibleAmountOverride: jest.fn(),
     balanceForValidation: 1000,
   };
 

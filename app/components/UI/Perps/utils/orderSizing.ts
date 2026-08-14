@@ -82,3 +82,35 @@ export const deriveOrderSizing = ({
 
   return { effectivePrice, positionSize, marginRequired };
 };
+
+export interface ReduceOnlyMaxUsdAmountInput {
+  /** Signed or unsigned position size in token units. */
+  positionSize?: string;
+  /** Price used to convert size to USD (limit price when set, else market). */
+  price: number;
+}
+
+/**
+ * USD notional of an open position at `price`. Used as the Pro size-slider
+ * max when Reduce Only is on so the range tracks position size, not
+ * available margin.
+ *
+ * @param input - Position size and conversion price.
+ * @returns The USD notional, or `0` when size or price is missing/invalid.
+ */
+export const getReduceOnlyMaxUsdAmount = ({
+  positionSize,
+  price,
+}: ReduceOnlyMaxUsdAmountInput): number => {
+  const absSize = Math.abs(Number.parseFloat(positionSize ?? ''));
+  if (
+    !Number.isFinite(absSize) ||
+    absSize <= 0 ||
+    !Number.isFinite(price) ||
+    price <= 0
+  ) {
+    return 0;
+  }
+
+  return new BigNumber(absSize).times(price).toNumber();
+};
