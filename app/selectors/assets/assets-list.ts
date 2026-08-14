@@ -19,11 +19,7 @@ import I18n from '../../../locales/i18n';
 import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
-import {
-  TRON_SPECIAL_ASSET_SYMBOLS,
-  TRON_SPECIAL_ASSET_SYMBOLS_SET,
-  TronSpecialAssetSymbol,
-} from '../../core/Multichain/constants';
+import { KnownCaip19Id } from '../../core/Multichain/constants';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
@@ -93,6 +89,53 @@ export interface TronSpecialAssetsMap {
   /** TRX in lock period (unstaked but waiting for lock period to end) */
   trxInLockPeriod: Asset | undefined;
 }
+
+type TronSpecialAssetKey = Exclude<
+  keyof TronSpecialAssetsMap,
+  'totalStakedTrx'
+>;
+
+/**
+ * Maps each Tron special-asset CAIP-19 ID to its semantic key in
+ * {@link TronSpecialAssetsMap}. Network-specific IDs collapse to the same key.
+ */
+const TRON_SPECIAL_ASSET_KEYS = {
+  [KnownCaip19Id.EnergyMainnet]: 'energy',
+  [KnownCaip19Id.EnergyNile]: 'energy',
+  [KnownCaip19Id.EnergyShasta]: 'energy',
+
+  [KnownCaip19Id.BandwidthMainnet]: 'bandwidth',
+  [KnownCaip19Id.BandwidthNile]: 'bandwidth',
+  [KnownCaip19Id.BandwidthShasta]: 'bandwidth',
+
+  [KnownCaip19Id.MaximumEnergyMainnet]: 'maxEnergy',
+  [KnownCaip19Id.MaximumEnergyNile]: 'maxEnergy',
+  [KnownCaip19Id.MaximumEnergyShasta]: 'maxEnergy',
+
+  [KnownCaip19Id.MaximumBandwidthMainnet]: 'maxBandwidth',
+  [KnownCaip19Id.MaximumBandwidthNile]: 'maxBandwidth',
+  [KnownCaip19Id.MaximumBandwidthShasta]: 'maxBandwidth',
+
+  [KnownCaip19Id.TrxStakedForEnergyMainnet]: 'stakedTrxForEnergy',
+  [KnownCaip19Id.TrxStakedForEnergyNile]: 'stakedTrxForEnergy',
+  [KnownCaip19Id.TrxStakedForEnergyShasta]: 'stakedTrxForEnergy',
+
+  [KnownCaip19Id.TrxStakedForBandwidthMainnet]: 'stakedTrxForBandwidth',
+  [KnownCaip19Id.TrxStakedForBandwidthNile]: 'stakedTrxForBandwidth',
+  [KnownCaip19Id.TrxStakedForBandwidthShasta]: 'stakedTrxForBandwidth',
+
+  [KnownCaip19Id.TrxReadyForWithdrawalMainnet]: 'trxReadyForWithdrawal',
+  [KnownCaip19Id.TrxReadyForWithdrawalNile]: 'trxReadyForWithdrawal',
+  [KnownCaip19Id.TrxReadyForWithdrawalShasta]: 'trxReadyForWithdrawal',
+
+  [KnownCaip19Id.TrxStakingRewardsMainnet]: 'trxStakingRewards',
+  [KnownCaip19Id.TrxStakingRewardsNile]: 'trxStakingRewards',
+  [KnownCaip19Id.TrxStakingRewardsShasta]: 'trxStakingRewards',
+
+  [KnownCaip19Id.TrxInLockPeriodMainnet]: 'trxInLockPeriod',
+  [KnownCaip19Id.TrxInLockPeriodNile]: 'trxInLockPeriod',
+  [KnownCaip19Id.TrxInLockPeriodShasta]: 'trxInLockPeriod',
+} as const satisfies Record<KnownCaip19Id, TronSpecialAssetKey>;
 
 /**
  * Empty constant to avoid creating new objects on each call when no Tron networks are enabled.
@@ -343,7 +386,7 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .filter(([networkId]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
-            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isTronSpecialAsset(asset.assetId)) return false;
             if (isAssetSupportActivation(asset.assetId)) return true;
             if (
               hideZeroBalance &&
@@ -468,9 +511,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter(
-            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
-          ),
+          chainAssets.filter((asset) => !isTronSpecialAsset(asset.assetId)),
         );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,
@@ -498,7 +539,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
-            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isTronSpecialAsset(asset.assetId)) return false;
             if (isAssetSupportActivation(asset.assetId)) return true;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
@@ -689,38 +730,12 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
         if (!enabledTronNetworksSet.has(networkId)) continue;
 
         for (const asset of chainAssets) {
-          const symbol = asset.symbol?.toLowerCase() as TronSpecialAssetSymbol;
-          if (!TRON_SPECIAL_ASSET_SYMBOLS_SET.has(symbol)) continue;
-
-          switch (symbol) {
-            case TRON_SPECIAL_ASSET_SYMBOLS.ENERGY:
-              specialAssetsMap.energy = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.BANDWIDTH:
-              specialAssetsMap.bandwidth = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.MAX_ENERGY:
-              specialAssetsMap.maxEnergy = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.MAX_BANDWIDTH:
-              specialAssetsMap.maxBandwidth = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.STRX_ENERGY:
-              specialAssetsMap.stakedTrxForEnergy = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.STRX_BANDWIDTH:
-              specialAssetsMap.stakedTrxForBandwidth = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_READY_FOR_WITHDRAWAL:
-              specialAssetsMap.trxReadyForWithdrawal = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_STAKING_REWARDS:
-              specialAssetsMap.trxStakingRewards = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_IN_LOCK_PERIOD:
-              specialAssetsMap.trxInLockPeriod = asset;
-              break;
+          if (!Object.hasOwn(TRON_SPECIAL_ASSET_KEYS, asset.assetId)) {
+            continue;
           }
+
+          const key = TRON_SPECIAL_ASSET_KEYS[asset.assetId as KnownCaip19Id];
+          specialAssetsMap[key] = asset;
         }
       }
 
