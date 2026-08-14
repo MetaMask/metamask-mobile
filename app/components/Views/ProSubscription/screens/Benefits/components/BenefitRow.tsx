@@ -13,9 +13,9 @@ import {
   IconColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import type { BenefitItem } from '../BenefitsFullPageModal.constants';
-import { BenefitsFullPageModalTestIds } from '../BenefitsFullPageModal.testIds';
-import { strings } from '../../../../../../locales/i18n';
+import type { BenefitItem } from '../Benefits.constants';
+import { BenefitsTestIds } from '../Benefits.testIds';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface BenefitRowProps {
   item: BenefitItem;
@@ -27,7 +27,7 @@ const BenefitRow = ({ item, onPress }: BenefitRowProps) => (
     onPress={() => onPress(item)}
     accessibilityRole="button"
     accessibilityLabel={item.title}
-    testID={BenefitsFullPageModalTestIds.BENEFIT_ROW(item.id)}
+    testID={BenefitsTestIds.BENEFIT_ROW(item.id)}
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -35,7 +35,6 @@ const BenefitRow = ({ item, onPress }: BenefitRowProps) => (
       twClassName="py-3 gap-x-4"
     >
       {/* Check circle */}
-
       <Icon
         name={IconName.Check}
         size={IconSize.Lg}

@@ -15,10 +15,12 @@ import {
   TagSeverity,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import type { PlanOption } from '../BenefitsFullPageModal.constants';
-import { BenefitsFullPageModalTestIds } from '../BenefitsFullPageModal.testIds';
-import { strings } from '../../../../../../locales/i18n';
+import type { PlanOption } from '../Benefits.constants';
+import { BenefitsTestIds } from '../Benefits.testIds';
+import { strings } from '../../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../../../../util/theme';
+import { AppThemeKey } from '../../../../../../util/theme/models';
 
 interface PlanSelectorCardProps {
   plan: PlanOption;
@@ -32,6 +34,8 @@ const PlanSelectorCard = ({
   onPress,
 }: PlanSelectorCardProps) => {
   const tw = useTailwind();
+  const { colors, themeAppearance } = useTheme();
+  const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
     <TouchableOpacity
@@ -39,13 +43,13 @@ const PlanSelectorCard = ({
       accessibilityRole="radio"
       accessibilityState={{ checked: isSelected }}
       accessibilityLabel={plan.id}
-      testID={BenefitsFullPageModalTestIds.PLAN_CARD(plan.id)}
-      activeOpacity={0}
+      testID={BenefitsTestIds.PLAN_CARD(plan.id)}
+      activeOpacity={1}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName={`rounded-3xl px-4 py-5 bg-background-section flex flex-row items-center justify-between ${isSelected ? 'border-2 border-border-muted' : 'border-0'}`}
+        twClassName={`rounded-3xl px-4 py-5 bg-background-section flex flex-row items-center justify-between ${isSelected ? 'border-2 border-border-default' : 'border-2 border-transparent'}`}
       >
         {/* Plan details */}
         <Box twClassName="flex flex-col gap-y-2">
@@ -79,13 +83,13 @@ const PlanSelectorCard = ({
 
         {/* Radio indicator */}
         <Box
-          twClassName={`w-8 h-8 rounded-full border-2 items-center justify-center ${isSelected ? 'bg-white' : 'bg-background-section'} border-border-muted`}
+          twClassName={`w-8 h-8 shrink-0 rounded-full border-2 items-center justify-center ${isSelected ? (isDark ? 'bg-white' : 'bg-black') : 'bg-background-section'} border-border-muted`}
         >
           {isSelected && (
             <Icon
               name={IconName.CheckBold}
               size={IconSize.Sm}
-              color={'black'}
+              color={IconColor.IconInverse}
             />
           )}
         </Box>

@@ -399,7 +399,7 @@ const MoneyHomeView = () => {
 
   const handleGetProPress = useCallback(() => {
     navigation.navigate(
-      Routes.PRO_SUBSCRIPTION.BENEFITS_FULL_PAGE_MODAL as never,
+      Routes.PRO_SUBSCRIPTION.ROOT as never,
       {
         source: 'money_header',
       } as never,

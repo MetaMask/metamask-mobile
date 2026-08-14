@@ -186,7 +186,7 @@ import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWallet
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import DesignerModeOverlay from '../../UI/DesignerMode';
-import BenefitsFullPageModal from '../../Views/ProSubscription/BenefitsFullPageModal';
+import ProSubscription from '../../Views/ProSubscription';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1390,8 +1390,8 @@ const AppFlow = () => {
         component={PayWithBottomSheet}
       />
       <NativeStack.Screen
-        name={Routes.PRO_SUBSCRIPTION.BENEFITS_FULL_PAGE_MODAL}
-        component={BenefitsFullPageModal}
+        name={Routes.PRO_SUBSCRIPTION.ROOT}
+        component={ProSubscription}
         options={{
           headerShown: false,
           gestureEnabled: true,
