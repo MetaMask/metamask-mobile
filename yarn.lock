@@ -31547,7 +31547,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^15.15.0, globals@npm:^15.9.0":
+"globals@npm:^15.9.0":
   version: 15.15.0
   resolution: "globals@npm:15.15.0"
   checksum: 10/7f561c87b2fd381b27fc2db7df8a4ea7a9bb378667b8a7193e61fd2ca3a876479174e2a303a74345fbea6e1242e16db48915c1fd3bf35adcf4060a795b425e18
@@ -36333,7 +36333,6 @@ __metadata:
     fast-equals: "npm:^5.2.2"
     fuse.js: "npm:3.4.4"
     ganache: "npm:^7.9.2"
-    globals: "npm:^15.15.0"
     he: "npm:^1.2.0"
     https-browserify: "npm:0.0.1"
     humanize-duration: "npm:^3.27.2"
