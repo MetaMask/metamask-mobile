@@ -249,6 +249,61 @@ test('aggregateReports counts failed tests separately per cloud provider', () =>
   }
 });
 
+test('aggregateReports deduplicates parallel attempts within each provider', () => {
+  const originalCwd = process.cwd();
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'aggregate-performance-reports-'),
+  );
+  const testName = 'Repeated onboarding scenario';
+
+  try {
+    process.chdir(tempDir);
+    writeJson(
+      path.join(
+        tempDir,
+        'test-results',
+        'testmu-android-onboarding-flow-test-results-Pixel 8 Pro-14',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Repeated-Pixel_8_Pro-14.json',
+      ),
+      [
+        { ...makeFailedReport(testName)[0], device: {
+          name: 'Pixel 8 Pro',
+          osVersion: '14',
+          provider: 'testmu',
+        } },
+        { ...makeReport(testName, 'testmu')[0], device: {
+          name: 'Pixel 8 Pro',
+          osVersion: '14',
+          provider: 'testmu',
+        } },
+      ],
+    );
+
+    aggregateReports();
+
+    const summary = JSON.parse(
+      fs.readFileSync(
+        path.join(tempDir, 'tests', 'aggregated-reports', 'summary.json'),
+        'utf8',
+      ),
+    );
+    const providerResult = summary.providerResults['testmu-hyperexecute'];
+
+    assert.equal(providerResult.totalTests, 1);
+    assert.equal(providerResult.passedTests, 0);
+    assert.equal(providerResult.failedTests, 0);
+    assert.equal(providerResult.mixedTests, 1);
+    assert.equal(providerResult.mixed[0].attempts.length, 2);
+    assert.equal(providerResult.mixed[0].failureAttempts.length, 1);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('collectAppProfilingArtifacts preserves provider identity for matching sidecars', () => {
   const tempDir = fs.mkdtempSync(
     path.join(os.tmpdir(), 'aggregate-performance-profiling-'),

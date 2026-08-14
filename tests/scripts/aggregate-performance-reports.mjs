@@ -341,6 +341,62 @@ function processTestReport(testReport) {
 }
 
 /**
+ * Build one deduplicated result set per cloud provider.
+ * Parallel HyperExecute tasks and retries can emit multiple reports for the
+ * same scenario. Keep every attempt for diagnosis, but expose one scenario
+ * result with passed, failed, or mixed status.
+ * @param {Object} testExecutions
+ * @returns {Object}
+ */
+function createProviderResults(testExecutions) {
+  const providerResults = {};
+
+  Object.values(testExecutions).forEach((execution) => {
+    const { testInfo, attempts, cloudProvider } = execution;
+    if (!providerResults[cloudProvider]) {
+      providerResults[cloudProvider] = {
+        provider: cloudProvider,
+        totalTests: 0,
+        passedTests: 0,
+        failedTests: 0,
+        mixedTests: 0,
+        passed: [],
+        failed: [],
+        mixed: [],
+      };
+    }
+
+    const status =
+      execution.hasPassed && execution.hasFailed
+        ? 'mixed'
+        : execution.hasPassed
+          ? 'passed'
+          : 'failed';
+    const scenario = {
+      ...testInfo,
+      status,
+      attempts,
+      failureAttempts: attempts.filter((attempt) => attempt.testFailed),
+    };
+
+    const result = providerResults[cloudProvider];
+    result.totalTests += 1;
+    if (status === 'passed') {
+      result.passedTests += 1;
+      result.passed.push(scenario);
+    } else if (status === 'failed') {
+      result.failedTests += 1;
+      result.failed.push(scenario);
+    } else {
+      result.mixedTests += 1;
+      result.mixed.push(scenario);
+    }
+  });
+
+  return providerResults;
+}
+
+/**
  * Create empty report structure when no results are found
  * @param {string} outputPath - Path to save the empty report
  */
@@ -504,6 +560,8 @@ function createSummary(groupedResults) {
           testExecutions[uniqueKey] = {
             hasPassed: false,
             hasFailed: false,
+            cloudProvider,
+            attempts: [],
             testInfo: {
               testName: test.testName,
               testFilePath: test.testFilePath,
@@ -520,6 +578,17 @@ function createSummary(groupedResults) {
             }
           };
         }
+
+        testExecutions[uniqueKey].attempts.push({
+          status: test.testFailed ? 'failed' : 'passed',
+          testFailed: Boolean(test.testFailed),
+          failureReason: test.failureReason ?? null,
+          qualityGates: test.qualityGates || null,
+          qualityGatesViolations: test.qualityGatesViolations || null,
+          sessionId: test.sessionId || null,
+          videoURL: test.videoURL || null,
+          totalTime: test.totalTime ?? null,
+        });
         
         // Track if this test has ever passed or failed
         if (test.testFailed) {
@@ -540,8 +609,10 @@ function createSummary(groupedResults) {
     });
   });
   
-  // Unique test count: each test counts once per device regardless of retries
+  // Unique test count: each test counts once per provider/device regardless of
+  // retries or parallel HyperExecute tasks.
   const uniqueTestCount = Object.keys(testExecutions).length;
+  const rawExecutionCount = totalTests;
 
   // Second pass: determine final test status
   // A test is only considered failed if ALL executions failed (no successful retry)
@@ -616,32 +687,40 @@ function createSummary(groupedResults) {
     }
   });
   
-  // Count tests by platform
+  // Count unique tests by platform/device for the final report. Raw execution
+  // counts remain available as `rawExecutionCount` for audit/debugging.
   const platforms = {};
   const testsByPlatform = {};
   const summaryDevices = [];
   const platformDevices = { Android: [], iOS: [] };
-  
-  Object.keys(groupedResults).forEach(platform => {
-    platforms[platform.toLowerCase()] = Object.keys(groupedResults[platform]).length;
-    testsByPlatform[platform.toLowerCase()] = 0;
-    
-    Object.keys(groupedResults[platform]).forEach(device => {
-      const testsCount = groupedResults[platform][device].length;
-      testsByPlatform[platform.toLowerCase()] += testsCount;
-      
-      summaryDevices.push({ platform, device, testCount: testsCount });
-      platformDevices[platform].push(device);
-    });
+  const uniqueDeviceCounts = new Map();
+
+  Object.values(testExecutions).forEach(({ testInfo }) => {
+    const key = `${testInfo.platform}|${testInfo.device}`;
+    uniqueDeviceCounts.set(key, (uniqueDeviceCounts.get(key) ?? 0) + 1);
   });
-  
+
+  uniqueDeviceCounts.forEach((testCount, key) => {
+    const [platform, device] = key.split('|');
+    const platformKey = platform.toLowerCase();
+    platforms[platformKey] = (platforms[platformKey] ?? 0) + 1;
+    testsByPlatform[platformKey] =
+      (testsByPlatform[platformKey] ?? 0) + testCount;
+    summaryDevices.push({ platform, device, testCount });
+    platformDevices[platform].push(device);
+  });
+
+  totalTests = uniqueTestCount;
+
   // Calculate profiling averages
   const avgCpuUsage = profilingTestCount > 0 ? (totalCpuUsage / profilingTestCount).toFixed(2) : 0;
   const avgMemoryUsage = profilingTestCount > 0 ? (totalMemoryUsage / profilingTestCount).toFixed(2) : 0;
   const profilingCoverage = totalTests > 0 ? ((totalTestsWithProfiling / totalTests) * 100).toFixed(1) : 0;
+  const providerResults = createProviderResults(testExecutions);
   
   const summary = {
     totalTests,
+    rawExecutionCount,
     uniqueTests: uniqueTestCount,
     platforms,
     testsByPlatform,
@@ -657,6 +736,7 @@ function createSummary(groupedResults) {
       avgMemoryUsage: `${avgMemoryUsage} MB`,
       profilingTestCount
     },
+    providerResults,
     // Failed tests grouped by team for Slack notifications
     // Only includes tests that failed ALL retries (if a retry passed, test is not counted as failed)
     failedTestsStats: {
@@ -735,26 +815,29 @@ function generateHtmlReport(groupedResults, summary) {
     timeZoneName: 'short'
   });
 
-  // Count passed/failed tests
+  // Render one deduplicated scenario per provider. Raw attempts remain in the
+  // JSON artifacts for auditability, but must not inflate the final report.
   let passedTests = 0;
   let failedTests = 0;
-  const allTests = [];
+  let mixedTests = 0;
+  const allTests = Object.values(summary.providerResults || {}).flatMap(
+    (providerResult) => [
+      ...providerResult.passed,
+      ...providerResult.failed,
+      ...providerResult.mixed,
+    ],
+  );
 
-  Object.keys(groupedResults).forEach(platform => {
-    Object.keys(groupedResults[platform]).forEach(device => {
-      groupedResults[platform][device].forEach(test => {
-        if (test.testFailed) {
-          failedTests++;
-        } else {
-          passedTests++;
-        }
-        allTests.push({ ...test, platform, device });
-      });
-    });
+  allTests.forEach((test) => {
+    test.testFailed = test.status !== 'passed';
+    if (test.status === 'passed') passedTests++;
+    else if (test.status === 'failed') failedTests++;
+    else mixedTests++;
   });
 
-  const passRate = summary.totalTests > 0 
-    ? ((passedTests / summary.totalTests) * 100).toFixed(1) 
+  const finalTestCount = passedTests + failedTests + mixedTests;
+  const passRate = finalTestCount > 0
+    ? ((passedTests / finalTestCount) * 100).toFixed(1)
     : 0;
 
   // Generate test rows HTML
@@ -819,31 +902,25 @@ function generateHtmlReport(groupedResults, summary) {
 
   // Generate platform breakdown
   const generatePlatformBreakdown = () => {
-    return Object.keys(groupedResults).map(platform => {
-      const devices = Object.keys(groupedResults[platform]);
-      const testCount = devices.reduce((acc, device) => 
-        acc + groupedResults[platform][device].length, 0);
-      
-      const deviceList = devices.map(device => {
-        const deviceTests = groupedResults[platform][device];
-        const passed = deviceTests.filter(t => !t.testFailed).length;
-        const failed = deviceTests.filter(t => t.testFailed).length;
-        return `
-          <div class="device-item">
-            <span class="device-name">${device}</span>
-            <div class="device-stats">
-              <span class="passed-count">${passed} ✓</span>
-              ${failed > 0 ? `<span class="failed-count">${failed} ✗</span>` : ''}
-            </div>
+    return Object.values(summary.providerResults || {}).map((providerResult) => {
+      const providerName = formatCloudProvider(providerResult.provider);
+      const testCount = providerResult.totalTests;
+      const deviceList = [`
+        <div class="device-item">
+          <span class="device-name">${providerName}</span>
+          <div class="device-stats">
+            <span class="passed-count">${providerResult.passedTests} ✓</span>
+            ${providerResult.failedTests > 0 ? `<span class="failed-count">${providerResult.failedTests} ✗</span>` : ''}
+            ${providerResult.mixedTests > 0 ? `<span class="failed-count">${providerResult.mixedTests} mixed</span>` : ''}
           </div>
-        `;
-      }).join('');
+        </div>
+      `].join('');
 
       return `
         <div class="platform-card">
           <div class="platform-header">
-            <span class="platform-icon">${platform === 'Android' ? '🤖' : '🍎'}</span>
-            <span class="platform-name">${platform}</span>
+            <span class="platform-icon">☁️</span>
+            <span class="platform-name">${providerName}</span>
             <span class="platform-test-count">${testCount} tests</span>
           </div>
           <div class="device-list">${deviceList}</div>
@@ -1504,7 +1581,7 @@ function generateHtmlReport(groupedResults, summary) {
         <div class="label">Pass Rate</div>
       </div>
       <div class="summary-card info">
-        <div class="value">${summary.totalTests}</div>
+        <div class="value">${finalTestCount}</div>
         <div class="label">Total Tests</div>
       </div>
       <div class="summary-card success">
@@ -1515,6 +1592,12 @@ function generateHtmlReport(groupedResults, summary) {
         <div class="value">${failedTests}</div>
         <div class="label">Failed</div>
       </div>
+      ${mixedTests > 0 ? `
+      <div class="summary-card warning">
+        <div class="value">${mixedTests}</div>
+        <div class="label">Mixed attempts</div>
+      </div>
+      ` : ''}
       <div class="summary-card purple">
         <div class="value">${summary.devices?.length || 0}</div>
         <div class="label">Devices</div>
@@ -1568,7 +1651,7 @@ function generateHtmlReport(groupedResults, summary) {
       <div class="tests-header">
         <h2>🧪 Test Results</h2>
         <div class="filter-tabs">
-          <button class="filter-tab active" onclick="filterTests('all')">All (${summary.totalTests})</button>
+          <button class="filter-tab active" onclick="filterTests('all')">All (${finalTestCount})</button>
           <button class="filter-tab" onclick="filterTests('passed')">Passed (${passedTests})</button>
           <button class="filter-tab" onclick="filterTests('failed')">Failed (${failedTests})</button>
         </div>
@@ -1826,6 +1909,7 @@ export {
   collectAppProfilingArtifacts,
   extractPlatformScenarioAndDevice,
   processTestReport,
+  createProviderResults,
   generateHtmlReport,
   formatDuration,
 };
