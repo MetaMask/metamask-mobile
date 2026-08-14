@@ -203,6 +203,16 @@ const PerpsProMarketView = () => {
     setTitleSectionHeight(PRICE_SECTION_HEIGHT);
   }, [setTitleSectionHeight]);
 
+  const handleRequestScrollBy = useCallback(
+    (delta: number) => {
+      scrollViewRef.current?.scrollTo({
+        y: scrollY.value + delta,
+        animated: true,
+      });
+    },
+    [scrollY],
+  );
+
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
@@ -383,6 +393,8 @@ const PerpsProMarketView = () => {
                   market={market as PerpsMarketData}
                   isOrderBookCollapsed={isOrderBookCollapsed}
                   onExpandOrderBook={handleExpandOrderBook}
+                  onRequestScrollBy={handleRequestScrollBy}
+                  scrollViewRef={scrollViewRef}
                 />
               }
               orderBook={

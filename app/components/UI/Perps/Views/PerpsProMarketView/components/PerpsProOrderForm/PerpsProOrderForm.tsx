@@ -268,6 +268,8 @@ const PerpsProOrderForm = ({
   onUseMidPricePress,
   sizeInput,
   sizeSlider,
+  sizeCardRef,
+  onSizeFieldPress,
   availableBalance,
   onAddFundsPress,
   reduceOnly,
@@ -429,6 +431,8 @@ const PerpsProOrderForm = ({
             ) : null}
           </Box>
           <PerpsProSizeInput
+            containerRef={sizeCardRef}
+            onFieldPress={onSizeFieldPress}
             value={sizeInput.value}
             onChangeText={sizeInput.onChange}
             denomination={sizeInput.denomination}

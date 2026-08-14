@@ -1,4 +1,6 @@
 import type { OrderType } from '@metamask/perps-controller';
+import type { Ref } from 'react';
+import type { View } from 'react-native';
 
 export type PerpsProOrderDirection = 'long' | 'short';
 
@@ -75,6 +77,10 @@ export interface PerpsProOrderFormProps {
   onUseMidPricePress?: () => void;
   sizeInput: PerpsProSizeInputModel;
   sizeSlider: PerpsProSizeSliderModel;
+  /** Forwarded to the size card so it can be measured for keyboard clearance. */
+  sizeCardRef?: Ref<View>;
+  /** Fires on every size-field tap, including while already focused. */
+  onSizeFieldPress?: () => void;
   availableBalance: string;
   onAddFundsPress?: () => void;
   reduceOnly: boolean;
