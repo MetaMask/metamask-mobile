@@ -128,6 +128,7 @@ export const PredictEventValues = {
     HOMEPAGE_FEATURED_LIST: 'homepage_featured_list',
     MAIN_TRADE_BUTTON: 'main_trade_button',
     HOMESCREEN_PILL: 'homescreen_pill',
+    HOMESCREEN_BALANCE_BREAKDOWN: 'homescreen_balance_breakdown',
     REWARDS: 'rewards',
     GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',

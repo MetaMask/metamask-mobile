@@ -37,6 +37,7 @@ jest.mock('../../../../../core/Analytics', () => ({
 }));
 
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardActions: {
     CASHBACK_BUTTON: 'CASHBACK_BUTTON',
     CREDIT_BUTTON: 'CREDIT_BUTTON',
@@ -117,6 +118,7 @@ const mockSelectCardHomeDataStatus = jest.fn();
 jest.mock('../../../../../selectors/cardController', () => ({
   selectCardHomeDataStatus: () => mockSelectCardHomeDataStatus(),
   selectIsCardAuthenticated: jest.fn(() => true),
+  selectCardActiveProviderId: jest.fn(() => 'baanx'),
 }));
 
 const MOCK_LINEA_USDC_TOKEN = {
@@ -807,6 +809,7 @@ describe('Cashback Component', () => {
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         action: 'CASHBACK_BUTTON',
         type: 'withdraw',
+        provider: 'baanx',
       });
     });
   });

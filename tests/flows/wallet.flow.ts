@@ -740,6 +740,37 @@ export const dismissPushNotificationExistingUserSheet =
   };
 
 /**
+ * Closes the Predict GTM onboarding modal if "Not now" appears within 2s.
+ * No-ops when the modal is absent (removed builds / flag off).
+ * @returns true when dismissed, false when it did not appear in time
+ */
+export const closePredictModal = async (
+  options: { timeoutMs?: number } = {},
+): Promise<boolean> => {
+  const timeoutMs = options.timeoutMs ?? 2_000;
+
+  try {
+    const predictTitle = await asPlaywrightElement(
+      PlaywrightMatchers.getElementByText('PREDICT AND WIN', true),
+    );
+    await predictTitle.unwrap().waitForDisplayed({ timeout: timeoutMs });
+
+    const notNow = await asPlaywrightElement(
+      PlaywrightMatchers.getElementByText('Not now', true),
+    );
+    await notNow.unwrap().waitForDisplayed({ timeout: 2_000 });
+    await PlaywrightGestures.waitAndTap(notNow, {
+      timeout: 2_000,
+      checkForDisplayed: false,
+      checkForEnabled: false,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Dismisses the marketing consent (Experience Enhancer) modal if it appears
  * after login. Safe to call when the modal is not shown.
  */
@@ -1042,6 +1073,8 @@ export const onboardingFlowImportSRPPlaywright = async (
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
   await dismissPushNotificationExistingUserSheet();
+  // Predict GTM is A/B — may sit on top of wallet home after Agree.
+  await closePredictModal();
 
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(WalletView.container),

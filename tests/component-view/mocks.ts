@@ -116,6 +116,8 @@ jest.mock('../../app/core/Engine', () => {
           supportsCredit: true,
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
+          supportsTransactionHistory: false,
+          supportsMoneyAccountLinking: false,
         }),
       },
       PhishingController: {
@@ -296,6 +298,7 @@ jest.mock('../../app/core/Engine', () => {
       NetworkController: {
         state: { networksMetadata: {}, networkConfigurationsByChainId: {} },
         addNetwork: jest.fn().mockResolvedValue(undefined),
+        removeNetwork: jest.fn(),
         getProviderAndBlockTracker() {
           return {
             provider: {
@@ -350,6 +353,7 @@ jest.mock('../../app/core/Engine', () => {
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
+      PredictNextController: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],
@@ -511,16 +515,14 @@ jest.mock('../../app/core/Engine', () => {
         resetFirstTimeUserState: jest.fn(),
         clearPendingTransactionRequests: jest.fn(),
         recordMarketViewed: jest.fn(),
+        getWatchlistMarkets: jest.fn(() => []),
+        toggleWatchlistMarket: jest.fn().mockResolvedValue(undefined),
       },
     },
     controllerMessenger: {
-      subscribe() {
-        return undefined;
-      },
-      unsubscribe() {
-        return undefined;
-      },
-      call(action: string, ...args: unknown[]) {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+      call: jest.fn((action: string, ...args: unknown[]) => {
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
         if (
@@ -530,7 +532,7 @@ jest.mock('../../app/core/Engine', () => {
           return Promise.resolve({ valid: true, errors: [] });
         }
         return Promise.resolve(undefined);
-      },
+      }),
     },
     getTotalEvmFiatAccountBalance() {
       return { balance: '0', fiatBalance: '0' };

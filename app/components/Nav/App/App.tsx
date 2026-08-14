@@ -105,6 +105,7 @@ import AmbiguousAddressSheet from '../../Views/Settings/Contacts/AmbiguousAddres
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../Views/ExperienceEnhancerModal';
+import { FeatureNotificationsGateSheet } from '../../Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import WalletCreationError from '../../Views/WalletCreationError';
@@ -129,6 +130,9 @@ import FoxLoader from '../../UI/FoxLoader';
 import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
 import { endTrace, TraceName } from '../../../util/trace';
 import { selectExistingUser } from '../../../reducers/user/selectors';
+import { Performance } from '../../../core/Performance';
+import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
+import { selectIsUnlocked } from '../../../selectors/keyringController';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWalletsSwaps';
@@ -586,6 +590,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
       component={ExperienceEnhancerModal}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.FEATURE_NOTIFICATIONS_GATE}
+      component={FeatureNotificationsGateSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.DATA_COLLECTION}
@@ -1442,6 +1450,21 @@ const App: React.FC = () => {
     },
   );
   const existingUser = useSelector(selectExistingUser);
+  const isUnlocked = useSelector(selectIsUnlocked);
+  const hasQueuedColdHomepageReadyTrace = useRef(false);
+
+  useEffect(() => {
+    if (
+      hasQueuedColdHomepageReadyTrace.current ||
+      !existingUser ||
+      !isUnlocked
+    ) {
+      return;
+    }
+
+    hasQueuedColdHomepageReadyTrace.current = true;
+    queueColdHomepageReadyTrace(Performance.appLaunchTime);
+  }, [existingUser, isUnlocked]);
 
   useEffect(() => {
     async function startApp() {
