@@ -101,10 +101,7 @@ function assetIdBelongsToChain(assetId: string, caipChainId: string): boolean {
   }
 }
 
-/**
- * Adds one searched asset to the account that matches the asset's chain.
- * Module-level so React Compiler can optimize the component (no useCallback to preserve).
- */
+/** Adds one searched asset to the account that matches the asset's chain. */
 async function addSingleToken(
   asset: ImportAsset,
   selectInternalAccountByScope: (
