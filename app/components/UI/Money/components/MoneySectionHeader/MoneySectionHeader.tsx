@@ -85,7 +85,15 @@ const MoneySectionHeader = ({
   );
 
   if (onPress) {
-    return <TouchableOpacity onPress={handlePress}>{content}</TouchableOpacity>;
+    return (
+      <TouchableOpacity
+        onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+      >
+        {content}
+      </TouchableOpacity>
+    );
   }
 
   return content;
