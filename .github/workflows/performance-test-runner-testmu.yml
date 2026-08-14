@@ -69,6 +69,11 @@ on:
         type: string
         default: '2'
         description: 'HyperExecute autosplit concurrency (default 2; set 1 if device allocation times out)'
+      he_region:
+        required: false
+        type: string
+        default: 'us'
+        description: 'HyperExecute region (us or eu)'
     secrets:
       LT_ACCESS_KEY:
         required: true
@@ -189,6 +194,7 @@ jobs:
             echo "DISABLE_NETWORK_LOGS=true"
             echo "TESTMU_NETWORK_LOGS=true"
             echo "HE_CONCURRENCY=${{ inputs.he_concurrency || '2' }}"
+            echo "HE_REGION=${{ inputs.he_region || 'us' }}"
             echo "TESTMU_LOCAL=${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}"
           } >> "$GITHUB_ENV"
 
