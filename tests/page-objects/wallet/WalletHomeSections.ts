@@ -8,18 +8,10 @@ import {
   PredictMarketDetailsSelectorsIDs,
 } from '../../../app/components/UI/Predict/Predict.testIds';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import WalletHomeScroll from './WalletHomeScroll';
 
@@ -73,9 +65,8 @@ export class WalletHomeSections {
   }
 
   get getMoneySection(): EncapsulatedElementType {
-    return PlaywrightMatchers.getElementById('homepage-section-title-cash', {
-      exact: false,
-    });
+    // Partial ID match for package-qualified Android resource IDs.
+    return Matchers.getElementByID(/homepage-section-title-cash/);
   }
 
   get tokensSectionHeader(): EncapsulatedElementType {
@@ -83,22 +74,9 @@ export class WalletHomeSections {
   }
 
   get tokensSection(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            `${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}`,
-          ),
-      },
-    });
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
+    );
   }
 
   get nftsSectionHeader(): EncapsulatedElementType {
@@ -106,17 +84,7 @@ export class WalletHomeSections {
   }
 
   async tapOnNewTokensSection(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.tokensSectionHeader, {
-          checkStability: true,
-          elemDescription: 'New Tokens Section',
-        });
-      },
-      appium: async () => {
-        await this.scrollAndTapTokensSection();
-      },
-    });
+    await this.scrollAndTapTokensSection();
   }
 
   async scrollAndTapTokensSection(
@@ -159,20 +127,9 @@ export class WalletHomeSections {
   }
 
   async tapOnTokensSection(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.tokensSectionHeader, {
-          checkStability: true,
-          elemDescription: 'Tokens Section',
-        });
-      },
-      appium: async () => {
-        const elem = await asPlaywrightElement(this.tokensSection);
-        await PlaywrightGestures.waitForElementStable(elem);
-
-        const freshElem = await asPlaywrightElement(this.tokensSection);
-        await freshElem.unwrap().click();
-      },
+    await Utilities.waitForElementToStopMoving(this.tokensSection);
+    await Gestures.waitAndTap(this.tokensSection, {
+      elemDescription: 'Tokens Section',
     });
   }
 
@@ -254,28 +211,12 @@ export class WalletHomeSections {
   ): Promise<void> {
     const { maxAttempts = 24 } = options;
 
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.scrollToElement(
-          this.predictionsSectionHeader,
-          WalletHomeScroll.walletScrollContainer,
-          {
-            direction,
-            scrollAmount: 250,
-            timeout: 60_000,
-            elemDescription: 'Scroll to Predictions section',
-          },
-        );
-      },
-      appium: async () => {
-        await WalletHomeScroll.scrollWalletHomeToElement(
-          this.predictionsSectionHeader,
-          'Predictions section',
-          direction,
-          maxAttempts,
-        );
-      },
-    });
+    await WalletHomeScroll.scrollWalletHomeToElement(
+      this.predictionsSectionHeader,
+      'Predictions section',
+      direction,
+      maxAttempts,
+    );
   }
 
   async scrollAndTapPredictionsPosition(
@@ -286,108 +227,67 @@ export class WalletHomeSections {
       ? Matchers.getElementByID(`predict-position-row-${positionId}`)
       : Matchers.getElementByText(positionName);
 
-    await encapsulatedAction({
-      detox: async () => {
+    const description = `Predictions Position: ${positionName}`;
+    const marketDetailsScreen = Matchers.getElementByID(
+      PredictMarketDetailsSelectorsIDs.SCREEN,
+    );
+    const scrollAndTapRetryTimeoutMs = 90_000;
+    const intoViewMaxAttempts = 8;
+    const scrollAndTapPerDirectionMs = 15_000;
+    const tapTimeoutMs = 10_000;
+    const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(15_000);
+
+    const assertMarketDetailsOpened = async (): Promise<void> => {
+      await Assertions.expectElementToBeVisible(marketDetailsScreen, {
+        timeout: predictNavigationTimeoutMs,
+        description: 'Predict market details screen after position tap',
+      });
+    };
+
+    await Utilities.executeWithRetry(
+      async () => {
         if (
-          await WalletHomeScroll.tapIfAlreadyVisible(
-            target,
-            `Predictions Position: ${positionName}`,
-          )
+          await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
+            tapTimeout: tapTimeoutMs,
+          })
         ) {
+          await assertMarketDetailsOpened();
           return;
         }
 
         await WalletHomeScroll.tryScrollDirections((direction) =>
-          this.scrollPredictionsSectionIntoView(direction),
+          this.scrollPredictionsSectionIntoView(direction, {
+            maxAttempts: intoViewMaxAttempts,
+          }),
         );
 
         if (
-          await WalletHomeScroll.tapIfAlreadyVisible(
-            target,
-            `Predictions Position: ${positionName}`,
-          )
+          await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
+            tapTimeout: tapTimeoutMs,
+          })
         ) {
+          await assertMarketDetailsOpened();
           return;
         }
 
         await WalletHomeScroll.tryScrollDirections((direction) =>
-          WalletHomeScroll.scrollAndTapSection(
-            target,
-            `Predictions Position: ${positionName}`,
-            direction,
-            { timeout: 60_000 },
-          ),
+          WalletHomeScroll.scrollAndTapSection(target, description, direction, {
+            timeout: scrollAndTapPerDirectionMs,
+            tapTimeout: tapTimeoutMs,
+            overshootSwipe: {
+              direction: direction === 'down' ? 'up' : 'down',
+              percentage: 0.15,
+            },
+          }),
         );
+
+        await assertMarketDetailsOpened();
       },
-      appium: async () => {
-        const description = `Predictions Position: ${positionName}`;
-        const marketDetailsScreen = Matchers.getElementByID(
-          PredictMarketDetailsSelectorsIDs.SCREEN,
-        );
-        const scrollAndTapRetryTimeoutMs = 90_000;
-        const intoViewMaxAttempts = 8;
-        const scrollAndTapPerDirectionMs = 15_000;
-        const tapTimeoutMs = 10_000;
-        const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(15_000);
-
-        const assertMarketDetailsOpened = async (): Promise<void> => {
-          await Assertions.expectElementToBeVisible(marketDetailsScreen, {
-            timeout: predictNavigationTimeoutMs,
-            description: 'Predict market details screen after position tap',
-          });
-        };
-
-        await Utilities.executeWithRetry(
-          async () => {
-            if (
-              await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
-                tapTimeout: tapTimeoutMs,
-              })
-            ) {
-              await assertMarketDetailsOpened();
-              return;
-            }
-
-            await WalletHomeScroll.tryScrollDirections((direction) =>
-              this.scrollPredictionsSectionIntoView(direction, {
-                maxAttempts: intoViewMaxAttempts,
-              }),
-            );
-
-            if (
-              await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
-                tapTimeout: tapTimeoutMs,
-              })
-            ) {
-              await assertMarketDetailsOpened();
-              return;
-            }
-
-            await WalletHomeScroll.tryScrollDirections((direction) =>
-              WalletHomeScroll.scrollAndTapSection(
-                target,
-                description,
-                direction,
-                {
-                  timeout: scrollAndTapPerDirectionMs,
-                  tapTimeout: tapTimeoutMs,
-                  overshootSwipe: {
-                    direction: direction === 'down' ? 'up' : 'down',
-                    percentage: 0.15,
-                  },
-                },
-              ),
-            );
-
-            await assertMarketDetailsOpened();
-          },
-          {
-            timeout: scrollAndTapRetryTimeoutMs,
-            description: `Scroll and tap ${description}`,
-          },
-        );
+      {
+        timeout: scrollAndTapRetryTimeoutMs,
+        description: `Scroll and tap ${description}`,
       },
-    });
+    );
   }
 
   async scrollAndTapNftsSection(): Promise<void> {
@@ -404,40 +304,22 @@ export class WalletHomeSections {
   }
 
   async tapClaimButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.scrollToElement(
+    await Utilities.executeWithRetry(
+      async () => {
+        await WalletHomeScroll.scrollWalletHomeToElement(
           this.claimButton,
-          WalletHomeScroll.walletScrollContainer,
-          {
-            direction: 'down',
-            scrollAmount: 200,
-            elemDescription: 'Scroll to Claim Button',
-          },
+          'Claim button on wallet homepage',
         );
         await Gestures.waitAndTap(this.claimButton, {
           elemDescription: 'Claim Button',
+          timeout: 30_000,
         });
       },
-      appium: async () => {
-        await Utilities.executeWithRetry(
-          async () => {
-            await WalletHomeScroll.scrollWalletHomeToElement(
-              this.claimButton,
-              'Claim button on wallet homepage',
-            );
-            await UnifiedGestures.waitAndTap(this.claimButton, {
-              description: 'Claim Button',
-              timeout: 30_000,
-            });
-          },
-          {
-            timeout: 90_000,
-            description: 'Tap claim button on wallet homepage',
-          },
-        );
+      {
+        timeout: 90_000,
+        description: 'Tap claim button on wallet homepage',
       },
-    });
+    );
   }
 
   async tapClaimConfirmButton(): Promise<void> {
