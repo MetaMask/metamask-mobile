@@ -218,6 +218,29 @@ describe('handleEthereumUrl', () => {
     });
   });
 
+  it('shows network not found alert when redesigned send cannot resolve chain', async () => {
+    const spyAlert = jest.spyOn(Alert, 'alert');
+    const url = 'ethereum:transfer';
+    const origin = 'test_origin';
+
+    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockAddTransactionForDeeplink.mockRejectedValue(
+      new Error('Unable to find network with chain id 0xa'),
+    );
+    mockParse.mockReturnValue({
+      function_name: ETH_ACTIONS.TRANSFER,
+      chain_id: 10,
+    });
+
+    await handleEthereumUrl({ url, origin });
+
+    expect(spyAlert).toHaveBeenCalledWith(
+      'send.network_not_found_title',
+      'send.network_not_found_description',
+    );
+    expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
+  });
+
   it('shows alert when there is an unknown error during Ethereum URL handling', () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
 

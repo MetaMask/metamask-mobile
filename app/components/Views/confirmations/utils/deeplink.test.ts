@@ -175,6 +175,23 @@ describe('addTransactionForDeeplink', () => {
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
   });
 
+  it('throws and does not add a transaction when the chain is not in the wallet', async () => {
+    mockFindNetworkClientIdByChainId.mockReturnValue('');
+
+    await expect(
+      addTransactionForDeeplink({
+        chain_id: '10',
+        parameters: {
+          value: '1000',
+        },
+        target_address: TO_ADDRESS_MOCK,
+        origin: ORIGIN_MOCK,
+      } as unknown as DeeplinkRequest),
+    ).rejects.toThrow('Unable to find network with chain id 0xa');
+
+    expect(mockAddTransaction).not.toHaveBeenCalled();
+  });
+
   it('adds an ERC20 transfer transaction', async () => {
     const mockGeneratedDataForTransfer = 'generated-data-for-transfer';
 
