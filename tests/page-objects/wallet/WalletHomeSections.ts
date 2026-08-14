@@ -127,8 +127,8 @@ export class WalletHomeSections {
   }
 
   async tapOnTokensSection(): Promise<void> {
-    await Utilities.waitForElementToStopMoving(this.tokensSection);
     await Gestures.waitAndTap(this.tokensSection, {
+      checkStability: true,
       elemDescription: 'Tokens Section',
     });
   }
