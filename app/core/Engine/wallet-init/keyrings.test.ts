@@ -23,21 +23,12 @@ import {
   qrKeyringBridge,
 } from './keyrings';
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
-import { isDmkEnabled } from '../../Ledger/dmk';
 
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
     getState: jest.fn(() => ({})),
   },
-}));
-
-jest.mock('../../../selectors/featureFlagController', () => ({
-  selectRemoteFeatureFlags: jest.fn(() => ({})),
-}));
-
-jest.mock('../../Ledger/dmk', () => ({
-  isDmkEnabled: jest.fn(() => false),
 }));
 
 jest.mock('@ledgerhq/device-transport-kit-react-native-ble', () => ({
@@ -63,7 +54,6 @@ function getRootMessenger() {
 describe('wallet-init/keyrings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(isDmkEnabled).mockReturnValue(false);
   });
 
   describe('qrKeyringBridge', () => {
@@ -103,8 +93,7 @@ describe('wallet-init/keyrings', () => {
     });
 
     it('uses LedgerMobileBridge when DMK is disabled', () => {
-      jest.mocked(isDmkEnabled).mockReturnValue(false);
-      const builders = getKeyringBuilders(getRootMessenger()) ?? [];
+      const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
       const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
       const ledger = byType[LegacyLedgerKeyring.type]() as LegacyLedgerKeyring;
 
@@ -112,8 +101,7 @@ describe('wallet-init/keyrings', () => {
     });
 
     it('uses LedgerDmkBridge when DMK is enabled', () => {
-      jest.mocked(isDmkEnabled).mockReturnValue(true);
-      const builders = getKeyringBuilders(getRootMessenger()) ?? [];
+      const builders = getKeyringBuilders(getRootMessenger(), true) ?? [];
       const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
       const ledger = byType[LegacyLedgerKeyring.type]() as LegacyLedgerKeyring;
 

@@ -56,7 +56,6 @@ import { HardwareWalletType, ErrorCode } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
-import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
 import { isDmkEnabled } from '../../Ledger/dmk';

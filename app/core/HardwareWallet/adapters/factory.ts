@@ -2,7 +2,6 @@ import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapter, HardwareWalletAdapterOptions } from '../types';
 import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
-import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
 import { store } from '../../../store';

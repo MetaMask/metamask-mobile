@@ -22,6 +22,7 @@ const createMockAdapter = (overrides = {}) => ({
   getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
   ensureDeviceReady: jest.fn().mockResolvedValue(true),
   isConnected: jest.fn().mockReturnValue(true),
+  backgroundReconnect: jest.fn().mockResolvedValue(false),
   getTransportDisabledErrorCode: jest.fn().mockReturnValue(null),
   markFlowComplete: jest.fn(),
   ensurePermissions: jest.fn().mockResolvedValue(true),

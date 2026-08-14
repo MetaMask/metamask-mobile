@@ -215,6 +215,7 @@ describe('HardwareWalletProvider', () => {
             onDisconnect: expect.any(Function),
             onDeviceEvent: expect.any(Function),
           }),
+          expect.any(Boolean),
         );
       });
     });
@@ -231,6 +232,7 @@ describe('HardwareWalletProvider', () => {
           onDisconnect: expect.any(Function),
           onDeviceEvent: expect.any(Function),
         }),
+        expect.any(Boolean),
       );
     });
   });
@@ -459,6 +461,7 @@ describe('HardwareWalletProvider', () => {
           expect(mockCreateAdapter).toHaveBeenCalledWith(
             HardwareWalletType.Ledger,
             expect.any(Object),
+            expect.any(Boolean),
           );
         });
 
@@ -723,13 +726,14 @@ describe('HardwareWalletProvider', () => {
         );
       });
 
-      it('disconnects the active adapter so Ledger BLE is released after signing', async () => {
+      it('marks the connection disconnected without tearing down the adapter after signing', async () => {
         const { result } = renderWithActions();
 
         await waitFor(() => {
           expect(mockCreateAdapter).toHaveBeenCalledWith(
             HardwareWalletType.Ledger,
             expect.any(Object),
+            expect.any(Boolean),
           );
         });
 
@@ -741,7 +745,12 @@ describe('HardwareWalletProvider', () => {
           result.current.actions.hideAwaitingConfirmation();
         });
 
-        expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+        // The adapter (and its BLE transport) is intentionally kept alive;
+        // only the connection status resets to Disconnected.
+        expect(mockAdapterInstance.disconnect).not.toHaveBeenCalled();
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
       });
     });
   });
@@ -1150,7 +1159,7 @@ describe('HardwareWalletProvider', () => {
   });
 
   describe('handleAwaitingConfirmationCancel (internal, via bottom sheet props)', () => {
-    it('disconnects adapter, invokes rejection callback, and hides confirmation', async () => {
+    it('invokes rejection callback and hides confirmation without disconnecting the adapter', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
@@ -1187,8 +1196,9 @@ describe('HardwareWalletProvider', () => {
         internalCancel();
       });
 
-      // Adapter should disconnect once via hideAwaitingConfirmation
-      expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+      // The adapter must NOT be disconnected — hideAwaitingConfirmation only
+      // resets the connection status.
+      expect(mockAdapterInstance.disconnect).not.toHaveBeenCalled();
       // Rejection callback should fire
       expect(onReject).toHaveBeenCalled();
       // State should return to disconnected
@@ -1197,7 +1207,7 @@ describe('HardwareWalletProvider', () => {
       );
     });
 
-    it('still hides confirmation and disconnects when rejection callback throws', async () => {
+    it('still hides confirmation when rejection callback throws', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
@@ -1224,6 +1234,7 @@ describe('HardwareWalletProvider', () => {
         expect(mockCreateAdapter).toHaveBeenCalledWith(
           HardwareWalletType.Ledger,
           expect.any(Object),
+          expect.any(Boolean),
         );
       });
 
@@ -1246,7 +1257,7 @@ describe('HardwareWalletProvider', () => {
       });
 
       expect(thrownError).toEqual(new Error('reject failed'));
-      expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockAdapterInstance.disconnect).not.toHaveBeenCalled();
       expect(result.current.state.connectionState.status).toBe(
         ConnectionStatus.Disconnected,
       );

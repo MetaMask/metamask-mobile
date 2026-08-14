@@ -184,20 +184,6 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
-              // Reroute `reflect-metadata` imports from the Ledger DMK
-              // closure (DMK packages + inversify DI substrate) through an
-              // idempotent shim. The Metro polyfill loads
-              // `reflect-metadata` once at app startup but does not
-              // register it in the `__d` module cache, so the lazy DMK
-              // chunk re-evaluates the file body and the second IIFE
-              // throws "property is not configurable" on the
-              // `Symbol.for("@reflect-metadata:registry")` defineProperty.
-              //
-              // The shim short-circuits whenever Reflect.metadata is
-              // already a function (always true after the polyfill
-              // bootstrap). Other consumers (e.g. `@consensys/*-ramps-sdk`
-              // which carry their own nested `reflect-metadata@0.1.14`)
-              // resolve normally to their package-local copy.
               if (moduleName === 'reflect-metadata') {
                 return {
                   type: 'empty',
