@@ -386,6 +386,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAlert =
       stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
+    const hasBlockingAlert = hasAlert && !headlessBuyError;
+
     // Keep payment details fixed while the amount update prepares the request.
     // Once a Money Account deposit quote is in flight, reopening either picker
     // is safe and keeps the loading screen responsive.
@@ -486,7 +488,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   Boolean(selectedFiatPaymentMethodId) ||
                   shouldHideAccountSelector
                 }
-                isDoneDisabled={hasAlert}
+                isDoneDisabled={hasBlockingAlert}
                 value={amountFiat}
                 onChange={updatePendingAmount}
                 onDonePress={handleDone}

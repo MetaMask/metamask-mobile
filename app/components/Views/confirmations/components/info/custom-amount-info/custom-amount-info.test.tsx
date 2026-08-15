@@ -2255,6 +2255,42 @@ describe('CustomAmountInfo', () => {
     expect(getByText(headlessBuyError)).toBeOnTheScreen();
   });
 
+  it('keeps Done enabled and final confirm disabled when only a headless buy error is present', async () => {
+    const headlessBuyError = 'Unable to complete purchase';
+
+    useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
+      headlessBuyError,
+      isFooterVisible: true,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+      isHeadlessBuyInProgress: false,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setHeadlessBuyError: noop,
+      setIsFooterVisible: noop,
+      setIsHeadlessBuyInProgress: noop,
+      setIsTransactionDataUpdating: noop,
+      setIsTransactionValueUpdating: noop,
+    } as ReturnType<typeof useConfirmationContext>);
+
+    const { getByTestId } = render();
+
+    // Continue is allowed: the headless buy error does not disable Done.
+    const doneButton = getByTestId('deposit-keyboard-done-button');
+    expect(doneButton).not.toBeDisabled();
+
+    // Advance to the review stage and assert the final confirm is blocked.
+    await act(async () => {
+      fireEvent.press(doneButton);
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
   it('resets submitting state when onConfirm rejects', async () => {
     useConfirmActionsMock.mockReturnValue({
       onConfirm: jest.fn().mockRejectedValue(new Error('confirm failed')),
