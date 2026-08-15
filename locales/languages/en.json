@@ -8476,6 +8476,11 @@
     "description": " and MEV protection. Now on by default."
   },
   "bridge": {
+    "tabs": {
+      "market": "Market",
+      "limit": "Limit",
+      "recurring": "Recurring"
+    },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
     "confirm_swap": "Swap",

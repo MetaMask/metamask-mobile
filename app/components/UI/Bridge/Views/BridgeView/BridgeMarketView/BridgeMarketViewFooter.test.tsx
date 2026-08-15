@@ -1,10 +1,10 @@
 import React from 'react';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
+} from '../../../../../../util/test/renderWithProvider';
 import { waitFor } from '@testing-library/react-native';
-import { BridgeViewFooter } from './BridgeViewFooter';
-import { strings } from '../../../../../../locales/i18n';
+import { BridgeMarketViewFooter } from './BridgeMarketViewFooter';
+import { strings } from '../../../../../../../locales/i18n';
 import { SolScope } from '@metamask/keyring-api';
 import {
   RequestStatus,
@@ -13,16 +13,16 @@ import {
   BRIDGE_MM_FEE_RATE,
 } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
-import { isHardwareAccount } from '../../../../../util/address';
-import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { createBridgeTestState } from '../../testUtils';
-import type { RootState } from '../../../../../reducers';
-import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
+import { isHardwareAccount } from '../../../../../../util/address';
+import { mockUseBridgeQuoteData } from '../../../_mocks_/useBridgeQuoteData.mock';
+import { useBridgeQuoteData } from '../../../hooks/useBridgeQuoteData';
+import { mockQuoteWithMetadata } from '../../../_mocks_/bridgeQuoteWithMetadata';
+import { createBridgeTestState } from '../../../testUtils';
+import type { RootState } from '../../../../../../reducers';
+import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 
 jest.mock(
-  '../../../../../multichain-accounts/controllers/account-tree-controller',
+  '../../../../../../multichain-accounts/controllers/account-tree-controller',
   () => ({
     accountTreeControllerInit: jest.fn(() => ({
       controller: {
@@ -32,29 +32,29 @@ jest.mock(
   }),
 );
 
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
+jest.mock('../../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
+jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   const { useBridgeQuoteData } = jest.requireMock(
-    '../../hooks/useBridgeQuoteData',
+    '../../../hooks/useBridgeQuoteData',
   );
   return {
     useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
   };
 });
 
-jest.mock('../../../../../util/address', () => ({
-  ...jest.requireActual('../../../../../util/address'),
+jest.mock('../../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../../util/address'),
   isHardwareAccount: jest.fn(),
 }));
 
 // Mock SwapsConfirmButton to isolate footer-specific behaviour from its own
 // dependencies (Engine, useNavigation, useSubmitBridgeTx, …).
-jest.mock('../../components/SwapsConfirmButton/index.tsx', () => ({
+jest.mock('../../../components/SwapsConfirmButton/index.tsx', () => ({
   SwapsConfirmButton: ({ testID }: { testID?: string }) => {
     const MockReact = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
@@ -64,18 +64,21 @@ jest.mock('../../components/SwapsConfirmButton/index.tsx', () => ({
   },
 }));
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
-  const MockReact = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
-  };
-});
+jest.mock(
+  '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
+  () => {
+    const MockReact = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () =>
+        MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+    };
+  },
+);
 
 jest.mock(
-  '../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',
+  '../../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',
   () => {
     const MockReact = jest.requireActual('react');
     const { Text, View } = jest.requireActual('react-native');
@@ -102,7 +105,7 @@ jest.mock(
 const mockLocation = MetaMetricsSwapsEventSource.MainView;
 
 /**
- * Builds a Redux state that satisfies all BridgeViewFooter render conditions:
+ * Builds a Redux state that satisfies all BridgeMarketViewFooter render conditions:
  * active quote, valid source amount, and a quotesLastFetched timestamp.
  */
 function buildActiveQuoteState(
@@ -135,7 +138,7 @@ function buildActiveQuoteState(
 
 function renderFooter(state: DeepPartial<RootState>) {
   return renderWithProvider(
-    <BridgeViewFooter
+    <BridgeMarketViewFooter
       location={mockLocation}
       latestSourceBalance={undefined}
     />,
@@ -145,7 +148,7 @@ function renderFooter(state: DeepPartial<RootState>) {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('BridgeViewFooter', () => {
+describe('BridgeMarketViewFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
