@@ -20,6 +20,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { MembershipTestIds } from './Membership.testIds';
 import {
@@ -208,8 +209,8 @@ const Membership = () => {
   }, []);
 
   const handleCancelMembership = useCallback(() => {
-    // TODO: navigate to cancellation flow
-  }, []);
+    navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP as never);
+  }, [navigation]);
 
   return (
     <SafeAreaView
