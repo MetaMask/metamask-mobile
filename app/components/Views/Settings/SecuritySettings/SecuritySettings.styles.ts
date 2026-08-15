@@ -64,6 +64,14 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
       textAlign: 'center',
       marginBottom: 20,
     },
+    bottomSheetContent: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 24,
+    },
+    bottomSheetParagraph: {
+      marginBottom: 16,
+    },
     protect: {
       flexDirection: 'row',
       justifyContent: 'space-between',

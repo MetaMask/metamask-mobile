@@ -172,11 +172,6 @@ const AdvancedSettings = ({
         ref={scrollView}
       >
         <View style={styles.inner} testID={AdvancedViewSelectorsIDs.CONTAINER}>
-          <ResetAccountModal
-            resetModalVisible={resetModalVisible}
-            cancelResetAccount={cancelResetAccount}
-            styles={styles}
-          />
           <View style={[styles.setting, styles.firstSetting]}>
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('app_settings.reset_account')}
@@ -284,6 +279,11 @@ const AdvancedSettings = ({
           </View>
         </View>
       </KeyboardAwareScrollView>
+      <ResetAccountModal
+        resetModalVisible={resetModalVisible}
+        cancelResetAccount={cancelResetAccount}
+        styles={styles}
+      />
     </SafeAreaView>
   );
 };

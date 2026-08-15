@@ -1,10 +1,6 @@
-import CookieManager from '@react-native-cookies/cookies';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Device from '../../../../../util/device';
-import Logger from '../../../../../util/Logger';
-import ActionModal from '../../../../UI/ActionModal';
 import {
   Button,
   ButtonVariant,
@@ -26,103 +22,44 @@ const createStyles = () =>
     accessory: {
       marginTop: 16,
     },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
-    },
-    modalText: {
-      textAlign: 'center',
-    },
   });
 
-const ClearCookiesSection = () => {
-  const [cookiesModalVisible, setCookiesModalVisible] = useState(false);
-  const [hasCookies, setHasCookies] = useState(false);
+interface ClearCookiesSectionProps {
+  hasCookies: boolean;
+  onPressClearCookies: () => void;
+}
+
+const ClearCookiesSection = ({
+  hasCookies,
+  onPressClearCookies,
+}: ClearCookiesSectionProps) => {
   const styles = createStyles();
 
-  useEffect(() => {
-    const run = async () => {
-      if (Device.isAndroid()) {
-        setHasCookies(true);
-      }
-
-      if (Device.isIos()) {
-        const useWebKit = true;
-        const cookies = await CookieManager.getAll(useWebKit);
-        setHasCookies(Object.keys(cookies).length > 0);
-      }
-    };
-
-    run();
-  }, []);
-
-  const toggleClearCookiesModal = () =>
-    setCookiesModalVisible(!cookiesModalVisible);
-
-  const clearCookies = async () => {
-    const useWebKit = true;
-    await CookieManager.clearAll(useWebKit);
-    Logger.log('Browser cookies cleared');
-
-    if (Device.isIos()) {
-      const cookies = await CookieManager.getAll(useWebKit);
-      setHasCookies(Object.keys(cookies).length > 0);
-    }
-
-    toggleClearCookiesModal();
-  };
-
   return (
-    <>
-      <View style={styles.setting}>
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {strings('app_settings.clear_browser_cookies_desc')}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.clear_cookies_desc')}
-        </Text>
-        <View style={styles.accessory}>
-          <Button
-            size={ButtonSize.Lg}
-            variant={ButtonVariant.Secondary}
-            isFullWidth
-            onPress={toggleClearCookiesModal}
-            isDisabled={!hasCookies}
-          >
-            {strings('app_settings.clear_browser_cookies_desc')}
-          </Button>
-        </View>
-      </View>
-      <ActionModal
-        modalVisible={cookiesModalVisible}
-        confirmText={strings('app_settings.clear')}
-        cancelText={strings('app_settings.reset_account_cancel_button')}
-        onCancelPress={toggleClearCookiesModal}
-        onRequestClose={toggleClearCookiesModal}
-        onConfirmPress={clearCookies}
+    <View style={styles.setting}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {strings('app_settings.clear_browser_cookies_desc')}
+      </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+        style={styles.desc}
       >
-        <View style={styles.modalView}>
-          <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
-            {strings('app_settings.clear_cookies_modal_title')}
-          </Text>
-          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
-            {strings('app_settings.clear_cookies_modal_message')}
-          </Text>
-        </View>
-      </ActionModal>
-    </>
+        {strings('app_settings.clear_cookies_desc')}
+      </Text>
+      <View style={styles.accessory}>
+        <Button
+          size={ButtonSize.Lg}
+          variant={ButtonVariant.Secondary}
+          isFullWidth
+          onPress={onPressClearCookies}
+          isDisabled={!hasCookies}
+        >
+          {strings('app_settings.clear_browser_cookies_desc')}
+        </Button>
+      </View>
+    </View>
   );
 };
 

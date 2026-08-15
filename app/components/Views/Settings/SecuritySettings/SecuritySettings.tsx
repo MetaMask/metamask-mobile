@@ -9,16 +9,15 @@ import {
   InteractionManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import CookieManager from '@react-native-cookies/cookies';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
-import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
-import HintModal from '../../../UI/HintModal';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import {
@@ -42,11 +41,16 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CLEAR_BROWSER_HISTORY_SECTION } from './SecuritySettings.constants';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  type BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
   HeaderStandard,
   FontWeight,
+  TextArea,
   Text,
   TextColor,
   TextVariant,
@@ -72,6 +76,11 @@ import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSetti
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
+import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
+import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
+import { isSnapId } from '@metamask/snaps-utils';
+import { ClearPrivacyModalSelectorsIDs } from './Sections/ClearPrivacy/ClearPrivacyModal.testIds';
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
@@ -84,12 +93,21 @@ const Settings: React.FC = () => {
   const dispatch = useDispatch();
   const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =
     useState(false);
+  const [clearPrivacySheetVisible, setClearPrivacySheetVisible] =
+    useState(false);
+  const [clearCookiesSheetVisible, setClearCookiesSheetVisible] =
+    useState(false);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
+  const [hasCookies, setHasCookies] = useState(false);
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
+  const clearBrowserHistorySheetRef = useRef<BottomSheetRef>(null);
+  const clearPrivacySheetRef = useRef<BottomSheetRef>(null);
+  const clearCookiesSheetRef = useRef<BottomSheetRef>(null);
+  const hintSheetRef = useRef<BottomSheetRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const metaMetricsSectionRef = useRef<View>(null);
   const dataCollectionSectionRef = useRef<View>(null);
@@ -149,6 +167,23 @@ const Settings: React.FC = () => {
   }, [handleHintText, setAnalyticsEnabled, isEnabled]);
 
   useEffect(() => {
+    const run = async () => {
+      if (Device.isAndroid()) {
+        setHasCookies(true);
+        return;
+      }
+
+      if (Device.isIos()) {
+        const useWebKit = true;
+        const cookies = await CookieManager.getAll(useWebKit);
+        setHasCookies(Object.keys(cookies).length > 0);
+      }
+    };
+
+    run();
+  }, []);
+
+  useEffect(() => {
     const triggerCascadeBasicFunctionalityDisable = async () => {
       if (!isBasicFunctionalityEnabled) {
         isNotificationEnabled && (await disableNotifications());
@@ -191,27 +226,41 @@ const Settings: React.FC = () => {
     }, [scrollToSection, params?.scrollToSection]),
   );
 
-  const toggleHint = () => {
-    setShowHint(!showHint);
-  };
+  const openHintSheet = () => setShowHint(true);
+
+  const requestCloseHintSheet = useCallback(() => {
+    Keyboard.dismiss();
+    hintSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const saveHint = async () => {
     if (!hintText) return;
-    toggleHint();
-    const currentSeedphraseHints =
-      await StorageWrapper.getItem(SEED_PHRASE_HINTS);
-    if (currentSeedphraseHints) {
-      const parsedHints = JSON.parse(currentSeedphraseHints);
-      await StorageWrapper.setItem(
-        SEED_PHRASE_HINTS,
-        JSON.stringify({ ...parsedHints, manualBackup: hintText }),
-      );
-    }
+    Keyboard.dismiss();
+    hintSheetRef.current?.onCloseBottomSheet(() => {
+      (async () => {
+        const currentSeedphraseHints =
+          await StorageWrapper.getItem(SEED_PHRASE_HINTS);
+        if (currentSeedphraseHints) {
+          const parsedHints = JSON.parse(currentSeedphraseHints);
+          await StorageWrapper.setItem(
+            SEED_PHRASE_HINTS,
+            JSON.stringify({ ...parsedHints, manualBackup: hintText }),
+          );
+        }
+      })().catch((error) => {
+        Logger.error(error as Error, 'SecuritySettings: Failed to save hint');
+      });
+    });
   };
 
-  const toggleClearBrowserHistoryModal = () => {
-    setBrowserHistoryModalVisible(!browserHistoryModalVisible);
-  };
+  const openClearBrowserHistorySheet = () => setBrowserHistoryModalVisible(true);
+
+  const closeClearBrowserHistorySheet = () =>
+    setBrowserHistoryModalVisible(false);
+
+  const requestCloseClearBrowserHistorySheet = useCallback(() => {
+    clearBrowserHistorySheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const renderClearBrowserHistorySection = () => (
     <View style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
@@ -231,7 +280,7 @@ const Settings: React.FC = () => {
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={toggleClearBrowserHistoryModal}
+          onPress={openClearBrowserHistorySheet}
           isDisabled={browserHistory.length === 0}
         >
           {strings('app_settings.clear_browser_history_desc')}
@@ -240,30 +289,165 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  const clearBrowserHistory = () => {
+  const clearBrowserHistory = useCallback(() => {
     dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
-    toggleClearBrowserHistoryModal();
+  }, [dispatch, isDataCollectionForMarketingEnabled, isEnabled]);
+
+  const renderClearBrowserHistorySheet = () => {
+    if (!browserHistoryModalVisible) {
+      return null;
+    }
+
+    return (
+      <BottomSheet
+        ref={clearBrowserHistorySheetRef}
+        isInteractable
+        onClose={closeClearBrowserHistorySheet}
+      >
+        <BottomSheetHeader onClose={requestCloseClearBrowserHistorySheet}>
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('app_settings.clear_browser_history_modal_title')}
+          </Text>
+        </BottomSheetHeader>
+        <View style={styles.bottomSheetContent}>
+          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
+            {strings('app_settings.clear_browser_history_modal_message')}
+          </Text>
+        </View>
+        <BottomSheetFooter
+          secondaryButtonProps={{
+            children: strings('app_settings.reset_account_cancel_button'),
+            onPress: requestCloseClearBrowserHistorySheet,
+          }}
+          primaryButtonProps={{
+            children: strings('app_settings.clear'),
+            isDanger: true,
+            onPress: () =>
+              clearBrowserHistorySheetRef.current?.onCloseBottomSheet(() => {
+                clearBrowserHistory();
+              }),
+          }}
+        />
+      </BottomSheet>
+    );
   };
 
-  const renderHistoryModal = () => (
-    <ActionModal
-      modalVisible={browserHistoryModalVisible}
-      confirmText={strings('app_settings.clear')}
-      cancelText={strings('app_settings.reset_account_cancel_button')}
-      onCancelPress={toggleClearBrowserHistoryModal}
-      onRequestClose={toggleClearBrowserHistoryModal}
-      onConfirmPress={clearBrowserHistory}
-    >
-      <View style={styles.modalView}>
-        <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
-          {strings('app_settings.clear_browser_history_modal_title')}
-        </Text>
-        <Text variant={TextVariant.BodyMd} style={styles.modalText}>
-          {strings('app_settings.clear_browser_history_modal_message')}
-        </Text>
-      </View>
-    </ActionModal>
-  );
+  const openClearPrivacySheet = () => setClearPrivacySheetVisible(true);
+  const closeClearPrivacySheet = () => setClearPrivacySheetVisible(false);
+  const requestCloseClearPrivacySheet = useCallback(() => {
+    clearPrivacySheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const clearApprovals = useCallback(() => {
+    const { PermissionController } = Engine.context;
+    PermissionController.getSubjectNames()
+      .filter((subject) => !isSnapId(subject))
+      .forEach((subject) => PermissionController.revokeAllPermissions(subject));
+    SDKConnect.getInstance().removeAll();
+  }, []);
+
+  const renderClearPrivacySheet = () => {
+    if (!clearPrivacySheetVisible) {
+      return null;
+    }
+
+    return (
+      <BottomSheet
+        ref={clearPrivacySheetRef}
+        isInteractable
+        onClose={closeClearPrivacySheet}
+      >
+        <BottomSheetHeader onClose={requestCloseClearPrivacySheet}>
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('app_settings.clear_approvals_modal_title')}
+          </Text>
+        </BottomSheetHeader>
+        <View
+          style={styles.bottomSheetContent}
+          testID={ClearPrivacyModalSelectorsIDs.CONTAINER}
+        >
+          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
+            {strings('app_settings.clear_approvals_modal_message')}
+          </Text>
+        </View>
+        <BottomSheetFooter
+          secondaryButtonProps={{
+            children: strings('app_settings.reset_account_cancel_button'),
+            onPress: requestCloseClearPrivacySheet,
+          }}
+          primaryButtonProps={{
+            children: strings('app_settings.clear'),
+            isDanger: true,
+            onPress: () =>
+              clearPrivacySheetRef.current?.onCloseBottomSheet(() => {
+                clearApprovals();
+              }),
+          }}
+        />
+      </BottomSheet>
+    );
+  };
+
+  const openClearCookiesSheet = () => setClearCookiesSheetVisible(true);
+  const closeClearCookiesSheet = () => setClearCookiesSheetVisible(false);
+  const requestCloseClearCookiesSheet = useCallback(() => {
+    clearCookiesSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const clearCookies = useCallback(async () => {
+    const useWebKit = true;
+    await CookieManager.clearAll(useWebKit);
+    Logger.log('Browser cookies cleared');
+
+    if (Device.isIos()) {
+      const cookies = await CookieManager.getAll(useWebKit);
+      setHasCookies(Object.keys(cookies).length > 0);
+    }
+  }, []);
+
+  const renderClearCookiesSheet = () => {
+    if (!clearCookiesSheetVisible) {
+      return null;
+    }
+
+    return (
+      <BottomSheet
+        ref={clearCookiesSheetRef}
+        isInteractable
+        onClose={closeClearCookiesSheet}
+      >
+        <BottomSheetHeader onClose={requestCloseClearCookiesSheet}>
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('app_settings.clear_cookies_modal_title')}
+          </Text>
+        </BottomSheetHeader>
+        <View style={styles.bottomSheetContent}>
+          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
+            {strings('app_settings.clear_cookies_modal_message')}
+          </Text>
+        </View>
+        <BottomSheetFooter
+          secondaryButtonProps={{
+            children: strings('app_settings.reset_account_cancel_button'),
+            onPress: requestCloseClearCookiesSheet,
+          }}
+          primaryButtonProps={{
+            children: strings('app_settings.clear'),
+            isDanger: true,
+            onPress: () =>
+              clearCookiesSheetRef.current?.onCloseBottomSheet(() => {
+                clearCookies().catch((error) => {
+                  Logger.error(
+                    error as Error,
+                    'SecuritySettings: Failed to clear cookies',
+                  );
+                });
+              }),
+          }}
+        />
+      </BottomSheet>
+    );
+  };
 
   const toggleUseTransactionSimulations = (value: boolean) => {
     const { PreferencesController } = Engine.context;
@@ -331,16 +515,53 @@ const Settings: React.FC = () => {
 
   const handleChangeText = (text: string) => setHintText(text);
 
-  const renderHint = () => (
-    <HintModal
-      onConfirm={saveHint}
-      onCancel={toggleHint}
-      modalVisible={showHint}
-      onRequestClose={Keyboard.dismiss}
-      value={hintText}
-      onChangeText={handleChangeText}
-    />
-  );
+  const renderHintSheet = () => {
+    if (!showHint) {
+      return null;
+    }
+
+    return (
+      <BottomSheet
+        ref={hintSheetRef}
+        isInteractable
+        onClose={() => setShowHint(false)}
+      >
+        <BottomSheetHeader onClose={requestCloseHintSheet}>
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('manual_backup_step_3.recovery_hint')}
+          </Text>
+        </BottomSheetHeader>
+        <View style={styles.bottomSheetContent}>
+          <Text variant={TextVariant.BodyMd} style={styles.bottomSheetParagraph}>
+            {strings('manual_backup_step_3.leave_hint')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
+            style={styles.bottomSheetParagraph}
+          >
+            {strings('manual_backup_step_3.no_seedphrase')}
+          </Text>
+          <TextArea
+            value={hintText}
+            placeholder={strings('manual_backup_step_3.example')}
+            onChangeText={handleChangeText}
+            textAlignVertical="top"
+          />
+        </View>
+        <BottomSheetFooter
+          secondaryButtonProps={{
+            children: strings('action_view.cancel'),
+            onPress: requestCloseHintSheet,
+          }}
+          primaryButtonProps={{
+            children: strings('manual_backup_step_3.save'),
+            onPress: saveHint,
+          }}
+        />
+      </BottomSheet>
+    );
+  };
 
   const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -374,7 +595,7 @@ const Settings: React.FC = () => {
           <ProtectYourWallet
             srpBackedup={seedphraseBackedUp}
             hintText={hintText}
-            toggleHint={toggleHint}
+            toggleHint={openHintSheet}
           />
           <ChangePassword />
           <AutoLock />
@@ -389,9 +610,12 @@ const Settings: React.FC = () => {
               handleSwitchToggle={toggleBasicFunctionality}
             />
           </View>
-          <ClearPrivacy />
+          <ClearPrivacy onPressClearPrivacy={openClearPrivacySheet} />
           {renderClearBrowserHistorySection()}
-          <ClearCookiesSection />
+          <ClearCookiesSection
+            hasCookies={hasCookies}
+            onPressClearCookies={openClearCookiesSheet}
+          />
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.network_provider')}
           </Text>
@@ -400,7 +624,6 @@ const Settings: React.FC = () => {
             {strings('app_settings.transactions_subheading')}
           </Text>
           <BatchAccountBalanceSettings />
-          {renderHistoryModal()}
           {renderUseTransactionSimulations()}
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.token_nft_ens_subheading')}
@@ -418,9 +641,12 @@ const Settings: React.FC = () => {
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
           <DeleteWalletData />
           <TopTradersSection />
-          {renderHint()}
         </View>
       </ScrollView>
+      {renderClearBrowserHistorySheet()}
+      {renderClearPrivacySheet()}
+      {renderClearCookiesSheet()}
+      {renderHintSheet()}
       <SwitchLoadingModal
         loading={modalLoading}
         loadingText=""

@@ -1,7 +1,8 @@
-import React from 'react';
-import { StyleSheet } from 'react-native';
-import Modal from 'react-native-modal';
-import { useTheme } from '../../../../util/theme';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 
 export interface LoaderModalProps {
   isVisible: boolean;
@@ -9,33 +10,50 @@ export interface LoaderModalProps {
   children: React.ReactNode;
 }
 
-const styles = StyleSheet.create({
-  bottomModal: {
-    justifyContent: 'flex-end',
-    marginHorizontal: 0,
-  },
-});
-
 const LoaderModal = (props: LoaderModalProps) => {
-  const { colors } = useTheme();
+  const { isVisible, onCancel, children } = props;
+  // Keep mounted while animating closed.
+  const [isMounted, setIsMounted] = useState(isVisible);
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const closingDueToVisibilityRef = useRef(false);
+
+  useEffect(() => {
+    if (isVisible) {
+      closingDueToVisibilityRef.current = false;
+      setIsMounted(true);
+      return;
+    }
+
+    if (isMounted) {
+      closingDueToVisibilityRef.current = true;
+      sheetRef.current?.onCloseBottomSheet(() => {
+        setIsMounted(false);
+        closingDueToVisibilityRef.current = false;
+      });
+    }
+  }, [isMounted, isVisible]);
+
+  const handleSheetClosed = useCallback(() => {
+    setIsMounted(false);
+    if (!closingDueToVisibilityRef.current) {
+      onCancel();
+    }
+  }, [onCancel]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
-    <Modal
-      isVisible={props.isVisible}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      onBackdropPress={props.onCancel}
-      onSwipeComplete={props.onCancel}
-      swipeDirection={'down'}
-      propagateSwipe
+    <BottomSheet
+      ref={sheetRef}
+      isInteractable
+      onClose={handleSheetClosed}
+      keyboardAvoidingViewEnabled
     >
-      {props.children}
-    </Modal>
+      {/* Children can include their own card/container styling */}
+      {children}
+    </BottomSheet>
   );
 };
 

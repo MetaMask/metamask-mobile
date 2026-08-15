@@ -1,10 +1,8 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useRef } from 'react';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
-import ActionModal from '../../../../UI/ActionModal';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
 import { wipeSmartTransactions } from '../../../../../util/smart-transactions';
 import { wipeBridgeStatus } from '../../../../UI/Bridge/utils';
@@ -15,6 +13,13 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { selectChainId } from '../../../../../selectors/networkController';
 import { usePerpsFirstTimeUser } from '../../../../UI/Perps/hooks/usePerpsFirstTimeUser';
 import { AdvancedViewSelectorsIDs } from '../AdvancedView.testIds';
+import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  Box,
+} from '@metamask/design-system-react-native';
 
 export const ResetAccountModal = ({
   resetModalVisible,
@@ -27,6 +32,7 @@ export const ResetAccountModal = ({
   styles: any;
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const sheetRef = useRef<BottomSheetRef>(null);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -34,7 +40,7 @@ export const ResetAccountModal = ({
   const { resetFirstTimeUserState, clearPendingTransactionRequests } =
     usePerpsFirstTimeUser();
 
-  const resetAccount = () => {
+  const resetAccount = useCallback(() => {
     if (selectedAddress) {
       wipeBridgeStatus(selectedAddress, chainId);
       wipeSmartTransactions(selectedAddress);
@@ -45,26 +51,57 @@ export const ResetAccountModal = ({
     // Clear any stuck pending Perps transactions
     clearPendingTransactionRequests();
     navigation.navigate('WalletView');
-  };
+  }, [
+    chainId,
+    clearPendingTransactionRequests,
+    navigation,
+    resetFirstTimeUserState,
+    selectedAddress,
+  ]);
+
+  const handleRequestClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
+      resetAccount();
+    });
+  }, [resetAccount]);
+
+  if (!resetModalVisible) {
+    return null;
+  }
 
   return (
-    <ActionModal
-      modalVisible={resetModalVisible}
-      confirmText={strings('app_settings.reset_account_confirm_button')}
-      cancelText={strings('app_settings.reset_account_cancel_button')}
-      confirmTestID={AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON}
-      onCancelPress={cancelResetAccount}
-      onRequestClose={cancelResetAccount}
-      onConfirmPress={resetAccount}
+    <BottomSheet
+      ref={sheetRef}
+      isInteractable
+      onClose={cancelResetAccount}
+      keyboardAvoidingViewEnabled
     >
-      <View style={styles.modalView}>
+      <BottomSheetHeader onClose={handleRequestClose}>
         <Text style={styles.modalTitle} variant={TextVariant.HeadingMD}>
           {strings('app_settings.reset_account_modal_title')}
         </Text>
+      </BottomSheetHeader>
+      <Box twClassName="px-4 pt-2 pb-6">
         <Text style={styles.modalText}>
           {strings('app_settings.reset_account_modal_message')}
         </Text>
-      </View>
-    </ActionModal>
+      </Box>
+      <BottomSheetFooter
+        secondaryButtonProps={{
+          children: strings('app_settings.reset_account_cancel_button'),
+          onPress: handleRequestClose,
+        }}
+        primaryButtonProps={{
+          children: strings('app_settings.reset_account_confirm_button'),
+          onPress: handleConfirm,
+          isDanger: true,
+          testID: AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
+        }}
+      />
+    </BottomSheet>
   );
 };
