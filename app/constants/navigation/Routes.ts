@@ -614,6 +614,8 @@ const Routes = {
     MEMBERSHIP: 'ProHubMembership',
     /** Cancel membership screen — cancellation survey and confirmation. */
     CANCEL_MEMBERSHIP: 'ProHubCancelMembership',
+    /** Cancellation success screen — shown after membership is successfully cancelled. */
+    CANCELLATION_SUCCESS: 'ProHubCancellationSuccess',
   },
 } as const;
 

@@ -22,6 +22,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   CancelMembershipTestIds,
@@ -91,8 +92,8 @@ const CancelMembership = () => {
   }, [navigation]);
 
   const handleCancelConfirm = useCallback(() => {
-    // TODO: trigger cancellation API call and navigate to confirmation
-  }, []);
+    navigation.navigate(Routes.PRO_HUB.CANCELLATION_SUCCESS as never);
+  }, [navigation]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);

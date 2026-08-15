@@ -190,6 +190,7 @@ import ProSubscription from '../../Views/ProSubscription';
 import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
 import CancelMembership from '../../Views/ProHub/screens/CancelMembership';
+import CancellationSuccess from '../../Views/ProHub/screens/CancellationSuccess';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1423,7 +1424,17 @@ const AppFlow = () => {
         component={CancelMembership}
         options={{
           headerShown: false,
-          gestureEnabled: true,
+          gestureEnabled: false,
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.PRO_HUB.CANCELLATION_SUCCESS}
+        component={CancellationSuccess}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+          animation: 'slide_from_bottom',
         }}
       />
       <NativeStack.Screen

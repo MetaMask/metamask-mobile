@@ -27,10 +27,6 @@ const ProHub = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleManagePress = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP as never);
-  }, [navigation]);
-
   const handleExplorePress = useCallback(() => {
     // TODO: navigate to benefits / ProSubscription flow
   }, []);
@@ -100,7 +96,7 @@ const ProHub = () => {
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          onPress={handleManagePress}
+          onPress={handleManagePlans}
           isFullWidth
           testID={ProHubTestIds.MANAGE_BUTTON}
         >

@@ -11,6 +11,7 @@ import {
   MOCK_CANCEL_STATS,
 } from './CancelMembership.constants';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -226,6 +227,16 @@ describe('CancelMembership', () => {
       renderScreen();
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('navigates to CancellationSuccess when the cancel button is pressed', () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PRO_HUB.CANCELLATION_SUCCESS,
+      );
     });
 
     it('does not call navigation.goBack when the cancel button is pressed', () => {
