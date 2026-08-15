@@ -15,6 +15,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { ProHubTestIds } from './ProHub.testIds';
 
@@ -27,16 +28,16 @@ const ProHub = () => {
   }, [navigation]);
 
   const handleManagePress = useCallback(() => {
-    // TODO: navigate to subscription management
-  }, []);
+    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP as never);
+  }, [navigation]);
 
   const handleExplorePress = useCallback(() => {
     // TODO: navigate to benefits / ProSubscription flow
   }, []);
 
   const handleManagePlans = useCallback(() => {
-    // TODO: navigate to subscription management
-  }, []);
+    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP as never);
+  }, [navigation]);
 
   return (
     <SafeAreaView
