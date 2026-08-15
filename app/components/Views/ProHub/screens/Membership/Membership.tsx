@@ -219,6 +219,7 @@ const Membership = () => {
       testID={MembershipTestIds.CONTAINER}
     >
       <HeaderBase
+        twClassName="px-4"
         startAccessory={
           <ButtonIcon
             iconName={IconName.ArrowLeft}

@@ -45,6 +45,7 @@ const ProHub = () => {
       {/* Header row */}
       <HeaderBase
         testID={ProHubTestIds.HEADER_ROOT}
+        twClassName="px-4"
         startAccessory={
           <ButtonIcon
             iconName={IconName.ArrowLeft}
