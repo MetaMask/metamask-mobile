@@ -38,8 +38,6 @@ const EMPTY_ORDER_CAPABILITIES_STATE: OrderCapabilitiesState = {
   capabilities: null,
   isLoading: false,
 };
-const AVAILABLE_PROVIDERS: PerpsActiveProviderMode[] = ['hyperliquid'];
-
 /**
  * Hook for managing perps provider selection
  *
@@ -55,7 +53,22 @@ export function usePerpsProvider(
   const perpsNetwork = useSelector(selectPerpsNetwork);
   const initializationState = useSelector(selectPerpsInitializationState);
 
-  const availableProviders = AVAILABLE_PROVIDERS;
+  /**
+   * Get list of available providers based on feature flags
+   */
+  const availableProviders = useMemo((): PerpsActiveProviderMode[] => {
+    const providers: PerpsActiveProviderMode[] = ['hyperliquid'];
+
+    // Lighter POC (TAT-3766): local env gate only; babel inlines the env read.
+    if (process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true') {
+      providers.push('lighter');
+      if (!providers.includes('aggregated')) {
+        providers.push('aggregated');
+      }
+    }
+
+    return providers;
+  }, []);
 
   /**
    * Switch to a different provider
