@@ -6,10 +6,25 @@ import { renderComponentViewScreen } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import BridgeView from '../../../app/components/UI/Bridge/Views/BridgeView';
 import { initialStateBridge } from '../presets/bridge';
+import { HardwareWalletProvider } from '../../../app/core/HardwareWallet/HardwareWalletProvider';
 
 interface RenderBridgeViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
+}
+
+/**
+ * Wraps BridgeView in the HardwareWalletProvider so hooks like
+ * `useBridgeConfirm` → `useHardwareWallet` resolve during tests.
+ * Exported for tests that need to call `renderComponentViewScreen` /
+ * `renderScreenWithRoutes` directly with a custom state builder.
+ */
+export function BridgeViewWithProviders() {
+  return React.createElement(
+    HardwareWalletProvider,
+    null,
+    React.createElement(BridgeView as unknown as React.ComponentType),
+  );
 }
 
 /**
@@ -28,7 +43,7 @@ export function renderBridgeView(
   const state = builder.build();
 
   return renderComponentViewScreen(
-    BridgeView as unknown as React.ComponentType,
+    BridgeViewWithProviders as unknown as React.ComponentType,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     { state },
   );

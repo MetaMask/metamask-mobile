@@ -49,7 +49,20 @@ describe('executeHardwareWalletOperation', () => {
     );
 
     expect(mockGetDeviceIdForAddress).toHaveBeenCalledWith('0x123');
-    expect(ensureDeviceReady).toHaveBeenCalledWith('device-123');
+    expect(ensureDeviceReady).toHaveBeenCalledWith('device-123', undefined);
+  });
+
+  it('forwards ensureDeviceReadyOptions to ensureDeviceReady', async () => {
+    const options = { requireBlindSigning: false };
+
+    await expect(
+      executeHardwareWalletOperation({
+        ...baseOptions,
+        ensureDeviceReadyOptions: options,
+      }),
+    ).resolves.toBe(true);
+
+    expect(ensureDeviceReady).toHaveBeenCalledWith('device-123', options);
   });
 
   it('sets the pending operation address at the start and clears it in the finally block', async () => {
