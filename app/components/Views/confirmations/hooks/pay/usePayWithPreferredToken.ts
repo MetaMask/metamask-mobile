@@ -46,7 +46,7 @@ export function usePayWithPreferredToken({
     if (selectedToken && isMatchingPayToken(selectedToken, automaticToken)) {
       return {
         address: selectedToken.address,
-        balanceUsd: liveBalanceUsd,
+        balanceUsd: liveBalanceUsd ?? selectedToken.balanceUsd ?? '0',
         chainId: selectedToken.chainId,
         symbol: selectedToken.symbol,
       };

@@ -628,7 +628,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
   const isPayAmountStale = useIsTransactionPayAmountStale();
   const isPaySubmitReady = useIsTransactionPaySubmitReady();
-  const { isResolved: isPayBalanceResolved } = usePayTokenAccountBalance();
+  const { balanceUsd: livePayTokenBalanceUsd } = usePayTokenAccountBalance();
+  const isPayBalanceResolved = livePayTokenBalanceUsd !== undefined;
   const depositFeeUsd = useMemo(() => {
     if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -777,12 +778,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [displayAmount, effectivePrice, szDecimals, isLoadingMarketData]);
 
-  // A pay token the user just picked reports `balanceUsd: '0'` until its
-  // balance actually resolves, so every balance-derived value below would
-  // otherwise treat a not-yet-known balance as an empty wallet. Quote
-  // readiness alone is not enough: the reactive balance source falls back to
-  // that same stale snapshot while its account data or fiat rate is missing,
-  // which can outlast the quote settling.
+  // A pay token the user just picked reports `balanceUsd: undefined` until
+  // its balance actually resolves. Treating that as `0` would report an
+  // empty wallet. Quote readiness alone is not enough: the reactive source
+  // stays undefined while account data or the fiat rate is missing, which
+  // can outlast the quote settling.
   const isPayBalanceLoading =
     hasCustomTokenSelected && (isPayStateNotReady || !isPayBalanceResolved);
 
@@ -2509,22 +2509,20 @@ const PerpsOrderView: React.FC = () => {
   // `payToken.balanceUsd` is a snapshot taken when the token was selected and
   // is never refreshed, so it reads 0 whenever the balance had not landed yet.
   // Read the same reactive source the token selector shows the user instead.
-  const { balanceUsd: payTokenBalanceUsd, isResolved: isPayBalanceResolved } =
-    usePayTokenAccountBalance();
+  const { balanceUsd: payTokenBalanceUsd } = usePayTokenAccountBalance();
 
   const effectiveAvailableBalance = useMemo(() => {
     // An unresolved balance is unknown, not zero: fall through to the Perps
     // balance rather than hand the form a confirmed-looking 0.
-    if (!hasCustomTokenSelected || !payToken || !isPayBalanceResolved) {
+    if (
+      !hasCustomTokenSelected ||
+      !payToken ||
+      payTokenBalanceUsd === undefined
+    ) {
       return undefined;
     }
     return Number(payTokenBalanceUsd);
-  }, [
-    hasCustomTokenSelected,
-    isPayBalanceResolved,
-    payToken,
-    payTokenBalanceUsd,
-  ]);
+  }, [hasCustomTokenSelected, payToken, payTokenBalanceUsd]);
 
   return (
     <PerpsOrderProvider

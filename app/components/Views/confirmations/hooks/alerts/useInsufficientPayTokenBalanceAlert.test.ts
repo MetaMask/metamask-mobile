@@ -119,8 +119,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       return {
         balanceUsd: payToken?.balanceUsd ?? '0',
         balanceRaw: payToken?.balanceRaw ?? '0',
-        isResolved: true,
-        isRawResolved: true,
       };
     });
     useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -158,10 +156,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         setPayToken: jest.fn(),
       });
       usePayTokenAccountBalanceMock.mockReturnValue({
-        balanceUsd: '1.22',
-        balanceRaw: '1000',
-        isResolved: false,
-        isRawResolved: false,
+        balanceUsd: undefined,
+        balanceRaw: undefined,
       });
 
       // Act
@@ -292,10 +288,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         setPayToken: jest.fn(),
       });
       usePayTokenAccountBalanceMock.mockReturnValue({
-        balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
-        balanceRaw: '999',
-        isResolved: false,
-        isRawResolved: false,
+        balanceUsd: undefined,
+        balanceRaw: undefined,
       });
 
       // Act
@@ -307,8 +301,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('returns the fees alert once the raw balance is known, even while the USD rate is missing', () => {
       // Arrange — the account source has produced raw units and they are short.
-      // The USD rate has not landed, so the USD-derived `isResolved` is still
-      // false; a raw-unit comparison must not wait on it.
+      // The USD rate has not landed, so `balanceUsd` is still undefined;
+      // a raw-unit comparison must not wait on it.
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           ...PAY_TOKEN_MOCK,
@@ -317,10 +311,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         setPayToken: jest.fn(),
       });
       usePayTokenAccountBalanceMock.mockReturnValue({
-        balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
+        balanceUsd: undefined,
         balanceRaw: '999',
-        isResolved: false,
-        isRawResolved: true,
       });
 
       // Act

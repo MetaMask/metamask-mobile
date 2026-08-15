@@ -213,9 +213,11 @@ function PayWithRowInteractive() {
   const balanceUsdFormatted = useMemo(
     () =>
       formatFiat(
-        new BigNumber(accountBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
+        new BigNumber(
+          accountBalanceUsd ?? payToken?.balanceUsd ?? '0',
+        ).decimalPlaces(2, BigNumber.ROUND_DOWN),
       ),
-    [formatFiat, accountBalanceUsd],
+    [formatFiat, accountBalanceUsd, payToken?.balanceUsd],
   );
 
   if (selectedFiatPaymentMethod) {

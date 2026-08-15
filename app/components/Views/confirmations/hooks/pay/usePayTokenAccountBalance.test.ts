@@ -54,7 +54,7 @@ describe('usePayTokenAccountBalance', () => {
     useTokenFiatRateMock.mockReturnValue(1700);
   });
 
-  it('returns zero balances when no pay token is selected', () => {
+  it('returns undefined balances when no pay token is selected', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
       setPayToken: jest.fn(),
@@ -63,10 +63,8 @@ describe('usePayTokenAccountBalance', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual({
-      balanceUsd: '0',
-      balanceRaw: '0',
-      isResolved: false,
-      isRawResolved: false,
+      balanceUsd: undefined,
+      balanceRaw: undefined,
     });
   });
 
@@ -77,20 +75,18 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current.balanceUsd).toBe('3400');
   });
 
-  it('falls back to controller snapshot when no matching account token', () => {
+  it('returns undefined when no matching account token', () => {
     useAccountTokensMock.mockReturnValue([]);
 
     const { result } = runHook();
 
     expect(result.current).toStrictEqual({
-      balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
-      balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
-      isResolved: false,
-      isRawResolved: false,
+      balanceUsd: undefined,
+      balanceRaw: undefined,
     });
   });
 
-  it('falls back to controller snapshot when matching token has no rawBalance', () => {
+  it('returns undefined when matching token has no rawBalance', () => {
     useAccountTokensMock.mockReturnValue([
       { ...ACCOUNT_TOKEN_MOCK, rawBalance: undefined } as unknown as AssetType,
     ]);
@@ -98,10 +94,8 @@ describe('usePayTokenAccountBalance', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual({
-      balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
-      balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
-      isResolved: false,
-      isRawResolved: false,
+      balanceUsd: undefined,
+      balanceRaw: undefined,
     });
   });
 
@@ -124,20 +118,18 @@ describe('usePayTokenAccountBalance', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual({
-      balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
-      balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
-      isResolved: false,
-      isRawResolved: false,
+      balanceUsd: undefined,
+      balanceRaw: undefined,
     });
   });
 
-  it('falls back to controller balanceUsd when USD rate is unavailable', () => {
+  it('returns raw units with undefined USD when the rate is unavailable', () => {
     useTokenFiatRateMock.mockReturnValue(undefined);
 
     const { result } = runHook();
 
     expect(result.current.balanceRaw).toBe('2000000000000000000');
-    expect(result.current.balanceUsd).toBe(PAY_TOKEN_MOCK.balanceUsd);
+    expect(result.current.balanceUsd).toBeUndefined();
   });
 
   it('uses account token decimals over payToken decimals', () => {
@@ -189,12 +181,10 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current).toStrictEqual({
       balanceUsd: '0',
       balanceRaw: '0',
-      isResolved: true,
-      isRawResolved: true,
     });
   });
 
-  it('falls back to controller defaults when payToken fields are undefined', () => {
+  it('returns undefined when the account source has not produced a balance', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         ...PAY_TOKEN_MOCK,
@@ -209,52 +199,8 @@ describe('usePayTokenAccountBalance', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual({
-      balanceUsd: '0',
-      balanceRaw: '0',
-      isResolved: false,
-      isRawResolved: false,
+      balanceUsd: undefined,
+      balanceRaw: undefined,
     });
-  });
-
-  it('reports the balance as resolved once it comes from the account source', () => {
-    // Arrange + Act
-    const { result } = runHook();
-
-    // Assert
-    expect(result.current.isResolved).toBe(true);
-  });
-
-  it('reports the balance as unresolved while the USD rate is unavailable', () => {
-    // Arrange
-    useTokenFiatRateMock.mockReturnValue(undefined);
-
-    // Act
-    const { result } = runHook();
-
-    // Assert — the returned figure is the stale snapshot, not a confirmed balance.
-    expect(result.current.isResolved).toBe(false);
-  });
-
-  it('reports the raw balance as resolved even while the USD rate is unavailable', () => {
-    // Arrange — the account source has produced raw units; only the rate is missing.
-    useTokenFiatRateMock.mockReturnValue(undefined);
-
-    // Act
-    const { result } = runHook();
-
-    // Assert — callers comparing raw units can act on it now, rate or no rate.
-    expect(result.current.isRawResolved).toBe(true);
-    expect(result.current.balanceRaw).toBe('2000000000000000000');
-  });
-
-  it('reports the raw balance as unresolved while it is still the snapshot', () => {
-    // Arrange
-    useAccountTokensMock.mockReturnValue([]);
-
-    // Act
-    const { result } = runHook();
-
-    // Assert
-    expect(result.current.isRawResolved).toBe(false);
   });
 });

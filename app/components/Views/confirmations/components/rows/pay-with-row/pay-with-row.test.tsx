@@ -162,8 +162,6 @@ describe('PayWithRow', () => {
     jest.mocked(usePayTokenAccountBalance).mockReturnValue({
       balanceUsd: '0',
       balanceRaw: '0',
-      isResolved: true,
-      isRawResolved: true,
     });
   });
 
@@ -258,8 +256,6 @@ describe('PayWithRow', () => {
       jest.mocked(usePayTokenAccountBalance).mockReturnValue({
         balanceUsd: '1234.999',
         balanceRaw: '0',
-        isResolved: true,
-        isRawResolved: true,
       });
 
       const { getByTestId } = render();

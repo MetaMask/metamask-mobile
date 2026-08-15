@@ -11,21 +11,17 @@ const ZERO_ADDRESS = '0x0' as Hex;
 // AccountTracker polling). Read from the same reactive asset source the
 // token selector uses so the balance stays in sync.
 export function usePayTokenAccountBalance(): {
-  balanceUsd: string;
-  balanceRaw: string;
   /**
-   * False while the reactive source has not produced a balance for this token
-   * yet, in which case the returned values are the stale snapshot rather than a
-   * confirmed balance. Callers that gate funding UI must not read a `0` as an
-   * empty wallet until this is true.
+   * USD value from the reactive account source. `undefined` while the
+   * account token or USD rate is missing — not a measured zero.
    */
-  isResolved: boolean;
+  balanceUsd: string | undefined;
   /**
-   * True as soon as `balanceRaw` comes from the account source, which happens
-   * before the USD rate lands. Callers comparing raw token units should gate on
-   * this rather than `isResolved`, which additionally waits on the rate.
+   * Raw token units from the account source. `undefined` until that
+   * source produces a balance. Lands before `balanceUsd` when only the
+   * rate is missing.
    */
-  isRawResolved: boolean;
+  balanceRaw: string | undefined;
 } {
   const { payToken } = useTransactionPayToken();
   const accountTokens = useAccountTokens({ includeNoBalance: true });
@@ -38,10 +34,8 @@ export function usePayTokenAccountBalance(): {
   return useMemo(() => {
     if (!payToken) {
       return {
-        balanceUsd: '0',
-        balanceRaw: '0',
-        isResolved: false,
-        isRawResolved: false,
+        balanceUsd: undefined,
+        balanceRaw: undefined,
       };
     }
 
@@ -53,10 +47,8 @@ export function usePayTokenAccountBalance(): {
 
     if (!matchingToken?.rawBalance) {
       return {
-        balanceUsd: payToken.balanceUsd ?? '0',
-        balanceRaw: payToken.balanceRaw ?? '0',
-        isResolved: false,
-        isRawResolved: false,
+        balanceUsd: undefined,
+        balanceRaw: undefined,
       };
     }
 
@@ -67,10 +59,8 @@ export function usePayTokenAccountBalance(): {
     const humanBalance = new BigNumber(rawBalanceDecimal).shiftedBy(-decimals);
     if (!usdRate) {
       return {
-        balanceUsd: payToken.balanceUsd ?? '0',
+        balanceUsd: undefined,
         balanceRaw: rawBalanceDecimal,
-        isResolved: false,
-        isRawResolved: true,
       };
     }
 
@@ -79,8 +69,6 @@ export function usePayTokenAccountBalance(): {
     return {
       balanceUsd,
       balanceRaw: rawBalanceDecimal,
-      isResolved: true,
-      isRawResolved: true,
     };
   }, [payToken, accountTokens, usdRate]);
 }

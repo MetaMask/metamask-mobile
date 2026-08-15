@@ -496,9 +496,9 @@ jest.mock(
 // The reactive pay-token balance, as opposed to the stale snapshot carried on
 // `payToken.balanceUsd`.
 const mockUsePayTokenAccountBalance = jest.fn<
-  { balanceUsd: string; balanceRaw: string; isResolved: boolean },
+  { balanceUsd: string | undefined; balanceRaw: string | undefined },
   unknown[]
->(() => ({ balanceUsd: '0', balanceRaw: '0', isResolved: true }));
+>(() => ({ balanceUsd: '0', balanceRaw: '0' }));
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance',
   () => ({
@@ -1627,9 +1627,10 @@ describe('PerpsOrderView', () => {
         isNative: true,
       });
       mockUsePayTokenAccountBalance.mockReturnValue({
-        balanceUsd: String(balanceForValidation),
-        balanceRaw: '1',
-        isResolved: isBalanceResolved,
+        balanceUsd: isBalanceResolved
+          ? String(balanceForValidation)
+          : undefined,
+        balanceRaw: isBalanceResolved ? '1' : undefined,
       });
       (usePerpsOrderContext as jest.Mock).mockReturnValue(
         buildOrderContextMock({
@@ -1659,7 +1660,6 @@ describe('PerpsOrderView', () => {
       mockUsePayTokenAccountBalance.mockReturnValue({
         balanceUsd: '0',
         balanceRaw: '0',
-        isResolved: true,
       });
       capturedOrderProviderProps = {};
       // Restored here rather than at the end of each test, so a failed
@@ -1790,9 +1790,8 @@ describe('PerpsOrderView', () => {
         hasSuppressedBalanceError: true,
       });
       mockUsePayTokenAccountBalance.mockReturnValue({
-        balanceUsd: '0',
-        balanceRaw: '0',
-        isResolved: false,
+        balanceUsd: undefined,
+        balanceRaw: undefined,
       });
       (usePerpsOrderContext as jest.Mock).mockReturnValue(
         buildOrderContextMock({
@@ -1810,7 +1809,6 @@ describe('PerpsOrderView', () => {
       mockUsePayTokenAccountBalance.mockReturnValue({
         balanceUsd: '1000',
         balanceRaw: '1',
-        isResolved: true,
       });
       rerender(<PerpsOrderView />);
       await act(async () => {
@@ -5065,7 +5063,6 @@ describe('PerpsOrderView', () => {
       mockUsePayTokenAccountBalance.mockReturnValue({
         balanceUsd: '0.01',
         balanceRaw: '1',
-        isResolved: true,
       });
       // The screen funds the trade from the balance validation uses, so the
       // shortfall has to be expressed there rather than on the pay-token snapshot.

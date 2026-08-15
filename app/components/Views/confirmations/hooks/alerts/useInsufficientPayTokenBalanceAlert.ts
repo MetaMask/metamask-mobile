@@ -61,29 +61,24 @@ export function useInsufficientPayTokenBalanceAlert({
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
   const { withdrawableFiatRaw } = useMoneyAccountBalance();
-  const {
-    balanceUsd: accountBalanceUsd,
-    balanceRaw: accountBalanceRaw,
-    isResolved: isAccountBalanceResolved,
-    isRawResolved: isAccountBalanceRawResolved,
-  } = usePayTokenAccountBalance();
+  const { balanceUsd: accountBalanceUsd, balanceRaw: accountBalanceRaw } =
+    usePayTokenAccountBalance();
 
   const balanceUsd = isMoneyPaymentOverride
     ? (withdrawableFiatRaw ?? '0')
     : accountBalanceUsd;
   const balanceRaw = accountBalanceRaw;
 
-  // Until the pay-token balance resolves, `balanceUsd`/`balanceRaw` are the
-  // stale snapshot, which can read `0`. Comparing against it would raise a
-  // blocking insufficiency for a balance nobody has measured yet. The money
-  // override reads a different source and is not subject to that race, and the
-  // source-network and no-quote checks below use their own inputs.
-  const isPayBalanceKnown = isMoneyPaymentOverride || isAccountBalanceResolved;
+  // `undefined` means the reactive source has not produced a value yet.
+  // Comparing against a fallback `0` would raise a blocking insufficiency
+  // for a balance nobody has measured. The money override reads a different
+  // source and is not subject to that race.
+  const isPayBalanceKnown =
+    isMoneyPaymentOverride || accountBalanceUsd !== undefined;
 
-  // The fee check below compares raw token units, which the account source
-  // produces before the USD rate lands. Gating it on the USD-dependent flag
-  // would drop a real shortfall for as long as the rate is missing.
-  const isPayBalanceRawKnown = isAccountBalanceRawResolved;
+  // Raw units land before the USD rate. Gate the fee check on raw presence
+  // so a known shortfall is not dropped while only the rate is missing.
+  const isPayBalanceRawKnown = accountBalanceRaw !== undefined;
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
