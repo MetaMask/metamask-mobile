@@ -21,11 +21,7 @@ import type { RampsOrder } from '@metamask/ramps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
-export type {
-  Status,
-  FiatAmount,
-  Fee as ActivityFee,
-} from '@metamask/client-utils';
+export type { Status, Fee as ActivityFee } from '@metamask/client-utils';
 
 export type TokenAmount = ClientUtilsTokenAmount & {
   isUnlimitedApproval?: boolean;

@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import type { Transaction } from '@metamask/keyring-api';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -51,10 +50,7 @@ export const MultichainAssetDetailsActivityListItem = ({
   const transaction = keyringState?.transactions?.find(
     (keyringTx) => keyringTx.id === item.hash && keyringTx.chain === chainId,
   );
-  const displayData = useMultichainTransactionDisplay(
-    transaction as Transaction,
-    chainId,
-  );
+  const displayData = useMultichainTransactionDisplay(transaction, chainId);
 
   const handlePress = useCallback(() => {
     if (transaction) {

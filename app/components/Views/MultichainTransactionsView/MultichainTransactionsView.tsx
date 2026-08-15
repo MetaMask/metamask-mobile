@@ -52,7 +52,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryItem';
 import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing + list pipeline; route-isolation backlog */
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog */
 import { getActivityDetailsRoute } from '../ActivityList/getActivityDetailsRoute';
 import { applyBridgeQuote } from '../ActivityList/helpers/apply-bridge-quote';
 /* eslint-enable import-x/no-restricted-paths */

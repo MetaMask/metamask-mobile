@@ -454,6 +454,16 @@ const makeItem = (
   } as unknown as ActivityListItem;
 };
 
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
+  jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
+    [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Row content tests — mirrors extension ActivityRow title/subtitle/amount split
 // ---------------------------------------------------------------------------
@@ -1816,16 +1826,6 @@ describe('ActivityListItemRow — display currency conversion', () => {
   const mockConversionRate = jest.mocked(selectConversionRateByChainId);
   const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
 
-  // These selector mocks use persistent return values (clearAllMocks does not
-  // reset them), so restore the suite-wide defaults (USD, equal rates) after
-  // each test to keep overrides from leaking.
-  afterEach(() => {
-    jest.clearAllMocks();
-    mockCurrency.mockReturnValue('usd');
-    mockConversionRate.mockReturnValue(2500);
-    mockUsdConversionRate.mockReturnValue(2500);
-  });
-
   const makeFundingFee = (hash: string, amount: string): ActivityListItem =>
     ({
       type: 'perpsPaidFundingFees',
@@ -1990,13 +1990,6 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
       typeof selectContractExchangeRatesByChainId
     >;
 
-  // This mock uses a persistent return value (clearAllMocks does not reset it),
-  // so restore the suite default (lowercased mUSD key) after each test.
-  afterEach(() => {
-    jest.clearAllMocks();
-    mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
-  });
-
   it('renders fiat for an ERC-20 when market data is keyed by a checksummed address', () => {
     // Production keys marketData by checksummed addresses while the lookup
     // address is lowercased (CAIP asset references). The fiat line must still
@@ -2094,9 +2087,9 @@ const EXPECTED_TITLES = {
   swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
-  rampBuy: strings('transactions.interaction'),
+  rampBuy: 'Bought',
   sell: 'Sold',
-  rampSell: strings('transactions.interaction'),
+  rampSell: 'Sold',
   claim: 'Claimed',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',
