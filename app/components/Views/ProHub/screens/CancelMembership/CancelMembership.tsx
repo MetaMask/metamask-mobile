@@ -106,7 +106,6 @@ const CancelMembership = () => {
       testID={CancelMembershipTestIds.CONTAINER}
     >
       <HeaderBase
-        twClassName="pl-4 pr-3"
         startAccessory={
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -118,7 +117,7 @@ const CancelMembership = () => {
       />
 
       <ScrollView
-        contentContainerStyle={tw.style('px-6 pt-2 pb-6')}
+        contentContainerStyle={tw.style('px-4 pt-2 pb-6')}
         showsVerticalScrollIndicator={false}
       >
         {/* Title + subtitle */}
@@ -206,7 +205,7 @@ const CancelMembership = () => {
       </ScrollView>
 
       {/* ── Bottom actions ─────────────────────────────────────────────────── */}
-      <Box twClassName="px-6 pb-6 gap-y-4 w-full">
+      <Box twClassName="px-4 pb-6 gap-y-4 w-full">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

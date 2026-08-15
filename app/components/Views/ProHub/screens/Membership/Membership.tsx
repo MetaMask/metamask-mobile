@@ -219,7 +219,6 @@ const Membership = () => {
       testID={MembershipTestIds.CONTAINER}
     >
       <HeaderBase
-        twClassName="pl-4 pr-3"
         startAccessory={
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -231,7 +230,7 @@ const Membership = () => {
       />
 
       <ScrollView
-        contentContainerStyle={tw.style('px-6 pt-2 pb-10')}
+        contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}

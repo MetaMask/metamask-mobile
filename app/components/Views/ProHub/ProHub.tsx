@@ -45,7 +45,6 @@ const ProHub = () => {
       {/* Header row */}
       <HeaderBase
         testID={ProHubTestIds.HEADER_ROOT}
-        twClassName="pl-4 pr-3"
         startAccessory={
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -65,7 +64,7 @@ const ProHub = () => {
       />
 
       {/* Content */}
-      <Box twClassName="flex-1 px-6 pt-6 gap-y-2">
+      <Box twClassName="flex-1 px-4 pt-6 gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
@@ -84,7 +83,7 @@ const ProHub = () => {
       </Box>
 
       {/* Action buttons */}
-      <Box twClassName="px-6 pb-10 gap-y-3">
+      <Box twClassName="px-4 pb-6 gap-y-3">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
