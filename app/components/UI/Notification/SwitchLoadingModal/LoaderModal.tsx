@@ -16,17 +16,30 @@ const LoaderModal = (props: LoaderModalProps) => {
   const [isMounted, setIsMounted] = useState(isVisible);
   const sheetRef = useRef<BottomSheetRef>(null);
   const closingDueToVisibilityRef = useRef(false);
+  // Track latest visibility to disambiguate stale close callbacks.
+  const isVisibleRef = useRef(isVisible);
+  useEffect(() => {
+    isVisibleRef.current = isVisible;
+  }, [isVisible]);
 
   useEffect(() => {
     if (isVisible) {
+      // Reset programmatic-close marker on explicit reopen.
       closingDueToVisibilityRef.current = false;
       setIsMounted(true);
+      // Ensure the sheet is opened in case a previous close finished.
+      sheetRef.current?.onOpenBottomSheet();
       return;
     }
 
     if (isMounted) {
       closingDueToVisibilityRef.current = true;
       sheetRef.current?.onCloseBottomSheet(() => {
+        // If visibility flipped back to true while the close was animating,
+        // ignore this stale completion to avoid cancel/unmount flicker.
+        if (isVisibleRef.current) {
+          return;
+        }
         setIsMounted(false);
         closingDueToVisibilityRef.current = false;
       });
@@ -34,9 +47,16 @@ const LoaderModal = (props: LoaderModalProps) => {
   }, [isMounted, isVisible]);
 
   const handleSheetClosed = useCallback(() => {
+    // If the parent wants it visible again, ignore this stale close event.
+    if (isVisibleRef.current) {
+      return;
+    }
     setIsMounted(false);
     if (!closingDueToVisibilityRef.current) {
       onCancel();
+    } else {
+      // Programmatic close finished as intended; reset flag.
+      closingDueToVisibilityRef.current = false;
     }
   }, [onCancel]);
 
