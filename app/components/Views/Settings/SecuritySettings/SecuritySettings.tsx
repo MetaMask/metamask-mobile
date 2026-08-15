@@ -254,7 +254,8 @@ const Settings: React.FC = () => {
     });
   };
 
-  const openClearBrowserHistorySheet = () => setBrowserHistoryModalVisible(true);
+  const openClearBrowserHistorySheet = () =>
+    setBrowserHistoryModalVisible(true);
 
   const closeClearBrowserHistorySheet = () =>
     setBrowserHistoryModalVisible(false);
