@@ -63,11 +63,6 @@ describe('ResetAccountModal', () => {
   const defaultProps = {
     resetModalVisible: true,
     cancelResetAccount: jest.fn(),
-    styles: {
-      modalView: {},
-      modalTitle: {},
-      modalText: {},
-    },
   };
 
   beforeEach(() => {

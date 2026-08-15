@@ -50,28 +50,6 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
     halfSetting: {
       marginTop: 24,
     },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalText: {
-      textAlign: 'center',
-    },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
-    },
-    bottomSheetContent: {
-      paddingHorizontal: 16,
-      paddingTop: 8,
-      paddingBottom: 24,
-    },
-    bottomSheetParagraph: {
-      marginBottom: 16,
-    },
     protect: {
       flexDirection: 'row',
       justifyContent: 'space-between',

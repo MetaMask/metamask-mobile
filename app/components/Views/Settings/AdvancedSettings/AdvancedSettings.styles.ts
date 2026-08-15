@@ -24,17 +24,6 @@ export const createStyles = (colors: Colors) =>
     firstSetting: {
       marginTop: 0,
     },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
-    },
     picker: {
       borderColor: colors.border.default,
       borderRadius: 5,

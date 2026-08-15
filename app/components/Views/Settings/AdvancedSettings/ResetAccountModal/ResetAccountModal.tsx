@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
 import { wipeSmartTransactions } from '../../../../../util/smart-transactions';
@@ -17,17 +16,16 @@ import {
   BottomSheetHeader,
   type BottomSheetRef,
   Box,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 export const ResetAccountModal = ({
   resetModalVisible,
   cancelResetAccount,
-  styles,
 }: {
   resetModalVisible: boolean;
   cancelResetAccount: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -82,7 +80,7 @@ export const ResetAccountModal = ({
         {strings('app_settings.reset_account_modal_title')}
       </BottomSheetHeader>
       <Box twClassName="px-4 pt-2 pb-6">
-        <Text style={styles.modalText}>
+        <Text variant={TextVariant.BodyMd} twClassName="text-center">
           {strings('app_settings.reset_account_modal_message')}
         </Text>
       </Box>

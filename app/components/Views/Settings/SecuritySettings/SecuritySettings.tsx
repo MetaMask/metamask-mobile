@@ -45,6 +45,7 @@ import {
   BottomSheetFooter,
   BottomSheetHeader,
   type BottomSheetRef,
+  Box,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -305,15 +306,13 @@ const Settings: React.FC = () => {
         onClose={closeClearBrowserHistorySheet}
       >
         <BottomSheetHeader onClose={requestCloseClearBrowserHistorySheet}>
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('app_settings.clear_browser_history_modal_title')}
-          </Text>
+          {strings('app_settings.clear_browser_history_modal_title')}
         </BottomSheetHeader>
-        <View style={styles.bottomSheetContent}>
-          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
+        <Box twClassName="px-4 pt-2 pb-6">
+          <Text variant={TextVariant.BodyMd} twClassName="text-center">
             {strings('app_settings.clear_browser_history_modal_message')}
           </Text>
-        </View>
+        </Box>
         <BottomSheetFooter
           secondaryButtonProps={{
             children: strings('app_settings.reset_account_cancel_button'),
@@ -358,18 +357,16 @@ const Settings: React.FC = () => {
         onClose={closeClearPrivacySheet}
       >
         <BottomSheetHeader onClose={requestCloseClearPrivacySheet}>
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('app_settings.clear_approvals_modal_title')}
-          </Text>
+          {strings('app_settings.clear_approvals_modal_title')}
         </BottomSheetHeader>
-        <View
-          style={styles.bottomSheetContent}
+        <Box
+          twClassName="px-4 pt-2 pb-6"
           testID={ClearPrivacyModalSelectorsIDs.CONTAINER}
         >
-          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
+          <Text variant={TextVariant.BodyMd} twClassName="text-center">
             {strings('app_settings.clear_approvals_modal_message')}
           </Text>
-        </View>
+        </Box>
         <BottomSheetFooter
           secondaryButtonProps={{
             children: strings('app_settings.reset_account_cancel_button'),
@@ -417,15 +414,13 @@ const Settings: React.FC = () => {
         onClose={closeClearCookiesSheet}
       >
         <BottomSheetHeader onClose={requestCloseClearCookiesSheet}>
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('app_settings.clear_cookies_modal_title')}
-          </Text>
+          {strings('app_settings.clear_cookies_modal_title')}
         </BottomSheetHeader>
-        <View style={styles.bottomSheetContent}>
-          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
+        <Box twClassName="px-4 pt-2 pb-6">
+          <Text variant={TextVariant.BodyMd} twClassName="text-center">
             {strings('app_settings.clear_cookies_modal_message')}
           </Text>
-        </View>
+        </Box>
         <BottomSheetFooter
           secondaryButtonProps={{
             children: strings('app_settings.reset_account_cancel_button'),
@@ -527,18 +522,16 @@ const Settings: React.FC = () => {
         onClose={() => setShowHint(false)}
       >
         <BottomSheetHeader onClose={requestCloseHintSheet}>
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('manual_backup_step_3.recovery_hint')}
-          </Text>
+          {strings('manual_backup_step_3.recovery_hint')}
         </BottomSheetHeader>
-        <View style={styles.bottomSheetContent}>
-          <Text variant={TextVariant.BodyMd} style={styles.bottomSheetParagraph}>
+        <Box twClassName="px-4 pt-2 pb-6">
+          <Text variant={TextVariant.BodyMd} twClassName="mb-4">
             {strings('manual_backup_step_3.leave_hint')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.ErrorDefault}
-            style={styles.bottomSheetParagraph}
+            twClassName="mb-4"
           >
             {strings('manual_backup_step_3.no_seedphrase')}
           </Text>
@@ -548,7 +541,7 @@ const Settings: React.FC = () => {
             onChangeText={handleChangeText}
             textAlignVertical="top"
           />
-        </View>
+        </Box>
         <BottomSheetFooter
           secondaryButtonProps={{
             children: strings('action_view.cancel'),

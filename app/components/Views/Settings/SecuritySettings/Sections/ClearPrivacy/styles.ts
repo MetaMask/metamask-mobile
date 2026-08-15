@@ -12,18 +12,4 @@ export const styleSheet = () =>
     accessory: {
       marginTop: 16,
     },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalText: {
-      textAlign: 'center',
-    },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
-    },
   });

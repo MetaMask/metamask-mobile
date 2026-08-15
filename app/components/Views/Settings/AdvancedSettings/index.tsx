@@ -282,7 +282,6 @@ const AdvancedSettings = ({
       <ResetAccountModal
         resetModalVisible={resetModalVisible}
         cancelResetAccount={cancelResetAccount}
-        styles={styles}
       />
     </SafeAreaView>
   );
