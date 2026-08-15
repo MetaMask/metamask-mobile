@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -186,6 +186,7 @@ const STAT_SHEET_CONTENT: Record<
 const Membership = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { top } = useSafeAreaInsets();
   const [activeSheet, setActiveSheet] = useState<ActiveStatSheet>(null);
 
   const handleBack = useCallback(() => {
@@ -213,10 +214,9 @@ const Membership = () => {
   }, [navigation]);
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
+    <View
+      style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
       testID={MembershipTestIds.CONTAINER}
-      edges={['top']}
     >
       <HeaderBase
         twClassName="pl-4 pr-3"
@@ -401,7 +401,7 @@ const Membership = () => {
           onClose={handleCloseSheet}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -81,6 +81,7 @@ const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
 const CancelMembership = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { top } = useSafeAreaInsets();
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
 
   const handleBack = useCallback(() => {
@@ -100,10 +101,9 @@ const CancelMembership = () => {
   }, []);
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
+    <View
+      style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
       testID={CancelMembershipTestIds.CONTAINER}
-      edges={['top', 'bottom']}
     >
       <HeaderBase
         twClassName="pl-4 pr-3"
@@ -206,7 +206,7 @@ const CancelMembership = () => {
       </ScrollView>
 
       {/* ── Bottom actions ─────────────────────────────────────────────────── */}
-      <Box twClassName="px-6 pb-4 gap-y-4 w-full">
+      <Box twClassName="px-6 pb-6 gap-y-4 w-full">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -226,7 +226,7 @@ const CancelMembership = () => {
           {strings('pro_hub.cancel_membership.cancel')}
         </Button>
       </Box>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -22,6 +23,7 @@ import { ProHubTestIds } from './ProHub.testIds';
 const ProHub = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { top } = useSafeAreaInsets();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -36,9 +38,8 @@ const ProHub = () => {
   }, [navigation]);
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={['top']}
+    <View
+      style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
       testID={ProHubTestIds.CONTAINER}
     >
       {/* Header row */}
@@ -103,7 +104,7 @@ const ProHub = () => {
           {strings('pro_hub.manage')}
         </Button>
       </Box>
-    </SafeAreaView>
+    </View>
   );
 };
 

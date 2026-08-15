@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -24,16 +25,16 @@ import { MOCK_CANCELLATION_END_DATE } from './CancellationSuccess.constants';
 const CancellationSuccess = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { top } = useSafeAreaInsets();
 
   const handleDone = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.ROOT as never);
   }, [navigation]);
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
+    <View
+      style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
       testID={CancellationSuccessTestIds.CONTAINER}
-      edges={['top', 'bottom']}
     >
       {/* ── Centered content ──────────────────────────────────────────────── */}
       <Box twClassName="flex-1 items-center justify-center px-8 gap-y-6">
@@ -80,7 +81,7 @@ const CancellationSuccess = () => {
       </Box>
 
       {/* ── Done button ───────────────────────────────────────────────────── */}
-      <Box twClassName="px-6 pb-4 w-full">
+      <Box twClassName="px-4 pb-6 w-full">
         <Button
           variant={ButtonVariant.Primary}
           onPress={handleDone}
@@ -91,7 +92,7 @@ const CancellationSuccess = () => {
           {strings('pro_hub.cancellation_success.done')}
         </Button>
       </Box>
-    </SafeAreaView>
+    </View>
   );
 };
 
