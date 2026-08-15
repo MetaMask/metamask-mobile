@@ -37,7 +37,7 @@ class CardHomeView {
   }
 
   get swapScreenSourceTokenArea(): EncapsulatedElementType {
-    return Matchers.getElementByID('source-token-area');
+    return Matchers.getElementByID('source-token-selector-button');
   }
 
   async tapTryAgainButton(): Promise<void> {

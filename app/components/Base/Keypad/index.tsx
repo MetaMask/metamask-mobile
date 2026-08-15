@@ -6,6 +6,7 @@ import Keypad, {
   type KeypadDeleteButtonProps,
 } from './components';
 import { Keys } from './constants';
+import { KeypadTestIds } from './Keypad.testIds';
 import useCurrency from './useCurrency';
 import { colors } from '../../../styles/common';
 
@@ -132,52 +133,82 @@ function KeypadComponent({
   return (
     <Keypad {...props}>
       <Keypad.Row>
-        <Keypad.Button testID="keypad-key-1" onPress={handleKeypadPress1}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_ONE}
+          onPress={handleKeypadPress1}
+        >
           1
         </Keypad.Button>
-        <Keypad.Button testID="keypad-key-2" onPress={handleKeypadPress2}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_TWO}
+          onPress={handleKeypadPress2}
+        >
           2
         </Keypad.Button>
-        <Keypad.Button testID="keypad-key-3" onPress={handleKeypadPress3}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_THREE}
+          onPress={handleKeypadPress3}
+        >
           3
         </Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
-        <Keypad.Button testID="keypad-key-4" onPress={handleKeypadPress4}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_FOUR}
+          onPress={handleKeypadPress4}
+        >
           4
         </Keypad.Button>
-        <Keypad.Button testID="keypad-key-5" onPress={handleKeypadPress5}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_FIVE}
+          onPress={handleKeypadPress5}
+        >
           5
         </Keypad.Button>
-        <Keypad.Button testID="keypad-key-6" onPress={handleKeypadPress6}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_SIX}
+          onPress={handleKeypadPress6}
+        >
           6
         </Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
-        <Keypad.Button testID="keypad-key-7" onPress={handleKeypadPress7}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_SEVEN}
+          onPress={handleKeypadPress7}
+        >
           7
         </Keypad.Button>
-        <Keypad.Button testID="keypad-key-8" onPress={handleKeypadPress8}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_EIGHT}
+          onPress={handleKeypadPress8}
+        >
           8
         </Keypad.Button>
-        <Keypad.Button testID="keypad-key-9" onPress={handleKeypadPress9}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_NINE}
+          onPress={handleKeypadPress9}
+        >
           9
         </Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
         <Keypad.Button
-          testID="keypad-key-dot"
+          testID={KeypadTestIds.DECIMAL_SEPARATOR}
           onPress={handleKeypadPressPeriod}
           style={styles.periodButton}
           {...periodButtonProps}
         >
           {decimalSeparator}
         </Keypad.Button>
-        <Keypad.Button testID="keypad-key-0" onPress={handleKeypadPress0}>
+        <Keypad.Button
+          testID={KeypadTestIds.DIGIT_ZERO}
+          onPress={handleKeypadPress0}
+        >
           0
         </Keypad.Button>
         <Keypad.DeleteButton
-          testID="keypad-delete-button"
+          testID={KeypadTestIds.DELETE}
           onPress={handleKeypadPressBack}
           onLongPress={handleKeypadLongPressBack}
           delayLongPress={500}

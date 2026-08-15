@@ -8,7 +8,6 @@ import {
   TextStyle,
 } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -46,6 +45,7 @@ import {
   TokenSelectorBalanceLayoutConfig,
   TokenSelectorBalanceLayoutVariant,
 } from './TokenSelectorItem.abTestConfig';
+import { getTokenSelectorItemTestId } from './TokenSelectorItem.testIds';
 import {
   Icon,
   IconColor,
@@ -377,7 +377,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
             ? pressTargetAccessibilityLabel
             : undefined
         }
-        testID={getAssetTestId(`${token.chainId}-${token.symbol}`)}
+        testID={getTokenSelectorItemTestId(token.chainId, token.symbol)}
       >
         <Box
           accessible={false}
