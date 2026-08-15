@@ -51,6 +51,13 @@ const ProSubscription = () => {
     setCurrentScreen('success');
   }, []);
 
+  const handleSubscriptionOnSuccess = useCallback(() => {
+    handleClose();
+    navigation.navigate(Routes.PRO_HUB.ROOT, {
+      source: 'pro_subscription_success',
+    });
+  }, [handleClose, navigation]);
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
@@ -72,7 +79,10 @@ const ProSubscription = () => {
           initialPlan={route.params?.initialPlan}
         />
       ) : (
-        <Success onClose={handleClose} />
+        <Success
+          onClose={handleClose}
+          onSuccess={handleSubscriptionOnSuccess}
+        />
       )}
     </SafeAreaView>
   );

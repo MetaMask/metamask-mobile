@@ -20,6 +20,7 @@ import { SuccessTestIds } from './Success.testIds';
 
 interface SuccessProps {
   onClose: () => void;
+  onSuccess: () => void;
 }
 
 const ALY_NAME = 'Aly';
@@ -27,7 +28,7 @@ const ALY_NAME = 'Aly';
 /**
  * SUB-994: Post-purchase success screen.
  */
-const Success = ({ onClose }: SuccessProps) => (
+const Success = ({ onClose, onSuccess }: SuccessProps) => (
   <Box
     twClassName="flex-1 bg-background-default"
     testID={SuccessTestIds.CONTAINER}
@@ -70,7 +71,7 @@ const Success = ({ onClose }: SuccessProps) => (
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        onPress={onClose}
+        onPress={onSuccess}
         isFullWidth
         testID={SuccessTestIds.CTA_BUTTON}
       >
