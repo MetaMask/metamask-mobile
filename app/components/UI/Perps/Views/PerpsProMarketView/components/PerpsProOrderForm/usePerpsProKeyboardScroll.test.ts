@@ -163,6 +163,12 @@ describe('getKeyboardScrollDelta', () => {
   it('does nothing when the card already sits inside the band', () => {
     expect(deltaFor({ cardTop: VIEWPORT_TOP + 50, cardHeight: 200 })).toBe(0);
   });
+
+  it('restores the top of a card too tall to fit the band', () => {
+    const delta = deltaFor({ cardTop: VIEWPORT_TOP - 40, cardHeight: 500 });
+
+    expect(delta).toBe(-40);
+  });
 });
 
 describe('usePerpsProKeyboardScroll', () => {
@@ -174,6 +180,16 @@ describe('usePerpsProKeyboardScroll', () => {
     setup();
 
     expect(mockKeyboardHandler.onStart).toBeInstanceOf(Function);
+  });
+
+  it('aligns on focus when the keyboard is already up for another field', async () => {
+    const { onRequestScrollBy, result } = setup({ focus: false });
+    await raiseKeyboard();
+    onRequestScrollBy.mockClear();
+
+    act(() => result.current.onFocus());
+
+    expect(onRequestScrollBy).toHaveBeenCalledWith(EXPECTED_DELTA);
   });
 
   it('scrolls the card clear when the keyboard rises over it', async () => {

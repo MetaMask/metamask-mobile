@@ -52,14 +52,14 @@ export function getKeyboardScrollDelta({
   /** < 0 => card has run off the top of the viewport by this much. */
   const headroom = cardTop - viewportTop;
 
-  if (overlap > 0) {
-    // Capped so the card's top never leaves the viewport: the value being typed
-    // lives there, so hiding it to reveal the bottom edge is a worse trade.
-    return Math.min(overlap, Math.max(headroom, 0));
+  // Checked first because the top wins: the value being typed lives there, so
+  // hiding it to reveal the bottom edge is a worse trade.
+  if (headroom < 0) {
+    return overlap > 0 ? headroom : Math.max(headroom, overlap);
   }
 
-  if (headroom < 0) {
-    return Math.max(headroom, overlap);
+  if (overlap > 0) {
+    return Math.min(overlap, headroom);
   }
 
   return 0;
@@ -89,10 +89,6 @@ export function usePerpsProKeyboardScroll(
   // A ref so focus changes need not re-render the form.
   const isFocusedRef = useRef(false);
   const { height: windowHeight } = useWindowDimensions();
-
-  const onFocus = useCallback(() => {
-    isFocusedRef.current = true;
-  }, []);
 
   const onBlur = useCallback(() => {
     isFocusedRef.current = false;
@@ -172,6 +168,11 @@ export function usePerpsProKeyboardScroll(
       alignCard(keyboardHeightRef.current);
     }
   }, [alignCard]);
+
+  const onFocus = useCallback(() => {
+    isFocusedRef.current = true;
+    realign();
+  }, [realign]);
 
   return { cardRef, onFocus, onBlur, realign };
 }
