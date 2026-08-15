@@ -1,7 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import Text from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
 import { wipeSmartTransactions } from '../../../../../util/smart-transactions';
@@ -81,9 +79,7 @@ export const ResetAccountModal = ({
       keyboardAvoidingViewEnabled
     >
       <BottomSheetHeader onClose={handleRequestClose}>
-        <Text style={styles.modalTitle} variant={TextVariant.HeadingMD}>
-          {strings('app_settings.reset_account_modal_title')}
-        </Text>
+        {strings('app_settings.reset_account_modal_title')}
       </BottomSheetHeader>
       <Box twClassName="px-4 pt-2 pb-6">
         <Text style={styles.modalText}>
