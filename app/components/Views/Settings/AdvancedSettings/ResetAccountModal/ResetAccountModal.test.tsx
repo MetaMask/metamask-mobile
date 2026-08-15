@@ -2,8 +2,8 @@ import React from 'react';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { strings } from '../../../../../../locales/i18n';
 import { ResetAccountModal } from './ResetAccountModal';
+import { AdvancedViewSelectorsIDs } from '../AdvancedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
@@ -79,13 +79,13 @@ describe('ResetAccountModal', () => {
   });
 
   it('calls wipeBridgeStatus, wipeTransactions, and wipeSmartTransactions when reset button is pressed', async () => {
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <ResetAccountModal {...defaultProps} />,
       { state: initialState },
     );
 
-    const confirmButton = getByText(
-      strings('app_settings.reset_account_confirm_button'),
+    const confirmButton = getByTestId(
+      AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
     );
     fireEvent.press(confirmButton);
 
@@ -105,13 +105,13 @@ describe('ResetAccountModal', () => {
       selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
     ).mockReturnValue(undefined);
 
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <ResetAccountModal {...defaultProps} />,
       { state: initialState },
     );
 
-    const confirmButton = getByText(
-      strings('app_settings.reset_account_confirm_button'),
+    const confirmButton = getByTestId(
+      AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
     );
     fireEvent.press(confirmButton);
 

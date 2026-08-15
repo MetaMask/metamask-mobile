@@ -466,6 +466,15 @@ jest.mock(
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
+// Mock react-native-material-textfield, which accesses RN internals at import time
+// and can crash under Jest (we only need a renderable stand-in).
+jest.mock('react-native-material-textfield', () => {
+  const React = require('react');
+  const { TextInput } = require('react-native');
+  const OutlinedTextField = (props) => React.createElement(TextInput, props);
+  return { OutlinedTextField };
+});
+
 /**
  * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
  * react-native-worklets, and requiring the real package eagerly initializes its
