@@ -21,6 +21,11 @@ export const PROVIDER_DISPLAY_INFO: Record<
     name: 'MYX',
     description: 'BNB Chain perps (Beta)',
   },
+  lighter: {
+    id: 'lighter',
+    name: 'Lighter',
+    description: 'ZK-rollup perps (POC)',
+  },
   aggregated: {
     id: 'aggregated',
     name: 'All Providers',
@@ -65,19 +70,11 @@ export const PROVIDER_NETWORK_OPTIONS: ProviderNetworkOption[] = [
     description: 'High-performance L1 perps',
   },
   {
-    id: 'myx-mainnet',
-    providerId: 'myx',
-    isTestnet: false,
-    name: 'MYX',
-    network: 'Mainnet',
-    description: 'BNB Chain perps (Beta)',
-  },
-  {
-    id: 'myx-testnet',
-    providerId: 'myx',
+    id: 'lighter-testnet',
+    providerId: 'lighter',
     isTestnet: true,
-    name: 'MYX',
+    name: 'Lighter',
     network: 'Testnet',
-    description: 'Linea Sepolia perps (Beta)',
+    description: 'zkLighter perps (POC)',
   },
 ];
