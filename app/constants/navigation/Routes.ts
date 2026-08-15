@@ -610,6 +610,8 @@ const Routes = {
   PRO_HUB: {
     /** Root screen for the MetaMask Pro hub — reachable from anywhere in the app. */
     ROOT: 'ProHub',
+    /** Membership details screen — plan info, payment details, and manage actions. */
+    MEMBERSHIP: 'ProHubMembership',
   },
 } as const;
 
