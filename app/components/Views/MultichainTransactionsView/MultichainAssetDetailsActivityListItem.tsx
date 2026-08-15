@@ -89,6 +89,10 @@ export const MultichainAssetDetailsActivityListItem = ({
       return;
     }
 
+    if (!transaction) {
+      return;
+    }
+
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
       params: { displayData, transaction },

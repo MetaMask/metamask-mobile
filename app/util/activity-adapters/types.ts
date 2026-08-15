@@ -143,6 +143,29 @@ type MobileOnlyActivityItem =
       }
     >;
 
-export type ActivityListItem =
-  | (ClientUtilsActivityItem & MobileFields)
-  | MobileOnlyActivityItem;
+type SplitByKind<T> = T extends { type: infer K }
+  ? K extends string
+    ? Omit<T, 'type'> & { type: K }
+    : never
+  : never;
+
+type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
+  ? TokenAmount
+  : T extends object
+    ? { [P in keyof T]: WithMobileTokenAmount<T[P]> }
+    : T;
+
+interface MobileDataExtras {
+  fees?: ActivityFee[];
+  transactionType?: string;
+}
+
+type WithMobileDataTokens<T> = T extends { data: infer D }
+  ? Omit<T, 'data'> & { data: WithMobileTokenAmount<D> & MobileDataExtras }
+  : T;
+
+export type ActivityListItem = SplitByKind<
+  WithMobileDataTokens<
+    (ClientUtilsActivityItem & MobileFields) | MobileOnlyActivityItem
+  >
+>;
