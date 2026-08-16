@@ -327,13 +327,24 @@ export function transformFillsToTransactions(
         .absoluteValue()
         .toString();
     }
+    // Side-only venues (e.g. Lighter) report fills as Buy/Sell with the
+    // realized PnL attached: a Buy that reduces a short realizes PnL just
+    // like a Close does. Route any fill carrying nonzero PnL through the
+    // PnL display path so it is never misclassified as a pure open.
+    const hasRealizedPnl = !BigNumber(fill.pnl || 0).isZero();
     // Calculate display amount based on action type
-    if (isOpened || isBuy) {
+    if ((isOpened || isBuy) && !hasRealizedPnl) {
       // For opening positions or buying: show fee paid (negative)
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
       isPositive = false; // Fee is always a cost
-    } else if (isClosed || isSell || isFlipped || isAutoDeleveraging) {
+    } else if (
+      isClosed ||
+      isSell ||
+      isFlipped ||
+      isAutoDeleveraging ||
+      hasRealizedPnl
+    ) {
       // For closing positions: show PnL minus fee
       const pnlValue = BigNumber(fill.pnl || 0);
       const feeValue = BigNumber(fill.fee || 0);

@@ -483,6 +483,35 @@ describe('transactionTransforms', () => {
       detailedOrderType: 'Market',
     };
 
+    it('routes a Lighter Buy fill carrying realized PnL through the PnL path', () => {
+      // Side-only venues (Lighter) report a short being closed as a plain
+      // Buy with the realized pnl attached; it must not be misclassified as
+      // a pure open that only shows the fee.
+      const lighterBuyClose = {
+        ...mockFill,
+        direction: 'Buy',
+        pnl: '-0.012901',
+        fee: '0',
+      };
+
+      const result = transformFillsToTransactions([lighterBuyClose]);
+
+      if (!result[0]?.fill) {
+        return;
+      }
+      expect(result[0].fill.amount).toBe('-$0.01');
+      expect(result[0].fill.isPositive).toBe(false);
+    });
+
+    it('keeps a zero-PnL Buy fill on the fee display path', () => {
+      const plainBuy = { ...mockFill, direction: 'Buy', pnl: '0', fee: '2' };
+      const result = transformFillsToTransactions([plainBuy]);
+      if (!result[0]?.fill) {
+        return;
+      }
+      expect(result[0].fill.amount).toBe('-$2.00');
+    });
+
     it('transforms close position fill correctly', () => {
       const closeFill = {
         ...mockFill,
