@@ -64,8 +64,13 @@ export const usePerpsLiquidationPrice = (
 
           setError(errorMessage);
 
-          // For invalid leverage errors, show a clear message instead of 0.00
-          if (errorMessage.includes('Invalid leverage')) {
+          // Invalid-leverage errors and provider capability gates (e.g.
+          // Lighter's cross-margin preview being unavailable) must show the
+          // explicit fallback, never a plausible-looking 0.00.
+          if (
+            errorMessage.includes('Invalid leverage') ||
+            errorMessage.includes('unavailable')
+          ) {
             setLiquidationPrice(PERPS_CONSTANTS.FallbackPriceDisplay);
           } else {
             setLiquidationPrice('0.00');
