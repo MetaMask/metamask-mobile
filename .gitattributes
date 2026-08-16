@@ -4,3 +4,7 @@
 
 # Shell scripts must keep LF so they run in WSL on Windows.
 *.sh text eol=lf
+
+# TAT-3766: committed prebuilt perps-controller (temporary until the core PR
+# publishes a preview release) — generated output, exempt from diff checks.
+.yalc/@metamask/perps-controller/** linguist-generated=true -diff

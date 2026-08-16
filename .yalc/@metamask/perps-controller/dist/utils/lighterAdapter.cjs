@@ -169,8 +169,14 @@ function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
         side: accountIsAsk ? 'sell' : 'buy',
         size: trade.size,
         price: trade.price,
-        pnl: '0',
-        direction: accountIsAsk ? 'sell' : 'buy',
+        // The venue reports realized pnl per side of the trade.
+        pnl: (accountIsAsk ? trade.askAccountPnl : trade.bidAccountPnl) ?? '0',
+        // Client transforms recognize the capitalized Buy/Sell direction
+        // vocabulary (open/close attribution needs signed position context the
+        // trade payload does not carry).
+        direction: accountIsAsk ? 'Sell' : 'Buy',
+        // Lighter standard accounts currently charge zero trading fees; the
+        // trade payload carries no fee field to adapt.
         fee: '0',
         feeToken: 'USDC',
         timestamp: trade.timestamp,
