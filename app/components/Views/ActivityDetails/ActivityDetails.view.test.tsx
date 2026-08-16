@@ -1130,12 +1130,12 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
       queryByTestId,
       UNSAFE_getAllByType,
     } = renderActivityDetailsView({
-        state,
-        params: {
-          chainId: MAINNET_CAIP,
-          txIdentifier: ACTIVITY_CV_DEPOSIT_USDC_HASH,
-        },
-      });
+      state,
+      params: {
+        chainId: MAINNET_CAIP,
+        txIdentifier: ACTIVITY_CV_DEPOSIT_USDC_HASH,
+      },
+    });
 
     expect(await findByTestId(SCREEN)).toBeOnTheScreen();
     expect(await findByText('Deposited USDC')).toBeOnTheScreen();
