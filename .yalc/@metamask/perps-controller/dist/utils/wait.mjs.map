@@ -1,0 +1,1 @@
+{"version":3,"file":"wait.mjs","sourceRoot":"","sources":["../../src/utils/wait.ts"],"names":[],"mappings":"AAAA,MAAM,CAAC,MAAM,IAAI,GAAG,CAAC,EAAU,EAAiB,EAAE,CAChD,IAAI,OAAO,CAAC,CAAC,OAAO,EAAE,EAAE,CAAC,UAAU,CAAC,OAAO,EAAE,EAAE,CAAC,CAAC,CAAC","sourcesContent":["export const wait = (ms: number): Promise<void> =>\n  new Promise((resolve) => setTimeout(resolve, ms));\n"]}
