@@ -57,11 +57,36 @@ const styles = StyleSheet.create({
   },
 });
 
+const EXECUTE_TIMEOUT_MS = 60_000;
+
 const executePromises: Record<
   string,
-  | { resolve: (value: unknown) => void; reject: (reason?: unknown) => void }
+  | {
+      resolve: (value: unknown) => void;
+      reject: (reason?: unknown) => void;
+      timer: ReturnType<typeof setTimeout>;
+    }
   | undefined
 > = {};
+
+/**
+ * Reject and drop every in-flight call. Must run whenever the WebView
+ * reloads (crash recovery, content-process loss): the page-side WASM state
+ * is gone, so pending calls can never resolve and callers must retry
+ * against the re-initialized signer instead of hanging forever.
+ *
+ * @param reason - Error message forwarded to each pending caller.
+ */
+function rejectAllPending(reason: string): void {
+  for (const executeId of Object.keys(executePromises)) {
+    const pending = executePromises[executeId];
+    if (pending) {
+      clearTimeout(pending.timer);
+      pending.reject(new Error(reason));
+    }
+    delete executePromises[executeId];
+  }
+}
 
 /**
  * Hidden off-screen WebView hosting the Lighter Go/WASM signer.
@@ -80,6 +105,7 @@ export const LighterSignerWebView = () => {
   const [reloadKey, setReloadKey] = useState(0);
 
   const refresh = useCallback(() => {
+    rejectAllPending('Lighter signer WebView reloaded; retry the operation');
     resetLighterBridge();
     setReloadKey((prev) => prev + 1);
   }, []);
@@ -110,7 +136,15 @@ export const LighterSignerWebView = () => {
               const executeId = `${call.function}_${Date.now()}_${Math.random()
                 .toString(36)
                 .slice(2)}`;
-              executePromises[executeId] = { resolve, reject };
+              const timer = setTimeout(() => {
+                delete executePromises[executeId];
+                reject(
+                  new Error(
+                    `Lighter signer call ${call.function} timed out after ${EXECUTE_TIMEOUT_MS}ms`,
+                  ),
+                );
+              }, EXECUTE_TIMEOUT_MS);
+              executePromises[executeId] = { resolve, reject, timer };
               webviewRef.current?.postMessage(
                 JSON.stringify({ type: 'execute', ...call, executeId }),
               );
@@ -120,15 +154,21 @@ export const LighterSignerWebView = () => {
         break;
       case 'executeResult':
         if (message.executeId) {
-          executePromises[message.executeId]?.resolve(message.result);
+          const pending = executePromises[message.executeId];
+          if (pending) {
+            clearTimeout(pending.timer);
+            pending.resolve(message.result);
+          }
           delete executePromises[message.executeId];
         }
         break;
       case 'executeError':
         if (message.executeId) {
-          executePromises[message.executeId]?.reject(
-            new Error(String(message.message)),
-          );
+          const pending = executePromises[message.executeId];
+          if (pending) {
+            clearTimeout(pending.timer);
+            pending.reject(new Error(String(message.message)));
+          }
           delete executePromises[message.executeId];
         }
         break;
