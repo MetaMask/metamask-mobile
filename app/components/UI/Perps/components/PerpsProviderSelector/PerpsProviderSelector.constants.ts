@@ -70,6 +70,14 @@ export const PROVIDER_NETWORK_OPTIONS: ProviderNetworkOption[] = [
     description: 'High-performance L1 perps',
   },
   {
+    id: 'lighter-mainnet',
+    providerId: 'lighter',
+    isTestnet: false,
+    name: 'Lighter',
+    network: 'Mainnet',
+    description: 'zkLighter perps',
+  },
+  {
     id: 'lighter-testnet',
     providerId: 'lighter',
     isTestnet: true,
