@@ -371,6 +371,11 @@ describe('SwapsConfirmButton', () => {
     });
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
   describe('CTA color A/B test', () => {
     it('uses Primary when the CTA experiment is unresolved', () => {
       const { UNSAFE_getByProps } = renderWithProvider(
@@ -731,7 +736,9 @@ describe('SwapsConfirmButton', () => {
     });
 
     it('disables button when dest stock market is fully closed', () => {
-      const nowMs = Date.now();
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-02T12:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
       const hourMs = 60 * 60 * 1000;
       const closedStock: BridgeToken = {
         address: '0x1111111111111111111111111111111111111111',
@@ -789,7 +796,9 @@ describe('SwapsConfirmButton', () => {
     });
 
     it('keeps button enabled when dest stock is in off-hours', () => {
-      const nowMs = Date.now();
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T18:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
       const hourMs = 60 * 60 * 1000;
       const offHoursStock: BridgeToken = {
         address: '0x1111111111111111111111111111111111111111',
@@ -889,33 +898,29 @@ describe('SwapsConfirmButton', () => {
         },
       };
 
-      try {
-        const { getByTestId } = renderWithProvider(
-          <SwapsConfirmButton
-            latestSourceBalance={mockLatestSourceBalance}
-            location={MetaMetricsSwapsEventSource.MainView}
-          />,
-          {
-            state: offHoursState,
-          },
-        );
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: offHoursState,
+        },
+      );
 
-        const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-        expect(button.props.accessibilityState?.disabled).toBe(false);
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
 
-        act(() => {
-          jest.setSystemTime(nowMs + 3 * hourMs);
-        });
+      act(() => {
+        jest.setSystemTime(nowMs + 3 * hourMs);
+      });
 
-        fireEvent.press(button);
+      fireEvent.press(button);
 
-        expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
-        });
-      } finally {
-        jest.useRealTimers();
-      }
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
     });
   });
 
