@@ -158,6 +158,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.campaign.remind_me_success_toast': 'We will notify you.',
       'rewards.campaign.remind_me_save_error': 'Save failed.',
       'rewards.notifications_nudge.turn_on_button': 'Turn on',
+      'rewards.money_account_sweepstakes.campaign_title': 'Money Sweepstakes',
     };
     return translations[key] || key;
   },
@@ -615,7 +616,7 @@ describe('CampaignTile', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not navigate for any campaign type when status is upcoming', () => {
+    it('lets users open details for a supported upcoming campaign', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
         statusLabel: 'Coming soon',
@@ -630,10 +631,13 @@ describe('CampaignTile', () => {
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
       fireEvent.press(getByTestId('campaign-tile-camp-ondo-upcoming'));
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('RewardsFlow', {
+        screen: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'camp-ondo-upcoming' },
+      });
     });
 
-    it('does not call onPress for any campaign type when status is upcoming', () => {
+    it('calls a custom press handler for an upcoming campaign', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
         statusLabel: 'Coming soon',
@@ -651,7 +655,7 @@ describe('CampaignTile', () => {
       );
       fireEvent.press(getByTestId('campaign-tile-camp-season-upcoming'));
 
-      expect(mockOnPress).not.toHaveBeenCalled();
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -727,7 +731,7 @@ describe('CampaignTile', () => {
       });
     });
 
-    it('navigates to campaign tour for MONEY_ACCOUNT_SWEEPSTAKES when not opted in and tour exists', () => {
+    it('skips the tour and opens Money Account Sweepstakes details when not opted in', () => {
       setupSweepstakesParticipation(false);
       const campaign = createTestCampaign({
         id: 'camp-sweepstakes-tour',
@@ -743,7 +747,7 @@ describe('CampaignTile', () => {
       fireEvent.press(getByTestId('campaign-tile-camp-sweepstakes-tour'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
         params: { campaignId: 'camp-sweepstakes-tour' },
       });
     });

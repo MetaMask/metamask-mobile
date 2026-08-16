@@ -31,6 +31,12 @@ interface CampaignOptInSheetProps {
   onClose?: () => void;
   /** Optional sheet title. Defaults to the standard campaign opt-in i18n title. */
   title?: string;
+  /** Optional typography treatment for campaign-specific legal disclosure. */
+  legalTextVariant?: TextVariant;
+  /** Optional classes for campaign-specific legal disclosure alignment/color. */
+  legalBodyClassName?: string;
+  /** Overrides rich-text hyperlinks when campaign legal content is in-app. */
+  onLegalLinkPress?: (url: string) => void;
   /**
    * Optional custom opt-in handler. When provided, called instead of
    * `optInToCampaign(campaign.id)`. Treats `true` or `void` as success.
@@ -47,6 +53,9 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   campaign,
   onClose,
   title,
+  legalTextVariant = TextVariant.BodyMd,
+  legalBodyClassName = 'text-center text-default',
+  onLegalLinkPress,
   onOptIn,
 }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -137,8 +146,9 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           <Box twClassName="mb-6">
             <ContentfulRichText
               document={campaign.termsAndConditions}
-              textVariant={TextVariant.BodyMd}
-              bodyClassName="text-center text-default"
+              textVariant={legalTextVariant}
+              bodyClassName={legalBodyClassName}
+              onLinkPress={onLegalLinkPress}
               testID="campaign-opt-in-sheet-description"
             />
           </Box>

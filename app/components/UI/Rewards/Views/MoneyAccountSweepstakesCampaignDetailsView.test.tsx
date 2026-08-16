@@ -14,7 +14,6 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
-import Routes from '../../../../constants/navigation/Routes';
 import type { MoneyAccountSweepstakesSeries } from '../utils/moneyAccountSweepstakesSeries';
 
 const mockGoBack = jest.fn();
@@ -192,6 +191,14 @@ jest.mock('../hooks/useRewardCampaigns');
 jest.mock('../hooks/useMoneyAccountSweepstakesSeries');
 jest.mock('../hooks/useMoneyAccountSweepstakesParticipation');
 jest.mock('../hooks/useGetMoneyAccountSweepstakesStatsMe');
+jest.mock('../hooks/useMoneyAccountSweepstakesOutcome', () => ({
+  useMoneyAccountSweepstakesOutcome: () => ({
+    outcome: null,
+    isLoading: false,
+    hasError: false,
+    refetch: jest.fn(),
+  }),
+}));
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
 const mockEnsureBound = jest.fn(
@@ -218,7 +225,10 @@ jest.mock('../hooks/useRewardsToast', () => ({
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) =>
+    key === 'rewards.money_account_sweepstakes.campaign_title'
+      ? 'Money Sweepstakes'
+      : key,
 }));
 
 const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
@@ -379,7 +389,7 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
         MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS.CONTAINER,
       ),
     ).toBeOnTheScreen();
-    expect(getByText('Money Account Sweepstakes')).toBeOnTheScreen();
+    expect(getByText('Money Sweepstakes')).toBeOnTheScreen();
     expect(getByTestId('campaign-status')).toBeOnTheScreen();
   });
 
@@ -425,7 +435,7 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
     expect(mockFetchCampaigns).toHaveBeenCalledTimes(1);
   });
 
-  it('shows how-it-works when balance is zero and stats when balance is positive', () => {
+  it('shows how-it-works when balance is zero and hides it once funded', () => {
     setupHooks({ stats: null });
     const withoutBalance = render(
       <MoneyAccountSweepstakesCampaignDetailsView />,
@@ -442,8 +452,21 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
     const withBalance = render(<MoneyAccountSweepstakesCampaignDetailsView />);
     expect(withBalance.queryByTestId('campaign-how-it-works')).toBeNull();
     expect(
-      withBalance.getByTestId('money-account-sweepstakes-stats-summary'),
+      withBalance.getByTestId('money-account-sweepstakes-hero'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the balance dashboard after opt-in even when the balance is zero', () => {
+    setupHooks({ optedInAny: true, stats: null });
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyAccountSweepstakesCampaignDetailsView />,
+    );
+
+    expect(
+      getByTestId('money-account-sweepstakes-balance-header'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('campaign-how-it-works')).toBeNull();
   });
 
   it('renders draw schedule and CTA for an active series', () => {
@@ -467,21 +490,6 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
     );
 
     expect(queryByTestId('money-account-sweepstakes-cta')).toBeNull();
-  });
-
-  it('navigates to campaign mechanics from the header button', () => {
-    const { getByTestId } = render(
-      <MoneyAccountSweepstakesCampaignDetailsView />,
-    );
-
-    fireEvent.press(
-      getByTestId('money-account-sweepstakes-details-mechanics-button'),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.REWARDS_CAMPAIGN_MECHANICS,
-      { campaignId: 'mas-campaign-1' },
-    );
   });
 
   it('navigates back from the header back button', () => {

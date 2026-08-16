@@ -56,6 +56,21 @@ jest.mock('../../../utils/formatUtils', () => ({
     value == null ? '—' : `$${value.toFixed(2)}`,
 }));
 
+jest.mock('../../../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, string | number>) => {
+    const translations: Record<string, string> = {
+      'rewards.money_account_sweepstakes.current_balance_title':
+        'Money Account balance',
+      'rewards.money_account_sweepstakes.next_draw_title': 'Next draw',
+      'rewards.money_account_sweepstakes.days_remaining': `${params?.count} days`,
+      'rewards.money_account_sweepstakes.qualified_today_description':
+        "You're on track for today's entry.",
+      'rewards.money_account_sweepstakes.shortfall_description': `Add ${params?.amount} today to reach $100.`,
+    };
+    return translations[key] ?? key;
+  },
+}));
+
 const TEST_IDS = MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS;
 
 const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
@@ -133,9 +148,14 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     // deposits and is normally lower than the account balance, so a bare number
     // is not legible on its own.
     expect(getByTestId(TEST_IDS.ELIGIBLE_BALANCE).props.children).toBe(
-      '$1000.00',
+      '$1000.00 / $100.00',
     );
     expect(getByTestId(TEST_IDS.ENTRIES).props.children).toBe('3 / 7');
+    expect(getByTestId(TEST_IDS.CURRENT_BALANCE).props.children).toBe(
+      '$1250.50',
+    );
+    expect(getByTestId(TEST_IDS.NEXT_DRAW).props.children).toBe('4 days');
+    expect(getByTestId(TEST_IDS.QUALIFICATION_PROGRESS)).toBeOnTheScreen();
   });
 
   it('renders eligible balance before entries', () => {
@@ -240,7 +260,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     // deposits and is normally lower than the account balance, so a bare number
     // is not legible on its own.
     expect(getByTestId(TEST_IDS.ELIGIBLE_BALANCE).props.children).toBe(
-      '$1000.00',
+      '$1000.00 / $100.00',
     );
   });
 

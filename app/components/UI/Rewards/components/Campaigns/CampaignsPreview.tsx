@@ -19,13 +19,11 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
-import CampaignReminder from './CampaignReminder';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import {
   CampaignType,
   type CampaignDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatus } from './CampaignTile.utils';
 import { navigateToRewardsRoute } from '../../utils';
 import {
   buildMoneyAccountSweepstakesTileCampaign,
@@ -61,8 +59,8 @@ export function getFeaturedPreviewCampaigns(
 
 /**
  * CampaignsPreview shows featured campaigns on the dashboard.
- * All campaigns marked `featured` are displayed, in API order. Upcoming campaigns
- * use {@link CampaignReminder}; active or complete campaigns use {@link CampaignTile}.
+ * All campaigns marked `featured` are displayed as the standard image campaign
+ * card used throughout Rewards, in API order.
  * Consecutive MONEY_ACCOUNT_SWEEPSTAKES campaigns collapse to a single tile.
  */
 const CampaignsPreview: React.FC = () => {
@@ -118,13 +116,9 @@ const CampaignsPreview: React.FC = () => {
         />
       )}
 
-      {featuredCampaigns.map((campaign) =>
-        getCampaignStatus(campaign) === 'upcoming' ? (
-          <CampaignReminder key={campaign.id} campaign={campaign} />
-        ) : (
-          <CampaignTile key={campaign.id} campaign={campaign} />
-        ),
-      )}
+      {featuredCampaigns.map((campaign) => (
+        <CampaignTile key={campaign.id} campaign={campaign} />
+      ))}
     </Box>
   );
 };

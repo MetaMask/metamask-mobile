@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, useColorScheme } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -16,6 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import NotificationIcon from '../../../../../images/rewards/notification.svg';
+import moneyAccountSweepstakesCampaignArtwork from '../../../../../images/rewards/money-account-sweepstakes-campaign-v2.png';
 import {
   CampaignType,
   type CampaignDto,
@@ -57,14 +59,22 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
 
-  const {
-    status: campaignStatus,
-    statusLabel,
-    dateLabel,
-  } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
-
   const isMoneyAccountSweepstakes =
     campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES;
+  const campaignStatusInfo = useMemo(
+    () => getCampaignStatusInfo(campaign),
+    [campaign],
+  );
+  const campaignStatus = isMoneyAccountSweepstakes
+    ? 'active'
+    : campaignStatusInfo.status;
+  const statusLabel = isMoneyAccountSweepstakes
+    ? strings('rewards.campaign.pill_active')
+    : campaignStatusInfo.statusLabel;
+  const dateLabel = campaignStatusInfo.dateLabel;
+  const campaignDisplayName = isMoneyAccountSweepstakes
+    ? strings('rewards.money_account_sweepstakes.campaign_title')
+    : campaign.name;
 
   const { status: participantStatus, isLoading: isParticipantStatusLoading } =
     useGetCampaignParticipantStatus(
@@ -88,25 +98,39 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     ? isSweepstakesParticipationLoading
     : isParticipantStatusLoading;
 
+  // Upcoming supported campaigns remain explorable so users can understand
+  // the offer, timing, eligibility, and rules before opting in.
   const isInteractive =
-    campaignStatus !== 'upcoming' &&
-    (onPress != null || isCampaignTypeSupported(campaign.type));
+    onPress != null || isCampaignTypeSupported(campaign.type);
 
   const reminderFeatureEnabled =
-    campaignStatus === 'upcoming' && isCampaignTypeSupported(campaign.type);
+    campaignStatus === 'upcoming' &&
+    !isMoneyAccountSweepstakes &&
+    isCampaignTypeSupported(campaign.type);
 
   const { showRemindMeCta, handleRemindMePress } = useCampaignReminderActions(
     campaign,
     reminderFeatureEnabled,
   );
 
-  const shouldShowDateLabel =
-    campaignStatus !== 'upcoming' || campaign.showUpcomingDate;
+  // Money Account Sweepstakes uses opt-in rather than notifications. Its card
+  // has one action: open the campaign and continue through eligibility checks.
+  const showCardReminder = showRemindMeCta && !isMoneyAccountSweepstakes;
 
-  const backgroundImageUrl =
-    colorScheme === 'dark'
-      ? campaign.image?.darkModeUrl
-      : campaign.image?.lightModeUrl;
+  const shouldShowDateLabel =
+    !isMoneyAccountSweepstakes &&
+    (campaignStatus !== 'upcoming' || campaign.showUpcomingDate);
+
+  const displayedStatusLabel = statusLabel;
+
+  const backgroundImageSource = isMoneyAccountSweepstakes
+    ? moneyAccountSweepstakesCampaignArtwork
+    : {
+        uri:
+          colorScheme === 'dark'
+            ? campaign.image?.darkModeUrl
+            : campaign.image?.lightModeUrl,
+      };
 
   const hasTour = (campaign.details?.howItWorks?.tour?.length ?? 0) > 0;
   const shouldShowTour =
@@ -168,38 +192,96 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
         );
       }
     } else if (campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
-      if (shouldShowTour) {
-        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+        {
           campaignId: campaign.id,
-        });
-      } else {
-        navigateToRewardsRoute(
-          navigation,
-          Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
-          {
-            campaignId: campaign.id,
-          },
-        );
-      }
+        },
+      );
     }
   };
 
   return (
-    <Box twClassName="h-50 rounded-xl overflow-hidden bg-muted">
+    <Box twClassName="h-50 overflow-hidden rounded-xl bg-muted">
       <Pressable
         onPress={handlePress}
         disabled={!isInteractive}
+        accessibilityRole={isInteractive ? 'button' : undefined}
+        accessibilityLabel={campaignDisplayName}
+        accessibilityHint={
+          isInteractive
+            ? strings('rewards.campaign.view_details_accessibility', {
+                campaignName: campaignDisplayName,
+              })
+            : undefined
+        }
         style={({ pressed }) =>
           tw.style('absolute inset-0', pressed && isInteractive && 'opacity-70')
         }
         testID={`campaign-tile-${campaign.id}`}
       >
         <ImageBackground
-          source={{ uri: backgroundImageUrl }}
+          source={backgroundImageSource}
           resizeMode="cover"
           style={tw.style('flex-1')}
           testID="campaign-tile-background"
         >
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.78)']}
+            locations={[0.25, 1]}
+            pointerEvents="none"
+            style={tw.style('absolute inset-0')}
+          />
+          {showCardReminder && (
+            <Pressable
+              onPress={() => {
+                handleRemindMePress().catch(() => undefined);
+              }}
+              testID={`campaign-tile-remind-me-${campaign.id}`}
+              accessibilityRole="button"
+              accessibilityLabel={strings('rewards.campaign.notify_me')}
+              hitSlop={12}
+              style={({ pressed }) => [
+                tw.style(
+                  'absolute right-3 top-3 z-10 min-h-10 flex-row items-center gap-2 overflow-hidden rounded-full px-4',
+                ),
+                {
+                  backgroundColor: pressed
+                    ? 'rgba(10, 10, 14, 0.72)'
+                    : 'rgba(10, 10, 14, 0.52)',
+                  borderColor: 'rgba(255, 255, 255, 0.24)',
+                  borderWidth: 1,
+                  shadowColor: colors.shadow.default,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.22,
+                  shadowRadius: 8,
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={[
+                  'rgba(255, 255, 255, 0.14)',
+                  'rgba(255, 255, 255, 0.02)',
+                ]}
+                pointerEvents="none"
+                style={tw.style('absolute inset-0')}
+              />
+              <NotificationIcon
+                name="notification"
+                width={20}
+                height={20}
+                color={colors.overlay.inverse}
+              />
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.OverlayInverse}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('rewards.campaign.notify_me')}
+              </Text>
+            </Pressable>
+          )}
           <Box
             flexDirection={BoxFlexDirection.Column}
             justifyContent={BoxJustifyContent.End}
@@ -224,13 +306,15 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                 <Text
                   variant={TextVariant.BodySm}
                   color={
-                    colorScheme === 'dark'
-                      ? TextColor.SuccessDefault
-                      : TextColor.OverlayInverse
+                    isMoneyAccountSweepstakes && campaignStatus === 'upcoming'
+                      ? TextColor.OverlayInverse
+                      : colorScheme === 'dark'
+                        ? TextColor.SuccessDefault
+                        : TextColor.OverlayInverse
                   }
                   fontWeight={FontWeight.Medium}
                 >
-                  {statusLabel}
+                  {displayedStatusLabel}
                 </Text>
               )}
               {shouldShowDateLabel && (
@@ -254,42 +338,21 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
               )}
             </Box>
 
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+            <Text
+              variant={TextVariant.HeadingLg}
+              color={TextColor.OverlayInverse}
+              twClassName={
+                isMoneyAccountSweepstakes ? 'w-3/5 font-bold' : 'font-bold'
+              }
+              testID="campaign-tile-name"
             >
-              <Box twClassName="min-w-0 flex-1 shrink">
-                <Text
-                  variant={TextVariant.HeadingLg}
-                  color={TextColor.OverlayInverse}
-                  twClassName="font-bold"
-                  testID="campaign-tile-name"
-                >
-                  {campaign.name}
-                </Text>
-              </Box>
-              {showRemindMeCta && (
-                <Pressable
-                  onPress={() => {
-                    handleRemindMePress().catch(() => undefined);
-                  }}
-                  testID={`campaign-tile-remind-me-${campaign.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={strings('rewards.campaign.notify_me')}
-                  hitSlop={12}
-                  style={({ pressed }) => tw.style(pressed && 'opacity-70')}
-                >
-                  <NotificationIcon
-                    name="notification"
-                    width={24}
-                    height={24}
-                    color={colors.overlay.inverse}
-                  />
-                </Pressable>
-              )}
-            </Box>
+              {campaignDisplayName}
+            </Text>
           </Box>
+          <Box
+            pointerEvents="none"
+            twClassName="absolute inset-0 rounded-xl border border-border-muted"
+          />
         </ImageBackground>
       </Pressable>
     </Box>

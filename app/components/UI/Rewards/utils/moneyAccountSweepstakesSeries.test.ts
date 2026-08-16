@@ -51,7 +51,7 @@ describe('moneyAccountSweepstakesSeries', () => {
     expect(buildMoneyAccountSweepstakesTileCampaign(series)).toBeNull();
   });
 
-  it('sorts by startDate and reports upcoming before the first start', () => {
+  it('sorts by startDate and treats a returned future-dated series as live', () => {
     const series = getMoneyAccountSweepstakesSeries(
       [week2, week1, week3],
       new Date('2026-06-30T12:00:00.000Z'),
@@ -61,9 +61,9 @@ describe('moneyAccountSweepstakesSeries', () => {
       'week-2',
       'week-3',
     ]);
-    expect(series.seriesStatus).toBe('upcoming');
+    expect(series.seriesStatus).toBe('active');
     expect(series.displayCampaign?.id).toBe('week-1');
-    expect(series.activeCampaign).toBeNull();
+    expect(series.activeCampaign?.id).toBe('week-1');
   });
 
   it('reports active when any week is in progress and picks that week as display', () => {

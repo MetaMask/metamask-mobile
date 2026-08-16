@@ -18,6 +18,7 @@ import { subscribeCampaignReminder } from '../../../../../reducers/rewards';
 import { selectSubscribedCampaignReminders } from '../../../../../reducers/rewards/selectors';
 
 const mockTrackEvent = jest.fn();
+const mockNavigate = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockShowToast = jest.fn();
 const mockEnableNotifications = jest.fn();
@@ -32,6 +33,10 @@ const mockEnableNotificationsNudge = jest.fn(
   }),
 );
 let mockEnableNotificationsLoading = false;
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 const TEST_REWARDS_SUBSCRIPTION_ID = 'test-rewards-sub-id';
 
@@ -126,6 +131,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'rewards.campaign.up_next': 'Up next',
       'rewards.campaign.notify_me': 'Notify me',
+      'rewards.campaign.view_details': 'View details',
+      'rewards.campaign.view_details_accessibility': 'View campaign details',
       'rewards.campaign.remind_me_success_toast': 'We will notify you.',
       'rewards.campaign.remind_me_save_error': 'Save failed.',
       'rewards.notifications_nudge.turn_on_button': 'Turn on',
@@ -242,6 +249,21 @@ describe('CampaignReminder', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens upcoming Money Account Sweepstakes details before launch', () => {
+    const campaign = createTestCampaign({
+      id: 'money-preview',
+      type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+    });
+    const { getByTestId, getByText } = render(
+      <CampaignReminder campaign={campaign} />,
+    );
+
+    expect(getByText('View details')).toBeOnTheScreen();
+    fireEvent.press(getByTestId('campaign-reminder-details-money-preview'));
+
+    expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('prompts for notifications and tracks only after push notifications are enabled', async () => {

@@ -50,32 +50,12 @@ jest.mock('../../../hooks/useGetMoneyAccountSweepstakesDrawProof', () => ({
 
 jest.mock('../../../hooks/useGetMoneyAccountSweepstakesPrizePool', () => ({
   useGetMoneyAccountSweepstakesPrizePool: () => ({
-    prizePool: {
-      totalVolumeUsd: 100,
-      unlockedPoolUsd: 10,
-      thresholdsUsd: [0, 100],
-      poolScheduleUsd: [10, 20],
-      numberOfWinners: 1,
-      minPrizeUsd: 5,
-      maxPrizeUsd: 20,
-    },
+    prizePool: { unlockedPoolUsd: 4125 },
     isLoading: false,
     hasError: false,
     refetch: jest.fn(),
   }),
 }));
-
-jest.mock('./MoneyAccountSweepstakesPrizePool', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, {
-        testID: 'money-account-sweepstakes-prize-pool',
-      }),
-  };
-});
 
 jest.mock('../CampaignTile.utils', () => {
   const actual = jest.requireActual('../CampaignTile.utils');
@@ -225,28 +205,76 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
       getByTestId(MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('Draw schedule')).toBeOnTheScreen();
-    expect(getByText('Week 1')).toBeOnTheScreen();
+    expect(getByText('4 weekly draws · 2 winners each')).toBeOnTheScreen();
     expect(getByText('Jan 1 – Jan 7')).toBeOnTheScreen();
+    expect(getByText('Week 1')).toBeOnTheScreen();
+    expect(getByText('$2,500')).toBeOnTheScreen();
+    expect(getByText('Prize pool')).toBeOnTheScreen();
+    expect(
+      getByText('Entries reset after each weekly draw.'),
+    ).toBeOnTheScreen();
   });
 
-  it('renders active week with prize pool', () => {
+  it('derives consecutive rows when a prototype minimum is requested', () => {
+    const upcoming = buildCampaign({
+      id: 'prototype-week',
+      startDate: '2025-02-01T00:00:00.000Z',
+      endDate: '2025-02-08T00:00:00.000Z',
+    });
+
+    const { getByText } = render(
+      <MoneyAccountSweepstakesDrawScheduleSection
+        campaigns={[upcoming]}
+        localizedText={localizedText}
+        minimumWeekCount={4}
+      />,
+    );
+
+    expect(getByText('Week 1')).toBeOnTheScreen();
+    expect(getByText('Week 2')).toBeOnTheScreen();
+    expect(getByText('Week 3')).toBeOnTheScreen();
+    expect(getByText('Week 4')).toBeOnTheScreen();
+  });
+
+  it('anchors the prototype with Week 1 complete and Week 2 active', () => {
+    const campaign = buildCampaign({
+      id: 'live-week',
+      startDate: '2025-02-01T00:00:00.000Z',
+      endDate: '2025-02-08T00:00:00.000Z',
+    });
+
+    const { getByText } = render(
+      <MoneyAccountSweepstakesDrawScheduleSection
+        campaigns={[campaign]}
+        localizedText={localizedText}
+        minimumWeekCount={4}
+        anchorToCurrentWeek
+      />,
+    );
+
+    expect(getByText('$5,000')).toBeOnTheScreen();
+    expect(getByText('Awarded')).toBeOnTheScreen();
+    expect(getByText('Week 2 · Current draw')).toBeOnTheScreen();
+    expect(getByText('$4,125')).toBeOnTheScreen();
+  });
+
+  it('renders an active week without the prize pool meter', () => {
     const active = buildCampaign({
       id: 'active-week',
       startDate: '2025-01-08T00:00:00.000Z',
       endDate: '2025-01-15T00:00:00.000Z',
     });
 
-    const { getByTestId, getByText } = render(
+    const { getByText, queryByTestId } = render(
       <MoneyAccountSweepstakesDrawScheduleSection
         campaigns={[active]}
         localizedText={localizedText}
       />,
     );
 
-    expect(getByText('Week 1 · Active')).toBeOnTheScreen();
-    expect(
-      getByTestId('money-account-sweepstakes-prize-pool'),
-    ).toBeOnTheScreen();
+    expect(getByText('Week 1 · Current draw')).toBeOnTheScreen();
+    expect(getByText('$4,125')).toBeOnTheScreen();
+    expect(queryByTestId('money-account-sweepstakes-prize-pool')).toBeNull();
   });
 
   it('shows draw pending for a completed week without proof', () => {
@@ -263,7 +291,7 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
       />,
     );
 
-    expect(getByText('Week 1 · Complete')).toBeOnTheScreen();
+    expect(getByText('Week 1')).toBeOnTheScreen();
     expect(getByText('Draw pending')).toBeOnTheScreen();
     expect(
       queryByTestId(
@@ -324,7 +352,7 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
       />,
     );
 
-    expect(getByText('Week 1 · Complete')).toBeOnTheScreen();
+    expect(getByText('Week 1')).toBeOnTheScreen();
     expect(getByText('Week 2')).toBeOnTheScreen();
     expect(
       getByTestId(

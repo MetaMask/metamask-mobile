@@ -8,7 +8,9 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -21,11 +23,16 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { formatUsd } from '../../../utils/formatUtils';
 import { StatCell } from '../OndoCampaignStatsSummary';
 import { ENTRIES_COUNT_PLACEHOLDER } from './constants';
+import { strings } from '../../../../../../../locales/i18n';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-stats-summary-container',
   ELIGIBLE_BALANCE: 'money-account-sweepstakes-stats-eligible-balance',
   ENTRIES: 'money-account-sweepstakes-stats-entries',
+  CURRENT_BALANCE: 'money-account-sweepstakes-stats-current-balance',
+  NEXT_DRAW: 'money-account-sweepstakes-stats-next-draw',
+  QUALIFICATION_PROGRESS:
+    'money-account-sweepstakes-stats-qualification-progress',
   ELIGIBLE_STATUS_ICON: 'money-account-sweepstakes-stats-eligible-status-icon',
 } as const;
 
@@ -80,7 +87,19 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
   // fully-accrued position can leave the total a few cents below zero. Clamped
   // so the tile never shows a negative figure.
   const qualifyingUsd = stats ? Math.max(0, stats.qualifyingDepositsUsd) : 0;
-  const qualifyingDisplay = stats ? `${formatUsd(qualifyingUsd)}` : '—';
+  const thresholdUsd = stats ? Math.max(0, stats.qualifyingThresholdUsd) : 0;
+  const qualifyingDisplay = stats
+    ? `${formatUsd(qualifyingUsd)} / ${formatUsd(thresholdUsd)}`
+    : '—';
+  const currentBalanceDisplay = stats
+    ? formatUsd(Math.max(0, stats.currentBalanceUsd))
+    : '—';
+  const nextDrawDisplay = stats
+    ? strings('rewards.money_account_sweepstakes.days_remaining', {
+        count: stats.daysRemaining,
+      })
+    : '—';
+  const qualificationShortfall = Math.max(0, thresholdUsd - qualifyingUsd);
   const entriesDisplay = stats
     ? localizedText.entriesCountValue.replace(
         ENTRIES_COUNT_PLACEHOLDER,
@@ -189,6 +208,47 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
           }
         />
       </Box>
+      <Box flexDirection={BoxFlexDirection.Row}>
+        <StatCell
+          label={strings(
+            'rewards.money_account_sweepstakes.current_balance_title',
+          )}
+          value={currentBalanceDisplay}
+          isLoading={showSkeleton}
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.CURRENT_BALANCE
+          }
+        />
+        <StatCell
+          label={strings('rewards.money_account_sweepstakes.next_draw_title')}
+          value={nextDrawDisplay}
+          isLoading={showSkeleton}
+          testID={MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.NEXT_DRAW}
+        />
+      </Box>
+      {!showSkeleton && stats && (
+        <Box
+          twClassName={
+            todayStatus === 'on_track'
+              ? 'rounded-xl bg-success-muted p-3'
+              : 'rounded-xl bg-muted p-3'
+          }
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.QUALIFICATION_PROGRESS
+          }
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {todayStatus === 'on_track'
+              ? strings(
+                  'rewards.money_account_sweepstakes.qualified_today_description',
+                )
+              : strings(
+                  'rewards.money_account_sweepstakes.shortfall_description',
+                  { amount: formatUsd(qualificationShortfall) },
+                )}
+          </Text>
+        </Box>
+      )}
     </Box>
   );
 };
