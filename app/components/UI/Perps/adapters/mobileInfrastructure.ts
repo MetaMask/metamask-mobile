@@ -227,6 +227,10 @@ export function createMobileClientConfig(): PerpsControllerConfig {
       },
       lighter: {
         enabled: process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true',
+        // Lighter Go/WASM signer transport (hidden WebView). Handed to the
+        // controller before the WebView mounts; calls queue behind the
+        // bridge's readiness promise (see lighterSignerBridge.ts).
+        signerBridge: lighterSignerBridge,
         accountIndexTestnet: process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET
           ? Number(process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET)
           : undefined,
@@ -316,11 +320,6 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
     // === Platform Services ===
     streamManager: createStreamManagerAdapter(),
-
-    // === Lighter Go/WASM signer transport (hidden WebView, POC) ===
-    // Handed to the controller before the WebView mounts; calls queue behind
-    // the bridge's readiness promise (see lighterSignerBridge.ts).
-    lighterSignerBridge,
 
     // === Feature Flags ===
     featureFlags: {
