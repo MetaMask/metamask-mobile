@@ -322,8 +322,11 @@ export function transformFillsToTransactions(
     let displayAmount = '';
     let fillSize = size;
     if (isFlipped) {
-      fillSize = BigNumber(fill.startPosition || '0')
-        .minus(fill.size)
+      // startPosition is SIGNED (negative for shorts); the post-flip size
+      // is |trade size| - |position before| regardless of direction.
+      fillSize = BigNumber(fill.size)
+        .absoluteValue()
+        .minus(BigNumber(fill.startPosition || '0').absoluteValue())
         .absoluteValue()
         .toString();
     }

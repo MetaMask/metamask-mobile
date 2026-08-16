@@ -512,6 +512,37 @@ describe('transactionTransforms', () => {
       expect(result[0].fill?.amount).toBe('-$2.00');
     });
 
+    it('sizes flips from |size| - |signed startPosition| in both directions', () => {
+      // Long > Short: was +0.133, sold 0.300 → post-flip short 0.167.
+      const longToShort = {
+        ...mockFill,
+        direction: 'Long > Short',
+        side: 'sell' as const,
+        size: '0.300',
+        startPosition: '0.133',
+        pnl: '0.5',
+        fee: '0',
+      };
+      // Short > Long: was -0.133, bought 0.300 → post-flip long 0.167.
+      const shortToLong = {
+        ...mockFill,
+        direction: 'Short > Long',
+        side: 'buy' as const,
+        size: '0.300',
+        startPosition: '-0.133',
+        pnl: '-0.2',
+        fee: '0',
+      };
+      const result = transformFillsToTransactions([longToShort, shortToLong]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[1]?.fill).toBeDefined();
+      // The fill's displayed size is the POST-FLIP position size.
+      expect(result[0].fill?.size).toBe('0.167');
+      expect(result[1].fill?.size).toBe('0.167');
+      expect(result[0].category).toBe('position_close');
+      expect(result[1].category).toBe('position_close');
+    });
+
     it('renders a Lighter Open Short sell as a position open, not a close', () => {
       const sellOpen = {
         ...mockFill,
