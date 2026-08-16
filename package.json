@@ -254,6 +254,12 @@
     "@ledgerhq/context-module/ethers": "^6.16.0",
     "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0"
   },
+  "previewBuilds": {
+    "@metamask/transaction-controller": {
+      "type": "non-breaking",
+      "previewVersion": "69.5.2-preview-7585e3a"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@consensys/on-ramp-sdk": "2.1.12",

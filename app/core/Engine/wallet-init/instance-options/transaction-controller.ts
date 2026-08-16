@@ -14,6 +14,7 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 
 import {
+  MM_PAY_TRANSACTION_TYPES,
   REDESIGNED_TRANSACTION_TYPES,
   RELAY_DEPOSIT_TYPES,
 } from '../../../../components/Views/confirmations/constants/confirmations';
@@ -76,9 +77,14 @@ export function getTransactionControllerInstanceOptions({
     }),
     isFirstTimeInteractionEnabled: () =>
       isFirstTimeInteractionEnabled(initMessenger),
-    isSimulationEnabled: () =>
-      initMessenger.call('PreferencesController:getState')
-        .useTransactionSimulations,
+    isSimulationEnabled: (transactionMeta?: TransactionMeta) => {
+      if (hasTransactionType(transactionMeta, MM_PAY_TRANSACTION_TYPES)) {
+        return false;
+      }
+
+      return initMessenger.call('PreferencesController:getState')
+        .useTransactionSimulations;
+    },
     getSavedGasFees: (chainIdOrTransactionMeta) =>
       getSavedGasFees(chainIdOrTransactionMeta, initMessenger),
     publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
