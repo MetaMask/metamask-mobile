@@ -618,6 +618,12 @@
           case 'execute':
             try {
               const result = await processWasmCall(window[payload.function](...payload.params));
+              // The venue private key must never cross the WebView boundary:
+              // signing happens in here, so the host only ever needs the
+              // public key and the ChangePubKey plaintext.
+              if (result && typeof result === 'object' && 'prv' in result) {
+                delete result.prv;
+              }
               window.ReactNativeWebView.postMessage(
                 JSON.stringify({ type: 'executeResult', executeId: payload.executeId, result })
               );
