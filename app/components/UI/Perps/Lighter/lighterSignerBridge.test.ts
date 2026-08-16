@@ -39,15 +39,15 @@ describe('lighterSignerBridge', () => {
   it('times out instead of queueing forever when the signer never mounts', async () => {
     jest.useFakeTimers();
     try {
-      const pending = lighterSignerBridge.execute({
-        function: '_createClient',
-        params: [],
-      });
-      const assertion = await expect(pending).rejects.toThrow(
-        'Lighter signer not ready within',
-      );
+      let failure: Error | null = null;
+      const pending = lighterSignerBridge
+        .execute({ function: '_createClient', params: [] })
+        .catch((error: Error) => {
+          failure = error;
+        });
       jest.advanceTimersByTime(90_001);
-      await assertion;
+      await pending;
+      expect(String(failure)).toContain('Lighter signer not ready within');
     } finally {
       jest.useRealTimers();
     }
