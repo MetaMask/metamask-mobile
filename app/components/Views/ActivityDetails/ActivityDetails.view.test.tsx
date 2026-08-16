@@ -1139,9 +1139,9 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
     expect(
       within(amountHeader).getByTestId(AMOUNT_AVATAR_SINGLE),
     ).toBeOnTheScreen();
-    expect(within(amountHeader).getByText(/^\+.*USDC/)).toBeOnTheScreen();
-    expect(findAmountTextColor(UNSAFE_getAllByType, /^\+.*USDC/)).toBe(
-      TextColor.SuccessDefault,
+    expect(within(amountHeader).getByText(/^-.*USDC/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^-.*USDC/)).toBe(
+      TextColor.TextDefault,
     );
 
     expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
