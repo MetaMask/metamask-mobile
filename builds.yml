@@ -379,6 +379,11 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      # UAT runs the real SumSub journey (the KYC API only honours skipKyc when
+      # NODE_ENV=development, which is dev-only). Without this, KycController
+      # would inherit the production KYC host from _public_envs while the VBA
+      # screens resolve UAT from METAMASK_ENVIRONMENT, splitting the two.
+      KYC_API_URL: 'https://kyc-api.uat-api.cx.metamask.io'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
