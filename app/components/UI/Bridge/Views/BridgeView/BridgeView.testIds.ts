@@ -14,6 +14,12 @@ export const BridgeViewSelectorsIDs = {
   NO_QUOTES_BANNER: 'bridge-no-quotes',
   OFF_HOURS_TRADING_BANNER: 'bridge-off-hours-trading-banner',
   MARKET_CLOSED_BANNER: 'bridge-market-closed-banner',
+  TABS_BAR: 'bridge-tabs-bar',
+  MARKET_TAB: 'bridge-market-tab',
+  LIMIT_TAB: 'bridge-limit-tab',
+  RECURRING_TAB: 'bridge-recurring-tab',
+  LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
+  RECURRING_BUY_CONTAINER: 'bridge-recurring-buy-container',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;
