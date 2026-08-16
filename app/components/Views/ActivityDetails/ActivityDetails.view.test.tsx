@@ -1089,7 +1089,7 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
     expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
   });
 
-  it('shows confirmed Deposited USDC with fee and total', async () => {
+  it('shows confirmed Deposited USDC with total and no fee row', async () => {
     setupAccountsTransactionsApiMock([
       {
         hash: ACTIVITY_CV_DEPOSIT_USDC_HASH,
@@ -1123,8 +1123,13 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
       .withOverrides(activityUsdcTokenRatesOverride)
       .build();
 
-    const { findByTestId, findByText, getByTestId, UNSAFE_getAllByType } =
-      renderActivityDetailsView({
+    const {
+      findByTestId,
+      findByText,
+      getByTestId,
+      queryByTestId,
+      UNSAFE_getAllByType,
+    } = renderActivityDetailsView({
         state,
         params: {
           chainId: MAINNET_CAIP,
@@ -1175,9 +1180,7 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
       fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
     });
 
-    await waitFor(() => {
-      expect(getByTestId(FEE_ROW)).toHaveTextContent(/\$/);
-    });
+    expect(queryByTestId(FEE_ROW)).not.toBeOnTheScreen();
     expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
   });
 });
