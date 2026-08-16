@@ -364,7 +364,6 @@ builds:
     code_fencing: *code_fencing_main
 
   # Experimental builds
-  # DEMO ONLY (demo/vba-kyc) — DO NOT MERGE: repoints main-exp at dev backends
   main-exp:
     github_environment: build-exp
     signing: *signing_uat
@@ -380,9 +379,7 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
-      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
-      MM_VBA_KYC_API_BASE_URL: 'https://kyc-api.dev-api.cx.metamask.io'
-      RAMPS_ENVIRONMENT: 'development'
+      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
@@ -431,7 +428,7 @@ builds:
   main-dev:
     github_environment: build-dev
     signing: *signing_dev
-    env:
+    env: &main_dev_env
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
@@ -443,6 +440,7 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      # Required by KycController (process.env.KYC_API_URL); not on origin/main yet.
       KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
       RAMPS_ENVIRONMENT: 'development'
       RAMP_INTERNAL_BUILD: 'true'
@@ -452,6 +450,19 @@ builds:
       # TODO: Decouple configuration, profile, and build type
       PROFILE: 'development'
       DEV_OAUTH_CONFIG: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
+  # Same app config as main-dev, but signed with the RC certificate so the IPA is
+  # accepted by TestFlight. Required by Build and upload to TestFlight (environment=dev).
+  # iOS only. Mirrors MetaMask/metamask-mobile#34771.
+  main-dev-testflight:
+    script_name: main-dev
+    github_environment: build-dev
+    signing: *signing_rc
+    env:
+      <<: *main_dev_env
+      PROFILE: 'release'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
