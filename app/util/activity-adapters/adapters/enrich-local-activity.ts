@@ -10,9 +10,11 @@ import {
 import type { ActivityListItem, TokenAmount } from '../types';
 import type { TransactionGroup } from './transaction-group';
 import {
+  getKnownTokenMetadata,
   getLocalActivityFees,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
+  isUnlimitedApprovalAmount,
 } from './helpers';
 import {
   mobileActivityAdapterEnvironment,
@@ -26,6 +28,9 @@ const tokenTransferTypes = new Set<TransactionType>([
 ]);
 
 const evmNativeDecimals = 18;
+const predictCollateralDecimals = 6;
+const predictCollateralSymbol = 'USDC';
+const erc20TransferSelector = '0xa9059cbb';
 const perpsDepositTypes: TransactionType[] = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -85,9 +90,50 @@ function hasTransactionType(
   );
 }
 
+function getNestedTransferAmount(data: string | undefined): string | undefined {
+  if (
+    !data ||
+    !data.toLowerCase().startsWith(erc20TransferSelector) ||
+    data.length < 138
+  ) {
+    return undefined;
+  }
+
+  try {
+    return BigInt(`0x${data.slice(74, 138)}`).toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function getPredictFundsToken(
+  fundsTx: { to?: string; data?: string },
+  direction: TokenAmount['direction'],
+  chainId: ActivityListItem['chainId'],
+  environment: ActivityAdapterEnvironment,
+): TokenAmount {
+  const contractAddress = fundsTx.to;
+  const tokenMetadata = contractAddress
+    ? getKnownTokenMetadata(chainId, contractAddress, environment)
+    : undefined;
+  const assetId = contractAddress
+    ? environment.toAssetId(contractAddress, chainId)
+    : undefined;
+  const amount = getNestedTransferAmount(fundsTx.data);
+
+  return {
+    direction,
+    symbol: tokenMetadata?.symbol ?? predictCollateralSymbol,
+    decimals: tokenMetadata?.decimals ?? predictCollateralDecimals,
+    ...(assetId ? { assetId } : {}),
+    ...(amount ? { amount } : {}),
+  };
+}
+
 function enrichLocalActivityKind(
   activity: ActivityListItem,
   transactionGroup: TransactionGroup,
+  environment: ActivityAdapterEnvironment,
 ): ActivityListItem {
   const { initialTransaction } = transactionGroup;
   const transactionType = resolveTransactionType(transactionGroup);
@@ -156,12 +202,29 @@ function enrichLocalActivityKind(
     (call) => call.type === TransactionType.predictWithdraw,
   );
   if (hasPredictDeposit || hasPredictWithdraw) {
+    const fundsTx = nested.find((call) =>
+      hasPredictDeposit
+        ? call.type === TransactionType.predictDeposit ||
+          call.type === TransactionType.predictDepositAndOrder
+        : call.type === TransactionType.predictWithdraw,
+    );
+
     return {
       ...activity,
       type: hasPredictDeposit
         ? 'predictionsAddFunds'
         : 'predictionsWithdrawFunds',
-      data: {},
+      data: {
+        token: fundsTx
+          ? getPredictFundsToken(
+              fundsTx,
+              hasPredictDeposit ? 'in' : 'out',
+              activity.chainId,
+              environment,
+            )
+          : undefined,
+        ...(fees ? { fees } : {}),
+      },
     };
   }
 
@@ -367,23 +430,63 @@ function enrichApprovalActivity(
   activity: ActivityListItem,
   transactionGroup: TransactionGroup,
 ): ActivityListItem {
-  if (activity.type !== 'approveSpendingCap') {
+  if (
+    activity.type !== 'approveSpendingCap' &&
+    activity.type !== 'increaseSpendingCap' &&
+    activity.type !== 'revokeSpendingCap'
+  ) {
     return activity;
   }
 
   const data = transactionGroup.initialTransaction.txParams?.data;
-  if (!data) {
+  const token = activity.data.token;
+  const isUnlimited = isUnlimitedApprovalAmount(token?.amount, token?.decimals);
+  let next: ActivityListItem = activity;
+
+  if (activity.type === 'approveSpendingCap' && data) {
+    const approveAmount = getTokenApprovalAmountFromData(data);
+    if (approveAmount === '0') {
+      next = {
+        ...activity,
+        type: 'revokeSpendingCap',
+      };
+    }
+  }
+
+  if (!isUnlimited || next.data.token?.isUnlimitedApproval) {
+    return next;
+  }
+
+  return {
+    ...next,
+    data: {
+      ...next.data,
+      token: next.data.token
+        ? { ...next.data.token, isUnlimitedApproval: true }
+        : next.data.token,
+    },
+  };
+}
+
+function enrichPreparedFees(
+  activity: ActivityListItem,
+  transactionGroup: TransactionGroup,
+): ActivityListItem {
+  const fees = transactionGroup.fees;
+  if (!fees?.length) {
     return activity;
   }
 
-  const approveAmount = getTokenApprovalAmountFromData(data);
-  if (approveAmount !== '0') {
+  if ('fees' in activity.data && activity.data.fees?.length) {
     return activity;
   }
 
   return {
     ...activity,
-    type: 'revokeSpendingCap',
+    data: {
+      ...activity.data,
+      fees,
+    },
   };
 }
 
@@ -409,13 +512,14 @@ export function enrichLocalActivity(
   environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
 ): ActivityListItem {
   let next = activity;
-  next = enrichLocalActivityKind(next, transactionGroup);
+  next = enrichLocalActivityKind(next, transactionGroup, environment);
   next = enrichTokenTransferActivity(next, transactionGroup, environment);
   next = enrichApprovalActivity(next, transactionGroup);
   next = enrichSwapIncomplete(next, transactionGroup);
   next = enrichStakingDeposit(next, transactionGroup, environment);
   next = enrichMusdClaim(next, transactionGroup, environment);
   next = enrichCancelledStatus(next, transactionGroup, environment);
+  next = enrichPreparedFees(next, transactionGroup);
   return next;
 }
 

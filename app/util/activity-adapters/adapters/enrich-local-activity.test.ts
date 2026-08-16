@@ -107,6 +107,28 @@ describe('local activity call-site mapping', () => {
     );
 
     expect(item.type).toBe('predictionsAddFunds');
+    expect(item.data).toMatchObject({
+      token: {
+        direction: 'in',
+        amount: '1',
+      },
+    });
+  });
+
+  it('attaches prepared fees when client-utils omitted them', () => {
+    const fees = [
+      {
+        type: 'base' as const,
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      },
+    ];
+    const item = mapLocalActivity(
+      buildGroup({ type: TransactionType.simpleSend }, { fees }),
+    );
+
+    expect(item.data).toMatchObject({ fees });
   });
 
   it('classifies contract deployments after client-utils mapping', () => {
