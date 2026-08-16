@@ -335,8 +335,14 @@ export function transformFillsToTransactions(
     // like a Close does. Route any fill carrying nonzero PnL through the
     // PnL display path so it is never misclassified as a pure open.
     const hasRealizedPnl = !BigNumber(fill.pnl || 0).isZero();
+    // A zero-PnL side-only Lighter fill is genuinely ambiguous (a
+    // break-even reduction and an add both fit): present it as a neutral
+    // trade instead of guessing open (Buy) or close (Sell). HyperLiquid's
+    // Buy/Sell keeps its spot semantics.
+    const isAmbiguousSideOnly =
+      fill.providerId === 'lighter' && (isBuy || isSell) && !hasRealizedPnl;
     // Calculate display amount based on action type
-    if ((isOpened || isBuy) && !hasRealizedPnl) {
+    if (isAmbiguousSideOnly || ((isOpened || isBuy) && !hasRealizedPnl)) {
       // For opening positions or buying: show fee paid (negative)
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
@@ -409,9 +415,11 @@ export function transformFillsToTransactions(
       id: `${orderId || 'fill'}-${timestamp}-${acc.length}`,
       type: 'trade',
       // A side-only fill carrying realized PnL reduced a position — it is
-      // a close regardless of its Buy/Sell label.
-      category:
-        (isOpened || isBuy) && !hasRealizedPnl
+      // a close regardless of its Buy/Sell label; a zero-PnL side-only
+      // Lighter fill is ambiguous and stays a neutral trade.
+      category: isAmbiguousSideOnly
+        ? 'trade'
+        : (isOpened || isBuy) && !hasRealizedPnl
           ? 'position_open'
           : 'position_close',
       title,

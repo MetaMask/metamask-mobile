@@ -38,6 +38,10 @@ export interface PerpsTransaction {
   category:
     | 'position_open'
     | 'position_close'
+    // Side-only venues (e.g. Lighter) can report a fill whose open/close
+    // attribution is genuinely unknowable (zero PnL, no position context);
+    // such fills are presented as neutral trades, never guessed.
+    | 'trade'
     | 'limit_order'
     | 'funding_fee'
     | 'deposit'

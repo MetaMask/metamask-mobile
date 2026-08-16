@@ -543,6 +543,39 @@ describe('transactionTransforms', () => {
       expect(result[1].category).toBe('position_close');
     });
 
+    it('presents ambiguous zero-PnL Lighter side-only fills as neutral trades', () => {
+      // A break-even short REDUCTION arrives as a Lighter Buy with zero
+      // PnL — it must not appear as a position open; an ADD-TO-SHORT
+      // arrives as a Lighter Sell with zero PnL — it must not appear as a
+      // close. Neither is knowable, so both stay neutral.
+      const breakEvenReduction = {
+        ...mockFill,
+        direction: 'Buy',
+        pnl: '0',
+        fee: '0',
+        providerId: 'lighter' as const,
+      };
+      const addToShort = {
+        ...mockFill,
+        direction: 'Sell',
+        pnl: '0',
+        fee: '0',
+        providerId: 'lighter' as const,
+      };
+      const result = transformFillsToTransactions([
+        breakEvenReduction,
+        addToShort,
+      ]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[1]?.fill).toBeDefined();
+      expect(result[0].category).toBe('trade');
+      expect(result[1].category).toBe('trade');
+      // HyperLiquid spot Buy/Sell keeps its open/close semantics.
+      const hlBuy = { ...mockFill, direction: 'Buy', pnl: '0', fee: '2' };
+      const hlResult = transformFillsToTransactions([hlBuy]);
+      expect(hlResult[0].category).toBe('position_open');
+    });
+
     it('renders a Lighter Open Short sell as a position open, not a close', () => {
       const sellOpen = {
         ...mockFill,
