@@ -40,8 +40,8 @@ export function resetLighterBridge(): void {
 }
 
 /**
- * Singleton bridge handed to PerpsController via platform dependencies
- * (`lighterSignerBridge` on PerpsPlatformDependencies).
+ * Singleton bridge handed to PerpsController via the Lighter credentials
+ * bag (`providerCredentials.lighter.signerBridge`).
  */
 export const lighterSignerBridge: LighterSignerBridge = {
   async execute<Result>(call: LighterWasmCall): Promise<Result> {
