@@ -1,0 +1,119 @@
+{
+  "name": "@metamask/perps-controller",
+  "version": "12.0.0",
+  "description": "Controller for perpetual trading functionality in MetaMask",
+  "keywords": [
+    "Ethereum",
+    "MetaMask"
+  ],
+  "homepage": "https://github.com/MetaMask/core/tree/main/packages/perps-controller#readme",
+  "bugs": {
+    "url": "https://github.com/MetaMask/core/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MetaMask/core.git"
+  },
+  "files": [
+    "dist/",
+    "!dist/providers/MYXProvider*",
+    "!dist/services/MYXClientService*",
+    "!dist/services/MYXWalletService*"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./constants": {
+      "import": {
+        "types": "./dist/constants/index.d.mts",
+        "default": "./dist/constants/index.mjs"
+      },
+      "require": {
+        "types": "./dist/constants/index.d.cts",
+        "default": "./dist/constants/index.cjs"
+      }
+    },
+    "./constants/*": {
+      "import": {
+        "types": "./dist/constants/*.d.mts",
+        "default": "./dist/constants/*.mjs"
+      },
+      "require": {
+        "types": "./dist/constants/*.d.cts",
+        "default": "./dist/constants/*.cjs"
+      }
+    },
+    "./types": {
+      "import": {
+        "types": "./dist/types/index.d.mts",
+        "default": "./dist/types/index.mjs"
+      },
+      "require": {
+        "types": "./dist/types/index.d.cts",
+        "default": "./dist/types/index.cjs"
+      }
+    },
+    "./utils/*": {
+      "import": {
+        "types": "./dist/utils/*.d.mts",
+        "default": "./dist/utils/*.mjs"
+      },
+      "require": {
+        "types": "./dist/utils/*.d.cts",
+        "default": "./dist/utils/*.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "ts-bridge --project tsconfig.build.json --verbose --clean --no-references",
+    "build:all": "ts-bridge --project tsconfig.build.json --verbose --clean",
+    "build:docs": "typedoc",
+    "changelog:update": "../../scripts/update-changelog.sh @metamask/perps-controller",
+    "changelog:validate": "../../scripts/validate-changelog.sh @metamask/perps-controller",
+    "lint:tsconfigs": "tsx ../../scripts/lint-tsconfigs/lint-tsconfigs.mts",
+    "lint:tsconfigs:fix": "tsx ../../scripts/lint-tsconfigs/lint-tsconfigs.mts --fix",
+    "messenger-action-types:check": "tsx ../../packages/messenger-cli/src/cli.ts --formatter oxfmt --esm --check",
+    "messenger-action-types:generate": "tsx ../../packages/messenger-cli/src/cli.ts --formatter oxfmt --esm --generate",
+    "since-latest-release": "../../scripts/since-latest-release.sh",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --reporters=jest-silent-reporter",
+    "test:clean": "NODE_OPTIONS=--experimental-vm-modules jest --clearCache",
+    "test:verbose": "NODE_OPTIONS=--experimental-vm-modules jest --verbose",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch"
+  },
+  "dependencies": {
+    "@metamask/abi-utils": "^2.0.3",
+    "@metamask/base-controller": "^9.1.0",
+    "@metamask/controller-utils": "^12.3.0",
+    "@metamask/messenger": "^2.0.0",
+    "@metamask/superstruct": "^3.4.1",
+    "@metamask/utils": "^11.11.0",
+    "@nktkas/hyperliquid": "^0.33.1",
+    "bignumber.js": "^9.1.2",
+    "reselect": "^5.1.1",
+    "uuid": "^8.3.2"
+  },
+  "optionalDependencies": {
+    "@myx-trade/sdk": "^0.1.265"
+  },
+  "engines": {
+    "node": "^18.18 || >=20"
+  },
+  "yalcSig": "bbd5519768c4072192c8450a9ebc1203"
+}

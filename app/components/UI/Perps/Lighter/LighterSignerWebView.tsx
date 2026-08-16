@@ -200,11 +200,16 @@ export const LighterSignerWebView = () => {
         webviewDebuggingEnabled={__DEV__}
         onMessage={onMessage}
         onContentProcessDidTerminate={refresh}
+        // Android equivalent of iOS content-process termination.
+        onRenderProcessGone={refresh}
         onError={(event: WebViewErrorEvent) => {
           DevLogger.log(
             '[LighterSignerWebView] load error',
             event.nativeEvent.description,
           );
+          // A failed load leaves the page without a WASM runtime; reload and
+          // fail pending callers rather than letting them hang.
+          refresh();
         }}
       />
     </View>
