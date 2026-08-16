@@ -12,11 +12,19 @@ import type {
  */
 type LighterExecutor = (call: LighterWasmCall) => Promise<unknown>;
 
+/** Upper bound covering both the pre-ready wait and the page round-trip. */
+const READY_TIMEOUT_MS = 90_000;
+
 let executor: LighterExecutor | null = null;
 let readyResolve: () => void;
-let ready = new Promise<void>((resolve) => {
+let readyReject: (reason: Error) => void;
+let ready = new Promise<void>((resolve, reject) => {
   readyResolve = resolve;
+  readyReject = reject;
 });
+// Callers race `ready`; without a handler here an early reset would surface
+// as an unhandled rejection before any caller attached.
+ready.catch(() => undefined);
 
 /**
  * Called by LighterSignerWebView when the WASM page posts `ready`.
@@ -29,14 +37,21 @@ export function connectLighterExecutor(newExecutor: LighterExecutor): void {
 }
 
 /**
- * Re-arms the readiness promise so calls queue while the WebView reloads
- * (e.g. after onContentProcessDidTerminate).
+ * Re-arms the readiness promise so new calls queue while the WebView
+ * reloads (crash recovery, content/render process loss). Callers already
+ * waiting on the OLD readiness promise are rejected — their page-side state
+ * is gone and they must retry against the re-initialized signer.
  */
 export function resetLighterBridge(): void {
   executor = null;
-  ready = new Promise<void>((resolve) => {
+  readyReject(
+    new Error('Lighter signer WebView reloaded; retry the operation'),
+  );
+  ready = new Promise<void>((resolve, reject) => {
     readyResolve = resolve;
+    readyReject = reject;
   });
+  ready.catch(() => undefined);
 }
 
 /**
@@ -45,7 +60,27 @@ export function resetLighterBridge(): void {
  */
 export const lighterSignerBridge: LighterSignerBridge = {
   async execute<Result>(call: LighterWasmCall): Promise<Result> {
-    await ready;
+    // The timeout covers the readiness wait too: a signer that never mounts
+    // must fail callers instead of queueing them forever.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        ready,
+        new Promise<never>((_resolve, reject) => {
+          timer = setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `Lighter signer not ready within ${READY_TIMEOUT_MS}ms for ${call.function}`,
+                ),
+              ),
+            READY_TIMEOUT_MS,
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
     if (!executor) {
       throw new Error('Lighter signer bridge executor not connected');
     }
