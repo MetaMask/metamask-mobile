@@ -1,0 +1,1 @@
+{"version":3,"file":"index.cjs","sourceRoot":"","sources":["../../src/routing/index.ts"],"names":[],"mappings":";;;AAAA;;GAEG;AACH,0DAAqD;AAA5C,mHAAA,cAAc,OAAA","sourcesContent":["/**\n * Provider routing module exports\n */\nexport { ProviderRouter } from './ProviderRouter.js';\nexport type { RouterSelectParams } from './ProviderRouter.js';\n"]}

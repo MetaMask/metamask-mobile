@@ -229,8 +229,14 @@ export function createMobileClientConfig(): PerpsControllerConfig {
         enabled: process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true',
         // Lighter Go/WASM signer transport (hidden WebView). Handed to the
         // controller before the WebView mounts; calls queue behind the
-        // bridge's readiness promise (see lighterSignerBridge.ts).
-        signerBridge: lighterSignerBridge,
+        // bridge's readiness promise (see lighterSignerBridge.ts). Only
+        // supplied when the same flag that mounts the WebView is set, so
+        // the controller's enablement gate and the client's signer mount
+        // can never disagree (remote flag alone cannot register a trading
+        // provider whose signer was never mounted).
+        ...(process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true'
+          ? { signerBridge: lighterSignerBridge }
+          : {}),
         accountIndexTestnet: process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET
           ? Number(process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET)
           : undefined,
