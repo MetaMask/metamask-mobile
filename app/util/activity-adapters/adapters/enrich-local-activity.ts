@@ -487,7 +487,7 @@ function enrichPreparedFees(
       ...activity.data,
       fees,
     },
-  };
+  } as ActivityListItem;
 }
 
 function enrichCancelledStatus(
