@@ -405,7 +405,12 @@ export function transformFillsToTransactions(
     acc.push({
       id: `${orderId || 'fill'}-${timestamp}-${acc.length}`,
       type: 'trade',
-      category: isOpened || isBuy ? 'position_open' : 'position_close',
+      // A side-only fill carrying realized PnL reduced a position — it is
+      // a close regardless of its Buy/Sell label.
+      category:
+        (isOpened || isBuy) && !hasRealizedPnl
+          ? 'position_open'
+          : 'position_close',
       title,
       subtitle: `${size} ${getPerpsDisplaySymbol(symbol)}`,
       timestamp,

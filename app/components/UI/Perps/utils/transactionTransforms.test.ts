@@ -483,10 +483,10 @@ describe('transactionTransforms', () => {
       detailedOrderType: 'Market',
     };
 
-    it('routes a Lighter Buy fill carrying realized PnL through the PnL path', () => {
-      // Side-only venues (Lighter) report a short being closed as a plain
-      // Buy with the realized pnl attached; it must not be misclassified as
-      // a pure open that only shows the fee.
+    it('classifies a Buy fill carrying realized PnL as a close with PnL display', () => {
+      // Side-only venues (Lighter) can report a short being closed as a
+      // plain Buy with the realized pnl attached; it must not be
+      // misclassified as a pure open that only shows the fee.
       const lighterBuyClose = {
         ...mockFill,
         direction: 'Buy',
@@ -496,20 +496,49 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([lighterBuyClose]);
 
-      if (!result[0]?.fill) {
-        return;
-      }
-      expect(result[0].fill.amount).toBe('-$0.01');
-      expect(result[0].fill.isPositive).toBe(false);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[0].category).toBe('position_close');
+      expect(result[0].title).toBe('Bought');
+      expect(result[0].fill?.amount).toBe('-$0.01');
+      expect(result[0].fill?.isPositive).toBe(false);
     });
 
-    it('keeps a zero-PnL Buy fill on the fee display path', () => {
+    it('keeps a zero-PnL Buy fill an open on the fee display path', () => {
       const plainBuy = { ...mockFill, direction: 'Buy', pnl: '0', fee: '2' };
       const result = transformFillsToTransactions([plainBuy]);
-      if (!result[0]?.fill) {
-        return;
-      }
-      expect(result[0].fill.amount).toBe('-$2.00');
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[0].category).toBe('position_open');
+      expect(result[0].title).toBe('Bought');
+      expect(result[0].fill?.amount).toBe('-$2.00');
+    });
+
+    it('renders a Lighter Open Short sell as a position open, not a close', () => {
+      const sellOpen = {
+        ...mockFill,
+        direction: 'Open Short',
+        side: 'sell' as const,
+        pnl: '0',
+        fee: '0',
+      };
+      const result = transformFillsToTransactions([sellOpen]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[0].category).toBe('position_open');
+      expect(result[0].title).toBe('Opened short');
+    });
+
+    it('renders a Lighter Close Long sell with its realized PnL', () => {
+      const closeLong = {
+        ...mockFill,
+        direction: 'Close Long',
+        side: 'sell' as const,
+        pnl: '-0.012901',
+        fee: '0',
+      };
+      const result = transformFillsToTransactions([closeLong]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[0].category).toBe('position_close');
+      expect(result[0].title).toBe('Closed long');
+      expect(result[0].fill?.amount).toBe('-$0.01');
     });
 
     it('transforms close position fill correctly', () => {
