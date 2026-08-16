@@ -15,6 +15,7 @@ type LighterExecutor = (call: LighterWasmCall) => Promise<unknown>;
 /** Upper bound covering both the pre-ready wait and the page round-trip. */
 const READY_TIMEOUT_MS = 90_000;
 
+const resetListeners = new Set<() => void>();
 let executor: LighterExecutor | null = null;
 let readyResolve: () => void;
 let readyReject: (reason: Error) => void;
@@ -52,6 +53,15 @@ export function resetLighterBridge(): void {
     readyReject = reject;
   });
   ready.catch(() => undefined);
+  // Notify subscribers (PerpsController's LighterProvider) so the cached
+  // signer session is invalidated immediately, not on the next failure.
+  for (const listener of resetListeners) {
+    try {
+      listener();
+    } catch {
+      // Listener errors must not break bridge recovery.
+    }
+  }
 }
 
 /**
@@ -85,6 +95,12 @@ export const lighterSignerBridge: LighterSignerBridge = {
       throw new Error('Lighter signer bridge executor not connected');
     }
     return (await executor(call)) as Result;
+  },
+  onReset(listener: () => void): () => void {
+    resetListeners.add(listener);
+    return () => {
+      resetListeners.delete(listener);
+    };
   },
   reset: resetLighterBridge,
 };

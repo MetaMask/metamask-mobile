@@ -24,7 +24,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _LighterProvider_deps, _LighterProvider_clientService, _LighterProvider_walletService, _LighterProvider_messenger, _LighterProvider_signerBridge, _LighterProvider_isTestnet, _LighterProvider_apiKeyIndex, _LighterProvider_configuredAccountIndex, _LighterProvider_marketsBySymbol, _LighterProvider_marketsById, _LighterProvider_accountIndex, _LighterProvider_boundAddress, _LighterProvider_sessionGeneration, _LighterProvider_priceSubscribers, _LighterProvider_pricePollTimer, _LighterProvider_priceWs, _LighterProvider_pricePollCycle, _LighterProvider_webSocketCtor, _LighterProvider_wsWantedChannels, _LighterProvider_wsKeepaliveTimer, _LighterProvider_connectionState, _LighterProvider_wsReconnectAttempts, _LighterProvider_connectionListeners, _LighterProvider_setConnectionState, _LighterProvider_wsReconnectTimer, _LighterProvider_lastPriceBySymbol, _LighterProvider_wsPositions, _LighterProvider_wsOrders, _LighterProvider_oiCapSubscribers, _LighterProvider_accountSubscribers, _LighterProvider_positionSubscribers, _LighterProvider_orderSubscribers, _LighterProvider_fillSubscribers, _LighterProvider_orderBookSubscribers, _LighterProvider_orderBookState, _LighterProvider_candleSubscribers, _LighterProvider_candleSeries, _LighterProvider_accountChannelsPromise, _LighterProvider_venuePublicKey, _LighterProvider_signerReadyPromise, _LighterProvider_authToken, _LighterProvider_getErrorContext, _LighterProvider_getSignerBridge, _LighterProvider_invalidateSignerSession, _LighterProvider_ensureSessionBinding, _LighterProvider_rebuildStreamForSubscribers, _LighterProvider_ensureAccountIndex, _LighterProvider_ensureSignerReady, _LighterProvider_setupSigner, _LighterProvider_isVenueKeyRegistered, _LighterProvider_registerVenueKey, _LighterProvider_writeChain, _LighterProvider_withVenueNonce, _LighterProvider_getAuthToken, _LighterProvider_ensureMarkets, _LighterProvider_applyRequestedLeverage, _LighterProvider_ensureAccountChannels, _LighterProvider_hasAnySubscriber, _LighterProvider_requestChannel, _LighterProvider_sendSubscribe, _LighterProvider_releaseChannelIfUnused, _LighterProvider_ensureStream, _LighterProvider_connectWs, _LighterProvider_handleWsMessage, _LighterProvider_handleOrderBookMessage, _LighterProvider_handleCandleMessage, _LighterProvider_handleTradesMessage, _LighterProvider_dispatchOICaps, _LighterProvider_emitToOrderSubscribers, _LighterProvider_logSubscriberError, _LighterProvider_startPricePolling, _LighterProvider_emitPolledPrices, _LighterProvider_dispatchPriceUpdates, _LighterProvider_deliverPrices, _LighterProvider_clearKeepalive, _LighterProvider_teardownStream, _LighterProvider_bridgeRoute;
+var _LighterProvider_deps, _LighterProvider_clientService, _LighterProvider_walletService, _LighterProvider_messenger, _LighterProvider_signerBridge, _LighterProvider_isTestnet, _LighterProvider_apiKeyIndex, _LighterProvider_configuredAccountIndex, _LighterProvider_marketsBySymbol, _LighterProvider_marketsById, _LighterProvider_accountIndex, _LighterProvider_boundAddress, _LighterProvider_sessionGeneration, _LighterProvider_priceSubscribers, _LighterProvider_pricePollTimer, _LighterProvider_priceWs, _LighterProvider_pricePollCycle, _LighterProvider_webSocketCtor, _LighterProvider_wsWantedChannels, _LighterProvider_wsKeepaliveTimer, _LighterProvider_connectionState, _LighterProvider_wsReconnectAttempts, _LighterProvider_connectionListeners, _LighterProvider_setConnectionState, _LighterProvider_wsReconnectTimer, _LighterProvider_lastPriceBySymbol, _LighterProvider_wsPositions, _LighterProvider_wsOrders, _LighterProvider_oiCapSubscribers, _LighterProvider_accountSubscribers, _LighterProvider_positionSubscribers, _LighterProvider_orderSubscribers, _LighterProvider_fillSubscribers, _LighterProvider_orderBookSubscribers, _LighterProvider_orderBookState, _LighterProvider_candleSubscribers, _LighterProvider_candleSeries, _LighterProvider_accountChannelsPromise, _LighterProvider_venuePublicKey, _LighterProvider_signerReadyPromise, _LighterProvider_authToken, _LighterProvider_getErrorContext, _LighterProvider_getSignerBridge, _LighterProvider_invalidateSignerSession, _LighterProvider_ensureSessionBinding, _LighterProvider_rebuildStreamForSubscribers, _LighterProvider_ensureAccountIndex, _LighterProvider_ensureSignerReady, _LighterProvider_setupSigner, _LighterProvider_isVenueKeyRegistered, _LighterProvider_registerVenueKey, _LighterProvider_writeChain, _LighterProvider_withVenueWriteLock, _LighterProvider_withVenueNonce, _LighterProvider_getAuthToken, _LighterProvider_ensureMarkets, _LighterProvider_resolveLeverageIntent, _LighterProvider_marginBySymbol, _LighterProvider_ensureMarketMargins, _LighterProvider_ensureAccountChannels, _LighterProvider_hasAnySubscriber, _LighterProvider_requestChannel, _LighterProvider_sendSubscribe, _LighterProvider_releaseChannelIfUnused, _LighterProvider_ensureStream, _LighterProvider_connectWs, _LighterProvider_handleWsMessage, _LighterProvider_handleOrderBookMessage, _LighterProvider_handleCandleMessage, _LighterProvider_handleTradesMessage, _LighterProvider_dispatchOICaps, _LighterProvider_emitToOrderSubscribers, _LighterProvider_logSubscriberError, _LighterProvider_startPricePolling, _LighterProvider_emitPolledPrices, _LighterProvider_dispatchPriceUpdates, _LighterProvider_deliverPrices, _LighterProvider_clearKeepalive, _LighterProvider_teardownStream, _LighterProvider_bridgeRoute;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LighterProvider = void 0;
 const lighterConfig_js_1 = require("../constants/lighterConfig.cjs");
@@ -253,7 +253,10 @@ class LighterProvider {
             }
             for (const seriesKey of __classPrivateFieldGet(this, _LighterProvider_candleSubscribers, "f").keys()) {
                 // Series keys are `${marketId}:${resolution}`; the channel form uses
-                // slashes.
+                // slashes. The teardown cleared the series state, and the message
+                // router drops updates for unknown series — recreate an empty series
+                // so live candles flow again (history reseeds on the next fetch).
+                __classPrivateFieldGet(this, _LighterProvider_candleSeries, "f").set(seriesKey, new Map());
                 __classPrivateFieldGet(this, _LighterProvider_requestChannel, "f").call(this, `candle/${seriesKey.replace(':', '/')}`);
             }
             if (__classPrivateFieldGet(this, _LighterProvider_accountSubscribers, "f").size > 0 ||
@@ -390,21 +393,34 @@ class LighterProvider {
          * fetch→submit pairs (e.g. the controller's per-item batch fallbacks
          * running concurrently) would sign with the same nonce and get one
          * rejection. Every write acquires the chain, fetches a fresh nonce
-         * inside it, and submits before the next write's fetch runs.
+         * inside it, and submits before the next write's fetch runs. A section
+         * queued under a wallet account that has since been switched away from
+         * refuses to run — a delayed account-A write must never execute inside
+         * account-B's session.
          *
          * @param accountIndex - Account whose key-slot nonce is consumed.
-         * @param operation - Sign+submit critical section receiving the nonce.
-         * @returns The operation's result.
+         * @param section - Work to run exclusively; fetch nonces via the
+         * provided helper (each call returns the next fresh nonce).
+         * @param generationAtIntent - Session generation captured when the
+         * caller's intent was formed (defaults to now).
+         * @returns The section's result.
          */
-        _LighterProvider_withVenueNonce.set(this, async (accountIndex, operation) => {
+        _LighterProvider_withVenueWriteLock.set(this, async (accountIndex, section, generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f")) => {
             const criticalSection = async () => {
-                const nonceResponse = await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").getNextNonce(accountIndex, __classPrivateFieldGet(this, _LighterProvider_apiKeyIndex, "f"));
-                return await operation(nonceResponse.nonce);
+                if (generationAtIntent !== __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f")) {
+                    throw new Error('Operation cancelled: the wallet switched accounts while this write was queued');
+                }
+                const nextNonce = async () => {
+                    const nonceResponse = await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").getNextNonce(accountIndex, __classPrivateFieldGet(this, _LighterProvider_apiKeyIndex, "f"));
+                    return nonceResponse.nonce;
+                };
+                return await section(nextNonce);
             };
             const run = __classPrivateFieldGet(this, _LighterProvider_writeChain, "f").then(criticalSection, criticalSection);
             __classPrivateFieldSet(this, _LighterProvider_writeChain, run.then(() => undefined, () => undefined), "f");
             return await run;
         });
+        _LighterProvider_withVenueNonce.set(this, async (accountIndex, operation, generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f")) => await __classPrivateFieldGet(this, _LighterProvider_withVenueWriteLock, "f").call(this, accountIndex, async (nextNonce) => operation(await nextNonce()), generationAtIntent));
         _LighterProvider_getAuthToken.set(this, async () => {
             __classPrivateFieldGet(this, _LighterProvider_ensureSessionBinding, "f").call(this);
             const nowSeconds = Math.floor(Date.now() / 1000);
@@ -451,43 +467,46 @@ class LighterProvider {
          * @param market - Market metadata for the order being placed.
          * @param params - The original order params carrying `leverage`.
          */
-        _LighterProvider_applyRequestedLeverage.set(this, async (accountIndex, market, params) => {
+        /**
+         * Decide whether the caller's requested leverage needs a venue update.
+         *
+         * @param params - The order params carrying `leverage`.
+         * @returns The UpdateLeverage margin fraction (hundredths of a percent)
+         * to sign, or null when no change is needed.
+         */
+        _LighterProvider_resolveLeverageIntent.set(this, async (params) => {
             const requested = params.leverage;
             if (!requested ||
                 requested <= 0 ||
                 requested === params.existingPositionLeverage) {
-                return;
+                return null;
             }
             const positions = await this.getPositions();
             const held = positions.find((position) => position.symbol === params.symbol);
-            if (held?.leverage?.value !== undefined) {
-                // Requested leverage already in effect for this market — nothing to
-                // change, the caller's intent is satisfied.
-                if (Math.abs(held.leverage.value - requested) < 0.5) {
-                    return;
-                }
+            if (held?.leverage?.value !== undefined &&
+                Math.abs(held.leverage.value - requested) < 0.5) {
+                // Requested leverage already in effect — intent satisfied.
+                return null;
             }
-            // Otherwise attempt the update. When the market has a position or
-            // resting order the venue itself rejects the change with a clear
-            // error, which fails the placement instead of silently trading at a
-            // leverage the caller did not ask for.
-            const imfHundredths = Math.round(10000 / requested);
-            await __classPrivateFieldGet(this, _LighterProvider_withVenueNonce, "f").call(this, accountIndex, async (nonce) => {
-                const signed = await __classPrivateFieldGet(this, _LighterProvider_getSignerBridge, "f").call(this).execute({
-                    function: '_signUpdateLeverage',
-                    params: [
-                        accountIndex,
-                        market.marketId,
-                        imfHundredths,
-                        lighterConfig_js_1.LIGHTER_MARGIN_MODE_CROSS,
-                        nonce,
-                    ],
+            // Otherwise sign the update inside the placement's own write lock. If
+            // the market has a position or resting order the venue rejects it with
+            // a clear error, failing the placement instead of silently trading at
+            // a leverage the caller did not ask for.
+            return Math.round(10000 / requested);
+        });
+        /** Per-market margin fractions from orderBookDetails (hundredths of %). */
+        _LighterProvider_marginBySymbol.set(this, new Map());
+        _LighterProvider_ensureMarketMargins.set(this, async () => {
+            if (__classPrivateFieldGet(this, _LighterProvider_marginBySymbol, "f").size > 0) {
+                return;
+            }
+            const details = await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").getOrderBookDetails();
+            for (const detail of details.orderBookDetails) {
+                __classPrivateFieldGet(this, _LighterProvider_marginBySymbol, "f").set(detail.symbol, {
+                    minInitial: detail.minInitialMarginFraction,
+                    maintenance: detail.maintenanceMarginFraction,
                 });
-                if (signed.error) {
-                    throw new Error(`Lighter leverage update failed: ${signed.error}`);
-                }
-                return await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").sendTx(lighterConfig_js_1.LIGHTER_TX_TYPE_UPDATE_LEVERAGE, signed.txInfo);
-            });
+            }
         });
         // ============================================================================
         // Shared WebSocket stream manager (market_stats / user_stats /
@@ -504,14 +523,23 @@ class LighterProvider {
                 __classPrivateFieldGet(this, _LighterProvider_ensureStream, "f").call(this);
                 return;
             }
+            const generation = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f");
             __classPrivateFieldSet(this, _LighterProvider_accountChannelsPromise, (async () => {
                 try {
                     const accountIndex = await __classPrivateFieldGet(this, _LighterProvider_ensureAccountIndex, "f").call(this);
+                    if (generation !== __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f")) {
+                        // The wallet switched accounts while resolving; the rebind's own
+                        // rebuild requests the channels for the new session.
+                        return;
+                    }
                     __classPrivateFieldGet(this, _LighterProvider_requestChannel, "f").call(this, `user_stats/${accountIndex}`);
                     __classPrivateFieldGet(this, _LighterProvider_requestChannel, "f").call(this, `account_all_positions/${accountIndex}`);
                     __classPrivateFieldGet(this, _LighterProvider_requestChannel, "f").call(this, `account_all_trades/${accountIndex}`);
                     try {
                         const auth = await __classPrivateFieldGet(this, _LighterProvider_getAuthToken, "f").call(this);
+                        if (generation !== __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f")) {
+                            return;
+                        }
                         __classPrivateFieldGet(this, _LighterProvider_requestChannel, "f").call(this, `account_all_orders/${accountIndex}`, auth);
                     }
                     catch (error) {
@@ -1056,6 +1084,9 @@ class LighterProvider {
         __classPrivateFieldSet(this, _LighterProvider_isTestnet, options.isTestnet ?? true, "f");
         __classPrivateFieldSet(this, _LighterProvider_messenger, options.messenger ?? null, "f");
         __classPrivateFieldSet(this, _LighterProvider_signerBridge, options.signerBridge ?? null, "f");
+        // Learn about bridge resets proactively (e.g. the mobile WebView
+        // reloading) instead of from the next failed trading call.
+        __classPrivateFieldGet(this, _LighterProvider_signerBridge, "f")?.onReset?.(() => __classPrivateFieldGet(this, _LighterProvider_invalidateSignerSession, "f").call(this));
         const globalWebSocket = Reflect.get(globalThis, 'WebSocket');
         const defaultWebSocketCtor = typeof globalWebSocket === 'function' ? globalWebSocket : null;
         __classPrivateFieldSet(this, _LighterProvider_webSocketCtor, options.webSocketCtor === undefined
@@ -1161,9 +1192,19 @@ class LighterProvider {
     async getMarkets(_params) {
         try {
             const markets = await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").getOrderBooks();
+            // Best effort: per-market max leverage from the venue's margin
+            // fractions; the adapter's constant only stands in when unknown.
+            await __classPrivateFieldGet(this, _LighterProvider_ensureMarketMargins, "f").call(this).catch(() => undefined);
             return markets
                 .filter((market) => market.marketType === 'perp')
-                .map(lighterAdapter_js_1.adaptMarketFromLighter);
+                .map((market) => {
+                const adapted = (0, lighterAdapter_js_1.adaptMarketFromLighter)(market);
+                const minInitial = __classPrivateFieldGet(this, _LighterProvider_marginBySymbol, "f").get(market.symbol)?.minInitial;
+                if (minInitial && minInitial > 0) {
+                    adapted.maxLeverage = Math.floor(10000 / minInitial);
+                }
+                return adapted;
+            });
         }
         catch (caughtError) {
             const wrappedError = (0, errorUtils_js_1.ensureError)(caughtError, 'LighterProvider.getMarkets');
@@ -1295,6 +1336,10 @@ class LighterProvider {
                     error: 'Lighter placement does not support post-only (ALO) yet',
                 };
             }
+            // Bind the write to the wallet account it was INITIATED under; if the
+            // wallet switches before the queued critical section runs, it aborts.
+            __classPrivateFieldGet(this, _LighterProvider_ensureSessionBinding, "f").call(this);
+            const generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f");
             await __classPrivateFieldGet(this, _LighterProvider_ensureSignerReady, "f").call(this);
             const accountIndex = await __classPrivateFieldGet(this, _LighterProvider_ensureAccountIndex, "f").call(this);
             const markets = await __classPrivateFieldGet(this, _LighterProvider_ensureMarkets, "f").call(this);
@@ -1313,22 +1358,27 @@ class LighterProvider {
             const slippageFraction = params.maxSlippageBps === undefined
                 ? (params.slippage ?? 0.05)
                 : params.maxSlippageBps / 10000;
-            let price = parseFloat(params.price ?? String(params.currentPrice ?? 0));
+            // The reference price sizes the order; market orders additionally get
+            // a protection price offset by the slippage tolerance. They are kept
+            // separate so usdAmount sizing is never distorted by the protection
+            // offset.
+            let referencePrice = parseFloat(params.price ?? String(params.currentPrice ?? 0));
+            let executionPrice = referencePrice;
             if (params.orderType === 'market') {
-                // Lighter market orders are IOC orders with a protection price: the
-                // reference price bounded by the slippage tolerance in the taker
-                // direction.
-                if (!(price > 0)) {
-                    const details = await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").getOrderBookDetails();
-                    price =
-                        details.orderBookDetails.find((entry) => entry.symbol === params.symbol)?.lastTradePrice ?? 0;
+                // Always resolve a FRESH venue price: the caller's currentPrice is
+                // the same snapshot as priceAtCalculation, and a drift check that
+                // compares a snapshot to itself would never fire.
+                const details = await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").getOrderBookDetails();
+                const freshPrice = details.orderBookDetails.find((entry) => entry.symbol === params.symbol)?.lastTradePrice ?? 0;
+                if (freshPrice > 0) {
+                    referencePrice = freshPrice;
                 }
                 // Honor the caller's sizing snapshot: refuse instead of executing
-                // at a price that drifted past their slippage tolerance.
+                // at a live price that drifted past their slippage tolerance.
                 if (params.priceAtCalculation !== undefined &&
                     params.priceAtCalculation > 0 &&
-                    price > 0 &&
-                    Math.abs(price - params.priceAtCalculation) /
+                    referencePrice > 0 &&
+                    Math.abs(referencePrice - params.priceAtCalculation) /
                         params.priceAtCalculation >
                         slippageFraction) {
                     return {
@@ -1336,38 +1386,39 @@ class LighterProvider {
                         error: `Price moved beyond the ${(slippageFraction * 100).toFixed(2)}% slippage tolerance since sizing`,
                     };
                 }
-                price = params.isBuy
-                    ? price * (1 + slippageFraction)
-                    : price * (1 - slippageFraction);
+                executionPrice = params.isBuy
+                    ? referencePrice * (1 + slippageFraction)
+                    : referencePrice * (1 - slippageFraction);
             }
-            if (!(price > 0)) {
+            if (!(referencePrice > 0) || !(executionPrice > 0)) {
                 return {
                     success: false,
                     error: 'Unable to resolve an execution price for the order',
                 };
             }
-            // USD is the source of truth when provided (hybrid sizing contract).
+            // USD is the source of truth when provided (hybrid sizing contract),
+            // converted at the reference price — not the protection price.
             const requestedSize = params.usdAmount !== undefined && parseFloat(params.usdAmount) > 0
-                ? parseFloat(params.usdAmount) / price
+                ? parseFloat(params.usdAmount) / referencePrice
                 : parseFloat(params.size);
             if (!(requestedSize > 0)) {
                 return { success: false, error: 'Order size must be positive' };
             }
-            const minSize = (0, lighterConfig_js_1.computeLighterMinOrderSize)(market, price);
+            const minSize = (0, lighterConfig_js_1.computeLighterMinOrderSize)(market, referencePrice);
             if (requestedSize < minSize) {
-                // A full close may be bumped to the venue minimum: reduce-only
-                // execution clamps to the position, so no extra exposure results
-                // and dust positions stay closable. Anything else — including a
-                // PARTIAL reduce-only close, which a bump would over-close — is
-                // rejected instead of silently resized.
-                let effectivelyFullClose = params.isFullClose === true;
-                if (!effectivelyFullClose && params.reduceOnly) {
+                // Only a LIVE-VERIFIED full close may be bumped to the venue
+                // minimum: reduce-only execution clamps to the position, so no
+                // extra exposure results and dust positions stay closable. The
+                // isFullClose flag is a hint, never trusted — a partial close
+                // bumped to the minimum would close more than the caller asked.
+                let verifiedFullClose = false;
+                if (params.reduceOnly) {
                     const positions = await this.getPositions();
                     const held = Math.abs(parseFloat(positions.find((entry) => entry.symbol === params.symbol)?.size ??
                         '0'));
-                    effectivelyFullClose = held > 0 && requestedSize >= held * 0.99;
+                    verifiedFullClose = held > 0 && requestedSize >= held * 0.99;
                 }
-                if (!effectivelyFullClose) {
+                if (!verifiedFullClose) {
                     return {
                         success: false,
                         error: `Order size ${requestedSize} is below the Lighter minimum of ${minSize} ${params.symbol}`,
@@ -1375,11 +1426,30 @@ class LighterProvider {
                 }
             }
             const size = Math.max(requestedSize, minSize);
-            await __classPrivateFieldGet(this, _LighterProvider_applyRequestedLeverage, "f").call(this, accountIndex, market, params);
-            const priceInt = (0, lighterConfig_js_1.toLighterInteger)(price, market.supportedPriceDecimals);
+            const leverageImfHundredths = await __classPrivateFieldGet(this, _LighterProvider_resolveLeverageIntent, "f").call(this, params);
+            const priceInt = (0, lighterConfig_js_1.toLighterInteger)(executionPrice, market.supportedPriceDecimals);
             const sizeInt = (0, lighterConfig_js_1.toLighterInteger)(size, market.supportedSizeDecimals);
             const clientOrderIndex = Date.now() % 1000000000;
-            const result = await __classPrivateFieldGet(this, _LighterProvider_withVenueNonce, "f").call(this, accountIndex, async (nonce) => {
+            // Leverage update and order placement share ONE lock acquisition so a
+            // concurrent write can never interleave between the caller's leverage
+            // intent and the order that depends on it.
+            const result = await __classPrivateFieldGet(this, _LighterProvider_withVenueWriteLock, "f").call(this, accountIndex, async (nextNonce) => {
+                if (leverageImfHundredths !== null) {
+                    const signedLeverage = await __classPrivateFieldGet(this, _LighterProvider_getSignerBridge, "f").call(this).execute({
+                        function: '_signUpdateLeverage',
+                        params: [
+                            accountIndex,
+                            market.marketId,
+                            leverageImfHundredths,
+                            lighterConfig_js_1.LIGHTER_MARGIN_MODE_CROSS,
+                            await nextNonce(),
+                        ],
+                    });
+                    if (signedLeverage.error) {
+                        throw new Error(`Lighter leverage update failed: ${signedLeverage.error}`);
+                    }
+                    await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").sendTx(lighterConfig_js_1.LIGHTER_TX_TYPE_UPDATE_LEVERAGE, signedLeverage.txInfo);
+                }
                 const signed = await __classPrivateFieldGet(this, _LighterProvider_getSignerBridge, "f").call(this).execute({
                     function: '_signCreateOrder',
                     params: [
@@ -1397,19 +1467,19 @@ class LighterProvider {
                             : lighterConfig_js_1.LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL,
                         params.reduceOnly ? 1 : 0,
                         String(lighterConfig_js_1.LIGHTER_NO_TRIGGER_PRICE),
-                        // GTT orders auto-expire in 28 days (signer sentinel -1); IOC
-                        // orders must carry a zero expiry.
+                        // GTT orders auto-expire in 28 days (signer sentinel -1);
+                        // IOC orders must carry a zero expiry.
                         params.orderType === 'limit' && params.timeInForce !== 'IOC'
                             ? lighterConfig_js_1.LIGHTER_ORDER_EXPIRY_NONE
                             : 0,
-                        nonce,
+                        await nextNonce(),
                     ],
                 });
                 if (signed.error) {
                     throw new Error(`Lighter order signing failed: ${signed.error}`);
                 }
                 return await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").sendTx(lighterConfig_js_1.LIGHTER_TX_TYPE_CREATE_ORDER, signed.txInfo);
-            });
+            }, generationAtIntent);
             __classPrivateFieldGet(this, _LighterProvider_deps, "f").debugLogger.log('[LighterProvider] Order placed', {
                 symbol: params.symbol,
                 clientOrderIndex,
@@ -1433,6 +1503,8 @@ class LighterProvider {
     }
     async cancelOrder(params) {
         try {
+            __classPrivateFieldGet(this, _LighterProvider_ensureSessionBinding, "f").call(this);
+            const generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f");
             await __classPrivateFieldGet(this, _LighterProvider_ensureSignerReady, "f").call(this);
             const accountIndex = await __classPrivateFieldGet(this, _LighterProvider_ensureAccountIndex, "f").call(this);
             const markets = await __classPrivateFieldGet(this, _LighterProvider_ensureMarkets, "f").call(this);
@@ -1452,7 +1524,7 @@ class LighterProvider {
                     throw new Error(`Lighter cancel signing failed: ${signed.error}`);
                 }
                 return await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").sendTx(lighterConfig_js_1.LIGHTER_TX_TYPE_CANCEL_ORDER, signed.txInfo);
-            });
+            }, generationAtIntent);
             return {
                 success: true,
                 orderId: params.orderId,
@@ -1518,6 +1590,8 @@ class LighterProvider {
     }
     async updatePositionTPSL(params) {
         try {
+            __classPrivateFieldGet(this, _LighterProvider_ensureSessionBinding, "f").call(this);
+            const generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f");
             const markets = await __classPrivateFieldGet(this, _LighterProvider_ensureMarkets, "f").call(this);
             const market = markets.get(params.symbol);
             if (!market) {
@@ -1592,13 +1666,19 @@ class LighterProvider {
             await __classPrivateFieldGet(this, _LighterProvider_withVenueNonce, "f").call(this, accountIndex, async (nonce) => {
                 const signed = await __classPrivateFieldGet(this, _LighterProvider_getSignerBridge, "f").call(this).execute({
                     function: '_signCreateGroupedOrders',
-                    params: [accountIndex, groupingType, orderCount, ...grouped, nonce],
+                    params: [
+                        accountIndex,
+                        groupingType,
+                        orderCount,
+                        ...grouped,
+                        nonce,
+                    ],
                 });
                 if (signed.error) {
                     throw new Error(signed.error);
                 }
                 return await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").sendTx(lighterConfig_js_1.LIGHTER_TX_TYPE_CREATE_GROUPED_ORDERS, signed.txInfo);
-            });
+            }, generationAtIntent);
             return { success: true };
         }
         catch (error) {
@@ -1612,6 +1692,8 @@ class LighterProvider {
     }
     async updateMargin(params) {
         try {
+            __classPrivateFieldGet(this, _LighterProvider_ensureSessionBinding, "f").call(this);
+            const generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f");
             const markets = await __classPrivateFieldGet(this, _LighterProvider_ensureMarkets, "f").call(this);
             const market = markets.get(params.symbol);
             if (!market) {
@@ -1646,7 +1728,7 @@ class LighterProvider {
                     throw new Error(signed.error);
                 }
                 return await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").sendTx(lighterConfig_js_1.LIGHTER_TX_TYPE_UPDATE_MARGIN, signed.txInfo);
-            });
+            }, generationAtIntent);
             return { success: true };
         }
         catch (error) {
@@ -1660,6 +1742,8 @@ class LighterProvider {
     }
     async withdraw(params) {
         try {
+            __classPrivateFieldGet(this, _LighterProvider_ensureSessionBinding, "f").call(this);
+            const generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f");
             const amount = parseFloat(params.amount);
             if (!(amount > 0)) {
                 return { success: false, error: 'withdraw requires a positive amount' };
@@ -1683,7 +1767,7 @@ class LighterProvider {
                     throw new Error(signed.error);
                 }
                 return await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").sendTx(lighterConfig_js_1.LIGHTER_TX_TYPE_WITHDRAW, signed.txInfo);
-            });
+            }, generationAtIntent);
             return { success: true, txHash: result.txHash };
         }
         catch (error) {
@@ -1945,13 +2029,38 @@ class LighterProvider {
         const liquidationPrice = entryPrice * (1 - sideFactor * (1 / leverage - maintenanceFraction));
         return liquidationPrice > 0 ? liquidationPrice.toFixed(6) : '0';
     }
-    async calculateMaintenanceMargin(_params) {
-        // Lighter does not publish per-market maintenance fractions through the
-        // public metadata; approximate with half the initial margin at max
-        // leverage (the industry convention HyperLiquid also uses).
+    async calculateMaintenanceMargin(params) {
+        // The venue publishes per-market maintenance margin fractions
+        // (hundredths of a percent, e.g. 240 = 2.4%) in orderBookDetails.
+        try {
+            await __classPrivateFieldGet(this, _LighterProvider_ensureMarketMargins, "f").call(this);
+            const maintenance = __classPrivateFieldGet(this, _LighterProvider_marginBySymbol, "f").get(params.asset)?.maintenance;
+            if (maintenance && maintenance > 0) {
+                return maintenance / 10000;
+            }
+        }
+        catch (error) {
+            __classPrivateFieldGet(this, _LighterProvider_deps, "f").debugLogger.log('[LighterProvider] maintenance margin fallback', { error: String(error) });
+        }
+        // Fallback: half the initial margin at the max-leverage constant.
         return 1 / (2 * lighterConfig_js_1.LIGHTER_MAX_LEVERAGE);
     }
-    async getMaxLeverage(_asset) {
+    async getMaxLeverage(asset) {
+        // The venue publishes per-market minimum initial margin fractions
+        // (hundredths of a percent): 400 → 25x. The global constant is only a
+        // fallback when the market is unknown.
+        try {
+            await __classPrivateFieldGet(this, _LighterProvider_ensureMarketMargins, "f").call(this);
+            const minInitial = __classPrivateFieldGet(this, _LighterProvider_marginBySymbol, "f").get(asset)?.minInitial;
+            if (minInitial && minInitial > 0) {
+                return Math.floor(10000 / minInitial);
+            }
+        }
+        catch (error) {
+            __classPrivateFieldGet(this, _LighterProvider_deps, "f").debugLogger.log('[LighterProvider] getMaxLeverage fallback', {
+                error: String(error),
+            });
+        }
         return lighterConfig_js_1.LIGHTER_MAX_LEVERAGE;
     }
     async calculateFees(params) {
@@ -2174,5 +2283,5 @@ class LighterProvider {
     }
 }
 exports.LighterProvider = LighterProvider;
-_LighterProvider_deps = new WeakMap(), _LighterProvider_clientService = new WeakMap(), _LighterProvider_walletService = new WeakMap(), _LighterProvider_messenger = new WeakMap(), _LighterProvider_signerBridge = new WeakMap(), _LighterProvider_isTestnet = new WeakMap(), _LighterProvider_apiKeyIndex = new WeakMap(), _LighterProvider_configuredAccountIndex = new WeakMap(), _LighterProvider_marketsBySymbol = new WeakMap(), _LighterProvider_marketsById = new WeakMap(), _LighterProvider_accountIndex = new WeakMap(), _LighterProvider_boundAddress = new WeakMap(), _LighterProvider_sessionGeneration = new WeakMap(), _LighterProvider_priceSubscribers = new WeakMap(), _LighterProvider_pricePollTimer = new WeakMap(), _LighterProvider_priceWs = new WeakMap(), _LighterProvider_pricePollCycle = new WeakMap(), _LighterProvider_webSocketCtor = new WeakMap(), _LighterProvider_wsWantedChannels = new WeakMap(), _LighterProvider_wsKeepaliveTimer = new WeakMap(), _LighterProvider_connectionState = new WeakMap(), _LighterProvider_wsReconnectAttempts = new WeakMap(), _LighterProvider_connectionListeners = new WeakMap(), _LighterProvider_setConnectionState = new WeakMap(), _LighterProvider_wsReconnectTimer = new WeakMap(), _LighterProvider_lastPriceBySymbol = new WeakMap(), _LighterProvider_wsPositions = new WeakMap(), _LighterProvider_wsOrders = new WeakMap(), _LighterProvider_oiCapSubscribers = new WeakMap(), _LighterProvider_accountSubscribers = new WeakMap(), _LighterProvider_positionSubscribers = new WeakMap(), _LighterProvider_orderSubscribers = new WeakMap(), _LighterProvider_fillSubscribers = new WeakMap(), _LighterProvider_orderBookSubscribers = new WeakMap(), _LighterProvider_orderBookState = new WeakMap(), _LighterProvider_candleSubscribers = new WeakMap(), _LighterProvider_candleSeries = new WeakMap(), _LighterProvider_accountChannelsPromise = new WeakMap(), _LighterProvider_venuePublicKey = new WeakMap(), _LighterProvider_signerReadyPromise = new WeakMap(), _LighterProvider_authToken = new WeakMap(), _LighterProvider_getErrorContext = new WeakMap(), _LighterProvider_getSignerBridge = new WeakMap(), _LighterProvider_invalidateSignerSession = new WeakMap(), _LighterProvider_ensureSessionBinding = new WeakMap(), _LighterProvider_rebuildStreamForSubscribers = new WeakMap(), _LighterProvider_ensureAccountIndex = new WeakMap(), _LighterProvider_ensureSignerReady = new WeakMap(), _LighterProvider_setupSigner = new WeakMap(), _LighterProvider_isVenueKeyRegistered = new WeakMap(), _LighterProvider_registerVenueKey = new WeakMap(), _LighterProvider_writeChain = new WeakMap(), _LighterProvider_withVenueNonce = new WeakMap(), _LighterProvider_getAuthToken = new WeakMap(), _LighterProvider_ensureMarkets = new WeakMap(), _LighterProvider_applyRequestedLeverage = new WeakMap(), _LighterProvider_ensureAccountChannels = new WeakMap(), _LighterProvider_hasAnySubscriber = new WeakMap(), _LighterProvider_requestChannel = new WeakMap(), _LighterProvider_sendSubscribe = new WeakMap(), _LighterProvider_releaseChannelIfUnused = new WeakMap(), _LighterProvider_ensureStream = new WeakMap(), _LighterProvider_connectWs = new WeakMap(), _LighterProvider_handleWsMessage = new WeakMap(), _LighterProvider_handleOrderBookMessage = new WeakMap(), _LighterProvider_handleCandleMessage = new WeakMap(), _LighterProvider_handleTradesMessage = new WeakMap(), _LighterProvider_dispatchOICaps = new WeakMap(), _LighterProvider_emitToOrderSubscribers = new WeakMap(), _LighterProvider_logSubscriberError = new WeakMap(), _LighterProvider_startPricePolling = new WeakMap(), _LighterProvider_emitPolledPrices = new WeakMap(), _LighterProvider_dispatchPriceUpdates = new WeakMap(), _LighterProvider_deliverPrices = new WeakMap(), _LighterProvider_clearKeepalive = new WeakMap(), _LighterProvider_teardownStream = new WeakMap(), _LighterProvider_bridgeRoute = new WeakMap();
+_LighterProvider_deps = new WeakMap(), _LighterProvider_clientService = new WeakMap(), _LighterProvider_walletService = new WeakMap(), _LighterProvider_messenger = new WeakMap(), _LighterProvider_signerBridge = new WeakMap(), _LighterProvider_isTestnet = new WeakMap(), _LighterProvider_apiKeyIndex = new WeakMap(), _LighterProvider_configuredAccountIndex = new WeakMap(), _LighterProvider_marketsBySymbol = new WeakMap(), _LighterProvider_marketsById = new WeakMap(), _LighterProvider_accountIndex = new WeakMap(), _LighterProvider_boundAddress = new WeakMap(), _LighterProvider_sessionGeneration = new WeakMap(), _LighterProvider_priceSubscribers = new WeakMap(), _LighterProvider_pricePollTimer = new WeakMap(), _LighterProvider_priceWs = new WeakMap(), _LighterProvider_pricePollCycle = new WeakMap(), _LighterProvider_webSocketCtor = new WeakMap(), _LighterProvider_wsWantedChannels = new WeakMap(), _LighterProvider_wsKeepaliveTimer = new WeakMap(), _LighterProvider_connectionState = new WeakMap(), _LighterProvider_wsReconnectAttempts = new WeakMap(), _LighterProvider_connectionListeners = new WeakMap(), _LighterProvider_setConnectionState = new WeakMap(), _LighterProvider_wsReconnectTimer = new WeakMap(), _LighterProvider_lastPriceBySymbol = new WeakMap(), _LighterProvider_wsPositions = new WeakMap(), _LighterProvider_wsOrders = new WeakMap(), _LighterProvider_oiCapSubscribers = new WeakMap(), _LighterProvider_accountSubscribers = new WeakMap(), _LighterProvider_positionSubscribers = new WeakMap(), _LighterProvider_orderSubscribers = new WeakMap(), _LighterProvider_fillSubscribers = new WeakMap(), _LighterProvider_orderBookSubscribers = new WeakMap(), _LighterProvider_orderBookState = new WeakMap(), _LighterProvider_candleSubscribers = new WeakMap(), _LighterProvider_candleSeries = new WeakMap(), _LighterProvider_accountChannelsPromise = new WeakMap(), _LighterProvider_venuePublicKey = new WeakMap(), _LighterProvider_signerReadyPromise = new WeakMap(), _LighterProvider_authToken = new WeakMap(), _LighterProvider_getErrorContext = new WeakMap(), _LighterProvider_getSignerBridge = new WeakMap(), _LighterProvider_invalidateSignerSession = new WeakMap(), _LighterProvider_ensureSessionBinding = new WeakMap(), _LighterProvider_rebuildStreamForSubscribers = new WeakMap(), _LighterProvider_ensureAccountIndex = new WeakMap(), _LighterProvider_ensureSignerReady = new WeakMap(), _LighterProvider_setupSigner = new WeakMap(), _LighterProvider_isVenueKeyRegistered = new WeakMap(), _LighterProvider_registerVenueKey = new WeakMap(), _LighterProvider_writeChain = new WeakMap(), _LighterProvider_withVenueWriteLock = new WeakMap(), _LighterProvider_withVenueNonce = new WeakMap(), _LighterProvider_getAuthToken = new WeakMap(), _LighterProvider_ensureMarkets = new WeakMap(), _LighterProvider_resolveLeverageIntent = new WeakMap(), _LighterProvider_marginBySymbol = new WeakMap(), _LighterProvider_ensureMarketMargins = new WeakMap(), _LighterProvider_ensureAccountChannels = new WeakMap(), _LighterProvider_hasAnySubscriber = new WeakMap(), _LighterProvider_requestChannel = new WeakMap(), _LighterProvider_sendSubscribe = new WeakMap(), _LighterProvider_releaseChannelIfUnused = new WeakMap(), _LighterProvider_ensureStream = new WeakMap(), _LighterProvider_connectWs = new WeakMap(), _LighterProvider_handleWsMessage = new WeakMap(), _LighterProvider_handleOrderBookMessage = new WeakMap(), _LighterProvider_handleCandleMessage = new WeakMap(), _LighterProvider_handleTradesMessage = new WeakMap(), _LighterProvider_dispatchOICaps = new WeakMap(), _LighterProvider_emitToOrderSubscribers = new WeakMap(), _LighterProvider_logSubscriberError = new WeakMap(), _LighterProvider_startPricePolling = new WeakMap(), _LighterProvider_emitPolledPrices = new WeakMap(), _LighterProvider_dispatchPriceUpdates = new WeakMap(), _LighterProvider_deliverPrices = new WeakMap(), _LighterProvider_clearKeepalive = new WeakMap(), _LighterProvider_teardownStream = new WeakMap(), _LighterProvider_bridgeRoute = new WeakMap();
 //# sourceMappingURL=LighterProvider.cjs.map

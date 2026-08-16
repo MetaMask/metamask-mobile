@@ -82,8 +82,8 @@ export declare class LighterProvider implements PerpsProvider {
         error?: string;
     }>;
     calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
-    calculateMaintenanceMargin(_params: MaintenanceMarginParams): Promise<number>;
-    getMaxLeverage(_asset: string): Promise<number>;
+    calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
+    getMaxLeverage(asset: string): Promise<number>;
     calculateFees(params: FeeCalculationParams): Promise<FeeCalculationResult>;
     subscribeToPrices(params: SubscribePricesParams): () => void;
     subscribeToOICaps(params: SubscribeOICapsParams): () => void;
