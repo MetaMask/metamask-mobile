@@ -240,6 +240,13 @@ class PerpsConnectionManagerClass {
           }
           this.stateChangeDebounceTimer = setTimeout(() => {
             this.stateChangeDebounceTimer = null;
+            // Re-check at fire time: a soft reconnect/disconnect can take
+            // over inside the debounce window (setting isConnected=false);
+            // firing anyway would run a second reconnection concurrently
+            // with the in-flight one, which reads the new identity itself.
+            if (!this.isConnected) {
+              return;
+            }
             this.reconnectWithNewContext().catch((error) => {
               Logger.error(
                 ensureError(
@@ -689,6 +696,15 @@ class PerpsConnectionManagerClass {
       if (this.isConnected || this.isInitialized) {
         // Track that we're disconnecting
         this.isDisconnecting = true;
+
+        // A pending identity-change debounce must not fire into this
+        // takeover: the reconnect path that follows reads the current
+        // identity itself, and a late timer would run a second
+        // reconnection concurrently (or spuriously after completion).
+        if (this.stateChangeDebounceTimer !== null) {
+          clearTimeout(this.stateChangeDebounceTimer);
+          this.stateChangeDebounceTimer = null;
+        }
 
         this.disconnectPromise = (async () => {
           try {

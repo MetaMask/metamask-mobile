@@ -706,6 +706,45 @@ describe('PerpsConnectionManager', () => {
       ).toHaveBeenCalledWith(true);
     });
 
+    it('a debounce armed before a soft reconnect must not fire a second reconnection into it', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+      storeCallback = storeCallbacks[storeCallbacks.length - 1];
+
+      const reconnectSpy = jest
+        .spyOn(PerpsConnectionManager, 'reconnectWithNewContext')
+        .mockImplementation(async () => undefined);
+
+      // Identity change WHILE CONNECTED arms the 50 ms debounce timer.
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xdef456' }));
+      storeCallback();
+
+      // A preserveCaches soft reconnect takes over before the timer fires
+      // and stalls inside the controller disconnect await.
+      let releaseDisconnect = (): void => undefined;
+      const disconnectGate = new Promise<void>((resolve) => {
+        releaseDisconnect = resolve;
+      });
+      mockPerpsController.disconnect.mockImplementation(() => disconnectGate);
+      const softReconnect = PerpsConnectionManager.ensureConnected({
+        source: 'test',
+        preserveCaches: true,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // The pre-armed timer elapses while the soft reconnect is mid-flight:
+      // it must NOT fire a concurrent second reconnection.
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      expect(reconnectSpy).not.toHaveBeenCalled();
+
+      releaseDisconnect();
+      await softReconnect;
+      reconnectSpy.mockRestore();
+    });
+
     it('clears user caches when the account switches during a preserveCaches soft reconnect', async () => {
       mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
