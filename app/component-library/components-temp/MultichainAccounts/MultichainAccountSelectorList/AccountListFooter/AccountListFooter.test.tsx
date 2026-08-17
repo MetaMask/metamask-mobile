@@ -34,16 +34,6 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-// Mock AnimatedSpinner
-jest.mock('../../../../../components/UI/AnimatedSpinner', () => ({
-  __esModule: true,
-  default: () => null,
-  SpinnerSize: {
-    SM: 'SM',
-    MD: 'MD',
-  },
-}));
-
 jest.mock(
   '../../../../../util/accounts/useAccountWalletOperationsLoadingStates',
   () => ({

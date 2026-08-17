@@ -15,13 +15,12 @@ import {
   IconName,
   IconSize,
   IconColor,
+  Spinner,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks';
-import AnimatedSpinner, {
-  SpinnerSize,
-} from '../../../../../components/UI/AnimatedSpinner';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -204,17 +203,21 @@ const AccountListFooter = memo(
         >
           <View style={styles.iconContainer}>
             {isLoadingState ? (
-              <AnimatedSpinner size={SpinnerSize.SM} />
+              <Spinner
+                color={IconColor.IconDefault}
+                spinnerIconProps={{ size: IconSize.Md }}
+              />
             ) : (
               <Icon
                 name={IconName.Add}
                 size={IconSize.Md}
-                color={IconColor.PrimaryDefault}
+                color={IconColor.IconDefault}
               />
             )}
           </View>
           <Text
             variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             style={styles.buttonText}
             testID={AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT}
           >
