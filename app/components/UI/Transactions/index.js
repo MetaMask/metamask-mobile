@@ -85,6 +85,7 @@ import {
   useHardwareWallet,
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
+import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
 import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
@@ -524,6 +525,7 @@ const Transactions = (props) => {
       showAwaitingConfirmation: hardwareWallet.showAwaitingConfirmation,
       hideAwaitingConfirmation: hardwareWallet.hideAwaitingConfirmation,
       showHardwareWalletError: hardwareWallet.showHardwareWalletError,
+      onError: skipHardwareWalletErrorIfReplacementSubmitted(transaction.id),
       execute: async () => {
         if (
           transaction?.replacementParams?.type ===

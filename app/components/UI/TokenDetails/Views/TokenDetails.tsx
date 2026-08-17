@@ -24,6 +24,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
+import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { RootState } from '../../../../reducers';
 import {
   selectNetworkConfigurationByChainId,
@@ -190,6 +191,7 @@ const TokenDetails: React.FC<{
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);

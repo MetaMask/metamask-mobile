@@ -20,7 +20,6 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -194,8 +193,13 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const hasEnteredRef = useRef(false);
   const dismissCompleteCalledRef = useRef(false);
   const visibleAtRef = useRef<number | null>(null);
+  const autoDismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const persistUntilDismissRef = useRef(persistUntilDismiss);
   persistUntilDismissRef.current = persistUntilDismiss;
+  const onDismissCompleteRef = useRef(onDismissComplete);
+  onDismissCompleteRef.current = onDismissComplete;
   const dismissDurationMs = dismissDuration ?? NOTIFICATION_VISIBILITY_DURATION;
 
   const hasCloseIconButton = autoDismiss;
@@ -224,13 +228,12 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     ],
   );
 
-  useEffect(() => {
-    setDescriptionLineCount(null);
-    setTitleLineCount(null);
-    hasEnteredRef.current = false;
-    dismissCompleteCalledRef.current = false;
-    visibleAtRef.current = null;
-  }, [status, title, description, isVisible]);
+  const clearScheduledAutoDismiss = useCallback(() => {
+    if (autoDismissTimeoutRef.current !== null) {
+      clearTimeout(autoDismissTimeoutRef.current);
+      autoDismissTimeoutRef.current = null;
+    }
+  }, []);
 
   const handleTitleTextLayout = (event: TextLayoutEvent) => {
     const lineCount = event.nativeEvent.lines.length;
@@ -274,30 +277,58 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
     dismissCompleteCalledRef.current = true;
     visibleAtRef.current = null;
-    onDismissComplete?.();
-  }, [onDismissComplete]);
+    // Read from ref so inline parent callbacks do not rebuild the auto-dismiss
+    // chain and spuriously restart the timer on every parent re-render.
+    onDismissCompleteRef.current?.();
+  }, []);
 
   const scheduleAutoDismiss = useCallback(
     (delayMs: number) => {
-      const hiddenTranslateY = getHiddenTranslateY(notificationHeight.value);
-
-      translateYProgress.value = withDelay(
-        delayMs,
-        withSpring(hiddenTranslateY, NOTIFICATION_SPRING_CONFIG, (finished) => {
-          // cancelAnimation during a pan must not mark the toast dismissed.
-          if (finished) {
-            runOnJS(handleDismissComplete)();
-          }
-        }),
-      );
+      clearScheduledAutoDismiss();
+      autoDismissTimeoutRef.current = setTimeout(() => {
+        autoDismissTimeoutRef.current = null;
+        runExitAnimation(() => {
+          handleDismissComplete();
+        });
+      }, delayMs);
     },
-    [handleDismissComplete, notificationHeight, translateYProgress],
+    [clearScheduledAutoDismiss, handleDismissComplete, runExitAnimation],
   );
 
   const beginAutoDismiss = useCallback(() => {
     visibleAtRef.current = Date.now();
     scheduleAutoDismiss(dismissDurationMs);
   }, [dismissDurationMs, scheduleAutoDismiss]);
+
+  const beginAutoDismissRef = useRef(beginAutoDismiss);
+  beginAutoDismissRef.current = beginAutoDismiss;
+
+  // Content/visibility changes clear the previous auto-dismiss timer. Restart it
+  // here when already on screen — onLayout often does not re-fire if height is
+  // unchanged, so waiting on layout would leave the notification stuck visible.
+  useEffect(() => {
+    const wasEntered = hasEnteredRef.current;
+
+    clearScheduledAutoDismiss();
+    setDescriptionLineCount(null);
+    setTitleLineCount(null);
+    dismissCompleteCalledRef.current = false;
+    visibleAtRef.current = null;
+
+    if (wasEntered && isVisible && !persistUntilDismiss) {
+      beginAutoDismissRef.current();
+      return;
+    }
+
+    hasEnteredRef.current = false;
+  }, [
+    clearScheduledAutoDismiss,
+    description,
+    isVisible,
+    persistUntilDismiss,
+    status,
+    title,
+  ]);
 
   const resumeAutoDismissAfterSwipe = useCallback(() => {
     if (persistUntilDismissRef.current) {
@@ -328,27 +359,37 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
   useEffect(
     () => () => {
+      clearScheduledAutoDismiss();
       if (hasEnteredRef.current && !dismissCompleteCalledRef.current) {
         dismissCompleteCalledRef.current = true;
-        onDismissComplete?.();
+        onDismissCompleteRef.current?.();
       }
     },
-    [onDismissComplete],
+    [clearScheduledAutoDismiss],
   );
 
   const handleManualDismiss = useCallback(() => {
     visibleAtRef.current = null;
+    clearScheduledAutoDismiss();
     cancelAnimation(translateYProgress);
     runExitAnimation(() => {
       onHide?.();
       handleDismissComplete();
     });
-  }, [handleDismissComplete, onHide, runExitAnimation, translateYProgress]);
+  }, [
+    clearScheduledAutoDismiss,
+    handleDismissComplete,
+    onHide,
+    runExitAnimation,
+    translateYProgress,
+  ]);
 
   const handleManualDismissRef = useRef(handleManualDismiss);
   const resumeAutoDismissAfterSwipeRef = useRef(resumeAutoDismissAfterSwipe);
+  const clearScheduledAutoDismissRef = useRef(clearScheduledAutoDismiss);
   handleManualDismissRef.current = handleManualDismiss;
   resumeAutoDismissAfterSwipeRef.current = resumeAutoDismissAfterSwipe;
+  clearScheduledAutoDismissRef.current = clearScheduledAutoDismiss;
 
   const dismissNotificationFromSwipe = () => {
     handleManualDismissRef.current();
@@ -356,6 +397,10 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
   const resumeAutoDismissFromSwipe = () => {
     resumeAutoDismissAfterSwipeRef.current();
+  };
+
+  const clearScheduledAutoDismissFromSwipe = () => {
+    clearScheduledAutoDismissRef.current();
   };
 
   const swipeGesture = useMemo(() => {
@@ -382,6 +427,9 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       ])
       .onStart(() => {
         isSwipeActive.value = true;
+        // Pause auto-dismiss for the duration of the pan (same role as Toast's
+        // clearTimeout). cancelAnimation only covers in-flight springs.
+        runOnJS(clearScheduledAutoDismissFromSwipe)();
         cancelAnimation(translateYProgress);
         gestureStartY.value = translateYProgress.value;
       })
@@ -439,17 +487,24 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
   const onAnimatedViewLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      if (!isVisible || hasEnteredRef.current) {
+      if (!isVisible) {
         return;
       }
 
-      hasEnteredRef.current = true;
       const { height } = event.nativeEvent.layout;
       const hiddenTranslateY = getHiddenTranslateY(height);
       const nextVisibleTranslateY = topInset + NOTIFICATION_TOP_PADDING;
 
+      // Always refresh measured height so content updates after enter do not
+      // leave swipe/exit distances using a stale notificationHeight.
       notificationHeight.value = height;
       visibleTranslateY.value = nextVisibleTranslateY;
+
+      if (hasEnteredRef.current) {
+        return;
+      }
+
+      hasEnteredRef.current = true;
       visibleAtRef.current = null;
       translateYProgress.value = hiddenTranslateY;
 

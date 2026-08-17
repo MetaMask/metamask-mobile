@@ -5394,7 +5394,24 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      versions: {
+        '0.0.0': {
+          enabled: false,
+        },
+        '8.9.0': {
+          default: {
+            enabled: false,
+          },
+          overrides: {
+            musdConversion: {
+              enabled: false,
+            },
+            moneyAccountDeposit: {
+              enabled: false,
+            },
+          },
+        },
+      },
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6307,6 +6324,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  subSUB990AbtestProSubscriptionFlow: {
+    name: 'subSUB990AbtestProSubscriptionFlow',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: { type: 'percentage_rollout', value: 1.0 },
+      },
+      {
+        name: 'treatment',
+        scope: { type: 'percentage_rollout', value: 1.0 },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 };
