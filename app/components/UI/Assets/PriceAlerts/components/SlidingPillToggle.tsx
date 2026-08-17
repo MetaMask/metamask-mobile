@@ -1,5 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, type ViewStyle } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  useAnimatedValue,
+  type ViewStyle,
+} from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -71,7 +77,7 @@ function SlidingPillToggle<T extends string>({
   weightBySelection = false,
   style,
 }: SlidingPillToggleProps<T>) {
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useAnimatedValue(0);
   const [pillWidth, setPillWidth] = useState(0);
   const [firstOption, secondOption] = options;
 
