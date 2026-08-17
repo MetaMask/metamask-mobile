@@ -19,7 +19,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { SuccessTestIds } from './Success.testIds';
 
 interface SuccessProps {
-  onClose: () => void;
   onSuccess: () => void;
 }
 
@@ -28,7 +27,7 @@ const ALY_NAME = 'Aly';
 /**
  * SUB-994: Post-purchase success screen.
  */
-const Success = ({ onClose, onSuccess }: SuccessProps) => (
+const Success = ({ onSuccess }: SuccessProps) => (
   <Box
     twClassName="flex-1 bg-background-default"
     testID={SuccessTestIds.CONTAINER}

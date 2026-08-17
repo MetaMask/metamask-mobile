@@ -45,6 +45,7 @@ import {
   useHardwareWallet,
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
+import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 type Maybe<T> = T | null | undefined;
@@ -174,6 +175,7 @@ export function useUnifiedTxActions() {
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
+        onError: skipHardwareWalletErrorIfReplacementSubmitted(transaction.id),
         execute: async () => {
           if (
             transaction?.replacementParams?.type ===
