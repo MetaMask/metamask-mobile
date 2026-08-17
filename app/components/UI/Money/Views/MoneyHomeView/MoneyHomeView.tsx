@@ -31,7 +31,6 @@ import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
-import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
@@ -45,7 +44,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
-import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
@@ -192,14 +190,6 @@ const MoneyHomeView = () => {
   }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
-  // mUSD is USD-pegged 1:1, so show the token balance as dollars — consistent
-  // with the account balance and projected earnings above, which also use USD.
-  const { tokenBalanceAggregated: musdTokenBalanceAggregated } =
-    useMusdBalance();
-  const musdFiatFormatted = useMemo(
-    () => moneyFormatUsd(new BigNumber(musdTokenBalanceAggregated)),
-    [musdTokenBalanceAggregated],
-  );
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
@@ -437,22 +427,6 @@ const MoneyHomeView = () => {
     },
     [navigation, trackButtonClicked],
   );
-
-  const handleMusdRowAddPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_key: 'money.musd_row.add',
-      component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-    });
-
-    initiateDeposit().catch((error) =>
-      Logger.error(error as Error, {
-        message: '[MoneyHomeView] Failed to initiate deposit from mUSD row',
-      }),
-    );
-  }, [initiateDeposit, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
@@ -823,28 +797,15 @@ const MoneyHomeView = () => {
     contentSections.push({
       key: 'how-it-works',
       node: (
-        <>
-          <MoneyHowItWorks
-            apy={apyPercent}
-            onHeaderPress={() =>
-              handleHowItWorksPress({
-                componentName:
-                  COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
-              })
-            }
-            isLoading={vaultApyQuery.isLoading}
-          />
-          <MoneyMusdTokenRow
-            onPress={() =>
-              handleMusdRowPress({
-                componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-              })
-            }
-            onAddPress={handleMusdRowAddPress}
-            balance={musdFiatFormatted}
-            privacyMode={privacyMode}
-          />
-        </>
+        <MoneyHowItWorks
+          apy={apyPercent}
+          onHeaderPress={() =>
+            handleHowItWorksPress({
+              componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
+            })
+          }
+          isLoading={vaultApyQuery.isLoading}
+        />
       ),
     });
   }

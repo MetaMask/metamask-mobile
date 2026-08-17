@@ -1,8 +1,11 @@
 import { act, renderHook } from '@testing-library/react-native';
 import {
+  PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
+import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 
 // ---------------------------------------------------------------------------
@@ -1212,6 +1215,33 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetLeverage).toHaveBeenCalledWith(10);
       expect(mockSetAmount).toHaveBeenCalledWith('5000');
       expect(mockTrack).toHaveBeenCalled();
+    });
+
+    it('tracks leverage change with previous_leverage and not previousLeverage', () => {
+      mockOrderForm.leverage = 5;
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onLeverageConfirm(10, 'slider');
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: 5,
+          [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: 10,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.LEVERAGE_CHANGED,
+        }),
+      );
+      const leverageChangeProps = mockTrack.mock.calls.find(
+        (call) =>
+          call[0] === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+          call[1]?.[PERPS_EVENT_PROPERTY.INTERACTION_TYPE] ===
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.LEVERAGE_CHANGED,
+      )?.[1] as Record<string, unknown> | undefined;
+      expect(leverageChangeProps).toBeDefined();
+      expect(leverageChangeProps).not.toHaveProperty('previousLeverage');
     });
 
     it('saves slippage and opens the slippage sheet', () => {
