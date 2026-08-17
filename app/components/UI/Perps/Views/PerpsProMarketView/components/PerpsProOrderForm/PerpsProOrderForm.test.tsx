@@ -517,6 +517,18 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CONTAINER)).toHaveStyle({ gap: 16 });
     });
 
+    it('renders margin and liquidation as before → after values', () => {
+      renderForm({
+        summary: {
+          margin: '$1,000 → $1,020',
+          liquidationPrice: '$48,000 → $45,000',
+        },
+      });
+
+      expect(screen.getByText('$1,000 → $1,020')).toBeOnTheScreen();
+      expect(screen.getByText('$48,000 → $45,000')).toBeOnTheScreen();
+    });
+
     it('left-aligns margin mode and leverage with 8-point spacing', () => {
       renderForm();
 
