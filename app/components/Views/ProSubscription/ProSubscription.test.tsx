@@ -10,20 +10,14 @@ import Success from './screens/Success';
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 const mockGoBack = jest.fn();
-const mockDispatch = jest.fn();
+const mockReplace = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, dispatch: mockDispatch }),
+    useNavigation: () => ({ goBack: mockGoBack, replace: mockReplace }),
     useRoute: () => ({ params: {} }),
-    StackActions: {
-      replace: (name: string, params?: Record<string, unknown>) => ({
-        type: 'Navigation/REPLACE',
-        payload: { name, params },
-      }),
-    },
   };
 });
 
@@ -168,18 +162,14 @@ describe('ProSubscription', () => {
   // ── Hub navigation (Success onSuccess) ────────────────────────────────────
 
   describe('hub navigation', () => {
-    it('dispatches a replace to ProHub when Success onSuccess fires', () => {
+    it('replaces the current screen with ProHub when Success onSuccess fires', () => {
       const { getByTestId } = renderProSubscription();
 
       fireEvent.press(getByTestId('mock-benefits-success-trigger'));
       fireEvent.press(getByTestId('mock-success-subscribe-trigger'));
 
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: 'Navigation/REPLACE',
-        payload: {
-          name: 'ProHub',
-          params: { source: 'pro_subscription_success' },
-        },
+      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
+        source: 'pro_subscription_success',
       });
     });
 

@@ -3,7 +3,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
-  StackActions,
   type RouteProp,
 } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -17,14 +16,14 @@ import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnab
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
 const ProSubscription = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const tw = useTailwind();
   const route =
     useRoute<
@@ -54,11 +53,9 @@ const ProSubscription = () => {
   }, []);
 
   const handleSubscriptionOnSuccess = useCallback(() => {
-    navigation.dispatch(
-      StackActions.replace(Routes.PRO_HUB.ROOT, {
-        source: 'pro_subscription_success',
-      }),
-    );
+    navigation.replace(Routes.PRO_HUB.ROOT, {
+      source: 'pro_subscription_success',
+    });
   }, [navigation]);
 
   return (

@@ -4,21 +4,13 @@ import ProSubscription from './index';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 const mockGoBack = jest.fn();
-const mockDispatch = jest.fn();
-const mockNavigation = { goBack: mockGoBack, dispatch: mockDispatch };
+const mockReplace = jest.fn();
+const mockNavigation = { goBack: mockGoBack, replace: mockReplace };
 const mockRoute = { params: {} };
-
-const mockReplace = jest.fn(
-  (name: string, params?: Record<string, unknown>) => ({
-    type: 'REPLACE',
-    payload: { name, params },
-  }),
-);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
   useRoute: () => mockRoute,
-  StackActions: { replace: (...args: unknown[]) => mockReplace(...args) },
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -118,7 +110,7 @@ describe('ProSubscription', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('dispatches a replace action to ProHub when Success onSuccess fires', () => {
+    it('replaces the current screen with ProHub when Success onSuccess fires', () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
@@ -127,7 +119,6 @@ describe('ProSubscription', () => {
       expect(mockReplace).toHaveBeenCalledWith('ProHub', {
         source: 'pro_subscription_success',
       });
-      expect(mockDispatch).toHaveBeenCalledTimes(1);
       expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
