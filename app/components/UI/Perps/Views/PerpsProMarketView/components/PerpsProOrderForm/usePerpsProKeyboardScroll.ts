@@ -90,9 +90,16 @@ export function usePerpsProKeyboardScroll(
   const isFocusedRef = useRef(false);
   const { height: windowHeight } = useWindowDimensions();
 
+  const alignmentIdRef = useRef(0);
+
+  const cancelPendingAlignment = useCallback(() => {
+    alignmentIdRef.current += 1;
+  }, []);
+
   const onBlur = useCallback(() => {
     isFocusedRef.current = false;
-  }, []);
+    cancelPendingAlignment();
+  }, [cancelPendingAlignment]);
 
   const alignCard = useCallback(
     (keyboardHeight: number) => {
@@ -101,8 +108,13 @@ export function usePerpsProKeyboardScroll(
         return;
       }
 
+      cancelPendingAlignment();
+      const alignmentId = alignmentIdRef.current;
+      const isCurrent = () =>
+        isFocusedRef.current && alignmentIdRef.current === alignmentId;
+
       card.measureInWindow((_x, cardTop, _width, cardHeight) => {
-        if (!cardHeight) {
+        if (!cardHeight || !isCurrent()) {
           // A zero height means layout has not run yet, so there is no real
           // position to measure against.
           return;
@@ -110,6 +122,10 @@ export function usePerpsProKeyboardScroll(
 
         const keyboardTop = windowHeight - keyboardHeight;
         const scroll = (viewportTop: number) => {
+          if (!isCurrent()) {
+            return;
+          }
+
           const delta = getKeyboardScrollDelta({
             cardTop,
             cardBottom: cardTop + cardHeight,
@@ -134,7 +150,7 @@ export function usePerpsProKeyboardScroll(
         scrollView.measureInWindow((_sx, viewportTop) => scroll(viewportTop));
       });
     },
-    [onRequestScrollBy, scrollViewRef, windowHeight],
+    [cancelPendingAlignment, onRequestScrollBy, scrollViewRef, windowHeight],
   );
 
   // Last reported height; 0 while dismissed. Lets a re-tap realign with no
@@ -147,9 +163,13 @@ export function usePerpsProKeyboardScroll(
 
       if (height > 0) {
         alignCard(height);
+        return;
       }
+
+      // A measurement still in flight would scroll against a keyboard now gone.
+      cancelPendingAlignment();
     },
-    [alignCard],
+    [alignCard, cancelPendingAlignment],
   );
 
   useGenericKeyboardHandler(

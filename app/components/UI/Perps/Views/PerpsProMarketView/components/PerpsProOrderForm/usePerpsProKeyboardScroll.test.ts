@@ -16,9 +16,13 @@ const KEYBOARD_HEIGHT = WINDOW_HEIGHT - KEYBOARD_TOP;
 /** Card top 400, height 150 => bottom 550, i.e. 50px into the keyboard. */
 const EXPECTED_DELTA = 550 + KEYBOARD_CLEARANCE_PX - KEYBOARD_TOP;
 
+// Collected rather than replaced: the real handler is a global subscription, so
+// every hook instance receives each keyboard event.
 // `var` + `mock` prefix so the jest.mock factory may close over it.
 // eslint-disable-next-line no-var
-var mockKeyboardHandler: { onStart?: (event: { height: number }) => void } = {};
+var mockKeyboardHandlers: {
+  onStart?: (event: { height: number }) => void;
+}[] = [];
 
 jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
   __esModule: true,
@@ -26,8 +30,10 @@ jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
 }));
 
 jest.mock('react-native-keyboard-controller', () => ({
-  useGenericKeyboardHandler: (handler: typeof mockKeyboardHandler) => {
-    mockKeyboardHandler = handler;
+  useGenericKeyboardHandler: (
+    handler: (typeof mockKeyboardHandlers)[number],
+  ) => {
+    mockKeyboardHandlers.push(handler);
   },
 }));
 
@@ -44,6 +50,35 @@ const fakeCard = ({
       cb: (x: number, y: number, w: number, h: number) => void,
     ) => cb(0, cardTop, 200, height),
   }) as unknown as View;
+
+/**
+ * Holds each `measureInWindow` callback until `flush`, so a test can change
+ * focus or dismiss the keyboard mid-measurement.
+ *
+ * @param options - Card geometry.
+ * @param options.cardTop - Screen-space top edge.
+ * @param options.height - Laid-out height.
+ * @returns The card instance plus a `flush` releasing every held callback.
+ */
+const deferredCard = ({
+  cardTop,
+  height = 150,
+}: {
+  cardTop: number;
+  height?: number;
+}) => {
+  const pending: (() => void)[] = [];
+  const card = {
+    measureInWindow: (
+      cb: (x: number, y: number, w: number, h: number) => void,
+    ) => pending.push(() => cb(0, cardTop, 200, height)),
+  } as unknown as View;
+
+  return {
+    card,
+    flush: () => pending.splice(0).forEach((resolve) => resolve()),
+  };
+};
 
 const fakeScrollView = (viewportTop = VIEWPORT_TOP) =>
   ({
@@ -93,7 +128,7 @@ function setup({
  */
 async function raiseKeyboard(height = KEYBOARD_HEIGHT) {
   await act(async () => {
-    mockKeyboardHandler.onStart?.({ height });
+    mockKeyboardHandlers.forEach((handler) => handler.onStart?.({ height }));
   });
 }
 
@@ -173,13 +208,14 @@ describe('getKeyboardScrollDelta', () => {
 
 describe('usePerpsProKeyboardScroll', () => {
   beforeEach(() => {
-    mockKeyboardHandler = {};
+    mockKeyboardHandlers = [];
   });
 
   it('subscribes to keyboard movement', () => {
     setup();
 
-    expect(mockKeyboardHandler.onStart).toBeInstanceOf(Function);
+    expect(mockKeyboardHandlers).toHaveLength(1);
+    expect(mockKeyboardHandlers[0].onStart).toBeInstanceOf(Function);
   });
 
   it('aligns on focus when the keyboard is already up for another field', async () => {
@@ -285,6 +321,99 @@ describe('usePerpsProKeyboardScroll', () => {
     act(() => result.current.onFocus());
 
     await expect(raiseKeyboard()).resolves.not.toThrow();
+  });
+
+  describe('measurements that outlive their request', () => {
+    it('does not scroll when the field blurs before the measurement resolves', async () => {
+      const onRequestScrollBy = jest.fn();
+      const { card, flush } = deferredCard({ cardTop: 400 });
+      const { result } = renderHook(() =>
+        usePerpsProKeyboardScroll({
+          onRequestScrollBy,
+          scrollViewRef: { current: fakeScrollView() },
+        }),
+      );
+      result.current.cardRef.current = card;
+      act(() => result.current.onFocus());
+      await raiseKeyboard();
+
+      act(() => result.current.onBlur());
+      act(() => flush());
+
+      expect(onRequestScrollBy).not.toHaveBeenCalled();
+    });
+
+    it('does not scroll when the keyboard is dismissed before it resolves', async () => {
+      const onRequestScrollBy = jest.fn();
+      const { card, flush } = deferredCard({ cardTop: 400 });
+      const { result } = renderHook(() =>
+        usePerpsProKeyboardScroll({
+          onRequestScrollBy,
+          scrollViewRef: { current: fakeScrollView() },
+        }),
+      );
+      result.current.cardRef.current = card;
+      act(() => result.current.onFocus());
+      await raiseKeyboard();
+
+      await raiseKeyboard(0);
+      act(() => flush());
+
+      expect(onRequestScrollBy).not.toHaveBeenCalled();
+    });
+
+    it('scrolls once when a re-tap supersedes an in-flight measurement', async () => {
+      const onRequestScrollBy = jest.fn();
+      const { card, flush } = deferredCard({ cardTop: 400 });
+      const { result } = renderHook(() =>
+        usePerpsProKeyboardScroll({
+          onRequestScrollBy,
+          scrollViewRef: { current: fakeScrollView() },
+        }),
+      );
+      result.current.cardRef.current = card;
+      act(() => result.current.onFocus());
+      await raiseKeyboard();
+
+      act(() => result.current.realign());
+      act(() => flush());
+
+      expect(onRequestScrollBy).toHaveBeenCalledTimes(1);
+      expect(onRequestScrollBy).toHaveBeenCalledWith(EXPECTED_DELTA);
+    });
+
+    it('scrolls only the newly focused field across a size-to-limit handoff', async () => {
+      const onRequestScrollBy = jest.fn();
+      const scrollViewRef = { current: fakeScrollView() };
+      // Both overlap the keyboard, but by different amounts, so the delta
+      // identifies which card was scrolled to.
+      const size = deferredCard({ cardTop: 400 });
+      const limit = deferredCard({ cardTop: 420, height: 120 });
+      const { result: sizeField } = renderHook(() =>
+        usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef }),
+      );
+      const { result: limitField } = renderHook(() =>
+        usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef }),
+      );
+      sizeField.current.cardRef.current = size.card;
+      limitField.current.cardRef.current = limit.card;
+
+      act(() => sizeField.current.onFocus());
+      await raiseKeyboard();
+
+      // Tapping the limit field blurs size while its measurement is in flight.
+      act(() => sizeField.current.onBlur());
+      act(() => limitField.current.onFocus());
+      act(() => {
+        size.flush();
+        limit.flush();
+      });
+
+      const limitDelta = deltaFor({ cardTop: 420, cardHeight: 120 });
+      expect(limitDelta).not.toBe(EXPECTED_DELTA);
+      expect(onRequestScrollBy).toHaveBeenCalledTimes(1);
+      expect(onRequestScrollBy).toHaveBeenCalledWith(limitDelta);
+    });
   });
 
   describe('realign', () => {

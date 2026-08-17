@@ -206,7 +206,7 @@ const PerpsProMarketView = () => {
   const handleRequestScrollBy = useCallback(
     (delta: number) => {
       scrollViewRef.current?.scrollTo({
-        y: scrollY.value + delta,
+        y: scrollY.get() + delta,
         animated: true,
       });
     },
