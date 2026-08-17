@@ -461,7 +461,7 @@ beforeEach(() => {
   jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);
   jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
     [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
-  });
+  } as ReturnType<typeof selectContractExchangeRatesByChainId>);
 });
 
 // ---------------------------------------------------------------------------
