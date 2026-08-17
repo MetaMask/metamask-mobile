@@ -153,6 +153,7 @@ describe('EarnSection', () => {
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$0.00',
       totalFiatRaw: '0',
+      isBalanceLoading: false,
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockUseMoneyNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: false,
@@ -168,7 +169,9 @@ describe('EarnSection', () => {
   it('renders the Earn section title', () => {
     render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
-    expect(screen.getByText(strings('earn_module.title'))).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('homepage.sections.earn')),
+    ).toBeOnTheScreen();
   });
 
   it('renders funded lending assets with Get APY copy', () => {
@@ -308,6 +311,67 @@ describe('EarnSection', () => {
     expect(
       screen.getByText(strings('earn_module.balance_unavailable')),
     ).toBeOnTheScreen();
+  });
+
+  it('renders a skeleton while the Money balance is loading', () => {
+    mockUseMoneyAccountVisibility.mockReturnValue({
+      isMoneyAccountVisible: true,
+    });
+    mockUseMoneyAccountBalance.mockReturnValue({
+      totalFiatFormatted: undefined,
+      totalFiatRaw: undefined,
+      isBalanceLoading: true,
+    } as ReturnType<typeof useMoneyAccountBalance>);
+    mockSectionResult({ assetSlots: [] });
+
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(
+      screen.getByTestId('earn-section-money-account-balance-skeleton'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('earn_module.balance_unavailable')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders a skeleton while the Money APY is loading', () => {
+    mockUseMoneyAccountVisibility.mockReturnValue({
+      isMoneyAccountVisible: true,
+    });
+    mockSectionResult({
+      assetSlots: [],
+      moneyApyPercent: undefined,
+      moneyRateStatus: 'loading',
+    });
+
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(
+      screen.getByTestId('earn-section-money-account-apy-skeleton'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('earn_module.rate_unavailable')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders unavailable APY copy after loading settles without a rate', () => {
+    mockUseMoneyAccountVisibility.mockReturnValue({
+      isMoneyAccountVisible: true,
+    });
+    mockSectionResult({
+      assetSlots: [],
+      moneyApyPercent: undefined,
+      moneyRateStatus: 'unavailable',
+    });
+
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(
+      screen.getByText(strings('earn_module.rate_unavailable')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('earn-section-money-account-apy-skeleton'),
+    ).not.toBeOnTheScreen();
   });
 
   it('uses the asset name for zero-balance tiles', () => {

@@ -21,8 +21,6 @@ import {
   SectionDivider,
   SectionHeader,
   Skeleton,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -54,6 +52,7 @@ import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import useMoneyAccountVisibility from '../../../Money/hooks/useMoneyAccountVisibility';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
+import EarnNewTag from '../EarnNewTag';
 import EarnNoFeeTag from '../EarnNoFeeTag';
 
 interface EarnSectionProps {
@@ -81,24 +80,6 @@ const renderEarnAssetIcon = (token: TokenI) => {
     </BadgeWrapper>
   );
 };
-
-// TODO: Breakout and standardize since we'll use new tag in other places.
-const renderNewTag = () => (
-  <Tag
-    severity={TagSeverity.Info}
-    startAccessory={
-      <Icon
-        name={IconName.Sparkle}
-        color={IconColor.PrimaryDefault}
-        size={IconSize.Xs}
-      />
-    }
-  >
-    <Text variant={TextVariant.BodyXs} color={TextColor.PrimaryDefault}>
-      {strings('earn_module.new_tag')}
-    </Text>
-  </Tag>
-);
 
 const renderAssetCardSkeleton = (key: string) => (
   <EarnSectionCard key={key} testID={key}>
@@ -136,12 +117,19 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const { isMoneyAccountVisible } = useMoneyAccountVisibility();
 
     const sectionViewRef = useRef<View>(null);
-    const { assetSlots, hasMoreAssets, moneyApyPercent, isLoading, refresh } =
-      useEarnSectionAssets();
+    const {
+      assetSlots,
+      hasMoreAssets,
+      moneyApyPercent,
+      moneyRateStatus,
+      isLoading,
+      refresh,
+    } = useEarnSectionAssets();
 
     const {
       totalFiatFormatted: moneyAccountBalanceFiat,
       totalFiatRaw: moneyAccountBalanceRaw,
+      isBalanceLoading: isMoneyAccountBalanceLoading,
     } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
 
     const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
@@ -258,17 +246,34 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   />
                 }
                 tag={
-                  moneyAccountBalanceRaw === '0' ? renderNewTag() : undefined
+                  moneyAccountBalanceRaw === '0' ? <EarnNewTag /> : undefined
                 }
                 primaryText={strings('earn_module.money_account')}
-                secondaryText={moneyAccountCardSecondaryText}
+                secondaryText={
+                  isMoneyAccountBalanceLoading ? (
+                    <Skeleton
+                      height={20}
+                      width={85}
+                      testID="earn-section-money-account-balance-skeleton"
+                    />
+                  ) : (
+                    moneyAccountCardSecondaryText
+                  )
+                }
                 tertiaryText={
-                  moneyApyPercent === undefined
-                    ? // TODO: Render Loading skeleton for card when rate is loading. Only show rate_unavailable when rate is missing and not actively fetching.
-                      strings('earn_module.rate_unavailable')
-                    : strings('earn_module.rate_apy', {
-                        percentage: truncateNumber(moneyApyPercent),
-                      })
+                  moneyRateStatus === 'loading' ? (
+                    <Skeleton
+                      height={20}
+                      width={70}
+                      testID="earn-section-money-account-apy-skeleton"
+                    />
+                  ) : moneyApyPercent === undefined ? (
+                    strings('earn_module.rate_unavailable')
+                  ) : (
+                    strings('earn_module.rate_apy', {
+                      percentage: truncateNumber(moneyApyPercent),
+                    })
+                  )
                 }
                 testID="earn-section-money-account-card"
                 onPress={handleMoneyAccountCardPress}
