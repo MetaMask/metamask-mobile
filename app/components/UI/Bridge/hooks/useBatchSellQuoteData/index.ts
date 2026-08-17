@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../../reducers';
 import BigNumber from 'bignumber.js';
-import { CaipAssetType, KnownCaipNamespace } from '@metamask/utils';
+import { CaipAssetType } from '@metamask/utils';
 import {
   formatAddressToAssetId,
   isNativeAddress,
   sumAmounts,
+  assetIdsMatch,
 } from '@metamask/bridge-controller';
 
 import {
@@ -137,29 +138,11 @@ function formatCurrencyDisplayValue(
   return formatFiat(new BigNumber(valueInCurrency), currency);
 }
 
-function assetIdsMatch(
-  namespace: KnownCaipNamespace,
-  assetId1: CaipAssetType,
-  assetId2: CaipAssetType | undefined,
-) {
-  if (assetId2 === undefined) return false;
-
-  if (namespace === KnownCaipNamespace.Eip155) {
-    return assetId1.toLowerCase() === assetId2.toLowerCase();
-  }
-
-  return assetId1 === assetId2;
-}
-
 function isQuoteForDestinationAssetId(
   quote: BatchSellRecommendedQuote,
   destinationAssetId: CaipAssetType | undefined,
 ) {
-  return assetIdsMatch(
-    quote.namespace,
-    quote.quote.dest.asset.assetId,
-    destinationAssetId,
-  );
+  return assetIdsMatch(quote.quote.dest.asset.assetId, destinationAssetId);
 }
 
 function getRecommendedQuoteBySourceAndDestinationAssetId(
@@ -171,11 +154,8 @@ function getRecommendedQuoteBySourceAndDestinationAssetId(
     if (!quote) return false;
 
     return Boolean(
-      assetIdsMatch(
-        quote.namespace,
-        quote.quote.src.asset.assetId,
-        sourceAssetId,
-      ) && isQuoteForDestinationAssetId(quote, destinationAssetId),
+      assetIdsMatch(quote.quote.src.asset.assetId, sourceAssetId) &&
+        isQuoteForDestinationAssetId(quote, destinationAssetId),
     );
   });
 }

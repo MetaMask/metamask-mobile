@@ -17,8 +17,9 @@ import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPref
 export function useMoneyAccountDepositPrefillEnabled(): (
   intent?: 'convert' | 'addMusd' | 'card',
 ) => boolean {
-  const prefillConfig = useSelector((state: RootState) =>
-    selectPrefilledAmountConfig(state, 'moneyAccountDeposit'),
+  const remotePrefillEnabled = useSelector(
+    (state: RootState) =>
+      selectPrefilledAmountConfig(state, 'moneyAccountDeposit').enabled,
   );
   // Assignment only — Experiment Viewed is emitted from MoneyAccountDepositInfo.
   const { variant: depositPrefillVariant } = useABTest(
@@ -30,13 +31,13 @@ export function useMoneyAccountDepositPrefillEnabled(): (
   return useCallback(
     (intent?: 'convert' | 'addMusd' | 'card') =>
       isMoneyAccountDepositPrefillEnabled({
-        remotePrefillEnabled: prefillConfig.enabled,
+        remotePrefillEnabled,
         abTestPrefillEnabled: depositPrefillVariant.prefillEnabled,
         intent,
         // Loader should show PrefillCustomAmount for addMusd; amount autofill
         // for that intent is handled separately at 100% in useTransactionCustomAmount.
         forceAddMusd: true,
       }),
-    [depositPrefillVariant.prefillEnabled, prefillConfig.enabled],
+    [depositPrefillVariant.prefillEnabled, remotePrefillEnabled],
   );
 }

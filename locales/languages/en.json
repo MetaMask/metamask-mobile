@@ -26,6 +26,9 @@
     "description_line2": "If you believe this is an error, contact support to request a review.",
     "contact_support": "Contact support"
   },
+  "storage": {
+    "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
@@ -1718,13 +1721,31 @@
       },
       "type": {
         "title": "Order type",
+        "basic": "Basic",
+        "triggered": "Triggered",
         "market": {
           "title": "Market",
-          "description": "Execute immediately at current market price"
+          "description": "Execute instantly at best available price"
         },
         "limit": {
           "title": "Limit",
-          "description": "Execute only at your specified price or better"
+          "description": "Execute at your specified price or better"
+        },
+        "stop_limit": {
+          "title": "Stop limit",
+          "description": "Limit fills at trigger price"
+        },
+        "stop_market": {
+          "title": "Stop market",
+          "description": "Market fills at trigger price"
+        },
+        "take_profit_limit": {
+          "title": "Take limit",
+          "description": "Limit take-profit at trigger price"
+        },
+        "take_profit_market": {
+          "title": "Take market",
+          "description": "Market take-profit at trigger price"
         }
       },
       "payment_token": "Payment token",
@@ -1988,7 +2009,26 @@
         "tpslPositionLinkageUnsupported": "Take profit and stop loss can only be attached to a position once the order has filled",
         "timeInForceNotSupported": "Time in force can only be set on limit orders",
         "editTriggerUnsupported": "Stop and take profit orders can't be edited. Cancel the order and place a new one.",
-        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again."
+        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again.",
+        "strategyParamsNotSupported": "These order settings aren't supported for this order type",
+        "strategyFieldUnsupported": "This field can't be used with a TWAP, scale, or chase order",
+        "strategyMarketUnsupported": "TWAP, scale, and chase orders aren't available on this market",
+        "strategyHandleUnknown": "This strategy order can no longer be found. Refresh your orders and try again.",
+        "strategyCancelIncomplete": "Some parts of this strategy order couldn't be cancelled. Try again.",
+        "strategyEditUnsupported": "TWAP, scale, and chase orders can't be edited. Cancel the order and place a new one.",
+        "twapDurationRequired": "A duration is required for TWAP orders",
+        "twapDurationInvalid": "TWAP duration must be between 5 and 1440 minutes",
+        "twapNotionalTooSmall": "TWAP order value is below the exchange minimum",
+        "scaleRangeRequired": "Scale orders need a minimum and maximum price",
+        "scaleRangeInvalid": "Scale order maximum price must be above the minimum",
+        "scaleCountInvalid": "Scale order count is invalid",
+        "scaleSizeTooSmall": "Each scale order is below the minimum size",
+        "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
+        "chaseIntervalInvalid": "Chase interval is invalid",
+        "chaseDurationInvalid": "Chase duration is invalid",
+        "chaseLimitReached": "Too many chase orders are already running",
+        "chaseAbandoned": "Chase order was cancelled because the connection dropped",
+        "chaseTouchUnavailable": "No market price is available to place this chase order"
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -2694,7 +2734,7 @@
       "categories_title": "Categories",
       "popular_today_placeholder": "Popular today",
       "trending_title": "Trending",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "trending_unable_to_load": "Couldn't connect to Predictions. Check your connection and try again."
     },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
@@ -2758,6 +2798,13 @@
       "your_picks": "Your picks",
       "entry": "Entry",
       "claim": "Claim"
+    },
+    "crypto_up_down": {
+      "twap_info": {
+        "title": "How this market settles",
+        "accessibility_label": "Learn how this market settles",
+        "description": "This market settles on {{symbol}}'s average price over {{windowSeconds}} seconds, not the price at the exact moment it closes."
+      }
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -2986,21 +3033,21 @@
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
     "balance_error": {
-      "title": "Couldn't load your balance",
-      "description": "Your funds are safe. Check your connection and try again.",
-      "retry": "Retry"
+      "title": "Couldn't connect to Predictions",
+      "description": "Check your connection and try again. If it continues, try a different network.",
+      "retry": "Try again"
     },
     "portfolio": {
       "available_amount": "{{amount}} available",
       "value_accessibility": "Portfolio value, {{value}}",
-      "value_hidden_accessibility": "Portfolio value hidden"
+      "value_hidden_accessibility": "Portfolio value hidden",
+      "value_unavailable_accessibility": "Portfolio value unavailable"
     },
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
     "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
     "unavailable": {
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
@@ -3191,10 +3238,11 @@
       "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
-      "title": "Unable to connect to predictions",
-      "description": "Prediction markets are temporarily offline. Please check you have a stable connection and try again.",
+      "title": "Couldn't connect to Predictions",
+      "description": "Check your connection and try again. If it continues, try a different network.",
+      "description_short": "Couldn't connect to Predictions. Check your connection and try again.",
       "chart_connection_error": "There is an issue connecting. Please try again later.",
-      "retry": "Retry"
+      "retry": "Try again"
     },
     "error_messages": {
       "not_eligible": "Not available in your region",
@@ -7417,24 +7465,11 @@
     "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
-    "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
     "percentage_bonus_on_linea": "{{percentage}}% bonus on Linea",
     "claim": "Claim",
     "sounds_good": "Sounds good",
     "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
-    "your_bonus": "Your bonus",
-    "estimated_annual_bonus": "Estimated annual bonus",
-    "lifetime_bonus_claimed": "Lifetime bonus claimed",
-    "accruing_next_bonus": "Accruing next bonus",
-    "no_accruing_bonus": "No accruing bonus",
-    "claim_amount_bonus": "Claim ${{amount}} bonus",
-    "your_bonus_tooltip_your_bonus": "Your bonus",
-    "your_bonus_tooltip_your_bonus_desc": ":  {{percentage}}% annualized bonus you earn just for holding mUSD. You can claim it daily on Linea. ",
-    "your_bonus_tooltip_annual_bonus": "Estimated annual bonus: ",
-    "your_bonus_tooltip_annual_bonus_desc": "A projection of what you'd earn over a year based on your current balance and rate. Rate is variable and may change.",
-    "your_bonus_tooltip_lifetime_bonus": "Lifetime bonus claimed: ",
-    "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
     "learn_more": "Learn more",
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon."
@@ -7682,9 +7717,6 @@
       "description_prefix": "Add mUSD and earn up to",
       "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime.",
       "description_no_apy": "Add mUSD. Your balance is dollar-backed and ready to spend, trade, or send anytime."
-    },
-    "musd_row": {
-      "add": "Add"
     },
     "balance_card": {
       "label": "Money balance",
@@ -8444,6 +8476,11 @@
     "description": " and MEV protection. Now on by default."
   },
   "bridge": {
+    "tabs": {
+      "market": "Market",
+      "limit": "Limit",
+      "recurring": "Recurring"
+    },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
     "confirm_swap": "Swap",
@@ -9425,6 +9462,33 @@
         "change_asset": "Change asset",
         "change_asset_description": "Select a different token"
       }
+    },
+    "transactions": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "reversed": "Reversed",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "details_title": "Transaction",
+      "merchant": "Merchant",
+      "category": "Category",
+      "location": "Location",
+      "decline_reason": "Decline reason",
+      "decline_reasons": {
+        "insufficient_funds": "Insufficient funds"
+      },
+      "categories": {
+        "subscriptions": "Subscriptions",
+        "food": "Food and drink",
+        "travel": "Travel",
+        "entertainment": "Entertainment",
+        "health": "Health",
+        "atm": "ATM",
+        "utilities": "Utilities",
+        "misc": "Other"
+      },
+      "view_on_explorer": "View on block explorer",
+      "report_cta": "Report Transaction"
     },
     "card_spending_limit": {
       "title_change_token": "Change token and network",
@@ -10541,7 +10605,7 @@
     "high_to_low": "High to low",
     "low_to_high": "Low to high",
     "apply": "Apply",
-    "search_placeholder": "Search tokens, markets and URLs",
+    "search_placeholder": "Search",
     "quick_trade": "Quick Buy and Sell",
     "cancel": "Cancel",
     "perps": "Perps",
