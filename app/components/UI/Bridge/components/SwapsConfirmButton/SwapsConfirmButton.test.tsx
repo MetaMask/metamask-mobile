@@ -42,7 +42,7 @@ import {
 } from './abTestConfig';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
-import { BridgeQuoteRequestProvider } from '../../hooks/useBridgeQuoteRequest/QuoteRequestContext';
+import { BridgeQuotesProvider } from '../../hooks/useBridgeQuotes/BridgeQuotesProvider';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -230,11 +230,7 @@ jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   }),
 }));
 
-// Mock useBridgeQuoteRequest hook
 const mockUpdateQuoteParams = jest.fn();
-jest.mock('../../hooks/useBridgeQuoteRequest', () => ({
-  useBridgeQuoteRequest: jest.fn(() => mockUpdateQuoteParams),
-}));
 
 // Mock isHardwareAccount
 jest.mock('../../../../../util/address', () => ({
@@ -353,16 +349,22 @@ function createAbTestState(
   };
 }
 
+const wrapWithQuotesProvider = (component: React.ReactElement) => (
+  <BridgeQuotesProvider
+    config={{
+      latestSourceAtomicBalance: mockLatestSourceBalance?.atomicBalance,
+    }}
+  >
+    {component}
+  </BridgeQuotesProvider>
+);
+
 function renderWithProvider(
   component: React.ReactElement,
   providerValues?: ProviderValues,
 ) {
   return renderWithProviderBase(
-    <BridgeQuoteRequestProvider
-      latestSourceAtomicBalance={mockLatestSourceBalance?.atomicBalance}
-    >
-      {component}
-    </BridgeQuoteRequestProvider>,
+    wrapWithQuotesProvider(component),
     providerValues,
   );
 }
@@ -1153,14 +1155,12 @@ describe('SwapsConfirmButton', () => {
         isLoading: true,
       };
       rerender(
-        <BridgeQuoteRequestProvider
-          latestSourceAtomicBalance={mockLatestSourceBalance?.atomicBalance}
-        >
+        wrapWithQuotesProvider(
           <SwapsConfirmButton
             latestSourceBalance={mockLatestSourceBalance}
             location={MetaMetricsSwapsEventSource.MainView}
-          />
-        </BridgeQuoteRequestProvider>,
+          />,
+        ),
       );
       quoteData = {
         ...quoteData,
@@ -1169,14 +1169,12 @@ describe('SwapsConfirmButton', () => {
       };
 
       rerender(
-        <BridgeQuoteRequestProvider
-          latestSourceAtomicBalance={mockLatestSourceBalance?.atomicBalance}
-        >
+        wrapWithQuotesProvider(
           <SwapsConfirmButton
             latestSourceBalance={mockLatestSourceBalance}
             location={MetaMetricsSwapsEventSource.MainView}
-          />
-        </BridgeQuoteRequestProvider>,
+          />,
+        ),
       );
 
       expect(
