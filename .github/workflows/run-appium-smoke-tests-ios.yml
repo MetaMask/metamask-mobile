@@ -131,7 +131,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider || 'current' }}
     secrets: inherit
 
-
   appium-snaps-ios-smoke:
     if: >-
       ${{
