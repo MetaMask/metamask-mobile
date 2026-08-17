@@ -275,10 +275,14 @@ describe('MoneyOnboardingView', () => {
           payload: { seen: true },
         }),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
   });
 
