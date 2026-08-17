@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useQueries } from '@tanstack/react-query';
+import {
+  resolveChainName,
+  TokenScanResultResponse,
+} from '@metamask/phishing-controller';
 import { Alert, Severity } from '../../types/alerts';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectMultipleTokenScanResults } from '../../../../../selectors/phishingController';
-import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 
 export function useTokenTrustSignalAlerts(): Alert[] {
@@ -38,15 +40,39 @@ export function useTokenTrustSignalAlerts(): Alert[] {
     return tokens;
   }, [transactionMetadata]);
 
-  const tokenScanResults = useSelector((state: RootState) =>
-    selectMultipleTokenScanResults(state, { tokens: incomingTokens }),
+  const queries = useMemo(
+    () =>
+      incomingTokens.map(({ address, chainId }) => {
+        const normalizedChainId = String(chainId).toLowerCase();
+        const chain = resolveChainName(normalizedChainId);
+        // EVM addresses are case-insensitive and cached lowercased; non-EVM
+        // addresses are case-sensitive.
+        const caseSensitive = !normalizedChainId.startsWith('0x');
+        const normalizedAddress = caseSensitive
+          ? address
+          : address.toLowerCase();
+        return {
+          queryKey: [
+            'PhishingDataService:scanToken',
+            chain ?? '',
+            normalizedAddress,
+          ],
+          enabled: Boolean(address && chain),
+          staleTime: 0,
+          retry: false,
+        };
+      }),
+    [incomingTokens],
   );
+
+  const tokenScanResults = useQueries({ queries });
 
   const alerts = useMemo(() => {
     const alertsList: Alert[] = [];
     let highestSeverity: Severity | null = null;
 
-    tokenScanResults.forEach(({ scanResult }) => {
+    tokenScanResults.forEach(({ data }) => {
+      const scanResult = data as TokenScanResultResponse | undefined | null;
       if (!scanResult) {
         return;
       }

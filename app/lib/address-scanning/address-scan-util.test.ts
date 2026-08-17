@@ -403,33 +403,33 @@ describe('address-scan-util', () => {
     const chainId = '0x1';
     const address = '0x1234';
 
-    function createMockPhishingController(): PhishingController {
-      const controllerState: {
-        // chainId -> address -> boolean
-        addressScanCache: Record<string, Record<string, boolean>>;
-      } = {
-        addressScanCache: {},
-      };
+    function createMockPhishingController(): {
+      phishingController: PhishingController;
+      scannedAddresses: Record<string, Record<string, boolean>>;
+    } {
+      // chainId -> address -> boolean
+      const scannedAddresses: Record<string, Record<string, boolean>> = {};
 
       const scanAddressMock = jest
         .fn()
         .mockImplementation(
           async (scanChainId: string, scannedAddress: string) => {
-            controllerState.addressScanCache[scanChainId] ??= {};
-            controllerState.addressScanCache[scanChainId][scannedAddress] =
-              true;
+            scannedAddresses[scanChainId] ??= {};
+            scannedAddresses[scanChainId][scannedAddress] = true;
           },
         );
 
       return {
-        scanAddress: scanAddressMock,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        state: controllerState as any,
-      } as unknown as PhishingController;
+        phishingController: {
+          scanAddress: scanAddressMock,
+        } as unknown as PhishingController,
+        scannedAddresses,
+      };
     }
 
-    it('calls phishingController.scanAddress and logs cache on success', async () => {
-      const phishingController = createMockPhishingController();
+    it('calls phishingController.scanAddress and records the scan on success', async () => {
+      const { phishingController, scannedAddresses } =
+        createMockPhishingController();
 
       await scanAddress(phishingController, chainId, address);
 
@@ -438,7 +438,7 @@ describe('address-scan-util', () => {
         address,
       );
 
-      expect(phishingController.state.addressScanCache).toEqual({
+      expect(scannedAddresses).toEqual({
         [chainId]: {
           [address]: true,
         },
@@ -448,8 +448,6 @@ describe('address-scan-util', () => {
     it('logs error when phishingController.scanAddress throws and does not rethrow', async () => {
       const phishingController = {
         scanAddress: jest.fn().mockRejectedValue(new Error('scan failure')),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        state: { addressScanCache: {} } as any,
       } as unknown as PhishingController;
 
       await expect(
@@ -466,30 +464,31 @@ describe('address-scan-util', () => {
   describe('scanUrl', () => {
     const origin = 'https://example.com';
 
-    function createMockPhishingController(): PhishingController {
-      const controllerState: {
-        // origin -> cached result flag
-        urlScanCache: Record<string, boolean>;
-      } = {
-        urlScanCache: {},
-      };
+    function createMockPhishingController(): {
+      phishingController: PhishingController;
+      scannedOrigins: Record<string, boolean>;
+    } {
+      // origin -> scanned flag
+      const scannedOrigins: Record<string, boolean> = {};
 
       return {
-        scanUrl: jest.fn().mockImplementation(async (scanOrigin: string) => {
-          controllerState.urlScanCache[scanOrigin] = true;
-        }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        state: controllerState as any,
-      } as unknown as PhishingController;
+        phishingController: {
+          scanUrl: jest.fn().mockImplementation(async (scanOrigin: string) => {
+            scannedOrigins[scanOrigin] = true;
+          }),
+        } as unknown as PhishingController,
+        scannedOrigins,
+      };
     }
 
-    it('calls phishingController.scanUrl and updates cache on success', async () => {
-      const phishingController = createMockPhishingController();
+    it('calls phishingController.scanUrl and records the scan on success', async () => {
+      const { phishingController, scannedOrigins } =
+        createMockPhishingController();
 
       await scanUrl(phishingController, origin);
 
       expect(phishingController.scanUrl).toHaveBeenCalledWith(origin);
-      expect(phishingController.state.urlScanCache).toEqual({
+      expect(scannedOrigins).toEqual({
         [origin]: true,
       });
     });

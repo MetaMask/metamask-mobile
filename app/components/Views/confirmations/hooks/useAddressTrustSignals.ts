@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { selectMultipleAddressScanResults } from '../../../../selectors/phishingController';
-import { RootState } from '../../../../reducers';
+import { useQueries } from '@tanstack/react-query';
+import {
+  AddressScanResult,
+  resolveChainName,
+} from '@metamask/phishing-controller';
 import {
   TrustSignalDisplayState,
   TrustSignalResult,
@@ -39,20 +41,39 @@ function getTrustState(
 export function useAddressTrustSignals(
   requests: AddressTrustSignalRequest[],
 ): TrustSignalResult[] {
-  const addressScanResults = useSelector((state: RootState) =>
-    selectMultipleAddressScanResults(state, { addresses: requests }),
+  const queries = useMemo(
+    () =>
+      requests.map(({ address, chainId }) => {
+        const chain = chainId
+          ? resolveChainName(String(chainId).toLowerCase())
+          : undefined;
+        return {
+          queryKey: [
+            'PhishingDataService:scanAddress',
+            chain ?? '',
+            address?.toLowerCase() ?? '',
+          ],
+          enabled: Boolean(address && chain),
+          staleTime: 0,
+          retry: false,
+        };
+      }),
+    [requests],
   );
+
+  const scanResults = useQueries({ queries });
 
   return useMemo(
     () =>
-      addressScanResults.map(({ scanResult }) => {
+      scanResults.map(({ data }) => {
+        const scanResult = data as AddressScanResult | undefined;
         const label = scanResult?.label || null;
         return {
           state: getTrustState(scanResult?.result_type, label),
           label,
         };
       }),
-    [addressScanResults],
+    [scanResults],
   );
 }
 

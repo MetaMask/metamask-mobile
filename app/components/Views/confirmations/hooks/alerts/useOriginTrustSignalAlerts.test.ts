@@ -1,3 +1,4 @@
+import { useQuery } from '@metamask/react-data-query';
 import { RecommendedAction } from '@metamask/phishing-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
@@ -9,6 +10,10 @@ import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import useApprovalRequest from '../useApprovalRequest';
+
+jest.mock('@metamask/react-data-query', () => ({
+  useQuery: jest.fn(),
+}));
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
@@ -24,14 +29,40 @@ jest.mock('../useApprovalRequest', () => ({
 }));
 
 describe('useOriginTrustSignalAlerts', () => {
+  const mockUseQuery = jest.mocked(useQuery);
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
+
+  // Scan results served by the mocked PhishingDataService query, keyed by
+  // hostname.
+  let scanResultsByHostname: Record<
+    string,
+    { recommendedAction: RecommendedAction } | undefined
+  >;
+
+  function setScanResult(
+    hostname: string,
+    recommendedAction: RecommendedAction,
+  ): void {
+    scanResultsByHostname[hostname] = { recommendedAction };
+  }
   const mockUseSignatureRequest = jest.mocked(useSignatureRequest);
   const mockUseApprovalRequest = jest.mocked(useApprovalRequest);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    scanResultsByHostname = {};
+    mockUseQuery.mockImplementation(
+      (options) =>
+        ({
+          data: scanResultsByHostname[
+            String(
+              (options as unknown as { queryKey: unknown[] }).queryKey[1],
+            )
+          ],
+        }) as never,
+    );
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
     mockUseSignatureRequest.mockReturnValue(undefined);
     mockUseApprovalRequest.mockReturnValue({
@@ -50,25 +81,10 @@ describe('useOriginTrustSignalAlerts', () => {
     });
 
     it('returns a malicious alert if the URL scan result is Block', () => {
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'malicious-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.Block,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('malicious-site.com', RecommendedAction.Block);
+
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([
@@ -85,25 +101,10 @@ describe('useOriginTrustSignalAlerts', () => {
     });
 
     it('returns a warning alert if the URL scan result is Warn', () => {
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'malicious-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.Warn,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('malicious-site.com', RecommendedAction.Warn);
+
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([
@@ -120,69 +121,28 @@ describe('useOriginTrustSignalAlerts', () => {
     });
 
     it('returns no alerts if the URL scan result is None', () => {
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'malicious-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.None,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('malicious-site.com', RecommendedAction.None);
+
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([]);
     });
 
     it('returns no alerts if the URL scan result is Verified', () => {
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'malicious-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.Verified,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('malicious-site.com', RecommendedAction.Verified);
+
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([]);
     });
 
     it('returns no alerts if the URL scan result does not exist', () => {
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {},
-                },
-              },
-            },
-          },
-        },
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([]);
@@ -215,25 +175,10 @@ describe('useOriginTrustSignalAlerts', () => {
     });
 
     it('returns a malicious alert using URL from signature request approval', () => {
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'signature-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.Block,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('signature-site.com', RecommendedAction.Block);
+
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([
@@ -271,25 +216,10 @@ describe('useOriginTrustSignalAlerts', () => {
     });
 
     it('returns a malicious alert using origin from approval request', () => {
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'approval-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.Block,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('approval-site.com', RecommendedAction.Block);
+
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([
@@ -307,25 +237,10 @@ describe('useOriginTrustSignalAlerts', () => {
   });
 
   it('returns no alerts when origin is undefined', () => {
-    const { result } = renderHookWithProvider(
-      () => useOriginTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                urlScanCache: {
-                  'some-site.com': {
-                    data: {
-                      recommendedAction: RecommendedAction.Block,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    setScanResult('some-site.com', RecommendedAction.Block);
+
+    const { result } = renderHookWithProvider(() =>
+      useOriginTrustSignalAlerts(),
     );
 
     expect(result.current).toEqual([]);
@@ -358,30 +273,11 @@ describe('useOriginTrustSignalAlerts', () => {
         onReject: jest.fn(),
       });
 
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'signature-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.Block,
-                      },
-                    },
-                    'transaction-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.None,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('signature-site.com', RecommendedAction.Block);
+      setScanResult('transaction-site.com', RecommendedAction.None);
+
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([
@@ -418,30 +314,11 @@ describe('useOriginTrustSignalAlerts', () => {
         onReject: jest.fn(),
       });
 
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'transaction-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.Block,
-                      },
-                    },
-                    'approval-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.None,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('transaction-site.com', RecommendedAction.Block);
+      setScanResult('approval-site.com', RecommendedAction.None);
+
+      const { result } = renderHookWithProvider(() =>
+        useOriginTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([

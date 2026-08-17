@@ -1,5 +1,6 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { SignatureRequest } from '@metamask/signature-controller';
+import { useQueries } from '@tanstack/react-query';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
@@ -16,6 +17,10 @@ import {
   isPermitRevoke,
 } from '../../utils/signature';
 import { extractSpenderFromApprovalData } from '../../../../../lib/address-scanning/address-scan-util';
+
+jest.mock('@tanstack/react-query', () => ({
+  useQueries: jest.fn(),
+}));
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
@@ -47,9 +52,21 @@ jest.mock('../../../../../lib/address-scanning/address-scan-util', () => ({
 }));
 
 describe('useAddressTrustSignalAlerts', () => {
+  const mockUseQueries = jest.mocked(useQueries);
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
+
+  // Scan results served by the mocked PhishingDataService queries, keyed by
+  // lowercased address.
+  let scanResultsByAddress: Record<
+    string,
+    { result_type: string } | undefined
+  >;
+
+  function setScanResult(address: string, resultType: string): void {
+    scanResultsByAddress[address.toLowerCase()] = { result_type: resultType };
+  }
   const mockUseTransferRecipient = jest.mocked(useTransferRecipient);
   const mockUseApproveTransactionData = jest.mocked(useApproveTransactionData);
   const mockUseSignatureRequest = jest.mocked(useSignatureRequest);
@@ -62,6 +79,15 @@ describe('useAddressTrustSignalAlerts', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    scanResultsByAddress = {};
+    mockUseQueries.mockImplementation(
+      (options) =>
+        (
+          options as unknown as { queries: { queryKey: unknown[] }[] }
+        ).queries.map((query) => ({
+          data: scanResultsByAddress[String(query.queryKey[2])],
+        })) as never,
+    );
     mockUseTransactionMetadataRequest.mockReturnValue({
       txParams: {
         to: '0x1234567890123456789012345678901234567890',
@@ -86,26 +112,10 @@ describe('useAddressTrustSignalAlerts', () => {
   });
 
   it('returns a malicious alert if the address scan result is Malicious', () => {
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {
-                  '0x1:0x1234567890123456789012345678901234567890': {
-                    data: {
-                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                      result_type: 'Malicious',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current).toEqual([
@@ -122,26 +132,10 @@ describe('useAddressTrustSignalAlerts', () => {
   });
 
   it('returns a warning alert if the address scan result is Warning', () => {
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {
-                  '0x1:0x1234567890123456789012345678901234567890': {
-                    data: {
-                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                      result_type: 'Warning',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    setScanResult('0x1234567890123456789012345678901234567890', 'Warning');
+
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current).toEqual([
@@ -158,45 +152,18 @@ describe('useAddressTrustSignalAlerts', () => {
   });
 
   it('returns no alerts if the address scan result is Benign', () => {
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {
-                  '0x1:0x1234567890123456789012345678901234567890': {
-                    data: {
-                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                      result_type: 'Benign',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    setScanResult('0x1234567890123456789012345678901234567890', 'Benign');
+
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current).toEqual([]);
   });
 
   it('returns no alerts if the address scan result does not exist', () => {
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {},
-              },
-            },
-          },
-        },
-      },
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current).toEqual([]);
@@ -205,26 +172,10 @@ describe('useAddressTrustSignalAlerts', () => {
   it('returns no alerts if the transaction metadata is undefined', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
 
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {
-                  '0x1:0x1234567890123456789012345678901234567890': {
-                    data: {
-                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                      result_type: 'Malicious',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current).toEqual([]);
@@ -237,26 +188,10 @@ describe('useAddressTrustSignalAlerts', () => {
       },
     } as unknown as TransactionMeta);
 
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {
-                  '0x1:0x1234567890123456789012345678901234567890': {
-                    data: {
-                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                      result_type: 'Malicious',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current).toEqual([]);
@@ -268,19 +203,8 @@ describe('useAddressTrustSignalAlerts', () => {
       chainId: '0x1',
     } as unknown as TransactionMeta);
 
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {},
-              },
-            },
-          },
-        },
-      },
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current).toEqual([]);
@@ -301,26 +225,10 @@ describe('useAddressTrustSignalAlerts', () => {
       chainId: '0x1',
     } as unknown as TransactionMeta);
 
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {
-                  '0x1:0x1234567890123456789012345678901234567890': {
-                    data: {
-                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                      result_type: 'Malicious',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current.length).toBe(1);
@@ -342,26 +250,10 @@ describe('useAddressTrustSignalAlerts', () => {
       chainId: '0x1',
     } as unknown as TransactionMeta);
 
-    const { result } = renderHookWithProvider(
-      () => useAddressTrustSignalAlerts(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {
-                  '0x1:0x1234567890123456789012345678901234567890': {
-                    data: {
-                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                      result_type: 'Malicious',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+    const { result } = renderHookWithProvider(() =>
+      useAddressTrustSignalAlerts(),
     );
 
     expect(result.current.length).toBe(1);
@@ -377,26 +269,10 @@ describe('useAddressTrustSignalAlerts', () => {
         isLoading: false,
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    '0x1:0x1234567890123456789012345678901234567890': {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([]);
@@ -408,26 +284,10 @@ describe('useAddressTrustSignalAlerts', () => {
         isLoading: false,
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    '0x1:0x1234567890123456789012345678901234567890': {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Warning',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('0x1234567890123456789012345678901234567890', 'Warning');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([]);
@@ -439,26 +299,10 @@ describe('useAddressTrustSignalAlerts', () => {
         isLoading: false,
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    '0x1:0x1234567890123456789012345678901234567890': {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -482,26 +326,10 @@ describe('useAddressTrustSignalAlerts', () => {
         chainId: '0x1',
       } as unknown as TransactionMeta);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    '0x1:0x1234567890123456789012345678901234567890': {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -523,26 +351,10 @@ describe('useAddressTrustSignalAlerts', () => {
         chainId: '0x1',
       } as unknown as TransactionMeta);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    [`0x1:${spenderAddress}`]: {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult(spenderAddress, 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -569,26 +381,10 @@ describe('useAddressTrustSignalAlerts', () => {
         chainId: '0x1',
       } as unknown as TransactionMeta);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    '0x1:0x1234567890123456789012345678901234567890': {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -615,26 +411,10 @@ describe('useAddressTrustSignalAlerts', () => {
         chainId: '0x1',
       } as unknown as TransactionMeta);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    '0x1:0x1234567890123456789012345678901234567890': {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -647,26 +427,10 @@ describe('useAddressTrustSignalAlerts', () => {
         isLoading: false,
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    '0x1:0x1234567890123456789012345678901234567890': {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -687,26 +451,10 @@ describe('useAddressTrustSignalAlerts', () => {
       // The transfer recipient differs from txParams.to
       mockUseTransferRecipient.mockReturnValue(maliciousRecipient);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    [`0x1:${maliciousRecipient}`]: {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult(maliciousRecipient, 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -729,26 +477,10 @@ describe('useAddressTrustSignalAlerts', () => {
         chainId: '0x1',
       } as unknown as TransactionMeta);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    '0x1:0x1234567890123456789012345678901234567890': {
-                      data: {
-                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                        result_type: 'Malicious',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([]);
@@ -762,24 +494,8 @@ describe('useAddressTrustSignalAlerts', () => {
       },
     } as unknown as SignatureRequest;
 
-    const createMaliciousAddressState = () =>
-      ({
-        state: {
-          engine: {
-            backgroundState: {
-              PhishingController: {
-                addressScanCache: {
-                  '0x1:0x1234567890123456789012345678901234567890': {
-                    data: {
-                      result_type: 'Malicious',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      }) as Parameters<typeof renderHookWithProvider>[1];
+    const setMaliciousAddressScanResult = () =>
+      setScanResult('0x1234567890123456789012345678901234567890', 'Malicious');
 
     it('suppresses alerts when the permit is classified as a revoke', () => {
       mockUseSignatureRequest.mockReturnValue(mockSignatureRequest);
@@ -790,9 +506,10 @@ describe('useAddressTrustSignalAlerts', () => {
       });
       mockIsPermitRevoke.mockReturnValue(true);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
+      setMaliciousAddressScanResult();
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current).toEqual([]);
@@ -809,10 +526,9 @@ describe('useAddressTrustSignalAlerts', () => {
       };
       mockParseAndNormalizeSignTypedData.mockReturnValue(parsed);
 
-      renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
-      );
+      setMaliciousAddressScanResult();
+
+      renderHookWithProvider(() => useAddressTrustSignalAlerts());
 
       expect(mockIsPermitRevoke).toHaveBeenCalledWith(
         '0xTokenAddress',
@@ -854,9 +570,10 @@ describe('useAddressTrustSignalAlerts', () => {
         primaryType: 'PermitBatch',
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
+      setMaliciousAddressScanResult();
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -873,9 +590,10 @@ describe('useAddressTrustSignalAlerts', () => {
         message: { value: '1000000' },
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
+      setMaliciousAddressScanResult();
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -892,9 +610,10 @@ describe('useAddressTrustSignalAlerts', () => {
         message: { tokenId: '0', value: '0' },
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
+      setMaliciousAddressScanResult();
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -911,9 +630,10 @@ describe('useAddressTrustSignalAlerts', () => {
         message: { tokenId: 0, value: '0' },
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
+      setMaliciousAddressScanResult();
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -926,9 +646,10 @@ describe('useAddressTrustSignalAlerts', () => {
       mockUseSignatureRequest.mockReturnValue(mockSignatureRequest);
       mockIsRecognizedPermit.mockReturnValue(false);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
+      setMaliciousAddressScanResult();
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -943,9 +664,10 @@ describe('useAddressTrustSignalAlerts', () => {
       } as unknown as SignatureRequest);
       mockIsRecognizedPermit.mockReturnValue(true);
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
+      setMaliciousAddressScanResult();
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);
@@ -961,9 +683,10 @@ describe('useAddressTrustSignalAlerts', () => {
         throw new Error('Parse error');
       });
 
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignalAlerts(),
-        createMaliciousAddressState(),
+      setMaliciousAddressScanResult();
+
+      const { result } = renderHookWithProvider(() =>
+        useAddressTrustSignalAlerts(),
       );
 
       expect(result.current.length).toBe(1);

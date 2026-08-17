@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { RecommendedAction } from '@metamask/phishing-controller';
-import { selectUrlScanResult } from '../../../../selectors/phishingController';
-import { RootState } from '../../../../reducers';
+import { useQuery } from '@metamask/react-data-query';
+import {
+  RecommendedAction,
+  PhishingDetectionScanResult,
+} from '@metamask/phishing-controller';
 import {
   TrustSignalDisplayState,
   TrustSignalResult,
@@ -36,7 +37,8 @@ function getTrustState(
 }
 
 /**
- * Hook to get trust signals for an origin URL.
+ * Hook to get trust signals for an origin URL. The scan result is read from
+ * (and kept fresh by) the PhishingDataService query cache.
  *
  * @param origin - The origin URL to check
  * @returns Trust signal result with state and null label since we don't display a label for origins
@@ -51,13 +53,14 @@ export function useOriginTrustSignals(
     return getHost(origin.toLowerCase());
   }, [origin]);
 
-  const urlScanResult = useSelector((state: RootState) =>
-    selectUrlScanResult(state, { hostname }),
-  );
+  const { data: scanResult } = useQuery<PhishingDetectionScanResult>({
+    queryKey: ['PhishingDataService:scanUrl', hostname ?? ''],
+    enabled: Boolean(hostname),
+  });
 
   const state = useMemo(
-    () => getTrustState(urlScanResult?.scanResult?.recommendedAction),
-    [urlScanResult],
+    () => getTrustState(scanResult?.recommendedAction),
+    [scanResult],
   );
 
   return {

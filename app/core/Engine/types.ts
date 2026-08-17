@@ -129,6 +129,9 @@ import {
   PhishingControllerActions,
   PhishingControllerEvents,
   PhishingControllerState,
+  PhishingDataService,
+  PhishingDataServiceActions,
+  PhishingDataServiceEvents,
 } from '@metamask/phishing-controller';
 import {
   PreferencesControllerActions,
@@ -639,6 +642,7 @@ export type GlobalActions =
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
+  | PhishingDataServiceActions
   | AppMetadataControllerActions
   | MultichainRoutingServiceActions
   | DeFiPositionsControllerActions
@@ -684,6 +688,7 @@ export type GlobalEvents =
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
   | PermissionControllerEvents
+  | PhishingDataServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   | SnapInterfaceControllerEvents
@@ -829,6 +834,7 @@ export type MessengerClients = {
   PermissionController: PermissionController<any, any>;
   SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
+  PhishingDataService: PhishingDataService;
   PreferencesController: PreferencesControllerWithSavedGasFees;
   RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
@@ -1068,6 +1074,7 @@ export type MessengerClientsToInitialize =
   | 'NftController'
   | 'NftDetectionController'
   | 'PhishingController'
+  | 'PhishingDataService'
   | 'SignatureController'
   | 'SmartTransactionsController'
   | 'TokenBalancesController'
