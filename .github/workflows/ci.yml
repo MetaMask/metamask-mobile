@@ -1516,12 +1516,13 @@ jobs:
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
     # Stays on Cirrus (`runner_provider: current` below) until Namespace artifact-store
-    # parity is ready. Skip when the parent CI run is on Namespace so this job cannot
-    # try to download Namespace-built APKs from GitHub's artifact store.
+    # parity is ready. Skip when Android builds are on Namespace so this job cannot
+    # try to download Namespace-built APKs from GitHub's artifact store. Resolve the
+    # same way as build-android-apks (ANDROID → PROVIDER) so a platform-only flip skips too.
     if: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'bitrise' &&
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'bitrise' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'namespace' &&
         !cancelled() &&
         needs.build-android-apks.result == 'success'
       }}
@@ -1555,7 +1556,7 @@ jobs:
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
-        inputs.runner_provider != 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'namespace' &&
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
         (
@@ -1598,8 +1599,14 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    # Pinned to Cirrus; skip on Namespace parent runs (same IPA store mismatch as Appium iOS).
-    if: ${{ inputs.runner_provider != 'namespace' && needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
+    # Pinned to Cirrus until Namespace artifact-store parity. Skip when iOS builds are
+    # on Namespace so this job cannot pull Namespace-built .app artifacts from GitHub.
+    if: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'namespace' &&
+        needs.ios-tests-ready.result == 'success' &&
+        github.event_name == 'pull_request'
+      }}
     permissions:
       contents: read
       checks: write
