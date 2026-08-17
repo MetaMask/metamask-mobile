@@ -205,6 +205,7 @@ const renderChartPanel = (overrides: Partial<PerpsProChartPanelProps> = {}) =>
       onCandlePeriodChange={mockOnCandlePeriodChange}
       onMorePress={mockOnMorePress}
       onChartError={mockOnChartError}
+      currentPrice={50500}
       {...overrides}
     />,
   );
@@ -365,24 +366,44 @@ describe('PerpsProChartPanel', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the latest candle price in the market summary', () => {
-    renderChartPanel();
+  it('renders the provided currentPrice in the market summary', () => {
+    renderChartPanel({ currentPrice: 50500 });
 
     expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
       expect.objectContaining({ currentPrice: 50500 }),
     );
   });
 
-  it('synchronizes the market summary with the Advanced Chart price', () => {
-    renderChartPanel();
+  it('updates the market summary when the parent currentPrice changes', () => {
+    const view = renderChartPanel({ currentPrice: 50500 });
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={51000}
+      />,
+    );
+
+    expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
+      expect.objectContaining({ currentPrice: 51000 }),
+    );
+  });
+
+  it('forwards Advanced Chart latest-bar close to the parent', () => {
+    const onLatestPriceChange = jest.fn();
+    renderChartPanel({ onLatestPriceChange });
 
     act(() => {
       getLastAdvancedChartProps().onLatestPriceChange?.(51000);
     });
 
-    expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
-      expect.objectContaining({ currentPrice: 51000 }),
-    );
+    expect(onLatestPriceChange).toHaveBeenCalledWith(51000);
   });
 
   it('renders OHLCV values reported by the active chart', () => {
@@ -570,19 +591,10 @@ describe('PerpsProChartPanel', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('follows the candle price (not the frozen Advanced Chart price) after collapsing', () => {
-      const view = renderChartPanel();
+    it('clears the Advanced Chart price when the chart collapses', () => {
+      const onLatestPriceChange = jest.fn();
+      const view = renderChartPanel({ onLatestPriceChange });
 
-      // Advanced Chart reports a live price while expanded.
-      act(() => {
-        getLastAdvancedChartProps().onLatestPriceChange?.(51000);
-      });
-      expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ currentPrice: 51000 }),
-      );
-
-      // Collapse: the Advanced Chart unmounts and can no longer report prices,
-      // so the summary must fall back to the retained candle price (50500).
       mockUsePerpsProChartExpanded.mockReturnValue({
         isChartExpanded: false,
         setChartExpanded: mockSetChartExpanded,
@@ -596,8 +608,16 @@ describe('PerpsProChartPanel', () => {
           onCandlePeriodChange={mockOnCandlePeriodChange}
           onMorePress={mockOnMorePress}
           onChartError={mockOnChartError}
+          currentPrice={50500}
+          onLatestPriceChange={onLatestPriceChange}
         />,
       );
+
+      expect(onLatestPriceChange).toHaveBeenCalledWith(undefined);
+    });
+
+    it('keeps showing the parent-provided price while collapsed', () => {
+      renderCollapsed({ currentPrice: 50500 });
 
       expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ currentPrice: 50500 }),

@@ -42,6 +42,7 @@ import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -218,6 +219,15 @@ const PerpsProMarketView = () => {
 
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
 
+  // Same parent-owned merge as Lite: last candle close, overridden by the
+  // Advanced Chart latest-bar close while that chart is reporting.
+  const { syncedChartCurrentPrice, setAdvancedChartCurrentPrice } =
+    usePerpsSyncedChartPrice({
+      symbol: market?.symbol || '',
+      interval: selectedCandlePeriod,
+      isAdvancedChartEnabled,
+    });
+
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
   }, []);
@@ -328,6 +338,7 @@ const PerpsProMarketView = () => {
         onModeChange={handlePerpsModeChange}
         scrollY={scrollY}
         priceSectionHeight={titleSectionHeightSv}
+        currentPrice={syncedChartCurrentPrice}
       />
       <Animated.ScrollView
         ref={scrollViewRef}
@@ -348,6 +359,8 @@ const PerpsProMarketView = () => {
           onCandlePeriodChange={handleCandlePeriodChange}
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
           onChartError={handleChartError}
+          currentPrice={syncedChartCurrentPrice}
+          onLatestPriceChange={setAdvancedChartCurrentPrice}
         />
         {/* The chart's own height (`PerpsProChartPanel`) animates when
             expanded/collapsed above this point — wrap everything that would
