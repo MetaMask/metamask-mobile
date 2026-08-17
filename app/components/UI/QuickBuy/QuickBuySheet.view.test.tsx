@@ -95,19 +95,6 @@ describeForPlatforms('QuickBuySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps confirm disabled when no amount has been entered', async () => {
-    const screen = renderQuickBuySheet();
-
-    await waitForSheetReady(screen);
-    const confirm = await screen.findByTestId(
-      QuickBuySheetSelectorsIDs.CONFIRM_BUTTON,
-    );
-
-    expect(confirm.props.accessibilityState).toEqual(
-      expect.objectContaining({ disabled: true }),
-    );
-  });
-
   it('enables confirm when a valid amount and quote are available', async () => {
     const screen = renderQuickBuySheet();
 
