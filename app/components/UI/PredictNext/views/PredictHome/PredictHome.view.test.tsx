@@ -37,6 +37,19 @@ const event: PredictEvent = {
   ],
 };
 
+const multiMarketEvent: PredictEvent = {
+  ...event,
+  id: 'event-2' as PredictEvent['id'],
+  title: 'Multi-market election',
+  markets: [
+    ...event.markets,
+    ...(['market-2', 'market-3', 'market-4'] as const).map((marketId) => ({
+      ...event.markets[0],
+      id: marketId as PredictEvent['markets'][number]['id'],
+    })),
+  ],
+};
+
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
 
 const configureQueries = (
@@ -108,6 +121,45 @@ describe('PredictHome', () => {
     expect(within(card).getByText('No')).toBeOnTheScreen();
     expect(within(card).getByText('1.72x')).toBeOnTheScreen();
     expect(within(card).getByText('58¢')).toBeOnTheScreen();
+  });
+
+  it('does not navigate when an Outcome is pressed', async () => {
+    const view = renderPredictNext();
+    const card = await view.findByTestId(
+      PredictHomeTestIds.event('kalshi', 'event-1'),
+    );
+
+    fireEvent.press(
+      within(card).getByTestId(PredictHomeTestIds.outcome('event-1', 'yes')),
+    );
+
+    expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventDetailTestIds.VIEW),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens detail from More for a multi-market Event', async () => {
+    configureQueries([event, multiMarketEvent]);
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', multiMarketEvent.id),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.more('event-1')),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      view.getByTestId(PredictHomeTestIds.more(multiMarketEvent.id)),
+    );
+
+    expect(
+      await view.findByTestId(PredictEventDetailTestIds.VIEW),
+    ).toBeOnTheScreen();
+    expect(view.getByText(multiMarketEvent.title)).toBeOnTheScreen();
   });
 
   it('opens detail and returns without fetching Event detail', async () => {
