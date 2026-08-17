@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -8,29 +12,19 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import Routes from '../../../constants/navigation/Routes';
 import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
-export interface ProSubscriptionRouteParams {
-  [Routes.PRO_SUBSCRIPTION.ROOT]: {
-    source?: string;
-    initialPlan?: PlanId;
-  };
-}
-
 const ProSubscription = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const route =
-    useRoute<
-      RouteProp<ProSubscriptionRouteParams, typeof Routes.PRO_SUBSCRIPTION.ROOT>
-    >();
+  const route = useRoute<RouteProp<RootStackParamList, 'ProSubscription'>>();
 
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const [currentScreen, setCurrentScreen] =
@@ -76,7 +70,7 @@ const ProSubscription = () => {
       {currentScreen === 'benefits' ? (
         <Benefits
           onSuccess={handleSuccess}
-          initialPlan={route.params?.initialPlan}
+          initialPlan={route.params?.initialPlan as PlanId | undefined}
         />
       ) : (
         <Success
