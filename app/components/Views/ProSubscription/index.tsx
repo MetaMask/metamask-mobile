@@ -63,7 +63,6 @@ const ProSubscription = () => {
       {currentScreen === 'benefits' ? (
         <Benefits
           onSuccess={handleSuccess}
-          onClose={handleClose}
           initialPlan={route.params?.initialPlan as PlanId | undefined}
         />
       ) : (
