@@ -8,7 +8,6 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import Routes from '../../../constants/navigation/Routes';
 import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
@@ -18,19 +17,15 @@ import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 type ProSubscriptionScreen = 'benefits' | 'success';
 
 export interface ProSubscriptionRouteParams {
-  [Routes.PRO_SUBSCRIPTION.ROOT]: {
-    source?: string;
-    initialPlan?: PlanId;
-  };
+  source?: string;
+  initialPlan?: PlanId;
 }
 
 const ProSubscription = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const route =
-    useRoute<
-      RouteProp<ProSubscriptionRouteParams, typeof Routes.PRO_SUBSCRIPTION.ROOT>
-    >();
+    useRoute<RouteProp<{ params: ProSubscriptionRouteParams }, 'params'>>();
 
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const [currentScreen, setCurrentScreen] =
