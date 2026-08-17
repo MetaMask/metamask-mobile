@@ -19,6 +19,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { RootState } from '../../../../../reducers';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -100,6 +101,11 @@ import {
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -230,7 +236,10 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  const enabledChainRanking = useSelector(selectAllowedChainRanking);
+  const enabledChainIds = route.params?.enabledChainIds;
+  const enabledChainRanking = useSelector((state: RootState) =>
+    selectAllowedChainRanking(state, enabledChainIds),
+  );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
   const { variant: balanceLayoutConfig } = useABTest(
@@ -922,9 +931,11 @@ export const BridgeTokenSelector: React.FC = () => {
           showWatchlistFilter={isWatchlistEnabled}
           isWatchlistFilterActive={isWatchlistFilterActive}
           onWatchlistFilterPress={handleWatchlistFilterPress}
+          enabledChainIds={enabledChainIds}
           onMorePress={() =>
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+              params: { enabledChainIds },
             })
           }
         />

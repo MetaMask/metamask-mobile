@@ -19,6 +19,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import type { RootState } from '../../../../../reducers';
 import {
   selectAllowedChainRanking,
   selectVisiblePillChainIds,
@@ -53,6 +54,11 @@ interface NetworkPillsProps {
   isWatchlistFilterActive?: boolean;
   /** Called when the watchlist star filter is toggled. */
   onWatchlistFilterPress?: () => void;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
 }
 
 interface ChainRankingEntry {
@@ -245,9 +251,12 @@ const NetworkValueOrderedPills: React.FC<NetworkPillsContentProps> = ({
   return <NetworkPillsContent {...props} chainRanking={orderedChainRanking} />;
 };
 
-export const NetworkPills: React.FC<NetworkPillsProps> = (props) => {
-  const chainRanking: ChainRankingEntry[] = useSelector(
-    selectAllowedChainRanking,
+export const NetworkPills: React.FC<NetworkPillsProps> = ({
+  enabledChainIds,
+  ...props
+}) => {
+  const chainRanking: ChainRankingEntry[] = useSelector((state: RootState) =>
+    selectAllowedChainRanking(state, enabledChainIds),
   );
   const { variant } = useABTest(
     CHAIN_VALUE_ORDER_AB_KEY,

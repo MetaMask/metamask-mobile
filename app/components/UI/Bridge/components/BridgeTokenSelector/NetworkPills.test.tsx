@@ -123,14 +123,49 @@ describe('NetworkPills', () => {
       isActive: true,
     });
     jest.mocked(useChainValueOrder).mockReturnValue(mockChainRanking);
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectAllowedChainRanking) {
-        return mockChainRanking;
-      }
-      if (selector === selectVisiblePillChainIds) {
-        return undefined; // default: use first N from chainRanking
-      }
-      return undefined;
+    jest.mocked(selectAllowedChainRanking).mockReturnValue(mockChainRanking);
+    jest.mocked(selectVisiblePillChainIds).mockReturnValue(undefined); // default: use first N from chainRanking
+    // NetworkPills calls useSelector(selectVisiblePillChainIds) directly, and
+    // wraps selectAllowedChainRanking in an inline lambda (to forward the
+    // optional enabledChainIds prop) — invoke whatever selector is passed so
+    // both routes resolve through the mocked selector functions above.
+    mockUseSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => selector({}),
+    );
+  });
+
+  describe('enabledChainIds', () => {
+    it('forwards the enabledChainIds prop to selectAllowedChainRanking', () => {
+      const enabledChainIds = ['eip155:1' as CaipChainId];
+
+      render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          enabledChainIds={enabledChainIds}
+        />,
+      );
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        enabledChainIds,
+      );
+    });
+
+    it('calls selectAllowedChainRanking with undefined when enabledChainIds is not provided', () => {
+      render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        undefined,
+      );
     });
   });
 
@@ -198,10 +233,9 @@ describe('NetworkPills', () => {
     });
 
     it('does not render "+X more" when all networks are visible', () => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectVisiblePillChainIds) return undefined;
-        return mockSmallChainRanking;
-      });
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockReturnValue(mockSmallChainRanking);
 
       const { queryByTestId } = render(
         <NetworkPills
@@ -218,10 +252,9 @@ describe('NetworkPills', () => {
       const singleChainRanking = [
         { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
       ];
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectVisiblePillChainIds) return undefined;
-        return singleChainRanking;
-      });
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockReturnValue(singleChainRanking);
 
       const { getByText, queryByTestId } = render(
         <NetworkPills
@@ -243,10 +276,7 @@ describe('NetworkPills', () => {
         { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
         { chainId: 'eip155:56' as CaipChainId, name: 'BNB Chain' },
       ];
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectVisiblePillChainIds) return undefined;
-        return customRanking;
-      });
+      jest.mocked(selectAllowedChainRanking).mockReturnValue(customRanking);
 
       const { getByText, queryByText } = render(
         <NetworkPills
@@ -429,16 +459,6 @@ describe('NetworkPills', () => {
     });
 
     it('dispatches rolling order for consecutive non-visible selections', () => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectAllowedChainRanking) {
-          return mockChainRanking;
-        }
-        if (selector === selectVisiblePillChainIds) {
-          return undefined;
-        }
-        return undefined;
-      });
-
       const { rerender } = render(
         <NetworkPills
           selectedChainId={undefined}
@@ -465,15 +485,9 @@ describe('NetworkPills', () => {
         'bip122:000000000019d6689c085ae165831e93',
       ]);
 
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectAllowedChainRanking) {
-          return mockChainRanking;
-        }
-        if (selector === selectVisiblePillChainIds) {
-          return firstSelectionPayload;
-        }
-        return undefined;
-      });
+      jest
+        .mocked(selectVisiblePillChainIds)
+        .mockReturnValue(firstSelectionPayload);
       mockDispatch.mockClear();
 
       rerender(
@@ -561,15 +575,9 @@ describe('NetworkPills', () => {
         isActive: true,
       });
       jest.mocked(useChainValueOrder).mockReturnValue(treatmentRanking);
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectAllowedChainRanking) {
-          return mockChainRanking;
-        }
-        if (selector === selectVisiblePillChainIds) {
-          return pinnedVisibleChainIds;
-        }
-        return undefined;
-      });
+      jest
+        .mocked(selectVisiblePillChainIds)
+        .mockReturnValue(pinnedVisibleChainIds);
 
       const { rerender, getByText, queryByText } = render(
         <NetworkPills

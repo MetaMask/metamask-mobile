@@ -14,6 +14,7 @@ import {
   setIsSelectingToken,
   setSourceAmount,
   setTokenSelectorNetworkFilter,
+  selectAllowedChainRanking,
 } from '../../../../../core/redux/slices/bridge';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -113,7 +114,10 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigationDispatch = jest.fn();
-let mockRouteParams: { type: 'source' | 'dest' } = { type: 'source' };
+let mockRouteParams: {
+  type: 'source' | 'dest';
+  enabledChainIds?: CaipChainId[];
+} = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -484,11 +488,13 @@ jest.mock('./NetworkPills', () => ({
     onMorePress,
     onWatchlistFilterPress,
     showWatchlistFilter,
+    enabledChainIds,
   }: {
     onChainSelect: (chainId?: CaipChainId) => void;
     onMorePress: () => void;
     onWatchlistFilterPress?: () => void;
     showWatchlistFilter?: boolean;
+    enabledChainIds?: CaipChainId[];
   }) => {
     const { createElement } = jest.requireActual('react');
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -528,6 +534,11 @@ jest.mock('./NetworkPills', () => ({
         Text,
         { testID: 'visible-pill-chain-ids' },
         JSON.stringify(visiblePillChainIds ?? []),
+      ),
+      createElement(
+        Text,
+        { testID: 'network-pills-enabled-chain-ids' },
+        JSON.stringify(enabledChainIds ?? null),
       ),
     );
   },
@@ -1295,6 +1306,29 @@ describe('BridgeTokenSelector', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+        params: { enabledChainIds: undefined },
+      });
+    });
+
+    it('passes enabledChainIds from route params to the selector, NetworkPills, and the network list modal navigation', () => {
+      const enabledChainIds = [MOCK_CHAIN_IDS.ethereum];
+      mockRouteParams = { type: 'source', enabledChainIds };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        enabledChainIds,
+      );
+      expect(
+        getByTestId('network-pills-enabled-chain-ids').props.children,
+      ).toBe(JSON.stringify(enabledChainIds));
+
+      fireEvent.press(getByTestId('open-network-modal'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+        params: { enabledChainIds },
       });
     });
 

@@ -878,6 +878,48 @@ describe('bridge slice', () => {
         ),
       ).toBe(true);
     });
+
+    it('restricts chainRanking to enabledChainIds when provided, ignoring ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          { chainId: 'eip155:1', name: 'Ethereum' },
+          { chainId: 'eip155:137', name: 'Polygon' },
+          // Not in ALLOWED_BRIDGE_CHAIN_IDS, but included in enabledChainIds below.
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectAllowedChainRanking(
+        mockState as unknown as RootState,
+        ['eip155:1' as CaipChainId, 'eip155:99999' as CaipChainId],
+      );
+
+      expect(result).toEqual([
+        { chainId: 'eip155:1', name: 'Ethereum' },
+        { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+      ]);
+    });
+
+    it('returns an empty array when enabledChainIds is an empty array', () => {
+      const result = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        [],
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('falls back to the ALLOWED_BRIDGE_CHAIN_IDS filter when enabledChainIds is undefined', () => {
+      const withoutOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+      );
+      const withUndefinedOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        undefined,
+      );
+
+      expect(withUndefinedOverride).toEqual(withoutOverride);
+    });
   });
 
   describe('selectBatchSellDestStablecoins', () => {
