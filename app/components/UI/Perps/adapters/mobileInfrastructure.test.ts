@@ -350,6 +350,11 @@ describe('createMobileClientConfig', () => {
           builderAddressTestnet: '',
           builderAddressMainnet: '',
         },
+        lighter: {
+          enabled: false,
+          accountIndexTestnet: undefined,
+          apiKeyIndex: undefined,
+        },
         myx: {
           enabled: false,
           appIdTestnet: '',

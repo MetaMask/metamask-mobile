@@ -71,6 +71,14 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockPerpsModeToggle = jest.fn();
 
+// Stub the recovery-status banner: its hook refreshes on focus, and this
+// file's useFocusEffect mock invokes callbacks synchronously during render,
+// which would loop. The banner has its own unit tests.
+jest.mock('../../components/PerpsRecoveryStatusBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 // Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
 // (its analytics/design-system internals are covered by its own unit tests).
 jest.mock('../../components/PerpsModeToggle', () => {
