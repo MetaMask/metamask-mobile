@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.8.0]
 
+### Uncategorized
+
+- Restored the watchlist star on the Perps Lite market header (#34804)
+
 ### Added
 
 - Added triggered order types to the Perps Pro order selector (#34714)
@@ -62,6 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a crash when enabling notifications during wallet onboarding on Android (#34892)
+- Fixed Tron staked TRX, energy, and bandwidth not displaying correctly on token details (#34820)
 - Restored the watchlist star and market-list access in the Perps Lite market header (#34799)
 - Restored the Perps Pro order form Reduce only checkbox and take-profit/stop-loss arrow controls (#34599)
 - Restored the scroll-linked animated header on Perps Home while retaining the Lite/Pro mode control (#34620)
