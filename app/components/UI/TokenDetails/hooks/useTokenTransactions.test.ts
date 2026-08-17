@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useTokenTransactions } from './useTokenTransactions';
 import { TokenI } from '../../Tokens/types';
-import { TX_CONFIRMED } from '../../../../constants/transaction';
+import { TX_CONFIRMED, TX_SUBMITTED } from '../../../../constants/transaction';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { selectIsActivityRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
@@ -995,6 +995,71 @@ describe('useTokenTransactions', () => {
     });
   });
 
+  describe('submitted transactions', () => {
+    const ethAsset = () => createAsset({ symbol: 'ETH', isETH: true });
+
+    // Earlier non-EVM describes leave these mocked; `jest.clearAllMocks()`
+    // clears calls but not implementations, so restore the EVM defaults.
+    beforeEach(() => {
+      jest.mocked(isNonEvmChainId).mockReturnValue(false);
+      jest
+        .mocked(formatChainIdToCaip)
+        .mockImplementation((chainId: unknown) => `eip155:${chainId}` as never);
+    });
+
+    it('drops a submitted transaction that was not sent by the selected account', async () => {
+      setupMocks([
+        createMockTransaction({
+          id: 'submitted-own',
+          status: TX_SUBMITTED,
+          txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x1' },
+        }),
+        // Reaches submittedTxs because the selected account is the recipient.
+        createMockTransaction({
+          id: 'submitted-incoming',
+          status: TX_SUBMITTED,
+          txParams: { from: MOCK_RECIPIENT, to: MOCK_ADDRESS, nonce: '0x2' },
+        }),
+      ]);
+
+      const { result } = renderHook(() => useTokenTransactions(ethAsset()));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.submittedTxs.map((tx) => tx.id)).toStrictEqual([
+        'submitted-own',
+      ]);
+    });
+
+    it('drops a submitted transaction whose nonce is already confirmed', async () => {
+      setupMocks([
+        createMockTransaction({
+          id: 'confirmed-5',
+          status: TX_CONFIRMED,
+          txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x5' },
+        }),
+        createMockTransaction({
+          id: 'submitted-5',
+          status: TX_SUBMITTED,
+          txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x5' },
+        }),
+      ]);
+
+      const { result } = renderHook(() => useTokenTransactions(ethAsset()));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.submittedTxs).toStrictEqual([]);
+      expect(result.current.confirmedTxs.map((tx) => tx.id)).toStrictEqual([
+        'confirmed-5',
+      ]);
+    });
+  });
+
   describe('non-EVM asset filtering', () => {
     const setupNonEvmMocks = (transactions: unknown[]) => {
       jest.mocked(isNonEvmChainId).mockReturnValue(true);
@@ -1095,6 +1160,49 @@ describe('useTokenTransactions', () => {
 
       expect(result.current.transactions.map((tx) => tx.id)).toEqual([
         'swap-token-page',
+      ]);
+    });
+
+    it('matches a movement by unit when the asset type names a different mint', async () => {
+      setupNonEvmMocks([
+        {
+          id: 'legacy-usdc-send',
+          chain: SOLANA_CHAIN_ID,
+          status: TX_CONFIRMED,
+          time: 3,
+          from: [
+            {
+              address: SOLANA_ADDRESS,
+              asset: {
+                fungible: true,
+                amount: '1',
+                unit: 'USDC',
+                // Not this page's mint, so only the symbol can identify it.
+                type: `${SOLANA_CHAIN_ID}/token:So11111111111111111111111111111111111111112`,
+              },
+            },
+          ],
+          to: [],
+        },
+      ]);
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({
+            symbol: 'USDC',
+            name: 'USD Coin',
+            isNative: false,
+            address: USDC_ADDRESS,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.transactions.map((tx) => tx.id)).toStrictEqual([
+        'legacy-usdc-send',
       ]);
     });
 

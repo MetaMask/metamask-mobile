@@ -196,6 +196,90 @@ describe('useTokensFeed', () => {
       expect(result.current.totalCount).toBe(2101);
     });
 
+    it('sorts the first page by market cap and appends later pages in API order', () => {
+      const firstPageAssets = sampleTokens;
+      const secondPageAssets = [
+        {
+          assetId: 'eip155:1/erc20:0xddd',
+          symbol: 'DDD',
+          name: 'Delta Token',
+          marketCap: 1000,
+        },
+        {
+          assetId: 'eip155:1/erc20:0xeee',
+          symbol: 'EEE',
+          name: 'Epsilon Token',
+          marketCap: 50,
+        },
+      ] as unknown as TrendingAsset[];
+
+      const { result, rerender } = renderHook(() =>
+        useTokensFeed({ query: 'token' }),
+      );
+
+      expect(result.current.data.map((t) => t.symbol)).toStrictEqual([
+        'WBTC',
+        'WETH',
+        'AAA',
+      ]);
+
+      mockUseTrendingSearch.mockReturnValue({
+        data: [...firstPageAssets, ...secondPageAssets],
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      });
+      rerender({});
+
+      // DDD outranks every first-page token by market cap, but pagination
+      // order wins: it stays where the API put it.
+      expect(result.current.data.map((t) => t.symbol)).toStrictEqual([
+        'WBTC',
+        'WETH',
+        'AAA',
+        'DDD',
+        'EEE',
+      ]);
+    });
+
+    it('does not fix the page boundary while the first page is still loading', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: [],
+        isLoading: true,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: undefined,
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useTokensFeed({ query: 'token' }),
+      );
+
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: undefined,
+      });
+      rerender({});
+
+      // An empty in-flight response must not be recorded as the first page,
+      // or nothing would ever be sorted.
+      expect(result.current.data.map((t) => t.symbol)).toStrictEqual([
+        'WBTC',
+        'WETH',
+        'AAA',
+      ]);
+    });
+
     it('suppresses totalCount when query is absent', () => {
       mockUseTrendingSearch.mockReturnValue({
         data: sampleTokens,
