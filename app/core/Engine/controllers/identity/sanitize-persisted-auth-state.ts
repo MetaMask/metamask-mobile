@@ -43,9 +43,9 @@ function sessionMatchesEnv(
  * expiry, so a DEV JWT keeps getting attached after switching to PRD.
  */
 export function sanitizePersistedAuthenticationState(
-  state: AuthenticationControllerState | undefined,
+  state: Partial<AuthenticationControllerState> | undefined,
   env: Env,
-): AuthenticationControllerState | undefined {
+): Partial<AuthenticationControllerState> | undefined {
   if (!state?.srpSessionData) {
     return state;
   }

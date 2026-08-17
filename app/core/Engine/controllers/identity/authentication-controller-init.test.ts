@@ -104,6 +104,7 @@ describe('AuthenticationControllerInit', () => {
           profile: {
             identifierId: 'id',
             profileId: 'profile',
+            canonicalProfileId: 'canonical-profile',
             metaMetricsId: 'mmid',
           },
         },
