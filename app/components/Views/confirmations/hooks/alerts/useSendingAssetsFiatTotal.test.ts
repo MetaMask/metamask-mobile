@@ -215,6 +215,22 @@ describe('useSendingAssetsFiatTotal', () => {
     expect(result.current).toBe('$10000000.00');
   });
 
+  it('returns null when the USD conversion is unavailable, so the ceiling cannot be checked', () => {
+    mockBalanceChanges({
+      value: [
+        buildBalanceChange({
+          amount: -1,
+          fiatAmount: 50_000_000,
+          usdAmount: FIAT_UNAVAILABLE,
+        }),
+      ],
+    });
+
+    const { result } = renderHook(() => useSendingAssetsFiatTotal());
+
+    expect(result.current).toBeNull();
+  });
+
   it('applies the ceiling to the USD total rather than the local-currency total', () => {
     mockBalanceChanges({
       value: [
