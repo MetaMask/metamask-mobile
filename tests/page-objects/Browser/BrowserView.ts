@@ -16,10 +16,7 @@ import {
   Utilities,
   sleep,
 } from '../../framework';
-import {
-  executeMobileDeepLink,
-  getDriver,
-} from '../../framework/PlaywrightUtilities';
+import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 interface TransactionParams {
@@ -196,19 +193,11 @@ class Browser {
   }
 
   /**
-   * Submit the focused URL field. Android: KEYCODE_ENTER. iOS: append Return via
-   * `addValue` — `Gestures.typeText` uses fill/setValue and would wipe the URL.
+   * Submit the focused URL field via the soft-keyboard Go/Enter key.
+   * Do not use `Gestures.typeText(..., '\n')` — Appium fill/setValue would wipe the URL.
    */
   private async submitFocusedUrlBar(): Promise<void> {
-    if (PlatformDetector.isAndroid()) {
-      await getDriver().pressKeyCode(66);
-      return;
-    }
-
-    const input = await getDriver().$(
-      `~${BrowserURLBarSelectorsIDs.URL_INPUT}`,
-    );
-    await input.addValue('\n');
+    await Gestures.tapKeyboardReturnKey('Go');
   }
 
   /**
