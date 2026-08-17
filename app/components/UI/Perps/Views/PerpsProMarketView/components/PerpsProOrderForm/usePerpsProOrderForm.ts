@@ -26,6 +26,7 @@ import { selectSelectedInternalAccountAddress } from '../../../../../../../selec
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
 import { useComplianceGate } from '../../../../../Compliance';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
 import {
@@ -906,7 +907,7 @@ export const usePerpsProOrderForm = ({
             ? PERPS_EVENT_VALUE.DIRECTION.LONG
             : PERPS_EVENT_VALUE.DIRECTION.SHORT,
         [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
-        previousLeverage: orderForm.leverage,
+        [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: orderForm.leverage,
       };
       if (inputMethod) {
         eventProperties[PERPS_EVENT_PROPERTY.INPUT_METHOD] =

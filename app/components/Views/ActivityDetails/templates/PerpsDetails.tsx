@@ -145,10 +145,12 @@ function TradeDetails({
           <ActivityDetailRow
             label={strings('perps.transactions.position.size')}
             value={getPerpsPositionSize(fill)}
+            testID={ActivityDetailsSelectorsIDs.SIZE_ROW}
           />
           <ActivityDetailRow
             label={getPerpsPriceLabel(fill)}
             value={getPerpsPriceValue(fill?.entryPrice)}
+            testID={ActivityDetailsSelectorsIDs.PRICE_ROW}
           />
         </ActivityDetailSection>
       }
@@ -157,6 +159,7 @@ function TradeDetails({
           <ActivityDetailRow
             label={strings('perps.transactions.position.fees')}
             value={fill?.fee ? formatPositiveFiat(fill.fee) : undefined}
+            testID={ActivityDetailsSelectorsIDs.FEES_ROW}
           />
           {shouldShowPerpsPnl(fill) ? (
             <ActivityDetailRow
@@ -174,6 +177,7 @@ function TradeDetails({
                   {fill?.amount}
                 </Text>
               }
+              testID={ActivityDetailsSelectorsIDs.PNL_ROW}
             />
           ) : null}
         </ActivityDetailSection>
@@ -234,14 +238,17 @@ function OrderDetails({
           <ActivityDetailRow
             label={strings('perps.transactions.order.size')}
             value={order?.size ? getPerpsPriceValue(order.size) : undefined}
+            testID={ActivityDetailsSelectorsIDs.SIZE_ROW}
           />
           <ActivityDetailRow
             label={strings('perps.transactions.order.limit_price')}
             value={getPerpsPriceValue(order?.limitPrice)}
+            testID={ActivityDetailsSelectorsIDs.LIMIT_PRICE_ROW}
           />
           <ActivityDetailRow
             label={strings('perps.transactions.order.filled')}
             value={order?.filled}
+            testID={ActivityDetailsSelectorsIDs.FILLED_ROW}
           />
         </ActivityDetailSection>
       }
@@ -250,6 +257,7 @@ function OrderDetails({
           <ActivityDetailRow
             label={strings('perps.transactions.order.total_fee')}
             value={totalFeeValue}
+            testID={ActivityDetailsSelectorsIDs.TOTAL_FEE_ROW}
           />
         </ActivityDetailSection>
       }
@@ -295,6 +303,7 @@ function FundingDetails({
           <ActivityDetailRow
             label={strings('perps.transactions.funding.rate')}
             value={funding?.rate}
+            testID={ActivityDetailsSelectorsIDs.RATE_ROW}
           />
           <ActivityDetailRow
             label={strings('perps.transactions.funding.funding_fee')}
@@ -313,6 +322,7 @@ function FundingDetails({
                 </Text>
               ) : undefined
             }
+            testID={ActivityDetailsSelectorsIDs.FUNDING_FEE_ROW}
           />
         </ActivityDetailSection>
       }
