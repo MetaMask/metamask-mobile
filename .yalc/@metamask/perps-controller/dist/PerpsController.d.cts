@@ -6,7 +6,7 @@ import { CandlePeriod } from "./constants/chartConfig.cjs";
 import type { SortOptionId, ProLayoutPreferences, PerpsMode } from "./constants/perpsConfig.cjs";
 import type { PerpsControllerMethodActions } from "./PerpsController-method-action-types.cjs";
 import { WebSocketConnectionState } from "./types/index.cjs";
-import type { AccountState, AssetRoute, CancelOrderParams, CancelOrderResult, CancelOrdersParams, CancelOrdersResult, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositWithConfirmationParams, EditOrderParams, FeeCalculationParams, FeeCalculationResult, FlipPositionParams, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetMarketDataWithPricesParams, GetMarketsParams, GetOrderFillsParams, GetOrdersParams, GetPositionsParams, PerpsProvider, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsControllerConfig, PerpsMarketData, Position, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribePositionsParams, SubscribePricesParams, SwitchProviderResult, ToggleTestnetResult, UpdateMarginParams, UpdatePositionTPSLParams, WithdrawParams, WithdrawResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, OrderType, PerpsPlatformDependencies, PerpsActiveProviderMode, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsProviderType, PerpsUserDataSnapshot, PerpsSelectedPaymentToken, PerpsRemoteFeatureFlagState, MarketTypeFilter, MYXCredentials } from "./types/index.cjs";
+import type { AccountState, AssetRoute, CancelOrderParams, CancelOrderResult, CancelOrdersParams, CancelOrdersResult, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositWithConfirmationParams, EditOrderParams, FeeCalculationParams, FeeCalculationResult, FlipPositionParams, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetMarketDataWithPricesParams, GetMarketsParams, GetOrderFillsParams, GetOrdersParams, GetPositionsParams, PerpsProvider, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsControllerConfig, PerpsMarketData, PerpsPendingManualRecovery, PerpsRecoveredDispatch, Position, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribePositionsParams, SubscribePricesParams, SwitchProviderResult, ToggleTestnetResult, UpdateMarginParams, UpdatePositionTPSLParams, WithdrawParams, WithdrawResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, OrderType, PerpsPlatformDependencies, PerpsActiveProviderMode, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsProviderType, PerpsUserDataSnapshot, PerpsSelectedPaymentToken, PerpsRemoteFeatureFlagState, MarketTypeFilter, MYXCredentials } from "./types/index.cjs";
 import type { SortDirection } from "./types/index.cjs";
 import type { LighterAuthConfig, LighterSignerBridge } from "./types/lighter-types.cjs";
 import type { PerpsControllerAllowedActions, PerpsControllerAllowedEvents } from "./types/messenger.cjs";
@@ -591,6 +591,31 @@ export declare class PerpsController extends BaseController<'PerpsController', P
     getOrderFills(params?: GetOrderFillsParams, options?: {
         forceRefresh?: boolean;
     }): Promise<OrderFill[]>;
+    /**
+     * List TP/SL protection changes the active provider parked for
+     * explicit manual re-establishment. Providers without durable
+     * settlement state return an empty list.
+     *
+     * @returns Pending manual-recovery entries.
+     */
+    getPendingManualRecoveries(): Promise<PerpsPendingManualRecovery[]>;
+    /**
+     * READ-ONLY list of the active provider's recovered-dispatch outcomes
+     * (previously ambiguous submissions later resolved). Providers without
+     * durable dispatch state return an empty list.
+     *
+     * @returns Pending recovered-dispatch outcomes.
+     */
+    getRecoveredDispatches(): Promise<PerpsRecoveredDispatch[]>;
+    /**
+     * Acknowledge ONE recovered-dispatch outcome by its stable id, after
+     * refreshing venue state. Throws when the active provider has no
+     * durable dispatch state or the id no longer matches.
+     *
+     * @param recoveryId - Stable id from {@link getRecoveredDispatches}.
+     * @returns Resolves when the outcome is acknowledged.
+     */
+    acknowledgeRecoveredDispatch(recoveryId: string): Promise<void>;
     /**
      * Get historical user orders (order lifecycle)
      * Thin delegation to MarketDataService

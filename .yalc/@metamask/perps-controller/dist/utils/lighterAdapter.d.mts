@@ -13,7 +13,7 @@
  * - USDC collateral, single margin mode per account in the POC (cross).
  */
 import type { AccountState, MarketDataFormatters, MarketInfo, Order, OrderFill, PerpsMarketData, Position, PriceUpdate } from "../types/index.mjs";
-import type { LighterApiOrder, LighterApiPosition, LighterOrderBookDetail, LighterOrderBookMeta, LighterRestTrade, LighterSubAccount, LighterWsMarketStat, LighterWsUserStats } from "../types/lighter-types.mjs";
+import type { LighterApiOrder, LighterApiPosition, LighterOrderBookDetail, LighterOrderBookMeta, LighterRestTrade, LighterWsTrade, LighterSubAccount, LighterWsMarketStat, LighterWsUserStats } from "../types/lighter-types.mjs";
 /**
  * Transform a Lighter order book meta entry into canonical MarketInfo.
  *
@@ -63,14 +63,42 @@ export declare function adaptAccountStateFromLighterUserStats(stats: LighterWsUs
  * @param accountIndex - The account whose perspective determines the side.
  * @returns MetaMask Perps API order fill object.
  */
-export declare function adaptFillFromLighterTrade(trade: LighterRestTrade, symbol: string, accountIndex: number): OrderFill;
+/**
+ * Derive the lifecycle direction of a fill from the venue's
+ * position-before context, in the vocabulary client transforms consume
+ * (`Open Long`, `Close Short`, `Long > Short`, ...).
+ *
+ * The venue reports the side's ABSOLUTE position size before the trade and
+ * whether its sign changed. Combined with the trade side that is enough:
+ * buying reduces shorts and opens longs; selling reduces longs and opens
+ * shorts. A partial fill with no sign change is disambiguated by realized
+ * pnl (closing realizes pnl, opening does not). Without position context
+ * the side-only `Buy`/`Sell` vocabulary is used.
+ *
+ * @param context - Trade side, size, and position-before data.
+ * @param context.isBuy - Whether our side bought.
+ * @param context.size - Trade size (base units, absolute).
+ * @param context.positionBefore - Our side's absolute position size before.
+ * @param context.signChanged - Whether our side's position sign changed.
+ * @param context.pnl - Realized pnl for our side.
+ * @returns Client-facing direction string.
+ */
+export declare function deriveLighterFillDirection(context: {
+    isBuy: boolean;
+    size: number;
+    positionBefore: number;
+    signChanged: boolean | undefined;
+    pnl: number;
+}): string;
+export declare function adaptFillFromLighterTrade(trade: LighterRestTrade | LighterWsTrade, symbol: string, accountIndex: number): OrderFill;
 /**
  * Transform a Lighter account position into canonical Position.
  *
  * @param position - Position entry from an account payload.
+ * @param maxLeverage - Per-market max leverage (venue margin fractions).
  * @returns MetaMask Perps API position object.
  */
-export declare function adaptPositionFromLighter(position: LighterApiPosition): Position;
+export declare function adaptPositionFromLighter(position: LighterApiPosition, maxLeverage?: number): Position;
 /**
  * Transform a Lighter sub-account into canonical AccountState.
  *
