@@ -28,5 +28,9 @@
 	</array>
 	<key>com.apple.developer.payment-pass-provisioning</key>
 	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.io.metamask.MetaMask</string>
+	</array>
 </dict>
 </plist>

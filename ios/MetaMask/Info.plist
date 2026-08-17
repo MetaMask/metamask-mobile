@@ -39,6 +39,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>EXDefaultScreenOrientationMask</key>
 	<string>UIInterfaceOrientationMaskAllButUpsideDown</string>
+	<key>ExpoWidgetsAppGroupIdentifier</key>
+	<string>group.io.metamask.MetaMask</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -77,6 +79,10 @@
 	<string>Allow MetaMask to save an image to your Photo Library</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow MetaMask to access a images from your Photo Library</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<false/>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
