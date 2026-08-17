@@ -22,16 +22,12 @@ export type DeeplinkRequest = ParseOutput & { origin: string };
 
 const getNetworkClientIdForChainId = (chainId: Hex) => {
   const { NetworkController } = Engine.context;
-  try {
-    const networkClientId =
-      NetworkController.findNetworkClientIdByChainId(chainId);
-    if (!networkClientId) {
-      throw new Error(`Unable to find network with chain id ${chainId}`);
-    }
-    return networkClientId;
-  } catch {
+  const networkClientId =
+    NetworkController.findNetworkClientIdByChainId(chainId);
+  if (!networkClientId) {
     throw new Error(`Unable to find network with chain id ${chainId}`);
   }
+  return networkClientId;
 };
 
 export function isDeeplinkRedesignedConfirmationCompatible(
