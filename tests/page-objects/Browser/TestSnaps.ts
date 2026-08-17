@@ -481,6 +481,16 @@ class TestSnaps {
     }
   }
 
+  /** Single query — sequential substring asserts race the short-lived alert. */
+  async expectDisabledSnapAlert(): Promise<void> {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText(
+        /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
+      ),
+      { timeout: 30_000 },
+    );
+  }
+
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,

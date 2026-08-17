@@ -41,8 +41,9 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
+  isStrategyOrderType,
   type InputMethod,
-  type OrderType,
+  type OrdinaryOrderType,
   type Position,
 } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -128,7 +129,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   // State for order type and bottom sheets
-  const [orderType, setOrderType] = useState<OrderType>('market');
+  const [orderType, setOrderType] = useState<OrdinaryOrderType>('market');
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -159,7 +160,7 @@ const PerpsClosePositionView: React.FC = () => {
   // resetting state in an effect) guarantees that a disabled — or mid-session
   // flipped-off — flag can never drive limit UI, calculations, validation, or
   // submission, with no one-render window before an effect would run.
-  const effectiveOrderType: OrderType = isClosePositionLimitOrderEnabled
+  const effectiveOrderType: OrdinaryOrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
   // Subscribe to real-time price with 1s debounce for position closing
@@ -1037,6 +1038,9 @@ const PerpsClosePositionView: React.FC = () => {
           isVisible={isOrderTypeVisible}
           onClose={() => setIsOrderTypeVisible(false)}
           onSelect={(type) => {
+            if (isStrategyOrderType(type)) {
+              return;
+            }
             setOrderType(type);
             // Clear limit price when switching back to market order
             if (type === 'market') {
