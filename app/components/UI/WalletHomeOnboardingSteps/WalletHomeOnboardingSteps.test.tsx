@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import WalletHomeOnboardingSteps from './WalletHomeOnboardingSteps';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -11,6 +12,7 @@ import {
 } from '../../../__mocks__/rive-react-native';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_ANIMATION,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
@@ -61,6 +63,8 @@ async function flushWalletHomeStepTransition() {
 }
 
 describe('WalletHomeOnboardingSteps', () => {
+  const originalPlatformOS = Platform.OS;
+
   beforeEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: false });
     __clearLastMockedMethods();
@@ -75,6 +79,10 @@ describe('WalletHomeOnboardingSteps', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: originalPlatformOS,
+    });
   });
 
   const baseOnboarding = {
@@ -427,6 +435,56 @@ describe('WalletHomeOnboardingSteps', () => {
         expect.objectContaining({ stepIndex: 2 }),
       );
     });
+  });
+
+  it('plays the main animation without firing a state input after returning on Android', async () => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    const onTradePrimaryPress = jest.fn();
+    const { getByTestId, rerender } = renderWithProvider(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onTradePrimaryPress={onTradePrimaryPress}
+      />,
+      {
+        state: {
+          onboarding: {
+            ...baseOnboarding,
+            walletHomeOnboardingSteps: {
+              suppressedReason: null,
+              stepIndex: 1,
+            },
+          },
+          engine: { backgroundState },
+        },
+      },
+    );
+
+    fireEvent.press(getByTestId(primaryTestId));
+    mockUseIsFocused.mockReturnValue(false);
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onTradePrimaryPress={onTradePrimaryPress}
+      />,
+    );
+    mockUseIsFocused.mockReturnValue(true);
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onTradePrimaryPress={onTradePrimaryPress}
+      />,
+    );
+    await act(async () => {
+      jest.advanceTimersByTime(60);
+    });
+
+    expect(__getLastMockedMethods()?.play).toHaveBeenCalledWith(
+      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_ANIMATION,
+    );
+    expect(__mockRiveFireState).not.toHaveBeenCalled();
   });
 
   it('completes notifications step after return when primary navigates away', async () => {
