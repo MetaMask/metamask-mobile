@@ -21,6 +21,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import {
+  resetBridgeDestToken,
   resetBridgeState,
   resetBridgeTokenInputs,
   selectBridgeViewMode,
@@ -161,20 +162,25 @@ const BridgeView = () => {
     }
   }, [tabs, renderedTab]);
 
-  // Stops any in-flight BridgeController quote polling and clears the
-  // amount inputs (not the selected tokens) for the tab being left,
-  // whenever the rendered tab changes. This intentionally runs as the
-  // effect's cleanup rather than eagerly inside handleTabPress: cleanups
-  // fire after React commits the tab switch (deferred via startTransition
-  // above), so the outgoing tab is already gone by the time this runs
-  // instead of visibly flashing back to a reset state right before it's
-  // replaced.
+  // Stops any in-flight BridgeController quote polling, clears the amount
+  // inputs and drops the destination token for the tab being left, whenever
+  // the rendered tab changes. The destination goes because each tab anchors
+  // its own source token as it mounts (Market from its route params, Limit to
+  // the default pair of its restricted chains), so a destination kept from the
+  // previous tab would be left on an unrelated chain; clearing it lets the
+  // incoming tab derive the destination from its own source token's default
+  // pair. This intentionally runs as the effect's cleanup rather than eagerly
+  // inside handleTabPress: cleanups fire after React commits the tab switch
+  // (deferred via startTransition above), so the outgoing tab is already gone
+  // by the time this runs instead of visibly flashing back to a reset state
+  // right before it's replaced.
   useEffect(
     () => () => {
       if (Engine.context.BridgeController?.resetState) {
         Engine.context.BridgeController.resetState();
       }
       dispatch(resetBridgeTokenInputs());
+      dispatch(resetBridgeDestToken());
     },
     [renderedTab, dispatch],
   );

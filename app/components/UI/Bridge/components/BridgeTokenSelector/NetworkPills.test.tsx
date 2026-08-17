@@ -646,6 +646,29 @@ describe('NetworkPills', () => {
       expect(queryByTestId('network-pills-more-button')).toBeNull();
     });
 
+    it('does not promote a selectedChainId that is outside chainRanking into the session pin', () => {
+      // selectedChainId belongs to neither the default chainRanking nor any
+      // narrower scope here — e.g. a stale Redux filter or an initialFilter
+      // derived from a token whose chain isn't part of this picker's allowed
+      // chain set.
+      const { getByText, queryByText } = render(
+        <NetworkPills
+          selectedChainId={'eip155:8453' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'bridge/setVisiblePillChainIds' }),
+      );
+      // No pill for the out-of-scope chain should render, and none of the
+      // rendered pills should be treated as selected.
+      expect(queryByText('Base')).not.toBeOnTheScreen();
+      // Visible pills still come from the default first-N chainRanking.
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+    });
+
     it('mixes valid pinned ids with backfilled ranking entries in a narrower picker', () => {
       // Only one of the pinned ids exists in the narrower ranking.
       jest

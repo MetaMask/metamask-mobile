@@ -36,7 +36,9 @@ import {
   selectAllowedChainRanking,
   selectBridgeFeatureFlags,
   selectTokenSelectorNetworkFilter,
+  setDestToken,
   setIsSelectingToken,
+  setSourceToken,
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
@@ -68,6 +70,7 @@ import { usePopularTokens } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
+import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
@@ -354,23 +357,65 @@ export const BridgeTokenSelector: React.FC = () => {
     });
   }, [dispatch, selectedChainId]);
 
+  // A selectedChainId can come from sources (initialFilter, stale Redux
+  // filter) that predate/ignore this picker's enabledChainIds override, so
+  // it must be validated against enabledChainRanking before being trusted.
+  const isSelectedChainInEnabledRanking = useMemo(
+    () =>
+      Boolean(selectedChainId) &&
+      enabledChainRanking.some(
+        (chain: { chainId: CaipChainId }) => chain.chainId === selectedChainId,
+      ),
+    [selectedChainId, enabledChainRanking],
+  );
+
+  // If the current filter falls outside this picker's allowed chain set,
+  // clear it in Redux so pills, the network modal, and the fetched token
+  // list all agree on "All networks" instead of silently diverging (token
+  // list matching an all-chains fetch while no pill appears selected).
+  // The stale selection also means the actual source/dest pair is no longer
+  // valid for this picker's chain scope (e.g. a Limit Order flow scoped to
+  // Ethereum with a dest token left over from a broader Polygon session), so
+  // re-anchor both tokens to a sane default pair on the fallback chain.
+  useEffect(() => {
+    if (
+      !selectedChainId ||
+      enabledChainRanking.length === 0 ||
+      isSelectedChainInEnabledRanking
+    ) {
+      return;
+    }
+
+    dispatch(setTokenSelectorNetworkFilter(undefined));
+
+    const defaultPair = getDefaultTokenPairForChains(
+      enabledChainRanking.map(
+        (chain: { chainId: CaipChainId }) => chain.chainId,
+      ),
+    );
+    if (!defaultPair) {
+      return;
+    }
+
+    dispatch(setSourceToken(defaultPair.sourceToken));
+    if (defaultPair.destToken) {
+      dispatch(setDestToken(defaultPair.destToken));
+    }
+  }, [
+    selectedChainId,
+    enabledChainRanking,
+    isSelectedChainInEnabledRanking,
+    dispatch,
+  ]);
+
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
       return [];
     }
 
     // If a specific chain is selected and it's part of the allowed chain
-    // set, use only that chain. A selectedChainId can come from sources
-    // (initialFilter, stale Redux filter) that predate/ignore this
-    // picker's enabledChainIds override, so it must be validated against
-    // enabledChainRanking before being trusted, otherwise the fetched
-    // list could include a chain the pills/network modal don't show.
-    if (
-      selectedChainId &&
-      enabledChainRanking.some(
-        (chain: { chainId: CaipChainId }) => chain.chainId === selectedChainId,
-      )
-    ) {
+    // set, use only that chain.
+    if (selectedChainId && isSelectedChainInEnabledRanking) {
       return [selectedChainId];
     }
 
@@ -379,7 +424,7 @@ export const BridgeTokenSelector: React.FC = () => {
     return enabledChainRanking.map(
       (chain: { chainId: CaipChainId }) => chain.chainId,
     );
-  }, [selectedChainId, enabledChainRanking]);
+  }, [selectedChainId, enabledChainRanking, isSelectedChainInEnabledRanking]);
 
   const {
     includeAssets,

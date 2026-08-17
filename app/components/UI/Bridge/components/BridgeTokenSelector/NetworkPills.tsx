@@ -153,6 +153,20 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
       return;
     }
 
+    // A selectedChainId that isn't part of this picker's chainRanking (e.g.
+    // a stale Redux filter, or one derived from a token whose chain isn't
+    // part of a narrower `enabledChainIds` scope) must not be promoted into
+    // the shared session pin. Treat it like "no chain selected" for pill
+    // purposes instead of leaking an out-of-scope chain into Redux.
+    const isSelectedChainInRanking = chainRanking.some(
+      (chain) => chain.chainId === selectedChainId,
+    );
+
+    if (!isSelectedChainInRanking) {
+      scrollViewRef.current?.scrollTo({ x: 0, animated: true });
+      return;
+    }
+
     const existingIndex = visibleChainIds.indexOf(selectedChainId);
 
     if (existingIndex === -1) {

@@ -2,6 +2,7 @@ import {
   setDestToken,
   selectBridgeViewMode,
   selectDestToken,
+  selectSourceToken,
   selectBip44DefaultPair,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,6 +26,7 @@ export const useInitialDestToken = (
   const selectedChainId = useSelector(selectChainId);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const destToken = useSelector(selectDestToken);
+  const sourceToken = useSelector(selectSourceToken);
   const bip44DefaultPair = useSelector(selectBip44DefaultPair);
 
   const isSwap =
@@ -60,20 +62,25 @@ export const useInitialDestToken = (
       }
     }
 
+    // The default dest belongs to the source token's network. Prefer the token
+    // coming in on the route (which useInitialSourceToken is about to apply)
+    // and fall back to the one already in Redux, e.g. when this view remounts
+    // after a sibling Bridge tab anchored the source to a different chain.
+    const effectiveSourceToken = initialSourceToken ?? sourceToken;
     const destTokenTargetChainId =
-      initialSourceToken?.chainId ?? selectedChainId;
+      effectiveSourceToken?.chainId ?? selectedChainId;
     let defaultDestToken = getDefaultDestToken(destTokenTargetChainId);
 
-    // If the initial source token is the same as the default dest token, set the default dest token to the native token
+    // If the source token is the same as the default dest token, set the default dest token to the native token
     if (
       destTokenTargetChainId === SolScope.Mainnet &&
-      initialSourceToken?.address === defaultDestToken?.address
+      effectiveSourceToken?.address === defaultDestToken?.address
     ) {
       // Solana addresses are case sensitive
       defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
     } else if (
       destTokenTargetChainId !== SolScope.Mainnet &&
-      initialSourceToken?.address?.toLowerCase() ===
+      effectiveSourceToken?.address?.toLowerCase() ===
         defaultDestToken?.address?.toLowerCase()
     ) {
       // EVM addresses are NOT case sensitive
@@ -84,7 +91,7 @@ export const useInitialDestToken = (
       isSwap &&
       !destToken &&
       defaultDestToken &&
-      initialSourceToken?.address !== defaultDestToken.address
+      effectiveSourceToken?.address !== defaultDestToken.address
     ) {
       dispatch(setDestToken(defaultDestToken));
     }
@@ -93,10 +100,10 @@ export const useInitialDestToken = (
     prevInitialDestToken,
     dispatch,
     initialSourceToken,
+    sourceToken,
     selectedChainId,
     destToken,
     isSwap,
-    initialSourceToken?.address,
     bip44DefaultPair,
   ]);
 };

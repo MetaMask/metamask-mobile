@@ -17,9 +17,12 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import {
+  setDestToken,
   setSlippage,
   setSourceAmount,
+  setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { BridgeViewMode, type BridgeToken } from '../../types';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -169,6 +172,68 @@ describeForPlatforms('BridgeView', () => {
       expect(
         queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('re-anchors the destination to the source token default pair when returning to the market tab', async () => {
+      // The user picks a Robinhood-chain pair on the Limit tab and goes back to
+      // Market, which anchors its source token from the route params. The
+      // destination has to follow that source instead of being left behind on
+      // the Robinhood chain, which would turn a swap into a cross-chain bridge.
+      const robinhoodChainId = '0x1237';
+      const robinhoodEth: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ether',
+      };
+      const robinhoodUsde: BridgeToken = {
+        address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'USDe',
+        name: 'Ethena USDe',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+          sourceToken: ETH_SOURCE,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(robinhoodEth));
+        store.dispatch(setDestToken(robinhoodUsde));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceToken?.chainId).toBe('0x1');
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'mUSD', chainId: '0x1' }),
+        );
+      });
+      expect(store.getState().bridge.isDestTokenManuallySet).toBe(false);
     });
 
     it('clears the amount inputs and stops controller polling after switching away from the market tab, keeping the selected tokens', async () => {

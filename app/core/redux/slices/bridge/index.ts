@@ -226,6 +226,12 @@ const slice = createSlice({
       state.isMaxSourceAmount = false;
       state.selectedQuoteRequestId = undefined;
     },
+    resetBridgeDestToken: (state) => {
+      state.destToken = undefined;
+      state.selectedDestChainId = undefined;
+      state.isDestTokenManuallySet = false;
+      clearSlippageState(state);
+    },
     incrementBridgeBalanceRefreshKey: (state) => {
       state.balanceRefreshKey += 1;
     },
@@ -1062,6 +1068,7 @@ export const {
   setDestAmount,
   resetBridgeState,
   resetBridgeTokenInputs,
+  resetBridgeDestToken,
   incrementBridgeBalanceRefreshKey,
   setSourceToken,
   setDestToken,

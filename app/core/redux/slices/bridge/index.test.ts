@@ -5,6 +5,7 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
+  resetBridgeDestToken,
   setSlippage,
   setSlippageUserOverride,
   setBridgeViewMode,
@@ -581,6 +582,41 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithVisiblePills, resetBridgeState());
 
       expect(newState.visiblePillChainIds).toBeUndefined();
+    });
+  });
+
+  describe('resetBridgeDestToken', () => {
+    const stateWithDestSelection = {
+      ...initialState,
+      sourceToken: mockToken,
+      sourceAmount: '1.5',
+      destToken: mockDestToken,
+      selectedDestChainId: '0x89' as Hex,
+      isDestTokenManuallySet: true,
+      slippage: '3.5',
+      isSlippageUserOverride: true,
+    };
+
+    it('clears the destination token, its chain and the manual selection flag', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.destToken).toBeUndefined();
+      expect(newState.selectedDestChainId).toBeUndefined();
+      expect(newState.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('clears slippage since it belonged to the cleared token pair', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.slippage).toBeUndefined();
+      expect(newState.isSlippageUserOverride).toBe(false);
+    });
+
+    it('leaves the source selection and amount untouched', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.sourceToken).toEqual(mockToken);
+      expect(newState.sourceAmount).toBe('1.5');
     });
   });
 

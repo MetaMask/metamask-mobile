@@ -14,6 +14,8 @@ import {
   setIsSelectingToken,
   setSourceAmount,
   setTokenSelectorNetworkFilter,
+  setSourceToken,
+  setDestToken,
   selectAllowedChainRanking,
 } from '../../../../../core/redux/slices/bridge';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
@@ -44,6 +46,15 @@ const defaultMockBridgeState: MockBridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
 };
+
+interface MockBridgeAction {
+  type: string;
+  payload?:
+    | CaipChainId
+    | CaipChainId[]
+    | ReturnType<typeof createMockToken>
+    | undefined;
+}
 
 // Create a Redux store with all the state needed by the component
 const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
@@ -78,7 +89,7 @@ const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
       }),
       bridge: (
         state: MockBridgeState | undefined,
-        action: { type: string; payload?: CaipChainId | CaipChainId[] },
+        action: MockBridgeAction,
       ) => {
         const resolvedState = state ?? {
           ...defaultMockBridgeState,
@@ -97,6 +108,22 @@ const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
           return {
             ...resolvedState,
             visiblePillChainIds: action.payload as CaipChainId[] | undefined,
+          };
+        }
+        if (action.type === 'bridge/setSourceToken') {
+          return {
+            ...resolvedState,
+            sourceToken: action.payload as ReturnType<
+              typeof createMockToken
+            > | null,
+          };
+        }
+        if (action.type === 'bridge/setDestToken') {
+          return {
+            ...resolvedState,
+            destToken: action.payload as ReturnType<
+              typeof createMockToken
+            > | null,
           };
         }
         return resolvedState;
@@ -153,7 +180,7 @@ jest.mock('../../../../../hooks', () => ({
 // Use a getter to access mockBridgeFeatureFlags at runtime (after variable is defined)
 // This is needed because jest.mock is hoisted before variable declarations
 jest.mock('../../../../../core/redux/slices/bridge', () => {
-  const emptyChainRanking: CaipChainId[] = [];
+  const emptyChainRanking: { chainId: CaipChainId; name: string }[] = [];
   return {
     selectBridgeFeatureFlags: jest.fn(
       (state: {
@@ -172,7 +199,9 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
           backgroundState: {
             BridgeController: {
               bridgeState: {
-                bridgeFeatureFlags?: { chainRanking?: CaipChainId[] };
+                bridgeFeatureFlags?: {
+                  chainRanking?: { chainId: CaipChainId; name: string }[];
+                };
               };
             };
           };
@@ -199,6 +228,14 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setVisiblePillChainIds: jest.fn((chainIds) => ({
       type: 'bridge/setVisiblePillChainIds',
       payload: chainIds,
+    })),
+    setSourceToken: jest.fn((token) => ({
+      type: 'bridge/setSourceToken',
+      payload: token,
+    })),
+    setDestToken: jest.fn((token) => ({
+      type: 'bridge/setDestToken',
+      payload: token,
     })),
   };
 });
@@ -1004,6 +1041,33 @@ describe('BridgeTokenSelector', () => {
       });
     });
 
+    // Restores the default (unfiltered-by-enabledChainIds) mock
+    // implementation for subsequent tests.
+    const restoreDefaultAllowedChainRankingMock = () => {
+      // The state shape here mirrors this file's local jest.mock stub for
+      // the bridge slice (see top of file), not the real RootState, since
+      // this module is fully mocked. Cast past the real selector's type to
+      // keep jest.mocked() happy about the mockImplementation's signature.
+      jest.mocked(selectAllowedChainRanking).mockImplementation(
+        ((state: {
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                bridgeState: {
+                  bridgeFeatureFlags?: {
+                    chainRanking?: { chainId: CaipChainId; name: string }[];
+                  };
+                };
+              };
+            };
+          };
+        }) =>
+          state.engine.backgroundState.BridgeController.bridgeState
+            .bridgeFeatureFlags?.chainRanking ??
+          []) as unknown as typeof selectAllowedChainRanking,
+      );
+    };
+
     it('falls back to all enabled chains when the initial dest filter chain is outside enabledChainIds', async () => {
       // Selected dest token lives on Polygon, but this picker (e.g. Limit
       // Order) is scoped to Ethereum only, so Polygon is excluded from the
@@ -1031,23 +1095,94 @@ describe('BridgeTokenSelector', () => {
           MOCK_CHAIN_IDS.polygon,
         ]);
       } finally {
-        // Restore the default (unfiltered-by-enabledChainIds) mock
-        // implementation for subsequent tests.
-        jest.mocked(selectAllowedChainRanking).mockImplementation(
-          (state: {
-            engine: {
-              backgroundState: {
-                BridgeController: {
-                  bridgeState: {
-                    bridgeFeatureFlags?: { chainRanking?: CaipChainId[] };
-                  };
-                };
-              };
-            };
-          }) =>
-            state.engine.backgroundState.BridgeController.bridgeState
-              .bridgeFeatureFlags?.chainRanking ?? [],
+        restoreDefaultAllowedChainRankingMock();
+      }
+    });
+
+    it('clears a stale Redux network filter and re-anchors source/dest to ETH/mUSD when Ethereum is enabled', async () => {
+      // Redux still holds a filter set by a previous (unrestricted) picker
+      // instance, but this picker (e.g. Limit Order) is scoped to Ethereum
+      // only, so Polygon is excluded from the allowed chainRanking. Leaving
+      // the stale filter in place would fetch all enabled chains while no
+      // pill (and no "All networks" option) appears selected, and the
+      // underlying source/dest pair would still reference an unsupported
+      // chain for this picker.
+      const enabledChainIds = [MOCK_CHAIN_IDS.ethereum];
+      mockRouteParams = { type: 'source', enabledChainIds };
+
+      const restrictedRanking = [
+        { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+      ];
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockImplementation(() => restrictedRanking);
+
+      const store = createMockStore({
+        tokenSelectorNetworkFilter: MOCK_CHAIN_IDS.polygon,
+      });
+
+      try {
+        renderWithReduxProvider(<BridgeTokenSelector />, store);
+
+        await waitFor(() => {
+          expect(
+            store.getState().bridge.tokenSelectorNetworkFilter,
+          ).toBeUndefined();
+        });
+
+        expect(setSourceToken).toHaveBeenCalledWith(
+          expect.objectContaining({ chainId: '0x1', symbol: 'ETH' }),
         );
+        expect(setDestToken).toHaveBeenCalledWith(
+          expect.objectContaining({ chainId: '0x1', symbol: 'mUSD' }),
+        );
+        // Source and dest must share the same chainId format (hex for EVM).
+        const [dispatchedSourceToken] =
+          jest.mocked(setSourceToken).mock.calls[0];
+        const [dispatchedDestToken] = jest.mocked(setDestToken).mock.calls[0];
+        expect(dispatchedSourceToken?.chainId).toBe(
+          dispatchedDestToken?.chainId,
+        );
+      } finally {
+        restoreDefaultAllowedChainRankingMock();
+      }
+    });
+
+    it('re-anchors source/dest to the first enabled chain default pair when Ethereum is not enabled', async () => {
+      // Picker is scoped to Polygon only (e.g. a Polygon-only flow), so
+      // Ethereum isn't an option — the fallback pair should come from the
+      // top-ranked enabled chain instead.
+      const enabledChainIds = [MOCK_CHAIN_IDS.polygon];
+      mockRouteParams = { type: 'source', enabledChainIds };
+
+      const restrictedRanking = [
+        { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
+      ];
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockImplementation(() => restrictedRanking);
+
+      const store = createMockStore({
+        tokenSelectorNetworkFilter: MOCK_CHAIN_IDS.ethereum,
+      });
+
+      try {
+        renderWithReduxProvider(<BridgeTokenSelector />, store);
+
+        await waitFor(() => {
+          expect(
+            store.getState().bridge.tokenSelectorNetworkFilter,
+          ).toBeUndefined();
+        });
+
+        expect(setSourceToken).toHaveBeenCalledWith(
+          expect.objectContaining({ chainId: '0x89' }),
+        );
+        expect(setSourceToken).not.toHaveBeenCalledWith(
+          expect.objectContaining({ symbol: 'ETH' }),
+        );
+      } finally {
+        restoreDefaultAllowedChainRankingMock();
       }
     });
   });
