@@ -1817,9 +1817,9 @@ describe('ActivityListItemRow — display currency conversion', () => {
   const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
 
   // These selector mocks use persistent return values (clearAllMocks does not
-  // reset them), so restore the suite-wide defaults (USD, equal rates) after
+  // reset them), so set the suite-wide defaults (USD, equal rates) before
   // each test to keep overrides from leaking.
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
@@ -1991,8 +1991,8 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
     >;
 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
-  // so restore the suite default (lowercased mUSD key) after each test.
-  afterEach(() => {
+  // so set the suite default (lowercased mUSD key) before each test.
+  beforeEach(() => {
     jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
