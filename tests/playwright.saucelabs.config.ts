@@ -64,5 +64,11 @@ export default defineConfig({
         ),
       },
     },
-  ],
+  ].filter((project) => {
+    const buildType = process.env.SAUCE_BUILD_TYPE;
+    if (buildType === 'onboarding') {
+      return project.name.startsWith('saucelabs-android-onboarding');
+    }
+    return project.name === 'saucelabs-android';
+  }),
 });
