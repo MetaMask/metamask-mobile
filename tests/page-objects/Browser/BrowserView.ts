@@ -14,15 +14,12 @@ import {
   Gestures,
   Matchers,
   Utilities,
-  asPlaywrightElement,
-  encapsulated,
   sleep,
 } from '../../framework';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import { FrameworkDetector } from '../../framework/FrameworkDetector';
-import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import {
+  executeMobileDeepLink,
+  getDriver,
+} from '../../framework/PlaywrightUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 interface TransactionParams {
@@ -83,20 +80,12 @@ class Browser {
    * Editable URL field after the bar is focused (Android needs the inner EditText).
    */
   get urlBarTextInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            BrowserURLBarSelectorsIDs.URL_INPUT,
-            { exact: false },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            BrowserURLBarSelectorsIDs.URL_INPUT,
-          ),
-      },
-    });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByID(
+        new RegExp(BrowserURLBarSelectorsIDs.URL_INPUT),
+      );
+    }
+    return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
   get clearURLButton(): EncapsulatedElementType {
@@ -131,7 +120,7 @@ class Browser {
   }
 
   get testDappURLInFavouritesTab(): WebElement {
-    return device.getPlatform() === 'ios'
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByXPath(
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
           BrowserViewSelectorsXPaths.TEST_DAPP_LINK,
@@ -155,7 +144,7 @@ class Browser {
   }
 
   get addBookmarkButton(): EncapsulatedElementType {
-    return device.getPlatform() === 'ios'
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
@@ -180,16 +169,7 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.urlInputBoxID, {
-          elemDescription: 'URL input box',
-        });
-      },
-      appium: async () => {
-        await this.focusUrlBarAppium();
-      },
-    });
+    await this.focusUrlBarAppium();
   }
 
   /**
@@ -205,16 +185,14 @@ class Browser {
    * Taps the display Text (`browser-url-display-text`).
    */
   private async focusUrlBarAppium(): Promise<void> {
-    const input = await asPlaywrightElement(this.urlBarTextInput);
-    const alreadyFocused = await input.isVisible().catch(() => false);
-    if (alreadyFocused) {
+    if (await Utilities.isElementVisible(this.urlBarTextInput, 3_000)) {
       return;
     }
 
     await Gestures.waitAndTap(this.urlBarDisplayText, {
       elemDescription: 'URL bar display text (focus URL editor)',
     });
-    await input.waitForDisplayed();
+    await Assertions.expectElementToBeVisible(this.urlBarTextInput);
   }
 
   /**
@@ -223,14 +201,18 @@ class Browser {
   private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
     await this.focusUrlBarAppium();
 
-    const input = await asPlaywrightElement(this.urlBarTextInput);
-    await input.clear();
-    await PlaywrightGestures.typeText(input, url);
+    await Gestures.typeText(this.urlBarTextInput, url, {
+      clearFirst: true,
+      hideKeyboard: false,
+    });
 
     if (PlatformDetector.isAndroid()) {
-      await PlaywrightGestures.submitAndroidUrlBar();
+      await getDriver().pressKeyCode(66);
     } else {
-      await PlaywrightGestures.typeText(input, '\n');
+      await Gestures.typeText(this.urlBarTextInput, '\n', {
+        clearFirst: false,
+        hideKeyboard: false,
+      });
     }
 
     // Dismiss the editor so subsequent reads/taps see the page.
@@ -246,8 +228,7 @@ class Browser {
     const deeplink = `dapp://${hostAndPath}`;
 
     await executeMobileDeepLink(deeplink);
-    const settleMs =
-      FrameworkDetector.isAppium() && process.env.CI === 'true' ? 8_000 : 3_000;
+    const settleMs = process.env.CI === 'true' ? 8_000 : 3_000;
     await sleep(settleMs);
   }
 
@@ -309,14 +290,6 @@ class Browser {
     }
 
     await this.dismissUrlEditorIfOpen();
-
-    if (FrameworkDetector.isAppium()) {
-      const closeBtn = await PlaywrightMatchers.getElementById(
-        BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
-      );
-      await PlaywrightGestures.waitAndTap(closeBtn);
-      return;
-    }
 
     await Gestures.waitAndTap(this.closeBrowserButton, {
       elemDescription: 'Close browser button',
@@ -511,7 +484,7 @@ class Browser {
   }
 
   async tapDappInFavorites(): Promise<void> {
-    if (device.getPlatform() === 'ios') {
+    if (PlatformDetector.isIOS()) {
       await Gestures.tap(this.testDappURLInFavouritesTab, {
         elemDescription: 'Test dapp URL in favorites tab',
       });
@@ -530,11 +503,7 @@ class Browser {
     // read the visible display Text (`browser-url-display-text`). The `url-input`
     // wrapper View often returns empty getText(), which would falsely pass a
     // not-equal assertion.
-    const urlElement = FrameworkDetector.isAppium()
-      ? this.urlBarDisplayText
-      : this.urlInputBoxID;
-
-    await Assertions.expectElementToNotHaveText(urlElement, text, {
+    await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
       description: description ?? `URL input box text is not "${text}"`,
     });
   }
@@ -552,32 +521,12 @@ class Browser {
       await this.closeAllBrowserTabsIfOpen();
     }
 
-    if (FrameworkDetector.isAppium()) {
-      await this.typeUrlAppium(url);
-      return;
-    }
-    await Gestures.replaceText(this.urlInputBoxID, url, {
-      elemDescription: 'URL input box',
-    });
-    await Gestures.typeText(this.urlInputBoxID, '\n', {
-      clearFirst: false,
-      hideKeyboard: false,
-      elemDescription: 'URL input submit',
-    });
+    await this.typeUrlAppium(url);
 
-    // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
-    // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
-    // on Android. The result is that the URL editor "Cancel" button stays
-    // mounted while the navigation completes, and the right-side action
-    // buttons in the top bar (close, network/account avatar) remain hidden.
-    // Defensively tap Cancel to drop the URL bar back into its non-editing
-    // state so subsequent gestures can target those buttons.
-    //
-    // Callers can opt-out via `skipUrlEditorDismissal: true` when the
-    // dismissal would race with concurrent app work that breaks Detox sync —
-    // notably `browser-phishing.spec.ts`, where phishing detection triggers
-    // AsyncStorage v2 writes that interact badly with Detox's
-    // `AsyncStorageIdlingResource` if dismissal taps land on top of them.
+    // After URL-bar navigation, `onSubmitEditing` may leave the URL editor
+    // focused so top-bar actions stay hidden. Deeplink navigation does not
+    // dismiss. Callers can opt out via `skipUrlEditorDismissal: true` when
+    // dismissal would race with concurrent app work.
     if (!options.skipUrlEditorDismissal) {
       if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
         await Gestures.waitAndTap(this.cancelUrlInputButton, {
@@ -601,12 +550,9 @@ class Browser {
     await this.tapUrlInputBox();
     // Cancel dismiss resets the bar to the fixture tab URL (…/health-check) if
     // navigation has not committed yet — skip until the dapp page has loaded.
-    // Only skip in Appium; Detox needs the dismiss so the top bar controls are
-    // visible after navigation (e.g. the network avatar button).
-    const navigateOptions = FrameworkDetector.isAppium()
-      ? { skipUrlEditorDismissal: true as const }
-      : {};
-    await this.navigateToURL(getDappUrl(0), navigateOptions);
+    await this.navigateToURL(getDappUrl(0), {
+      skipUrlEditorDismissal: true,
+    });
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
@@ -631,8 +577,10 @@ class Browser {
   async reloadTab() {
     await this.tapUrlInputBox();
 
-    const urlInputBox = (await this.urlInputBoxID) as IndexableNativeElement;
-    await urlInputBox.typeText('\n');
+    await Gestures.typeText(this.urlInputBoxID, '\n', {
+      clearFirst: false,
+      hideKeyboard: false,
+    });
   }
 }
 

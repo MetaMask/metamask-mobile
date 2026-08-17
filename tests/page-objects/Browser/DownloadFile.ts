@@ -1,9 +1,7 @@
 import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import Utilities from '../../framework/Utilities';
 import {
   DownloadFileSelectorsAccessibilityIDs,
@@ -18,31 +16,31 @@ class DownloadFile {
       return;
     }
 
-    await PlaywrightContextHelpers.switchToNativeContext();
-    await PlaywrightGestures.waitAndTap(
-      await PlaywrightMatchers.getElementById(
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
         DownloadFileSelectorsIDs.ANDROID_CONFIRM_DOWNLOAD_BUTTON,
       ),
+      {
+        elemDescription: 'Android confirm download button',
+      },
     );
   }
 
   async verifySuccessStateVisible(): Promise<void> {
-    await PlaywrightContextHelpers.switchToNativeContext();
-
     if (PlatformDetector.isIOS()) {
       // saveToFiles presents UIDocumentPickerViewController (export), not a
       // UIActivityViewController with a top-level "Save" action. Cancel appears
       // in the hierarchy but is not hittable, so only assert presentation.
       await Utilities.executeWithRetry(
         async () => {
-          const cancel = await PlaywrightMatchers.getElementByAccessibilityId(
-            DownloadFileSelectorsAccessibilityIDs.IOS_SAVE_SHEET_CANCEL,
+          await Assertions.expectElementToExist(
+            Matchers.getElementByLabel(
+              DownloadFileSelectorsAccessibilityIDs.IOS_SAVE_SHEET_CANCEL,
+            ),
+            {
+              description: 'iOS download Save sheet Cancel control not present',
+            },
           );
-          if (!(await cancel.unwrap().isExisting())) {
-            throw new Error(
-              'iOS download Save sheet Cancel control not present',
-            );
-          }
         },
         {
           description: 'Assert iOS download Save sheet is presented',
