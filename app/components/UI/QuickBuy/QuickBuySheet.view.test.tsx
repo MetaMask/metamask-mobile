@@ -29,15 +29,29 @@ function mockFetchQuotes() {
   );
 }
 
-async function waitForSheetReady(screen: Pick<RenderAPI, 'findByTestId'>) {
+async function waitForSheetReady(
+  screen: Pick<RenderAPI, 'findByTestId' | 'getByTestId'>,
+) {
   await screen.findByTestId(QuickBuySheetSelectorsIDs.CONTENT_CONTAINER);
 
   await waitFor(
-    async () => {
-      const payWith = await screen.findByTestId(
+    () => {
+      const payWith = screen.getByTestId(
         QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON,
       );
       expect(within(payWith).getByText(/ETH/)).toBeOnTheScreen();
+    },
+    { timeout: WAIT_MS },
+  );
+}
+
+async function waitForConfirmEnabled(screen: Pick<RenderAPI, 'getByTestId'>) {
+  await waitFor(
+    () => {
+      expect(
+        screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON).props
+          .accessibilityState?.disabled,
+      ).toBe(false);
     },
     { timeout: WAIT_MS },
   );
@@ -101,15 +115,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await waitForSheetReady(screen);
     fireEvent.press(await screen.findByTestId(getQuickBuyBuyPillTestId(10)));
 
-    await waitFor(
-      async () => {
-        const confirm = await screen.findByTestId(
-          QuickBuySheetSelectorsIDs.CONFIRM_BUTTON,
-        );
-        expect(confirm.props.accessibilityState?.disabled).not.toBe(true);
-      },
-      { timeout: WAIT_MS },
-    );
+    await waitForConfirmEnabled(screen);
   });
 
   it('submits the trade via Engine when confirm is pressed', async () => {
@@ -122,15 +128,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await waitForSheetReady(screen);
     fireEvent.press(await screen.findByTestId(getQuickBuyBuyPillTestId(10)));
 
-    await waitFor(
-      async () => {
-        const confirm = await screen.findByTestId(
-          QuickBuySheetSelectorsIDs.CONFIRM_BUTTON,
-        );
-        expect(confirm.props.accessibilityState?.disabled).not.toBe(true);
-      },
-      { timeout: WAIT_MS },
-    );
+    await waitForConfirmEnabled(screen);
 
     fireEvent.press(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
