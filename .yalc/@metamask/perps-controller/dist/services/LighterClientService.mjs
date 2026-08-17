@@ -191,6 +191,30 @@ export class LighterClientService {
         return await __classPrivateFieldGet(this, _LighterClientService_get, "f").call(this, `/api/v1/nextNonce?account_index=${accountIndex}&api_key_index=${apiKeyIndex}`);
     }
     /**
+     * Look up a transaction by its exact hash (`GET /api/v1/tx`). Used to
+     * resolve submission-acceptance ambiguity authoritatively: an exact-hash
+     * match proves the signed payload reached the sequencer.
+     *
+     * Contract: a venue-confirmed "transaction not found" (API error code
+     * 21500) resolves to NULL; transport failures and every other API error
+     * RETHROW — they are ambiguity, never evidence of non-acceptance.
+     *
+     * @param txHash - The signed transaction hash.
+     * @returns The venue's transaction payload, or null when the venue
+     * confirms the hash is unknown.
+     */
+    async getTx(txHash) {
+        try {
+            return await __classPrivateFieldGet(this, _LighterClientService_get, "f").call(this, `/api/v1/tx?by=hash&value=${encodeURIComponent(txHash)}`);
+        }
+        catch (error) {
+            if (error instanceof LighterApiError && error.code === 21500) {
+                return null;
+            }
+            throw error;
+        }
+    }
+    /**
      * Fetch active (open) orders for an account.
      *
      * @param accountIndex - The Lighter account index.
@@ -208,10 +232,13 @@ export class LighterClientService {
      * @param accountIndex - The Lighter account index.
      * @param authToken - Auth token minted by the signer.
      * @param limit - Max entries (1-100).
+     * @param cursor - Pagination cursor from a previous page's `nextCursor`.
+     * @param marketId - Optional market filter (official `market_id` query
+     * param) — sharply bounds history scans to one symbol.
      * @returns Inactive orders payload.
      */
-    async getInactiveOrders(accountIndex, authToken, limit = 50) {
-        return await __classPrivateFieldGet(this, _LighterClientService_get, "f").call(this, `/api/v1/accountInactiveOrders?account_index=${accountIndex}&limit=${limit}`, { authorization: authToken });
+    async getInactiveOrders(accountIndex, authToken, limit = 50, cursor, marketId) {
+        return await __classPrivateFieldGet(this, _LighterClientService_get, "f").call(this, `/api/v1/accountInactiveOrders?account_index=${accountIndex}&limit=${limit}${cursor === undefined ? '' : `&cursor=${encodeURIComponent(cursor)}`}${marketId === undefined ? '' : `&market_id=${marketId}`}`, { authorization: authToken });
     }
     /**
      * Fetch L1→L2 deposit history (auth token required). The venue requires

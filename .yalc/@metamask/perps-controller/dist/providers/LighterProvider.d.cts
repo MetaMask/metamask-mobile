@@ -19,6 +19,35 @@ import { WebSocketConnectionState } from "../types/index.cjs";
 import type { AccountState, AssetRoute, CandleData, CancelOrderParams, CancelOrderResult, ClosePositionParams, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, GetAccountStateParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarketsParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, HistoricalPortfolioResult, InitializeResult, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarketData, PerpsPlatformDependencies, PerpsProvider, PerpsReadOptions, Position, RawLedgerUpdate, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult } from "../types/index.cjs";
 import type { LighterAuthConfig, LighterSignerBridge, LighterWebSocketCtor } from "../types/lighter-types.cjs";
 /**
+ * Identity of the position the journalled protection belonged to. A
+ * delayed restore must never attach old triggers to a DIFFERENT
+ * lifecycle (original closed, new same-symbol position opened).
+ */
+/**
+ * Durable nonce dispatch ledger document. Entries carry the OPERATION
+ * kind (tx type) and a human-readable intent so a dispatch whose
+ * response was lost but which is later PROVEN consumed can be surfaced
+ * as a recovered outcome — blocking blind retries of financial
+ * operations until explicitly acknowledged.
+ */
+type LighterRecoveredDispatch = {
+    /** Stable identity for selective acknowledgment. */
+    recoveryId: string;
+    kind: number;
+    intent: string;
+    txHash: string | null;
+    /**
+     * Authoritative outcome: 'succeeded' (exact-hash lookup, venue status
+     * executed), 'failed' (exact-hash lookup, venue status failed/rejected
+     * — retry-safe, non-blocking), 'unknown' (only the nonce advance is
+     * proven, e.g. another device moved the nonce; the intent's own fate
+     * is NOT known and must never be reported as completed).
+     */
+    outcome: 'succeeded' | 'failed' | 'unknown';
+    /** What proved the outcome (e.g. 'tx-status:3', 'rest-advance'). */
+    evidence: string;
+};
+/**
  * Lighter provider implementation (POC).
  */
 export declare class LighterProvider implements PerpsProvider {
@@ -37,6 +66,43 @@ export declare class LighterProvider implements PerpsProvider {
     ping(_timeoutMs?: number): Promise<void>;
     toggleTestnet(): Promise<ToggleTestnetResult>;
     isReadyToTrade(): Promise<ReadyToTradeResult>;
+    /**
+     * List TP/SL obligations parked in DURABLE manual-recovery state: the
+     * venue removed (or rejected) protection in a way that cannot be
+     * safely re-established automatically. Surfaced to callers/UI; each
+     * entry resolves when the user issues a new explicit TP/SL update for
+     * the symbol.
+     *
+     * @returns Parked manual-recovery entries.
+     */
+    getPendingManualRecoveries(): Promise<{
+        symbol: string;
+        settlementKey: string;
+        recordedAt: number;
+        reason: string;
+        priorIntent: 'replace' | 'remove';
+        survivingOrderIds: string[];
+        actionNeeded: string;
+    }[]>;
+    /**
+     * READ-ONLY view of the durable recovered-dispatch outcomes
+     * (previously ambiguous submissions later resolved). Never mutates the
+     * ledger — acknowledgment is a separate, per-outcome call so a crash
+     * between reading and acting can never silently drop an outcome.
+     *
+     * @returns The pending recovered-dispatch outcomes.
+     */
+    getRecoveredDispatches(): Promise<LighterRecoveredDispatch[]>;
+    /**
+     * Acknowledge ONE recovered-dispatch outcome by its stable id, after
+     * the caller has refreshed venue state and decided how to proceed.
+     * Runs under the ledger mutex and re-verifies the session generation
+     * inside it so an account switch mid-acknowledge can never clear
+     * another account's outcome.
+     *
+     * @param recoveryId - Stable id from {@link getRecoveredDispatches}.
+     */
+    acknowledgeRecoveredDispatch(recoveryId: string): Promise<void>;
     getMarkets(_params?: GetMarketsParams): Promise<MarketInfo[]>;
     getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
     getPositions(_params?: GetPositionsParams): Promise<Position[]>;
@@ -44,8 +110,8 @@ export declare class LighterProvider implements PerpsProvider {
     getOpenOrders(_params?: GetOrdersParams): Promise<Order[]>;
     getOrders(params?: GetOrdersParams, _options?: PerpsReadOptions): Promise<Order[]>;
     getCurrentAccountId(): Promise<CaipAccountId>;
-    placeOrder(params: OrderParams): Promise<OrderResult>;
-    cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult>;
+    placeOrder(params: OrderParams, inheritedGeneration?: number): Promise<OrderResult>;
+    cancelOrder(params: CancelOrderParams, inheritedGeneration?: number): Promise<CancelOrderResult>;
     editOrder(_params: EditOrderParams): Promise<OrderResult>;
     closePosition(params: ClosePositionParams): Promise<OrderResult>;
     updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
@@ -81,7 +147,7 @@ export declare class LighterProvider implements PerpsProvider {
         isValid: boolean;
         error?: string;
     }>;
-    calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
+    calculateLiquidationPrice(_params: LiquidationPriceParams): Promise<string>;
     calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
     getMaxLeverage(asset: string): Promise<number>;
     calculateFees(params: FeeCalculationParams): Promise<FeeCalculationResult>;
@@ -107,4 +173,5 @@ export declare class LighterProvider implements PerpsProvider {
     getWithdrawalRoutes(_params?: GetSupportedPathsParams): AssetRoute[];
     getBlockExplorerUrl(address?: string): string;
 }
+export {};
 //# sourceMappingURL=LighterProvider.d.cts.map
