@@ -53,14 +53,15 @@ jest.mock('../../../../Engine', () => ({
 jest.mock('../../../../../components/Views/confirmations/utils/deeplink');
 
 describe('handleEthereumUrl', () => {
-  const mockParse = parse as jest.Mock;
-  const mockGetDecimalChainId = getDecimalChainId as jest.Mock;
-  const mockSwitchNetwork = switchNetwork as jest.Mock;
-  const mockHandleApproveUrl = handleApproveUrl as jest.Mock;
+  const mockParse = jest.mocked(parse);
+  const mockGetDecimalChainId = jest.mocked(getDecimalChainId);
+  const mockSwitchNetwork = jest.mocked(switchNetwork);
+  const mockHandleApproveUrl = jest.mocked(handleApproveUrl);
   const mockIsDeeplinkRedesignedConfirmationCompatible = jest.mocked(
     isDeeplinkRedesignedConfirmationCompatible,
   );
   const mockAddTransactionForDeeplink = jest.mocked(addTransactionForDeeplink);
+  const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -74,6 +75,7 @@ describe('handleEthereumUrl', () => {
         isEvmSelected: boolean;
       }
     ).isEvmSelected = true;
+    Engine.context.MultichainNetworkController.setActiveNetwork = jest.fn();
 
     mockParse.mockReturnValue({
       function_name: ETH_ACTIONS.TRANSFER,
@@ -88,6 +90,10 @@ describe('handleEthereumUrl', () => {
     mockAddTransactionForDeeplink.mockResolvedValue(
       {} as ReturnType<typeof addTransactionForDeeplink>,
     );
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('alerts and throws on invalid URL', () => {
@@ -254,11 +260,9 @@ describe('handleEthereumUrl', () => {
       // do nothing
     });
 
-    (NavigationService.navigation.navigate as jest.Mock).mockImplementation(
-      () => {
-        throw new Error('Unknown error');
-      },
-    );
+    mockNavigate.mockImplementation(() => {
+      throw new Error('Unknown error');
+    });
 
     handleEthereumUrl({ url, origin });
 
