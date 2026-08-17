@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import PreventScreenshot from '../../../core/PreventScreenshot';
+import PreventScreenshot, {
+  CAPTURE_KEYS,
+} from '../../../core/PreventScreenshot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
@@ -38,7 +40,9 @@ const acquireScreenCaptureBlock = () => {
   // it rather than only the first. That restores protection when an earlier
   // call failed or Android rebuilt the window, without tracking native state on
   // this side, where it could drift out of sync and silently skip the call.
-  runCaptureCall(() => PreventScreenshot.forbid());
+  runCaptureCall(() =>
+    PreventScreenshot.forbid(CAPTURE_KEYS.credentialScreens),
+  );
 };
 
 const releaseScreenCaptureBlock = () => {
@@ -50,7 +54,9 @@ const releaseScreenCaptureBlock = () => {
   pendingCaptureRelease = setTimeout(() => {
     pendingCaptureRelease = undefined;
     if (activeScreenCaptureBlocks === 0) {
-      runCaptureCall(() => PreventScreenshot.allow());
+      runCaptureCall(() =>
+        PreventScreenshot.allow(CAPTURE_KEYS.credentialScreens),
+      );
     }
   }, CAPTURE_RELEASE_DELAY_MS);
 };

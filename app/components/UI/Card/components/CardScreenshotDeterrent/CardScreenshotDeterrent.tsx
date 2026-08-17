@@ -1,7 +1,9 @@
 import React, { useEffect, useCallback, useRef } from 'react';
 import { View, Alert, InteractionManager } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import PreventScreenshot from '../../../../../core/PreventScreenshot';
+import PreventScreenshot, {
+  CAPTURE_KEYS,
+} from '../../../../../core/PreventScreenshot';
 import useScreenshotDeterrent from '../../../../hooks/useScreenshotDeterrent';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -52,16 +54,17 @@ const CardScreenshotDeterrent = ({ enabled }: CardScreenshotDeterrentProps) => {
     useCallback(() => {
       if (enabled) {
         InteractionManager.runAfterInteractions(() => {
-          PreventScreenshot.forbid();
+          PreventScreenshot.forbid(CAPTURE_KEYS.card);
         });
       }
 
       return () => {
-        // Only call allow() if forbid() was called (when enabled was true)
-        // This prevents incorrectly re-enabling screenshots if another component blocked them
+        // Only call allow() if forbid() was called (when enabled was true).
+        // The card's own key keeps this release from clearing the flag while
+        // another owner still holds it — see CAPTURE_KEYS.
         if (enabled) {
           InteractionManager.runAfterInteractions(() => {
-            PreventScreenshot.allow();
+            PreventScreenshot.allow(CAPTURE_KEYS.card);
           });
         }
         alertShownRef.current = false;

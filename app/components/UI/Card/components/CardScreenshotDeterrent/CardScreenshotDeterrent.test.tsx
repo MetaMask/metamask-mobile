@@ -9,6 +9,11 @@ import { strings } from '../../../../../../locales/i18n';
 jest.mock('../../../../../core/PreventScreenshot', () => ({
   forbid: jest.fn(),
   allow: jest.fn(),
+  CAPTURE_KEYS: {
+    credentialScreens: 'metamask-credential-screens',
+    onboarding: 'metamask-onboarding',
+    card: 'metamask-card',
+  },
 }));
 
 // Mock InteractionManager to execute callback immediately

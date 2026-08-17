@@ -9,10 +9,26 @@ import Device from '../util/device';
 // protection stays off for those builds.
 const isCaptureProtectionDisabled = isE2EOrExpEnvironment || isRc;
 
-// A single shared key. Callers manage their own overlapping requests, so the
-// key only has to keep this app's requests from clashing with any other
-// caller of the module.
-const CAPTURE_KEY = 'metamask-credential-screens';
+/**
+ * One key per independent owner of the capture block.
+ *
+ * expo-screen-capture holds these in a Set, not a counter: `prevent` adds the
+ * key and only calls the native block if the key is new, while `allow` deletes
+ * the key and clears the native block once the Set is empty. Sharing a single
+ * key across unrelated owners therefore breaks the moment one of them
+ * releases — its `allow` empties the Set and clears FLAG_SECURE for everyone
+ * still expecting protection.
+ *
+ * Distinct keys make that Set behave as a refcount across owners, so the flag
+ * survives until the last owner has released it.
+ */
+export const CAPTURE_KEYS = {
+  // Shared by every ScreenshotDeterrent instance, which refcounts its own
+  // overlapping mounts internally before calling through to here.
+  credentialScreens: 'metamask-credential-screens',
+  onboarding: 'metamask-onboarding',
+  card: 'metamask-card',
+};
 
 const noop = () => Promise.resolve();
 
@@ -25,25 +41,29 @@ const noop = () => Promise.resolve();
 // only make the experience worse there without protecting anything more.
 const isWholeWindowBlockSupported = Device.isAndroid();
 
+const isDisabled = isCaptureProtectionDisabled || !isWholeWindowBlockSupported;
+
 export default {
   /**
    * Blocks screenshots and screen recordings via FLAG_SECURE. Android only —
    * see isWholeWindowBlockSupported above for why iOS opts out.
    *
+   * @param {string} key Owner key from CAPTURE_KEYS. Owners must not share a
+   * key unless they coordinate their own refcount — see CAPTURE_KEYS.
    * @returns {Promise<void>}
    */
-  forbid:
-    isCaptureProtectionDisabled || !isWholeWindowBlockSupported
-      ? noop
-      : () => preventScreenCaptureAsync(CAPTURE_KEY),
+  forbid: isDisabled
+    ? noop
+    : (key = CAPTURE_KEYS.credentialScreens) => preventScreenCaptureAsync(key),
 
   /**
-   * Releases the block applied by `forbid`.
+   * Releases this owner's block. The native flag is only cleared once every
+   * other owner has released theirs too.
    *
+   * @param {string} key The same key passed to `forbid`.
    * @returns {Promise<void>}
    */
-  allow:
-    isCaptureProtectionDisabled || !isWholeWindowBlockSupported
-      ? noop
-      : () => allowScreenCaptureAsync(CAPTURE_KEY),
+  allow: isDisabled
+    ? noop
+    : (key = CAPTURE_KEYS.credentialScreens) => allowScreenCaptureAsync(key),
 };
