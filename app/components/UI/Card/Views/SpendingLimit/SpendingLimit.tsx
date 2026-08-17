@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -27,6 +33,10 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import {
+  selectCardHomeDataStatus,
+  selectIsCardStateResolved,
+} from '../../../../../selectors/cardController';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { CardFundingToken } from '../../types';
 import useSpendingLimit from '../../hooks/useSpendingLimit';
@@ -40,6 +50,8 @@ import AccountRow from './components/AccountRow';
 import TokenRow from './components/TokenRow';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
 import { SpendingLimitSelectors } from './SpendingLimit.testIds';
+
+const ONBOARDING_LOAD_TIMEOUT_MS = 30_000;
 
 interface SpendingLimitRouteParams {
   flow?: 'manage' | 'enable' | 'onboarding' | 'enable_card';
@@ -65,6 +77,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const accountGroupName = useAccountGroupName();
+  const isCardStateResolved = useSelector(selectIsCardStateResolved);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
 
   const flow = route?.params?.flow || 'manage';
   const isOnboardingFlow = flow === 'onboarding';
@@ -79,20 +93,54 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     primaryToken,
     availableTokens: homeAvailableTokens,
     data: cardHomeData,
+    refetch: refetchCardHomeData,
   } = useCardHomeData();
   const {
     availableTokens: hookAvailableTokens,
     delegationSettings: hookDelegationSettings,
-    isLoading: isLoadingHookData,
     error: hookError,
     fetchData: fetchHookData,
   } = useSpendingLimitData();
 
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const [fallbackStatus, setFallbackStatus] = useState<
+    'idle' | 'pending' | 'settled'
+  >('idle');
+  const isMountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
+
+  const homeDelegationSettings = cardHomeData?.delegationSettings ?? null;
+  const cardHomeSettled =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+  // Card home data is only trusted once its fetch settles, so a stale pre-auth
+  // payload cannot be mistaken for the authenticated one.
+  const hasDelegationSettings =
+    (cardHomeSettled && homeDelegationSettings !== null) ||
+    hookDelegationSettings !== null;
+  const needsFallbackFetch =
+    homeDelegationSettings === null && (cardHomeSettled || isCardStateResolved);
+
+  const runFallbackFetch = useCallback(() => {
+    setFallbackStatus('pending');
+    fetchHookData()
+      .catch(() => undefined)
+      .finally(() => {
+        if (isMountedRef.current) setFallbackStatus('settled');
+      });
+  }, [fetchHookData]);
+
+  // Fallback only after card home settles without delegation settings.
   useEffect(() => {
-    if (isOnboardingFlow && homeAvailableTokens.length === 0) {
-      fetchHookData();
-    }
-  }, [isOnboardingFlow, homeAvailableTokens.length, fetchHookData]);
+    if (!isOnboardingFlow) return;
+    if (!needsFallbackFetch) return;
+    runFallbackFetch();
+  }, [isOnboardingFlow, needsFallbackFetch, runFallbackFetch]);
 
   const allTokens =
     homeAvailableTokens.length > 0
@@ -101,15 +149,44 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         ? hookAvailableTokens
         : [];
   const delegationSettings =
-    cardHomeData?.delegationSettings ??
+    homeDelegationSettings ??
     (isOnboardingFlow ? hookDelegationSettings : null);
+
+  // Waiting while card home is unsettled, or while the fallback it triggers runs.
+  const isLoadInFlight =
+    isOnboardingFlow &&
+    !hasDelegationSettings &&
+    (!needsFallbackFetch || fallbackStatus !== 'settled');
+
+  // The timer is not tied to loadTimedOut, so firing it cannot clear it.
+  useEffect(() => {
+    if (!isLoadInFlight) {
+      setLoadTimedOut(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setLoadTimedOut(true);
+    }, ONBOARDING_LOAD_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [isLoadInFlight]);
+
+  const isOnboardingError =
+    isOnboardingFlow &&
+    !hasDelegationSettings &&
+    (loadTimedOut || Boolean(hookError) || fallbackStatus === 'settled');
+  const isOnboardingPending = isLoadInFlight && !isOnboardingError;
+
+  const handleRetry = useCallback(() => {
+    setLoadTimedOut(false);
+    refetchCardHomeData();
+    runFallbackFetch();
+  }, [refetchCardHomeData, runFallbackFetch]);
 
   const {
     selectedToken,
     limitType,
     customLimit,
     isLoading,
-    isUiInteractionLocked,
     handleAccountSelect,
     handleOtherSelect,
     handleLimitSelect,
@@ -122,6 +199,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
     moneyAccountApyPercent,
+    shouldBlockNavigation,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -131,18 +209,13 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 
-  const isUiInteractionLockedRef = useRef(isUiInteractionLocked);
-  useEffect(() => {
-    isUiInteractionLockedRef.current = isUiInteractionLocked;
-  }, [isUiInteractionLocked]);
-
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isUiInteractionLockedRef.current) return;
+      if (!shouldBlockNavigation()) return;
       e.preventDefault();
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, shouldBlockNavigation]);
 
   const tokenLabel = useMemo(() => {
     if (!selectedToken) return '';
@@ -166,7 +239,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     return customLimit || '0';
   }, [limitType, customLimit]);
 
-  if (isOnboardingFlow && isLoadingHookData) {
+  if (isOnboardingPending) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
@@ -194,8 +267,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     );
   }
 
-  // Error state for onboarding
-  if (isOnboardingFlow && hookError && !delegationSettings) {
+  if (isOnboardingError) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
@@ -206,7 +278,10 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           twClassName="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 justify-center items-center px-6">
+        <Box
+          twClassName="flex-1 justify-center items-center px-6"
+          testID={SpendingLimitSelectors.ERROR_CONTAINER}
+        >
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
@@ -222,8 +297,9 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
-              onPress={fetchHookData}
+              onPress={handleRetry}
               isFullWidth
+              testID={SpendingLimitSelectors.RETRY_BUTTON}
             >
               {strings('card.card_spending_limit.retry')}
             </Button>

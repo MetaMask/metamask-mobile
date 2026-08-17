@@ -823,6 +823,17 @@ export class CardController extends BaseController<
     return { isAuthenticated: true, location: tokens.location };
   }
 
+  /**
+   * Post-auth sync for tokens written outside `submitCredentials` (e.g. onboarding vault write).
+   * Clears stale card home data and force-refetches authenticated home data.
+   */
+  async syncSessionAfterExternalAuth(): Promise<void> {
+    const { isAuthenticated } = await this.validateAndRefreshSession();
+    if (!isAuthenticated) return;
+    this.#invalidateAndClear();
+    await this.fetchCardHomeData({ force: true });
+  }
+
   // -- Token helpers --
 
   /**
