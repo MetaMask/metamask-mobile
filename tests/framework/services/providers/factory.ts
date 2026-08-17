@@ -7,7 +7,7 @@ import { ProviderName } from '../../types.ts';
 /**
  * Supported provider types
  */
-export type ProviderType = 'emulator' | 'browserstack' | 'testmu';
+export type ProviderType = 'emulator' | 'browserstack' | 'testmu' | 'saucelabs';
 
 /**
  * Factory function to create the appropriate service provider
@@ -46,9 +46,15 @@ export function createServiceProvider(project: ProjectConfig): ServiceProvider {
       return new TestMuAIProvider(project);
     }
 
+    case ProviderName.SAUCELABS: {
+      const sauceLabsModule =
+        require('./saucelabs') as typeof import('./saucelabs');
+      return new sauceLabsModule.SauceLabsProvider(project);
+    }
+
     default:
       throw new Error(
-        `Unknown device provider: "${provider}". Supported providers: emulator, browserstack, testmu.`,
+        `Unknown device provider: "${provider}". Supported providers: emulator, browserstack, testmu, saucelabs.`,
       );
   }
 }

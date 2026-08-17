@@ -68,6 +68,11 @@ on:
         required: false
         type: boolean
         default: false
+      enable_saucelabs:
+        description: 'Run Sauce Labs performance lanes (disabled by default)'
+        required: false
+        type: boolean
+        default: false
       enable_testmu_benchmark:
         description: 'Run TestMu AI HyperExecute performance lanes (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
         required: false
@@ -161,6 +166,11 @@ on:
         default: ''
       enable_browserstack:
         description: 'Run BrowserStack performance lanes (disabled by default; TestMu HyperExecute is the primary provider)'
+        required: false
+        type: boolean
+        default: false
+      enable_saucelabs:
+        description: 'Run Sauce Labs performance lanes (disabled by default)'
         required: false
         type: boolean
         default: false
@@ -675,9 +685,10 @@ jobs:
       source_ref: ${{ inputs.source_ref || needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.ensure-fingerprint.outputs.fingerprint }}
-      reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
-      main_branch_only: ${{ inputs.reuse_main_builds }}
+      reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' && inputs.enable_saucelabs != true }}
+      main_branch_only: ${{ inputs.reuse_main_builds && inputs.enable_saucelabs != true }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+      enable_saucelabs: ${{ inputs.enable_saucelabs == true }}
       # LT_ACCESS_KEY must travel via secrets: inherit — secrets.* is illegal in reusable-workflow `with:`
     secrets: inherit
 
@@ -824,6 +835,31 @@ jobs:
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
+  run-android-onboarding-tests-saucelabs:
+    name: '[Sauce Labs] Run Android Onboarding Tests'
+    uses: ./.github/workflows/performance-test-runner-saucelabs.yml
+    needs:
+      [
+        trigger-android-dual-versions,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+      ]
+    if: >-
+      always() && !failure() && !cancelled() &&
+      inputs.enable_saucelabs == true &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      needs.trigger-android-dual-versions.result == 'success' &&
+      needs.trigger-android-dual-versions.outputs.without-srp-sauce-url != ''
+    with:
+      platform: android
+      build_type: onboarding
+      sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-sauce-url }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      sauce_build_name: ${{ needs.set-build-names.outputs.android_build_name }}-SauceLabs
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+    secrets: inherit
+
   run-ios-onboarding-tests:
     name: Performance Test iOS (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
@@ -862,6 +898,7 @@ jobs:
         run-ios-onboarding-tests,
         run-android-onboarding-tests-testmu,
         run-android-onboarding-tests-testmu-standard,
+        run-android-onboarding-tests-saucelabs,
       ]
     if: always()
     steps:
@@ -978,6 +1015,32 @@ jobs:
       # LT_ACCESS_KEY via secrets: inherit (secrets.* illegal in reusable-workflow `with:`)
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
       he_region: ${{ inputs.he_region || 'us' }}
+    secrets: inherit
+
+  run-android-imported-wallet-tests-saucelabs:
+    name: '[Sauce Labs] Run Android Imported Wallet Tests'
+    uses: ./.github/workflows/performance-test-runner-saucelabs.yml
+    needs:
+      [
+        trigger-android-dual-versions,
+        wait-for-onboarding-completion,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+      ]
+    if: >-
+      always() && !cancelled() &&
+      inputs.enable_saucelabs == true &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      needs.trigger-android-dual-versions.result == 'success' &&
+      needs.trigger-android-dual-versions.outputs.with-srp-sauce-url != ''
+    with:
+      platform: android
+      build_type: imported-wallet
+      sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-sauce-url }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      sauce_build_name: ${{ needs.set-build-names.outputs.android_build_name }}-SauceLabs
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   run-android-imported-wallet-tests-testmu-standard:

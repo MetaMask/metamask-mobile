@@ -28,16 +28,8 @@ on:
         description: 'BrowserStack Android Onboarding App URL (bs://...)'
         required: false
         type: string
-      browserstack_app_url_ios_onboarding:
-        description: 'BrowserStack iOS Onboarding App URL (bs://...)'
-        required: false
-        type: string
       browserstack_app_url_android_imported_wallet:
         description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
-        required: false
-        type: string
-      browserstack_app_url_ios_imported_wallet:
-        description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
       performance_tags:
@@ -55,11 +47,11 @@ on:
         required: false
         type: boolean
         default: false
-      source_fingerprint:
-        description: 'Optional @expo/fingerprint hash for Android app reuse'
+      enable_saucelabs:
+        description: 'Also run Sauce Labs performance lanes (off by default)'
         required: false
-        type: string
-        default: ''
+        type: boolean
+        default: false
       he_region:
         description: 'HyperExecute region (us or eu)'
         required: false
@@ -113,13 +105,11 @@ jobs:
       build_variant: ${{ inputs.build_variant }}
       enable_testmu_benchmark: true
       enable_browserstack: ${{ inputs.enable_browserstack }}
+      enable_saucelabs: ${{ inputs.enable_saucelabs }}
       sentry_target: ${{ inputs.sentry_target }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
-      browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
       browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
-      browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
       performance_tags: ${{ inputs.performance_tags }}
       reuse_main_builds: ${{ inputs.build_variant == 'e2e' && inputs.reuse_main_builds }}
-      source_fingerprint: ${{ inputs.source_fingerprint }}
       he_region: ${{ inputs.he_region || 'us' }}
     secrets: inherit

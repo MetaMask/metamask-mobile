@@ -65,6 +65,11 @@ on:
         required: false
         type: string
         description: 'TestMu AI username (from manual dispatch or secrets upstream)'
+      enable_saucelabs:
+        required: false
+        type: boolean
+        default: false
+        description: 'Upload the Android APKs to Sauce Labs'
       # LT_ACCESS_KEY must come from secrets (caller uses secrets: inherit).
       # Passing it via `with:` is invalid — GitHub rejects secrets.* in reusable-workflow inputs.
     outputs:
@@ -98,6 +103,12 @@ on:
       without-srp-testmu-version:
         description: 'App version for without-SRP TestMu upload'
         value: ${{ jobs.upload-to-testmu.outputs.without-srp-version }}
+      with-srp-sauce-url:
+        description: 'Sauce Labs URL for with-SRP version'
+        value: ${{ jobs.upload-to-saucelabs.outputs.with-srp-sauce-url }}
+      without-srp-sauce-url:
+        description: 'Sauce Labs URL for without-SRP version'
+        value: ${{ jobs.upload-to-saucelabs.outputs.without-srp-sauce-url }}
   workflow_dispatch:
     inputs:
       description:
@@ -967,3 +978,90 @@ jobs:
           echo "=== TestMu AI Upload Summary ==="
           echo "With-SRP:    ${WITH_SRP_APP_URL:-FAILED}"
           echo "Without-SRP: ${WITHOUT_SRP_APP_URL:-FAILED}"
+
+  upload-to-saucelabs:
+    name: Upload APKs to Sauce Labs
+    runs-on: ubuntu-latest
+    needs:
+      [
+        check-builds-needed,
+        resolve-fingerprint-reuse,
+        build-with-srp,
+        build-without-srp,
+      ]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      inputs.enable_saucelabs == true &&
+      (
+        needs.resolve-fingerprint-reuse.outputs.found == 'true' ||
+        (
+          needs.build-with-srp.result == 'success' &&
+          needs.build-without-srp.result == 'success'
+        )
+      )
+    continue-on-error: true
+    outputs:
+      with-srp-sauce-url: ${{ steps.sauce-upload.outputs.with-srp-sauce-url }}
+      without-srp-sauce-url: ${{ steps.sauce-upload.outputs.without-srp-sauce-url }}
+
+    steps:
+      - name: Download reused with-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+
+      - name: Download reused without-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+
+      - name: Download fresh with-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+
+      - name: Download fresh without-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+
+      - name: Upload APKs to Sauce Labs
+        id: sauce-upload
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          upload() {
+            local apk="$1"
+            local name="$2"
+            local response
+            response=$(curl -fsS -u "$SAUCE_USERNAME:$SAUCE_ACCESS_KEY" \
+              -X POST "https://api.us-west-1.saucelabs.com/v1/storage/upload" \
+              -F "name=$name" -F "file=@$apk")
+            echo "storage:filename=$name"
+          }
+
+          with_srp="$(find artifacts/with-srp -name '*.apk' -type f | head -1)"
+          without_srp="$(find artifacts/without-srp -name '*.apk' -type f | head -1)"
+          if [ -z "$with_srp" ] || [ -z "$without_srp" ]; then
+            echo "::error::Sauce Labs APK upload requires both APK variants"
+            exit 1
+          fi
+
+          with_name="metamask-with-srp-${{ github.run_id }}.apk"
+          without_name="metamask-without-srp-${{ github.run_id }}.apk"
+          {
+            echo "with-srp-sauce-url=$(upload "$with_srp" "$with_name")"
+            echo "without-srp-sauce-url=$(upload "$without_srp" "$without_name")"
+          } >> "$GITHUB_OUTPUT"

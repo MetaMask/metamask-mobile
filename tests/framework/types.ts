@@ -41,6 +41,7 @@ export enum ProviderName {
   SIMULATOR = 'simulator',
   BROWSERSTACK = 'browserstack',
   TESTMU = 'testmu',
+  SAUCELABS = 'saucelabs',
 }
 
 export enum Platform {
@@ -89,6 +90,14 @@ export interface TestMuConfig {
   osVersion: string;
   orientation?: DeviceOrientation;
   enableCameraImageInjection?: boolean;
+  otherApps?: string[];
+}
+
+export interface SauceLabsConfig {
+  provider: ProviderName;
+  name: string;
+  osVersion?: string;
+  orientation?: DeviceOrientation;
   otherApps?: string[];
 }
 

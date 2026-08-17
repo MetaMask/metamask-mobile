@@ -188,6 +188,10 @@ function collectAppProfilingArtifacts(searchDirs, outputDir) {
 }
 
 function getCloudProviderFromPath(fullPath) {
+  if (fullPath.includes('saucelabs-')) {
+    return 'saucelabs';
+  }
+
   if (fullPath.includes('testmu-standard-')) {
     return 'testmu-standard';
   }
@@ -233,7 +237,10 @@ function extractPlatformScenarioAndDevice(filePath) {
     scenario = 'imported-wallet';
     scenarioKey = 'ImportedWallet';
     console.log(`✅ Detected iOS Imported Wallet test`);
-  } else if (fullPath.includes('android-onboarding-flow-test-results')) {
+  } else if (
+    fullPath.includes('android-onboarding-flow-test-results') ||
+    fullPath.includes('android-onboarding-test-results')
+  ) {
     platform = 'android';
     platformKey = 'Android';
     scenario = 'onboarding';
@@ -253,7 +260,8 @@ function extractPlatformScenarioAndDevice(filePath) {
   // Extract device info from path
   const deviceMatch = pathParts.find(part =>
     part.includes('-imported-wallet-test-results-') ||
-    part.includes('-onboarding-flow-test-results-')
+    part.includes('-onboarding-flow-test-results-') ||
+    part.includes('-onboarding-test-results-')
   );
 
   if (deviceMatch) {
@@ -265,7 +273,10 @@ function extractPlatformScenarioAndDevice(filePath) {
     // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion (5 parts)
     // TestMu HE adds "testmu"; Standard adds "testmu-standard" before platform.
     let deviceInfoStart = 5;
-    if (cloudProvider === 'testmu-hyperexecute') {
+    if (
+      cloudProvider === 'testmu-hyperexecute' ||
+      cloudProvider === 'saucelabs'
+    ) {
       deviceInfoStart = 6;
     } else if (cloudProvider === 'testmu-standard') {
       deviceInfoStart = 7;
@@ -787,6 +798,8 @@ function formatDuration(ms) {
 
 function formatCloudProvider(cloudProvider) {
   switch (cloudProvider) {
+    case 'saucelabs':
+      return 'Sauce Labs';
     case 'testmu-standard':
       return 'TestMu Standard';
     case 'testmu-hyperexecute':

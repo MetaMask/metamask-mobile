@@ -114,6 +114,27 @@ test('extractPlatformScenarioAndDevice classifies Standard, HyperExecute, and Br
       cloudProvider: 'browserstack',
     },
   );
+
+  assert.deepEqual(
+    extractPlatformScenarioAndDevice(
+      [
+        'test-results',
+        'saucelabs-android-onboarding-flow-test-results-Google_Pixel_7_POC49',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Create_wallet-Google_Pixel_7_POC49.json',
+      ].join('/'),
+    ),
+    {
+      platform: 'android',
+      platformKey: 'Android',
+      scenario: 'onboarding',
+      scenarioKey: 'Onboarding',
+      deviceKey: 'Google_Pixel_7_POC49',
+      cloudProvider: 'saucelabs',
+    },
+  );
 });
 
 test('aggregateReports keeps Standard and HyperExecute provider identities in final JSON', () => {
