@@ -10,7 +10,7 @@
  *               SLACK_RC_NOTIFICATION_DRY_RUN,
  *               ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE (PLAY_STORE_CHECK_STATUS=pass|fail)
  *
- * OTA-only RCs (Auto RC OTA path, see .github/workflows/build-rc-auto.yml) set OTA_LABEL,
+ * OTA-only RCs (Auto RC OTA path, see .github/workflows/build-rc-auto.yml) set OTA_UPDATE_LABEL,
  * OTA_NATIVE_BUILD_NUMBER and OTA_COMMIT_SHORT_SHA instead of new build numbers: no binaries were
  * produced, so the message drops the download links and reports the OTA revision, the commit it
  * shipped, and the native build it runs on.
@@ -338,8 +338,10 @@ async function main() {
   const expectedChannelName = getSlackChannel(version);
 
   // OTA-only RC: no new binaries, so the OTA revision label identifies the delivery (and
-  // discriminates the PR-comment anchors, matching scripts/build-announce/index.ts).
-  const otaLabel = process.env.OTA_LABEL?.trim() || '';
+  // discriminates the PR-comment anchors, matching scripts/build-announce/index.ts). Env var
+  // name matches OTA_UPDATE_LABEL in scripts/build-announce/utils.ts (same underlying value,
+  // set by build-rc-auto.yml) so the two consumers can't drift apart.
+  const otaLabel = process.env.OTA_UPDATE_LABEL?.trim() || '';
   const otaNativeBuildNumber = process.env.OTA_NATIVE_BUILD_NUMBER?.trim() || 'Unknown';
   const otaCommitShortSha = process.env.OTA_COMMIT_SHORT_SHA?.trim() || 'Unknown';
   const anchorDiscriminator =

@@ -105,7 +105,9 @@ jobs:
           ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number }}
-          OTA_LABEL: ${{ inputs.ota_label }}
+          # Matches OTA_UPDATE_LABEL in scripts/build-announce/utils.ts (same underlying value,
+          # set by build-rc-auto.yml) so the two OTA-rendering consumers can't drift apart.
+          OTA_UPDATE_LABEL: ${{ inputs.ota_label }}
           OTA_NATIVE_BUILD_NUMBER: ${{ inputs.ota_native_build_number }}
           OTA_COMMIT_SHORT_SHA: ${{ inputs.ota_commit_short_sha }}
           # Disable android check msg for now
