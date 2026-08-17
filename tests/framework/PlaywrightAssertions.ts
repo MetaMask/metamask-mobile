@@ -381,22 +381,15 @@ export default class PlaywrightAssertions {
   }
 
   static async expectTextDisplayed(
-    text: string | RegExp,
+    text: string,
     options: TextDisplayedOptions = {},
   ): Promise<void> {
     const { within, ...assertionOptions } = options;
     if (within) {
-      if (text instanceof RegExp) {
-        throw new Error(
-          'expectTextDisplayed: RegExp is not supported with the `within` option',
-        );
-      }
       await this.expectElementText(within, text, assertionOptions);
       return;
     }
     const timeout = this.getTimeout(assertionOptions);
-    const textDescription =
-      text instanceof RegExp ? text.toString() : `"${text}"`;
     return Utilities.executeWithRetry(
       async () => {
         const el = await PlaywrightMatchers.getElementByText(text);
@@ -404,7 +397,7 @@ export default class PlaywrightAssertions {
       },
       {
         timeout,
-        description: `Assert text ${textDescription} is displayed`,
+        description: `Assert text "${text}" is displayed`,
       },
     );
   }

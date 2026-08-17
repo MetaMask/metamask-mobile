@@ -42,8 +42,6 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
           await navigateFromSnapSettingsToBrowser();
 
           await TestSnaps.tapButton('sendAlertButton');
-          // Single atomic assert — the disabled alert can vanish between two
-          // substring polls (post-#34606 residual on iOS).
           await TestSnaps.expectDisabledSnapAlert();
           await TestSnaps.dismissAlert();
         },
