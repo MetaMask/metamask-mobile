@@ -36,7 +36,7 @@ describe('Benefits', () => {
   describe('Rendering', () => {
     it('renders the container', () => {
       const { getByTestId } = renderBenefits();
-      expect(getByTestId(BenefitsTestIds.CONTAINER)).toBeTruthy();
+      expect(getByTestId(BenefitsTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders the title', () => {
@@ -59,33 +59,35 @@ describe('Benefits', () => {
       BENEFITS.forEach((benefit) => {
         expect(
           getByTestId(BenefitsTestIds.BENEFIT_ROW(benefit.id)),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
     it('renders each benefit row title and subtitle from i18n', () => {
       const { getByText } = renderBenefits();
       BENEFITS.forEach((benefit) => {
-        expect(getByText(strings(benefit.title))).toBeTruthy();
-        expect(getByText(strings(benefit.subtitle))).toBeTruthy();
+        expect(getByText(strings(benefit.title))).toBeOnTheScreen();
+        expect(getByText(strings(benefit.subtitle))).toBeOnTheScreen();
       });
     });
 
     it('renders both plan selector cards', () => {
       const { getByTestId } = renderBenefits();
       PLANS.forEach((plan) => {
-        expect(getByTestId(BenefitsTestIds.PLAN_CARD(plan.id))).toBeTruthy();
+        expect(
+          getByTestId(BenefitsTestIds.PLAN_CARD(plan.id)),
+        ).toBeOnTheScreen();
       });
     });
 
     it('renders the CTA button', () => {
       const { getByTestId } = renderBenefits();
-      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toBeTruthy();
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toBeOnTheScreen();
     });
 
     it('renders the close button', () => {
       const { getByTestId } = renderBenefits();
-      expect(getByTestId(BenefitsTestIds.CLOSE_BUTTON)).toBeTruthy();
+      expect(getByTestId(BenefitsTestIds.CLOSE_BUTTON)).toBeOnTheScreen();
     });
   });
 
@@ -157,7 +159,7 @@ describe('Benefits', () => {
 
       expect(
         getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
   });
 
@@ -169,7 +171,7 @@ describe('Benefits', () => {
 
       expect(
         queryByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('opens when any benefit row is pressed', () => {
@@ -179,7 +181,7 @@ describe('Benefits', () => {
         fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW(benefit.id)));
         expect(
           getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
         fireEvent(
           getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
           'close',
@@ -195,7 +197,7 @@ describe('Benefits', () => {
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
 
-      expect(getByText(strings(apyDetail.description))).toBeTruthy();
+      expect(getByText(strings(apyDetail.description))).toBeOnTheScreen();
     });
 
     it('shows bullet points for a benefit that has points (cashback)', () => {
@@ -207,7 +209,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('cashback')));
 
       cashbackDetail.points?.forEach((pointKey) => {
-        expect(getByText(`\u2022 ${strings(pointKey)}`)).toBeTruthy();
+        expect(getByText(`\u2022 ${strings(pointKey)}`)).toBeOnTheScreen();
       });
     });
 
@@ -224,7 +226,7 @@ describe('Benefits', () => {
       );
 
       memberPricingDetail.points?.forEach((pointKey) => {
-        expect(getByText(`\u2022 ${strings(pointKey)}`)).toBeTruthy();
+        expect(getByText(`\u2022 ${strings(pointKey)}`)).toBeOnTheScreen();
       });
     });
 
@@ -243,20 +245,22 @@ describe('Benefits', () => {
       if (!protectionDetail.learnMore)
         throw new Error('protection.learnMore missing');
       if (!protectionDetail.notes) throw new Error('protection.notes missing');
-      expect(getByText(strings(protectionDetail.subDescription))).toBeTruthy();
-      expect(getByText(strings(protectionDetail.learnMore))).toBeTruthy();
-      expect(getByText(strings(protectionDetail.notes))).toBeTruthy();
+      expect(
+        getByText(strings(protectionDetail.subDescription)),
+      ).toBeOnTheScreen();
+      expect(getByText(strings(protectionDetail.learnMore))).toBeOnTheScreen();
+      expect(getByText(strings(protectionDetail.notes))).toBeOnTheScreen();
     });
 
     it('does not show points for benefits that have none (apy)', () => {
-      const apyDetail = BENEFIT_DETAILS.find((d) => d.id === 'apy');
-      if (!apyDetail)
-        throw new Error('apy detail not found in BENEFIT_DETAILS');
-      const { getByTestId } = renderBenefits();
+      const { getByTestId, queryAllByText } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
 
-      expect(apyDetail.points).toBeUndefined();
+      expect(
+        getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(queryAllByText(/^\u2022/)).toHaveLength(0);
     });
 
     it('closes the sheet when onClose is fired', () => {
@@ -265,7 +269,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW(BENEFITS[0].id)));
       expect(
         getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
 
       fireEvent(
         getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
@@ -274,7 +278,7 @@ describe('Benefits', () => {
 
       expect(
         queryByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('shows different content when a different benefit row is pressed', () => {
@@ -287,7 +291,7 @@ describe('Benefits', () => {
       const { getByTestId, getByText, queryByText } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
-      expect(getByText(strings(apyDetail.description))).toBeTruthy();
+      expect(getByText(strings(apyDetail.description))).toBeOnTheScreen();
 
       fireEvent(
         getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
@@ -295,8 +299,8 @@ describe('Benefits', () => {
       );
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('support')));
-      expect(getByText(strings(supportDetail.description))).toBeTruthy();
-      expect(queryByText(strings(apyDetail.description))).toBeNull();
+      expect(getByText(strings(supportDetail.description))).toBeOnTheScreen();
+      expect(queryByText(strings(apyDetail.description))).not.toBeOnTheScreen();
     });
   });
 
@@ -306,7 +310,9 @@ describe('Benefits', () => {
     it('pre-selects the Monthly plan when initialPlan is "monthly"', () => {
       const { getByTestId } = renderBenefits('monthly');
 
-      expect(getByTestId(BenefitsTestIds.PLAN_CARD('monthly'))).toBeTruthy();
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
+      ).toBeOnTheScreen();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
         strings('pro_subscription.join_pro'),
       );
