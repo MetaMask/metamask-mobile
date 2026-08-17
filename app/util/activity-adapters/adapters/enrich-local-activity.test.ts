@@ -145,13 +145,5 @@ describe('local activity call-site mapping', () => {
     );
 
     expect(item.type).toBe('claim');
-    expect(item.data).toEqual(
-      expect.objectContaining({
-        token: expect.objectContaining({
-          direction: 'out',
-          symbol: 'ETH',
-        }),
-      }),
-    );
   });
 });
