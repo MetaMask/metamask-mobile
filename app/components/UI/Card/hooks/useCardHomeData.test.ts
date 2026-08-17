@@ -94,9 +94,8 @@ const CARDHOLDER: CardOwnership = {
   isCardAuthenticated: false,
 };
 
-// Dispatch on selector identity rather than call order: the hook's selector
-// count has changed twice already, and a positional mapping fails silently
-// (every value shifts by one) instead of erroring when the next one is added.
+// Dispatch on selector identity, not call order: a positional mapping fails
+// silently (every value shifts by one) when the next selector is added.
 function setupSelectors(
   data: unknown,
   status: 'idle' | 'loading' | 'success' | 'error',
@@ -104,8 +103,7 @@ function setupSelectors(
   availableTokens: CardFundingToken[] = [],
   fundingTokens: CardFundingToken[] = [],
   ownership: CardOwnership = CARDHOLDER,
-  // Defaults to a session that has already fetched, so the persisted-data
-  // revalidation path only engages in the tests that opt into it.
+  // Defaults to already-fetched so only opt-in tests hit the revalidation path.
   fetchedThisSession: boolean = true,
 ) {
   const valuesBySelector = new Map<unknown, unknown>([

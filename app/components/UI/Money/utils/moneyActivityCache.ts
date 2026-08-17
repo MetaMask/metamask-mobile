@@ -4,16 +4,11 @@ import Logger from '../../../../util/Logger';
 import { DAY } from '../../../../constants/time';
 
 /**
- * Disk cache for the first page of Money account activity.
- *
- * The React Query cache is memory-only, so it dies with the JS context. On
- * Android — where the process is reclaimed far more aggressively than on iOS —
- * that means most Money Home opens start cold and block on a network round-trip
- * before any activity renders. Persisting just the first page lets that render
- * come off disk while React Query revalidates in the background.
- *
- * Only page one is stored: it is the page that gates time-to-content, and
- * keeping the cache to a single page bounds what we write per account.
+ * Disk cache for the first page of Money account activity. The React Query
+ * cache is memory-only, so it dies with the JS context — and Android reclaims
+ * the process far more aggressively than iOS, leaving most Money Home opens
+ * blocked on a network round-trip. Only page one is stored: it is the page that
+ * gates time-to-content, and one page bounds what we write per account.
  */
 
 const CACHE_VERSION = 1;
@@ -41,12 +36,11 @@ function isCachedFirstPage(value: unknown): value is CachedFirstPage {
 }
 
 /**
- * Reads the cached first page for `address`, or `undefined` when there is no
- * usable entry. Synchronous (MMKV) so a caller can seed React Query during
- * render without an async hydration gate.
+ * Synchronous (MMKV) so a caller can seed React Query during render without an
+ * async hydration gate.
  *
  * @param address - Checksummed money account address.
- * @returns The cached page and the time it was written, if still within TTL.
+ * @returns The cached page and its write time, if a usable entry is in TTL.
  */
 export function readCachedFirstPage(
   address: string,
@@ -66,8 +60,7 @@ export function readCachedFirstPage(
       return undefined;
     }
 
-    // A clock change can put `cachedAt` in the future; treat that as unusable
-    // rather than trusting it forever.
+    // A clock change can stamp `cachedAt` in the future — never trust it.
     const age = Date.now() - parsed.cachedAt;
     if (age < 0 || age > CACHE_TTL_MS) {
       return undefined;
@@ -75,15 +68,13 @@ export function readCachedFirstPage(
 
     return parsed;
   } catch {
-    // A corrupt or unparseable entry is not worth surfacing — the caller
-    // simply falls back to fetching.
+    // A corrupt entry is not worth surfacing — the caller falls back to fetching.
     return undefined;
   }
 }
 
 /**
- * Persists `page` as the cached first page for `address`. Fire-and-forget: a
- * write failure only costs the next cold start its head start.
+ * Fire-and-forget: a write failure only costs the next cold start its head start.
  *
  * @param address - Checksummed money account address.
  * @param page - The first-page response to cache.

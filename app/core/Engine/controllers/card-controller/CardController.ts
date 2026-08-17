@@ -219,11 +219,7 @@ export class CardController extends BaseController<
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
   #lastFetchedAt = 0;
-  /**
-   * True while the in-flight fetch is an automatic cold-start revalidation of
-   * restored data, which must not move `cardHomeDataStatus`. Instance state
-   * rather than a local so a forced call joining the same promise can clear it.
-   */
+  /** In-flight fetch is a silent revalidation. Instance state, not a local, so a joined forced call can clear it. */
   #silentRevalidation = false;
 
   constructor({
@@ -552,10 +548,8 @@ export class CardController extends BaseController<
     ) {
       return;
     }
-    // `??=` means a forced call can join an in-flight silent revalidation and
-    // inherit its silence. Promote it instead: the user asked to see the
-    // refresh, so surface the loading state and let the shared promise finish
-    // with visible error handling.
+    // `??=` would let a forced call inherit an in-flight revalidation's
+    // silence; promote it so the user sees the refresh they asked for.
     if (force && this.#silentRevalidation) {
       this.#silentRevalidation = false;
       this.update((s) => {
@@ -577,19 +571,10 @@ export class CardController extends BaseController<
     generation: number,
     force: boolean,
   ): Promise<void> {
-    // A cold start restores `cardHomeData` and its 'success' status but has no
-    // session fetch behind it. Revalidating that data must leave the status
-    // alone: `selectIsCardStateResolved` gates on 'success', so a 'loading' or
-    // 'error' blip would blank the very card persistence just restored.
-    //
-    // Requires the restored status to be 'success' specifically. A process
-    // death mid-fetch can persist 'loading', and holding *that* steady would
-    // strand the card in a loading state no failure could clear.
-    //
-    // Only the automatic revalidation qualifies. A forced fetch is user-driven
-    // (pull to refresh, post-link refresh) and keeps its visible loading and
-    // error states, as does every path that clears `cardHomeData` before
-    // refetching — connect, logout, and account switch all null it first.
+    // Revalidating restored data must not move the status:
+    // `selectIsCardStateResolved` gates on 'success', so a blip would blank the
+    // card persistence just restored. Requires 'success' specifically — a
+    // 'loading' persisted by a process death has to stay clearable.
     this.#silentRevalidation =
       !force &&
       !this.state.cardHomeDataFetchedThisSession &&
@@ -636,8 +621,7 @@ export class CardController extends BaseController<
           },
         });
         this.update((s) => {
-          // Read at completion, not capture time: a forced call that joined
-          // this fetch clears the flag so its failure stays visible.
+          // Read at completion so a joined forced call's failure stays visible.
           if (!this.#silentRevalidation) {
             s.cardHomeDataStatus = 'error';
           }
@@ -648,10 +632,8 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Wraps the card home data request in a Sentry span so its latency is
-   * tracked alongside the Money account data fetches. `is_authenticated`
-   * separates the provider call from the on-chain-assets fallback, which have
-   * very different cost profiles.
+   * Sentry span for the card home request. `is_authenticated` separates the
+   * provider call from the on-chain-assets fallback — very different costs.
    */
   async #tracedGetCardHomeData(address: string): Promise<CardHomeData> {
     return await trace(

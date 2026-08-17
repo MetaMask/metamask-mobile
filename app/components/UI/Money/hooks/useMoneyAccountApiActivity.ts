@@ -88,10 +88,9 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     ACCOUNT_ACTIVITY_QUERY_OPTIONS,
   );
 
-  // Seed the query from disk so a cold start renders activity without waiting
-  // on the network. `initialDataUpdatedAt` carries the write time, so the
-  // existing `staleTime` below still decides whether a background refetch
-  // runs — the freshness policy is unchanged, only the starting point is.
+  // `initialDataUpdatedAt` carries the write time, so the `staleTime` below
+  // still decides whether a background refetch runs — the freshness policy is
+  // unchanged, only the starting point.
   const cachedFirstPage = useMemo(
     () => (enabled ? readCachedFirstPage(moneyAddress) : undefined),
     [enabled, moneyAddress],
@@ -102,9 +101,8 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   const query = useInfiniteQuery({
     queryKey: queryOptions.queryKey,
     queryFn: async ({ pageParam }: { pageParam?: string }) => {
-      // One span per page request. The auto-fill in `useMoneyActivityItems`
-      // pulls pages serially, so `is_initial_page` separates the request that
-      // gates time-to-content from the follow-up round-trips stacked behind it.
+      // `useMoneyActivityItems` auto-fills pages serially, so `is_initial_page`
+      // separates the request gating time-to-content from those behind it.
       const page = await trace(
         {
           name: TraceName.MoneyActivityFetch,
@@ -127,9 +125,8 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
         },
       );
 
-      // Outside the span on purpose: serialising the page is our cost, not the
-      // request's, and folding it in would inflate the very latency metric
-      // this span exists to measure.
+      // Outside the span: serialising is our cost, not the request's, and
+      // folding it in would inflate the metric the span exists to measure.
       if (pageParam === undefined) {
         writeCachedFirstPage(moneyAddress, page);
       }

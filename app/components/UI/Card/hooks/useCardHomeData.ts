@@ -28,16 +28,12 @@ export const useCardHomeData = () => {
   const fetchedThisSession = useSelector(selectCardHomeDataFetchedThisSession);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
-  // Money Home mounts this hook for every visitor, but a user with no card has
-  // nothing to fetch — `MoneyMetaMaskCard` only reads the data in 'manage'
-  // mode. Authenticated-but-not-yet-listed cardholders still fetch, which is
-  // the on-chain-assets fallback path in `CardController.getCardHomeData`.
+  // Money Home mounts this for every visitor, but a user with no card has
+  // nothing to fetch — `MoneyMetaMaskCard` only reads it in 'manage' mode.
   const hasCard = isCardholder || isCardAuthenticated;
 
-  // `cardHomeData` and its status are persisted, so a cold start restores
-  // 'success' and would otherwise never refetch. `fetchedThisSession` is not
-  // persisted, so it is the signal that the restored data came off disk and
-  // still needs revalidating behind the already-rendered card.
+  // A cold start restores 'success' and would otherwise never refetch;
+  // `fetchedThisSession` is not persisted, so it flags data that came off disk.
   useEffect(() => {
     if (
       hasCard &&
