@@ -1452,15 +1452,10 @@ jobs:
       - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
 
-      - name: Download fixture validation results (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        continue-on-error: true
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
-        with:
-          name: fixture-validation-results-validate-e2e-fixtures
-          path: fixture-results/
-      - name: Download fixture validation results (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
+      # validate-e2e-fixtures is pinned to runner_provider: current, so results always
+      # land in the GitHub Actions artifact store — download via actions/* regardless
+      # of where this reporting job runs.
+      - name: Download fixture validation results
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -1468,7 +1463,7 @@ jobs:
           path: fixture-results/
 
       - name: Report results
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+        if: ${{ inputs.runner_provider != 'bitrise' }}
         env:
           RESULTS_PATH: fixture-results
           VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
