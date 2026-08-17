@@ -7,6 +7,8 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { scheduleOnRN } from 'react-native-worklets';
 import {
   Box,
   HeaderStandard,
@@ -151,6 +153,42 @@ const BridgeView = () => {
     [tabs],
   );
 
+  const goToPreviousTab = useCallback(() => {
+    if (activeIndex > 0) {
+      handleTabPress(activeIndex - 1);
+    } else {
+      handleBack();
+    }
+  }, [activeIndex, handleTabPress, handleBack]);
+
+  const goToNextTab = useCallback(() => {
+    if (activeIndex < tabs.length - 1) {
+      handleTabPress(activeIndex + 1);
+    }
+  }, [activeIndex, tabs.length, handleTabPress]);
+
+  const swipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .withTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE)
+        .activeOffsetX([-50, 50])
+        .failOffsetY([-15, 15])
+        .maxPointers(1)
+        .onEnd((gestureEvent) => {
+          'worklet';
+          const { translationX, velocityX } = gestureEvent;
+
+          if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 500) {
+            if (translationX > 0) {
+              scheduleOnRN(goToPreviousTab);
+            } else {
+              scheduleOnRN(goToNextTab);
+            }
+          }
+        }),
+    [goToPreviousTab, goToNextTab],
+  );
+
   // A tab can disappear if its feature flag flips off while it's active
   // (e.g. remote flag update). Fall back to Market rather than rendering
   // nothing.
@@ -210,11 +248,15 @@ const BridgeView = () => {
           testID={BridgeViewSelectorsIDs.TABS_BAR}
         />
       ) : null}
-      {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-      {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
-      {renderedTab === BridgeTabKey.Recurring ? (
-        <BridgeRecurringBuyView />
-      ) : null}
+      <GestureDetector gesture={swipeGesture}>
+        <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
+          {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
+          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Recurring ? (
+            <BridgeRecurringBuyView />
+          ) : null}
+        </Box>
+      </GestureDetector>
     </Box>
   );
 };
