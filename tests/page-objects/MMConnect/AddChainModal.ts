@@ -1,29 +1,17 @@
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
-import { sleep } from '../../framework';
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { sleep, type EncapsulatedElementType } from '../../framework';
 
 class AddChainModal {
   get confirmButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById('approve-network-approve-button'),
-    });
+    return Matchers.getElementByID('approve-network-approve-button');
   }
 
   getText(value: string): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `//android.widget.TextView[@text="${value}"]`,
-        ),
-    });
+    return Matchers.getElementByNativeXPath(
+      `//android.widget.TextView[@text="${value}"]`,
+    );
   }
 
   async tapConfirmButton({
@@ -33,23 +21,18 @@ class AddChainModal {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
   } = {}): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.confirmButton);
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'AddChainModal confirm button',
+    });
     if (shouldCooldown) {
       await sleep(timeToCooldown);
     }
   }
 
   async assertText(value: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.getText(value));
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg: `AddChainModal: text "${value}" not visible`,
-          });
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.getText(value), {
+      timeout: 10000,
+      description: `AddChainModal: text "${value}" not visible`,
     });
   }
 }

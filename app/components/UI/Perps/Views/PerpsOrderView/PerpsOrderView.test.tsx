@@ -71,6 +71,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 
 jest.mock('@react-navigation/native', () => {
@@ -1704,6 +1705,49 @@ describe('PerpsOrderView', () => {
       // the stale orderForm.amount ('11') for the check would never have
       // triggered this clamp at all.
       expect(mockSetAmount).toHaveBeenCalledWith('1000');
+    });
+
+    it('tracks leverage change with previous_leverage and not previousLeverage', async () => {
+      const captured: { eventName: unknown; props: Record<string, unknown> }[] =
+        [];
+      mockCreateEventBuilder.mockImplementation((eventName?: unknown) => {
+        const builder: { addProperties: jest.Mock; build: jest.Mock } = {
+          addProperties: jest.fn((props: Record<string, unknown>) => {
+            captured.push({ eventName, props });
+            return builder;
+          }),
+          build: jest.fn(() => ({})),
+        };
+        return builder;
+      });
+      mockLeverageConfirmValue = 10;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
+      await act(async () => {
+        fireEvent.press(leverageRow);
+      });
+      const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      const leverageChange = captured.find(
+        (event) =>
+          event.eventName === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+          event.props?.[PERPS_EVENT_PROPERTY.INTERACTION_TYPE] ===
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.LEVERAGE_CHANGED,
+      );
+      expect(leverageChange?.props).toEqual(
+        expect.objectContaining({
+          [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: 3,
+          [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: 10,
+        }),
+      );
+      expect(leverageChange?.props).not.toHaveProperty('previousLeverage');
     });
   });
 

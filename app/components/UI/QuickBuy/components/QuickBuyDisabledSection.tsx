@@ -4,6 +4,12 @@ import React from 'react';
 export interface QuickBuyDisabledSectionProps {
   /** When true, dims the subtree and blocks all touches inside it. */
   isDisabled: boolean;
+  /**
+   * Identifies which region is inert. The sheet wraps several disjoint regions
+   * (amount, footer rows, keypad), so each needs its own id for tests to target
+   * one unambiguously.
+   */
+  testID?: string;
   children: React.ReactNode;
 }
 
@@ -24,6 +30,7 @@ export interface QuickBuyDisabledSectionProps {
  */
 const QuickBuyDisabledSection: React.FC<QuickBuyDisabledSectionProps> = ({
   isDisabled,
+  testID = 'quick-buy-disabled-section',
   children,
 }) => {
   if (!isDisabled) {
@@ -35,12 +42,12 @@ const QuickBuyDisabledSection: React.FC<QuickBuyDisabledSectionProps> = ({
   // would leave a screen-reader user with a sheet that reads as empty. The
   // individual controls inside opt out via their own `disabled` props, so they
   // announce as unavailable rather than as live buttons that do nothing.
+  // `pointerEvents="none"` blocks the whole subtree on both platforms (iOS maps
+  // it to `userInteractionEnabled = NO`, which no descendant can re-enable), so
+  // it also neutralises the keypad's own `CollapsibleReveal` inner
+  // `pointerEvents="auto"` while the keypad stays visually expanded.
   return (
-    <Box
-      twClassName="opacity-50"
-      pointerEvents="none"
-      testID="quick-buy-disabled-section"
-    >
+    <Box twClassName="opacity-50" pointerEvents="none" testID={testID}>
       {children}
     </Box>
   );
