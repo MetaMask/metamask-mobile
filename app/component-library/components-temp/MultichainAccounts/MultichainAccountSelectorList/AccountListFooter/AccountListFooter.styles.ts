@@ -29,7 +29,6 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       justifyContent: 'center',
     },
     buttonText: {
-      color: theme.colors.primary.default,
       fontWeight: '500',
     },
   });

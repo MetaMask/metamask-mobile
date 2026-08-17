@@ -1,5 +1,12 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  Icon,
+  IconColor,
+  Spinner,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 import AccountListFooter, {
   abandonCreateMultichainAccountTrace,
@@ -32,16 +39,6 @@ jest.mock(
 );
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
-}));
-
-// Mock AnimatedSpinner
-jest.mock('../../../../../components/UI/AnimatedSpinner', () => ({
-  __esModule: true,
-  default: () => null,
-  SpinnerSize: {
-    SM: 'SM',
-    MD: 'MD',
-  },
 }));
 
 jest.mock(
@@ -276,6 +273,21 @@ describe('AccountListFooter', () => {
       );
       expect(getByText('Add account')).toBeOnTheScreen();
     });
+
+    it('renders Add account icon and label with default colors', () => {
+      const { UNSAFE_getByType } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      const icon = UNSAFE_getByType(Icon);
+      const label = UNSAFE_getByType(Text);
+
+      expect(icon.props.color).toBe(IconColor.IconDefault);
+      expect(label.props.color).toBe(TextColor.TextDefault);
+    });
   });
 
   describe('Button Interactions', () => {
@@ -360,7 +372,13 @@ describe('AccountListFooter', () => {
 
   describe('Loading State Management', () => {
     it('shows spinner when loading', async () => {
-      const { getByText } = render(
+      mockMultichainAccountService.createNextMultichainAccountGroup.mockReturnValue(
+        new Promise(() => {
+          // Keep creation in-flight so the spinner stays visible.
+        }),
+      );
+
+      const { getByText, UNSAFE_getByType } = render(
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
@@ -371,6 +389,9 @@ describe('AccountListFooter', () => {
 
       await waitFor(() => {
         expect(getByText('Adding account...')).toBeOnTheScreen();
+        expect(UNSAFE_getByType(Spinner).props.color).toBe(
+          IconColor.IconDefault,
+        );
       });
     });
 
