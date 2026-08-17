@@ -2691,6 +2691,14 @@
       "close_button": "Close",
       "history_button": "View activity",
       "available": "Available"
+    },
+    "recovery_status": {
+      "manual_title": "Protection needs attention",
+      "manual_description": "A take profit / stop loss change for {{symbol}} could not be completed safely. Review the position and set a new TP/SL to re-establish protection.",
+      "dispatch_title": "Action completed after an error",
+      "dispatch_description": "A previous {{intent}} that appeared to fail actually reached the exchange. Refresh your balances and orders, then acknowledge to continue trading.",
+      "dispatch_unknown_description": "A previous {{intent}} has an unknown outcome. Refresh your balances and orders, then acknowledge to continue trading.",
+      "acknowledge": "Acknowledge"
     }
   },
   "market_insights": {
