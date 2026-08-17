@@ -1,9 +1,10 @@
 import Assertions from '../framework/Assertions';
 import Gestures from '../framework/Gestures';
 import Matchers from '../framework/Matchers';
-import Utilities from '../framework/Utilities';
+import Utilities, { sleep } from '../framework/Utilities';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestDApp from '../page-objects/Browser/TestDApp';
+import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
@@ -14,7 +15,14 @@ import {
 } from '../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../framework/PlaywrightMatchers';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
+import { PlatformDetector } from '../framework/PlatformLocator';
+import PlaywrightContextHelpers from '../framework/PlaywrightContextHelpers';
+import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
+import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
+
+/** Dapp <h1 id="logo-text">; always at the top of the page, unlike the action buttons. */
+const TEST_DAPP_LOAD_LABEL = 'E2E Test Dapp';
 
 /**
  * Waits for the test dapp to load.
@@ -24,6 +32,21 @@ import { getDappUrl } from '../framework/fixtures/FixtureUtils';
  * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
  */
 export const waitForTestDappToLoad = async (): Promise<void> => {
+  if (PlatformDetector.isAndroidAppium()) {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+      {
+        description: 'Browser WebView native container',
+        timeout: 30_000,
+      },
+    );
+    await Assertions.expectTextDisplayed(TEST_DAPP_LOAD_LABEL, {
+      timeout: 30_000,
+      description: 'Test dapp heading should be visible',
+    });
+    return;
+  }
+
   if (FrameworkDetector.isAppium()) {
     await Assertions.expectElementToBeVisible(
       PlaywrightMatchers.getElementByText(getDappUrl(0)),
@@ -66,16 +89,56 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
  */
 export const waitForTestSnapsToLoad = async (): Promise<void> => {
   const MAX_RETRIES = 3;
+  // Stable, always-present control on the test-snaps page (more reliable than #root on Android CI).
+  const LOAD_INDICATOR_WEB_ID = 'connectclient-status';
+  const WEBVIEW_LOAD_TIMEOUT_MS = 30_000;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      return await Assertions.expectElementToBeVisible(
-        Matchers.getElementByWebID(
-          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-          'root',
-        ),
-      );
+      if (PlatformDetector.isAndroidAppium()) {
+        await waitForAndroidTestSnapsNativeLoad();
+        return;
+      }
+
+      if (PlatformDetector.isIOSAppium()) {
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+          {
+            description: 'Browser WebView native container',
+            timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+          },
+        );
+        await Assertions.expectTextDisplayed('Test Snaps', {
+          timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+          description: 'Test Snaps page title should be visible',
+        });
+        return;
+      }
+
+      const assertLoaded = async () =>
+        Assertions.expectElementToBeVisible(
+          await Matchers.getElementByWebID(
+            BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+            LOAD_INDICATOR_WEB_ID,
+            TEST_SNAPS_URL,
+          ),
+          {
+            description: 'Test Snaps connect button should be visible',
+            timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+          },
+        );
+
+      await assertLoaded();
+      return;
     } catch (error) {
+      if (FrameworkDetector.isAppium() && attempt < MAX_RETRIES) {
+        await PlaywrightContextHelpers.switchToNativeContext().catch(
+          () => undefined,
+        );
+        await BrowserView.navigateToURL(TEST_SNAPS_URL);
+        await sleep(2_000);
+      }
+
       if (attempt === MAX_RETRIES) {
         throw new Error(
           `Test Snaps failed to load after ${MAX_RETRIES} attempts: ${
@@ -133,7 +196,7 @@ const getFirstBrowserTabInGrid = (): EncapsulatedElementType => {
   });
 };
 
-const ensureSingleBrowserTabView = async (): Promise<void> => {
+export const ensureSingleBrowserTabView = async (): Promise<void> => {
   const openedTabsHeader = Matchers.getElementByID(
     BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
   );
@@ -181,4 +244,15 @@ export const openUrlInBrowserView = async (): Promise<void> => {
       elemDescription: 'URL input box',
     },
   );
+};
+
+/**
+ * Opens the in-app test dapp and completes the default connect sheet approval.
+ * Assumes the browser tab is already open (e.g. after {@link navigateToBrowserView}).
+ */
+export const connectToTestDapp = async (): Promise<void> => {
+  await BrowserView.navigateToTestDApp();
+  await waitForTestDappToLoad();
+  await TestDApp.tapDappConnectButton();
+  await ConnectBottomSheet.tapConnectButton();
 };

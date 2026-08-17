@@ -28,6 +28,23 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
 export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
   'moneyEnableOnboardingStepperAnimation' as const;
 
+export const MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY =
+  'moneyAccountDepositQuotePipeline' as const;
+
+export const selectMoneyAccountDepositQuotePipelineEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const localOverrideEnabled =
+      process.env.MM_MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.[MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY];
+    return (
+      localOverrideEnabled ||
+      (validatedVersionGatedFeatureFlag(remoteFlag) ?? false)
+    );
+  },
+);
+
 export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {

@@ -79,7 +79,9 @@ export type SettingsStackParamList = {
   AccountsMenuView: undefined;
   Settings: undefined;
   GeneralSettings: undefined;
-  AdvancedSettings: { scrollToBottom?: boolean } | undefined;
+  AdvancedSettings:
+    | { scrollToBottom?: boolean; isFullScreenModal?: boolean }
+    | undefined;
   NetworksManagement: undefined;
   NetworkDetails: NetworkDetailsViewParams | undefined;
   SDKSessionsManager: undefined;
@@ -170,7 +172,7 @@ export type ImportPrivateKeyStackParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyTabStackParamList = {
-  MoneyHome: undefined;
+  MoneyHome: { entryPoint?: string } | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };

@@ -11,9 +11,10 @@ import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
@@ -57,6 +58,7 @@ import { getProviderWebviewColors } from '../../utils/getProviderWebviewColors';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
+import { buildHeadlessOrderFailedProps } from '../../utils/headlessOrderFailedProps';
 import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
 import {
   buildBaseProps,
@@ -177,12 +179,15 @@ async function handleHeadlessCheckoutCallback({
 }
 
 const Checkout = () => {
+  // Must match redirectUrl from getRampCallbackBaseUrl() on quote fetch
+  // (including Dev → on-ramp.dev-api), not Aggregator/sdk's content host.
+  const callbackBaseUrl = getRampCallbackBaseUrl();
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
   const isRedirectionHandledRef = useRef(false);
   const [key, setKey] = useState(0);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<CheckoutParams>();
   const { themeAppearance } = useTheme();
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
@@ -342,22 +347,27 @@ const Checkout = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_ORDER_FAILED)
             .addProperties({
-              ramp_type: 'HEADLESS',
-              ramp_surface: session.params?.rampSurface,
-              amount_source: Number(
-                quoteRecord?.amountIn ?? session.params?.amount ?? 0,
-              ),
-              amount_destination: Number(quoteRecord?.amountOut ?? 0),
-              payment_method_id: quoteRecord?.paymentMethod ?? '',
-              region: regionCode ?? '',
-              chain_id: network ?? '',
-              currency_destination: params?.cryptocurrency ?? '',
-              currency_source: params?.currency ?? '',
-              error_message:
-                checkoutError instanceof Error
-                  ? checkoutError.message
-                  : String(checkoutError),
-              is_authenticated: true,
+              ...buildHeadlessOrderFailedProps({
+                rampSurface: session.params?.rampSurface,
+                // Additive vs the previous inline payload: both fields are
+                // optional in segment-schema and the native flow already
+                // sends them.
+                providerOrderId: effectiveOrderId ?? undefined,
+                amountSource: Number(
+                  quoteRecord?.amountIn ?? session.params?.amount ?? 0,
+                ),
+                amountDestination: Number(quoteRecord?.amountOut ?? 0),
+                paymentMethodId: quoteRecord?.paymentMethod ?? '',
+                region: regionCode ?? '',
+                chainId: network ?? '',
+                currencyDestination: params?.cryptocurrency ?? '',
+                currencyDestinationSymbol: params?.cryptocurrency,
+                currencySource: params?.currency ?? '',
+                errorMessage:
+                  checkoutError instanceof Error
+                    ? checkoutError.message
+                    : String(checkoutError),
+              }),
             })
             .build(),
         );
@@ -373,6 +383,7 @@ const Checkout = () => {
       createEventBuilder,
       regionCode,
       network,
+      effectiveOrderId,
       params?.cryptocurrency,
       params?.currency,
     ],
@@ -443,6 +454,7 @@ const Checkout = () => {
       providerName,
       effectiveOrderId,
       headlessBaseOverrides,
+      callbackBaseUrl,
     ],
   );
 
@@ -575,6 +587,7 @@ const Checkout = () => {
       headlessBaseOverrides,
       headlessRampSurface,
       regionCode,
+      callbackBaseUrl,
     ],
   );
 

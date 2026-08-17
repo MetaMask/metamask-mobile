@@ -6,7 +6,6 @@ set -o pipefail
 
 PREVIOUS_VERSION="${1}"
 NEW_VERSION="${2}"
-NEW_VERSION_NUMBER="${3}"
 RELEASE_BRANCH_PREFIX="release/"
 
 if [[ -z $NEW_VERSION ]]; then
@@ -49,16 +48,15 @@ git checkout "${RELEASE_BRANCH_NAME}"
 echo "Release Branch Checked Out"
 
 echo "Running version update scripts.."
-# Bump versions for the release
+# Bump semver for the release (build numbers are applied at build time)
 ./scripts/set-semvar-version.sh "${NEW_VERSION}"
-./scripts/set-build-version.sh "${NEW_VERSION_NUMBER}"
 
 echo "Adding and committing changes.."
 # Track our changes
 git add package.json android/app/build.gradle ios/MetaMask.xcodeproj/project.pbxproj
 
 # Generate a commit
-git commit -m "bump semvar version to ${NEW_VERSION} && build version to ${NEW_VERSION_NUMBER}"
+git commit -m "bump semvar version to ${NEW_VERSION}"
 
 echo "Pushing changes to the remote.."
 git push --set-upstream origin "${RELEASE_BRANCH_NAME}"

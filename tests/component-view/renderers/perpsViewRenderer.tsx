@@ -10,7 +10,10 @@ import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
-import { initialStatePerps } from '../presets/perpsStatePreset';
+import {
+  initialStatePerps,
+  initialStatePerpsPro,
+} from '../presets/perpsStatePreset';
 import {
   PerpsConnectionContext,
   type PerpsConnectionContextValue,
@@ -37,6 +40,7 @@ import PerpsHeroCardView from '../../../app/components/UI/Perps/Views/PerpsHeroC
 import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
 import PerpsOrderView from '../../../app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView';
+import PerpsProMarketView from '../../../app/components/UI/Perps/Views/PerpsProMarketView/PerpsProMarketView';
 import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
@@ -238,10 +242,9 @@ function focusedPriceChannel() {
 }
 
 /** Prices channel: usePerpsLivePrices calls subscribeToSymbols */
-const pricesChannel = () => {
-  const channel = mutableChannelWithInitialValue<Record<string, PriceUpdate>>(
-    {},
-  );
+const pricesChannel = (initialPrices: Record<string, PriceUpdate> = {}) => {
+  const channel =
+    mutableChannelWithInitialValue<Record<string, PriceUpdate>>(initialPrices);
 
   return {
     ...channel,
@@ -282,7 +285,8 @@ const typedMarkets = (markets: unknown[]): PerpsMarketData[] =>
 const typedAccount = (account: unknown): AccountState =>
   account as AccountState;
 
-const createPricesChannel = () => pricesChannel();
+const createPricesChannel = (prices?: Record<string, PriceUpdate>) =>
+  pricesChannel(prices);
 
 const createAccountChannel = (account: unknown) =>
   mutableChannelWithInitialValue(typedAccount(account));
@@ -306,6 +310,8 @@ export interface PerpsStreamOverrides {
   marketData?: unknown[];
   /** When set, usePerpsLiveOrders() receives this array (e.g. to test CancelAllOrders with/without orders). */
   orders?: unknown[];
+  /** When set, usePerpsLivePrices() receives these prices on first subscription. */
+  prices?: Record<string, PriceUpdate>;
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
@@ -320,7 +326,7 @@ function createTestStreamManager(
   const account = createAccountChannel(
     streamOverrides?.account ?? initialAccount,
   );
-  const prices = createPricesChannel();
+  const prices = createPricesChannel(streamOverrides?.prices);
 
   const streamManager = {
     prices,
@@ -363,6 +369,8 @@ interface RenderPerpsViewOptions {
   streamOverrides?: PerpsStreamOverrides;
   /** Optional extra routes so navigation can be asserted (e.g. [{ name: Routes.PERPS.MARKET_LIST }]). */
   extraRoutes?: PerpsExtraRoute[];
+  /** Selects the matching Perps state preset. */
+  mode?: 'lite' | 'pro';
 }
 
 const DefaultRouteProbe =
@@ -381,8 +389,9 @@ export function renderPerpsView(
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
-  const { overrides, initialParams, streamOverrides, extraRoutes } = options;
-  const builder = initialStatePerps();
+  const { overrides, initialParams, streamOverrides, extraRoutes, mode } =
+    options;
+  const builder = mode === 'pro' ? initialStatePerpsPro() : initialStatePerps();
   if (overrides) {
     builder.withOverrides(overrides);
   }
@@ -577,6 +586,45 @@ export function renderPerpsMarketDetailsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
     'PerpsMarketDetails',
     { overrides, initialParams, streamOverrides, extraRoutes },
+  );
+}
+
+const defaultProMarket = {
+  ...defaultMarketDetailsMarket,
+  szDecimals: 2,
+};
+
+const defaultProPrices: Record<string, PriceUpdate> = {
+  ETH: {
+    symbol: 'ETH',
+    price: '2500',
+    markPrice: '2500',
+    percentChange24h: '2',
+    timestamp: 1,
+    isTradable: true,
+  },
+};
+
+/**
+ * Renders PerpsProMarketView with Pro state and live price fixtures.
+ */
+export function renderPerpsProMarketView(options: RenderPerpsViewOptions = {}) {
+  return renderPerpsView(
+    PerpsProMarketView as unknown as React.ComponentType,
+    Routes.PERPS.MARKET_DETAILS,
+    {
+      ...options,
+      mode: 'pro',
+      initialParams: {
+        market: defaultProMarket,
+        ...options.initialParams,
+      },
+      streamOverrides: {
+        marketData: [defaultProMarket],
+        prices: defaultProPrices,
+        ...options.streamOverrides,
+      },
+    },
   );
 }
 
@@ -922,7 +970,7 @@ export function renderPerpsCrossMarginWarningView(
 
 /**
  * Renders a standalone Perps component (not a View) wrapped with Redux, connection, and stream providers.
- * Use for components like PerpsMarketTabs, PerpsErrorState, PerpsBadge, etc. that are not routed views.
+ * Use for components like PerpsBadge, PerpsFillTag, etc. that are not routed views.
  */
 export function renderPerpsComponent(
   Component: React.ComponentType<Record<string, unknown>>,

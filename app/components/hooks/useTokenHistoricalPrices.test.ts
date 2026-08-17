@@ -1,8 +1,19 @@
-import {
+import { waitFor } from '@testing-library/react-native';
+import { getAssetId } from '@metamask/assets-controllers';
+import { renderHookWithProvider } from '../../util/test/renderWithProvider';
+import { TokenI } from '../UI/Tokens/types';
+import useTokenHistoricalPrices, {
   hasInsufficientTimeCoverage,
   type TimePeriod,
   type TokenPrice,
 } from './useTokenHistoricalPrices';
+
+jest.mock('@metamask/assets-controllers', () => ({
+  ...jest.requireActual('@metamask/assets-controllers'),
+  getAssetId: jest.fn(),
+}));
+
+const mockGetAssetId = jest.mocked(getAssetId);
 
 const HOUR_MS = 3_600_000;
 
@@ -109,4 +120,69 @@ describe('hasInsufficientTimeCoverage', () => {
       expect(hasInsufficientTimeCoverage(prices, period)).toBe(true);
     },
   );
+});
+
+describe('useTokenHistoricalPrices fetch URL', () => {
+  const mockFetch = jest.fn();
+  global.fetch = mockFetch;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      status: 200,
+      json: async () => ({
+        prices: [
+          ['1', 100],
+          ['2', 101],
+        ],
+      }),
+    });
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  const baseAsset = {
+    chainId: '0x1',
+    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F', // DAI — real address so getAssetId succeeds
+    isETH: false,
+  } as unknown as TokenI;
+
+  it('builds the CAIP URL via getAssetId for EVM assets', async () => {
+    mockGetAssetId.mockImplementation(
+      jest.requireActual('@metamask/assets-controllers').getAssetId,
+    );
+    renderHookWithProvider(() =>
+      useTokenHistoricalPrices({
+        asset: baseAsset,
+        address: baseAsset.address,
+        chainId: '0x1',
+        timePeriod: '1d',
+        vsCurrency: 'usd',
+      }),
+    );
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
+    const url = mockFetch.mock.calls[0][0] as string;
+    expect(url).toContain('/historical-prices/eip155:1/erc20:0x6b175474'); // adjust casing to actual output
+  });
+
+  it('falls back to legacy URL params when getAssetId returns undefined', async () => {
+    mockGetAssetId.mockReturnValue(undefined);
+
+    renderHookWithProvider(() =>
+      useTokenHistoricalPrices({
+        asset: baseAsset,
+        address: baseAsset.address,
+        chainId: '0x1',
+        timePeriod: '1d',
+        vsCurrency: 'usd',
+      }),
+    );
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
+    const url = mockFetch.mock.calls[0][0] as string;
+    expect(url).toContain('/historical-prices/eip155:1/erc20:0x6B1754'); // legacy path uses `address` param verbatim
+  });
 });

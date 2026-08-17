@@ -3,6 +3,7 @@ import {
   NestedTransactionMetadata,
   SimulationTokenBalanceChange,
   SimulationErrorCode,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -20,7 +21,6 @@ import {
   parseApprovalTransactionData,
   ParsedApprovalTransactionData,
 } from '../../utils/approvals';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { selectNonZeroUnusedApprovalsAllowList } from '../../../../../selectors/featureFlagController/confirmations';

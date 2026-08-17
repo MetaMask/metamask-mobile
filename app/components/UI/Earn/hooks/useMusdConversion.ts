@@ -9,6 +9,7 @@ import { createSelector } from 'reselect';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { EVM_SCOPE } from '../constants/networks';
@@ -24,6 +25,7 @@ import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
 import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 
 type MusdInitiationResult = { transactionId: string } | void;
 
@@ -182,7 +184,7 @@ export const selectPendingApprovalIds = createSelector(
  */
 export const useMusdConversion = () => {
   const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const pendingApprovalIds = useSelector(selectPendingApprovalIds);
 
@@ -396,13 +398,16 @@ export const useMusdConversion = () => {
         },
       });
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: {
-          loader: ConfirmationLoader.CustomAmount,
-          preferredPaymentToken,
+      navigateWithDetails(navigation, [
+        navigationStack,
+        {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: {
+            loader: ConfirmationLoader.CustomAmount,
+            preferredPaymentToken,
+          },
         },
-      });
+      ]);
     },
     [navigation],
   );
@@ -420,13 +425,16 @@ export const useMusdConversion = () => {
       const { preferredPaymentToken, navigationStack = Routes.EARN.ROOT } =
         config;
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          preferredPaymentToken,
-          returnTo: config.returnTo,
+      navigateWithDetails(navigation, [
+        navigationStack,
+        {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken,
+            returnTo: config.returnTo,
+          },
         },
-      });
+      ]);
 
       return true;
     },

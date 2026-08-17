@@ -27,35 +27,6 @@ jest.mock('../../../../../UI/NetworkAssetLogo', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const RN = jest.requireActual<typeof import('react')>('react');
-    return {
-      __esModule: true,
-      default: RN.forwardRef(
-        (
-          props: { children: React.ReactNode },
-          ref: React.Ref<{
-            onCloseBottomSheet: (cb?: () => void) => void;
-            onOpenBottomSheet: (cb?: () => void) => void;
-          }>,
-        ) => {
-          RN.useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: (callback?: () => void | Promise<void>) => {
-              Promise.resolve(callback?.()).catch(() => {
-                // Ignore errors from callback
-              });
-            },
-            onOpenBottomSheet: () => undefined,
-          }));
-          return RN.createElement(RN.Fragment, null, props.children);
-        },
-      ),
-    };
-  },
-);
-
 const defaultGasValues = {
   paramsForController: {
     maxFeePerGas: '0x1',

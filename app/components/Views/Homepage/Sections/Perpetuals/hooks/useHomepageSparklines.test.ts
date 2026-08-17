@@ -57,6 +57,15 @@ describe('useHomepageSparklines', () => {
     );
   });
 
+  it('returns the same object when sparklines and refresh are unchanged', () => {
+    const { result, rerender } = renderHook(() => useHomepageSparklines([]));
+    const initialResult = result.current;
+
+    rerender({});
+
+    expect(result.current).toBe(initialResult);
+  });
+
   it('returns downsampled close prices when callback fires', async () => {
     mockSubscribe.mockImplementation(
       (params: { callback: (candleData: CandleData) => void }) => {

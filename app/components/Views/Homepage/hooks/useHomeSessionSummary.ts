@@ -58,8 +58,6 @@ const useHomeSessionSummary = ({
     };
   }, [visitId, entryPoint, totalSectionsLoaded, appSessionId]);
 
-  // active_ab_tests is auto-injected by the analytics registry via
-  // HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING in abTestConfig.ts
   useFocusEffect(
     useCallback(
       () => () => {

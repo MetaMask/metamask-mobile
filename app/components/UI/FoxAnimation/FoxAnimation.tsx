@@ -5,6 +5,8 @@ import { useSafeAreaInsets, EdgeInsets } from 'react-native-safe-area-context';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import FoxAnimationRive from '../../../animations/fox_appear.riv';
+import { OnboardingRiveAnimationIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useRivePerformance } from '../../../hooks/performance/useRivePerformance';
 
 const getFoxAnimationHeight = (hasFooter: boolean) => {
   if (hasFooter) {
@@ -78,6 +80,9 @@ const FoxAnimation = ({
   const styles = createStyles(hasFooter, insets);
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const { riveHandlers } = useRivePerformance({
+    animationId: OnboardingRiveAnimationIds.FOX_APPEAR,
+  });
 
   const showFoxAnimation = useCallback(async () => {
     if (foxRef.current && trigger) {
@@ -106,7 +111,11 @@ const FoxAnimation = ({
         stateMachineName="FoxRaiseUp"
         testID="fox-animation"
         onPlay={() => {
+          riveHandlers.onPlay();
           setIsPlaying(true);
+        }}
+        onError={(riveError) => {
+          riveHandlers.onError(riveError);
         }}
       />
     </View>

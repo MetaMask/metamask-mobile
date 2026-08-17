@@ -48,18 +48,18 @@ import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import PlaywrightUtilities, {
   getDriver,
 } from '../framework/PlaywrightUtilities';
+import UnifiedGestures from '../framework/UnifiedGestures';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
-import PredictModalView from '../page-objects/Predict/PredictModalView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
-import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
+import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
+import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
   isWalletHomeReadyOnAppium,
-  isWalletHomeReadyOnIOS,
 } from './wallet-home-readiness';
 
 const logger = createLogger({
@@ -72,32 +72,29 @@ const WALLET_HOME_POLL_INTERVAL_MS = 250;
  * Waits for the wallet home screen to be ready after login.
  * On iOS, `wallet-screen` may exist but report `displayed === false` while
  * child indicators are visible — mirrors Detox `toExist` readiness checks.
+ * On Android, polls readiness helpers and re-dismisses system overlays during
+ * the wait (avoids a single visibility assert that can fail under shade/overlays).
  */
 export const waitForWalletHomePlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),
 ): Promise<void> => {
-  if (PlatformDetector.isAndroid()) {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(WalletView.container),
-      {
-        description: 'Wallet should be visible',
-        timeout,
-      },
-    );
-    return;
-  }
-
   const deadline = Date.now() + timeout;
+  const isAndroid = PlatformDetector.isAndroid();
+  const platform = isAndroid ? 'Android' : 'iOS';
+
   while (Date.now() < deadline) {
-    if (await isWalletHomeReadyOnIOS()) {
-      logger.debug('Wallet home ready on iOS');
+    if (await isWalletHomeReadyOnAppium()) {
+      logger.debug(`Wallet home ready on ${platform}`);
       return;
+    }
+    if (isAndroid) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
     await sleep(WALLET_HOME_POLL_INTERVAL_MS);
   }
 
   throw new Error(
-    `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
+    `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
   );
 };
 
@@ -139,16 +136,29 @@ export const ensureAccountListOpenPlaywright = async (
       // list not visible yet
     }
 
-    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+    if (await isWalletHomeReadyOnAppium()) {
+      if (PlatformDetector.isAndroid()) {
+        await dismissAndroidSystemOverlaysPlaywright();
+      }
       await WalletView.tapIdenticon();
-      await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
-        {
-          timeout: resolveE2EWaitTimeoutMs(10_000),
-          description: 'Account list should open from wallet home',
-        },
-      );
-      return;
+      try {
+        // Keep each tap attempt short so we can re-tap if wallet chrome is still settling.
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
+          {
+            timeout: 3_000,
+            description: 'Account list should open from wallet home',
+          },
+        );
+        return;
+      } catch {
+        await sleep(250);
+        continue;
+      }
+    }
+
+    if (PlatformDetector.isAndroid()) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
 
     try {
@@ -172,8 +182,12 @@ export const dismissToWalletHomePlaywright = async (
   const deadline = Date.now() + timeout;
 
   while (Date.now() < deadline) {
-    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+    if (await isWalletHomeReadyOnAppium()) {
       return;
+    }
+
+    if (PlatformDetector.isAndroid()) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
 
     try {
@@ -203,7 +217,6 @@ const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
-const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
@@ -442,10 +455,15 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description: 'Wallet home should be visible after onboarding completion',
-      timeout: 15000,
-    });
+    if (FrameworkDetector.isAppium()) {
+      await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
+    } else {
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description:
+          'Wallet home should be visible after onboarding completion',
+        timeout: 15000,
+      });
+    }
   }
   //'Should dismiss Enable device Notifications checks alert'
   await closeOnboardingModals(fromResetWallet);
@@ -561,20 +579,31 @@ export const CreateNewWallet = async ({
   }
 
   await MetaMetricsOptInView.tapAgreeButton();
-  await device.disableSynchronization(); // Detox is hanging after wallet creation
+  // Detox hangs after wallet creation without disabling sync; Appium has no sync layer.
+  if (FrameworkDetector.isDetox()) {
+    await device.disableSynchronization();
+  }
 
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description: 'Wallet home should be visible after onboarding completion',
-      timeout: 15000,
-    });
+    // iOS Appium: wallet-screen often exists but reports displayed=false; use readiness helpers.
+    if (FrameworkDetector.isAppium()) {
+      await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
+    } else {
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description:
+          'Wallet home should be visible after onboarding completion',
+        timeout: 15000,
+      });
+    }
   }
 
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
-  await device.enableSynchronization();
+  if (FrameworkDetector.isDetox()) {
+    await device.enableSynchronization();
+  }
 };
 
 /**
@@ -674,7 +703,7 @@ export const dismissPushNotificationExistingUserSheet =
         }),
       );
       await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
-        timeout: 5_000,
+        timeout: 2_000,
         description: 'Push notification existing user sheet',
       });
 
@@ -711,6 +740,37 @@ export const dismissPushNotificationExistingUserSheet =
   };
 
 /**
+ * Closes the Predict GTM onboarding modal if "Not now" appears within 2s.
+ * No-ops when the modal is absent (removed builds / flag off).
+ * @returns true when dismissed, false when it did not appear in time
+ */
+export const closePredictModal = async (
+  options: { timeoutMs?: number } = {},
+): Promise<boolean> => {
+  const timeoutMs = options.timeoutMs ?? 2_000;
+
+  try {
+    const predictTitle = await asPlaywrightElement(
+      PlaywrightMatchers.getElementByText('PREDICT AND WIN', true),
+    );
+    await predictTitle.unwrap().waitForDisplayed({ timeout: timeoutMs });
+
+    const notNow = await asPlaywrightElement(
+      PlaywrightMatchers.getElementByText('Not now', true),
+    );
+    await notNow.unwrap().waitForDisplayed({ timeout: 2_000 });
+    await PlaywrightGestures.waitAndTap(notNow, {
+      timeout: 2_000,
+      checkForDisplayed: false,
+      checkForEnabled: false,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Dismisses the marketing consent (Experience Enhancer) modal if it appears
  * after login. Safe to call when the modal is not shown.
  */
@@ -730,10 +790,18 @@ export const loginToAppPlaywright = async (
   const { scenarioType = 'login' } = options;
 
   const dismissPostLoginModals = async (): Promise<void> => {
-    await PlaywrightUtilities.wait(500);
-    await dismissPushNotificationExistingUserSheet();
-    await dismissExperienceEnhancerModal();
+    startPhase('modal_dismissal');
+    try {
+      await PlaywrightUtilities.wait(500);
+      await dismissPushNotificationExistingUserSheet();
+      await dismissExperienceEnhancerModal();
+    } finally {
+      // Resume test_body after login + modals (exclusive phases).
+      startPhase('test_body');
+    }
   };
+
+  startPhase('login');
 
   await dismissAndroidSystemOverlaysPlaywright();
 
@@ -779,6 +847,130 @@ export const loginToAppPlaywright = async (
   await dismissPostLoginModals();
 };
 
+const MM_CONNECT_UNLOCK_ATTEMPTS = 3;
+const MM_CONNECT_LOCK_GONE_TIMEOUT_MS = 10_000;
+
+async function dismissUnlockBlockers(): Promise<void> {
+  // Play services heads-up on google_apis CI emulators covers Unlock and
+  // makes the control non-interactive until the banner is dismissed.
+  PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
+  await dismissAndroidSystemOverlaysPlaywright();
+}
+
+async function isPasswordFieldVisible(): Promise<boolean> {
+  try {
+    const passwordInput = await asPlaywrightElement(LoginView.passwordInput);
+    return await passwordInput.isVisible();
+  } catch {
+    return false;
+  }
+}
+
+async function waitForLockScreenGone(timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!(await isPasswordFieldVisible())) {
+      return true;
+    }
+    await sleep(300);
+  }
+  return false;
+}
+
+/**
+ * Tap Unlock without waiting for UiAutomator2 "interactive" — heads-up banners
+ * make that check fail for ~10s even when a plain tap would succeed.
+ */
+async function tapUnlockWithoutInteractiveWait(): Promise<void> {
+  await UnifiedGestures.waitAndTap(LoginView.loginButton, {
+    description: 'Login Button (MM Connect unlock)',
+    checkForDisplayed: true,
+    checkForEnabled: true,
+    waitForInteractive: false,
+    timeout: 10_000,
+  });
+}
+
+/**
+ * If MetaMask's lock / login screen is showing, unlock with the e2e password.
+ *
+ * Prefer the password field over the outer login container — after a deeplink
+ * the lock screen is often the only UI, and CI auto-lock hits right after
+ * returning to MetaMask for dapp connect.
+ *
+ * Intentionally does NOT use full {@link loginToAppPlaywright}: after a connect
+ * deeplink we expect the permission sheet (not wallet home).
+ */
+export const unlockIfLockScreenVisible = async (): Promise<void> => {
+  await dismissUnlockBlockers();
+
+  if (!(await isPasswordFieldVisible())) {
+    return;
+  }
+
+  logger.debug('Lock screen detected; unlocking for MM Connect flow');
+  const password = getPasswordForScenario('e2e') ?? '123123123';
+
+  let lastError: unknown;
+  for (let attempt = 0; attempt < MM_CONNECT_UNLOCK_ATTEMPTS; attempt++) {
+    await dismissUnlockBlockers();
+
+    try {
+      await LoginView.enterPassword(password);
+      await dismissUnlockBlockers();
+      await tapUnlockWithoutInteractiveWait();
+
+      if (await waitForLockScreenGone(MM_CONNECT_LOCK_GONE_TIMEOUT_MS)) {
+        return;
+      }
+      lastError = new Error('Lock screen still visible after unlock tap');
+    } catch (error) {
+      lastError = error;
+      logger.debug(
+        `Unlock attempt ${attempt + 1} failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+
+    await sleep(500);
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`Failed to unlock MetaMask lock screen: ${String(lastError)}`);
+};
+
+/**
+ * Wait for the wallet to be visible, then cycle the app twice to ensure all
+ * account groups (including Solana) are created and syncing completes.
+ * Must be called after login.
+ */
+export const ensureAccountGroupsFinishedLoading = async (
+  currentDeviceDetails: CurrentDeviceDetails,
+): Promise<void> => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
+  await PlaywrightGestures.terminateApp(currentDeviceDetails);
+  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await loginToAppPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
+  await WalletView.tapIdenticon();
+  await AccountListBottomSheet.waitForAccountSyncToComplete();
+  await PlaywrightGestures.terminateApp(currentDeviceDetails);
+  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await loginToAppPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
+};
+
 /**
  * Logs in (Appium), waits for the wallet, and opens the account list bottom sheet.
  */
@@ -786,19 +978,15 @@ export const loginAndOpenAccountList = async (
   options: {
     scenarioType?: string;
     dismissModals?: boolean;
-    walletTimeout?: number;
     accountListDescription?: string;
   } = {},
 ): Promise<void> => {
   const {
-    walletTimeout = 15_000,
     accountListDescription = 'Account list should be visible',
     ...loginOptions
   } = options;
 
   await loginToAppPlaywright(loginOptions);
-
-  await waitForWalletHomePlaywright(walletTimeout);
 
   await WalletView.tapIdenticon();
 
@@ -845,101 +1033,6 @@ export const selectAccountByDevice = async (
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
 };
 
-const PREDICT_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
-
-/**
- * Resolves whether the Predict GTM onboarding modal should be handled.
- * Uses feature flags when available; otherwise polls the modal for up to 10s.
- */
-export const resolvePredictGtmOnboardingModalEnabled = async (
-  productionFeatureFlags: Record<string, unknown> | null,
-): Promise<boolean> => {
-  if (productionFeatureFlags != null) {
-    return (
-      (
-        productionFeatureFlags.predictGtmOnboardingModalEnabled as {
-          enabled?: boolean;
-        }
-      )?.enabled === true
-    );
-  }
-
-  try {
-    await (await asPlaywrightElement(PredictModalView.notNowButton))
-      .unwrap()
-      .waitForDisplayed({ timeout: PREDICT_GTM_MODAL_FALLBACK_WAIT_MS });
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Dismisses the predictions modal.
- * @async
- * @function dismisspredictionsModalPlaywright
- * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
- */
-const tryDismissPredictionsModalPlaywright = async (
-  timeout = 3000,
-): Promise<boolean> => {
-  try {
-    const btn = await asPlaywrightElement(PredictModalView.notNowButton);
-    await PlaywrightGestures.waitAndTap(btn, {
-      timeout,
-      checkForDisplayed: true,
-      checkForEnabled: true,
-    });
-    await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 3000 });
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-export const dismisspredictionsModalPlaywright = async (
-  maxRetries = 2,
-): Promise<void> => {
-  const dismissed = await tryDismissPredictionsModalPlaywright();
-  if (!dismissed) {
-    logger.error(`Predict modal not dismissed after ${maxRetries} attempts`);
-  }
-};
-
-const startPredictionsModalWatcher = (intervalMs = 1000): (() => void) => {
-  let stopped = false;
-  let inFlight = false;
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  const tick = async () => {
-    if (stopped || inFlight) {
-      if (!stopped) {
-        timeoutId = setTimeout(tick, intervalMs);
-      }
-      return;
-    }
-
-    inFlight = true;
-    try {
-      await tryDismissPredictionsModalPlaywright(1000);
-    } finally {
-      inFlight = false;
-      if (!stopped) {
-        timeoutId = setTimeout(tick, intervalMs);
-      }
-    }
-  };
-
-  timeoutId = setTimeout(tick, 0);
-
-  return () => {
-    stopped = true;
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  };
-};
-
 /**
  * Completes the onboarding flow for importing a SRP.
  * @param srp - The SRP to import.
@@ -979,27 +1072,11 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
-  const productionFeatureFlags = await fetchProductionFeatureFlags(
-    'main',
-    testEnvironment,
-  );
-
   await dismissPushNotificationExistingUserSheet();
+  // Predict GTM is A/B — may sit on top of wallet home after Agree.
+  await closePredictModal();
 
-  const predictGtmOnboardingModalEnabled =
-    await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
-  console.log(
-    'predictGtmOnboardingModalEnabled',
-    predictGtmOnboardingModalEnabled,
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(WalletView.container),
   );
-
-  const stopPredictionsModalWatcher = startPredictionsModalWatcher();
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(WalletView.container),
-    );
-    await tryDismissPredictionsModalPlaywright();
-  } finally {
-    stopPredictionsModalWatcher();
-  }
 };

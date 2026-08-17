@@ -9,8 +9,10 @@ import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAcco
 import { strings } from '../../../../../../../locales/i18n';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useFiatOrderStatus } from '../../../hooks/activity/useFiatOrderStatus';
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
 import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';

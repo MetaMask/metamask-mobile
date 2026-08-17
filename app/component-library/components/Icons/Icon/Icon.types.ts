@@ -113,6 +113,7 @@ export enum IconName {
   Danger = 'Danger',
   Data = 'Data',
   Details = 'Details',
+  DragGrid = 'DragGrid',
   Edit = 'Edit',
   Error = 'Error',
   Ethereum = 'Ethereum',

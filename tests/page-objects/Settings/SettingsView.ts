@@ -1,12 +1,12 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { ScrollContainer } from '../../framework/index';
 
 class SettingsView {
   get title(): EncapsulatedElementType {
@@ -61,13 +61,19 @@ class SettingsView {
   }
 
   get alertButton(): EncapsulatedElementType {
-    return PlatformDetector.isAndroid()
-      ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
-      : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
+    // Case-insensitive: Android AlertDialog may show "YES" vs locale "Yes".
+    const yes = CommonSelectorsText.YES_ALERT_BUTTON.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&',
+    );
+    const yesPattern = new RegExp(`^${yes}$`, 'i');
+    return Matchers.getElementByText(yesPattern);
   }
 
-  get scrollViewIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
+  get scrollViewIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
+      SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID,
+    );
   }
 
   async scrollToLockButton(): Promise<void> {

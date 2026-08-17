@@ -12,7 +12,7 @@ import {
 } from '../../quality-gates';
 import { getTeamInfoFromTags } from '../../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
-import type { TestLevelFixtures } from './types.ts';
+import type { TestLevelFixtures, WorkerLevelFixtures } from './types.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('performanceTracker');
@@ -25,7 +25,7 @@ function getSessionIdFromAnnotations(
 
 export const performanceTrackerFixture = {
   performanceTracker: async (
-    { deviceProvider }: Pick<TestLevelFixtures, 'deviceProvider'>,
+    { deviceProvider }: Pick<WorkerLevelFixtures, 'deviceProvider'>,
     use: (performanceTracker: PerformanceTracker) => Promise<void>,
     testInfo: TestInfo,
   ) => {
@@ -71,11 +71,24 @@ export const performanceTrackerFixture = {
       logger.warn('No timers found in performance tracker');
     }
 
-    // Propagate BrowserStack session creation time (infra overhead, not counted in total)
+    // Propagate cloud session creation time (infra overhead, not counted in total)
     if (deviceProvider.sessionCreationDurationMs !== undefined) {
       performanceTracker.setSessionCreationDuration(
         deviceProvider.sessionCreationDurationMs,
       );
+    }
+
+    const wallClockMs = Math.round(process.uptime() * 1000);
+    const sessionCreationMs = deviceProvider.sessionCreationDurationMs;
+    logger.info(
+      `[Timing] Wall clock (script start → test end): ${wallClockMs}ms (${(wallClockMs / 1000).toFixed(2)}s)`,
+    );
+    if (sessionCreationMs !== undefined) {
+      logger.info(
+        `[Timing] Session creation: ${sessionCreationMs}ms (${(sessionCreationMs / 1000).toFixed(2)}s)`,
+      );
+    } else {
+      logger.info('[Timing] Session creation: N/A (not recorded)');
     }
 
     let metrics: MetricsOutput | null = null;

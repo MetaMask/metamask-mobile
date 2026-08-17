@@ -25,6 +25,13 @@ import {
   formatTokenInputAmountFromFiat,
 } from '../../utils/sourceAmountInputMode';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
+import { playSelection } from '../../../../../util/haptics';
+import { useABTest } from '../../../../../hooks';
+import {
+  SWAPS_HAPTICS_AB_KEY,
+  SWAPS_HAPTICS_EXPOSURE_METADATA,
+  SWAPS_HAPTICS_VARIANTS,
+} from '../../haptics/abTestConfig';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 
@@ -90,6 +97,15 @@ export const useSourceAmountInput = ({
   const destToken = useSelector(selectDestToken);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const fiatRate = useTokenFiatRate(sourceToken);
+  const { variant: swapsHapticsVariant, isActive: isSwapsHapticsAbActive } =
+    useABTest(
+      SWAPS_HAPTICS_AB_KEY,
+      SWAPS_HAPTICS_VARIANTS,
+      SWAPS_HAPTICS_EXPOSURE_METADATA,
+    );
+  const shouldPlaySwapsHaptics = Boolean(
+    isSwapsHapticsAbActive && swapsHapticsVariant.enableSwapHaptics,
+  );
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
@@ -231,6 +247,10 @@ export const useSourceAmountInput = ({
       return;
     }
 
+    if (shouldPlaySwapsHaptics) {
+      playSelection().catch(() => undefined);
+    }
+
     if (isFiatMode) {
       setSourceAmountCursorPositionToEnd(sourceAmount);
       setInputPrimaryDenomination(TOKEN_AMOUNT_DENOMINATION, true);
@@ -249,6 +269,7 @@ export const useSourceAmountInput = ({
     isFiatMode,
     setInputPrimaryDenomination,
     setSourceAmountCursorPositionToEnd,
+    shouldPlaySwapsHaptics,
     sourceAmount,
   ]);
 

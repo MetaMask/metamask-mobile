@@ -20,7 +20,7 @@ export function BatchSellNetworkFeeInfoModal() {
   const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellNetworkFeeInfoModalParams>();
   const handleBack = sourceModal
-    ? () => navigation.replace(sourceModal.screen, sourceModal.params)
+    ? () => navigation.replace(sourceModal.screen)
     : undefined;
   return (
     <BottomSheet

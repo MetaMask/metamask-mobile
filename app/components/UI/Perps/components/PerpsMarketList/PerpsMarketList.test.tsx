@@ -12,6 +12,11 @@ import {
 // changes must flow through `extraData` instead.
 const mockFlashListProps: Record<string, unknown>[] = [];
 
+// Exposed via the mocked FlashList ref so tests can assert on the
+// scroll-to-top behavior driven by `scrollResetKey`/`filterKey` without
+// depending on FlatList's own (unrelated) scroll implementation.
+const mockScrollToOffset = jest.fn();
+
 // Tracks how many times a market row is mounted, used to prove that changing
 // the filter re-renders rows without tearing them down (no remount).
 const mockRowMountCount = { value: 0 };
@@ -29,10 +34,18 @@ jest.mock('@shopify/flash-list', () => {
   const ReactActual = jest.requireActual('react');
   const { FlatList } = jest.requireActual('react-native');
   return {
-    FlashList: (props: Record<string, unknown>) => {
-      mockFlashListProps.push(props);
-      return ReactActual.createElement(FlatList, props);
-    },
+    // forwardRef + useImperativeHandle exposes a controllable scrollToOffset
+    // so tests can verify the reset behavior without depending on FlatList's
+    // own (unrelated) scroll implementation, which jsdom doesn't support.
+    FlashList: ReactActual.forwardRef(
+      (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
+        mockFlashListProps.push(props);
+        ReactActual.useImperativeHandle(ref, () => ({
+          scrollToOffset: mockScrollToOffset,
+        }));
+        return ReactActual.createElement(FlatList, props);
+      },
+    ),
   };
 });
 
@@ -125,6 +138,7 @@ describe('PerpsMarketList', () => {
     jest.clearAllMocks();
     mockFlashListProps.length = 0;
     mockRowMountCount.value = 0;
+    mockScrollToOffset.mockClear();
     Object.keys(mockRowOnPressBySymbol).forEach(
       (key) => delete mockRowOnPressBySymbol[key],
     );
@@ -709,6 +723,94 @@ describe('PerpsMarketList', () => {
       expect(screen.getByTestId('perps-market-row-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('perps-market-row-ETH')).toBeOnTheScreen();
       expect(screen.getByTestId('perps-market-row-SOL')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Scroll reset', () => {
+    it('does not scroll on initial render even when scrollResetKey is set', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          scrollResetKey="all|browse"
+        />,
+      );
+
+      expect(mockScrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('scrolls to offset 0 when scrollResetKey changes', () => {
+      const { rerender } = render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          scrollResetKey="all|browse"
+        />,
+      );
+
+      expect(mockScrollToOffset).not.toHaveBeenCalled();
+
+      rerender(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          scrollResetKey="all|search"
+        />,
+      );
+
+      expect(mockScrollToOffset).toHaveBeenCalledTimes(1);
+      expect(mockScrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
+
+    it('does not scroll again when re-rendered with the same scrollResetKey', () => {
+      const { rerender } = render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          scrollResetKey="all|browse"
+          sortBy="volume"
+        />,
+      );
+
+      rerender(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          scrollResetKey="all|browse"
+          sortBy="priceChange"
+        />,
+      );
+
+      expect(mockScrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('falls back to filterKey to trigger the reset when scrollResetKey is not provided', () => {
+      const { rerender } = render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          filterKey="perps"
+        />,
+      );
+
+      expect(mockScrollToOffset).not.toHaveBeenCalled();
+
+      rerender(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          filterKey="spot"
+        />,
+      );
+
+      expect(mockScrollToOffset).toHaveBeenCalledTimes(1);
+      expect(mockScrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
     });
   });
 });

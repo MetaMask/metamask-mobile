@@ -2,6 +2,7 @@ import {
   getNotificationDetails,
   hasDepositOrderField,
   generateThemeParameters,
+  generateWidgetThemeParameters,
   timestampToTransakFormat,
 } from './depositUtils';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
@@ -272,6 +273,48 @@ describe('generateThemeParameters', () => {
       primaryButtonFillColor: colors.icon.default,
       primaryButtonTextColor: colors.icon.inverse,
       surfaceFillColor: colors.background.muted,
+    });
+  });
+});
+
+describe('generateWidgetThemeParameters', () => {
+  const mockDarkTheme = {
+    ...mockTheme,
+    colors: darkTheme.colors,
+    themeAppearance: AppThemeKey.dark,
+  };
+
+  it('should generate correct widget theme parameters for light mode', () => {
+    const themeAppearance = AppThemeKey.light;
+    const colors = mockTheme.colors;
+    const result = generateWidgetThemeParameters(themeAppearance, colors);
+    expect(result).toEqual({
+      themeColor: colors.primary.default,
+      colorMode: 'LIGHT',
+      widgetBackgroundFillColor: colors.background.default,
+      surfaceFillColor: colors.background.muted,
+      textPrimaryColor: colors.text.default,
+      textSecondaryColor: colors.text.alternative,
+      borderColor: colors.border.default,
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+    });
+  });
+
+  it('should generate correct widget theme parameters for dark mode', () => {
+    const themeAppearance = AppThemeKey.dark;
+    const colors = mockDarkTheme.colors;
+    const result = generateWidgetThemeParameters(themeAppearance, colors);
+    expect(result).toEqual({
+      themeColor: colors.primary.default,
+      colorMode: 'DARK',
+      widgetBackgroundFillColor: colors.background.alternative,
+      surfaceFillColor: colors.background.muted,
+      textPrimaryColor: colors.text.default,
+      textSecondaryColor: colors.text.alternative,
+      borderColor: colors.border.default,
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
     });
   });
 });

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
@@ -11,6 +11,18 @@ import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { analytics } from '../../../util/analytics/analytics';
 import { reloadAppAsync } from 'expo';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import {
+  confirmSupportConsent,
+  navigateToSupportConsent,
+  rejectSupportConsent,
+} from '../../../util/support';
+
+jest.mock('../../../util/support', () => ({
+  navigateToSupportConsent: jest.fn(),
+  confirmSupportConsent: jest.fn(),
+  rejectSupportConsent: jest.fn(),
+}));
 
 jest.mock('expo', () => ({
   reloadAppAsync: jest.fn().mockResolvedValue(undefined),
@@ -62,6 +74,7 @@ describe('ErrorBoundary', () => {
     errorMessage: 'Test error message',
     showExportSeedphrase: jest.fn(),
     copyErrorToClipboard: jest.fn(),
+    openTicket: jest.fn(),
     sentryId: 'test-sentry-id',
     onboardingErrorConfig: null,
   };
@@ -78,6 +91,7 @@ describe('ErrorBoundary', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('renders without errors', () => {
@@ -214,11 +228,13 @@ describe('ErrorBoundary', () => {
       fireEvent.press(describeButton);
     });
 
-    const textInput = await waitFor(() =>
-      getByPlaceholderText(
+    const textInput = await waitFor(() => {
+      const input = getByPlaceholderText(
         'Sharing details like how we can reproduce the bug will help us fix the problem.',
-      ),
-    );
+      );
+      expect(input).toBeOnTheScreen();
+      return input;
+    });
 
     await act(async () => {
       fireEvent.changeText(textInput, 'Test feedback');
@@ -237,6 +253,115 @@ describe('ErrorBoundary', () => {
     expect(spyAlert).toHaveBeenCalledWith(
       'Thanks! We\u2019ll take a look soon.',
     );
+  });
+
+  it('delegates to openTicket when Contact support is pressed and navigation is available', async () => {
+    const { getByText } = renderWithProvider(
+      <Fallback {...mockProps} navigation={mockNavigation} />,
+      { state: initialState },
+    );
+
+    const contactSupportButton = getByText(
+      strings('error_screen.contact_support'),
+    );
+    await act(async () => {
+      fireEvent.press(contactSupportButton);
+    });
+
+    expect(mockProps.openTicket).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the standalone consent modal instead of calling openTicket when no navigation is available', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    const contactSupportButton = getByText(
+      strings('error_screen.contact_support'),
+    );
+    await act(async () => {
+      fireEvent.press(contactSupportButton);
+    });
+
+    expect(mockProps.openTicket).not.toHaveBeenCalled();
+    expect(
+      getByTestId('standalone-support-consent-confirm-button'),
+    ).toBeOnTheScreen();
+  });
+
+  it('confirms via the standalone consent modal, opening the enriched URL', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('error_screen.contact_support')));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId('standalone-support-consent-confirm-button'));
+    });
+
+    expect(confirmSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+    expect(rejectSupportConsent).not.toHaveBeenCalled();
+  });
+
+  it('rejects via the standalone consent modal, opening the plain URL', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('error_screen.contact_support')));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId('standalone-support-consent-reject-button'));
+    });
+
+    expect(rejectSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+    expect(confirmSupportConsent).not.toHaveBeenCalled();
+  });
+
+  describe('openTicket (class component)', () => {
+    it('shows the consent sheet via navigateToSupportConsent when navigation is available', () => {
+      const instance = new ErrorBoundary({
+        view: 'Test',
+        navigation: mockNavigation,
+      });
+
+      instance.openTicket();
+
+      expect(navigateToSupportConsent).toHaveBeenCalledWith(
+        mockNavigation,
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+      );
+
+      const [, open] = jest.mocked(navigateToSupportConsent).mock.calls[0];
+      const spyOpenURL = jest.spyOn(Linking, 'openURL');
+      open('https://support.metamask.io/?customer_service_token=jwt-token');
+      expect(spyOpenURL).toHaveBeenCalledWith(
+        'https://support.metamask.io/?customer_service_token=jwt-token',
+      );
+    });
+
+    it('opens the plain support URL via Linking when no navigation is available', () => {
+      const instance = new ErrorBoundary({ view: 'Test' });
+      const spyOpenURL = jest.spyOn(Linking, 'openURL');
+
+      instance.openTicket();
+
+      expect(spyOpenURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+      expect(navigateToSupportConsent).not.toHaveBeenCalled();
+    });
   });
 
   describe('Onboarding Error Handling', () => {

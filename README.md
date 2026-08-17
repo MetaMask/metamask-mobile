@@ -26,6 +26,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Development Process](./docs/readme/development-process.md)
 - [Performance](./docs/performance/)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
+- [Internal Android distribution](./docs/readme/android-internal-distribution.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
 - [Reassure Performance Testing (pilot)](./docs/readme/reassure.md)
@@ -81,7 +82,7 @@ yarn watch
 
 #### Download and install the development build
 
-Expo development builds are produced by the [`Expo Dev Build`](https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml) GitHub Actions workflow on every push to `main`. Artifacts are stored as GitHub Actions artifacts (not Runway buckets).
+Expo development builds are produced by the [`Expo Dev Build`](https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml) GitHub Actions workflow. It runs on every push to `main`, but only actually compiles iOS/Android when the `@expo/fingerprint` hash of native code changed since the last build (plus a weekly Monday refresh so artifacts never go stale) — most pushes just reuse the existing build. This means the resolved run may be older than `main` HEAD; that's expected. Artifacts are stored as GitHub Actions artifacts (not Runway buckets).
 
 **Prerequisites:** [GitHub CLI](https://cli.github.com/) (`gh`) authenticated with access to this repository (`gh auth login`).
 
@@ -102,9 +103,18 @@ yarn install:ios:dev --skipInstall
 yarn install:android:dev --skipInstall
 ```
 
+Re-runs skip the download when the GitHub Actions artifact digest matches a local cache under `build/gh-expo-dev-build/`. Force a fresh download with `--force-download`:
+
+```bash
+yarn install:ios:dev --force-download
+yarn install:android:dev --force-download
+```
+
 Artifacts land under `build/` (`MetaMask.app` on iOS, `metamask-dev.apk` on Android). The workflow run id is saved to `build/expo-dev-build-run-id.txt`.
 
 **Manual download from GitHub Actions:**
+
+Note: since most runs skip the actual build (fingerprint unchanged), the most recent successful run may not have build artifacts attached — open the run and check for a `build-dev` job (skipped runs only have `resolve-dev-build`).
 
 ```bash
 # List recent successful Expo Dev Build runs on main

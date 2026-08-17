@@ -4,6 +4,7 @@ import {
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
+import { GAS_FEE_SPONSORED } from '../../../../util/activity-adapters';
 import { ActivityDetailsFeeValue } from './ActivityDetailsFeeValue';
 
 describe('ActivityDetailsFeeValue', () => {
@@ -51,5 +52,20 @@ describe('ActivityDetailsFeeValue', () => {
     expect(getByText('ETH')).toBeOnTheScreen();
     expect(UNSAFE_getByType(AvatarToken).props.size).toBe(AvatarTokenSize.Xs);
     expect(getByTestId('fee-network-badge')).toBeOnTheScreen();
+  });
+
+  it('renders sponsored gas fees as Paid by MetaMask without token metadata', () => {
+    const { getByText, getByTestId, queryByTestId } = render(
+      <ActivityDetailsFeeValue
+        chainId="eip155:1"
+        fee={{ type: GAS_FEE_SPONSORED }}
+        value="Paid by MetaMask"
+      />,
+    );
+
+    expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
+    expect(getByTestId('paid-by-metamask')).toBeOnTheScreen();
+    expect(queryByTestId('fee-token-avatar')).toBeNull();
+    expect(queryByTestId('fee-network-badge')).toBeNull();
   });
 });

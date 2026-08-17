@@ -4,7 +4,7 @@ import ReduxService, { ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { TraceName, TraceOperation } from '../../util/trace';
+import { TraceName, TraceOperation, TraceContext } from '../../util/trace';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
 import { SET_SEEDLESS_ONBOARDING } from '../../actions/onboarding';
 
@@ -231,6 +231,38 @@ describe('OAuth login service', () => {
       clientId: 'clientId',
       authConnection: AuthConnection.Google,
     });
+  });
+
+  it('nests auth spans under the provided parent trace context', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    const parentTraceContext = {
+      _name: 'Onboarding - Social Login Attempt',
+    } as unknown as TraceContext;
+
+    await OAuthLoginService.handleOAuthLogin(
+      loginHandler,
+      false,
+      parentTraceContext,
+    );
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        parentContext: parentTraceContext,
+      }),
+    );
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        parentContext: parentTraceContext,
+      }),
+    );
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        parentContext: parentTraceContext,
+      }),
+    );
   });
 
   it('return a type success, existing user', async () => {

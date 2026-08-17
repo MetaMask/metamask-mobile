@@ -44,6 +44,8 @@ import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { Box, TextColor } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
@@ -160,7 +162,7 @@ const PriceAdvanced = ({
   useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const {
@@ -519,8 +521,9 @@ const PriceAdvanced = ({
         .build(),
     );
 
-    navigation.navigate(
-      ...createMAPickerNavDetails({
+    navigateWithDetails(
+      navigation,
+      createMAPickerNavDetails({
         selectedMAs,
         onDone: (selected: string[]) => {
           setActiveIndicators((prev) => {

@@ -61,9 +61,14 @@ import {
   type RouteProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { RootState } from '../../../reducers';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
+import {
+  discardPendingAppInstall,
+  replayPendingAppInstall,
+} from '../../../util/analytics/appInstallEvent';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
@@ -72,7 +77,7 @@ import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/us
  */
 const OptinMetrics = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -253,6 +258,14 @@ const OptinMetrics = () => {
         attributionProps,
         trackEvent: (event) => metrics.trackEvent(event),
       });
+    }
+
+    // Emit App Installed for an install captured before consent existed, or
+    // drop it when the user declines, same as the buffers handled above.
+    if (isBasicUsageChecked) {
+      await replayPendingAppInstall();
+    } else {
+      discardPendingAppInstall();
     }
 
     dispatch(clearOnboardingEvents());

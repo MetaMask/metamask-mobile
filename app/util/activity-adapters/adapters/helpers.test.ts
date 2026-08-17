@@ -9,9 +9,11 @@ import {
   getLocalTransactionFees,
   getLocalTransactionStatus,
   getNetworkFeeAmount,
+  isTransactionGasFeeSponsored,
   parseValueTransfers,
   type ValueTransfer,
 } from './helpers';
+import { GAS_FEE_SPONSORED } from '../fees';
 
 type LocalTransactionStatusInput = Parameters<
   typeof getLocalTransactionStatus
@@ -22,7 +24,7 @@ const baseTransactionMeta = {
   id: 'activity-helpers-test-tx',
   networkClientId: 'mainnet',
   time: 0,
-  txParams: {},
+  txParams: { from: '0xfrom' },
 } as const;
 
 const makeGroup = (
@@ -166,6 +168,115 @@ describe('getNetworkFeeAmount', () => {
   });
 });
 
+describe('isTransactionGasFeeSponsored', () => {
+  it('returns true for a confirmed gas-sponsored transaction', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.confirmed,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false when the transaction is not marked as sponsored', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: false,
+          status: TransactionStatus.confirmed,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for hardware wallets', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.confirmed,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+        isHardwareWalletAccount: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for rejected transactions', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.rejected,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for dropped transactions', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.dropped,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for failed transactions with no gas used', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.failed,
+          type: TransactionType.simpleSend,
+          txReceipt: {},
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns true for failed transactions that used gas', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.failed,
+          type: TransactionType.simpleSend,
+          txReceipt: { gasUsed: '0x5208' },
+        } as TransactionMeta,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false for revoke delegation transactions', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.confirmed,
+          type: TransactionType.revokeDelegation,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+});
+
 describe('getLocalTransactionFees', () => {
   const nativeAsset = {
     decimals: 18,
@@ -190,6 +301,65 @@ describe('getLocalTransactionFees', () => {
         symbol: 'ETH',
         assetId: 'eip155:1/slip44:60',
       },
+    ]);
+  });
+
+  it('returns a sponsored fee marker for gas-sponsored transactions', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        isGasFeeSponsored: true,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.simpleSend,
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toEqual([
+      { type: GAS_FEE_SPONSORED },
+    ]);
+  });
+
+  it('returns the base fee for hardware wallet transactions even when marked as sponsored', () => {
+    const group = {
+      isHardwareWalletAccount: true,
+      primaryTransaction: {
+        chainId: '0x1',
+        isGasFeeSponsored: true,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.simpleSend,
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toEqual([
+      expect.objectContaining({ type: 'base', symbol: 'ETH' }),
+    ]);
+  });
+
+  it('uses the initial transaction sponsorship flag when the primary transaction is not sponsored', () => {
+    const group = {
+      initialTransaction: {
+        chainId: '0x1',
+        isGasFeeSponsored: true,
+        status: TransactionStatus.submitted,
+        type: TransactionType.simpleSend,
+        txParams: {},
+      },
+      primaryTransaction: {
+        chainId: '0x1',
+        isGasFeeSponsored: false,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.simpleSend,
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toEqual([
+      { type: GAS_FEE_SPONSORED },
     ]);
   });
 

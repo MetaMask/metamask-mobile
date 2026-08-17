@@ -1,4 +1,8 @@
-import { deduplicateSeriesMarkets, filterStandaloneMarkets } from './feed';
+import {
+  deduplicateSeriesMarkets,
+  filterStandaloneMarkets,
+  resolvePredictFilterLabel,
+} from './feed';
 import { Recurrence, type PredictMarket } from '../types';
 
 const createMockMarket = (
@@ -148,5 +152,36 @@ describe('filterStandaloneMarkets', () => {
     ]);
 
     expect(result).toEqual([parent, emptyParent, nullParent]);
+  });
+});
+
+describe('resolvePredictFilterLabel', () => {
+  it('uses translated titleKey when the translation exists', () => {
+    const result = resolvePredictFilterLabel({
+      id: 'games',
+      titleKey: 'predict.feed.filters.games',
+      label: 'Remote Games',
+    });
+
+    expect(result).toBe('Games');
+  });
+
+  it('uses trimmed label when titleKey is missing a translation', () => {
+    const result = resolvePredictFilterLabel({
+      id: 'remote-chip',
+      titleKey: 'predict.feed.filters.remote-chip',
+      label: '  Remote Chip  ',
+    });
+
+    expect(result).toBe('Remote Chip');
+  });
+
+  it('humanizes id when translation and label are missing', () => {
+    const result = resolvePredictFilterLabel({
+      id: 'remote_chip-id',
+      titleKey: 'predict.feed.filters.remote_chip-id',
+    });
+
+    expect(result).toBe('Remote Chip Id');
   });
 });

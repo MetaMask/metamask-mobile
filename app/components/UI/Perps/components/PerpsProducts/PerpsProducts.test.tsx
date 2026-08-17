@@ -36,9 +36,15 @@ jest.mock('../../../../../core/Analytics', () => ({
 }));
 
 let mockCategories: PerpsCategory[] = [];
+let mockHasNewMarkets = false;
 
 jest.mock('../../hooks/usePerpsCategories', () => ({
   usePerpsCategories: () => mockCategories,
+  NEW_CATEGORY: { id: 'new', label: 'New' },
+}));
+
+jest.mock('../../hooks/useHasNewMarkets', () => ({
+  useHasNewMarkets: () => mockHasNewMarkets,
 }));
 
 const ALL_CATEGORIES: PerpsCategory[] = [
@@ -62,6 +68,7 @@ describe('PerpsProducts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCategories = ALL_CATEGORIES;
+    mockHasNewMarkets = false;
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsProductsEnabledFlag) return true;
       return undefined;
@@ -168,5 +175,74 @@ describe('PerpsProducts', () => {
 
     expect(getByTestId('perps-products-crypto')).toBeOnTheScreen();
     expect(getByText('Crypto')).toBeOnTheScreen();
+  });
+
+  it('renders a trailing "New" pill when recently listed markets exist', () => {
+    mockHasNewMarkets = true;
+    mockCategories = [{ id: 'crypto', label: 'Crypto' }];
+
+    const { getByText, getByTestId } = render(<PerpsProducts />);
+
+    expect(getByText('New')).toBeOnTheScreen();
+    expect(getByTestId('perps-products-new')).toBeOnTheScreen();
+  });
+
+  it('does not render the "New" pill when there are no recently listed markets', () => {
+    mockHasNewMarkets = false;
+    mockCategories = [{ id: 'crypto', label: 'Crypto' }];
+
+    const { queryByText, queryByTestId } = render(<PerpsProducts />);
+
+    expect(queryByText('New')).toBeNull();
+    expect(queryByTestId('perps-products-new')).toBeNull();
+  });
+
+  it('renders the "New" pill after category pills', () => {
+    mockHasNewMarkets = true;
+    mockCategories = [
+      { id: 'crypto', label: 'Crypto' },
+      { id: 'stock', label: 'Stocks' },
+    ];
+
+    const { getAllByTestId } = render(<PerpsProducts />);
+
+    // Excludes the outer list/row container testIDs (e.g. "perps-products-list",
+    // "perps-products-list-row-0"), which also start with "perps-products-".
+    const pillTestIds = getAllByTestId(/^perps-products-(?!list)/).map(
+      (element) => element.props.testID,
+    );
+
+    expect(pillTestIds).toEqual([
+      'perps-products-crypto',
+      'perps-products-stock',
+      'perps-products-new',
+    ]);
+  });
+
+  it('navigates with the "new" filter when the "New" pill is pressed', () => {
+    mockHasNewMarkets = true;
+    mockCategories = [{ id: 'crypto', label: 'Crypto' }];
+
+    const { getByTestId } = render(<PerpsProducts />);
+
+    fireEvent.press(getByTestId('perps-products-new'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        defaultMarketTypeFilter: 'new',
+        source: 'perps_home__product_pill',
+      },
+    });
+  });
+
+  it('renders the section even when categories are empty but new markets exist', () => {
+    mockHasNewMarkets = true;
+    mockCategories = [];
+
+    const { getByText, toJSON } = render(<PerpsProducts />);
+
+    expect(toJSON()).not.toBeNull();
+    expect(getByText('New')).toBeOnTheScreen();
   });
 });

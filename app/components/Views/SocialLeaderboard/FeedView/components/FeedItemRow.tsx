@@ -20,6 +20,7 @@ import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/Trade
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import type { FeedAction, FeedItem } from '../types';
+import FeedSubHeaderText from './FeedSubHeaderText';
 import { formatFeedTimestamp } from '../../utils/formatters';
 import {
   getFeedItemTestId,
@@ -187,13 +188,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
                 />
               ) : null}
             </Box>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              {item.subHeader}
-            </Text>
+            <FeedSubHeaderText subHeader={item.subHeader} />
           </Box>
 
           {item.hasValueData || item.hasPnlData ? (

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   HeaderSearch,
   HeaderSearchVariant,
@@ -49,7 +50,7 @@ const TrendingListHeader: React.FC<TrendingListHeaderProps> = ({
   onSearchToggle,
   testID,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleBack = useCallback(() => {
     if (onBack) {

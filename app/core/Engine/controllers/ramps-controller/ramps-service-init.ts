@@ -9,12 +9,20 @@ import {
 /**
  * When RAMPS_ENVIRONMENT is set (set by builds.yml), uses it directly.
  * Otherwise (e.g. Jest, environments without builds.yml), uses METAMASK_ENVIRONMENT switch.
+ *
+ * Mobile `dev` builds map to RAM Development (`on-ramp.dev-api`) so UNIFIED_BUY_2
+ * hits the RAM Dev API instead of Staging/UAT.
  */
 export function getRampsEnvironment(): RampsEnvironment {
   if (process.env.RAMPS_ENVIRONMENT) {
-    return process.env.RAMPS_ENVIRONMENT === 'production'
-      ? RampsEnvironment.Production
-      : RampsEnvironment.Staging;
+    switch (process.env.RAMPS_ENVIRONMENT) {
+      case 'production':
+        return RampsEnvironment.Production;
+      case 'development':
+        return RampsEnvironment.Development;
+      default:
+        return RampsEnvironment.Staging;
+    }
   }
   const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
   switch (metamaskEnvironment) {
@@ -23,6 +31,7 @@ export function getRampsEnvironment(): RampsEnvironment {
     case 'rc':
       return RampsEnvironment.Production;
     case 'dev':
+      return RampsEnvironment.Development;
     case 'exp':
     case 'test':
     case 'e2e':

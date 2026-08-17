@@ -143,6 +143,27 @@ describe('mapRampOrder', () => {
     ).toBeNull();
   });
 
+  it('falls through an unparseable network name to cryptoCurrency.assetId', () => {
+    const order = {
+      ...baseOrder,
+      network: 'ethereum',
+      data: {
+        cryptoCurrency: {
+          symbol: 'ETH',
+          assetId: 'eip155:1/slip44:60',
+        },
+      },
+    } as FiatOrder;
+
+    expect(mapRampOrder({ order })?.chainId).toBe('eip155:1');
+  });
+
+  it('treats placeholder txHash values as missing and falls back to order id', () => {
+    expect(mapRampOrder({ order: { ...baseOrder, txHash: '0x' } })?.hash).toBe(
+      'order-1',
+    );
+  });
+
   it('maps orders with a non-EVM CAIP-2 network', () => {
     const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 

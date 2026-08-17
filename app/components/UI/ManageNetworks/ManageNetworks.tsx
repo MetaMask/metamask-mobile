@@ -8,6 +8,7 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -21,7 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 export default function ManageNetworksComponent() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const networkImageSource = useSelector(selectNetworkImageSource);

@@ -1,4 +1,5 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -244,7 +245,7 @@ interface TokenPriceDisplay {
 const EMPTY_TOKEN_PRICE_DISPLAY: TokenPriceDisplay = {};
 
 export function BatchSellTokenSelect() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<
     RouteProp<
       {

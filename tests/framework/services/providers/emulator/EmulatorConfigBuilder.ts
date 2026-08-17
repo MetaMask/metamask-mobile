@@ -86,6 +86,9 @@ export class EmulatorConfigBuilder {
               'appium:adbExecTimeout': androidAdbExecTimeoutMs,
               // Fail Chromedriver attach faster than the default when WebView is stuck.
               'appium:androidWebviewConnectTimeout': 60_000,
+              // ChromeDriver 111+ rejects clients without this; hang looks like a stuck context switch.
+              'appium:chromedriverArgs': ['--remote-allow-origins=*'],
+              'appium:recreateChromeDriverSessions': true,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
@@ -106,7 +109,7 @@ export class EmulatorConfigBuilder {
         'appium:waitForQuiescence': false, // Don't wait for app idle
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
-        'appium:waitForIdleTimeout': 0, // Don't wait for idle
+        'appium:settings[waitForIdleTimeout]': 0, // Don't wait for idle
         ...(usePreinstalledWda
           ? {
               // WDA was simctl-installed in prepare-ios-appium-runner; launch only.

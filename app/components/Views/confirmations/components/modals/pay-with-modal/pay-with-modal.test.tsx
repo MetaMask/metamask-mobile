@@ -317,6 +317,14 @@ describe('PayWithModal', () => {
       });
     });
 
+    it('does not call setPayToken when the selected token matches the current payToken', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Native Token 1'));
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
+
     it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,

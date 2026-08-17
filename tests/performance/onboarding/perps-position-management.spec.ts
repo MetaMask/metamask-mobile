@@ -73,16 +73,15 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       if (perpsGtmOnboardingModalEnabled) {
         await selectPerpsMainScreenTimer.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+            asPlaywrightElement(PerpsOnboarding.tutorialTitle),
           );
         });
+        await dismissPerpsOnboardingTutorialIfPresent();
       }
-
-      await dismissPerpsOnboardingTutorialIfPresent();
 
       await selectMarketTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketListView.header),
+          asPlaywrightElement(PerpsMarketListView.withdrawButton),
         );
       });
 
@@ -90,7 +89,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       await MarketDetailsScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketDetailsView.header),
+          asPlaywrightElement(PerpsMarketDetailsView.header),
         );
       });
       // Check if there's an existing position and close it before continuing
@@ -109,7 +108,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Open Position
       await openOrderScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsOrderView.placeOrderButton),
+          asPlaywrightElement(PerpsOrderView.placeOrderButton),
         );
       });
 
@@ -119,7 +118,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       await openPositionTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsMarketDetailsView.closeButton),
+          asPlaywrightElement(PerpsMarketDetailsView.closeButton),
           { timeout: 30000 },
         );
       });

@@ -1,6 +1,7 @@
 import { loginToAppPlaywright } from './wallet.flow';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import QuoteView from '../page-objects/swaps/QuoteView';
+import PostTradeBottomSheet from '../page-objects/swaps/PostTradeBottomSheet';
 import WalletView from '../page-objects/wallet/WalletView';
 import Assertions from '../framework/Assertions';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
@@ -40,16 +41,17 @@ export async function runEthToBaseBridgeFlow(
   // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
   await QuoteView.tapSourceAmountInput();
   await QuoteView.enterAmount(quantity);
-  await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
-    timeout: 60000,
-    description: 'Network fee label visible',
-  });
+  // Destination amount is above the keypad; "Network fee" text can exist but
+  // report not displayed while the BottomSheet keypad is open.
+  await QuoteView.waitForQuoteReady({ timeout: 60000 });
   await QuoteView.dismissKeypad();
   await Assertions.expectElementToBeVisible(QuoteView.confirmBridge, {
     description: 'Confirm bridge button visible',
   });
 
   await QuoteView.tapConfirmBridge();
+
+  await PostTradeBottomSheet.tapViewActivity();
 
   await Assertions.expectElementToBeVisible(ActivitiesView.title, {
     timeout: 30000,

@@ -25,8 +25,10 @@ import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
+import SetCardPin, { ConfirmCardPin } from '../Views/SetCardPin';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
+import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
 import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
@@ -99,6 +101,11 @@ const MainRoutes = () => {
         name={Routes.CARD.CREDIT_REDEEM}
         component={CreditRedeem}
       />
+      <ScreensStack.Screen name={Routes.CARD.SET_PIN} component={SetCardPin} />
+      <ScreensStack.Screen
+        name={Routes.CARD.CONFIRM_PIN}
+        component={ConfirmCardPin}
+      />
       <ScreensStack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
@@ -162,6 +169,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.WAITLIST_FORM}
       component={WaitlistFormModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.IMMERSVE_KYC}
+      component={ImmersveKYCModal}
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.FORGOT_PASSWORD}

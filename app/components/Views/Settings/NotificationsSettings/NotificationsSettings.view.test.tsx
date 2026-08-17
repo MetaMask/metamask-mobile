@@ -54,12 +54,12 @@ const GET_NOTIFICATION_PREFERENCES_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences';
 
 const SECTION_TITLES = {
-  walletActivity: 'Wallet Activity',
-  perps: 'Trading Activity',
+  walletActivity: 'Wallet activity',
+  perps: 'Trading activity',
   agenticCli: 'Agentic CLI',
-  socialAI: 'Trading Signals',
-  marketing: 'Updates and Rewards',
-  priceAlerts: 'Price Alerts',
+  socialAI: 'Trading signals',
+  marketing: 'Updates and rewards',
+  priceAlerts: 'Price alerts',
 };
 
 const hasFetchedNotificationPreferences = () =>
@@ -120,7 +120,6 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     const { getByTestId, getByText, findAllByText, findByText } =
       renderSettings({
         socialLeaderboardEnabled: true,
-        priceAlertsEnabled: true,
       });
 
     expect(
@@ -146,19 +145,17 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(3);
+    expect(await findAllByText('Push, In app')).toHaveLength(4);
   });
 
-  it('hides price alerts section when price alerts feature flag is disabled', async () => {
-    const { getByText, queryByText, findByText } = renderSettings({
-      priceAlertsEnabled: false,
-    });
+  it('renders price alerts section when notifications are enabled', async () => {
+    const { getByText, findByText } = renderSettings();
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
+    expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
   });
 
   it('hides notification sections when main toggle is off', async () => {

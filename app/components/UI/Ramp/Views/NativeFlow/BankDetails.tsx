@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   HeaderStandard,
   Text,
@@ -16,6 +22,7 @@ import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import styleSheet from './BankDetails.styles';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -38,6 +45,9 @@ import { selectTokens } from '../../../../../selectors/rampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useSelector } from 'react-redux';
+import { endOpenRampsBuyCufChildrenByName } from '../../utils/rampsBuyCufTrace';
+import { RAMPS_BUY_CUF_TAG } from '../../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../../util/trace';
 import { BANK_DETAILS_TEST_IDS } from './BankDetails.testIds';
 import { isHttpUnauthorized } from '../../utils/isHttpUnauthorized';
 
@@ -57,7 +67,7 @@ const TERMINAL_STATUSES = new Set([
  * and fetches deposit-specific data (paymentDetails) from TransakService.
  */
 const V2BankDetails = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const {
@@ -131,12 +141,19 @@ const V2BankDetails = () => {
     }
   }, [order, getDepositOrder, refreshOrder, handleLogoutError]);
 
+  // Preserve prior mount-only semantics: evaluate once on first effect run so
+  // later status/shouldUpdate changes cannot trigger a second auto-refresh.
+  const hasAttemptedInitialCreatedRefreshRef = useRef(false);
+
   useEffect(() => {
+    if (hasAttemptedInitialCreatedRefreshRef.current) {
+      return;
+    }
+    hasAttemptedInitialCreatedRefreshRef.current = true;
     if (order?.status === RampsOrderStatus.Created && shouldUpdate) {
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [order?.status, shouldUpdate, handleOnRefresh]);
 
   useEffect(() => {
     if (!order?.status) return;
@@ -144,6 +161,10 @@ const V2BankDetails = () => {
       TERMINAL_STATUSES.has(order.status) ||
       order.status === RampsOrderStatus.Pending
     ) {
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId: order.providerOrderId,
+      });
       // @ts-expect-error navigation prop mismatch
       navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
         orderId: order.providerOrderId,

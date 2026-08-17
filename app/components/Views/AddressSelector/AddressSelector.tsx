@@ -19,6 +19,7 @@ import {
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isCaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 import { MultichainAddressRow } from '../../../component-library/components-temp/MultichainAccounts';
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
@@ -32,6 +33,7 @@ import {
 } from '../../../selectors/networkController';
 import {
   createNavigationDetails,
+  navigateWithDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
 import { useAccountName } from '../../hooks/useAccountName';
@@ -40,7 +42,6 @@ import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
 import { AddressSelectorSelectors } from './AddressSelector.testIds';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 export const createAddressSelectorNavDetails =
   createNavigationDetails<AddressSelectorParams>(
@@ -50,7 +51,7 @@ export const createAddressSelectorNavDetails =
 
 const AddressSelector = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { displayOnlyCaipChainIds, isEvmOnly } =
     useParams<AddressSelectorParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -73,7 +74,6 @@ const AddressSelector = () => {
   );
 
   const accountName = useAccountName();
-  const surfaceClass = useElevatedSurface();
   const selectedCaipChainId = isCaipChainId(selectedChainId)
     ? selectedChainId
     : toEvmCaipChainId(selectedChainId);
@@ -86,8 +86,9 @@ const AddressSelector = () => {
 
   const handleAccountSelectorPress = useCallback(
     () =>
-      navigation.navigate(
-        ...createAccountSelectorNavDetails({
+      navigateWithDetails(
+        navigation,
+        createAccountSelectorNavDetails({
           isSelectOnly: true,
         }),
       ),
@@ -153,12 +154,7 @@ const AddressSelector = () => {
   }, [internalAccountsSpreadByScopes, isEvmOnly, displayOnlyCaipChainIds]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      isFullscreen
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} isFullscreen goBack={navigation.goBack}>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         {strings('address_selector.select_an_address')}
       </BottomSheetHeader>

@@ -10,7 +10,7 @@ import {
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
-import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
+import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 import {
   QrSyncOperations,
   QrSyncSurfaces,
@@ -18,18 +18,11 @@ import {
   reportQrSyncFailure,
 } from '../../../core/QrSync/qrSyncTelemetry';
 
-jest.mock('../../../core/QrSync/completeExistingUserQrSyncImport', () => ({
-  completeExistingUserQrSyncImport: jest.fn(() => Promise.resolve()),
-}));
-
 jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
   ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
   reportQrSyncFailure: jest.fn(),
 }));
 
-const mockCompleteExistingUserQrSyncImport = jest.mocked(
-  completeExistingUserQrSyncImport,
-);
 const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -86,6 +79,28 @@ jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
+jest.mock(
+  '../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const ActualReact = jest.requireActual('react');
+    const { Pressable } = jest.requireActual('react-native');
+
+    return {
+      __esModule: true,
+      default: jest.fn(
+        ({ onBack }: { onBack?: () => void; includesTopInset?: boolean }) =>
+          ActualReact.createElement(Pressable, {
+            testID: 'button-icon',
+            onPress: onBack,
+            accessibilityRole: 'button',
+          }),
+      ),
+    };
+  },
+);
+
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+
 const renderComponent = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState> = {},
   completedOnboarding = false,
@@ -113,11 +128,29 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('initial render', () => {
+    it('applies top safe-area inset to the header so the back button is tappable on iOS', () => {
+      renderComponent();
+
+      expect(HeaderCompactStandard).toHaveBeenCalledWith(
+        expect.objectContaining({ includesTopInset: true }),
+        undefined,
+      );
+    });
+
     it('renders the page heading', () => {
       const { getByText } = renderComponent();
 
       expect(
         getByText(strings('app_settings.add_device.add_device_to_wallet')),
+      ).toBeOnTheScreen();
+    });
+
+    it('exposes screen and primary action testIDs', () => {
+      const { getByTestId } = renderComponent();
+
+      expect(getByTestId(AddDeviceToWalletTestIds.SCREEN)).toBeOnTheScreen();
+      expect(
+        getByTestId(AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -269,38 +302,6 @@ describe('AddDeviceToWallet', () => {
         );
       });
     });
-
-    it('reports manual QR submit failures to Sentry in dev', async () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = true;
-      mockHandleScannedQrPayload.mockRejectedValueOnce(
-        new Error('manual submit failed'),
-      );
-
-      try {
-        const { getByPlaceholderText, getByText } = renderComponent();
-
-        fireEvent.changeText(
-          getByPlaceholderText('Paste QR payload'),
-          'metamask://connect/mwp?p=manual',
-        );
-        fireEvent.press(getByText('Submit QR data'));
-
-        await waitFor(() => {
-          expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-            expect.any(Error),
-            {
-              surface: QrSyncSurfaces.SCANNER,
-              operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
-              source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
-            },
-          );
-        });
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
-    });
   });
 
   describe('QR sync presentation', () => {
@@ -343,38 +344,19 @@ describe('AddDeviceToWallet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('does not render the manual QR input outside dev', () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = false;
+    it('does not show sync error message on the instructions screen', () => {
+      const { queryByText, getByText } = renderComponent({
+        phase: QrSyncPhases.FAILED,
+        error: {
+          code: 'SYNC_FAILED',
+          message: 'Sync failed',
+        },
+      });
 
-      try {
-        const { queryByText } = renderComponent();
-
-        expect(queryByText('Enter QR data manually')).not.toBeOnTheScreen();
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
-    });
-
-    it('shows sync error message when the session fails in dev', () => {
-      const globalWithDev = global as unknown as { __DEV__: boolean };
-      const originalDev = globalWithDev.__DEV__;
-      globalWithDev.__DEV__ = true;
-
-      try {
-        const { getByText } = renderComponent({
-          phase: QrSyncPhases.FAILED,
-          error: {
-            code: 'SYNC_FAILED',
-            message: 'Sync failed',
-          },
-        });
-
-        expect(getByText('Sync failed')).toBeOnTheScreen();
-      } finally {
-        globalWithDev.__DEV__ = originalDev;
-      }
+      expect(
+        getByText(strings('app_settings.add_device.add_device_to_wallet')),
+      ).toBeOnTheScreen();
+      expect(queryByText('Sync failed')).toBeNull();
     });
   });
 
@@ -403,7 +385,6 @@ describe('AddDeviceToWallet', () => {
           },
         );
       });
-      expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
     it('navigates to import after sync completes while secrets are still pending', async () => {
@@ -422,7 +403,6 @@ describe('AddDeviceToWallet', () => {
           },
         );
       });
-      expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
     it('does not navigate to import when sync failed with stale secret data', async () => {
@@ -440,7 +420,6 @@ describe('AddDeviceToWallet', () => {
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.anything(),
         );
-        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
       });
     });
   });

@@ -123,7 +123,7 @@ export const usePopularTokens = () => {
   );
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-  const isCashSectionEnabled =
+  const shouldExcludeMusd =
     isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
   const [rawTokens, setRawTokens] = useState<
     {
@@ -220,7 +220,7 @@ export const usePopularTokens = () => {
   );
 
   // Add descriptions dynamically (localized strings must be called within component).
-  // When Cash section is enabled, exclude mUSD from this list (it is shown in Cash section).
+  // Exclude mUSD while it is surfaced in the Money hub.
   const tokens: PopularToken[] = useMemo(() => {
     const mapped = rawTokens.map((token) => {
       const baseToken = POPULAR_TOKENS.find((t) => t.assetId === token.assetId);
@@ -234,19 +234,22 @@ export const usePopularTokens = () => {
         description: baseToken ? getTokenDescription(baseToken) : undefined,
       };
     });
-    return isCashSectionEnabled
+    return shouldExcludeMusd
       ? mapped.filter((t) => {
           const address = t.assetId.split(':').pop();
           return !isMusdToken(address);
         })
       : mapped;
-  }, [rawTokens, isCashSectionEnabled]);
+  }, [rawTokens, shouldExcludeMusd]);
 
-  return {
-    tokens,
-    isInitialLoading,
-    isRefreshing,
-    error,
-    refetch: fetchPrices,
-  };
+  return useMemo(
+    () => ({
+      tokens,
+      isInitialLoading,
+      isRefreshing,
+      error,
+      refetch: fetchPrices,
+    }),
+    [tokens, isInitialLoading, isRefreshing, error, fetchPrices],
+  );
 };

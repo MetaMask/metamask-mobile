@@ -9,6 +9,7 @@ import React, {
 import { ActivityIndicator, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   WebView,
   WebViewMessageEvent,
@@ -30,7 +31,8 @@ import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { getCardWebBaseUrlForMetaMaskEnv } from '../../util/mapCardWebUrl';
 import { useSelector } from 'react-redux';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
@@ -136,7 +138,7 @@ type ForgotPasswordModalParams = {
 };
 
 const ForgotPasswordModal: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<ForgotPasswordModalParams, 'CardForgotPasswordModal'>>();
   const tw = useTailwind();
@@ -170,9 +172,11 @@ const ForgotPasswordModal: React.FC = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.FORGOT_PASSWORD,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.FORGOT_PASSWORD,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -186,7 +190,11 @@ const ForgotPasswordModal: React.FC = () => {
     hasClosedRef.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_PASSWORD_RESET_COMPLETED)
-        .addProperties({ screen: CardScreens.FORGOT_PASSWORD })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.FORGOT_PASSWORD,
+          }),
+        )
         .build(),
     );
     toastRef?.current?.showToast({

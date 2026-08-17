@@ -678,6 +678,8 @@ jest.mock('@braze/react-native-sdk', () => ({
     requestImmediateDataFlush: jest.fn(),
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
+    enableSDK: jest.fn(),
+    wipeData: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),
     getBanner: jest.fn().mockResolvedValue(null),
@@ -1094,6 +1096,13 @@ jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
   startTransaction: jest.fn(),
+  reactNativeTracingIntegration: jest.fn(() => ({
+    name: 'ReactNativeTracing',
+  })),
+  reactNavigationIntegration: jest.fn(() => ({
+    name: 'ReactNavigation',
+    registerNavigationContainer: jest.fn(),
+  })),
 
   // User feedback
   lastEventId: jest.fn(),
@@ -1102,6 +1111,7 @@ jest.mock('@sentry/react-native', () => ({
   getGlobalScope: jest.fn(() => ({
     setTag: jest.fn(),
   })),
+  getClient: jest.fn(),
 }));
 
 jest.mock('@react-native-firebase/messaging', () => {

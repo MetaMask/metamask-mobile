@@ -59,8 +59,12 @@ import {
   RewardsDataServiceGetCampaignParticipantStatusAction,
   RewardsDataServiceGetBenefitsAction,
   RewardsDataServiceGetVIPDashboardAction,
+  RewardsDataServiceGetVipEquityMultiplierAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
   RewardsDataServiceGetVipFeesAction,
+  RewardsDataServiceGetVipTransactionsAction,
+  RewardsDataServiceLookupVipTransactionAction,
+  RewardsDataServiceGetVipTransactionsLastUpdatedAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetFirstPredictOnUsAction,
@@ -137,8 +141,12 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
   | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
   | RewardsDataServiceGetVipFeesAction
+  | RewardsDataServiceGetVipTransactionsAction
+  | RewardsDataServiceLookupVipTransactionAction
+  | RewardsDataServiceGetVipTransactionsLastUpdatedAction
   | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction
   | RewardsDataServiceGetPredictThePitchLeaderboardAction
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
@@ -223,8 +231,12 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDefaultRewardsEnvUrl',
       'RewardsDataService:getBenefits',
       'RewardsDataService:getVIPDashboard',
+      'RewardsDataService:getVipEquityMultiplier',
       'RewardsDataService:getVipRefereeDashboard',
       'RewardsDataService:getVipFees',
+      'RewardsDataService:getVipTransactions',
+      'RewardsDataService:lookupVipTransaction',
+      'RewardsDataService:getVipTransactionsLastUpdated',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getFirstPredictOnUs',

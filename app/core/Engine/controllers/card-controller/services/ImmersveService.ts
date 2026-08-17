@@ -11,14 +11,16 @@ interface RequestOptions {
   tokenSet?: CardAuthTokens;
   timeout?: number;
   headers?: Record<string, string>;
+  baseURL?: string;
 }
 
 export class ImmersveService {
   private readonly client: AxiosInstance;
+  private readonly getBaseUrl: () => string;
 
-  constructor({ baseUrl }: { baseUrl: string }) {
+  constructor({ getBaseUrl }: { getBaseUrl: () => string }) {
+    this.getBaseUrl = getBaseUrl;
     this.client = create({
-      baseURL: baseUrl,
       timeout: DEFAULT_TIMEOUT_MS,
       headers: {
         'Content-Type': 'application/json',
@@ -35,15 +37,18 @@ export class ImmersveService {
     }
 
     if (__DEV__) {
+      const isSetPin = path.includes('/set-pin');
       Logger.log('[ImmersveService]', 'request', path, {
         method: opts.method ?? 'GET',
         headers,
-        body: opts.body,
+        // Never log PIN or other sensitive set-pin body fields.
+        body: isSetPin ? '[redacted]' : opts.body,
       });
     }
 
     try {
       const response = await this.client.request<T>({
+        baseURL: opts.baseURL ?? this.getBaseUrl(),
         url: path,
         method: opts.method ?? 'GET',
         headers,

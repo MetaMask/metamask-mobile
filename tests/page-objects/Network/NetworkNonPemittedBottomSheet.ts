@@ -13,33 +13,9 @@ class NetworkNonPemittedBottomSheet {
     );
   }
 
-  get sepoliaNetworkName(): EncapsulatedElementType {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
-    );
-  }
-
-  get ethereumMainNetNetworkName(): EncapsulatedElementType {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
-    );
-  }
-
   get addThisNetworkButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON,
-    );
-  }
-
-  get lineaSepoliaNetworkName(): EncapsulatedElementType {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
-    );
-  }
-
-  get elysiumTestnetNetworkName(): EncapsulatedElementType {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.ELYSIUM_TESTNET_NETWORK_NAME,
     );
   }
 
@@ -58,30 +34,6 @@ class NetworkNonPemittedBottomSheet {
   async tapAddThisNetworkButton(): Promise<void> {
     await Gestures.waitAndTap(this.addThisNetworkButton, {
       elemDescription: 'Add this network button',
-    });
-  }
-
-  async tapSepoliaNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.sepoliaNetworkName, {
-      elemDescription: 'Sepolia network name',
-    });
-  }
-
-  async tapEthereumMainNetNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.ethereumMainNetNetworkName, {
-      elemDescription: 'Ethereum main net network name',
-    });
-  }
-
-  async tapLineaSepoliaNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.lineaSepoliaNetworkName, {
-      elemDescription: 'Linea Sepolia network name',
-    });
-  }
-
-  async tapElysiumTestnetNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.elysiumTestnetNetworkName, {
-      elemDescription: 'Elysium testnet network name',
     });
   }
 

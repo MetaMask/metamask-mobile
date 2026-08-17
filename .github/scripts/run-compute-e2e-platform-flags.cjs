@@ -34,6 +34,7 @@ const ignorableOnly =
 
 const flags = computeE2EPlatformFlags({
   githubEventName: process.env.GITHUB_EVENT_NAME || '',
+  prBaseRef: process.env.PR_BASE_REF || '',
   isFork: readBool(process.env.IS_FORK),
   shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
   allChangesCount,
@@ -45,12 +46,13 @@ const flags = computeE2EPlatformFlags({
   iosCount: readInt(process.env.IOS_COUNT),
   androidOrIgnorableCount: readInt(process.env.ANDROID_OR_IGNORABLE_COUNT),
   iosOrIgnorableCount: readInt(process.env.IOS_OR_IGNORABLE_COUNT),
-  allChangesFiles: process.env.ALL_CHANGES_FILES || '',
+  changedSpecFiles: process.env.CHANGED_SPEC_FILES || '',
 });
 
 let runAppiumIos = false;
 if (
   process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+  process.env.PR_BASE_REF !== 'stable' &&
   !readBool(process.env.IS_FORK)
 ) {
   if (readBool(process.env.RUN_APPIUM_IOS_LABEL)) {
@@ -61,7 +63,7 @@ if (
   } else if (readInt(process.env.E2E_SMOKE_INFRA_COUNT) > 0) {
     runAppiumIos = true;
     console.log(
-      '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework)',
+      '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework/smoke-appium)',
     );
   }
 }
@@ -78,6 +80,7 @@ if (readBool(process.env.LABEL_BLOCKS_MERGE) && !ignorableOnly) {
 let runPerformance = false;
 if (
   process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+  process.env.PR_BASE_REF !== 'stable' &&
   !readBool(process.env.IS_FORK) &&
   readBool(process.env.RUN_PERFORMANCE_LABEL)
 ) {
@@ -95,8 +98,8 @@ const outputLines = [
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
   `run_appium_ios=${runAppiumIos}`,
-  `changed_files<<GH_EOF`,
-  flags.changedFiles,
+  `changed_spec_files<<GH_EOF`,
+  flags.changedSpecFiles,
   'GH_EOF',
 ];
 

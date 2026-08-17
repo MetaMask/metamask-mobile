@@ -153,23 +153,22 @@ export const testSpecificMock: TestSpecificMock = async (
     stxMigrationCancel: false,
     stxMigrationGetFees: false,
     stxMigrationSubmitTransactions: false,
-    swapsSWAPS4543AbtestPostTradeModal: 'control',
   });
   await setupSpotPricesMock(mockServer);
   await setupSwapSocialAndComplianceMocks(mockServer);
 
-  // Catch-all for getQuoteStream with no slippage param (initial render before
-  // useInitialSlippage fires). Registered first so specific mocks below at
+  // Catch-all for getQuoteStream when slippage is omitted (new pair / awaiting
+  // backend-suggested slippage). Registered first so specific mocks below at
   // priority 999 take precedence. Prevents real network calls that cause
   // Error: Aborted when the bridge controller aborts the in-flight request.
   await setupSSEMockRequest(
     mockServer,
     /getQuoteStream/i,
     toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
-    1, // lower priority than the specific mocks below (999)
+    2, // above mockttp's DEFAULT (1), which the MockServer /proxy passthrough uses; below the specific mocks (999)
   );
 
-  // Mock ETH->USDC with default 2% slippage (SSE)
+  // Mock ETH->USDC after suggested/default slippage has been persisted (SSE)
   await setupSSEMockRequest(
     mockServer,
     /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,

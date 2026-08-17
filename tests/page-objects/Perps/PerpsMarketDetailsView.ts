@@ -2,7 +2,6 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsCandlestickChartSelectorsIDs,
-  PerpsOpenOrderCardSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
   PerpsCompactOrderRowSelectorsIDs,
@@ -11,16 +10,7 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import Assertions from '../../framework/Assertions';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-  asDetoxElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import { PlaywrightGestures } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 import { isPositionOpen } from '../../flows/perps.flow';
 
 class PerpsMarketDetailsView {
@@ -41,17 +31,7 @@ class PerpsMarketDetailsView {
 
   /** Header - wdio PerpsPositionDetailsView uses 'perps-market-header' for isContainerDisplayed */
   get header(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.HEADER),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsMarketDetailsViewSelectorsIDs.HEADER,
-          {
-            exact: true,
-          },
-        ),
-    });
+    return Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.HEADER);
   }
 
   get backButton() {
@@ -142,70 +122,30 @@ class PerpsMarketDetailsView {
   }
 
   get closeButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        ) as DetoxElement,
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+    );
   }
 
   get confirmCloseButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        ) as DetoxElement,
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
   }
 
   // Trading action buttons — On Android, Reanimated's AnimatedPressable
   // inside ButtonSemantic doesn't propagate testID to resource-id, so Appium
   // targets the plain View wrapper (LONG/SHORT_BUTTON_WRAPPER) instead.
   get longButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
-          ),
-      },
-    });
+    return Matchers.getElementByID(
+      PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+    );
   }
 
   get shortButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
-          ),
-      },
-    });
+    return Matchers.getElementByID(
+      PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+    );
   }
 
   // Info icons
@@ -236,61 +176,28 @@ class PerpsMarketDetailsView {
 
   // Actions
   async tapBackButton() {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.backButton, {
-          elemDescription: 'Perps market details back',
-        });
-      },
-      appium: async () => {
-        const backEl = await asPlaywrightElement(this.backButton);
-        await PlaywrightGestures.waitAndTap(backEl, {
-          checkForDisplayed: true,
-          timeout: 15_000,
-        });
-      },
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Perps market details back',
+      checkForDisplayed: true,
+      timeout: 15_000,
     });
   }
 
   async tapLongButton() {
-    await encapsulatedAction({
-      detox: async () => {
-        await Utilities.waitForElementToBeEnabled(
-          this.longButton as DetoxElement,
-        );
-        await Gestures.waitAndTap(this.longButton, {
-          elemDescription: 'Perps Long button',
-        });
-      },
-      appium: async () => {
-        console.log('tapLongButton appium');
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.longButton),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            checkForStable: true,
-          },
-        );
-      },
+    await Utilities.waitForElementToBeEnabled(this.longButton);
+    await Gestures.waitAndTap(this.longButton, {
+      elemDescription: 'Perps Long button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      checkStability: true,
     });
   }
 
   async tapShortButton() {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.shortButton);
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.shortButton),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            checkForStable: true,
-          },
-        );
-      },
+    await Gestures.waitAndTap(this.shortButton, {
+      checkForDisplayed: true,
+      checkEnabled: true,
+      checkStability: true,
     });
   }
 
@@ -410,8 +317,8 @@ class PerpsMarketDetailsView {
   // Verify that Orders tab has at least one open order card
   async expectOpenOrderVisible() {
     const openOrderCard = Matchers.getElementByID(
-      PerpsOpenOrderCardSelectorsIDs.CARD,
-    ) as DetoxElement;
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
+    );
 
     // Try a few extra scroll attempts; then assert to avoid masking regressions
     for (let i = 0; i < 3; i++) {
@@ -434,8 +341,8 @@ class PerpsMarketDetailsView {
 
   async expectNoOpenOrderVisible() {
     const openOrderCard = Matchers.getElementByID(
-      PerpsOpenOrderCardSelectorsIDs.CARD,
-    ) as DetoxElement;
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
+    );
     await Assertions.expectElementToNotBeVisible(openOrderCard, {
       description: 'Open limit order card is not visible',
     });
@@ -506,102 +413,62 @@ class PerpsMarketDetailsView {
       PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
     );
 
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.scrollToElement(autoCloseSection, scrollContainer, {
-          direction: 'down',
-          scrollAmount: 250,
-          elemDescription: 'Scroll market details to Auto close section',
-        });
-        await Gestures.waitAndTap(autoCloseSection, {
-          elemDescription: 'Tap Auto close section on position card',
-          checkStability: true,
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.scrollToElement(
-          autoCloseSection,
-          scrollContainer,
-          {
-            direction: 'down',
-            description: 'Scroll market details to Auto close section',
-          },
-        );
-
-        await UnifiedGestures.waitAndTap(autoCloseSection, {
-          description: 'Tap Auto close section on position card',
-          checkForDisplayed: true,
-          checkForEnabled: false,
-        });
-      },
+    await Gestures.scrollToElement(autoCloseSection, scrollContainer, {
+      direction: 'down',
+      scrollAmount: 250,
+      elemDescription: 'Scroll market details to Auto close section',
+    });
+    await Gestures.waitAndTap(autoCloseSection, {
+      elemDescription: 'Tap Auto close section on position card',
+      checkForDisplayed: true,
+      checkEnabled: false,
+      checkStability: true,
     });
   }
 
   async tapOpenOrderCancelButton(): Promise<void> {
-    const cancelButton = Matchers.getElementByID(
-      PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
+    // Compact order rows navigate to order details; cancel lives on that screen.
+    const orderRow = Matchers.getElementByID(
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
     );
-    await Gestures.waitAndTap(cancelButton, {
-      elemDescription: 'Cancel open order button',
+    await Gestures.waitAndTap(orderRow, {
+      elemDescription: 'Open order row (navigate to details to cancel)',
       timeout: 15000,
     });
   }
 
   async isContainerDisplayed(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        const headerEl = asDetoxElement(this.header);
-        await Assertions.expectElementToBeVisible(headerEl, {
-          description: 'Perps market details header visible',
-          timeout: 20000,
-        });
-      },
-      appium: async () => {
-        const headerEl = await asPlaywrightElement(this.header);
-        await headerEl.waitForDisplayed({ timeout: 20000 });
-      },
+    await Assertions.expectElementToBeVisible(this.header, {
+      description: 'Perps market details header visible',
+      timeout: 20000,
     });
   }
 
   async tapClosePositionButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.closeButton, {
-      description: 'Close position button',
+    await Gestures.waitAndTap(this.closeButton, {
+      elemDescription: 'Close position button',
     });
-    await UnifiedGestures.waitAndTap(this.confirmCloseButton, {
-      description: 'Confirm close position button',
+    await Gestures.waitAndTap(this.confirmCloseButton, {
+      elemDescription: 'Confirm close position button',
     });
   }
 
   async closePositionWithRetry(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
+    await Utilities.executeWithRetry(
+      async () => {
         if (await isPositionOpen()) {
           await this.tapClosePositionButton();
-          await Assertions.expectElementToNotBeVisible(
-            asDetoxElement(this.closeButton),
-            {
-              timeout: 5000,
-              description: 'Close button disappears after confirm',
-            },
-          );
+          await Assertions.expectElementToNotBeVisible(this.closeButton, {
+            timeout: 5000,
+            description: 'Close button disappears after confirm',
+          });
         }
       },
-      appium: async () => {
-        await Utilities.executeWithRetry(
-          async () => {
-            if (await isPositionOpen()) {
-              await this.tapClosePositionButton();
-              const closeEl = await asPlaywrightElement(this.closeButton);
-              await closeEl.waitForDisplayed({ reverse: true, timeout: 5000 });
-            }
-          },
-          {
-            description: 'close position',
-            elemDescription: 'Close position button',
-          },
-        );
+      {
+        description: 'close position',
+        elemDescription: 'Close position button',
       },
-    });
+    );
   }
 }
 

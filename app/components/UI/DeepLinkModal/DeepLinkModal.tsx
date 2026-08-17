@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import styleSheet from './DeepLinkModal.styles';
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -101,7 +102,7 @@ const ModalDescription = memo<{
 const DeepLinkModal = () => {
   const params = useParams<DeepLinkModalParams>();
   const { linkType, onBack } = params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const pageTitle =
     params.linkType !== DeepLinkModalLinkType.INVALID &&

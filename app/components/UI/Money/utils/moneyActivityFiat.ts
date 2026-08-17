@@ -187,6 +187,20 @@ export function convertSelectedFiatToUsd(
 }
 
 /**
+ * Mirrors {@link buildMoneyActivityFiatLine}'s branch decision: `true` only for
+ * a non-mUSD transfer row, where the fiat line reads market rates. Rows without
+ * transfer meta return '' before touching rates, and mUSD-like rows use the 1:1
+ * peg — callers can skip subscribing to rates in both cases.
+ */
+export function activityFiatLineNeedsMarketRates(tx: TransactionMeta): boolean {
+  const meta = resolveMusdTransferMeta(tx);
+  if (!meta) {
+    return false;
+  }
+  return !isMusdLikeForFiatFallback(meta.contractAddress, meta.symbol);
+}
+
+/**
  * Secondary fiat line for a Money activity row: prefix (+/-) + USD (2 decimals).
  *
  * mUSD is USD-pegged 1:1, so its dollar value is the token amount directly.

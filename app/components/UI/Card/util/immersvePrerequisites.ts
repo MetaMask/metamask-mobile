@@ -1,13 +1,15 @@
 import type {
   CardSpendingPrerequisite,
   CardSmartContractWriteParams,
+  CardKycCtaHint,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 export type ImmersveNextAction =
   | { type: 'contact'; needsEmail: boolean; needsPhone: boolean }
-  | { type: 'kyc'; url?: string }
+  | { type: 'kyc'; url?: string; ctaHint?: CardKycCtaHint }
   | { type: 'expected_spend' }
   | { type: 'funding'; write: CardSmartContractWriteParams }
+  | { type: 'rejected'; retryUrl?: string }
   | { type: 'pending' }
   | { type: 'active' };
 
@@ -35,7 +37,11 @@ export function deriveNextImmersveAction(
   const kyc = findActionRequired(prerequisites, 'follow_kyc_url');
   if (kyc) {
     const url = (kyc.params as { kycUrl?: string } | undefined)?.kycUrl;
-    return { type: 'kyc', url };
+    const ctaHint =
+      kyc.ctaHint ??
+      (kyc.params as { ctaHint?: CardKycCtaHint } | undefined)?.ctaHint;
+
+    return { type: 'kyc', url, ctaHint };
   }
 
   if (findActionRequired(prerequisites, 'set_expected_spend_amount')) {
@@ -48,6 +54,15 @@ export function deriveNextImmersveAction(
       type: 'funding',
       write: funding.params as unknown as CardSmartContractWriteParams,
     };
+  }
+
+  const rejected = prerequisites.find(
+    (p) => p.status === 'blocked' || p.status === 'kyc_check_failed',
+  );
+  if (rejected) {
+    const retryUrl = (rejected.params as { kycUrl?: string } | undefined)
+      ?.kycUrl;
+    return { type: 'rejected', retryUrl };
   }
 
   const anyOutstanding = prerequisites.some((p) => p.status !== 'ok');

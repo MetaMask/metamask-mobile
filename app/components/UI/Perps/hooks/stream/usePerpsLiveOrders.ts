@@ -24,7 +24,7 @@ export interface UsePerpsLiveOrdersReturn {
 
 /**
  * Hook for real-time order updates via WebSocket subscription
- * Replaces the old polling-based usePerpsOpenOrders hook
+ * Live WebSocket subscription for open orders
  *
  * Orders update instantly by default since they don't change frequently
  * and users expect immediate feedback when placing/cancelling orders.

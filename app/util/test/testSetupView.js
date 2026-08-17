@@ -579,6 +579,13 @@ jest.mock('@sentry/react-native', () => ({
   getGlobalScope: jest.fn(() => ({
     setTag: jest.fn(),
   })),
+  reactNativeTracingIntegration: jest.fn(() => ({
+    name: 'ReactNativeTracing',
+  })),
+  reactNavigationIntegration: jest.fn(() => ({
+    name: 'ReactNavigation',
+    registerNavigationContainer: jest.fn(),
+  })),
 }));
 
 // Mock Firebase Messaging
@@ -856,6 +863,8 @@ jest.mock('@braze/react-native-sdk', () => ({
   __esModule: true,
   default: {
     changeUser: jest.fn(),
+    enableSDK: jest.fn(),
+    wipeData: jest.fn(),
     getInitialPushPayload: jest.fn((callback) => {
       // Call callback with null payload (no initial push)
       if (typeof callback === 'function') {

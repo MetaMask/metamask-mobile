@@ -26,6 +26,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask.MetaMask'),
 }));
 
 jest.mock('redux-persist-filesystem-storage');
@@ -168,12 +169,16 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsControllerV2');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
+    expect(engine.context).toHaveProperty('SubscriptionController');
+    expect(engine.context).toHaveProperty('ShieldController');
+    expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');
     expect(engine.context).toHaveProperty('MoneyAccountController');
   });
@@ -1107,7 +1112,6 @@ describe('Engine', () => {
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'MoneyAccountUpgradeController' ||
               controllerName === 'DelegationController'),
         )
         .map(([controllerName]) => controllerName);
@@ -1125,6 +1129,39 @@ describe('Engine', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
         .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls SubscriptionController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls ShieldController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ShieldController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls ClaimsController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ClaimsController, 'clearState')
         .mockImplementation(() => undefined);
 
       await engine.resetState();

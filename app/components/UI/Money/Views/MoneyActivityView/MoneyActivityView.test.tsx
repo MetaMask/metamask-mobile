@@ -1,7 +1,10 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
@@ -52,6 +55,15 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
 }));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEnableActivityDetailsFlag: jest.fn(),
+}));
+
+const mockedSelectActivityDetailsFlag = jest.mocked(
+  selectMoneyEnableActivityDetailsFlag,
+);
 
 // The view consumes `useMoneyActivityItems`, which fans out to these two data
 // hooks. Mocking the data hooks (not the bucketing hook) keeps the
@@ -210,6 +222,7 @@ function mockApiActivity(
 describe('MoneyActivityView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedSelectActivityDetailsFlag.mockReturnValue(true);
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: MOCK_MONEY_TRANSACTIONS,
       deposits: MOCK_DEPOSITS,
@@ -406,6 +419,55 @@ describe('MoneyActivityView', () => {
     expect(queryByTestId('activity-mock-tx-money-tx-converted')).toBeNull();
   });
 
+  describe('filter tab active state', () => {
+    const backgroundColorOf = (chip: ReactTestInstance) =>
+      StyleSheet.flatten(chip.props.style as StyleProp<ViewStyle>)
+        ?.backgroundColor;
+
+    it('marks the All tab active and the other tabs inactive on first render', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      const allBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_ALL),
+      );
+      const depositsBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+      );
+      const transfersBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS),
+      );
+      const purchasesBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES),
+      );
+
+      expect(allBackground).toBeDefined();
+      expect(allBackground).not.toEqual(depositsBackground);
+      expect(transfersBackground).toEqual(depositsBackground);
+      expect(purchasesBackground).toEqual(depositsBackground);
+    });
+
+    it('moves the active background to the Deposits tab when it is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      const activeBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_ALL),
+      );
+      const inactiveBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+      );
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
+
+      expect(
+        backgroundColorOf(
+          getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+        ),
+      ).toEqual(activeBackground);
+      expect(
+        backgroundColorOf(getByTestId(MoneyActivityViewTestIds.FILTER_ALL)),
+      ).toEqual(inactiveBackground);
+    });
+  });
+
   it('renders empty state when there are no transactions', () => {
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: [],
@@ -432,6 +494,16 @@ describe('MoneyActivityView', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
+  it('does not navigate on row press when the activity-details flag is disabled', () => {
+    mockedSelectActivityDetailsFlag.mockReturnValue(false);
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockTrackActivitySurfaceClicked).not.toHaveBeenCalled();
+  });
+
   it('renders Accounts-API rows merged into the list', () => {
     mockApiActivity({ activity: [CARD_TX] });
 
@@ -440,7 +512,7 @@ describe('MoneyActivityView', () => {
     expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('buckets card payments into Transfers and All, but not Deposits', () => {
+  it('buckets card payments into Purchases and All, but not Deposits or Sends', () => {
     mockApiActivity({ activity: [CARD_TX] });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
@@ -454,12 +526,31 @@ describe('MoneyActivityView', () => {
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
     expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
 
-    // Transfers: present.
+    // Sends: absent — a card spend is a purchase, not a send.
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
+    expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
+
+    // Purchases: present.
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES));
     expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('buckets cashback credits into Deposits and All, but not Transfers', () => {
+  it('shows on-chain sends under Sends alongside card activity elsewhere', () => {
+    mockApiActivity({ activity: [CARD_TX] });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
+
+    // Withdrawals/transfers out of the account still render...
+    expect(getByTestId('activity-mock-tx-money-tx-sent')).toBeOnTheScreen();
+    // ...and the card spend does not.
+    expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
+  });
+
+  it('buckets cashback credits into Purchases and All, but not Deposits or Sends', () => {
     mockApiActivity({ activity: [CASHBACK_TX] });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
@@ -469,13 +560,18 @@ describe('MoneyActivityView', () => {
     // All (default): present.
     expect(getByTestId(CASHBACK_ROW_TEST_ID)).toBeOnTheScreen();
 
-    // Deposits: present (cashback credits are incoming).
+    // Deposits: absent — cashback is an inflow, but it's card activity, so it
+    // lives under Purchases alongside the spend that earned it.
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
-    expect(getByTestId(CASHBACK_ROW_TEST_ID)).toBeOnTheScreen();
+    expect(queryByTestId(CASHBACK_ROW_TEST_ID)).toBeNull();
 
-    // Transfers: absent.
+    // Sends: absent.
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
     expect(queryByTestId(CASHBACK_ROW_TEST_ID)).toBeNull();
+
+    // Purchases: present.
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES));
+    expect(getByTestId(CASHBACK_ROW_TEST_ID)).toBeOnTheScreen();
   });
 
   it('groups card spends, cashback, and refunds under the Purchases filter', () => {

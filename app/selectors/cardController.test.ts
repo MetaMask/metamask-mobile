@@ -11,12 +11,14 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
   selectHasMetalCard,
   selectCardPrimaryToken,
   selectCardAvailableTokens,
   selectCardFundingTokens,
+  selectCardExternalWalletPriority,
   selectCardDelegationSettings,
   selectIsMoneyAccountDelegatedForCard,
   selectCardCountryOfResidence,
@@ -85,6 +87,25 @@ const MONAD_VEDA_FEATURE_FLAG = {
           decimals: 6,
           enabled: true,
           name: 'Veda',
+        },
+      ],
+    },
+  },
+};
+
+// Explicit non-Veda flag — omitting cardFeature falls back to
+// defaultCardFeatureFlag, which allowlists VEDA on monad.
+const CARD_FEATURE_WITHOUT_VEDA = {
+  chains: {
+    'eip155:143': {
+      enabled: true,
+      tokens: [
+        {
+          address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+          decimals: 6,
+          enabled: true,
+          name: 'USD Coin',
+          symbol: 'USDC',
         },
       ],
     },
@@ -497,6 +518,79 @@ describe('selectCardHomeDataStatus', () => {
   });
 });
 
+describe('selectIsCardStateResolved', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEthAccount.mockReturnValue(true);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns true when status is success with a verification status', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'PENDING' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns false when status is success but account is missing', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns false when status is error', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'error',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns true for an unauthenticated non-cardholder even while idle', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: [],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns false while loading for an authenticated user', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns false while idle for a cardholder', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: ['eip155:0:0xabc'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+});
+
 const mockPrimaryAsset = {
   symbol: 'USDC',
   name: 'USD Coin',
@@ -655,9 +749,13 @@ describe('selectCardPrimaryToken', () => {
       },
       delegationSettings: makeVedaDelegationSettings(),
     } as unknown as CardHomeData;
-    const state = createMockRootState({
-      cardHomeData: homeData as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      CARD_FEATURE_WITHOUT_VEDA,
+    );
     const token = selectCardPrimaryToken(state);
     expect(token?.isMoneyAccountEntry).toBe(false);
     expect(token?.displaySymbol).toBeUndefined();
@@ -911,10 +1009,13 @@ describe('selectCardAvailableTokens', () => {
         fundingAssets: [],
         delegationSettings: makeVedaDelegationSettings(),
       } as unknown as CardHomeData;
-      const state = createMockRootState({
-        cardHomeData:
-          homeData as unknown as CardControllerState['cardHomeData'],
-      });
+      const state = createMockRootState(
+        {
+          cardHomeData:
+            homeData as unknown as CardControllerState['cardHomeData'],
+        },
+        CARD_FEATURE_WITHOUT_VEDA,
+      );
       expect(selectCardAvailableTokens(state)).toStrictEqual([]);
     });
 
@@ -1119,18 +1220,22 @@ describe('selectCardAvailableTokens', () => {
       const assets = [
         makeAsset({
           walletAddress: WALLET_A,
+          symbol: 'veda',
           address: VEDA_ADDRESS,
           chainId: VEDA_CAIP,
           status: FundingAssetStatus.Active,
         }),
       ];
-      const state = createMockRootState({
-        cardHomeData: {
-          ...mockCardHomeData,
-          fundingAssets: assets,
-          delegationSettings: makeVedaDelegationSettings(),
-        } as unknown as CardControllerState['cardHomeData'],
-      });
+      const state = createMockRootState(
+        {
+          cardHomeData: {
+            ...mockCardHomeData,
+            fundingAssets: assets,
+            delegationSettings: makeVedaDelegationSettings(),
+          } as unknown as CardControllerState['cardHomeData'],
+        },
+        CARD_FEATURE_WITHOUT_VEDA,
+      );
       const vedaToken = selectCardAvailableTokens(state).find(
         (t) => t.address === VEDA_ADDRESS,
       );
@@ -1324,13 +1429,16 @@ describe('selectIsMoneyAccountDelegatedForCard', () => {
 
   it('returns false when cardFeature does not allowlist Veda', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
-    const state = createMockRootState({
-      cardHomeData: {
-        ...mockCardHomeData,
-        fundingAssets: [vedaFundingAsset],
-        delegationSettings: makeVedaDelegationSettings(),
-      } as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = createMockRootState(
+      {
+        cardHomeData: {
+          ...mockCardHomeData,
+          fundingAssets: [vedaFundingAsset],
+          delegationSettings: makeVedaDelegationSettings(),
+        } as unknown as CardControllerState['cardHomeData'],
+      },
+      CARD_FEATURE_WITHOUT_VEDA,
+    );
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
   });
@@ -1717,5 +1825,94 @@ describe('selectCardRedemptionDestinationIsMoneyAccount', () => {
       cardHomeData: homeDataWithPriority([]),
     });
     expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(true);
+  });
+});
+
+describe('referential stability of card list selectors', () => {
+  const cloneHomeData = (): CardHomeData =>
+    JSON.parse(JSON.stringify(mockCardHomeData)) as CardHomeData;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns the same selectCardAvailableTokens reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardAvailableTokens(stateA);
+    const second = selectCardAvailableTokens(stateB);
+
+    expect(second).toBe(first);
+    expect(first).toHaveLength(2);
+  });
+
+  it('returns the same selectCardFundingTokens reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardFundingTokens(stateA);
+    const second = selectCardFundingTokens(stateB);
+
+    expect(second).toBe(first);
+    expect(first).toHaveLength(2);
+  });
+
+  it('returns the same selectCardPrimaryToken reference for content-equal cardHomeData', () => {
+    const stateA = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+    const stateB = createMockRootState({
+      cardHomeData:
+        cloneHomeData() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    const first = selectCardPrimaryToken(stateA);
+    const second = selectCardPrimaryToken(stateB);
+
+    expect(second).toBe(first);
+    expect(first?.symbol).toBe('USDC');
+  });
+
+  it('returns the shared empty array for selectCardholderAccounts when CardController is missing', () => {
+    const stateA = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    const stateB = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+
+    const first = selectCardholderAccounts(stateA);
+    const second = selectCardholderAccounts(stateB);
+
+    expect(first).toStrictEqual([]);
+    expect(second).toBe(first);
+  });
+
+  it('returns the shared empty array for selectCardExternalWalletPriority when missing', () => {
+    const stateA = createMockRootState({ cardHomeData: null });
+    const stateB = createMockRootState({ cardHomeData: null });
+
+    const first = selectCardExternalWalletPriority(stateA);
+    const second = selectCardExternalWalletPriority(stateB);
+
+    expect(first).toStrictEqual([]);
+    expect(second).toBe(first);
   });
 });

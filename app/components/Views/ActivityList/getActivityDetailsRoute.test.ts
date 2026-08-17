@@ -85,17 +85,24 @@ describe('getActivityDetailsRoute', () => {
     expect(route?.preloadKey).toBeDefined();
   });
 
-  it('returns null for a bridge local transaction (keeps its dedicated screen)', () => {
+  it('routes a bridge local transaction to ActivityDetails (BridgeDetails template)', () => {
     const bridgeItem = baseItem({
       raw: {
         type: 'localTransaction',
         data: {
-          primaryTransaction: { type: TransactionType.bridge },
+          primaryTransaction: {
+            id: 'bridge-meta-1',
+            type: TransactionType.bridge,
+          },
         },
       },
     } as unknown as Partial<ActivityListItem>);
 
-    expect(getActivityDetailsRoute(bridgeItem)).toBeNull();
+    // Bridges used to be excluded in favour of the legacy bridge-status
+    // screen, which predates the BridgeDetails template.
+    expect(getActivityDetailsRoute(bridgeItem)).toEqual(
+      expect.objectContaining({ txIdentifier: 'bridge-meta-1' }),
+    );
   });
 
   it('does not stash a preload key for plain API EVM rows', () => {

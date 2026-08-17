@@ -167,4 +167,4 @@ const ActivityRowView = ({
   );
 };
 
-export default ActivityRowView;
+export default React.memo(ActivityRowView);

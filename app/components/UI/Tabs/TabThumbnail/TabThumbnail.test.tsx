@@ -63,7 +63,9 @@ describe('TabThumbnail', () => {
       },
     );
 
-    const switchButton = getByLabelText(strings('browser.switch_tab'));
+    const switchButton = getByLabelText(
+      `example.com, ${strings('browser.switch_tab')}`,
+    );
     fireEvent.press(switchButton);
 
     expect(mockOnSwitch).toHaveBeenCalledWith(mockTab);
@@ -109,7 +111,9 @@ describe('TabThumbnail', () => {
       },
     );
 
-    const switchButton = getByLabelText(strings('browser.switch_tab'));
+    const switchButton = getByLabelText(
+      `example.com, ${strings('browser.switch_tab')}`,
+    );
     // Verify active tab styling is applied (borderWidth: 3 from activeTab style)
     const flatStyle = StyleSheet.flatten(switchButton.props.style);
     expect(flatStyle.borderWidth).toBe(3);

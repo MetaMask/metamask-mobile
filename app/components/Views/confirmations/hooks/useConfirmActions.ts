@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
@@ -15,6 +16,7 @@ import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
+import { useTransactionPayingAccount } from './transactions/useTransactionPayingAccount';
 import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
 import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
@@ -34,7 +36,7 @@ export const useConfirmActions = () => {
     setScannerVisible,
     setSigningConfirmed,
   } = useQRHardwareContext();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =
@@ -42,6 +44,7 @@ export const useConfirmActions = () => {
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
   const isQrAccount = useIsConfirmationFromQrAccount();
+  const payingAccount = useTransactionPayingAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -98,8 +101,7 @@ export const useConfirmActions = () => {
   const sharedConfirmOptions = useMemo(
     () => ({
       fromAddress:
-        (approvalRequest?.requestData?.from as string) ||
-        (transactionMetadata?.txParams?.from as string),
+        payingAccount || (approvalRequest?.requestData?.from as string),
       onReject,
       onTransactionConfirm,
       executeApproval,
@@ -107,7 +109,7 @@ export const useConfirmActions = () => {
     }),
     [
       approvalRequest?.requestData?.from,
-      transactionMetadata?.txParams?.from,
+      payingAccount,
       onReject,
       onTransactionConfirm,
       executeApproval,

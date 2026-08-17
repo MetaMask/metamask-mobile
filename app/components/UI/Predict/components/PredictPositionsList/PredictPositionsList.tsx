@@ -1,4 +1,5 @@
-import { type NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
@@ -9,9 +10,9 @@ import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsListSelectorsIDs } from '../../Predict.testIds';
 import { PredictPositionStatus, type PredictPosition } from '../../types';
-import type { PredictNavigationParamList } from '../../types/navigation';
 import PredictPositionItem from '../PredictPosition/PredictPosition';
 import PredictPositionsEmpty from '../PredictPositionsEmpty';
+import PredictOffline from '../PredictOffline';
 
 const SKELETON_ROW_COUNT = 3;
 
@@ -53,8 +54,7 @@ const PredictPositionsList = ({
   isPrivacyMode,
   portfolio,
 }: PredictPositionsListProps) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const openPositions = portfolio.openPositions.filter(
     (position) => position.status === PredictPositionStatus.OPEN,
@@ -73,6 +73,10 @@ const PredictPositionsList = ({
 
   if (portfolio.isOpenPositionsLoading && !hasPositions) {
     return <PredictPositionsListSkeleton />;
+  }
+
+  if (portfolio.openPositionsError && !hasPositions) {
+    return <PredictOffline onRetry={portfolio.refetch} />;
   }
 
   if (!hasPositions) {

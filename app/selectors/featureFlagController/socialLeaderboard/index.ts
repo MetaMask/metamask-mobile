@@ -64,3 +64,13 @@ export const selectSocialAIQuickBuyStreamQuotesEnabled = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
+
+export const selectAiSocialAusCacheRefreshEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialAusCacheRefreshEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);

@@ -58,12 +58,9 @@ export const useImmersveSpendingPrerequisites = ({
       setState({ prerequisites, nextAction, isLoading: false, error: null });
       return nextAction;
     } catch (e) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: getCardProviderErrorMessage(e),
-      }));
-      throw e;
+      const message = getCardProviderErrorMessage(e);
+      setState((prev) => ({ ...prev, isLoading: false, error: message }));
+      return null;
     }
   }, [fundingSourceId, kycRegion, kycRedirectUrl]);
 

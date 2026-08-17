@@ -1,12 +1,7 @@
 import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/OnboardingSheet/OnboardingSheet.testIds';
-import {
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class OnboardingSheet {
   get container(): EncapsulatedElementType {
@@ -14,62 +9,50 @@ class OnboardingSheet {
   }
 
   get googleLoginButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON,
-          {
-            exact: true,
-          },
-        ),
-    });
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON,
+    );
   }
 
   get appleLoginButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON,
-          {
-            exact: true,
-          },
-        ),
-    });
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON,
+    );
+  }
+
+  get telegramLoginButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON,
+    );
   }
 
   get importSeedButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON,
-          {
-            exact: true,
-          },
-        ),
-    });
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON,
+    );
   }
 
   async tapGoogleLoginButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.googleLoginButton, {
-      description: 'Google Login Button in Onboarding Sheet',
+    await Gestures.waitAndTap(this.googleLoginButton, {
+      elemDescription: 'Google Login Button in Onboarding Sheet',
     });
   }
 
   async tapAppleLoginButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.appleLoginButton, {
-      description: 'Apple Login Button in Onboarding Sheet',
+    await Gestures.waitAndTap(this.appleLoginButton, {
+      elemDescription: 'Apple Login Button in Onboarding Sheet',
+    });
+  }
+
+  async tapTelegramLoginButton(): Promise<void> {
+    await Gestures.waitAndTap(this.telegramLoginButton, {
+      elemDescription: 'Telegram Login Button in Onboarding Sheet',
     });
   }
 
   async tapImportSeedButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.importSeedButton, {
-      description: 'Import Seed Button in Onboarding Sheet',
+    await Gestures.waitAndTap(this.importSeedButton, {
+      elemDescription: 'Import Seed Button in Onboarding Sheet',
     });
   }
 }

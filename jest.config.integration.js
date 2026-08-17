@@ -12,8 +12,8 @@ const baseConfig = require('./jest.config.js');
  *
  * Integration tests instantiate real controllers / providers / services and
  * mock only the I/O boundary (SDK clients, wallet, subscription services).
- * See tests/integration/AGENTS.md for the framework rules and
- * .agents/skills/integration-test/ for the full skill.
+ * See tests/integration/AGENTS.md for framework rules. The full integration-test
+ * skill is maintained in https://github.com/MetaMask/skills.
  */
 module.exports = {
   ...baseConfig,

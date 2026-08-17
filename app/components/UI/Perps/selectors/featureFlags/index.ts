@@ -397,6 +397,40 @@ export const selectPerpsWatchlistEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for the Perps Pro mode feature flag.
+ * Controls whether the reusable Lite/Pro mode toggle (Trade menu, Perps home
+ * header, Market header) and the Pro-mode entry points are shown.
+ * When disabled, the toggle is hidden and the app behaves as Lite-only.
+ *
+ * @returns boolean - true if Pro mode UI should be shown, false otherwise
+ */
+export const selectPerpsProModeEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProModeEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for triggered order types in the Perps Pro order form.
+ * Defaults to false so triggered types can be rolled out independently.
+ *
+ * @returns boolean - true if triggered order types can be shown, false otherwise
+ */
+export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProTriggeredOrdersEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Terminal Backend feature flag.
  * Controls whether market-data calls route through the MetaMask Terminal API
  * (with HyperLiquid fallback) or go directly to HyperLiquid.

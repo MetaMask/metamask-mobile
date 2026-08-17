@@ -1,19 +1,26 @@
-import React, { useRef, useEffect, useCallback, memo } from 'react';
-import {
-  BottomSheet,
-  BottomSheetHeader,
-  BottomSheetRef,
-  ListItemSelect,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import React, { useCallback, memo } from 'react';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type OrderType,
 } from '@metamask/perps-controller';
+
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import PerpsOrderTypeBottomSheetView from './PerpsOrderTypeBottomSheetView';
+
+const ORDER_TYPE_EVENT_VALUES = {
+  market: PERPS_EVENT_VALUE.ORDER_TYPE.MARKET,
+  limit: PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
+  stop_market: PERPS_EVENT_VALUE.ORDER_TYPE.STOP_MARKET,
+  stop_limit: PERPS_EVENT_VALUE.ORDER_TYPE.STOP_LIMIT,
+  take_profit_market: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_MARKET,
+  take_profit_limit: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_LIMIT,
+  twap: PERPS_EVENT_VALUE.ORDER_TYPE.TWAP,
+  scale: PERPS_EVENT_VALUE.ORDER_TYPE.SCALE,
+  chase: PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+} satisfies Record<OrderType, string>;
 
 interface PerpsOrderTypeBottomSheetProps {
   isVisible?: boolean;
@@ -22,6 +29,9 @@ interface PerpsOrderTypeBottomSheetProps {
   currentOrderType?: OrderType;
   asset?: string;
   direction?: 'long' | 'short';
+  title?: string;
+  showSelectedIcon?: boolean;
+  showTriggeredTypes?: boolean;
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
@@ -32,36 +42,12 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   currentOrderType,
   asset = 'BTC',
   direction = 'long',
+  title,
+  showSelectedIcon = false,
+  showTriggeredTypes = false,
   sheetRef: externalSheetRef,
 }) => {
-  const internalSheetRef = useRef<BottomSheetRef>(null);
-  const sheetRef = externalSheetRef || internalSheetRef;
   const { track } = usePerpsEventTracking();
-
-  useEffect(() => {
-    if (isVisible && !externalSheetRef) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible, externalSheetRef, sheetRef]);
-
-  const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, [sheetRef]);
-
-  const orderTypes = [
-    {
-      type: 'market' as OrderType,
-      title: strings('perps.order.type.market.title'),
-      description: strings('perps.order.type.market.description'),
-      testID: PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
-    },
-    {
-      type: 'limit' as OrderType,
-      title: strings('perps.order.type.limit.title'),
-      description: strings('perps.order.type.limit.description'),
-      testID: PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
-    },
-  ];
 
   const handleSelect = useCallback(
     (type: OrderType) => {
@@ -74,56 +60,29 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
             direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
-            type === 'market'
-              ? PERPS_EVENT_VALUE.ORDER_TYPE.MARKET
-              : PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: ORDER_TYPE_EVENT_VALUES[type],
         });
       }
 
       onSelect(type);
-      handleClose();
     },
-    [currentOrderType, track, asset, direction, onSelect, handleClose],
+    [currentOrderType, track, asset, direction, onSelect],
   );
 
-  if (!isVisible) return null;
-
   return (
-    <BottomSheet
-      ref={sheetRef}
-      testID={PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER}
-      goBack={!externalSheetRef ? onClose : undefined}
-      onClose={externalSheetRef ? onClose : undefined}
-    >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{
-          testID: PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON,
-        }}
-      >
-        {strings('perps.order.type.title')}
-      </BottomSheetHeader>
-      {orderTypes.map(({ type, title, description, testID }) => (
-        <ListItemSelect
-          key={type}
-          title={title}
-          description={description}
-          isSelected={currentOrderType === type}
-          showSelectedIcon={false}
-          onPress={() => handleSelect(type)}
-          testID={testID}
-        />
-      ))}
-    </BottomSheet>
+    <PerpsOrderTypeBottomSheetView
+      isVisible={isVisible}
+      onClose={onClose}
+      onSelect={handleSelect}
+      currentOrderType={currentOrderType}
+      title={title}
+      showSelectedIcon={showSelectedIcon}
+      showTriggeredTypes={showTriggeredTypes}
+      sheetRef={externalSheetRef}
+    />
   );
 };
 
 PerpsOrderTypeBottomSheet.displayName = 'PerpsOrderTypeBottomSheet';
 
-export default memo(
-  PerpsOrderTypeBottomSheet,
-  (prevProps, nextProps) =>
-    prevProps.isVisible === nextProps.isVisible &&
-    prevProps.currentOrderType === nextProps.currentOrderType,
-);
+export default memo(PerpsOrderTypeBottomSheet);

@@ -89,7 +89,9 @@ describe('HomepageDiscoveryPills', () => {
   });
 
   it('renders enabled discovery pills', () => {
-    const { getByTestId } = render(<HomepageDiscoveryPills iconStyle="gray" />);
+    const { getByLabelText, getByTestId } = render(
+      <HomepageDiscoveryPills iconStyle="gray" />,
+    );
 
     expect(
       getByTestId(HomepageDiscoveryPillsTestIds.CONTAINER),
@@ -106,6 +108,7 @@ describe('HomepageDiscoveryPills', () => {
     expect(
       getByTestId(HomepageDiscoveryPillsTestIds.pill('stocks')),
     ).toBeOnTheScreen();
+    expect(getByLabelText('Perps')).toBeOnTheScreen();
   });
 
   it('omits perps pill when perps flag is disabled', () => {
