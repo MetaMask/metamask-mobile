@@ -7,7 +7,7 @@
  * (https://apidocs.lighter.xyz) and lighter-python `endpoint_profiles.py`.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LIGHTER_MARGIN_MODE_ISOLATED = exports.LIGHTER_MARGIN_MODE_CROSS = exports.LIGHTER_BRIDGE_CONFIG = exports.computeLighterMinOrderSize = exports.fromLighterInteger = exports.toLighterInteger = exports.LIGHTER_MAX_LEVERAGE = exports.LIGHTER_PRICE_POLLING_INTERVAL_MS = exports.LIGHTER_HTTP_TIMEOUT_MS = exports.LIGHTER_DEFAULT_API_KEY_INDEX = exports.buildLighterKeyDerivationMessage = exports.LIGHTER_KEY_DERIVATION_MESSAGE_TEMPLATE = exports.LIGHTER_NO_TRIGGER_PRICE = exports.LIGHTER_ORDER_EXPIRY_NONE = exports.LIGHTER_TIME_IN_FORCE_POST_ONLY = exports.LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME = exports.LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL = exports.LIGHTER_TX_TYPE_UPDATE_LEVERAGE = exports.LIGHTER_TX_TYPE_UPDATE_MARGIN = exports.LIGHTER_TX_TYPE_CREATE_GROUPED_ORDERS = exports.LIGHTER_GROUPING_ONE_CANCELS_THE_OTHER = exports.LIGHTER_ORDER_TYPE_TAKE_PROFIT = exports.LIGHTER_ORDER_TYPE_STOP_LOSS = exports.LIGHTER_ORDER_TYPE_MARKET = exports.LIGHTER_ORDER_TYPE_LIMIT = exports.LIGHTER_TX_TYPE_CANCEL_ALL_ORDERS = exports.LIGHTER_TX_TYPE_CANCEL_ORDER = exports.LIGHTER_TX_TYPE_CREATE_ORDER = exports.LIGHTER_TX_TYPE_CHANGE_PUB_KEY = exports.LIGHTER_RESOLUTION_MS = exports.LIGHTER_SUPPORTED_RESOLUTIONS = exports.LIGHTER_USDC_ASSET_INDEX = exports.LIGHTER_TX_TYPE_MODIFY_ORDER = exports.LIGHTER_TX_TYPE_WITHDRAW = exports.getLighterWsEndpoint = exports.getLighterHttpEndpoint = exports.LIGHTER_ENDPOINTS = exports.getLighterChainId = exports.LIGHTER_TESTNET_CHAIN_ID = exports.LIGHTER_MAINNET_CHAIN_ID = void 0;
+exports.LIGHTER_UNSUPPORTED_CAPABILITY_PREFIX = exports.LIGHTER_MARGIN_MODE_ISOLATED = exports.LIGHTER_MARGIN_MODE_CROSS = exports.LIGHTER_BRIDGE_CONFIG = exports.computeLighterMinOrderSize = exports.fromLighterInteger = exports.toLighterInteger = exports.parseLighterStrictDecimal = exports.LIGHTER_DATA_INTEGRITY_PREFIX = exports.LIGHTER_MARGIN_METADATA_TTL_MS = exports.LIGHTER_MAX_LEVERAGE = exports.LIGHTER_PRICE_POLLING_INTERVAL_MS = exports.LIGHTER_HTTP_TIMEOUT_MS = exports.LIGHTER_DEFAULT_API_KEY_INDEX = exports.buildLighterKeyDerivationMessage = exports.LIGHTER_KEY_DERIVATION_MESSAGE_TEMPLATE = exports.LIGHTER_NO_TRIGGER_PRICE = exports.LIGHTER_ORDER_EXPIRY_NONE = exports.LIGHTER_TIME_IN_FORCE_POST_ONLY = exports.LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME = exports.LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL = exports.LIGHTER_TX_TYPE_UPDATE_LEVERAGE = exports.LIGHTER_TX_TYPE_UPDATE_MARGIN = exports.LIGHTER_TX_TYPE_CREATE_GROUPED_ORDERS = exports.LIGHTER_GROUPING_ONE_CANCELS_THE_OTHER = exports.LIGHTER_ORDER_TYPE_TAKE_PROFIT = exports.LIGHTER_ORDER_TYPE_STOP_LOSS = exports.LIGHTER_ORDER_TYPE_MARKET = exports.LIGHTER_ORDER_TYPE_LIMIT = exports.LIGHTER_TX_TYPE_CANCEL_ALL_ORDERS = exports.LIGHTER_TX_TYPE_CANCEL_ORDER = exports.LIGHTER_TX_TYPE_CREATE_ORDER = exports.LIGHTER_TX_TYPE_CHANGE_PUB_KEY = exports.LIGHTER_RESOLUTION_MS = exports.LIGHTER_SUPPORTED_RESOLUTIONS = exports.LIGHTER_USDC_ASSET_INDEX = exports.LIGHTER_TX_TYPE_MODIFY_ORDER = exports.LIGHTER_TX_TYPE_WITHDRAW = exports.getLighterWsEndpoint = exports.getLighterHttpEndpoint = exports.LIGHTER_ENDPOINTS = exports.getLighterChainId = exports.LIGHTER_TESTNET_CHAIN_ID = exports.LIGHTER_MAINNET_CHAIN_ID = void 0;
 // ============================================================================
 // Network Constants
 // ============================================================================
@@ -178,6 +178,49 @@ exports.LIGHTER_PRICE_POLLING_INTERVAL_MS = 5000;
  * Maximum leverage placeholder until per-market margin fractions are wired.
  */
 exports.LIGHTER_MAX_LEVERAGE = 50;
+/**
+ * TTL for the authoritative per-market margin-metadata cache used by
+ * explicit leverage validation. Without expiry, metadata fetched once
+ * (e.g. an older, higher max) would keep validating later-overlimit
+ * leverage for the whole session; the venue cap remains the final
+ * enforcement either way.
+ */
+exports.LIGHTER_MARGIN_METADATA_TTL_MS = 60000;
+/**
+ * Prefix marking venue-data integrity failures (malformed numeric fields
+ * in venue payloads). These must fail closed and surface — never degrade
+ * into silently-coerced values or empty reads.
+ */
+exports.LIGHTER_DATA_INTEGRITY_PREFIX = 'Invalid Lighter venue data:';
+/** Full-string decimal/scientific literal (optional sign and exponent). */
+const LIGHTER_STRICT_DECIMAL_PATTERN = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/u;
+/**
+ * Parse a numeric string STRICTLY: the entire trimmed string must be a
+ * decimal/scientific literal. parseFloat prefix-parses, so '0.1oops'
+ * would silently become 0.1.
+ *
+ * Accepts unknown because venue REST payloads are type-cast without
+ * runtime validation: a missing/null/numeric field must yield null (for
+ * the caller's explicit error path), never a TypeError that generic
+ * catches misclassify as an ordinary read failure.
+ *
+ * Note: '1e999' matches the literal pattern and parses to Infinity —
+ * callers own the finiteness check.
+ *
+ * @param value - Raw value from params or a venue payload.
+ * @returns The parsed number, or null when the value is not a string
+ * containing a pure numeric literal.
+ */
+function parseLighterStrictDecimal(value) {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    const trimmed = value.trim();
+    return LIGHTER_STRICT_DECIMAL_PATTERN.test(trimmed)
+        ? parseFloat(trimmed)
+        : null;
+}
+exports.parseLighterStrictDecimal = parseLighterStrictDecimal;
 // ============================================================================
 // Size / price integerization
 // ============================================================================
@@ -191,7 +234,17 @@ exports.LIGHTER_MAX_LEVERAGE = 50;
  * @returns Integer wire value (e.g. 0.05 @ 5 decimals -> 5000).
  */
 function toLighterInteger(value, decimals) {
-    return Math.round(value * 10 ** decimals);
+    const scaled = Math.round(value * 10 ** decimals);
+    // Fail closed on wire-format overflow: a huge-but-finite value scales to
+    // an unsafe integer (or Infinity) and would stringify as '1e+305' inside
+    // signer params.
+    if (!Number.isSafeInteger(scaled)) {
+        throw new Error(`Value ${value} is outside Lighter's integer range at ${decimals} decimals`);
+    }
+    // NOTE: this is a generic converter — zero and negative results are
+    // valid here. Positive-intent policy for signer-bound values lives in
+    // the provider's internal wire wrapper.
+    return scaled;
 }
 exports.toLighterInteger = toLighterInteger;
 /**
@@ -254,4 +307,10 @@ exports.LIGHTER_BRIDGE_CONFIG = {
 /** UpdateLeverage margin-mode codes (types/txtypes constants). */
 exports.LIGHTER_MARGIN_MODE_CROSS = 0;
 exports.LIGHTER_MARGIN_MODE_ISOLATED = 1;
+/**
+ * Marker prefix for capability-gate errors (unsupported account tier /
+ * unverified fee semantics). Callers use it to surface these explicitly
+ * instead of degrading them into empty state.
+ */
+exports.LIGHTER_UNSUPPORTED_CAPABILITY_PREFIX = 'Unsupported Lighter capability:';
 //# sourceMappingURL=lighterConfig.cjs.map

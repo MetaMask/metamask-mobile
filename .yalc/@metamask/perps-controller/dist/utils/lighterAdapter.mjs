@@ -12,7 +12,7 @@
  * - Position side is a `sign` field (1 = long, -1 = short).
  * - USDC collateral, single margin mode per account in the POC (cross).
  */
-import { LIGHTER_MAX_LEVERAGE } from "../constants/lighterConfig.mjs";
+import { LIGHTER_DATA_INTEGRITY_PREFIX, LIGHTER_MAX_LEVERAGE, LIGHTER_UNSUPPORTED_CAPABILITY_PREFIX, parseLighterStrictDecimal } from "../constants/lighterConfig.mjs";
 /**
  * Format a price change value with sign prefix.
  *
@@ -62,10 +62,13 @@ export function adaptMarketDataFromLighter(detail, formatters) {
     const changePercent = detail.dailyPriceChange ?? 0;
     // dailyPriceChange is a percentage; recover the absolute change.
     const changeAbs = changePercent === 0 ? 0 : (price * changePercent) / (100 + changePercent);
+    const maxLeverage = detail.minInitialMarginFraction && detail.minInitialMarginFraction > 0
+        ? Math.floor(10000 / detail.minInitialMarginFraction)
+        : LIGHTER_MAX_LEVERAGE;
     return {
         symbol: detail.symbol,
         name: detail.symbol,
-        maxLeverage: `${LIGHTER_MAX_LEVERAGE}x`,
+        maxLeverage: `${maxLeverage}x`,
         price: formatters.formatPerpsFiat(price, {
             ranges: formatters.priceRangesUniversal,
         }),
@@ -153,8 +156,107 @@ export function adaptAccountStateFromLighterUserStats(stats) {
  * @param accountIndex - The account whose perspective determines the side.
  * @returns MetaMask Perps API order fill object.
  */
+/**
+ * Derive the lifecycle direction of a fill from the venue's
+ * position-before context, in the vocabulary client transforms consume
+ * (`Open Long`, `Close Short`, `Long > Short`, ...).
+ *
+ * The venue reports the side's ABSOLUTE position size before the trade and
+ * whether its sign changed. Combined with the trade side that is enough:
+ * buying reduces shorts and opens longs; selling reduces longs and opens
+ * shorts. A partial fill with no sign change is disambiguated by realized
+ * pnl (closing realizes pnl, opening does not). Without position context
+ * the side-only `Buy`/`Sell` vocabulary is used.
+ *
+ * @param context - Trade side, size, and position-before data.
+ * @param context.isBuy - Whether our side bought.
+ * @param context.size - Trade size (base units, absolute).
+ * @param context.positionBefore - Our side's absolute position size before.
+ * @param context.signChanged - Whether our side's position sign changed.
+ * @param context.pnl - Realized pnl for our side.
+ * @returns Client-facing direction string.
+ */
+export function deriveLighterFillDirection(context) {
+    const { isBuy, size, positionBefore, signChanged, pnl } = context;
+    if (!Number.isFinite(positionBefore) || signChanged === undefined) {
+        return isBuy ? 'Buy' : 'Sell';
+    }
+    if (positionBefore === 0) {
+        return isBuy ? 'Open Long' : 'Open Short';
+    }
+    if (signChanged) {
+        // Crossed past zero → flipped; landed exactly on zero → full close.
+        if (size > positionBefore * 1.000001) {
+            return isBuy ? 'Short > Long' : 'Long > Short';
+        }
+        return isBuy ? 'Close Short' : 'Close Long';
+    }
+    // Partial fill on an existing position: realized pnl proves it reduced.
+    if (pnl !== 0) {
+        return isBuy ? 'Close Short' : 'Close Long';
+    }
+    // Zero-pnl partial with no sign change is genuinely ambiguous from this
+    // payload (a break-even partial close and an add both fit): fall back to
+    // the side-only vocabulary instead of asserting Open without evidence.
+    return isBuy ? 'Buy' : 'Sell';
+}
 export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
     const accountIsAsk = trade.askAccountId === accountIndex;
+    // Our side's role decides which fee applies; the venue includes the fee
+    // fields only when nonzero (zero is the current standard-account truth).
+    const accountIsMaker = trade.isMakerAsk === undefined
+        ? undefined
+        : accountIsAsk === trade.isMakerAsk;
+    // Standard accounts (the only supported type — the provider gates
+    // Premium at account resolution) pay zero fees, so zero is venue truth.
+    // A PRESENT nonzero fee ON OUR SIDE contradicts that gate and its wire
+    // unit is unverified: refusing loudly beats silently coercing a real fee
+    // to $0. The counterparty's fee is irrelevant — a Standard user trading
+    // against a Premium account must keep their valid fill.
+    let ourFee;
+    if (accountIsMaker !== undefined) {
+        ourFee = accountIsMaker ? trade.makerFee : trade.takerFee;
+    }
+    const ourFeeNumeric = typeof ourFee === 'number' ? ourFee : parseFloat(ourFee ?? '0');
+    if (Number.isFinite(ourFeeNumeric) && ourFeeNumeric !== 0) {
+        throw new Error(`${LIGHTER_UNSUPPORTED_CAPABILITY_PREFIX} nonzero fee in trade ${trade.tradeId}: fee unit is unverified`);
+    }
+    const fee = '0';
+    const pnl = (accountIsAsk ? trade.askAccountPnl : trade.bidAccountPnl) ?? '0';
+    const isBuy = !accountIsAsk;
+    // Without isMakerAsk our maker/taker role is unknown — never guess which
+    // side's position context applies; fall back to the neutral side-only
+    // vocabulary instead of deriving lifecycle from the wrong side.
+    let positionBefore = NaN;
+    let signChanged;
+    if (accountIsMaker !== undefined) {
+        positionBefore = parseFloat((accountIsMaker
+            ? trade.makerPositionSizeBefore
+            : trade.takerPositionSizeBefore) ?? '');
+        signChanged = accountIsMaker
+            ? trade.makerPositionSignChanged
+            : trade.takerPositionSignChanged;
+    }
+    const direction = deriveLighterFillDirection({
+        isBuy,
+        size: parseFloat(trade.size),
+        positionBefore,
+        signChanged,
+        pnl: parseFloat(pnl),
+    });
+    // Signed pre-trade position, derivable whenever the direction proved the
+    // orientation: closing/flipping a long means it was +before, a short
+    // -before; opens start from zero. Clients size flip displays from this.
+    let startPosition;
+    if (direction.startsWith('Open')) {
+        startPosition = '0';
+    }
+    else if (direction === 'Close Long' || direction === 'Long > Short') {
+        startPosition = String(positionBefore);
+    }
+    else if (direction === 'Close Short' || direction === 'Short > Long') {
+        startPosition = String(-positionBefore);
+    }
     return {
         orderId: String(accountIsAsk ? trade.askId : trade.bidId),
         symbol,
@@ -162,16 +264,15 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
         size: trade.size,
         price: trade.price,
         // The venue reports realized pnl per side of the trade.
-        pnl: (accountIsAsk ? trade.askAccountPnl : trade.bidAccountPnl) ?? '0',
-        // Client transforms recognize the capitalized Buy/Sell direction
-        // vocabulary (open/close attribution needs signed position context the
-        // trade payload does not carry).
-        direction: accountIsAsk ? 'Sell' : 'Buy',
-        // Lighter standard accounts currently charge zero trading fees; the
-        // trade payload carries no fee field to adapt.
-        fee: '0',
+        pnl,
+        direction,
+        ...(startPosition === undefined ? {} : { startPosition }),
+        fee,
         feeToken: 'USDC',
         timestamp: trade.timestamp,
+        // Lets clients apply venue-specific presentation rules (e.g. the
+        // ambiguous side-only vocabulary) without guessing the source.
+        providerId: 'lighter',
     };
 }
 // ============================================================================
@@ -181,10 +282,28 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
  * Transform a Lighter account position into canonical Position.
  *
  * @param position - Position entry from an account payload.
+ * @param maxLeverage - Per-market max leverage (venue margin fractions).
  * @returns MetaMask Perps API position object.
  */
-export function adaptPositionFromLighter(position) {
-    const size = parseFloat(position.position) * (position.sign > 0 ? 1 : -1);
+export function adaptPositionFromLighter(position, maxLeverage = LIGHTER_MAX_LEVERAGE) {
+    // Venue-input integrity boundary: the REST layer type-casts JSON without
+    // runtime validation, and a prefix-parsed '0.1oops' would become a
+    // canonical '0.1' that TP/SL cover-sizing and close paths then SIGN.
+    // The documented representation is a NONNEGATIVE magnitude with sign
+    // exactly 1 or -1: a negative magnitude with sign 1 would flip the
+    // canonical direction and make close/TPSL act opposite the real
+    // position; sign 0/2/'1' would be silently coerced by a > 0 ternary.
+    const magnitude = parseLighterStrictDecimal(position.position);
+    if (magnitude === null || !Number.isFinite(magnitude) || magnitude < 0) {
+        throw new Error(`${LIGHTER_DATA_INTEGRITY_PREFIX} position size '${position.position}' for ${position.symbol}`);
+    }
+    // The documented contract is sign EXACTLY 1 or -1, including for flat
+    // positions (zero magnitudes are filtered downstream); anything else is
+    // malformed venue data, never something to coerce.
+    if (position.sign !== 1 && position.sign !== -1) {
+        throw new Error(`${LIGHTER_DATA_INTEGRITY_PREFIX} position sign '${String(position.sign)}' for ${position.symbol}`);
+    }
+    const size = magnitude * position.sign;
     const positionValue = parseFloat(position.positionValue);
     const marginFraction = parseFloat(position.initialMarginFraction);
     // initialMarginFraction is a percentage (e.g. "20" => 5x leverage).
@@ -206,7 +325,7 @@ export function adaptPositionFromLighter(position) {
         liquidationPrice: isNaN(liquidationPrice) || liquidationPrice === 0
             ? null
             : position.liquidationPrice,
-        maxLeverage: LIGHTER_MAX_LEVERAGE,
+        maxLeverage,
         returnOnEquity: marginUsed > 0 ? String((unrealizedPnl / marginUsed) * 100) : '0',
         cumulativeFunding: {
             allTime: '0',
@@ -287,15 +406,54 @@ export function adaptOrderFromLighter(order, symbol) {
     const original = parseFloat(order.initialBaseAmount);
     const remaining = parseFloat(order.remainingBaseAmount);
     const filled = Math.max(original - remaining, 0);
+    const isTrigger = !['market', 'limit'].includes(order.type);
+    const triggerPrice = order.triggerPrice !== undefined && parseFloat(order.triggerPrice) > 0
+        ? order.triggerPrice
+        : undefined;
+    // Semantic trigger typing: without it, a TP/SL renders as a generic
+    // Limit order in clients. Venue trigger orders execute market-on-trigger
+    // (IOC with a protection price), the -limit variants rest at a price.
+    const triggerTypeMeta = {
+        'take-profit': {
+            orderType: 'market',
+            triggerOrderType: 'take_profit_market',
+            detailed: 'Take Profit Market',
+        },
+        'stop-loss': {
+            orderType: 'market',
+            triggerOrderType: 'stop_market',
+            detailed: 'Stop Market',
+        },
+        'take-profit-limit': {
+            orderType: 'limit',
+            triggerOrderType: 'take_profit_limit',
+            detailed: 'Take Profit Limit',
+        },
+        'stop-loss-limit': {
+            orderType: 'limit',
+            triggerOrderType: 'stop_limit',
+            detailed: 'Stop Limit',
+        },
+    };
+    const triggerMeta = triggerTypeMeta[order.type];
     return {
         orderId: String(order.orderIndex),
         symbol,
         side: order.isAsk ? 'sell' : 'buy',
-        orderType: order.type === 'market' ? 'market' : 'limit',
-        isTrigger: !['market', 'limit'].includes(order.type),
+        orderType: triggerMeta?.orderType ?? (order.type === 'market' ? 'market' : 'limit'),
+        ...(triggerMeta
+            ? {
+                triggerOrderType: triggerMeta.triggerOrderType,
+                detailedOrderType: triggerMeta.detailed,
+            }
+            : {}),
+        isTrigger,
         size: order.remainingBaseAmount,
         originalSize: order.initialBaseAmount,
+        // On trigger orders `price` is the ±5% protection EXECUTION price;
+        // the user-facing TP/SL level is `triggerPrice`.
         price: order.price,
+        ...(triggerPrice === undefined ? {} : { triggerPrice }),
         filledSize: String(filled),
         remainingSize: order.remainingBaseAmount,
         status: adaptOrderStatus(order.status),
