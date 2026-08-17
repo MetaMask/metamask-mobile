@@ -3,7 +3,7 @@ import { previousValueComparator } from './value-comparator';
 describe('previousValueComparator', () => {
   it('passes initialValue as previous and first argument as next on first call', () => {
     const comparator = jest.fn().mockReturnValue(true);
-    const compare = previousValueComparator(comparator, 'initial');
+    const compare = previousValueComparator<string>(comparator, 'initial');
 
     compare('first');
 
@@ -13,7 +13,7 @@ describe('previousValueComparator', () => {
 
   it('passes previous cached value and current value on subsequent calls', () => {
     const comparator = jest.fn().mockReturnValue(true);
-    const compare = previousValueComparator(comparator, 'initial');
+    const compare = previousValueComparator<string>(comparator, 'initial');
 
     compare('first');
     compare('second');
@@ -54,7 +54,7 @@ describe('previousValueComparator', () => {
         throw new Error('compare failed');
       })
       .mockReturnValue(true);
-    const compare = previousValueComparator(comparator, 'initial');
+    const compare = previousValueComparator<string>(comparator, 'initial');
 
     expect(() => compare('first')).toThrow('compare failed');
 

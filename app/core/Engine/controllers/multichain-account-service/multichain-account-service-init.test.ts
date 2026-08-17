@@ -6,10 +6,6 @@ import {
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
 } from '@metamask/multichain-account-service';
-import type {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
 import { multichainAccountServiceInit } from './multichain-account-service-init';
@@ -24,49 +20,27 @@ import {
   MessengerEvents,
   MOCK_ANY_NAMESPACE,
   MockAnyNamespace,
-  ActionConstraint,
 } from '@metamask/messenger';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
+
 jest.mock('@metamask/multichain-account-service');
-jest.mock('../../../../multichain-stellar/remote-feature-flag', () => ({
-  isStellarAccountsFeatureEnabled: (flagValue: unknown) =>
-    flagValue === true ||
-    (typeof flagValue === 'object' &&
-      flagValue !== null &&
-      (flagValue as { enabled?: boolean }).enabled === true),
-}));
 
 type MockInitMessenger = Messenger<
   MockAnyNamespace,
   | MessengerActions<MultichainAccountServiceMessenger>
-  | MessengerActions<MultichainAccountServiceInitMessenger>
-  | RemoteFeatureFlagControllerGetStateAction
-  | ActionConstraint,
+  | MessengerActions<MultichainAccountServiceInitMessenger>,
   | MessengerEvents<MultichainAccountServiceMessenger>
   | MessengerEvents<MultichainAccountServiceInitMessenger>
-  | RemoteFeatureFlagControllerStateChangeEvent
 >;
 
-function getBaseMessenger(
-  remoteFeatureFlags: Record<string, unknown> = {},
-): MockInitMessenger {
-  const messenger = new Messenger<MockAnyNamespace>({
+function getBaseMessenger(): MockInitMessenger {
+  return new Messenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
-
-  messenger.registerActionHandler(
-    'RemoteFeatureFlagController:getState',
-    jest.fn().mockReturnValue({
-      remoteFeatureFlags,
-      localOverrides: {},
-    }),
-  );
-
-  return messenger as MockInitMessenger;
 }
 
 function getInitRequestMock({
-  messenger,
+  messenger = getBaseMessenger(),
   remoteFeatureFlags = {},
 }: {
   messenger?: MockInitMessenger;
@@ -77,10 +51,12 @@ function getInitRequestMock({
     MultichainAccountServiceInitMessenger
   >
 > {
-  const baseMessenger = messenger ?? getBaseMessenger(remoteFeatureFlags);
-  const controllerMessenger =
-    getMultichainAccountServiceMessenger(baseMessenger);
-  const initMessenger = getMultichainAccountServiceInitMessenger(baseMessenger);
+  messenger.registerActionHandler(
+    'RemoteFeatureFlagController:getState',
+    jest.fn().mockReturnValue({ remoteFeatureFlags }),
+  );
+  const controllerMessenger = getMultichainAccountServiceMessenger(messenger);
+  const initMessenger = getMultichainAccountServiceInitMessenger(messenger);
 
   const extendedControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
