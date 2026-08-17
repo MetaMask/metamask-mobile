@@ -9556,7 +9556,7 @@ __metadata:
 
 "@metamask/perps-controller@file:.yalc/@metamask/perps-controller::locator=metamask%40workspace%3A.":
   version: 12.0.0
-  resolution: "@metamask/perps-controller@file:.yalc/@metamask/perps-controller#.yalc/@metamask/perps-controller::hash=6f7cdc&locator=metamask%40workspace%3A."
+  resolution: "@metamask/perps-controller@file:.yalc/@metamask/perps-controller#.yalc/@metamask/perps-controller::hash=28e9d3&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9572,7 +9572,7 @@ __metadata:
   dependenciesMeta:
     "@myx-trade/sdk":
       optional: true
-  checksum: 10/be5e9dd570f15a34682f47f2ad051f05b94f16023e92ca40779150c920dbc438b9ff75057fe5bba071070d0869d928c7c3c55d14d770db4e2ab1f5350b70c470
+  checksum: 10/0f1308a177a2b9827e15f2f88c50c859fdff2276482724a5f5dd8601080141494aa4b00c660b62d7e06e484c965059bb7d706cb48fb6710caf4b56559f6c80a3
   languageName: node
   linkType: hard
 

@@ -17,7 +17,7 @@
  * - POST /api/v1/sendTx               submit signed L2 transaction
  */
 import type { PerpsPlatformDependencies } from "../types/index.mjs";
-import type { LighterAccountResponse, LighterAccountsByL1AddressResponse, LighterActiveOrdersResponse, LighterApiKeysResponse, LighterNetwork, LighterNextNonceResponse, LighterOrderBookMeta, LighterOrderBookDetailsResponse, LighterCandlesResponse, LighterDepositHistoryResponse, LighterInactiveOrdersResponse, LighterPnlResponse, LighterPositionFundingsResponse, LighterSendTxResponse, LighterTradesResponse, LighterTransferHistoryResponse, LighterWithdrawHistoryResponse } from "../types/lighter-types.mjs";
+import type { LighterAccountResponse, LighterAccountsByL1AddressResponse, LighterActiveOrdersResponse, LighterApiKeysResponse, LighterNetwork, LighterNextNonceResponse, LighterTxLookupResponse, LighterOrderBookMeta, LighterOrderBookDetailsResponse, LighterCandlesResponse, LighterDepositHistoryResponse, LighterInactiveOrdersResponse, LighterPnlResponse, LighterPositionFundingsResponse, LighterSendTxResponse, LighterTradesResponse, LighterTransferHistoryResponse, LighterWithdrawHistoryResponse } from "../types/lighter-types.mjs";
 /**
  * Recursively convert all object keys from snake_case to camelCase.
  * The zkLighter wire format is snake_case; parsed shapes in this package
@@ -88,6 +88,20 @@ export declare class LighterClientService {
      */
     getNextNonce(accountIndex: number, apiKeyIndex: number): Promise<LighterNextNonceResponse>;
     /**
+     * Look up a transaction by its exact hash (`GET /api/v1/tx`). Used to
+     * resolve submission-acceptance ambiguity authoritatively: an exact-hash
+     * match proves the signed payload reached the sequencer.
+     *
+     * Contract: a venue-confirmed "transaction not found" (API error code
+     * 21500) resolves to NULL; transport failures and every other API error
+     * RETHROW — they are ambiguity, never evidence of non-acceptance.
+     *
+     * @param txHash - The signed transaction hash.
+     * @returns The venue's transaction payload, or null when the venue
+     * confirms the hash is unknown.
+     */
+    getTx(txHash: string): Promise<LighterTxLookupResponse | null>;
+    /**
      * Fetch active (open) orders for an account.
      *
      * @param accountIndex - The Lighter account index.
@@ -103,9 +117,12 @@ export declare class LighterClientService {
      * @param accountIndex - The Lighter account index.
      * @param authToken - Auth token minted by the signer.
      * @param limit - Max entries (1-100).
+     * @param cursor - Pagination cursor from a previous page's `nextCursor`.
+     * @param marketId - Optional market filter (official `market_id` query
+     * param) — sharply bounds history scans to one symbol.
      * @returns Inactive orders payload.
      */
-    getInactiveOrders(accountIndex: number, authToken: string, limit?: number): Promise<LighterInactiveOrdersResponse>;
+    getInactiveOrders(accountIndex: number, authToken: string, limit?: number, cursor?: string, marketId?: number): Promise<LighterInactiveOrdersResponse>;
     /**
      * Fetch L1→L2 deposit history (auth token required). The venue requires
      * both the account index and its L1 address on this endpoint.

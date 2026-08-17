@@ -94,6 +94,12 @@ export type LighterCreateClientResult = {
 export type LighterSignChangePubKeyResult = {
     /** Serialized L2 transaction JSON (includes the injected `L1Sig`). */
     txInfo: string;
+    /**
+     * Signed transaction hash (pinned WASM contract: the signing RESULT
+     * carries the hash; `txInfo` never does). Required for the durable
+     * dispatch ledger's exact-identity reconciliation.
+     */
+    txHash?: string;
     error?: string;
 };
 /**
@@ -261,6 +267,21 @@ export type LighterNextNonceResponse = {
     nonce: number;
 };
 /**
+ * Response of `GET /api/v1/tx?by=hash&value=...` (EnrichedTx). Only the
+ * identity fields the settlement reconciler verifies are typed; a
+ * successful exact-hash match proves the signed payload reached the
+ * sequencer.
+ */
+export type LighterTxLookupResponse = {
+    code: number;
+    message?: string;
+    hash?: string;
+    accountIndex?: number;
+    apiKeyIndex?: number;
+    nonce?: number;
+    status?: number | string;
+};
+/**
  * Response of `POST /api/v1/sendTx`.
  */
 export type LighterSendTxResponse = {
@@ -388,6 +409,16 @@ export type LighterWsTrade = {
     bidAccountId: number;
     isMakerAsk: boolean;
     timestamp: number;
+    /** Realized pnl per side — same wire shape as the REST trade payload. */
+    askAccountPnl?: string;
+    bidAccountPnl?: string;
+    /** Fees, present when nonzero; unit unproven — see LighterRestTrade. */
+    takerFee?: number | string;
+    makerFee?: number | string;
+    takerPositionSizeBefore?: string;
+    makerPositionSizeBefore?: string;
+    takerPositionSignChanged?: boolean;
+    makerPositionSignChanged?: boolean;
 };
 /**
  * `account_all_trades/{account_index}` WebSocket payload (post-camelization).
@@ -419,6 +450,19 @@ export type LighterRestTrade = {
     askAccountPnl?: string;
     /** Realized pnl for the bid-side account, signed USDC. */
     bidAccountPnl?: string;
+    /**
+     * Taker/maker fees, present when nonzero. The official model types them
+     * as StrictInt with NO documented unit or scale; until a captured
+     * nonzero payload proves one, adapters must treat these as unavailable.
+     */
+    takerFee?: number | string;
+    makerFee?: number | string;
+    /** Position size (absolute) of each side before the trade executed. */
+    takerPositionSizeBefore?: string;
+    makerPositionSizeBefore?: string;
+    /** Whether the side's position sign changed (crossed or left zero). */
+    takerPositionSignChanged?: boolean;
+    makerPositionSignChanged?: boolean;
 };
 /**
  * Response of `GET /api/v1/trades`.
@@ -507,6 +551,20 @@ export type LighterApiOrder = {
     status: string;
     orderExpiry: number;
     timestamp: number;
+    /**
+     * Trigger level for stop-loss/take-profit orders. Note `price` on a
+     * trigger order is the ±5% protection EXECUTION price, not this level.
+     */
+    triggerPrice?: string;
+    /** Venue string order id (linkage fields reference this form). */
+    orderId?: string;
+    /** OCO/linkage: parent order references. */
+    parentOrderIndex?: number;
+    parentOrderId?: string;
+    /** OCO linkage: the sibling this order auto-cancels when it fires. */
+    toCancelOrderId0?: string;
+    toTriggerOrderId0?: string;
+    toTriggerOrderId1?: string;
 };
 /**
  * Response of `GET /api/v1/accountActiveOrders`.
