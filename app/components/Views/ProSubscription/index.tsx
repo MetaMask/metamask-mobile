@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Routes from '../../../constants/navigation/Routes';
 import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
@@ -11,19 +10,15 @@ import type { PlanId } from './screens/Benefits/Benefits.constants';
 type ProSubscriptionScreen = 'benefits' | 'success';
 
 export interface ProSubscriptionRouteParams {
-  [Routes.PRO_SUBSCRIPTION.ROOT]: {
-    source?: string;
-    initialPlan?: PlanId;
-  };
+  source?: string;
+  initialPlan?: PlanId;
 }
 
 const ProSubscription = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const route =
-    useRoute<
-      RouteProp<ProSubscriptionRouteParams, typeof Routes.PRO_SUBSCRIPTION.ROOT>
-    >();
+    useRoute<RouteProp<{ params: ProSubscriptionRouteParams }, 'params'>>();
 
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const [currentScreen, setCurrentScreen] =
