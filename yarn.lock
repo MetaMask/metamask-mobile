@@ -33851,7 +33851,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:4.3.1, js-yaml@npm:^4.1.0, js-yaml@npm:^4.3.1":
+"js-yaml@npm:4.3.1, js-yaml@npm:^4.1.0":
   version: 4.3.1
   resolution: "js-yaml@npm:4.3.1"
   dependencies:
@@ -35920,7 +35920,7 @@ __metadata:
     jest-junit: "npm:^15.0.0"
     jetifier: "npm:2.0.0"
     js-sha3: "npm:0.9.3"
-    js-yaml: "npm:^4.3.1"
+    js-yaml: "npm:^4.1.0"
     koa: "npm:^2.14.2"
     lint-staged: "npm:10.5.4"
     listr2: "npm:^8.0.2"
