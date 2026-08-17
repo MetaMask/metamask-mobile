@@ -7,8 +7,10 @@ import { strings } from '../../../../../../locales/i18n';
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnClose = jest.fn();
+const mockOnSuccess = jest.fn();
 
-const renderSuccess = () => render(<Success onClose={mockOnClose} />);
+const renderSuccess = () =>
+  render(<Success onClose={mockOnClose} onSuccess={mockOnSuccess} />);
 
 // ─── Suite ───────────────────────────────────────────────────────────────────
 
@@ -58,18 +60,18 @@ describe('Success', () => {
   // ── Callbacks ──────────────────────────────────────────────────────────────
 
   describe('Callbacks', () => {
-    it('calls onClose when the CTA button is pressed', () => {
+    it('calls onSuccess when the CTA button is pressed', () => {
       const { getByTestId } = renderSuccess();
 
       fireEvent.press(getByTestId(SuccessTestIds.CTA_BUTTON));
 
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call onClose before the button is pressed', () => {
+    it('does not call onSuccess before the button is pressed', () => {
       renderSuccess();
 
-      expect(mockOnClose).not.toHaveBeenCalled();
+      expect(mockOnSuccess).not.toHaveBeenCalled();
     });
   });
 });
