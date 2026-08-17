@@ -196,6 +196,22 @@ class Browser {
   }
 
   /**
+   * Submit the focused URL field. Android: KEYCODE_ENTER. iOS: append Return via
+   * `addValue` — `Gestures.typeText` uses fill/setValue and would wipe the URL.
+   */
+  private async submitFocusedUrlBar(): Promise<void> {
+    if (PlatformDetector.isAndroid()) {
+      await getDriver().pressKeyCode(66);
+      return;
+    }
+
+    const input = await getDriver().$(
+      `~${BrowserURLBarSelectorsIDs.URL_INPUT}`,
+    );
+    await input.addValue('\n');
+  }
+
+  /**
    * Navigate via the browser URL bar (preserves `http://` scheme / ENS names).
    */
   private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
@@ -205,15 +221,7 @@ class Browser {
       clearFirst: true,
       hideKeyboard: false,
     });
-
-    if (PlatformDetector.isAndroid()) {
-      await getDriver().pressKeyCode(66);
-    } else {
-      await Gestures.typeText(this.urlBarTextInput, '\n', {
-        clearFirst: false,
-        hideKeyboard: false,
-      });
-    }
+    await this.submitFocusedUrlBar();
 
     // Dismiss the editor so subsequent reads/taps see the page.
     await this.dismissUrlEditorIfOpen();
@@ -576,11 +584,7 @@ class Browser {
 
   async reloadTab() {
     await this.tapUrlInputBox();
-
-    await Gestures.typeText(this.urlInputBoxID, '\n', {
-      clearFirst: false,
-      hideKeyboard: false,
-    });
+    await this.submitFocusedUrlBar();
   }
 }
 

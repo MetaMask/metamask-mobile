@@ -49,9 +49,12 @@ class DownloadFileWebsite {
       return;
     }
 
+    // Matchers.getElementByXPath switches into WEBVIEW and does not restore
+    // NATIVE_APP (unlike withWebViewAction). Native Save-sheet asserts need it.
     await Gestures.waitAndTap(this.getWebDownloadButton(pageUrl), {
       elemDescription: 'Download File website - Download button (iOS)',
     });
+    await PlaywrightContextHelpers.switchToNativeContext();
   }
 }
 
