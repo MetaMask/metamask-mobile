@@ -13,7 +13,10 @@ import { RootMessenger } from '../../types';
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   // core#9388: RPC balance refresh on account-group switch / tree updates
   'AccountTreeController:selectedAccountGroupChange',
+  // core#9892: start asset tracking only after the account tree is fully built
+  'AccountTreeController:initialized',
   // core#9478: use exported :stateChange (not local :stateChanged aliases)
+  // Still required for post-init account-set changes (e.g. snap accounts)
   'AccountTreeController:stateChange',
   // core#9388: RPC balance refresh when enabling custom RPC networks (e.g. DXC)
   // StakedBalanceDataSource also listens to this
