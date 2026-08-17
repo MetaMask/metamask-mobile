@@ -14,6 +14,7 @@ export interface MoneyPreferredPaymentToken {
 }
 
 export interface MoneyOnboardingParams {
+  entryPoint?: string;
   postOnboardingRedirect?: {
     type: MoneyPostOnboardingRedirectType;
     preferredPaymentToken?: MoneyPreferredPaymentToken;
@@ -26,7 +27,7 @@ export interface MoneyOnboardingParams {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyScreensStackParamList = {
-  MoneyHome: undefined;
+  MoneyHome: { entryPoint?: string } | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };

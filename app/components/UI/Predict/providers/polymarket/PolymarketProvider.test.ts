@@ -62,6 +62,7 @@ import {
   parsePolymarketActivity,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
@@ -138,6 +139,7 @@ jest.mock('./utils', () => {
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
     parsePolymarketPositions: jest.fn(),
+    previewMaxBuyOrder: jest.fn(),
     previewOrder: jest.fn(),
   };
 });
@@ -253,6 +255,7 @@ const mockParsePolymarketActivity = jest.mocked(parsePolymarketActivity);
 const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
+const mockPreviewMaxBuyOrder = jest.mocked(previewMaxBuyOrder);
 const mockResolveDepositWalletAddress = jest.mocked(
   resolveDepositWalletAddress,
 );
@@ -942,6 +945,7 @@ describe('PolymarketProvider', () => {
       },
     });
     mockPreviewOrder.mockResolvedValue(basePreview);
+    mockPreviewMaxBuyOrder.mockResolvedValue(basePreview);
     mockBuildTradeAllowancesTx.mockResolvedValue({
       to: '0x9999999999999999999999999999999999999999',
       data: '0xallowances',
@@ -1312,6 +1316,31 @@ describe('PolymarketProvider', () => {
     expect(preview.feeRateBps).toBe('0');
     expect(mockPreviewOrder).toHaveBeenCalledWith(
       expect.objectContaining({ feeCollection: DEFAULT_FEE_COLLECTION_FLAG }),
+    );
+  });
+
+  it('previews the maximum fully fillable buy through the provider', async () => {
+    const provider = createProvider();
+
+    const preview = await provider.previewMaxBuyOrder({
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      availableBalance: 100,
+      signer,
+    });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        maxAmountSpent: basePreview.maxAmountSpent,
+        feeRateBps: '0',
+      }),
+    );
+    expect(mockPreviewMaxBuyOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableBalance: 100,
+        feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+      }),
     );
   });
 
