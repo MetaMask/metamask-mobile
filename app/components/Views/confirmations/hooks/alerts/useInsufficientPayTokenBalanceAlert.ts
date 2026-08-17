@@ -24,6 +24,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -39,6 +40,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const isMax = useTransactionPayIsMaxAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
   const transactionMeta = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
 
@@ -52,6 +54,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const nativeToken = useTokenWithBalance(
     getNativeTokenAddress(sourceChainId),
     sourceChainId,
+    payingAccount,
   );
 
   const transactionId = transactionMeta?.id ?? '';
