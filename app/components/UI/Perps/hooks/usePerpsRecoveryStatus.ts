@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -53,8 +53,24 @@ export const usePerpsRecoveryStatus = (): UsePerpsRecoveryStatusReturn => {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const activeProvider = useSelector(selectPerpsProvider);
   const perpsNetwork = useSelector(selectPerpsNetwork);
+  // Overlapping refreshes (mount, focus, account/provider/network
+  // changes) can resolve OUT OF ORDER: a slow stale read must never
+  // overwrite the state committed by a newer one. Every refresh takes a
+  // request generation and captures its context; only the LATEST request
+  // whose context still matches may commit lists, error, or loading.
+  const requestSeqRef = useRef(0);
+  const latestContextRef = useRef('');
+  latestContextRef.current = `${selectedAddress ?? ''}|${
+    activeProvider ?? ''
+  }|${perpsNetwork ?? ''}`;
 
   const refresh = useCallback(async () => {
+    requestSeqRef.current += 1;
+    const requestId = requestSeqRef.current;
+    const requestContext = latestContextRef.current;
+    const isCurrent = () =>
+      requestId === requestSeqRef.current &&
+      requestContext === latestContextRef.current;
     setIsLoading(true);
     try {
       const controller = Engine.context.PerpsController;
@@ -62,12 +78,19 @@ export const usePerpsRecoveryStatus = (): UsePerpsRecoveryStatusReturn => {
         controller.getPendingManualRecoveries(),
         controller.getRecoveredDispatches(),
       ]);
+      if (!isCurrent()) {
+        return;
+      }
       setPendingManualRecoveries(manual);
       setRecoveredDispatches(recovered);
       setError(null);
     } catch (caughtError) {
       // Storage corruption or provider failure must SURFACE, never
-      // degrade to "nothing pending".
+      // degrade to "nothing pending" — but a STALE failure must not
+      // clobber a newer request's state either.
+      if (!isCurrent()) {
+        return;
+      }
       const wrapped =
         caughtError instanceof Error
           ? caughtError
@@ -75,7 +98,9 @@ export const usePerpsRecoveryStatus = (): UsePerpsRecoveryStatusReturn => {
       setError(wrapped);
       DevLogger.log('usePerpsRecoveryStatus: refresh failed', wrapped);
     } finally {
-      setIsLoading(false);
+      if (isCurrent()) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
