@@ -147,6 +147,7 @@ import {
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
@@ -779,8 +780,9 @@ const HomeTabs = () => {
 
   return (
     /*
-     * PredictPreviewSheetProvider is mounted here (above Tab.Navigator) so its
-     * BottomSheet renders inside the full-viewport Home screen card.
+     * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
+     * mounted here (above Tab.Navigator) so their BottomSheets render inside
+     * the full-viewport Home screen card.
      * BottomSheet uses `absolute inset-0` (see
      * @metamask/design-system-react-native) and would be clipped by an
      * individual tab's content area if mounted lower in the tree.
@@ -791,73 +793,75 @@ const HomeTabs = () => {
      * Retry toasts so we don't double-fire when both are mounted.
      */
     <PredictPreviewSheetProvider>
-      {isMoneyAccountEnabled ? (
-        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-      ) : null}
-      <Tab.Navigator
-        initialRouteName={Routes.WALLET.HOME}
-        tabBar={renderTabBar}
-        screenOptions={{ headerShown: false }}
-      >
-        {/* Home Tab */}
-        <Tab.Screen
-          name={Routes.WALLET.HOME}
-          options={options.home}
-          component={WalletTabStackFlow}
-        />
-
-        {/* Explore Tab (w/ hidden browser) */}
-        <>
+      <TrendingQuickBuySheetProvider>
+        {isMoneyAccountEnabled ? (
+          <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+        ) : null}
+        <Tab.Navigator
+          initialRouteName={Routes.WALLET.HOME}
+          tabBar={renderTabBar}
+          screenOptions={{ headerShown: false }}
+        >
+          {/* Home Tab */}
           <Tab.Screen
-            name={Routes.TRENDING_VIEW}
-            options={{
-              ...options.trending,
-              isSelected: (rootScreenName) =>
-                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                  rootScreenName,
-                ),
-            }}
-            component={ExploreHome}
+            name={Routes.WALLET.HOME}
+            options={options.home}
+            component={WalletTabStackFlow}
           />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={{
-              ...options.browser,
-              isHidden: true,
-            }}
-            component={BrowserFlowUnmountOnTabBlur}
-          />
-        </>
 
-        {/* Trade Tab */}
-        <Tab.Screen
-          name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-          options={options.trade}
-          component={WalletTabStackFlow}
-        />
+          {/* Explore Tab (w/ hidden browser) */}
+          <>
+            <Tab.Screen
+              name={Routes.TRENDING_VIEW}
+              options={{
+                ...options.trending,
+                isSelected: (rootScreenName) =>
+                  [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                    rootScreenName,
+                  ),
+              }}
+              component={ExploreHome}
+            />
+            <Tab.Screen
+              name={Routes.BROWSER.HOME}
+              options={{
+                ...options.browser,
+                isHidden: true,
+              }}
+              component={BrowserFlowUnmountOnTabBlur}
+            />
+          </>
 
-        {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
-        {isMoneyAccountVisible ? (
+          {/* Trade Tab */}
           <Tab.Screen
-            name={Routes.MONEY.ROOT}
-            options={options.money}
-            component={MoneyTabScreenStack}
+            name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+            options={options.trade}
+            component={WalletTabStackFlow}
           />
-        ) : (
-          <Tab.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            options={options.activity}
-            component={TransactionsHomeUnmountOnTabBlur}
-          />
-        )}
 
-        {/* Rewards Tab */}
-        <Tab.Screen
-          name={Routes.REWARDS_VIEW}
-          options={options.rewards}
-          component={RewardsHomeUnmountOnTabBlur}
-        />
-      </Tab.Navigator>
+          {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
+          {isMoneyAccountVisible ? (
+            <Tab.Screen
+              name={Routes.MONEY.ROOT}
+              options={options.money}
+              component={MoneyTabScreenStack}
+            />
+          ) : (
+            <Tab.Screen
+              name={Routes.TRANSACTIONS_VIEW}
+              options={options.activity}
+              component={TransactionsHomeUnmountOnTabBlur}
+            />
+          )}
+
+          {/* Rewards Tab */}
+          <Tab.Screen
+            name={Routes.REWARDS_VIEW}
+            options={options.rewards}
+            component={RewardsHomeUnmountOnTabBlur}
+          />
+        </Tab.Navigator>
+      </TrendingQuickBuySheetProvider>
     </PredictPreviewSheetProvider>
   );
 };

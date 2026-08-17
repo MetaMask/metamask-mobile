@@ -63,6 +63,22 @@ jest.mock('../../UI/Predict', () => {
   };
 });
 
+jest.mock('../../UI/Trending/contexts', () => {
+  const { Fragment } = jest.requireActual('react');
+  return {
+    TrendingQuickBuySheetProvider: ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => jest.requireActual('react').createElement(Fragment, null, children),
+    useTrendingQuickBuySheet: () => ({
+      openQuickBuy: jest.fn(),
+      closeQuickBuy: jest.fn(),
+      isQuickBuyOpen: false,
+    }),
+  };
+});
+
 jest.mock('../../UI/MarketInsights', () => ({
   MarketInsightsView: () => 'MarketInsightsView',
   selectMarketInsightsEnabled: (state: unknown) =>

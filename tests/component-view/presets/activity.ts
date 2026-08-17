@@ -3,6 +3,12 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  FIAT_ORDER_PROVIDERS,
+  FIAT_ORDER_STATES,
+} from '../../../app/constants/on-ramp';
+import type { FiatOrder } from '../../../app/reducers/fiatOrders/types';
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -16,9 +22,30 @@ export const ACTIVITY_CV_RECIPIENT =
 /** Mainnet USDC — used for ERC-20 send/receive Activity CV fixtures. */
 export const ACTIVITY_CV_USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
+/** Mainnet mUSD — used for Activity Details send/receive CV fixtures. */
+export const ACTIVITY_CV_MUSD = '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA';
+
+/** Mainnet USDT — used for Activity Details approval CV fixtures. */
+export const ACTIVITY_CV_USDT = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
+
 /** Hashes for Activity Mainnet↔Linea network-filter CV (Core UX Test 1). */
 export const MAINNET_ACTIVITY_HASH = '0xactivitycvmainnettx';
 export const LINEA_ACTIVITY_HASH = '0xactivitycvlineatx';
+
+/** TokenRates override so Activity Details Total can resolve mUSD fiat. */
+export const activityMusdTokenRatesOverride = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {
+          '0x1': {
+            [ACTIVITY_CV_MUSD]: { price: 1 },
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
 
 interface LocalSendOverrides {
   id?: string;
@@ -71,6 +98,40 @@ export const buildConfirmedLocalUsdcSendTransaction = (): TransactionMeta =>
       ).toLowerCase()}00000000000000000000000000000000000000000000000000000000000f4240`,
     },
     txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+/**
+ * Confirmed ERC-20 mUSD send (1 mUSD) with receipt gas for Activity Details
+ * fee / total CV.
+ */
+export const buildConfirmedLocalMusdSendTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-musd-send',
+    hash: '0xactivitycvconfirmedmusdsend',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_784_000,
+    type: TransactionType.tokenMethodTransfer,
+    transferInformation: {
+      amount: '1000000',
+      contractAddress: ACTIVITY_CV_MUSD,
+      decimals: 6,
+      symbol: 'mUSD',
+    },
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_MUSD,
+      value: '0x0',
+      nonce: '0x3',
+      data: `0xa9059cbb000000000000000000000000${ACTIVITY_CV_RECIPIENT.slice(
+        2,
+      ).toLowerCase()}00000000000000000000000000000000000000000000000000000000000f4240`,
+    },
+    txReceipt: {
+      status: '0x1',
+      gasUsed: '0x5208',
+      effectiveGasPrice: '0x3b9aca00',
+    },
   }) as unknown as TransactionMeta;
 
 const buildApproveCalldata = (spender: string, amount: bigint): string =>
@@ -219,6 +280,105 @@ export const buildConfirmedLocalContractInteractionTransaction =
       txReceipt: { status: '0x1' },
     }) as unknown as TransactionMeta;
 
+const ACTIVITY_CV_GAS_RECEIPT = {
+  status: '0x1',
+  gasUsed: '0x5208',
+  effectiveGasPrice: '0x3b9aca00',
+} as const;
+
+/**
+ * Contract interaction with receipt gas for Activity Details fee / total CV.
+ */
+export const buildConfirmedLocalContractInteractionWithFeesTransaction =
+  (): TransactionMeta => {
+    const base = buildConfirmedLocalContractInteractionTransaction();
+    return {
+      ...base,
+      id: 'activity-cv-confirmed-contract-interaction-fees',
+      hash: '0xactivitycvconfirmedcontractfees',
+      txParams: {
+        ...base.txParams,
+        nonce: '0xa',
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    } as unknown as TransactionMeta;
+  };
+
+/** Confirmed unlimited USDT approve with gas for Activity Details CV. */
+export const buildConfirmedLocalUsdtUnlimitedApproveTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-usdt-unlimited-approve',
+      hash: '0xactivitycvconfirmedusdtunlimited',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_791_000,
+      type: TransactionType.tokenMethodApprove,
+      transferInformation: {
+        contractAddress: ACTIVITY_CV_USDT,
+        decimals: 6,
+        symbol: 'USDT',
+      },
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_USDT,
+        value: '0x0',
+        nonce: '0xb',
+        data: buildApproveCalldata(ACTIVITY_CV_RECIPIENT, MAX_UINT256),
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+/** Confirmed USDT increaseAllowance (100 USDT) with gas for Activity Details CV. */
+export const buildConfirmedLocalUsdtIncreaseAllowanceTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-usdt-increase-allowance',
+      hash: '0xactivitycvconfirmedusdtincrease',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_792_000,
+      type: TransactionType.tokenMethodIncreaseAllowance,
+      transferInformation: {
+        contractAddress: ACTIVITY_CV_USDT,
+        decimals: 6,
+        symbol: 'USDT',
+      },
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_USDT,
+        value: '0x0',
+        nonce: '0xc',
+        data: buildIncreaseAllowanceCalldata(
+          ACTIVITY_CV_RECIPIENT,
+          100_000_000n,
+        ),
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+/**
+ * Confirmed EIP-7702 smart account upgrade with gas for Activity Details CV.
+ */
+export const buildConfirmedLocalSmartAccountUpgradeTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-smart-account-upgrade',
+      hash: '0xactivitycvconfirmedsmartaccountupgrade',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_793_000,
+      type: TransactionType.batch,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_RECIPIENT,
+        value: '0x0',
+        nonce: '0xd',
+        authorizationList: [{ address: ACTIVITY_CV_RECIPIENT }],
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
 /** Confirmed cross-token bridge (ETH → USDC) for ActivityScreen transaction-row CV. */
 export const buildConfirmedLocalBridgeTransaction = (): TransactionMeta =>
   ({
@@ -330,6 +490,365 @@ export const activityCvCrossChainSwapBridgeHistoryEntry = {
   estimatedProcessingTimeInSeconds: 0,
   slippagePercentage: 0,
 };
+
+/**
+ * Submitted cross-chain swap for ActivityDetails pending status CV.
+ * Same quote shape as the confirmed fixture; status is still in-flight.
+ */
+export const buildPendingLocalCrossChainSwapTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-pending-cross-chain-swap',
+    hash: '0xactivitycvpendingcrosschainswap',
+    chainId: '0x1',
+    status: TransactionStatus.submitted,
+    time: 1_716_367_789_500,
+    type: TransactionType.swap,
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0xde0b6b3a7640000',
+      nonce: '0x9',
+    },
+  }) as unknown as TransactionMeta;
+
+/** Quote for {@link buildPendingLocalCrossChainSwapTransaction}. */
+export const activityCvPendingCrossChainSwapBridgeHistoryEntry = {
+  ...activityCvCrossChainSwapBridgeHistoryEntry,
+  txMetaId: 'activity-cv-pending-cross-chain-swap',
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvpendingcrosschainswap',
+    },
+    destChain: {
+      chainId: 59144,
+    },
+  },
+  startTime: 1_716_367_789_500,
+};
+
+/** Solana mainnet scope — Activity Details EVM→nonEVM bridge and non-EVM fiat CV. */
+export const ACTIVITY_CV_SOLANA_CHAIN_ID =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+/**
+ * Same-chain ETH → mUSD swap with gas for Activity Details dual-header CV.
+ */
+export const buildConfirmedLocalEthToMusdSwapTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-eth-musd-swap',
+      hash: '0xactivitycvethmusdswap',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_794_000,
+      type: TransactionType.swap,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_MUSD,
+        value: '0xde0b6b3a7640000',
+        nonce: '0xe',
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+/** Quote for {@link buildConfirmedLocalEthToMusdSwapTransaction}. */
+export const activityCvEthToMusdSwapHistoryEntry = {
+  txMetaId: 'activity-cv-confirmed-eth-musd-swap',
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: {
+    srcChainId: 1,
+    destChainId: 1,
+    srcAsset: {
+      symbol: 'ETH',
+      decimals: 18,
+      assetId: 'eip155:1/slip44:60',
+    },
+    destAsset: {
+      symbol: 'mUSD',
+      decimals: 6,
+      assetId: `eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`,
+    },
+    srcTokenAmount: '1000000000000000000',
+    destTokenAmount: '2500000000',
+  },
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvethmusdswap',
+    },
+    destChain: {
+      chainId: 1,
+      txHash: '0xactivitycvethmusdswap',
+    },
+  },
+  startTime: 1_716_367_794_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
+
+/**
+ * Confirmed mUSD conversion (USDC → mUSD) with gas for Activity Details CV.
+ * Source leg comes from BridgeStatusController quote enrichment; destination
+ * amount is parsed from the ERC-20 transfer calldata.
+ */
+export const buildConfirmedLocalMusdConversionTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-musd-conversion',
+      hash: '0xactivitycvmusdconversion',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_795_000,
+      type: TransactionType.musdConversion,
+      transferInformation: {
+        contractAddress: ACTIVITY_CV_MUSD,
+        decimals: 6,
+        symbol: 'mUSD',
+      },
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_MUSD,
+        value: '0x0',
+        nonce: '0xf',
+        data: `0xa9059cbb000000000000000000000000${ACTIVITY_CV_ACCOUNT.slice(
+          2,
+        ).toLowerCase()}00000000000000000000000000000000000000000000000000000000004c4b40`,
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+/**
+ * Quote used only to enrich the convert source (USDC) leg — destination is
+ * resolved from the conversion calldata / transferInformation.
+ */
+export const activityCvMusdConversionHistoryEntry = {
+  txMetaId: 'activity-cv-confirmed-musd-conversion',
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: {
+    srcChainId: 1,
+    destChainId: 1,
+    srcAsset: {
+      symbol: 'USDC',
+      decimals: 6,
+      assetId: `eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`,
+    },
+    destAsset: {
+      symbol: 'mUSD',
+      decimals: 6,
+      assetId: `eip155:1/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`,
+    },
+    srcTokenAmount: '5010000',
+    destTokenAmount: '5000000',
+  },
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvmusdconversion',
+    },
+    destChain: {
+      chainId: 1,
+      txHash: '0xactivitycvmusdconversion',
+    },
+  },
+  startTime: 1_716_367_795_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
+
+/**
+ * Bridge ETH Mainnet → mUSD Linea with gas for Activity Details CV.
+ */
+export const buildConfirmedLocalBridgeEthToMusdLineaTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-bridge-eth-musd-linea',
+      hash: '0xactivitycvbridgeethmusdlinea',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_796_000,
+      type: TransactionType.bridge,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_MUSD,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x10',
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+/** Quote for {@link buildConfirmedLocalBridgeEthToMusdLineaTransaction}. */
+export const activityCvBridgeEthToMusdLineaHistoryEntry = {
+  txMetaId: 'activity-cv-confirmed-bridge-eth-musd-linea',
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: {
+    srcChainId: 1,
+    destChainId: 59144,
+    srcAsset: {
+      symbol: 'ETH',
+      decimals: 18,
+      assetId: 'eip155:1/slip44:60',
+    },
+    destAsset: {
+      symbol: 'mUSD',
+      decimals: 6,
+      assetId: `eip155:59144/erc20:${ACTIVITY_CV_MUSD.toLowerCase()}`,
+    },
+    srcTokenAmount: '1000000000000000000',
+    destTokenAmount: '2500000000',
+  },
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvbridgeethmusdlinea',
+    },
+    destChain: {
+      chainId: 59144,
+      txHash: '0xactivitycvbridgeethmusdlineadest',
+    },
+  },
+  startTime: 1_716_367_796_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
+
+/**
+ * Bridge ETH Mainnet → SOL Solana with gas for Activity Details dual-explorer CV.
+ */
+export const buildConfirmedLocalBridgeEthToSolTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-bridge-eth-sol',
+      hash: '0xactivitycvbridgeethsol',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_797_000,
+      type: TransactionType.bridge,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_RECIPIENT,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x11',
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+/** Quote for {@link buildConfirmedLocalBridgeEthToSolTransaction}. */
+export const activityCvBridgeEthToSolHistoryEntry = {
+  txMetaId: 'activity-cv-confirmed-bridge-eth-sol',
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: {
+    srcChainId: 1,
+    destChainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+    srcAsset: {
+      symbol: 'ETH',
+      decimals: 18,
+      assetId: 'eip155:1/slip44:60',
+    },
+    destAsset: {
+      symbol: 'SOL',
+      decimals: 9,
+      assetId: `${ACTIVITY_CV_SOLANA_CHAIN_ID}/slip44:501`,
+    },
+    srcTokenAmount: '1000000000000000000',
+    destTokenAmount: '1000000000',
+  },
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvbridgeethsol',
+    },
+    destChain: {
+      chainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+      txHash: 'activitycvbridgeethsoldest',
+    },
+  },
+  startTime: 1_716_367_797_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
+
+/** TokenRates so convert Total can resolve USDC fiat (mUSD already covered). */
+export const activityUsdcTokenRatesOverride = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {
+          '0x1': {
+            [ACTIVITY_CV_USDC]: { price: 1 },
+            [ACTIVITY_CV_MUSD]: { price: 1 },
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+const ERC20_TRANSFER_TOPIC =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+const addressTopic = (address: string): string =>
+  `0x${address.slice(2).toLowerCase().padStart(64, '0')}`;
+
+/** Merkl distributor that emits the mUSD Transfer on claim (see Earn musd utils). */
+const MERKL_DISTRIBUTOR_ADDRESS = '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae';
+
+/**
+ * Confirmed Merkl mUSD claim on Linea with receipt payout.
+ * Claims always settle on Linea.
+ */
+export const buildConfirmedLocalMusdClaimTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-musd-claim',
+    hash: '0xactivitycvconfirmedmusdclaim',
+    chainId: '0xe708',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_798_000,
+    type: TransactionType.musdClaim,
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: MERKL_DISTRIBUTOR_ADDRESS,
+      value: '0x0',
+      nonce: '0x12',
+    },
+    txReceipt: {
+      ...ACTIVITY_CV_GAS_RECEIPT,
+      logs: [
+        {
+          address: ACTIVITY_CV_MUSD,
+          data: '0x0f4240',
+          topics: [
+            ERC20_TRANSFER_TOPIC,
+            addressTopic(MERKL_DISTRIBUTOR_ADDRESS),
+            addressTopic(ACTIVITY_CV_ACCOUNT),
+          ],
+        },
+      ],
+    },
+  }) as unknown as TransactionMeta;
+
+/** TokenRates so Linea claim Total can resolve mUSD fiat. */
+export const activityLineaMusdTokenRatesOverride = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {
+          '0xe708': {
+            [ACTIVITY_CV_MUSD.toLowerCase()]: { price: 1 },
+            [ACTIVITY_CV_MUSD]: { price: 1 },
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+/** Earn/staking pool used as the DEPOSIT counterpart. */
+export const ACTIVITY_CV_DEPOSIT_CONTRACT =
+  '0x00000000219ab540356cbb839cbe05303d7705fa';
+
+export const ACTIVITY_CV_DEPOSIT_USDC_HASH = '0xactivitycvdepositusdc';
+export const ACTIVITY_CV_DEPOSIT_USDC_TIMESTAMP_MS = 1_716_367_799_000;
 
 export const buildPendingLocalSendTransaction = (): TransactionMeta =>
   ({
@@ -538,6 +1057,11 @@ export const initialStateActivity = () =>
           PreferencesController: {
             showTestNetworks: false,
             tokenNetworkFilter: {},
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
           },
           SmartTransactionsController: {
             smartTransactionsState: {
@@ -627,3 +1151,189 @@ export const initialStateActivityWithAccountsApi = () =>
       },
     },
   } as unknown as DeepPartial<RootState>);
+
+export const ACTIVITY_CV_RAMP_BUY_ORDER_ID = 'activitycvrampbuymusd';
+export const ACTIVITY_CV_RAMP_SELL_ORDER_ID = 'activitycvrampselleth';
+export const ACTIVITY_CV_RAMP_BUY_TX_HASH = '0xactivitycvrampbuymusdhash';
+export const ACTIVITY_CV_RAMP_SELL_TX_HASH = '0xactivitycvrampsellethhash';
+export const ACTIVITY_CV_RAMP_CREATED_AT = 1_716_367_790_000;
+
+/** Completed FiatOrder buy of 5.01 mUSD for Activity Details CV. */
+export const buildActivityCvRampBuyMusdOrder = (): FiatOrder =>
+  ({
+    id: ACTIVITY_CV_RAMP_BUY_ORDER_ID,
+    provider: FIAT_ORDER_PROVIDERS.TRANSAK,
+    createdAt: ACTIVITY_CV_RAMP_CREATED_AT,
+    amount: '6.27',
+    fee: '1.26',
+    cryptoAmount: '5.01',
+    currency: 'USD',
+    cryptocurrency: 'mUSD',
+    state: FIAT_ORDER_STATES.COMPLETED,
+    account: ACTIVITY_CV_ACCOUNT,
+    network: '1',
+    txHash: ACTIVITY_CV_RAMP_BUY_TX_HASH,
+    excludeFromPurchases: false,
+    orderType: OrderOrderTypeEnum.Buy,
+    data: {},
+  }) as FiatOrder;
+
+/** Completed FiatOrder sell of 0.085 ETH for Activity Details CV. */
+export const buildActivityCvRampSellEthOrder = (): FiatOrder =>
+  ({
+    id: ACTIVITY_CV_RAMP_SELL_ORDER_ID,
+    provider: FIAT_ORDER_PROVIDERS.TRANSAK,
+    createdAt: ACTIVITY_CV_RAMP_CREATED_AT,
+    amount: '61.88',
+    fee: '3',
+    cryptoAmount: '0.085',
+    currency: 'EUR',
+    cryptocurrency: 'ETH',
+    state: FIAT_ORDER_STATES.COMPLETED,
+    account: ACTIVITY_CV_ACCOUNT,
+    network: '1',
+    txHash: undefined,
+    sellTxHash: ACTIVITY_CV_RAMP_SELL_TX_HASH,
+    excludeFromPurchases: false,
+    orderType: OrderOrderTypeEnum.Sell,
+    data: {},
+  }) as FiatOrder;
+
+/** Activity state with redesign + legacy fiatOrders for Ramp Details CV. */
+export const initialStateActivityWithRampOrders = (orders: FiatOrder[]) =>
+  initialStateActivity()
+    .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
+    .withOverrides({
+      fiatOrders: {
+        orders,
+      },
+      engine: {
+        backgroundState: {
+          NetworkEnablementController: {
+            enabledNetworkMap: enabledMainnetNetworkMap,
+          },
+          RampsController: {
+            orders: [],
+          },
+        },
+      },
+    } as unknown as DeepPartial<RootState>);
+
+export const ACTIVITY_CV_SOLANA_ACCOUNT_ID = 'activity-cv-solana-acc';
+
+export const ACTIVITY_CV_SOLANA_ADDRESS = '11111111111111111111111111111111';
+
+export const ACTIVITY_CV_SOLANA_SEND_ID = 'activity-cv-solana-send';
+
+export const ACTIVITY_CV_SOLANA_ASSET_ID =
+  `${ACTIVITY_CV_SOLANA_CHAIN_ID}/slip44:501` as const;
+
+/**
+ * Confirmed Solana native send (2 SOL). Keyring amounts are human-readable.
+ * Pair with {@link activityCvSolanaSendStateOverrides} for details fiat CV.
+ */
+export const activityCvSolanaSendTransaction = {
+  id: ACTIVITY_CV_SOLANA_SEND_ID,
+  chain: ACTIVITY_CV_SOLANA_CHAIN_ID,
+  account: ACTIVITY_CV_SOLANA_ACCOUNT_ID,
+  status: 'confirmed',
+  timestamp: 1_716_367_795,
+  type: 'send',
+  from: [
+    {
+      address: ACTIVITY_CV_SOLANA_ADDRESS,
+      asset: {
+        fungible: true,
+        type: ACTIVITY_CV_SOLANA_ASSET_ID,
+        unit: 'SOL',
+        amount: '2',
+      },
+    },
+  ],
+  to: [
+    {
+      address: 'So11111111111111111111111111111111111111112',
+      asset: null,
+    },
+  ],
+  fees: [],
+  events: [],
+};
+
+/**
+ * Redux overrides: Solana account in the selected group, non-EVM send history,
+ * and multichain rate 4 → 2 SOL totals $8 on ActivityDetails.
+ */
+export const activityCvSolanaSendStateOverrides = {
+  engine: {
+    backgroundState: {
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [ACTIVITY_CV_SOLANA_ACCOUNT_ID]: {
+              id: ACTIVITY_CV_SOLANA_ACCOUNT_ID,
+              address: ACTIVITY_CV_SOLANA_ADDRESS,
+              type: 'solana:data-account',
+              options: {},
+              methods: [],
+              metadata: {
+                name: 'Solana Account 1',
+                importTime: 1,
+                keyring: { type: 'Snap Keyring' },
+              },
+              scopes: [ACTIVITY_CV_SOLANA_CHAIN_ID],
+            },
+          },
+        },
+      },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {
+            'entropy:wallet1': {
+              id: 'entropy:wallet1',
+              type: 'Entropy',
+              metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
+              groups: {
+                'entropy:wallet1/0': {
+                  id: 'entropy:wallet1/0',
+                  type: 'MultipleAccount',
+                  metadata: {
+                    name: 'Group 1',
+                    pinned: false,
+                    hidden: false,
+                    lastSelected: 0,
+                  },
+                  accounts: ['acc-1', ACTIVITY_CV_SOLANA_ACCOUNT_ID],
+                },
+              },
+            },
+          },
+        },
+        selectedAccountGroup: 'entropy:wallet1/0',
+      },
+      MultichainTransactionsController: {
+        nonEvmTransactions: {
+          [ACTIVITY_CV_SOLANA_ACCOUNT_ID]: {
+            [ACTIVITY_CV_SOLANA_CHAIN_ID]: {
+              transactions: [activityCvSolanaSendTransaction],
+              next: null,
+              lastUpdated: 1_716_367_795_000,
+            },
+          },
+        },
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            rate: '4',
+            currency: 'usd',
+          },
+        },
+      },
+      MultichainNetworkController: {
+        isEvmSelected: false,
+        selectedMultichainNetworkChainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
