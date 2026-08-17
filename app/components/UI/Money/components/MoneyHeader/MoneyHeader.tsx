@@ -4,10 +4,8 @@ import {
   Button,
   ButtonIcon,
   ButtonSize,
-  ButtonVariant,
   HeaderRoot,
   IconName,
-  Text,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
