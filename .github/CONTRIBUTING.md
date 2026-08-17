@@ -24,10 +24,6 @@ When you're done with your project / bugfix / feature and ready to submit a PR, 
 - [ ] **Get the PR reviewed by code owners**: At least two code owner approvals are mandatory before merging any PR.
 - [ ] **Ensure the PR is correctly labeled.**: More detail about labels definitions can be found [here](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md).
 
-### Shadow CI jobs
-
-The Namespace shadow CI (`ci-namespace-shadow.yml`) no longer runs automatically: its automatic triggers (PRs, pushes to `main`, hourly schedule) are disabled now that the Phase 5d benchmark is complete. It is retained for on-demand runs via manual `workflow_dispatch`, or you can dispatch `ci.yml` directly with `runner_provider=namespace`. Any `[shadow]`-prefixed jobs were always **advisory only** and never gated merge.
-
 ### Runner provider switch
 
 Which runner fleet a job lands on is controlled by four repository-level Actions variables. They exist so the whole fleet can be moved — or rolled back — by editing a variable, with no code change, no revert and no redeploy.
@@ -51,7 +47,9 @@ Resolution order, highest priority first:
 
 Push-, schedule- and `merge_group`-triggered workflows have no dispatch inputs, so the variables are the only way to steer them. That is why the input default is empty rather than a concrete provider.
 
-The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) is on the switch. PR CI and the e2e chain are still pinned with `runner_provider: current` defaults and are migrated separately; a workflow that hardcodes `current` at its call site is opted out on purpose.
+The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml`), OTA (`eas-update-platform.yml`), and BrowserStack upload workflows are on the switch. Callers that omit `runner_provider` follow the fleet variables.
+
+PR CI (`ci.yml`) and the e2e chain still default to `current`. Dispatch `ci.yml` with `runner_provider=namespace` for a real Namespace PR-CI trial (this is no longer a shadow run). Appium smoke and fixture validation stay pinned to Cirrus until Namespace artifact-store parity. A workflow that hardcodes `current` at its call site is opted out on purpose.
 
 #### Rolling back
 

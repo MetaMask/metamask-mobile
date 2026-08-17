@@ -63,6 +63,13 @@ on:
           run without requiring a fingerprint, then upload them to BrowserStack
           as-is. This mode is intended for test-only changes.
         default: false
+      runner_provider:
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
+        required: false
+        type: string
+        default: ''
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
@@ -88,6 +95,15 @@ on:
         description: 'Optional description for this build run'
         required: false
         type: string
+      runner_provider:
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: false
+        type: choice
+        options:
+          - inherit
+          - current
+          - namespace
+        default: inherit
 
 permissions:
   contents: write
@@ -98,7 +114,12 @@ permissions:
 jobs:
   check-builds-needed:
     name: Check if Android builds are needed
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
     outputs:
       builds-needed: ${{ steps.check-builds.outputs.builds-needed }}
       with-srp-build-name: ${{ steps.names.outputs.with-srp-build-name }}
@@ -142,7 +163,12 @@ jobs:
 
   resolve-fingerprint-reuse:
     name: Resolve fingerprint-reusable BrowserStack APKs
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
     needs: [check-builds-needed]
     if: >-
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
@@ -423,6 +449,7 @@ jobs:
       build_name: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   build-without-srp:
@@ -441,18 +468,32 @@ jobs:
       build_name: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   upload-to-browserstack:
     name: Upload APKs to BrowserStack
-    # Repack needs Android SDK/apksigner (Cirrus). Light as-is/fresh upload can stay on ubuntu.
+    # Repack needs Android SDK/apksigner. Light as-is/fresh upload can stay on a generic Linux runner.
     runs-on: >-
       ${{
-        needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
-        inputs.main_branch_only != true &&
-        fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
-        fromJSON('["ubuntu-latest"]')
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         (needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true &&
+          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_LINUX) ||
+         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true &&
+         'namespace-profile-metamask-android-build' || 'namespace-profile-metamask-ci-linux') ||
+        (needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true &&
+         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
+         fromJSON('["ubuntu-latest"]'))
       }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          (needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true &&
+           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_LINUX) ||
+          vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     # Only the JS-repack path needs build-e2e/rc/exp secrets (ADDITIONAL_SRP_1, etc.).
     # Fresh/as-is upload only needs repo-level BrowserStack credentials.
     environment: >-
@@ -489,10 +530,18 @@ jobs:
       without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
 
     steps:
+      - name: Checkout (repack path, Namespace)
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true &&
+          env.RESOLVED_RUNNER_PROVIDER == 'namespace'
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+
       - name: Checkout (repack path)
         if: >-
           needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
-          inputs.main_branch_only != true
+          inputs.main_branch_only != true &&
+          env.RESOLVED_RUNNER_PROVIDER != 'namespace'
         uses: actions/checkout@v6
 
       - name: Setup E2E environment for APK repack
@@ -505,7 +554,7 @@ jobs:
           setup-simulator: 'false'
           configure-keystores: 'true'
           install-foundry: 'false'
-          runner_provider: current
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
       - name: Setup project dependencies (lightweight, repack path)
         if: >-

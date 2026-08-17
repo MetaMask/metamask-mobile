@@ -1,8 +1,5 @@
 name: ci
 
-run-name: >-
-  ${{ inputs.pr_number && format('ci [shadow PR #{0} @ {1}]', inputs.pr_number, inputs.head_sha) || '' }}
-
 on:
   push:
     branches: [main, 'release/*']
@@ -24,14 +21,6 @@ on:
         type: string
         required: false
         default: current
-      pr_number:
-        description: 'PR number (shadow correlation, optional)'
-        type: string
-        required: false
-      head_sha:
-        description: 'PR head SHA (shadow correlation, optional)'
-        type: string
-        required: false
   workflow_dispatch:
     inputs:
       runner_provider:
@@ -43,14 +32,6 @@ on:
           - namespace
           - bitrise
         default: current
-      pr_number:
-        description: 'PR number (shadow correlation, optional)'
-        required: false
-        type: string
-      head_sha:
-        description: 'PR head SHA (shadow correlation, optional)'
-        required: false
-        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
@@ -64,8 +45,7 @@ jobs:
   check-diff:
     name: Check diff
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest' }}
-    # NAMESPACE-SHADOW: macOS job — runs on Namespace shadow only when NAMESPACE_SHADOW_AUTO_DISPATCH=true (iOS pipeline)
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
@@ -162,7 +142,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed == 'true' }}
+          post-status: ${{ inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed == 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -173,8 +153,7 @@ jobs:
   dedupe:
     name: Dedupe
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     steps:
@@ -222,8 +201,7 @@ jobs:
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     steps:
@@ -264,8 +242,7 @@ jobs:
   scripts:
     name: Run `${{ matrix.scripts }}`
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     strategy:
@@ -324,8 +301,7 @@ jobs:
   js-bundle-size-check:
     name: JS bundle size check
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     permissions:
@@ -527,7 +503,7 @@ jobs:
           EOF
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'bitrise' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -576,9 +552,9 @@ jobs:
     name: Ship JS bundle size check
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [js-bundle-size-check]
-    # Skip on shadow runs (Namespace/Bitrise): cron against main would otherwise
-    # push duplicate entries to the external mobile_bundlesize_stats repo.
-    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+    # Skip on Bitrise trial runs: cron against main would otherwise push duplicate
+    # entries to the external mobile_bundlesize_stats repo.
+    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'bitrise' }}
     permissions:
       id-token: write
       contents: read
@@ -637,8 +613,7 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     steps:
@@ -659,8 +634,7 @@ jobs:
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
     steps:
@@ -686,8 +660,7 @@ jobs:
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -767,8 +740,7 @@ jobs:
       - integration-tests
     # Wait for integration shards so coverage can merge into Sonar, but still run
     # when integration fails — missing integration artifacts are tolerated below.
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ always() && github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
+    if: ${{ always() && github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1036,8 +1008,7 @@ jobs:
   component-view-tests:
     name: Component view tests (${{ matrix.shard }})
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1103,8 +1074,7 @@ jobs:
   integration-tests:
     name: Integration tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1209,7 +1179,7 @@ jobs:
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
-          post-comment: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+          post-comment: ${{ inputs.runner_provider != 'bitrise' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
 
   run-performance-tests-pr:
@@ -1221,11 +1191,9 @@ jobs:
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
     # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
-        inputs.runner_provider != 'namespace' &&
         github.event_name == 'pull_request' &&
         !cancelled() &&
         (
@@ -1260,11 +1228,9 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
-    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux-runner job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
-        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
@@ -1341,12 +1307,9 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    # NAMESPACE-SHADOW: iOS pipeline runs on Namespace shadow only when NAMESPACE_SHADOW_AUTO_DISPATCH=true
-    # (downstream iOS jobs cascade-skip via needs when this is skipped)
     if: >-
       ${{
         !cancelled() &&
-        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
@@ -1378,9 +1341,9 @@ jobs:
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
-    # BITRISE/NAMESPACE-SHADOW: always skipped on shadow runs. Appium Android is pinned to
-    # runner_provider=current (Cirrus) below until Namespace parity is ready, and it cannot
-    # download namespace-built APKs (they live in Namespace's artifact store, not GitHub's).
+    # Stays on Cirrus (`runner_provider: current` below) until Namespace artifact-store
+    # parity is ready. Skip when the parent CI run is on Namespace so this job cannot
+    # try to download Namespace-built APKs from GitHub's artifact store.
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
@@ -1397,7 +1360,7 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      # Appium Android on Cirrus/GitHub-hosted runners until Namespace parity is ready.
+      # Pinned to Cirrus until Namespace artifact-store parity.
       runner_provider: current
       selected_tags: >-
         ${{
@@ -1472,15 +1435,14 @@ jobs:
       test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'
-      # Appium iOS is pinned to Cirrus (current), same as appium-smoke-tests-ios.
+      # Pinned to Cirrus until Namespace artifact-store parity (same as Appium smoke).
       runner_provider: current
     secrets: inherit
 
   report-fixture-validation:
     name: 'Report Fixture Validation'
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    if: ${{ inputs.runner_provider != 'bitrise' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
       pull-requests: write
@@ -1520,9 +1482,8 @@ jobs:
     name: SonarCloud analysis
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     # Run when merged coverage is ready even if optional integration shards failed upstream.
-    if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1589,8 +1550,7 @@ jobs:
     name: SonarCloud quality gate status
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1665,8 +1625,7 @@ jobs:
   cleanup-ci-js-deps:
     name: Delete CI JS deps artifact
     runs-on: ubuntu-latest
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ always() && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+    if: ${{ always() && inputs.runner_provider != 'bitrise' }}
     needs:
       - unit-tests
       - component-view-tests
@@ -1700,8 +1659,7 @@ jobs:
     name: Check all jobs pass
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
+    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs:
       - get_requirements
@@ -1747,8 +1705,7 @@ jobs:
     name: Log merge group failure
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Only run this job if the merge group event fails, skip on forks
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name == 'merge_group' && failure() }}
+    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name == 'merge_group' && failure() }}
     needs:
       - check-all-jobs-pass
     steps:

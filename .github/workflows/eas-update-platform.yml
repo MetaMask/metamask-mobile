@@ -35,13 +35,32 @@ on:
         description: 'JSON mapping of secret aliases from builds.yml'
         type: string
         required: true
+      runner_provider:
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
+        required: false
+        type: string
+        default: ''
 
 jobs:
   push-update:
     name: Push EAS Update (${{ inputs.platform }})
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg'
+      }}
     environment: ${{ inputs.github_environment }}
     env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       # OTA-specific vars only — build config + secrets come from builds.yml via steps below
       TARGET_COMMIT_HASH: ${{ inputs.commit_sha }}
       ARTIFACT_NAME: ${{ inputs.artifact_name }}
@@ -51,8 +70,16 @@ jobs:
       OTA_PUSH_PLATFORM: ${{ inputs.platform }}
       GIT_BRANCH: ${{ github.ref_name }}
     steps:
+      - name: Checkout repository (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          ref: ${{ env.TARGET_COMMIT_HASH }}
+          fetch-depth: 1
+
       - name: Checkout repository
         uses: actions/checkout@v4
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 1
@@ -61,6 +88,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
 
       - name: Validate artifact compatibility
         uses: ./.github/actions/validate-artifact-compatibility
