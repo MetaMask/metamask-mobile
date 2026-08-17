@@ -1,5 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
+import enContent from '../../../locales/languages/en.json';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -179,8 +180,18 @@ class ImportWalletView {
   }
 
   get importFromExtensionLink(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
+    // Nested RN Text testIDs are not exposed as Android resourceId / iOS
+    // accessibility id. Exact text matches the tappable inner link (contains
+    // matching hits the parent sentence and does not fire onPress).
+    const text = enContent.import_from_seed.import_wallet_from_extension;
+    const escaped = text.replace(/'/g, "\\'");
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}' or @content-desc='${escaped}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}']`,
     );
   }
 
