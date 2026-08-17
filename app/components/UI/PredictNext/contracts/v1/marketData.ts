@@ -41,6 +41,18 @@ const decimal = refine(
 const amount = refine(string(), 'PredictAmount', (value) =>
   /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value),
 );
+const httpsUrl = refine(string(), 'PredictHttpsUrl', (value) => {
+  if (!/^https:\/\//i.test(value)) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && url.hostname.length > 0;
+  } catch {
+    return false;
+  }
+});
 const status = enums([
   'upcoming',
   'open',
@@ -97,7 +109,7 @@ const eventSchema = object({
   category: optional(string()),
   volume: optional(amount),
   volume24h: optional(amount),
-  imageUrl: optional(string()),
+  imageUrl: optional(httpsUrl),
   markets: nonEmptyMarkets,
 });
 

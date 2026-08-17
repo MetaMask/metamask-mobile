@@ -184,6 +184,19 @@ describe('Predict API canonical response parsers', () => {
     expect(result.imageUrl).toBe('https://example.com/event.png');
   });
 
+  it.each([
+    '/images/event.png',
+    'http://example.com/event.png',
+    'data:image/png;base64,encoded-image',
+    'https:example.com/event.png',
+  ])('rejects image URL %s', (imageUrl) => {
+    const input = createEvent({ imageUrl });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses a paginated event response', () => {
     const input = { items: [createEvent()], nextCursor: 'next-page' };
 
