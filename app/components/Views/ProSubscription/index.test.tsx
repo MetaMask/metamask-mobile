@@ -4,12 +4,21 @@ import ProSubscription from './index';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 const mockGoBack = jest.fn();
-const mockNavigation = { goBack: mockGoBack };
+const mockDispatch = jest.fn();
+const mockNavigation = { goBack: mockGoBack, dispatch: mockDispatch };
 const mockRoute = { params: {} };
+
+const mockReplace = jest.fn(
+  (name: string, params?: Record<string, unknown>) => ({
+    type: 'REPLACE',
+    payload: { name, params },
+  }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
   useRoute: () => mockRoute,
+  StackActions: { replace: (...args: unknown[]) => mockReplace(...args) },
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -41,8 +50,8 @@ jest.mock('./screens/Benefits', () => {
 
 jest.mock('./screens/Success', () => {
   const { TouchableOpacity } = require('react-native');
-  return ({ onClose }: { onClose: () => void }) => (
-    <TouchableOpacity testID="mock-success" onPress={onClose} />
+  return ({ onSuccess }: { onSuccess: () => void }) => (
+    <TouchableOpacity testID="mock-success" onPress={onSuccess} />
   );
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -109,13 +118,17 @@ describe('ProSubscription', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('calls goBack when Success onClose fires', () => {
+    it('dispatches a replace action to ProHub when Success onSuccess fires', () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
       fireEvent.press(getByTestId('mock-success'));
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
+        source: 'pro_subscription_success',
+      });
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 

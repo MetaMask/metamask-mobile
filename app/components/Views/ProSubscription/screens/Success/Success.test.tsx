@@ -6,11 +6,9 @@ import { strings } from '../../../../../../locales/i18n';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const mockOnClose = jest.fn();
 const mockOnSuccess = jest.fn();
 
-const renderSuccess = () =>
-  render(<Success onClose={mockOnClose} onSuccess={mockOnSuccess} />);
+const renderSuccess = () => render(<Success onSuccess={mockOnSuccess} />);
 
 // ─── Suite ───────────────────────────────────────────────────────────────────
 

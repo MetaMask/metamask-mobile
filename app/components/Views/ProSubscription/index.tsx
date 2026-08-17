@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
+  StackActions,
   type RouteProp,
 } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -53,14 +54,12 @@ const ProSubscription = () => {
   }, []);
 
   const handleSubscriptionOnSuccess = useCallback(() => {
-    handleClose();
-    navigation.navigate(
-      Routes.PRO_HUB.ROOT as never,
-      {
+    navigation.dispatch(
+      StackActions.replace(Routes.PRO_HUB.ROOT, {
         source: 'pro_subscription_success',
-      } as never,
+      }),
     );
-  }, [handleClose, navigation]);
+  }, [navigation]);
 
   return (
     <SafeAreaView
@@ -83,10 +82,7 @@ const ProSubscription = () => {
           initialPlan={route.params?.initialPlan as PlanId | undefined}
         />
       ) : (
-        <Success
-          onClose={handleClose}
-          onSuccess={handleSubscriptionOnSuccess}
-        />
+        <Success onSuccess={handleSubscriptionOnSuccess} />
       )}
     </SafeAreaView>
   );

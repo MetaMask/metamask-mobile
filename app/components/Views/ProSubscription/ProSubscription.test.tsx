@@ -10,13 +10,20 @@ import Success from './screens/Success';
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, dispatch: mockDispatch }),
     useRoute: () => ({ params: {} }),
+    StackActions: {
+      replace: (name: string, params?: Record<string, unknown>) => ({
+        type: 'Navigation/REPLACE',
+        payload: { name, params },
+      }),
+    },
   };
 });
 
@@ -66,7 +73,16 @@ describe('ProSubscription', () => {
         </TouchableOpacity>
       </View>
     ));
-    MockSuccess.mockImplementation(() => <View testID="mock-success-screen" />);
+    MockSuccess.mockImplementation(({ onSuccess }) => (
+      <View testID="mock-success-screen">
+        <TouchableOpacity
+          testID="mock-success-subscribe-trigger"
+          onPress={onSuccess}
+        >
+          <Text>Subscribe</Text>
+        </TouchableOpacity>
+      </View>
+    ));
   });
 
   // ── Close button ──────────────────────────────────────────────────────────
@@ -146,6 +162,34 @@ describe('ProSubscription', () => {
       fireEvent.press(getByTestId('mock-benefits-success-trigger'));
 
       expect(queryByTestId('mock-benefits-screen')).not.toBeOnTheScreen();
+    });
+  });
+
+  // ── Hub navigation (Success onSuccess) ────────────────────────────────────
+
+  describe('hub navigation', () => {
+    it('dispatches a replace to ProHub when Success onSuccess fires', () => {
+      const { getByTestId } = renderProSubscription();
+
+      fireEvent.press(getByTestId('mock-benefits-success-trigger'));
+      fireEvent.press(getByTestId('mock-success-subscribe-trigger'));
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'Navigation/REPLACE',
+        payload: {
+          name: 'ProHub',
+          params: { source: 'pro_subscription_success' },
+        },
+      });
+    });
+
+    it('does not call goBack when Success onSuccess fires', () => {
+      const { getByTestId } = renderProSubscription();
+
+      fireEvent.press(getByTestId('mock-benefits-success-trigger'));
+      fireEvent.press(getByTestId('mock-success-subscribe-trigger'));
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 });
