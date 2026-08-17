@@ -15,16 +15,23 @@ import {
 import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
-import type { RootStackParamList } from '../../../core/NavigationService/types';
+import Routes from '../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
 const ProSubscription = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const route = useRoute<RouteProp<RootStackParamList, 'ProSubscription'>>();
+  const route =
+    useRoute<
+      RouteProp<
+        { ProSubscription: { source?: string; initialPlan?: string } },
+        'ProSubscription'
+      >
+    >();
 
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const [currentScreen, setCurrentScreen] =
@@ -47,9 +54,12 @@ const ProSubscription = () => {
 
   const handleSubscriptionOnSuccess = useCallback(() => {
     handleClose();
-    navigation.navigate(Routes.PRO_HUB.ROOT, {
-      source: 'pro_subscription_success',
-    });
+    navigation.navigate(
+      Routes.PRO_HUB.ROOT as never,
+      {
+        source: 'pro_subscription_success',
+      } as never,
+    );
   }, [handleClose, navigation]);
 
   return (

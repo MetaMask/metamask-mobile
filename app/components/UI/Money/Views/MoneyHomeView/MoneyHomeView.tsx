@@ -398,9 +398,12 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleGetProPress = useCallback(() => {
-    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
-      source: 'money_header',
-    });
+    navigation.navigate(
+      Routes.PRO_SUBSCRIPTION.ROOT as never,
+      {
+        source: 'money_header',
+      } as never,
+    );
   }, [navigation]);
 
   const handleAddPress = useCallback(
