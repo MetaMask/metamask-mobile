@@ -89,11 +89,7 @@ describe('getNetworkConnectionBannerControllerMessenger', () => {
     // controller messenger. This throws if the events or actions were not
     // delegated to the controller messenger.
     expect(() => {
-      messenger.publish(
-        'ClientController:stateChange',
-        { isUiOpen: true } as never,
-        [],
-      );
+      messenger.publish('ClientController:stateChange', { isUiOpen: true }, []);
       messenger.publish('KeyringController:unlock');
     }).not.toThrow();
 
@@ -135,6 +131,9 @@ describe('getNetworkConnectionBannerControllerMessenger', () => {
     controllerMessenger.subscribe('KeyringController:unlock', unlockListener);
     controllerMessenger.subscribe('KeyringController:lock', lockListener);
 
+    // These publishes only need to trigger the delegated event so we can
+    // assert the listeners fire; the payloads are partial state cast to
+    // `never` rather than full controller state.
     messenger.publish(
       'NetworkController:stateChange',
       { networkConfigurationsByChainId: {}, networksMetadata: {} } as never,
@@ -147,14 +146,10 @@ describe('getNetworkConnectionBannerControllerMessenger', () => {
     );
     messenger.publish(
       'ConnectivityController:stateChange',
-      { connectivityStatus: 'offline' } as never,
+      { connectivityStatus: 'offline' },
       [],
     );
-    messenger.publish(
-      'ClientController:stateChange',
-      { isUiOpen: true } as never,
-      [],
-    );
+    messenger.publish('ClientController:stateChange', { isUiOpen: true }, []);
     messenger.publish('KeyringController:unlock');
     messenger.publish('KeyringController:lock');
 
