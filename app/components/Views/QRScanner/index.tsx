@@ -856,9 +856,6 @@ const QRScanner = ({
     [onScanError, navigation],
   );
 
-  // Only show the camera permission alert if:
-  // 1. Permission check has been completed
-  // 2. Permission is not granted
   if (isAddDeviceScanner && permissionCheckCompleted && !hasPermission) {
     return (
       <View style={styles.container}>
@@ -868,7 +865,6 @@ const QRScanner = ({
   }
 
   if (permissionCheckCompleted && !hasPermission) {
-    showCameraNotAuthorizedAlert();
     return null;
   }
 
