@@ -4,7 +4,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   VALIDATION_THRESHOLDS,
   type ClosePositionParams,
-  type OrderType,
+  type OrdinaryOrderType,
 } from '@metamask/perps-controller';
 import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import { isPriceOutsideDeviationBand } from '../utils/orderUtils';
@@ -14,7 +14,7 @@ interface UsePerpsClosePositionValidationParams {
   symbol: string;
   closePercentage: number;
   closeAmount: string;
-  orderType: OrderType;
+  orderType: OrdinaryOrderType;
   limitPrice?: string;
   currentPrice: number;
   referencePrice?: number; // Reference (oracle/mark) price used for the deviation band; falls back to currentPrice

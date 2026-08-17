@@ -2565,6 +2565,7 @@ describe('CardController — getCapabilities', () => {
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsMoneyAccountLinking: true,
     supportsTransactionHistory: true,
   };
 

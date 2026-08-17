@@ -599,7 +599,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     const secondaryAmount = await findByTestId(
       activityListRowSecondaryAmountTestId(sendHash),
     );
-    expect(secondaryAmount).toHaveTextContent(/^-.*USD/);
+    expect(secondaryAmount).toHaveTextContent(/^-\$2,500\.00/);
 
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(sendHash)),
@@ -913,6 +913,70 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     expect(
       await findByTestId(activityListRowAvatarStackTestId(swapHash)),
     ).toBeOnTheScreen();
+  });
+
+  it('shows Swapped when Accounts API returns the same hash as Smart contract interaction', async () => {
+    const swapTransaction = buildConfirmedLocalCrossChainSwapTransaction();
+    const swapHash = swapTransaction.hash as string;
+    const aggregator = '0x1111111254eeb25477b68fb85ed929f73a960582';
+
+    setupAccountsTransactionsApiMock([
+      {
+        hash: swapHash,
+        timestamp: new Date(swapTransaction.time).toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_ACCOUNT,
+        to: aggregator,
+        value: '0',
+        valueTransfers: [],
+        isError: false,
+        transactionCategory: 'CONTRACT_CALL',
+      },
+    ]);
+
+    const state = initialStateActivityWithLocalTransactions([swapTransaction])
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            BridgeStatusController: {
+              txHistory: {
+                [swapTransaction.id]:
+                  activityCvCrossChainSwapBridgeHistoryEntry,
+              },
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, getAllByTestId, getAllByText, queryByText } =
+      renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(swapHash)),
+      { timeout: 10000 },
+    );
+
+    expect(getAllByTestId(activityListRowTitleTestId(swapHash))).toHaveLength(
+      1,
+    );
+    expect(title).toHaveTextContent('Swapped');
+    expect(title).not.toHaveTextContent(
+      strings('transactions.smart_contract_interaction'),
+    );
+    expect(
+      queryByText(strings('transactions.smart_contract_interaction')),
+    ).toBeNull();
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(swapHash)),
+    ).toHaveTextContent('ETH → USDC');
   });
 
   it('shows Approve USDC under Transactions filter with unsigned primary amount and a single avatar', async () => {

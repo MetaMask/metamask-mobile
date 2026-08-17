@@ -473,12 +473,12 @@
             "orderBookExpanded": false,
             "orderBookPosition": "left",
             "orderFormPosition": "right",
-            "positionsSideFilter": "all",
-            "positionsSortField": "positionValue",
-            "positionsSortDirection": "desc",
             "ordersSideFilter": "all",
+            "ordersSortDirection": "desc",
             "ordersSortField": "time",
-            "ordersSortDirection": "desc"
+            "positionsSideFilter": "all",
+            "positionsSortDirection": "desc",
+            "positionsSortField": "positionValue"
           },
           "recentlyViewedMarkets": {
             "mainnet": [],

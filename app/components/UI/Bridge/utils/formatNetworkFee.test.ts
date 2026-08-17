@@ -1,6 +1,9 @@
 import {
+  ChainId,
   QuoteMetadata,
   QuoteResponse,
+  getNativeAssetForChainId,
+  toBridgeAssetV2,
   toQuoteMetadataV2,
 } from '@metamask/bridge-controller';
 import { BigNumber } from 'bignumber.js';
@@ -17,6 +20,15 @@ const mockFormatFiat = formatFiat as jest.MockedFunction<typeof formatFiat>;
 const mockIsGaslessQuote = isGaslessQuote as jest.MockedFunction<
   typeof isGaslessQuote
 >;
+
+const mockSrcAsset = toBridgeAssetV2(getNativeAssetForChainId(ChainId.BTC));
+const mockPartialQuote = {
+  quote: {
+    src: {
+      asset: mockSrcAsset,
+    },
+  },
+};
 
 describe('formatNetworkFee', () => {
   beforeEach(() => {
@@ -48,12 +60,25 @@ describe('formatNetworkFee', () => {
       const quote = merge(
         {},
         { quote: { gasIncluded: true } },
-        toQuoteMetadataV2({
-          includedTxFees: {
-            amount: '0.002',
-            valueInCurrency: '5.00',
+        toQuoteMetadataV2(
+          {
+            includedTxFees: {
+              amount: '0.002',
+              valueInCurrency: '5.00',
+            },
           },
-        }),
+          {
+            quote: {
+              feeData: {
+                txFee: [
+                  {
+                    asset: mockSrcAsset,
+                  },
+                ],
+              },
+            },
+          },
+        ),
       );
 
       const result = formatNetworkFee('USD', quote);
@@ -76,7 +101,10 @@ describe('formatNetworkFee', () => {
         },
       );
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -91,7 +119,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -106,7 +137,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -121,7 +155,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -134,7 +171,10 @@ describe('formatNetworkFee', () => {
 
       const result = formatNetworkFee(
         'USD',
-        toQuoteMetadataV2(quote as QuoteResponse & QuoteMetadata),
+        toQuoteMetadataV2(
+          quote as QuoteResponse & QuoteMetadata,
+          mockPartialQuote,
+        ),
       );
 
       expect(result).toBe('-');
@@ -150,7 +190,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -160,7 +203,10 @@ describe('formatNetworkFee', () => {
   describe('non-gasless quotes — totalNetworkFee path', () => {
     it('returns "-" when totalNetworkFee is undefined', () => {
       const quote = {} as QuoteResponse & QuoteMetadata;
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
       expect(result).toBe('-');
     });
 
@@ -168,7 +214,10 @@ describe('formatNetworkFee', () => {
       const quote = {
         totalNetworkFee: undefined,
       };
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
       expect(result).toBe('-');
     });
 
@@ -180,7 +229,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
       expect(result).toBe('-');
     });
 
@@ -192,7 +244,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
       expect(result).toBe('-');
     });
 
@@ -204,7 +259,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
       expect(result).toBe('-');
     });
 
@@ -216,7 +274,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
       expect(result).toBe('-');
     });
 
@@ -230,7 +291,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('10.50'), 'USD');
       expect(result).toBe('$10.50');
@@ -246,7 +310,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('EUR', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'EUR',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('25.00'), 'EUR');
       expect(result).toBe('€25.00');
@@ -264,7 +331,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('0.005'), 'USD');
       expect(result).toBe('<$0.01');
@@ -282,7 +352,10 @@ describe('formatNetworkFee', () => {
         },
       };
 
-      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote, mockPartialQuote),
+      );
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('0'), 'USD');
       expect(result).toBe('$0');

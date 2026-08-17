@@ -68,6 +68,8 @@ export interface PerpsTransaction {
   };
   // For orders: order info
   order?: {
+    /** Hyperliquid order ID used to correlate recorded execution fills. */
+    orderId?: string;
     text: PerpsOrderTransactionStatus;
     statusType: PerpsOrderTransactionStatusType;
     type: 'limit' | 'market';
