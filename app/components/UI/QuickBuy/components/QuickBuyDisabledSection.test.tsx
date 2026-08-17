@@ -28,6 +28,21 @@ describe('QuickBuyDisabledSection', () => {
     expect(screen.getByText('child')).toBeOnTheScreen();
   });
 
+  // The sheet wraps three disjoint regions (amount, footer rows, keypad), so a
+  // caller-supplied id is what lets a test target one unambiguously.
+  it('uses a caller-supplied testID when given', () => {
+    render(
+      <QuickBuyDisabledSection isDisabled testID="quick-buy-disabled-keypad">
+        <Text>child</Text>
+      </QuickBuyDisabledSection>,
+    );
+
+    expect(
+      screen.getByTestId('quick-buy-disabled-keypad').props.pointerEvents,
+    ).toBe('none');
+    expect(screen.queryByTestId('quick-buy-disabled-section')).toBeNull();
+  });
+
   // Dimmed rows still carry readable information (Pay with, Total). Hiding the
   // subtree wholesale would make the sheet read as empty to a screen reader, so
   // inertness is expressed via pointerEvents and per-control disabled props.

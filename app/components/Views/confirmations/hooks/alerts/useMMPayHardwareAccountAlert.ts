@@ -4,34 +4,28 @@ import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
-import { isHardwareAccount } from '../../../../../util/address';
+import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
+import {
+  isHardwareAccount,
+  isQRHardwareAccount,
+} from '../../../../../util/address';
 import { PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
-  const accountOverride = useTransactionAccountOverride();
+  const payingAccount = useTransactionPayingAccount();
   const fiatPayment = useTransactionPayFiatPayment();
-
-  const {
-    txParams: { from },
-  } = transactionMeta ?? { txParams: {} };
+  const isHardwarePayEnabled = useIsMMPayHardwareEnabled();
 
   const isPayTransaction = hasTransactionType(
     transactionMeta,
     PAY_TRANSACTION_TYPES,
   );
 
-  // When set, accountOverride is the account paying for the transaction,
-  // except in withdraw (post-quote) flows where it is only the recipient
-  // and never signs.
-  const payingAccount = isTransactionPayWithdraw(transactionMeta)
-    ? from
-    : (accountOverride ?? from);
-
   const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
+  const isQRWallet = isQRHardwareAccount(payingAccount ?? '');
 
   // Fiat payments are bought directly to the destination, so the paying
   // account never signs.
@@ -39,6 +33,12 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
 
   return useMemo(() => {
     if (!isPayTransaction || !isHardwareWallet || isFiatPayment) {
+      return [];
+    }
+
+    // QR wallets stay blocked: relay funding transactions are submitted in the
+    // background and cannot drive the interactive scan loop.
+    if (isHardwarePayEnabled && !isQRWallet) {
       return [];
     }
 
@@ -51,5 +51,11 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
         isBlocking: true,
       },
     ];
-  }, [isFiatPayment, isHardwareWallet, isPayTransaction]);
+  }, [
+    isFiatPayment,
+    isHardwareWallet,
+    isHardwarePayEnabled,
+    isPayTransaction,
+    isQRWallet,
+  ]);
 }

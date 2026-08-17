@@ -161,6 +161,7 @@ const renderComponent = (
   isFullView: boolean = false,
   showOnlyMusd: boolean = false,
   hasMusdBalanceOnAnyChain?: boolean,
+  analyticsSource?: string,
 ) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -170,6 +171,7 @@ const renderComponent = (
             isFullView={isFullView}
             showOnlyMusd={showOnlyMusd}
             hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+            analyticsSource={analyticsSource}
           />
         )}
       </Stack.Screen>
@@ -188,6 +190,8 @@ describe('Tokens', () => {
     mockNavigate.mockClear();
     mockPush.mockClear();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
+    jest.mocked(TokenList).mockReset();
   });
 
   it('displays container', async () => {
@@ -314,6 +318,25 @@ describe('Tokens', () => {
             location: 'homepage',
             is_empty: false,
             screen_type: 'tokens',
+          }),
+        );
+      });
+    });
+
+    it('attributes Position Screen Viewed to the homepage balance breakdown', async () => {
+      renderComponent(
+        initialState,
+        true,
+        false,
+        undefined,
+        'homescreen_balance_breakdown',
+      );
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            screen_type: 'tokens',
+            source: 'homescreen_balance_breakdown',
           }),
         );
       });

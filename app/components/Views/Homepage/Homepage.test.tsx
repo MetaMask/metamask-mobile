@@ -294,7 +294,6 @@ function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => false),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
-  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
   selectMusdBalanceChainIds: jest.fn(() => []),
 }));
 

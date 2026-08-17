@@ -5,7 +5,6 @@ const EVENT_PROVIDERS = {
 const EVENT_LOCATIONS = {
   HOME_SCREEN: 'home',
   ASSET_OVERVIEW: 'asset_overview',
-  BONUS_CLAIM_TOOLTIP: 'bonus_claim_tooltip',
 };
 
 export const MUSD_EVENTS_CONSTANTS = {

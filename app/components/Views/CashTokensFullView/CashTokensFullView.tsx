@@ -38,7 +38,6 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import MoneyMusdEmptyBalanceRow from '../../UI/Money/components/MoneyMusdEmptyBalanceRow';
-import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashTokensFullView.constants';
 import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
 import { useCashTokensRefresh } from './useCashTokensRefresh';
@@ -88,11 +87,7 @@ const CashTokensFullView = () => {
     );
   }, [createEventBuilder, trackEvent, isMoneyHubEnabled, isScreenReady]);
 
-  const merklRefetchRef = useRef<(() => void) | null>(null);
-  const handleRefetchReady = useCallback((refetch: () => void) => {
-    merklRefetchRef.current = refetch;
-  }, []);
-  const { refreshing, onRefresh } = useCashTokensRefresh(merklRefetchRef);
+  const { refreshing, onRefresh } = useCashTokensRefresh();
 
   const { goToBuy } = useRampNavigation();
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -148,17 +143,6 @@ const CashTokensFullView = () => {
     [],
   );
 
-  const bonusSection = useMemo(
-    () => (
-      <AssetOverviewClaimBonus
-        asset={MUSD_MAINNET_ASSET_FOR_DETAILS}
-        onRefetchReady={handleRefetchReady}
-        location={MONEY_EVENT_LOCATIONS.MONEY_HUB}
-      />
-    ),
-    [handleRefetchReady],
-  );
-
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
       <HeaderBase
@@ -187,7 +171,6 @@ const CashTokensFullView = () => {
             // entry under the new "Your balance" heading.
             hideSecondaryPriceRow={isMoneyHubEnabled}
             listHeaderComponent={isMoneyHubEnabled ? balanceHeading : undefined}
-            listFooterComponent={isMoneyHubEnabled ? bonusSection : undefined}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -195,7 +178,6 @@ const CashTokensFullView = () => {
         ) : (
           <CashTokensFullViewSkeleton
             numChainsWithMusdBalance={numChainsWithMusdBalance}
-            isMoneyHubEnabled={isMoneyHubEnabled}
             listHeaderComponent={isMoneyHubEnabled ? balanceHeading : undefined}
           />
         )
@@ -217,7 +199,6 @@ const CashTokensFullView = () => {
             row to keep the empty/funded structures visually consistent.
           */}
           <MoneyMusdEmptyBalanceRow onPress={handleEmptyMusdRowPress} />
-          {isMoneyHubEnabled ? bonusSection : undefined}
         </ScrollView>
       )}
       {isMoneyHubEnabled && (

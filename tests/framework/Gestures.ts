@@ -150,6 +150,9 @@ export default class Gestures {
         delay: options.delay,
         checkForDisplayed: options.checkForDisplayed,
         checkForEnabled: options.checkEnabled,
+        waitForInteractive: options.waitForInteractive,
+        // Detox checkStability ≈ Appium position-stable wait
+        checkForStable: options.checkStability,
       });
     }
 
@@ -906,10 +909,82 @@ export default class Gestures {
   }
 
   /**
+   * Hide the soft keyboard (Appium).
+   * Uses Android `hideKeyboard` when shown, and iOS `mobile: hideKeyboard`
+   * with `tapOutside` (plain `driver.hideKeyboard()` is unreliable on XCUITest).
+   */
+  static async hideKeyboard(): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.hideKeyboard is Appium only');
+    }
+    await PlaywrightGestures.hideKeyboard();
+  }
+
+  /**
    * Dismiss soft keyboard after token search (tapOutside + iOS pills-strip tap).
    * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
    */
   static async dismissKeyboardAfterTokenSearch(): Promise<void> {
     await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+  }
+
+  /**
+   * Appium: scroll an element into view (WDIO native scrollIntoView).
+   * Prefer when you already have a PlaywrightElement (e.g. from
+   * Matchers.getAllElementsByXPath). For EncapsulatedElementType targets with
+   * a known scroll container, prefer scrollToElement.
+   */
+  static async scrollIntoView(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.scrollIntoView is Appium only');
+    }
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoView(target, {
+      scrollParams: { direction: options?.direction ?? 'up' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
+    });
+  }
+
+  /**
+   * Appium: scroll into view, then nudge clear of the bottom nav bar when
+   * the target would otherwise sit in the bottom 15% of the screen.
+   */
+  static async scrollIntoViewFullyVisible(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.scrollIntoViewFullyVisible is Appium only');
+    }
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoViewFullyVisible(target, {
+      scrollParams: { direction: options?.direction ?? 'up' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
+    });
   }
 }

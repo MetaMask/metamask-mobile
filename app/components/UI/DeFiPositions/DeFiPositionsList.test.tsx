@@ -636,6 +636,26 @@ describe('DeFiPositionsList', () => {
       );
     });
 
+    it('attributes Position Screen Viewed to the homepage balance breakdown', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList
+          tabLabel="DeFi"
+          isFullView
+          analyticsSource="homescreen_balance_breakdown"
+        />,
+        { state: mockInitialState },
+      );
+
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screen_type: 'defi',
+          source: 'homescreen_balance_breakdown',
+        }),
+      );
+    });
+
     it('tracks Position Screen Viewed with is_empty true when no positions are present', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useEnsureMusdTokenRegistered } from '../hooks/useEnsureMusdTokenRegistered';
-import { useMerklClaimStatus } from '../hooks/useMerklClaimStatus';
 
 /**
  * EarnTransactionMonitor - Mounts global transaction monitoring hooks for Earn features.
@@ -12,8 +11,6 @@ const EarnTransactionMonitor: React.FC = () => {
   // Register mUSD token in TokensController for all supported chains
   // This is necessary for the "Max" conversion flow.
   useEnsureMusdTokenRegistered();
-  // Enable Merkl bonus claim status monitoring and toasts
-  useMerklClaimStatus();
 
   // This component doesn't render anything
   return null;

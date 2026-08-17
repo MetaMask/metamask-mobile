@@ -45,6 +45,7 @@ export enum ACTIONS {
   REWARDS = 'rewards',
   SHIELD = 'shield',
   PREDICT = 'predict',
+  PRIVACY = 'privacy',
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
   WHATS_HAPPENING = 'whats-happening',

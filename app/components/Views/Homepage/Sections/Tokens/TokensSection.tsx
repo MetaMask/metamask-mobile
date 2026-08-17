@@ -41,6 +41,8 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useHomepageReady } from '../../hooks/useHomepageReady';
+import type { HomepageReadyContentState } from '../../../../../core/Performance/HomepageReady';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -54,6 +56,24 @@ interface TokensSectionProps {
 }
 
 const MAX_TOKENS_DISPLAYED = 5;
+
+/**
+ * Gets the homepage-ready state from the token section's terminal states.
+ */
+const getHomepageReadyContentState = (
+  showTokensError: boolean,
+  isZeroBalanceAccount: boolean,
+): HomepageReadyContentState => {
+  if (showTokensError) {
+    return 'error';
+  }
+
+  if (isZeroBalanceAccount) {
+    return 'empty';
+  }
+
+  return 'filled';
+};
 
 /**
  * TokensSection - Displays user's token balances on the homepage
@@ -171,6 +191,12 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
     const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
+    const contentReady =
+      showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0;
+    const contentState = getHomepageReadyContentState(
+      showTokensError,
+      isZeroBalanceAccount,
+    );
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
@@ -184,8 +210,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.TOKENS,
-      contentReady:
-        showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0,
+      contentReady,
       isEmpty: isZeroBalanceAccount || showTokensError,
       contentStateForTrace: showTokensError ? 'error' : undefined,
       isLoading:
@@ -193,6 +218,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         sortedTokenKeys.length === 0 &&
         !showTokensError,
     });
+    useHomepageReady({ contentReady, contentState });
 
     const handleViewAllTokens = useCallback(() => {
       navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);

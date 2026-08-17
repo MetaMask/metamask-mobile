@@ -46,10 +46,7 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
-import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
-import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -59,7 +56,7 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type Hex } from '@metamask/utils';
+import { isCaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -213,7 +210,6 @@ export interface AssetOverviewContentProps {
  * - Chart navigation buttons
  * - Action buttons (Buy, Swap, Send, Receive)
  * - Balance display
- * - Merkl rewards section
  * - Perps discovery banner
  * - Token details (contract, decimals, etc.)
  */
@@ -368,19 +364,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
-
-  const isMerklClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
-  const isTokenEligibleForMerklClaim = useMemo(
-    () =>
-      isMerklClaimingEnabled &&
-      isTokenEligibleForMerklRewards(
-        token.chainId as Hex,
-        token.address as Hex | undefined,
-      ),
-    [isMerklClaimingEnabled, token.chainId, token.address],
-  );
 
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
@@ -690,9 +673,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
               <EarnBalance asset={token} />
             </>
-          )}
-          {isTokenEligibleForMerklClaim && (
-            <AssetOverviewClaimBonus asset={token} />
           )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)

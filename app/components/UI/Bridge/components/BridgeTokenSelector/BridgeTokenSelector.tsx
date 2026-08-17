@@ -39,6 +39,7 @@ import {
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  assetIdsMatch,
   FeatureId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
@@ -480,8 +481,8 @@ export const BridgeTokenSelector: React.FC = () => {
       )
       .filter(
         (token) =>
-          token.assetId !== ARC_NATIVE_ASSET_ID &&
-          token.assetId !== ARC_NATIVE_ASSET_ID_LEGACY,
+          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID) &&
+          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY),
       );
 
     return filterWatchlistBridgeTokens(mappedTokens, {

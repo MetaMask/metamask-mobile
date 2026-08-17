@@ -3,7 +3,6 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CashTokensFullView from './CashTokensFullView';
-import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { selectMoneyHubEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
 
@@ -37,27 +36,6 @@ jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => ({ goToSwaps: jest.fn() }),
   SwapBridgeNavigationLocation: { MainView: 'MainView' },
 }));
-jest.mock(
-  '../../UI/Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () => <View testID="asset-overview-claim-bonus" />,
-    };
-  },
-);
-
-const mockClaimRewards = jest.fn();
-
-jest.mock(
-  '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
-  () => ({
-    useMerklBonusClaim: jest.fn(),
-  }),
-);
-
-const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
 jest.mock('../../../core/Engine', () => ({
   context: {},
 }));
@@ -127,15 +105,6 @@ describe('CashTokensFullView', () => {
       hasMusdBalanceOnAnyChain: false,
       tokenBalanceByChain: {},
     });
-    mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: null,
-      lifetimeBonusClaimed: null,
-      hasPendingClaim: false,
-      isClaiming: false,
-      error: null,
-      claimRewards: mockClaimRewards,
-      refetch: jest.fn(),
-    });
   });
 
   afterEach(() => {
@@ -187,16 +156,13 @@ describe('CashTokensFullView', () => {
       });
     });
 
-    it('renders the empty Money Hub layout (heading, mUSD row, bonus)', () => {
+    it('renders the empty Money Hub layout (heading, mUSD row)', () => {
       renderWithProvider(<CashTokensFullView />);
       expect(
         screen.getByTestId(CashTokensFullViewTestIds.HEADING),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId('money-musd-empty-balance-row'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('asset-overview-claim-bonus'),
       ).toBeOnTheScreen();
     });
 

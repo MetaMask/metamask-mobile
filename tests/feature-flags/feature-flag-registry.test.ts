@@ -215,6 +215,9 @@ describe('Feature Flag Registry', () => {
       for (const entry of deprecated) {
         expect(entry.status).toBe(FeatureFlagStatus.Deprecated);
       }
+      expect(deprecated.map((entry) => entry.name)).toContain(
+        'earnMerklCampaignClaiming',
+      );
     });
   });
 

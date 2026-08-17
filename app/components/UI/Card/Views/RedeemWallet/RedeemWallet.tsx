@@ -39,7 +39,11 @@ import useRedeemDestination from '../../hooks/useRedeemDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { selectCardHomeDataStatus } from '../../../../../selectors/cardController';
+import {
+  selectCardHomeDataStatus,
+  selectCardActiveProviderId,
+} from '../../../../../selectors/cardController';
+import { withCardProvider } from '../../util/metrics';
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import {
@@ -73,6 +77,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
 
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -253,10 +258,12 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: config.analyticsAction,
-          type: 'withdraw',
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: config.analyticsAction,
+            type: 'withdraw',
+          }),
+        )
         .build(),
     );
     withdraw(balance);
@@ -265,6 +272,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     withdraw,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     needsSetup,
     isFundingStatusUnavailable,
     config,

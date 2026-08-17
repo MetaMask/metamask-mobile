@@ -12,6 +12,8 @@ import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
+import { isHardwareAccount } from '../../../../../util/address';
 
 export const PAY_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -27,6 +29,7 @@ const PENDING_STATUSES = [...INCOMPLETE_STATUSES, TransactionStatus.submitted];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
+  const isHardwarePayEnabled = useIsMMPayHardwareEnabled();
   const transactionMetadata = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
 
@@ -68,8 +71,10 @@ export const useSignedOrSubmittedAlert = () => {
     existingTransaction || hasExistingTransactionOnPayChain,
   );
 
+  const isHardwareWallet = isHardwareAccount(from ?? '');
+
   return useMemo(() => {
-    if (!showAlert) {
+    if (!showAlert || (isHardwarePayEnabled && isHardwareWallet)) {
       return [];
     }
 
@@ -90,5 +95,11 @@ export const useSignedOrSubmittedAlert = () => {
         severity: Severity.Danger,
       },
     ];
-  }, [hasExistingTransactionOnPayChain, isTransactionPay, showAlert]);
+  }, [
+    hasExistingTransactionOnPayChain,
+    isHardwarePayEnabled,
+    isHardwareWallet,
+    isTransactionPay,
+    showAlert,
+  ]);
 };

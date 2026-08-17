@@ -41,7 +41,13 @@ import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboar
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  withCardProvider,
+} from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
@@ -115,16 +121,6 @@ const SignUp = () => {
     navigation.navigate(Routes.CARD.AUTHENTICATION);
   }, [navigation, postAuthRedirect]);
 
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.SIGN_UP,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
-
   const {
     sendEmailVerification,
     isLoading: emailVerificationIsLoading,
@@ -192,6 +188,32 @@ const SignUp = () => {
       selectedCountry &&
       immersveCountries.includes(selectedCountry.key),
   );
+
+  const lastTrackedSignUpView = useRef<string | null>(null);
+  useEffect(() => {
+    // Wait until country is known so Immersve (e.g. GB) is not stamped as Baanx.
+    // Re-fire when provider changes (e.g. geo auto-select then user switches country).
+    if (!selectedCountry) {
+      return;
+    }
+    const provider = isImmersveCountry
+      ? CardProviderIds.Immersve
+      : CardProviderIds.Baanx;
+    const viewKey = `${CardScreens.SIGN_UP}:${provider}`;
+    if (lastTrackedSignUpView.current === viewKey) {
+      return;
+    }
+    lastTrackedSignUpView.current = viewKey;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(
+          withCardProvider(provider, {
+            screen: CardScreens.SIGN_UP,
+          }),
+        )
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, selectedCountry, isImmersveCountry]);
 
   const {
     onboardingDocuments,
@@ -279,6 +301,15 @@ const SignUp = () => {
       setIsPhoneNumberError(true);
       return;
     }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.SIGN_UP_BUTTON,
+          }),
+        )
+        .build(),
+    );
     setImmersveError(null);
     setIsImmersveSubmitting(true);
     try {
@@ -287,6 +318,7 @@ const SignUp = () => {
         address: immersveAddress,
         email,
         phone: `+${phoneRegion.areaCode}${phoneNumber}`,
+        entrypoint: CardEntryPoint.SIGN_UP,
       });
     } catch (e) {
       setImmersveError(getCardProviderErrorMessage(e));
@@ -300,6 +332,8 @@ const SignUp = () => {
     phoneNumber,
     phoneRegion?.areaCode,
     resumeImmersveOnboarding,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const handleJoinWaitlist = useCallback(() => {
@@ -347,9 +381,11 @@ const SignUp = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.SIGN_UP_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.SIGN_UP_BUTTON,
+            }),
+          )
           .build(),
       );
       const { contactVerificationId } = await sendEmailVerification(email);
@@ -634,7 +670,7 @@ const SignUp = () => {
             error={legalDocsError}
             treatEmptyAsError
             onRetry={() => {
-              void refetchLegalDocs();
+              refetchLegalDocs().catch(() => undefined);
             }}
           />
         </Box>

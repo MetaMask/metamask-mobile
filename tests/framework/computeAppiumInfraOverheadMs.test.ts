@@ -12,6 +12,7 @@ describe('computeAppiumInfraOverheadMs', () => {
       computeAppiumInfraOverheadMs({
         directMs: 8000,
         sleepMs: 900,
+        infrastructureCommandDurationsMs: [],
         failedPollDurationsMs: [700, 700],
         successPollMs: 2000,
         probeMs: 204,
@@ -24,6 +25,7 @@ describe('computeAppiumInfraOverheadMs', () => {
       computeAppiumInfraOverheadMs({
         directMs: 8000,
         sleepMs: 900,
+        infrastructureCommandDurationsMs: [],
         failedPollDurationsMs: [],
         successPollMs: null,
         probeMs: 150,
@@ -36,6 +38,7 @@ describe('computeAppiumInfraOverheadMs', () => {
       computeAppiumInfraOverheadMs({
         directMs: 0,
         sleepMs: 0,
+        infrastructureCommandDurationsMs: [],
         failedPollDurationsMs: [80, 90],
         successPollMs: 100,
         probeMs: 200,
@@ -48,11 +51,25 @@ describe('computeAppiumInfraOverheadMs', () => {
       computeAppiumInfraOverheadMs({
         directMs: 8000,
         sleepMs: 0,
+        infrastructureCommandDurationsMs: [],
         failedPollDurationsMs: [700],
         successPollMs: 500,
         probeMs: null,
       }),
     ).toBe(0);
+  });
+
+  it('subtracts timeout configuration commands in full', () => {
+    expect(
+      computeAppiumInfraOverheadMs({
+        directMs: 0,
+        sleepMs: 0,
+        infrastructureCommandDurationsMs: [2_000, 40],
+        failedPollDurationsMs: [],
+        successPollMs: null,
+        probeMs: 150,
+      }),
+    ).toBe(2_190);
   });
 });
 
