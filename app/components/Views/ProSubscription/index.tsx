@@ -3,7 +3,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
-  StackActions,
   type RouteProp,
 } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
