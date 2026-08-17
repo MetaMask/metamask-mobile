@@ -46,8 +46,17 @@ export const useInitialDestToken = (
       return;
     }
 
-    // Entering Swaps NOT from asset details page or deeplink
-    if (!initialDestToken && !initialSourceToken) {
+    // The default dest belongs to the source token's network. Prefer the token
+    // coming in on the route (which useInitialSourceToken is about to apply)
+    // and fall back to the one already in Redux, e.g. when this view remounts
+    // after a sibling Bridge tab anchored the source to a different chain.
+    const effectiveSourceToken = initialSourceToken ?? sourceToken;
+
+    // Entering Swaps NOT from asset details page or deeplink. The pair's dest
+    // asset sits on a fixed chain, so it's only a valid destination while
+    // useInitialSourceToken is going to apply the pair's source asset too,
+    // which it only does when no source token is anchored anywhere yet.
+    if (!initialDestToken && !effectiveSourceToken) {
       if (isSwap && bip44DefaultPair && !destToken) {
         dispatch(setDestToken(bip44DefaultPair.destAsset));
         return;
@@ -55,18 +64,13 @@ export const useInitialDestToken = (
     }
 
     // Use BIP44 default pair for Bitcoin source token (i.e. entered Swaps from Bitcoin Asset Details page)
-    if (initialSourceToken && initialSourceToken.chainId === BtcScope.Mainnet) {
+    if (effectiveSourceToken?.chainId === BtcScope.Mainnet) {
       if (bip44DefaultPair && !destToken) {
         dispatch(setDestToken(bip44DefaultPair.destAsset));
         return;
       }
     }
 
-    // The default dest belongs to the source token's network. Prefer the token
-    // coming in on the route (which useInitialSourceToken is about to apply)
-    // and fall back to the one already in Redux, e.g. when this view remounts
-    // after a sibling Bridge tab anchored the source to a different chain.
-    const effectiveSourceToken = initialSourceToken ?? sourceToken;
     const destTokenTargetChainId =
       effectiveSourceToken?.chainId ?? selectedChainId;
     let defaultDestToken = getDefaultDestToken(destTokenTargetChainId);
