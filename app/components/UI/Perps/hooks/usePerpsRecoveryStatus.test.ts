@@ -154,6 +154,39 @@ describe('usePerpsRecoveryStatus', () => {
     });
   });
 
+  it('a slow STALE refresh resolving after a newer one cannot overwrite the newer state', async () => {
+    // Request A (mount) hangs; request B (focus) completes with fresh
+    // data; A then resolves LATE with stale-empty data.
+    let resolveSlowA: (value: never[]) => void = () => undefined;
+    mockController.getRecoveredDispatches
+      .mockImplementationOnce(
+        () =>
+          new Promise<never[]>((resolve) => {
+            resolveSlowA = resolve;
+          }),
+      )
+      .mockResolvedValue([recoveredDispatch]);
+
+    const { result } = renderHook(() => usePerpsRecoveryStatus());
+    // Trigger request B via the registered focus callback while A is
+    // still in flight.
+    const focusCallback = useFocusEffect.mock.calls.at(-1)?.[0] as () => void;
+    await act(async () => {
+      focusCallback();
+    });
+    await waitFor(() => {
+      expect(result.current.recoveredDispatches).toEqual([recoveredDispatch]);
+    });
+    // A resolves AFTER B committed: its stale-empty result must be
+    // dropped, and loading must not be re-stuck.
+    await act(async () => {
+      resolveSlowA([]);
+    });
+    expect(result.current.recoveredDispatches).toEqual([recoveredDispatch]);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeNull();
+  });
+
   it('acknowledges a single dispatch by its stable id and refreshes', async () => {
     mockController.getRecoveredDispatches.mockResolvedValue([
       recoveredDispatch,
