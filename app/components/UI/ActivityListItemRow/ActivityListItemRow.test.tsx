@@ -1816,14 +1816,22 @@ describe('ActivityListItemRow — display currency conversion', () => {
   const mockConversionRate = jest.mocked(selectConversionRateByChainId);
   const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
 
-  // These selector mocks use persistent return values (clearAllMocks does not
-  // reset them), so set the suite-wide defaults (USD, equal rates) before
-  // each test to keep overrides from leaking.
-  beforeEach(() => {
-    jest.clearAllMocks();
+  const restoreSelectorDefaults = () => {
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
+  };
+
+  // Persistent mockReturnValue is not cleared by clearAllMocks. beforeEach
+  // isolates tests in this suite; afterEach restores defaults so later
+  // suites (amount display, ERC-20 fiat) are not left on EUR / missing rates.
+  beforeEach(() => {
+    jest.clearAllMocks();
+    restoreSelectorDefaults();
+  });
+
+  afterEach(() => {
+    restoreSelectorDefaults();
   });
 
   const makeFundingFee = (hash: string, amount: string): ActivityListItem =>
