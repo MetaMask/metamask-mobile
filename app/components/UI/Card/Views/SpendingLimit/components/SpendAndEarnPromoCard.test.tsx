@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import SpendAndEarnPromoCard from './SpendAndEarnPromoCard';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
@@ -25,6 +26,12 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'baanx'),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
@@ -60,6 +67,7 @@ describe('SpendAndEarnPromoCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue('baanx');
   });
 
   it('renders the title, description with APY highlight, and CTA label', () => {
@@ -109,6 +117,36 @@ describe('SpendAndEarnPromoCard', () => {
     expect(screen.getByTestId('custom-promo')).toBeOnTheScreen();
   });
 
+  it('does not track Card Viewed while activeProviderId is null', () => {
+    mockUseSelector.mockReturnValue(null);
+
+    render(<SpendAndEarnPromoCard {...defaultProps} analytics={analytics} />);
+
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+  });
+
+  it('tracks Card Viewed once provider resolves after a null provider render', () => {
+    mockUseSelector.mockReturnValue(null);
+    const { rerender } = render(
+      <SpendAndEarnPromoCard {...defaultProps} analytics={analytics} />,
+    );
+
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+
+    mockUseSelector.mockReturnValue('baanx');
+    rerender(<SpendAndEarnPromoCard {...defaultProps} analytics={analytics} />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      screen: CardScreens.SPENDING_LIMIT,
+      entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+      flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+    });
+  });
+
   it('tracks Card Viewed when analytics props are provided', () => {
     render(<SpendAndEarnPromoCard {...defaultProps} analytics={analytics} />);
 
@@ -116,6 +154,7 @@ describe('SpendAndEarnPromoCard', () => {
       MetaMetricsEvents.CARD_VIEWED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.SPENDING_LIMIT,
       entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
       flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
@@ -140,6 +179,7 @@ describe('SpendAndEarnPromoCard', () => {
       MetaMetricsEvents.CARD_BUTTON_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
       screen: CardScreens.SPENDING_LIMIT,
       entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
       flow: CardFlow.MONEY_ACCOUNT_LINKAGE,

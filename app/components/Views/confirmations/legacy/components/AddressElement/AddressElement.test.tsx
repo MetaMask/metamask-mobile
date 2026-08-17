@@ -120,7 +120,6 @@ describe('AddressElement', () => {
       },
     );
 
-    const networkBadge = getByTestId('network-avatar-image');
-    expect(networkBadge).toBeDefined();
+    expect(getByTestId('address-element-network-badge')).toBeOnTheScreen();
   });
 });
