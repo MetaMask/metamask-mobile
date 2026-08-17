@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import Benefits from './index';
 import { BenefitsTestIds } from './Benefits.testIds';
 import {
@@ -233,14 +233,13 @@ describe('Benefits', () => {
     });
 
     it('does not show points for benefits that have none (apy)', () => {
-      const { getByTestId, queryAllByText } = renderBenefits();
+      const { getByTestId } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
 
-      expect(
-        getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
-      ).toBeOnTheScreen();
-      expect(queryAllByText(/^\u2022/)).toHaveLength(0);
+      const sheet = getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER);
+      expect(sheet).toBeOnTheScreen();
+      expect(within(sheet).queryAllByText(/^\u2022/)).toHaveLength(0);
     });
 
     it('closes the sheet when onClose is fired', () => {
