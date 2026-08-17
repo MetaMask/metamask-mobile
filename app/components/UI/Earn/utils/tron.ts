@@ -71,7 +71,7 @@ export const buildTronEarnTokenIfEligible = (
   ).toString();
 
   const experiences = [
-    { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' as const },
+    { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' as const },
   ];
 
   return {

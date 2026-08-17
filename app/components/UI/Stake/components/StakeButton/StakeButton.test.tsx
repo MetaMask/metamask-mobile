@@ -377,10 +377,10 @@ describe('StakeButton', () => {
       balance: MOCK_MINIMUM_BALANCE_AS_STRING,
     };
 
-    it('navigates to Stake Input screen when TRX has POOLED_STAKING experience', async () => {
+    it('navigates to Stake Input screen when TRX has TRX_STAKING experience', async () => {
       mockIsTronChainId.mockReturnValue(true);
       selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
-        EARN_EXPERIENCES.POOLED_STAKING,
+        EARN_EXPERIENCES.TRX_STAKING,
       );
 
       const { getByTestId } = renderWithProvider(

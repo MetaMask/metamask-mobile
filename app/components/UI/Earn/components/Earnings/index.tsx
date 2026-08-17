@@ -77,7 +77,9 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
   const isStablecoinLending =
     experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING;
   const isPooledStaking = experienceType === EARN_EXPERIENCES.POOLED_STAKING;
-  const shouldMaskEarnings = isStablecoinLending || isPooledStaking;
+  const isTrxStaking = experienceType === EARN_EXPERIENCES.TRX_STAKING;
+  const shouldMaskEarnings =
+    isStablecoinLending || isPooledStaking || isTrxStaking;
 
   const {
     annualRewardRate,
@@ -95,7 +97,11 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
         params: { asset: outputToken },
       });
-    } else if (experienceType === EARN_EXPERIENCES.POOLED_STAKING) {
+    } else if (isTrxStaking) {
+      navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
+      });
+    } else if (isPooledStaking) {
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: asset?.chainId },

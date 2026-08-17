@@ -29,7 +29,10 @@ export const useEarnMetadata = (earnToken: EarnTokenDetails) => {
       BigNumber(earnToken.experience.apr).div(100).toFixed(),
     );
     annualRewardRateValue = parseFloat(earnToken.experience.apr);
-  } else if (earnToken.experience.type === EARN_EXPERIENCES.POOLED_STAKING) {
+  } else if (
+    earnToken.experience.type === EARN_EXPERIENCES.POOLED_STAKING ||
+    earnToken.experience.type === EARN_EXPERIENCES.TRX_STAKING
+  ) {
     annualRewardRate = annualRewardRateFromVault;
     annualRewardRateDecimal = annualRewardRateDecimalFromVault;
     annualRewardRateValue = annualRewardRateDecimalFromVault * 100;

@@ -597,8 +597,8 @@ describe('EarnInputView', () => {
           balanceFormatted: '0 TRX',
           balanceFiat: '$0',
           tokenUsdExchangeRate: 0,
-          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
-          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+          experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
         })),
         getOutputToken: jest.fn(() => undefined),
       });
@@ -649,8 +649,8 @@ describe('EarnInputView', () => {
         balanceFormatted: '100 TRX',
         balanceFiatNumber: 100,
         tokenUsdExchangeRate: 1,
-        experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
-        experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+        experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+        experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
       }));
 
       (useEarnTokens as jest.Mock).mockReturnValue({
@@ -696,8 +696,8 @@ describe('EarnInputView', () => {
           balanceFormatted: '100 TRX',
           balanceFiatNumber: 100,
           tokenUsdExchangeRate: 1,
-          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
-          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+          experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
         })),
         getOutputToken: jest.fn(() => undefined),
       });
@@ -746,8 +746,8 @@ describe('EarnInputView', () => {
           balanceFormatted: '100 TRX',
           balanceFiatNumber: 100,
           tokenUsdExchangeRate: 1,
-          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
-          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+          experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
         })),
         getOutputToken: jest.fn(() => undefined),
       });
