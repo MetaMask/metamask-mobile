@@ -57,6 +57,7 @@ import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
+import PredictOffline from '../../components/PredictOffline';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -99,6 +100,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     marketId: currentSeriesMarketId,
     isLoading: isCurrentSeriesMarketLoading,
     isFetching: isCurrentSeriesMarketFetching,
+    error: currentSeriesMarketError,
     refetch: refetchCurrentSeriesMarket,
   } = useCurrentPredictMarketFromSeries({
     series,
@@ -116,6 +118,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     data: marketData,
     isLoading: isMarketLoading,
     isFetching: isMarketFetching,
+    error: marketError,
     refetch: refetchMarket,
   } = usePredictMarket({
     id: resolvedMarketId ?? '',
@@ -455,6 +458,28 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const isMarketUnavailable = isMarketUnresolved;
+  const resolvedMarketError = marketError ?? currentSeriesMarketError;
+
+  if (resolvedMarketError && !market) {
+    return (
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        edges={['left', 'right', 'bottom']}
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+      >
+        <PredictMarketDetailsHeader
+          isLoading={false}
+          market={null}
+          title={title}
+          image={image}
+          titleLineCount={titleLineCount}
+          insetsTop={insets.top}
+          onBackPress={handleBackPress}
+        />
+        <PredictOffline onRetry={handleRefresh} />
+      </SafeAreaView>
+    );
+  }
 
   if (upDownEnabled && market && isCryptoUpDown(market)) {
     return (

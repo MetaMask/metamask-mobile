@@ -31,10 +31,12 @@ import {
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
+import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
-export const PAY_WITH_PERPS_SECTION_TEST_ID = 'pay-with-section-perps';
+export const PAY_WITH_PERPS_SECTION_TEST_ID =
+  PayWithBottomSheetIDs.PERPS_SECTION;
 export const PAY_WITH_PERPS_BALANCE_ROW_TEST_ID =
-  'pay-with-perps-section-balance-row';
+  PayWithBottomSheetIDs.PERPS_BALANCE_ROW;
 
 export function usePayWithPerpsSection(): PayWithSectionConfig | null {
   const navigation = useNavigation<AppNavigationProp>();

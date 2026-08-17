@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track (exp, beta, rc)'
+        description: 'Build environment / track (dev, exp, beta, rc)'
         required: true
         type: string
       testflight_group:
@@ -42,6 +42,7 @@ on:
         required: true
         type: choice
         options:
+          - dev
           - exp
           - beta
           - rc
@@ -83,7 +84,10 @@ jobs:
     needs: [generate-build-version]
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-${{ inputs.environment }}
+      # dev maps to main-dev-testflight rather than main-dev: same app config, but signed
+      # with the RC certificate, since TestFlight rejects main-dev's dev/ad-hoc signing.
+      # Must stay in sync with upload-ios-testflight's build_name (artifact ios-ipa-{build_name}).
+      build_name: ${{ inputs.environment == 'dev' && 'main-dev-testflight' || format('main-{0}', inputs.environment) }}
       platform: ios
       source_branch: ${{ inputs.source_branch }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
@@ -97,7 +101,7 @@ jobs:
       environment: ${{ inputs.environment }}
       testflight_group: ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}
       source_branch: ${{ inputs.source_branch }}
-      build_name: main-${{ inputs.environment }}
+      build_name: ${{ inputs.environment == 'dev' && 'main-dev-testflight' || format('main-{0}', inputs.environment) }}
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
