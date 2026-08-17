@@ -147,6 +147,7 @@ const createEarnToken = (
   }) as EarnTokenDetails;
 
 const refreshLendingMarkets = jest.fn();
+const refreshLendingMetadata = jest.fn();
 const refetchMoneyApy = jest.fn();
 const refetchTrxApy = jest.fn();
 
@@ -218,7 +219,9 @@ const mockDependencies = () => {
       },
     },
     isLoading: false,
+    isSettled: true,
     error: null,
+    refresh: refreshLendingMetadata,
   });
   mockUseTronStakeApy.mockReturnValue({
     fetchStatus: FetchStatus.Initial,
@@ -234,6 +237,7 @@ describe('useEarnAssetCatalogue', () => {
     jest.clearAllMocks();
     mockUseSelector.mockReset();
     refreshLendingMarkets.mockResolvedValue(undefined);
+    refreshLendingMetadata.mockResolvedValue(undefined);
     refetchMoneyApy.mockResolvedValue(undefined);
     refetchTrxApy.mockResolvedValue(undefined);
     (
@@ -342,16 +346,92 @@ describe('useEarnAssetCatalogue', () => {
     ).toBe(false);
   });
 
+  it.each([
+    {
+      label: 'pooled staking',
+      token: {
+        ...createEarnToken(
+          '0x0000000000000000000000000000000000000000',
+          'output',
+        ),
+        isETH: true,
+        isNative: true,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.POOLED_STAKING,
+            apr: '3.1',
+          },
+        ],
+      } as EarnTokenDetails,
+    },
+    {
+      label: 'TRX staking',
+      token: {
+        ...createEarnToken(TRX_ASSET_ID, 'output'),
+        chainId: TRON_CHAIN_ID,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.TRX_STAKING,
+            apr: '4.5',
+          },
+        ],
+      } as EarnTokenDetails,
+    },
+  ])('omits held $label output tokens', ({ token }) => {
+    mockSelectorValues({
+      isTrxStakingEnabled: true,
+      earnTokens: [],
+      earnOutputTokens: [token],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(
+      result.current.assets
+        .flatMap(({ experiences }) => experiences)
+        .some(({ role }) => role === 'output'),
+    ).toBe(false);
+  });
+
+  it('provides pooled-staking discovery when held ETH is unavailable', () => {
+    mockSelectorValues({
+      earnTokens: [],
+      earnOutputTokens: [],
+      moneyDepositAssets: [],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const eth = result.current.assets.find(
+      ({ assetId }) => assetId === ETH_ASSET_ID,
+    );
+
+    expect(eth).toMatchObject({
+      assetId: ETH_ASSET_ID,
+      balance: '0',
+      ticker: 'ETH',
+    });
+    expect(eth?.experiences).toEqual([
+      expect.objectContaining({
+        id: `pooled:${ETH_ASSET_ID}`,
+        role: 'underlying',
+        type: EARN_EXPERIENCES.POOLED_STAKING,
+      }),
+    ]);
+  });
+
   it('deduplicates held and discovery pooled-staking experiences', () => {
     const ethToken = {
       ...createEarnToken(
         '0x0000000000000000000000000000000000000000',
         'underlying',
       ),
+      name: 'Held Ethereum',
       isETH: true,
       isNative: true,
       symbol: 'ETH',
       ticker: 'ETH',
+      balance: '2',
+      balanceMinimalUnit: '2000000000000000000',
       experiences: [
         {
           type: EARN_EXPERIENCES.POOLED_STAKING,
@@ -370,6 +450,11 @@ describe('useEarnAssetCatalogue', () => {
       ({ assetId: candidateId }) => candidateId === 'eip155:1/slip44:60',
     );
 
+    expect(eth).toMatchObject({
+      name: 'Held Ethereum',
+      balance: '2',
+      balanceMinimalUnit: '2000000000000000000',
+    });
     expect(eth?.experiences).toHaveLength(1);
     expect(eth?.experiences[0].rate.type).toBe('APR');
   });
@@ -434,6 +519,36 @@ describe('useEarnAssetCatalogue', () => {
         market: undefined,
       },
     ]);
+    expect(trxAsset).toMatchObject({
+      balanceMinimalUnit: '1000000',
+      name: 'TRON',
+    });
+  });
+
+  it('provides TRX-staking discovery before held TRX is available', () => {
+    mockSelectorValues({
+      isPooledStakingEnabled: false,
+      isTrxStakingEnabled: true,
+      earnTokens: [],
+      earnOutputTokens: [],
+      moneyDepositAssets: [],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const trx = result.current.assets.find(
+      ({ assetId }) => assetId === TRX_ASSET_ID,
+    );
+
+    expect(trx).toMatchObject({
+      assetId: TRX_ASSET_ID,
+      balance: '0',
+      ticker: 'TRX',
+    });
+    expect(trx?.experiences[0]).toMatchObject({
+      id: `trx-staking:${TRX_ASSET_ID}`,
+      role: 'underlying',
+      type: EARN_EXPERIENCES.TRX_STAKING,
+    });
   });
 
   it('reports TRX APY loading while the witness request is fetching', () => {
@@ -499,12 +614,39 @@ describe('useEarnAssetCatalogue', () => {
         },
       },
       isLoading: false,
+      isSettled: true,
       error: null,
+      refresh: refreshLendingMetadata,
     });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
     expect(result.current.hasError).toBe(true);
+  });
+
+  it('reports initial lending metadata work as loading without an error', () => {
+    mockUseEarnSectionTokenMetadata.mockReturnValue({
+      tokensByAssetId: {},
+      isLoading: true,
+      isSettled: false,
+      error: null,
+      refresh: refreshLendingMetadata,
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.hasError).toBe(false);
+  });
+
+  it('refreshes lending metadata with the other catalogue sources', async () => {
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(refreshLendingMetadata).toHaveBeenCalledTimes(1);
   });
 
   it('rejects refresh when an upstream refresh fails', async () => {

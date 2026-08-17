@@ -1,18 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   fetchTokenAssets,
   type TokenAsset,
 } from '../../../hooks/useTokensData/useTokensData';
 
 interface EarnSectionTokenMetadataState {
+  assetIdsKey: string;
   tokensByAssetId: Record<string, TokenAsset>;
   isLoading: boolean;
+  isSettled: boolean;
   error: Error | null;
 }
 
 const EMPTY_STATE: EarnSectionTokenMetadataState = {
+  assetIdsKey: '',
   tokensByAssetId: {},
   isLoading: false,
+  isSettled: true,
   error: null,
 };
 
@@ -26,56 +30,87 @@ const useEarnSectionTokenMetadata = (assetIds: string[]) => {
       [...new Set(assetIds.map((assetId) => assetId.toLowerCase()))].join(','),
     [assetIds],
   );
-  const [state, setState] =
-    useState<EarnSectionTokenMetadataState>(EMPTY_STATE);
+  const [state, setState] = useState<EarnSectionTokenMetadataState>(() => ({
+    ...EMPTY_STATE,
+    assetIdsKey,
+    isLoading: Boolean(assetIdsKey),
+    isSettled: !assetIdsKey,
+  }));
+  const requestIdRef = useRef(0);
 
-  useEffect(() => {
+  const loadMetadata = useCallback(async (): Promise<Error | null> => {
+    const requestId = ++requestIdRef.current;
     if (!assetIdsKey) {
       setState(EMPTY_STATE);
-      return;
+      return null;
     }
 
-    let cancelled = false;
     setState((current) => ({
-      ...current,
+      assetIdsKey,
+      tokensByAssetId:
+        current.assetIdsKey === assetIdsKey ? current.tokensByAssetId : {},
       isLoading: true,
+      isSettled: false,
       error: null,
     }));
 
-    const loadMetadata = async () => {
-      try {
-        // fetchTokenAssets shares module-level cache and in-flight requests.
-        const tokens = await fetchTokenAssets(assetIdsKey.split(','));
-        if (cancelled) return;
+    try {
+      // fetchTokenAssets shares module-level cache and in-flight requests.
+      const tokens = await fetchTokenAssets(assetIdsKey.split(','));
+      if (requestId !== requestIdRef.current) return null;
 
-        setState({
-          tokensByAssetId: Object.fromEntries(
-            tokens.map((token) => [token.assetId.toLowerCase(), token]),
-          ),
-          isLoading: false,
-          error: null,
-        });
-      } catch (error: unknown) {
-        if (cancelled) return;
-        setState({
-          tokensByAssetId: {},
-          isLoading: false,
-          error:
-            error instanceof Error
-              ? error
-              : new Error('Failed to load Earn asset metadata'),
-        });
-      }
-    };
+      setState({
+        assetIdsKey,
+        tokensByAssetId: Object.fromEntries(
+          tokens.map((token) => [token.assetId.toLowerCase(), token]),
+        ),
+        isLoading: false,
+        isSettled: true,
+        error: null,
+      });
+      return null;
+    } catch (error: unknown) {
+      const normalizedError =
+        error instanceof Error
+          ? error
+          : new Error('Failed to load Earn asset metadata');
+      if (requestId !== requestIdRef.current) return null;
 
+      setState({
+        assetIdsKey,
+        tokensByAssetId: {},
+        isLoading: false,
+        isSettled: true,
+        error: normalizedError,
+      });
+      return normalizedError;
+    }
+  }, [assetIdsKey]);
+
+  useEffect(() => {
     loadMetadata();
 
     return () => {
-      cancelled = true;
+      requestIdRef.current += 1;
     };
-  }, [assetIdsKey]);
+  }, [loadMetadata]);
 
-  return state;
+  const refresh = useCallback(async () => {
+    const error = await loadMetadata();
+    if (error) {
+      throw error;
+    }
+  }, [loadMetadata]);
+
+  const isCurrentRequest = state.assetIdsKey === assetIdsKey;
+
+  return {
+    tokensByAssetId: isCurrentRequest ? state.tokensByAssetId : {},
+    isLoading: Boolean(assetIdsKey) && (!isCurrentRequest || state.isLoading),
+    isSettled: isCurrentRequest && state.isSettled,
+    error: isCurrentRequest ? state.error : null,
+    refresh,
+  };
 };
 
 export default useEarnSectionTokenMetadata;

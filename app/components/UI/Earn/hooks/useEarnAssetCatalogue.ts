@@ -63,8 +63,12 @@ const getRateStatus = ({
   return 'unavailable';
 };
 
-// TODO: Determine if this is needed if ETH added to wallet by default.
-const createEthToken = (): TokenI => ({
+/**
+ * Provides pooled-staking discovery when the EVM token selector has no
+ * selected account or mainnet configuration. In normal wallet state the held
+ * ETH candidate is emitted first and keeps its metadata during deduplication.
+ */
+const createEthDiscoveryToken = (): TokenI => ({
   address: getNativeTokenAddress(CHAIN_IDS.MAINNET),
   decimals: 18,
   image: '',
@@ -79,8 +83,11 @@ const createEthToken = (): TokenI => ({
   chainId: CHAIN_IDS.MAINNET,
 });
 
-// TODO: Determine if this is needed if TRX added to wallet by default.
-const createTrxToken = (): TokenI => ({
+/**
+ * Provides TRX-staking discovery while asynchronous Snap account provisioning
+ * has not yet populated the multichain token selector.
+ */
+const createTrxDiscoveryToken = (): TokenI => ({
   address: TRX_NATIVE_TOKEN_ADDRESS,
   decimals: 6,
   image: '',
@@ -157,12 +164,12 @@ const getHeldEarnExperiences = ({
   isTrxStakingEnabled: boolean;
 }): EarnExperience[] =>
   token.experiences.flatMap((experience) => {
+    const isPooledStaking = experience.type === EARN_EXPERIENCES.POOLED_STAKING;
     const isTrxStaking = experience.type === EARN_EXPERIENCES.TRX_STAKING;
-    if (
-      experience.type === EARN_EXPERIENCES.POOLED_STAKING &&
-      // TODO: Document why we're not including role 'output' in these checks.
-      (!isPooledStakingEnabled || role === 'output')
-    ) {
+
+    // Output assets are receipt or position tokens used by withdrawal flows.
+    // They must not be exposed as deposit strategies in the Earn catalogue.
+    if (isPooledStaking && (!isPooledStakingEnabled || role === 'output')) {
       return [];
     }
     if (isTrxStaking && (!isTrxStakingEnabled || role === 'output')) {
@@ -175,7 +182,7 @@ const getHeldEarnExperiences = ({
       return [];
     }
 
-    const market = experience.market;
+    const market = experience.market; // Markets only available for stablecoin lending.
     const percentage = isTrxStaking
       ? trxRatePercent
       : parseRatePercent(experience.apr);
@@ -191,10 +198,7 @@ const getHeldEarnExperiences = ({
         type: experience.type,
         role,
         rate: {
-          type:
-            isTrxStaking || experience.type === EARN_EXPERIENCES.POOLED_STAKING
-              ? 'APR'
-              : 'APY',
+          type: isTrxStaking || isPooledStaking ? 'APR' : 'APY',
           percentage,
           status,
         },
@@ -265,7 +269,9 @@ const useEarnAssetCatalogue = () => {
   const {
     tokensByAssetId: lendingMetadata,
     isLoading: isLendingMetadataLoading,
+    isSettled: isLendingMetadataSettled,
     error: lendingMetadataError,
+    refresh: refreshLendingMetadata,
   } = useEarnSectionTokenMetadata(lendingAssetIds);
 
   const moneyRateStatus = getRateStatus({
@@ -284,10 +290,11 @@ const useEarnAssetCatalogue = () => {
   const ethRatePercent = parseRatePercent(mainnetVaultApy?.apyPercentString);
   const ethRateStatus = getRateStatus({ percentage: ethRatePercent });
 
-  // TODO: Review
   const candidates = useMemo(() => {
     const nextCandidates: EarnAsset[] = [];
 
+    // Held candidates are added before discovery candidates so buildEarnAssets
+    // preserves held metadata, balances, and rates for matching CAIP-19 IDs.
     if (isEarnEligible) {
       const addHeldEarnAssets = (
         tokens: typeof earnTokens,
@@ -355,7 +362,8 @@ const useEarnAssetCatalogue = () => {
       });
     }
 
-    // TODO: Review. Is this needed for the EarnSection's empty state when users don't hold stablecoins?
+    // Add unheld lending assets for strategy discovery. Slot padding alone
+    // cannot provide token metadata or a navigable lending opportunity.
     if (isStablecoinLendingEnabled && isEarnEligible) {
       lendingMarkets.forEach((market) => {
         const chainId = toHex(market.chainId) as Hex;
@@ -402,8 +410,7 @@ const useEarnAssetCatalogue = () => {
 
     if (isPooledStakingEnabled && isEarnEligible) {
       nextCandidates.push({
-        // TODO: Double-check the purposeof createEthToken(). Does this get replaced with held ETH token if user holds ETH?
-        ...createEthToken(),
+        ...createEthDiscoveryToken(),
         assetId: ETH_MAINNET_ASSET_ID,
         experiences: [
           {
@@ -423,8 +430,7 @@ const useEarnAssetCatalogue = () => {
 
     if (isTrxStakingEnabled && isEarnEligible) {
       nextCandidates.push({
-        // TODO: Double-check the purpose of createTrxToken(). Does this get replaced with held TRX token if user holds TRX?
-        ...createTrxToken(),
+        ...createTrxDiscoveryToken(),
         assetId: TRX_NATIVE_TOKEN_ADDRESS,
         experiences: [
           {
@@ -474,7 +480,7 @@ const useEarnAssetCatalogue = () => {
   );
 
   const hasMissingLendingMetadata =
-    !isLendingMetadataLoading &&
+    isLendingMetadataSettled &&
     lendingAssetIds.some(
       (assetId) => lendingMetadata[assetId]?.decimals === undefined,
     );
@@ -537,6 +543,7 @@ const useEarnAssetCatalogue = () => {
           )
         : Promise.resolve(),
       refreshLendingMarkets(),
+      refreshLendingMetadata(),
       isTrxStakingEnabled ? refetchTrxApy() : Promise.resolve(),
       isMoneyAccountVisible ? refetchMoneyApy() : Promise.resolve(),
     ]);
@@ -546,6 +553,7 @@ const useEarnAssetCatalogue = () => {
     isTrxStakingEnabled,
     refetchMoneyApy,
     refetchTrxApy,
+    refreshLendingMetadata,
     refreshLendingMarkets,
   ]);
 

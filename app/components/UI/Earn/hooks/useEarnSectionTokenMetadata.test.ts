@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
   fetchTokenAssets,
   type TokenAsset,
@@ -45,7 +45,32 @@ describe('useEarnSectionTokenMetadata', () => {
 
     expect(mockFetchTokenAssets).toHaveBeenCalledWith([USDC_ASSET_ID]);
     expect(result.current.tokensByAssetId).toEqual({ [USDC_ASSET_ID]: token });
+    expect(result.current.isSettled).toBe(true);
     expect(result.current.error).toBeNull();
+  });
+
+  it('reports initial metadata work as loading before the request settles', async () => {
+    let resolveRequest: (tokens: TokenAsset[]) => void = () => undefined;
+    mockFetchTokenAssets.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRequest = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() =>
+      useEarnSectionTokenMetadata([USDC_ASSET_ID]),
+    );
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isSettled).toBe(false);
+
+    await act(async () => {
+      resolveRequest([createTokenAsset()]);
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSettled).toBe(true);
   });
 
   it('deduplicates asset IDs that differ only by casing', async () => {
@@ -76,11 +101,10 @@ describe('useEarnSectionTokenMetadata', () => {
 
     rerender({ assetIds: [] });
 
-    expect(result.current).toEqual({
-      tokensByAssetId: {},
-      isLoading: false,
-      error: null,
-    });
+    expect(result.current.tokensByAssetId).toEqual({});
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSettled).toBe(true);
+    expect(result.current.error).toBeNull();
   });
 
   it('exposes the fetch error when token metadata cannot load', async () => {
@@ -113,5 +137,30 @@ describe('useEarnSectionTokenMetadata', () => {
     expect(result.current.error).toEqual(
       new Error('Failed to load Earn asset metadata'),
     );
+  });
+
+  it('retries failed metadata and exposes the recovered result', async () => {
+    const error = new Error('Token service unavailable');
+    const token = createTokenAsset();
+    mockFetchTokenAssets
+      .mockRejectedValueOnce(error)
+      .mockResolvedValueOnce([token]);
+    const { result } = renderHook(() =>
+      useEarnSectionTokenMetadata([USDC_ASSET_ID]),
+    );
+    await waitFor(() => {
+      expect(result.current.error).toBe(error);
+    });
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockFetchTokenAssets).toHaveBeenCalledTimes(2);
+    expect(result.current.tokensByAssetId).toEqual({
+      [USDC_ASSET_ID]: token,
+    });
+    expect(result.current.isSettled).toBe(true);
+    expect(result.current.error).toBeNull();
   });
 });

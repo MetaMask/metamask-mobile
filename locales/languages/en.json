@@ -7704,6 +7704,8 @@
     "rate_unavailable": "Rate unavailable",
     "balance_unavailable": "Balance unavailable",
     "asset_unavailable": "Asset unavailable",
+    "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
+    "retry": "Retry",
     "view_more": "View more"
   },
   "money": {

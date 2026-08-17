@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -11,6 +12,8 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
@@ -54,6 +57,7 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
 import EarnNewTag from '../EarnNewTag';
 import EarnNoFeeTag from '../EarnNoFeeTag';
+import Logger from '../../../../../util/Logger';
 
 interface EarnSectionProps {
   sectionIndex: number;
@@ -117,12 +121,15 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const { isMoneyAccountVisible } = useMoneyAccountVisibility();
 
     const sectionViewRef = useRef<View>(null);
+    const isRetryingRef = useRef(false);
+    const [isRetrying, setIsRetrying] = useState(false);
     const {
       assetSlots,
       hasMoreAssets,
       moneyApyPercent,
       moneyRateStatus,
       isLoading,
+      hasError,
       refresh,
     } = useEarnSectionAssets();
 
@@ -162,7 +169,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     const handleHeaderPress = () => {
       // eslint-disable-next-line no-alert
-      alert('Under construction 🚧');
+      alert(
+        'Under construction 🚧 - Implement when adding Earn Section to Explore page',
+      );
     };
 
     const handleAssetCardPress = useCallback(
@@ -195,7 +204,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     const handleViewMoreCardPress = () => {
       // eslint-disable-next-line no-alert
-      alert('Under construction 🚧');
+      alert(
+        'Under construction 🚧 - Implement when adding Earn Section to Explore page',
+      );
     };
 
     const moneyAccountCardSecondaryText = useMemo(() => {
@@ -220,6 +231,27 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       navigateToMoneyHome();
     }, [navigateToMoneyHome]);
 
+    const handleRetry = useCallback(async () => {
+      if (isRetryingRef.current) {
+        return;
+      }
+
+      isRetryingRef.current = true;
+      setIsRetrying(true);
+
+      try {
+        await refresh();
+      } catch (error: unknown) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'EarnSection: Failed to refresh Earn data',
+        );
+      } finally {
+        isRetryingRef.current = false;
+        setIsRetrying(false);
+      }
+    }, [refresh]);
+
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box testID="earn-section">
@@ -230,6 +262,21 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             onPress={handleHeaderPress}
             testID={homepageSectionTitleTestId(HomeSectionNames.EARN)}
           />
+          {hasError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              description={strings('earn_module.assets_unavailable')}
+              actionButtonLabel={strings('earn_module.retry')}
+              actionButtonOnPress={handleRetry}
+              actionButtonProps={{
+                isDisabled: isRetrying,
+                isLoading: isRetrying,
+                testID: 'earn-section-error-retry-button',
+              }}
+              testID="earn-section-error"
+              twClassName="mx-4 mt-3"
+            />
+          )}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}

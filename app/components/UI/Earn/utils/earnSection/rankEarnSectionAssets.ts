@@ -1,4 +1,3 @@
-// TODO: Review entire file.
 import type {
   EarnAsset,
   EarnExperience,
@@ -80,8 +79,12 @@ const compareByKey = (
 ) => first.assetId.localeCompare(second.assetId);
 
 /**
- * Ranks held assets before discovery assets and pads the result so EarnSection
- * always renders exactly five asset slots.
+ * Projects the CAIP-19-deduplicated catalogue produced by buildEarnAssets into
+ * fixed homepage slots. Held assets rank before discovery assets, and missing
+ * assets are padded so the section always renders slots by default.
+ *
+ * Rates are compared as displayed numeric percentages; APR and APY values are
+ * not normalized to a common yield type.
  */
 export const rankEarnSectionAssets = (
   assets: readonly EarnAsset[],

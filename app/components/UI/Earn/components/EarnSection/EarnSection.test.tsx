@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Icon,
@@ -435,15 +435,59 @@ describe('EarnSection', () => {
     );
   });
 
-  it('renders a visible unavailable card when catalogue sources fail', () => {
+  it('displays a retryable error without hiding healthy asset cards', () => {
     mockSectionResult({
-      assetSlots: [{ kind: 'unavailable', key: 'earn-section-error-card' }],
       hasError: true,
     });
 
     render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
-    expect(screen.getByTestId('earn-section-error-card')).toBeOnTheScreen();
+    expect(screen.getByTestId('earn-section-error')).toBeOnTheScreen();
+    expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
+  });
+
+  it('refreshes catalogue sources from the error action', async () => {
+    const refresh = jest.fn().mockResolvedValue(undefined);
+    mockSectionResult({
+      hasError: true,
+      refresh,
+    });
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('earn-section-error-retry-button'));
+    });
+
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('prevents duplicate retries while a refresh is pending', async () => {
+    let resolveRefresh: (() => void) | undefined;
+    const refresh = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+    mockSectionResult({
+      hasError: true,
+      refresh,
+    });
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    const retryButton = screen.getByTestId('earn-section-error-retry-button');
+    fireEvent.press(retryButton);
+    fireEvent.press(retryButton);
+
+    expect(refresh).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveRefresh?.();
+    });
+
+    fireEvent.press(retryButton);
+
+    expect(refresh).toHaveBeenCalledTimes(2);
   });
 
   it('renders skeleton slots while catalogue data loads', () => {

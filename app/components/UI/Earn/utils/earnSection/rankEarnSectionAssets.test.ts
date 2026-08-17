@@ -121,6 +121,17 @@ describe('rankEarnSectionAssets', () => {
     expect(result.filter(({ kind }) => kind === 'unavailable')).toHaveLength(4);
   });
 
+  it('truncates ranked assets to the fixed section limit', () => {
+    const assets = ['USDC', 'USDT', 'DAI', 'ETH', 'TRX', 'MUSD'].map((symbol) =>
+      createAsset(symbol),
+    );
+
+    const result = rankEarnSectionAssets(assets);
+
+    expect(result).toHaveLength(EARN_SECTION_ASSET_LIMIT);
+    expect(result.every(({ kind }) => kind === 'asset')).toBe(true);
+  });
+
   it('reports an error rate when no experience has a value', () => {
     const asset = createAsset('USDC', {
       experiences: [

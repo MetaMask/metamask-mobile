@@ -61,8 +61,7 @@ const getStrategy = (
   const title =
     percentage === undefined
       ? strings('earn_module.rate_unavailable')
-      : // TODO: Clean up with map
-        strings(
+      : strings(
           experience.rate.type === 'APY'
             ? 'earn_module.rate_apy'
             : 'earn_module.rate_apr',
