@@ -1,7 +1,8 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import renderWithProvider, {
+import renderWithProviderBase, {
   DeepPartial,
+  type ProviderValues,
 } from '../../../../../util/test/renderWithProvider';
 import { SwapsConfirmButton } from './index';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
@@ -41,6 +42,7 @@ import {
 } from './abTestConfig';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
+import { BridgeQuotesProvider } from '../../hooks/useBridgeQuotes/BridgeQuotesProvider';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -189,12 +191,16 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
+jest.mock('../../hooks/useBridgeQuotes/BridgeQuotesProvider', () => {
   const { useBridgeQuoteData } = jest.requireMock(
     '../../hooks/useBridgeQuoteData',
   );
   return {
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
+    BridgeQuotesProvider: ({ children }: { children: unknown }) => children,
+    useBridgeQuotesContext: jest.fn(() => ({
+      ...useBridgeQuoteData(),
+      updateQuoteParams: mockUpdateQuoteParams,
+    })),
   };
 });
 
@@ -224,11 +230,7 @@ jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   }),
 }));
 
-// Mock useBridgeQuoteRequest hook
 const mockUpdateQuoteParams = jest.fn();
-jest.mock('../../hooks/useBridgeQuoteRequest', () => ({
-  useBridgeQuoteRequest: jest.fn(() => mockUpdateQuoteParams),
-}));
 
 // Mock isHardwareAccount
 jest.mock('../../../../../util/address', () => ({
@@ -345,6 +347,26 @@ function createAbTestState(
       bridgeViewMode,
     },
   };
+}
+
+const wrapWithQuotesProvider = (component: React.ReactElement) => (
+  <BridgeQuotesProvider
+    config={{
+      latestSourceAtomicBalance: mockLatestSourceBalance?.atomicBalance,
+    }}
+  >
+    {component}
+  </BridgeQuotesProvider>
+);
+
+function renderWithProvider(
+  component: React.ReactElement,
+  providerValues?: ProviderValues,
+) {
+  return renderWithProviderBase(
+    wrapWithQuotesProvider(component),
+    providerValues,
+  );
 }
 
 describe('SwapsConfirmButton', () => {
@@ -1133,10 +1155,12 @@ describe('SwapsConfirmButton', () => {
         isLoading: true,
       };
       rerender(
-        <SwapsConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
+        wrapWithQuotesProvider(
+          <SwapsConfirmButton
+            latestSourceBalance={mockLatestSourceBalance}
+            location={MetaMetricsSwapsEventSource.MainView}
+          />,
+        ),
       );
       quoteData = {
         ...quoteData,
@@ -1145,10 +1169,12 @@ describe('SwapsConfirmButton', () => {
       };
 
       rerender(
-        <SwapsConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
+        wrapWithQuotesProvider(
+          <SwapsConfirmButton
+            latestSourceBalance={mockLatestSourceBalance}
+            location={MetaMetricsSwapsEventSource.MainView}
+          />,
+        ),
       );
 
       expect(

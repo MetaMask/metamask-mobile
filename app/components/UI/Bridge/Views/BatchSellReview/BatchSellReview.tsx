@@ -51,9 +51,13 @@ import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 import {
   getBatchSellSourceTokenAmount,
   hasValidBatchSellSourceAmounts,
-  useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
-import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
+import {
+  BatchSellQuotesFromReduxProvider,
+  useBatchSellQuotesContext,
+} from '../../hooks/useBatchSellQuotes/BatchSellQuotesProvider';
+import { getBatchSellQuoteRowDisplay } from '../../components/BatchSellQuoteDetailsModal/getBatchSellQuoteRowDisplay';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useTrackBatchSellQuotePageViewed } from '../../hooks/useTrackBatchSellQuotePageViewed';
 import { useTrackBatchSellQuotePageReviewClicked } from '../../hooks/useTrackBatchSellQuotePageReviewClicked';
 
@@ -111,7 +115,7 @@ function areBatchSellValueMapsEqual(
   });
 }
 
-export function BatchSellReview() {
+function BatchSellReviewContent() {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
@@ -129,9 +133,12 @@ export function BatchSellReview() {
   const [percentsByTokenKey, setPercentsByTokenKey] = useState<
     Record<string, number>
   >({});
-  const { updateBatchSellQuoteParams, getNewQuote: handleGetNewQuote } =
-    useBatchSellQuoteRequest();
-  const batchSellQuoteData = useBatchSellQuoteData();
+  const currency = useSelector(selectCurrentCurrency);
+  const {
+    updateBatchSellQuoteParams,
+    getNewQuote: handleGetNewQuote,
+    ...batchSellQuotes
+  } = useBatchSellQuotesContext();
   const hasValidSourceAmounts = useMemo(
     () =>
       hasValidBatchSellSourceAmounts(
@@ -176,13 +183,13 @@ export function BatchSellReview() {
   useTrackBatchSellQuotePageViewed({
     batchSellSlippages,
     selectedTokens,
-    tokenData: batchSellQuoteData.tokenData,
+    quotesByAssetId: batchSellQuotes.quotesByAssetId,
   });
   const trackBatchSellQuotePageReviewClicked =
     useTrackBatchSellQuotePageReviewClicked({
       batchSellSlippages,
       selectedTokens,
-      tokenData: batchSellQuoteData.tokenData,
+      quotesByAssetId: batchSellQuotes.quotesByAssetId,
     });
 
   useEffect(
@@ -338,10 +345,10 @@ export function BatchSellReview() {
     [dispatch, isRemoveTokenDisabled, selectedTokens],
   );
 
-  const shouldGetNewQuote = batchSellQuoteData.needsNewQuote;
-  const isFetchingQuotes = batchSellQuoteData.isLoading && !shouldGetNewQuote;
+  const shouldGetNewQuote = batchSellQuotes.needsNewQuote;
+  const isFetchingQuotes = batchSellQuotes.isLoading && !shouldGetNewQuote;
   const hasReviewableQuote =
-    batchSellQuoteData.hasAnyQuote && !batchSellQuoteData.hasPendingQuoteRows;
+    batchSellQuotes.hasAnyQuote && !batchSellQuotes.hasPendingQuoteRows;
   const isReviewButtonDisabled =
     !hasValidSourceAmounts ||
     (!shouldGetNewQuote && (isFetchingQuotes || !hasReviewableQuote));
@@ -391,8 +398,8 @@ export function BatchSellReview() {
             gap={1}
           >
             <TotalReceivedValue
-              totalReceived={batchSellQuoteData.totalReceived}
-              isLoading={batchSellQuoteData.isSummaryLoading}
+              totalReceived={batchSellQuotes.totalReceived}
+              isLoading={batchSellQuotes.isSummaryLoading}
             />
             <Button
               variant={ButtonVariant.Secondary}
@@ -435,13 +442,12 @@ export function BatchSellReview() {
         >
           {selectedTokens.map((token) => {
             const tokenKey = getTokenKey(token);
-            const assetId = formatAddressToAssetId(
-              token.address,
-              token.chainId,
-            );
-            const tokenQuoteData = assetId
-              ? batchSellQuoteData.tokenData[assetId]
-              : undefined;
+            const tokenQuoteData = getBatchSellQuoteRowDisplay({
+              token,
+              quotes: batchSellQuotes,
+              slippages: batchSellSlippages,
+              currency,
+            });
             const priceImpact = tokenQuoteData?.priceImpact;
 
             return (
@@ -452,7 +458,7 @@ export function BatchSellReview() {
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
                 receivedAmount={tokenQuoteData?.receivedAmountFiat ?? ''}
                 isLoading={
-                  tokenQuoteData?.isLoading ?? batchSellQuoteData.isLoading
+                  tokenQuoteData?.isLoading ?? batchSellQuotes.isLoading
                 }
                 isQuoteUnavailable={tokenQuoteData?.isQuoteUnavailable}
                 isHighPriceImpact={tokenQuoteData?.isHighPriceImpact}
@@ -485,5 +491,13 @@ export function BatchSellReview() {
         </Box>
       </Box>
     </SafeAreaView>
+  );
+}
+
+export function BatchSellReview() {
+  return (
+    <BatchSellQuotesFromReduxProvider>
+      <BatchSellReviewContent />
+    </BatchSellQuotesFromReduxProvider>
   );
 }

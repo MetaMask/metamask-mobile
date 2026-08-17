@@ -9,28 +9,35 @@ import {
 } from '@metamask/design-system-react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectBatchSellSourceTokens } from '../../../../../core/redux/slices/bridge';
 import {
-  getBatchSellOrderedQuoteTokenData,
-  useBatchSellQuoteData,
-} from '../../hooks/useBatchSellQuoteData';
+  selectBatchSellSlippages,
+  selectBatchSellSourceTokens,
+} from '../../../../../core/redux/slices/bridge';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import {
+  BatchSellQuotesFromReduxProvider,
+  useBatchSellQuotesContext,
+} from '../../hooks/useBatchSellQuotes/BatchSellQuotesProvider';
+import { getBatchSellQuoteDetailsRows } from './getBatchSellQuoteRowDisplay';
 import { BatchSellQuoteDetails } from './BatchSellQuoteDetails';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
-export function BatchSellQuoteDetailsModal() {
+function BatchSellQuoteDetailsModalContent() {
   const navigation = useNavigation<AppStackNavigationProp>();
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
-  const batchSellQuoteData = useBatchSellQuoteData({
-    shouldUpdateBatchSellTrades: false,
-  });
+  const slippages = useSelector(selectBatchSellSlippages);
+  const currency = useSelector(selectCurrentCurrency);
+  const batchSellQuotes = useBatchSellQuotesContext();
   const tokenData = useMemo(
     () =>
-      getBatchSellOrderedQuoteTokenData(
+      getBatchSellQuoteDetailsRows({
         sourceTokens,
-        batchSellQuoteData.tokenData,
-      ),
-    [batchSellQuoteData.tokenData, sourceTokens],
+        quotes: batchSellQuotes,
+        slippages,
+        currency,
+      }),
+    [batchSellQuotes, currency, slippages, sourceTokens],
   );
   const handleOpenMinimumReceivedInfo = () => {
     navigation.replace(
@@ -59,12 +66,20 @@ export function BatchSellQuoteDetailsModal() {
       </BottomSheetHeader>
       <BatchSellQuoteDetails
         tokenData={tokenData}
-        totalReceived={batchSellQuoteData.totalReceived}
-        minimumReceived={batchSellQuoteData.minimumReceived}
-        isLoading={batchSellQuoteData.isSummaryLoading}
+        totalReceived={batchSellQuotes.totalReceived}
+        minimumReceived={batchSellQuotes.minimumReceived}
+        isLoading={batchSellQuotes.isSummaryLoading}
         onMinimumReceivedInfoPress={handleOpenMinimumReceivedInfo}
       />
     </BottomSheet>
+  );
+}
+
+export function BatchSellQuoteDetailsModal() {
+  return (
+    <BatchSellQuotesFromReduxProvider shouldUpdateBatchSellTrades={false}>
+      <BatchSellQuoteDetailsModalContent />
+    </BatchSellQuotesFromReduxProvider>
   );
 }
 

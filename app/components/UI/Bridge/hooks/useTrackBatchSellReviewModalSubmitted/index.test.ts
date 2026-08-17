@@ -10,7 +10,6 @@ import Engine from '../../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import type { BridgeToken } from '../../types';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
-import type { BatchSellQuoteTokenDataByAssetId } from '../useBatchSellQuoteData';
 import { useTrackBatchSellReviewModalSubmitted } from './index';
 
 const ethAssetId =
@@ -94,39 +93,21 @@ const selectedTokenQuotes = [
   },
 ];
 
-function getTokenDataByAssetId(
+const getQuotesByAssetId = (
   quoteOverrides: Partial<
     Record<CaipAssetType, (typeof selectedTokenQuotes)[number] | null>
   > = {
     [ethAssetId]: selectedTokenQuotes[0],
     [uniAssetId]: selectedTokenQuotes[1],
   },
-) {
-  return {
-    [ethAssetId]: {
-      key: ethAssetId,
-      tokenSymbol: 'ETH',
-      slippage: '1%',
-      receivedAmount: '990 USDC',
-      receivedAmountFiat: '$990',
-      quote: quoteOverrides[ethAssetId] ?? null,
-      isLoading: false,
-      isHighPriceImpact: false,
-      isQuoteUnavailable: quoteOverrides[ethAssetId] === null,
-    },
-    [uniAssetId]: {
-      key: uniAssetId,
-      tokenSymbol: 'UNI',
-      slippage: `${DEFAULT_BATCH_SELL_SLIPPAGE}%`,
-      receivedAmount: '195 USDC',
-      receivedAmountFiat: '$195',
-      quote: quoteOverrides[uniAssetId] ?? null,
-      isLoading: false,
-      isHighPriceImpact: false,
-      isQuoteUnavailable: quoteOverrides[uniAssetId] === null,
-    },
-  } as BatchSellQuoteTokenDataByAssetId;
-}
+) => ({
+  [ethAssetId]: {
+    recommendedQuote: quoteOverrides[ethAssetId] ?? null,
+  },
+  [uniAssetId]: {
+    recommendedQuote: quoteOverrides[uniAssetId] ?? null,
+  },
+});
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -158,7 +139,7 @@ describe('useTrackBatchSellReviewModalSubmitted', () => {
           [ethAssetId]: '1',
         },
         selectedTokens,
-        tokenData: getTokenDataByAssetId(),
+        quotesByAssetId: getQuotesByAssetId(),
         usdQuotedGas: '1.5',
       }),
     );
@@ -194,7 +175,7 @@ describe('useTrackBatchSellReviewModalSubmitted', () => {
       useTrackBatchSellReviewModalSubmitted({
         batchSellSlippages: {},
         selectedTokens,
-        tokenData: getTokenDataByAssetId({
+        quotesByAssetId: getQuotesByAssetId({
           [ethAssetId]: null,
           [uniAssetId]: null,
         }),

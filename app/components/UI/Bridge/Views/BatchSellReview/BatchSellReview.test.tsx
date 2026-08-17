@@ -190,9 +190,38 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ),
 }));
 
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(() => 'USD'),
+}));
+
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+
+jest.mock('../../hooks/useBatchSellQuotes/BatchSellQuotesProvider', () => ({
+  BatchSellQuotesFromReduxProvider: ({
+    children,
+  }: {
+    children: unknown;
+  }) => children,
+  useBatchSellQuotesContext: jest.fn(() => ({
+    ...mockBatchSellQuoteData,
+    quotesByAssetId: {},
+    updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
+    getNewQuote: mockGetNewQuote,
+  })),
+}));
+
+jest.mock('../../components/BatchSellQuoteDetailsModal/getBatchSellQuoteRowDisplay', () => ({
+  getBatchSellQuoteRowDisplay: ({
+    token,
+  }: {
+    token: { address: string };
+  }) =>
+    mockBatchSellQuoteData.tokenData[
+      `eip155:1/erc20:${token.address}` as CaipAssetType
+    ],
 }));
 
 jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
@@ -216,14 +245,6 @@ jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
         (amount) => amount !== undefined && Number(amount) > 0,
       ),
   ),
-  useBatchSellQuoteRequest: jest.fn(() => ({
-    updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
-    getNewQuote: mockGetNewQuote,
-  })),
-}));
-
-jest.mock('../../hooks/useBatchSellQuoteData', () => ({
-  useBatchSellQuoteData: () => mockBatchSellQuoteData,
 }));
 
 jest.mock('../../hooks/useTrackBatchSellQuotePageViewed', () => ({

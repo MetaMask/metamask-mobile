@@ -48,7 +48,6 @@ import {
 import type { BridgeToken } from '../../types';
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
-import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { PostTradeTokenSuggestions } from './PostTradeTokenSuggestions';
 import {
   convertApiTokenToBridgeToken,
@@ -81,6 +80,11 @@ import {
   getPostTradeSharedAnalyticsProperties,
   type PostTradeAnalyticsCta,
 } from './PostTradeBottomSheet.analytics';
+import {
+  BridgeQuotesProvider,
+  useBridgeQuotesContext,
+} from '../../hooks/useBridgeQuotes/BridgeQuotesProvider';
+import { useBridgeQuotesConfig } from '../../hooks/useBridgeQuotes/useBridgeQuotesConfig';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -145,7 +149,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
   );
 };
 
-export const PostTradeBottomSheet = () => {
+const PostTradeBottomSheetComponent = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -155,7 +159,7 @@ export const PostTradeBottomSheet = () => {
   const shouldSkipDismissedTrackingRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const params = useParams<PostTradeBottomSheetParams>();
-  const updateQuoteParams = useBridgeQuoteRequest();
+  const { updateQuoteParams } = useBridgeQuotesContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBridge =
     params.sourceToken?.chainId &&
@@ -484,5 +488,15 @@ export const PostTradeBottomSheet = () => {
         style={styles.footer}
       />
     </BottomSheet>
+  );
+};
+
+export const PostTradeBottomSheet = () => {
+  const config = useBridgeQuotesConfig();
+
+  return (
+    <BridgeQuotesProvider config={config}>
+      <PostTradeBottomSheetComponent />
+    </BridgeQuotesProvider>
   );
 };

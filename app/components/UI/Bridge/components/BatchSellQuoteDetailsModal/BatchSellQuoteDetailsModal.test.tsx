@@ -97,20 +97,40 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
+  selectBatchSellSlippages: jest.fn(() => ({})),
 }));
 
-jest.mock('../../hooks/useBatchSellQuoteData', () => ({
-  getBatchSellOrderedQuoteTokenData: jest.fn(
-    (
-      sourceTokens: typeof defaultSourceTokens,
-      tokenData: Record<string, MockQuoteTokenData>,
-    ) =>
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(() => 'USD'),
+}));
+
+jest.mock('../../hooks/useBatchSellQuotes/BatchSellQuotesProvider', () => ({
+  BatchSellQuotesFromReduxProvider: ({
+    children,
+  }: {
+    children: unknown;
+  }) => children,
+  useBatchSellQuotesContext: jest.fn(() => mockBatchSellQuoteData),
+}));
+
+jest.mock('./getBatchSellQuoteRowDisplay', () => ({
+  getBatchSellQuoteDetailsRows: jest.fn(
+    ({
+      sourceTokens,
+    }: {
+      sourceTokens: typeof defaultSourceTokens;
+    }) =>
       sourceTokens
-        .map((token) => tokenData[`eip155:1/erc20:${token.address}`])
+        .map(
+          (token) =>
+            mockBatchSellQuoteData.tokenData[
+              `eip155:1/erc20:${token.address}`
+            ],
+        )
         .filter(Boolean),
   ),
-  useBatchSellQuoteData: jest.fn(() => mockBatchSellQuoteData),
 }));
+
 
 const defaultDetailsProps: BatchSellQuoteDetailsProps = {
   tokenData: [

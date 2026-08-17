@@ -22,8 +22,7 @@ import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
-import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
+import { useBridgeQuotesContext } from '../../hooks/useBridgeQuotes/BridgeQuotesProvider';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -84,7 +83,6 @@ export const SwapsConfirmButton = ({
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
-  const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const slippage = useSelector(selectSlippage);
@@ -113,7 +111,8 @@ export const SwapsConfirmButton = ({
     quoteFetchError,
     isNoQuotesAvailable,
     isActiveQuoteForCurrentTokenPair,
-  } = useBridgeQuoteDataContext();
+    updateQuoteParams,
+  } = useBridgeQuotesContext();
 
   const insufficientNativeReserveError = useInsufficientNativeReserveError({
     amount: sourceAmount,

@@ -14,35 +14,34 @@ import {
   getBatchSellSlippage,
 } from '../../components/SlippageModal/utils';
 import type { BridgeToken } from '../../types';
-import type { BatchSellQuoteTokenDataByAssetId } from '../useBatchSellQuoteData';
+import { useBridgeQuotes } from '../useBridgeQuotes';
 
-type BatchSellQuote = NonNullable<
-  BatchSellQuoteTokenDataByAssetId[CaipAssetType]['quote']
->;
-type BatchSellQuotePageMetricProperties =
-  RequiredEventContextFromClient[typeof BatchSellMetricsEventName.BatchSellQuotePageViewed];
-
-interface BatchSellQuotePageMetricPropertiesParams {
-  batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
-  location: BatchSellMetricsLocation;
-  selectedTokens: BridgeToken[];
-  tokenData: BatchSellQuoteTokenDataByAssetId;
-}
-
-function getQuoteSourceUsdAmount(quote: BatchSellQuote) {
+const getQuoteSourceUsdAmount = (
+  quote: NonNullable<ReturnType<typeof useBridgeQuotes>['recommendedQuote']>,
+) => {
   const usdAmount = Number(quote.quote.src?.usd);
 
   return Number.isFinite(usdAmount) ? usdAmount : 0;
-}
+};
 
-export function getBatchSellQuotePageMetricProperties({
+export const getBatchSellQuotePageMetricProperties = ({
   batchSellSlippages,
   location,
   selectedTokens,
-  tokenData,
-}: BatchSellQuotePageMetricPropertiesParams):
-  | BatchSellQuotePageMetricProperties
-  | undefined {
+  quotesByAssetId,
+}: {
+  batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
+  location: BatchSellMetricsLocation;
+  selectedTokens: BridgeToken[];
+  quotesByAssetId: Partial<
+    Record<
+      CaipAssetType,
+      Pick<ReturnType<typeof useBridgeQuotes>, 'recommendedQuote'>
+    >
+  >;
+}):
+  | RequiredEventContextFromClient[typeof BatchSellMetricsEventName.BatchSellQuotePageViewed]
+  | undefined => {
   const firstSourceToken = selectedTokens[0];
 
   if (!firstSourceToken) {
@@ -57,12 +56,10 @@ export function getBatchSellQuotePageMetricProperties({
     return undefined;
   }
 
-  const sourceTokenData = sourceTokenAddresses.map(
-    (assetId) => tokenData[assetId],
+  const sourceTokenQuotes = sourceTokenAddresses.map(
+    (assetId) => quotesByAssetId[assetId]?.recommendedQuote,
   );
-  const firstQuote = sourceTokenData.find(
-    (sourceTokenQuoteData) => sourceTokenQuoteData?.quote,
-  )?.quote;
+  const firstQuote = sourceTokenQuotes.find(Boolean);
 
   if (!firstQuote) {
     return undefined;
@@ -77,11 +74,9 @@ export function getBatchSellQuotePageMetricProperties({
     return undefined;
   }
 
-  const usdAmountSourceTokens = sourceTokenData.map((sourceTokenQuoteData) => {
-    const quote = sourceTokenQuoteData?.quote;
-
-    return quote ? getQuoteSourceUsdAmount(quote) : 0;
-  });
+  const usdAmountSourceTokens = sourceTokenQuotes.map((quote) =>
+    quote ? getQuoteSourceUsdAmount(quote) : 0,
+  );
 
   return {
     chain_id_destination: destChainId,
@@ -103,17 +98,19 @@ export function getBatchSellQuotePageMetricProperties({
       0,
     ),
   };
-}
+};
 
-export function useTrackBatchSellQuotePageViewed({
+export const useTrackBatchSellQuotePageViewed = ({
   batchSellSlippages,
   selectedTokens,
-  tokenData,
+  quotesByAssetId,
 }: {
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
   selectedTokens: BridgeToken[];
-  tokenData: BatchSellQuoteTokenDataByAssetId;
-}) {
+  quotesByAssetId: Parameters<
+    typeof getBatchSellQuotePageMetricProperties
+  >[0]['quotesByAssetId'];
+}) => {
   const hasTrackedQuotePageViewed = useRef(false);
 
   useEffect(() => {
@@ -126,7 +123,7 @@ export function useTrackBatchSellQuotePageViewed({
       location:
         Engine.context.BridgeController.getLocation() as unknown as BatchSellMetricsLocation,
       selectedTokens,
-      tokenData,
+      quotesByAssetId,
     });
 
     if (!eventProperties) return;
@@ -137,5 +134,5 @@ export function useTrackBatchSellQuotePageViewed({
       BatchSellMetricsEventName.BatchSellQuotePageViewed,
       eventProperties,
     );
-  }, [batchSellSlippages, selectedTokens, tokenData]);
-}
+  }, [batchSellSlippages, selectedTokens, quotesByAssetId]);
+};
