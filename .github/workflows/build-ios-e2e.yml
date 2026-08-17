@@ -27,10 +27,12 @@ on:
         default: ''
         type: string
       runner_provider:
-        description: Runner provider forwarded from the caller
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
         required: false
         type: string
-        default: current
+        default: ''
       reuse-main-builds-only:
         description: >-
           When true, only reuse native artifacts from the base branch (main) and skip
@@ -42,12 +44,13 @@ on:
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || inputs.runner_provider == 'bitrise' && (vars.BITRISE_BUILD_MACHINE_TYPE != '' && fromJSON(format('["bitrise_pool_name:bitrise-metamask-ios-build","{0}"]', vars.BITRISE_BUILD_MACHINE_TYPE)) || 'bitrise_pool_name:bitrise-metamask-ios-build') || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl", "low-priority"]')) }}
+    runs-on: ${{ (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' && 'namespace-profile-metamask-ios-build' || inputs.runner_provider == 'bitrise' && (vars.BITRISE_BUILD_MACHINE_TYPE != '' && fromJSON(format('["bitrise_pool_name:bitrise-metamask-ios-build","{0}"]', vars.BITRISE_BUILD_MACHINE_TYPE)) || 'bitrise_pool_name:bitrise-metamask-ios-build') || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl", "low-priority"]')) }}
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app-namespace.outcome == 'success' || steps.upload-app.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap-namespace.outcome == 'success' || steps.upload-sourcemap.outcome == 'success' }}
     env:
+      RESOLVED_RUNNER_PROVIDER: ${{ inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current' }}
       IOS_APP_CACHE_VERSION: 2
       XCODE_CACHE_VERSION: 1
       RCT_NO_LAUNCH_PACKAGER: 1
@@ -84,10 +87,10 @@ jobs:
       # Get the source code from the repository
       - name: Checkout repo (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - name: Checkout repo
         uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           # BITRISE-SHADOW: preserve prewarmed node_modules / Pods (INFRA-3679)
           clean: ${{ inputs.runner_provider != 'bitrise' }}
@@ -121,7 +124,7 @@ jobs:
         shell: bash
 
       - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           cache: |
@@ -152,7 +155,7 @@ jobs:
         id: find-reusable-build
         # Match Android: skip cross-run GitHub artifact reuse on Namespace until backend parity is proven.
         # BITRISE-SHADOW: skip GitHub artifact reuse; Bitrise uses actions/cache app fingerprint cache (INFRA-3591).
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -250,7 +253,7 @@ jobs:
       # artifact is named after), on top of the fingerprint itself.
       - name: Restore iOS app matching fingerprint from branch cache (Cirrus)
         id: ios-app-cache-restore
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && inputs.reuse-main-builds-only != true }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && inputs.reuse-main-builds-only != true }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -260,7 +263,7 @@ jobs:
 
       - name: Restore iOS app matching fingerprint from main cache (Cirrus)
         id: ios-app-cache-restore-main
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && (inputs.reuse-main-builds-only == true || (steps.ios-app-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && (inputs.reuse-main-builds-only == true || (steps.ios-app-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -317,7 +320,7 @@ jobs:
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -327,7 +330,7 @@ jobs:
           key: ${{ runner.os }}-xcode-${{ github.ref_name }}-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       - name: Restore Xcode derived data from main cache
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: xcode-restore-cache-main
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -339,7 +342,7 @@ jobs:
       # Namespace's built-in cocoapods preset handles the CocoaPods cache paths upstream.
       # Validated to work without a separate stale-state clear step (A/B tested 2026-05-11).
       - name: Configure Namespace iOS cache
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' && inputs.runner_provider == 'namespace' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
         with:
           cache: cocoapods
@@ -353,7 +356,7 @@ jobs:
           platform: ios
           setup-simulator: false
           install-foundry: false
-          runner_provider: ${{ inputs.runner_provider }}
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
       - name: Print iOS tool versions
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
@@ -376,7 +379,7 @@ jobs:
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
       - name: Restore .metamask folder
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
         uses: actions/cache@v4
         with:
@@ -429,7 +432,7 @@ jobs:
           YARN_ENABLE_GLOBAL_CACHE: 'true'
 
       - name: Restore .metamask folder (reuse-hit path)
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
         id: restore-metamask-lean
         uses: actions/cache@v4
         with:
@@ -470,7 +473,7 @@ jobs:
       # appeared while we were busy anyway.
       - name: Re-check for a reusable build published since the first lookup
         id: find-reusable-build-late
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.gate.outputs.needs-native-build == 'true' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -870,7 +873,7 @@ jobs:
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator) (Namespace)
         id: upload-app-namespace
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -881,7 +884,7 @@ jobs:
 
       - name: Upload iOS APP Artifact (Simulator) (current)
         id: upload-app
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -892,7 +895,7 @@ jobs:
 
       - name: Upload iOS build metadata (Namespace)
         id: upload-metadata-namespace
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
@@ -903,7 +906,7 @@ jobs:
 
       - name: Upload iOS build metadata (current)
         id: upload-metadata
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
@@ -918,7 +921,7 @@ jobs:
       # via `scripts/repack.js` both write to `sourcemaps/ios/index.js.map`.
       - name: Upload iOS Source Map (Namespace)
         id: upload-sourcemap-namespace
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
@@ -929,7 +932,7 @@ jobs:
 
       - name: Upload iOS Source Map (current)
         id: upload-sourcemap
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map

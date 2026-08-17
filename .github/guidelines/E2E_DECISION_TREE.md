@@ -31,7 +31,7 @@ flowchart TD
 
 When a PR only changes E2E/performance test files (and other ignorable files), CI still runs Smart E2E Selection and the selected E2E/performance suites, but **does not compile fresh iOS/Android native builds**. Instead, it reuses the latest matching artifacts from `main`.
 
-The native build fingerprint for test-only PRs is computed from **`main` HEAD** (not the PR merge tree) so the lookup key matches completed `ci.yml` runs on `main`. Reuse tries GitHub Actions artifacts first, then the Cirrus `main` APK cache on Android.
+The native build fingerprint for test-only PRs is computed from **`main` HEAD** (not the PR merge tree) so the lookup key matches completed `ci.yml` runs on `main`. Reuse tries GitHub Actions artifacts first, then the Cirrus `main` APK cache on Android. There is not yet a proven Namespace equivalent of that Cirrus APK cache, so the first period with `NAMESPACE_RUNNER_PROVIDER=namespace` may rebuild natives more often on cache miss (the workflow still falls back to a fresh build instead of failing).
 
 If `main` has new native-changing commits but its CI build has not finished yet, reuse lookup may miss — CI logs a warning and **falls back to a fresh native build** instead of failing the workflow. Performance E2E on test-only PRs resolves BrowserStack apps via stable main `custom_id`s (`MetaMask-Android-*-main`) first, then legacy `…-main-<run_id>` IDs; if none are found it **falls back to a fresh dual Android upload** instead of failing.
 
