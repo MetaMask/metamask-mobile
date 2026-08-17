@@ -7,7 +7,7 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
 import { LedgerKeyring as LegacyLedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
-import type Transport from '@ledgerhq/hw-transport';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
@@ -25,7 +25,7 @@ import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
  * below. `LedgerMobileBridge` satisfies this shape.
  */
 interface LedgerBridgeConnection {
-  updateTransportMethod: (transport: Transport | string) => Promise<boolean>;
+  updateTransportMethod: (transport: BleTransport | string) => Promise<boolean>;
   getAppNameAndVersion: () => Promise<{ appName: string; version: string }>;
   openEthApp: () => Promise<void>;
   closeApps: () => Promise<void>;
@@ -105,7 +105,7 @@ export const withLedgerKeyring = async <CallbackResult = void>(
  * @returns The name of the currently open application on the device.
  */
 export const connectLedgerHardware = async (
-  transport: Transport,
+  transport: BleTransport,
   deviceId: string,
   abortSignal?: AbortSignal,
 ): Promise<string> => {
