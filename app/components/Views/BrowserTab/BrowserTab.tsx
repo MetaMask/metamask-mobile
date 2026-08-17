@@ -189,9 +189,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       ConnectionType.UNKNOWN,
     );
     const webviewRef = useRef<WebView>(null);
-    const webStates = useRef<
-      Record<string, { requested: boolean; started: boolean; ended: boolean }>
-    >({});
     // Track if webview is loaded for the first time
     const isWebViewReadyToLoad = useRef(false);
     // URL-bar / autocomplete / deeplink navigation must update WebView
@@ -894,11 +891,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        webStates.current[urlToLoad] = {
-          ...webStates.current[urlToLoad],
-          requested: true,
-        };
-
         if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
           setIpfsBannerVisible(true);
           return false;
@@ -1006,10 +998,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const onLoadEnd = useCallback(
       ({
         event: { nativeEvent },
-        forceResolve,
       }: {
         event: WebViewNavigationEvent | WebViewErrorEvent;
-        forceResolve?: boolean;
       }) => {
         if ('code' in nativeEvent) {
           // Handle error - code is a property of WebViewErrorEvent
@@ -1021,32 +1011,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Handle navigation event
         const { url, title, canGoBack, canGoForward } = nativeEvent;
         loadingUrlRef.current = '';
-        // Do not update URL unless website has successfully completed loading.
-        webStates.current[url] = { ...webStates.current[url], ended: true };
-        const { started, ended } = webStates.current[url];
-        const incomingOrigin = new URLParse(url).origin;
-        const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
-        // JS-initiated cross-origin redirects (`window.location.href`) often
-        // fire onLoadEnd without a matching onLoadStart for the destination
-        // URL, so `started` is false. A completed load on a new origin is
-        // still a committed navigation — update the URL bar (#33815).
-        const isCommittedCrossOriginRedirect = incomingOrigin !== activeOrigin;
-        if (
-          forceResolve ||
-          (started && ended) ||
-          incomingOrigin === activeOrigin ||
-          isCommittedCrossOriginRedirect
-        ) {
-          delete webStates.current[url];
-          // Update navigation bar address with title of loaded url.
-          handleSuccessfulPageResolution({
-            title,
-            url,
-            icon: favicon,
-            canGoBack,
-            canGoForward,
-          });
-        }
+        // Always resolve a completed load, including JS cross-origin
+        // redirects that never fire a matching onLoadStart (#33815).
+        handleSuccessfulPageResolution({
+          title,
+          url,
+          icon: favicon,
+          canGoBack,
+          canGoForward,
+        });
 
         // Reset pull-to-refresh state when page finishes loading
         isRefreshing.value = false;
@@ -1209,27 +1182,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Use URL to produce real url. This should be the actual website that the user is viewing.
         const { origin: urlOrigin } = new URLParse(nativeEvent.url);
-
-        webStates.current[nativeEvent.url] = {
-          ...webStates.current[nativeEvent.url],
-          started: true,
-        };
-        if (nativeEvent.url.startsWith('http://')) {
-          /*
-            If the user is initially redirected to the page using the HTTP protocol,
-            which then automatically redirects to HTTPS, we receive `onLoadStart` for the HTTP URL
-            and `onLoadEnd` for the HTTPS URL. In this case, the URL bar will not be updated.
-            To fix this, we also mark the HTTPS version of the URL as started.
-          */
-          const urlWithHttps = nativeEvent.url.replace(
-            regex.urlHttpToHttps,
-            'https://',
-          );
-          webStates.current[urlWithHttps] = {
-            ...webStates.current[urlWithHttps],
-            started: true,
-          };
-        }
 
         // Cancel loading the page if we detect its a phishing page.
         // Pass the full URL (including path) so the scanner can evaluate it,
