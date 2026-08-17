@@ -12,10 +12,8 @@ import { useTransactionPayingAccount } from './useTransactionPayingAccount';
 jest.mock('./useTransactionAccountOverride');
 jest.mock('./useTransactionMetadataRequest');
 
-const SIGNER_ADDRESS =
-  '0x1111111111111111111111111111111111111111' as Hex;
-const OVERRIDE_ADDRESS =
-  '0x2222222222222222222222222222222222222222' as Hex;
+const SIGNER_ADDRESS = '0x1111111111111111111111111111111111111111' as Hex;
+const OVERRIDE_ADDRESS = '0x2222222222222222222222222222222222222222' as Hex;
 
 const useTransactionAccountOverrideMock = jest.mocked(
   useTransactionAccountOverride,

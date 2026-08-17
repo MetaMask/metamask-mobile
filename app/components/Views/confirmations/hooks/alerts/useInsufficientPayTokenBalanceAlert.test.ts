@@ -69,10 +69,8 @@ const NATIVE_TOKEN_MOCK = {
   address: '0x456' as Hex,
   balanceRaw: '100',
 } as NonNullable<ReturnType<typeof useTokenWithBalance>>;
-const PAYER_ADDRESS =
-  '0x2222222222222222222222222222222222222222' as Hex;
-const SIGNER_ADDRESS =
-  '0x1111111111111111111111111111111111111111' as Hex;
+const PAYER_ADDRESS = '0x2222222222222222222222222222222222222222' as Hex;
+const SIGNER_ADDRESS = '0x1111111111111111111111111111111111111111' as Hex;
 
 function runHook(
   props: Parameters<typeof useInsufficientPayTokenBalanceAlert>[0] = {},
