@@ -146,7 +146,7 @@ describe('BaseNotification', () => {
     const { queryByText } = renderWithProvider(
       <BaseNotification
         status="success"
-        data={{ title: 'Agent CLI successfully linked', description: '' }}
+        data={{ title: 'Agent wallet successfully linked', description: '' }}
       />,
     );
 
