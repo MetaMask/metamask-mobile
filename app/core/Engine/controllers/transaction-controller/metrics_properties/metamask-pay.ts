@@ -18,6 +18,11 @@ import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/t
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { BigNumber } from 'bignumber.js';
+import {
+  getAddressAccountType,
+  isValidHexAddress,
+} from '../../../../../util/address';
+import { normalizeOnboardingCompletedAccountType } from '../../../../../util/analytics/onboardingCompletedAnalytics';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
@@ -333,6 +338,43 @@ function addBaselinePayProperties(
       properties.mm_pay_use_case = useCase;
       break;
     }
+  }
+
+  addPaymentAccountType(properties, transaction, txPayData);
+}
+
+function addPaymentAccountType(
+  properties: JsonMap,
+  transaction: TransactionMeta,
+  txPayData: TransactionPayData | undefined,
+) {
+  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    return;
+  }
+
+  const paymentAccount =
+    txPayData?.accountOverride ?? transaction.txParams?.from;
+
+  if (
+    typeof paymentAccount !== 'string' ||
+    !isValidHexAddress(paymentAccount)
+  ) {
+    return;
+  }
+
+  try {
+    const accountType = getAddressAccountType(paymentAccount);
+    const normalizedAccountType = normalizeOnboardingCompletedAccountType(
+      accountType === 'MetaMask' || accountType === 'Imported'
+        ? accountType.toLowerCase()
+        : accountType,
+    );
+
+    if (normalizedAccountType) {
+      properties.mm_pay_payment_account_type = normalizedAccountType;
+    }
+  } catch {
+    // The account may be unavailable while the wallet is locked.
   }
 }
 
