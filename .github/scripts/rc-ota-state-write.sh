@@ -78,8 +78,12 @@ HAVE_PENDING_COMMIT=false
 # branch does not exist yet. Called before every attempt so retries rebuild from the latest tip.
 sync_state_branch() {
   if git fetch --quiet --depth 1 origin "${STATE_BRANCH}" 2>/dev/null; then
-    rm -rf ./state
-    git checkout --quiet -B "${STATE_BRANCH}" FETCH_HEAD
+    # -f discards any local modifications so this cannot be blocked by "local changes would be
+    # overwritten": on a retry, HEAD may already carry a commit from a previous attempt (its own
+    # release branch's file, plus whatever other release branches' files were fetched alongside
+    # it), and plain `rm -rf` + a non-forced checkout leaves those as unstaged deletions that a
+    # normal checkout refuses to clobber.
+    git checkout --quiet -f -B "${STATE_BRANCH}" FETCH_HEAD
     HAVE_PENDING_COMMIT=false
     echo "📥 Synced ${STATE_BRANCH} at $(git rev-parse --short HEAD)"
   elif [[ "${HAVE_PENDING_COMMIT}" == true ]]; then
