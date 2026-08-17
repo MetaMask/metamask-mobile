@@ -42,6 +42,7 @@ function getRequiredTransactionCount(
   for (const quote of quotes) {
     if (
       quote.strategy !== TransactionPayStrategy.Relay ||
+      !isRecord(quote.request) ||
       quote.request.isPostQuote ||
       quote.request.paymentOverride
     ) {
