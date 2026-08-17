@@ -16,7 +16,6 @@ import { RootMessenger } from '../types';
 export function getNetworkConnectionBannerControllerMessenger(
   rootMessenger: RootMessenger<
     MessengerActions<NetworkConnectionBannerControllerMessenger>,
-    // @ts-expect-error ClientController:stateChanged is not yet on GlobalEvents
     MessengerEvents<NetworkConnectionBannerControllerMessenger>
   >,
 ): NetworkConnectionBannerControllerMessenger {
@@ -38,7 +37,7 @@ export function getNetworkConnectionBannerControllerMessenger(
       'NetworkController:stateChange',
       'NetworkEnablementController:stateChange',
       'ConnectivityController:stateChange',
-      'ClientController:stateChanged',
+      'ClientController:stateChange',
       'KeyringController:unlock',
       'KeyringController:lock',
     ],
