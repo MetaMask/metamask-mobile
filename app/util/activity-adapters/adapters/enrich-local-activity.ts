@@ -130,6 +130,21 @@ function getPredictFundsToken(
   };
 }
 
+function remapActivityKind(
+  activity: ActivityListItem,
+  type: ActivityListItem['type'],
+  extra: Record<string, unknown> = {},
+): ActivityListItem {
+  return {
+    ...activity,
+    type,
+    data: {
+      ...activity.data,
+      ...extra,
+    },
+  } as ActivityListItem;
+}
+
 function enrichLocalActivityKind(
   activity: ActivityListItem,
   transactionGroup: TransactionGroup,
@@ -143,53 +158,19 @@ function enrichLocalActivityKind(
 
   switch (transactionType) {
     case TransactionType.stakingClaim:
-      return {
-        ...activity,
-        type: 'claim',
-        data: {
-          ...(fees ? { fees } : {}),
-        },
-      };
+      return remapActivityKind(activity, 'claim');
     case TransactionType.stakingUnstake:
-      return {
-        ...activity,
-        type: 'unstake',
-        data: {
-          ...(fees ? { fees } : {}),
-        },
-      };
+      return remapActivityKind(activity, 'unstake');
     case TransactionType.deployContract:
-      return {
-        ...activity,
-        type: 'contractDeployment',
-        data: {
-          from,
-          to,
-          ...(fees ? { fees } : {}),
-        },
-      };
+      return remapActivityKind(activity, 'contractDeployment', { from, to });
     case TransactionType.lendingWithdraw:
-      return {
-        ...activity,
-        type: 'lendingWithdrawal',
-        data: {
-          ...(fees ? { fees } : {}),
-        },
-      };
+      return remapActivityKind(activity, 'lendingWithdrawal');
     default:
       break;
   }
 
   if (initialTransaction.txParams.authorizationList?.length) {
-    return {
-      ...activity,
-      type: 'smartAccountUpgrade',
-      data: {
-        from,
-        to,
-        ...(fees ? { fees } : {}),
-      },
-    };
+    return remapActivityKind(activity, 'smartAccountUpgrade', { from, to });
   }
 
   const nested = initialTransaction.nestedTransactions ?? [];
@@ -244,14 +225,11 @@ function enrichLocalActivityKind(
       !hasPerpsDeposit &&
       nested.some((call) => hasTransactionType(call, perpsWithdrawTypes));
     if (hasPerpsDeposit || hasPerpsWithdraw) {
-      return {
-        ...activity,
-        type: hasPerpsDeposit ? 'perpsAddFunds' : 'perpsWithdraw',
-        data: {
-          from,
-          ...(fees ? { fees } : {}),
-        },
-      };
+      return remapActivityKind(
+        activity,
+        hasPerpsDeposit ? 'perpsAddFunds' : 'perpsWithdraw',
+        { from },
+      );
     }
   }
 
