@@ -81,6 +81,7 @@ describe('WalletHomeOnboardingSteps', () => {
     jest.useRealTimers();
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
+      writable: true,
       value: originalPlatformOS,
     });
   });
@@ -440,6 +441,7 @@ describe('WalletHomeOnboardingSteps', () => {
   it('plays the main animation without firing a state input after returning on Android', async () => {
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
+      writable: true,
       value: 'android',
     });
     const onTradePrimaryPress = jest.fn();
