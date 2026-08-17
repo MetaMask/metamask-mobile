@@ -346,12 +346,12 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
         component={OnboardingInterestQuestionnaire}
-        options={{ headerShown: false, gestureEnabled: false }}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
         component={OnboardingCryptoExperienceQuestionnaire}
-        options={{ headerShown: false, gestureEnabled: false }}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="AccountStatus"

@@ -3,4 +3,5 @@ export enum OnboardingCryptoExperienceQuestionnaireTestIds {
   OPTION_PREFIX = 'onboarding-crypto-experience-option-',
   CONTINUE_BUTTON = 'onboarding-crypto-experience-continue-button',
   SKILL_BAR_PREFIX = 'onboarding-crypto-experience-skill-bar-',
+  BACK_BUTTON = 'onboarding-crypto-experience-back-button',
 }

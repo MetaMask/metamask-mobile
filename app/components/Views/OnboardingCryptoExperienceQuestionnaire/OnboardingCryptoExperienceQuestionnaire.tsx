@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  BackHandler,
-  Platform,
-  ScrollView,
-  StatusBar,
-  TouchableOpacity,
-} from 'react-native';
+import { BackHandler, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -32,6 +30,7 @@ import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { OnboardingCryptoExperienceQuestionnaireTestIds } from './OnboardingCryptoExperienceQuestionnaire.testIds';
 import type { CryptoExperienceLevel } from './OnboardingCryptoExperienceQuestionnaire.types';
 import { ExperienceSkillBar } from './ExperienceSkillBar';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
 interface ExperienceOption {
   id: CryptoExperienceLevel;
@@ -59,6 +58,7 @@ const EXPERIENCE_OPTIONS: ExperienceOption[] = [
 
 const OnboardingCryptoExperienceQuestionnaire = () => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
@@ -86,7 +86,14 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
     );
   }, [trackEvent, createEventBuilder, accountType]);
 
-  const handleBackPress = useCallback(() => true, []);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleBackPress = useCallback(() => {
+    handleBack();
+    return true;
+  }, [handleBack]);
 
   useEffect(() => {
     const backHandlerSubscription = BackHandler.addEventListener(
@@ -119,13 +126,18 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default', {
-        paddingTop:
-          Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
-      })}
+      style={tw.style('flex-1 bg-default')}
       testID={OnboardingCryptoExperienceQuestionnaireTestIds.SCREEN}
     >
-      <Box twClassName="mx-4 mt-4 mb-2">
+      <HeaderCompactStandard
+        includesTopInset
+        onBack={handleBack}
+        backButtonProps={{
+          testID: OnboardingCryptoExperienceQuestionnaireTestIds.BACK_BUTTON,
+          accessibilityLabel: strings('navigation.back'),
+        }}
+      />
+      <Box twClassName="mx-4 mb-2">
         <Text
           variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}

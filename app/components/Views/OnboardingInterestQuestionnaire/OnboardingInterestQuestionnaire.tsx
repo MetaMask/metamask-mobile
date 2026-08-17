@@ -6,7 +6,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -84,6 +88,7 @@ const INTEREST_OPTIONS: InterestOption[] = [
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
@@ -115,7 +120,14 @@ const OnboardingInterestQuestionnaire = () => {
     );
   }, [trackEvent, createEventBuilder, accountType]);
 
-  const handleBackPress = useCallback(() => true, []);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleBackPress = useCallback(() => {
+    handleBack();
+    return true;
+  }, [handleBack]);
 
   useEffect(() => {
     const backHandlerSubscription = BackHandler.addEventListener(
@@ -223,6 +235,11 @@ const OnboardingInterestQuestionnaire = () => {
       <HeaderCompactStandard
         includesTopInset
         twClassName="mb-2"
+        onBack={handleBack}
+        backButtonProps={{
+          testID: OnboardingInterestQuestionnaireTestIds.BACK_BUTTON,
+          accessibilityLabel: strings('navigation.back'),
+        }}
         endAccessory={
           <Text
             variant={TextVariant.BodyLg}

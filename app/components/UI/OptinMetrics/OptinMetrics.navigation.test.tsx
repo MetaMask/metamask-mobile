@@ -266,6 +266,26 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
         );
       });
     });
+
+    it('does not apply metrics or finish onboarding when continuing to the questionnaire', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.anything(),
+        );
+      });
+
+      expect(mockAnalytics.optIn).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
+    });
   });
 
   describe('when basic usage data is checked and AB test assigns control', () => {

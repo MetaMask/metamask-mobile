@@ -47,6 +47,22 @@ jest.mock(
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+      goBack: mockGoBack,
+      reset: jest.fn(),
+      setOptions: jest.fn(),
+      dispatch: jest.fn(),
+    }),
+  };
+});
+
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
@@ -928,6 +944,45 @@ describe('OptinMetrics', () => {
         expect.any(Function),
       );
       expect(mockRemove).toHaveBeenCalled();
+
+      addSpy.mockRestore();
+    });
+
+    it('renders the back button', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      expect(
+        screen.getByTestId(
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_BACK_BUTTON_ID,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to the previous screen when the back button is pressed', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByTestId(
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_BACK_BUTTON_ID,
+        ),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates back and consumes the hardware back press', () => {
+      const { BackHandler } = jest.requireMock('react-native');
+      const addSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const call = addSpy.mock.calls.find(
+        (c: [string, () => boolean]) => c[0] === 'hardwareBackPress',
+      );
+      const handler = call?.[1] as () => boolean;
+
+      expect(handler()).toBe(true);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
 
       addSpy.mockRestore();
     });

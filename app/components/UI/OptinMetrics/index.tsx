@@ -2,11 +2,9 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   ScrollView,
   BackHandler,
-  Alert,
   Pressable,
   Platform,
   Image,
-  StatusBar,
   NativeScrollEvent,
   NativeSyntheticEvent,
   LayoutChangeEvent,
@@ -67,6 +65,7 @@ import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -118,16 +117,14 @@ const OptinMetrics = () => {
     [isMediumDevice],
   );
 
-  /**
-   * Temporary disabling the back button so users can't go back
-   */
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const handleBackPress = useCallback(() => {
-    Alert.alert(
-      strings('onboarding.optin_back_title'),
-      strings('onboarding.optin_back_desc'),
-    );
+    handleBack();
     return true;
-  }, []);
+  }, [handleBack]);
 
   // Component lifecycle effects
   useEffect(() => {
@@ -160,44 +157,9 @@ const OptinMetrics = () => {
    */
   const accountType = route?.params?.accountType ?? reduxAccountType;
 
-  const continueNavigation = useCallback(async () => {
-    await markMetricsOptInUISeen();
-
-    const successFlow = route?.params?.successFlow;
-    finalizeOnboardingCompletion({
-      successFlow,
-      accountType,
-      isBasicFunctionalityEnabled,
-      walletSetupAttributionProps,
-      dispatch,
-      discoverAccountsLogContext: 'OptinMetrics',
-      needsQrProvisioning,
-    });
-
-    const onContinue = route?.params?.onContinue as (() => void) | undefined;
-    if (onContinue) {
-      return onContinue();
-    }
-
-    navigation.reset({
-      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-    });
-  }, [
-    dispatch,
-    navigation,
-    route?.params,
-    accountType,
-    isBasicFunctionalityEnabled,
-    walletSetupAttributionProps,
-    needsQrProvisioning,
-  ]);
-
-  /**
-   * Callback on press confirm
-   */
-  const onConfirm = useCallback(async () => {
+  const applyMetricsPreferences = useCallback(async () => {
     await metrics.enable(isBasicUsageChecked);
-    await setupSentry(); // enabled/disabled depend on the isBasicUsageChecked
+    await setupSentry();
 
     if (isBasicUsageChecked) {
       await flushBufferedTraces();
@@ -208,7 +170,6 @@ const OptinMetrics = () => {
 
     dispatch(setDataCollectionForMarketing(isMarketingChecked));
 
-    // Track opt-in / opt-out for metrics
     metrics.trackEvent(
       metrics
         .createEventBuilder(
@@ -244,8 +205,6 @@ const OptinMetrics = () => {
       [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
     });
 
-    // track onboarding events that were stored before user opted in
-    // only if the user eventually opts in.
     if (events?.length && isBasicUsageChecked) {
       const attributionProps =
         getWalletSetupAttributionPropsFromStore(isMarketingChecked);
@@ -257,25 +216,71 @@ const OptinMetrics = () => {
     }
 
     dispatch(clearOnboardingEvents());
+  }, [
+    metrics,
+    isBasicUsageChecked,
+    isMarketingChecked,
+    accountType,
+    events,
+    dispatch,
+  ]);
 
+  const continueNavigation = useCallback(async () => {
+    await applyMetricsPreferences();
+    await markMetricsOptInUISeen();
+
+    const successFlow = route?.params?.successFlow;
+    finalizeOnboardingCompletion({
+      successFlow,
+      accountType,
+      isBasicFunctionalityEnabled,
+      walletSetupAttributionProps,
+      dispatch,
+      discoverAccountsLogContext: 'OptinMetrics',
+      needsQrProvisioning,
+    });
+
+    const onContinue = route?.params?.onContinue as (() => void) | undefined;
+    if (onContinue) {
+      return onContinue();
+    }
+
+    navigation.reset({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
+  }, [
+    applyMetricsPreferences,
+    dispatch,
+    navigation,
+    route?.params,
+    accountType,
+    isBasicFunctionalityEnabled,
+    walletSetupAttributionProps,
+    needsQrProvisioning,
+  ]);
+
+  /**
+   * Callback on press confirm.
+   * Metrics consent is applied only when the flow actually finishes so that
+   * going back to an earlier step (e.g. SRP "Remind me later") does not skip
+   * remaining onboarding screens.
+   */
+  const onConfirm = useCallback(async () => {
     if (isBasicUsageChecked && shouldShowQuestionnaire) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
       });
-    } else {
-      await continueNavigation();
+      return;
     }
+
+    await continueNavigation();
   }, [
-    metrics,
     isBasicUsageChecked,
     shouldShowQuestionnaire,
-    dispatch,
-    isMarketingChecked,
-    accountType,
-    events,
     navigation,
     continueNavigation,
+    accountType,
   ]);
 
   /**
@@ -385,14 +390,7 @@ const OptinMetrics = () => {
     [isEndReached],
   );
 
-  const rootStyle = useMemo(
-    () =>
-      tw.style('flex-1 bg-default', {
-        paddingTop:
-          Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
-      }),
-    [tw],
-  );
+  const rootStyle = useMemo(() => tw.style('flex-1 bg-default'), [tw]);
 
   const goToDefaultSettings = () => {
     navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
@@ -402,6 +400,14 @@ const OptinMetrics = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
+      <HeaderCompactStandard
+        includesTopInset
+        onBack={handleBack}
+        backButtonProps={{
+          testID: MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_BACK_BUTTON_ID,
+          accessibilityLabel: strings('navigation.back'),
+        }}
+      />
       <ScrollView
         style={tw.style('flex-1')}
         scrollEventThrottle={150}

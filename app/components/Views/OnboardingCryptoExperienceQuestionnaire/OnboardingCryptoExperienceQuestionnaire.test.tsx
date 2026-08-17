@@ -13,6 +13,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
+const mockGoBack = jest.fn();
 const mockOnComplete = jest.fn();
 
 const mockCryptoExperienceRouteParams: {
@@ -26,6 +27,12 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+      goBack: mockGoBack,
+      reset: jest.fn(),
+      setOptions: jest.fn(),
+    }),
     useRoute: () => ({
       key: 'OnboardingCryptoExperienceQuestionnaire',
       name: 'OnboardingCryptoExperienceQuestionnaire',
@@ -98,8 +105,32 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
     });
   });
 
+  describe('back button', () => {
+    it('renders the back button', () => {
+      renderComponent();
+
+      expect(
+        screen.getByTestId(
+          OnboardingCryptoExperienceQuestionnaireTestIds.BACK_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to the previous screen when the back button is pressed', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          OnboardingCryptoExperienceQuestionnaireTestIds.BACK_BUTTON,
+        ),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('hardware back', () => {
-    it('subscribes to hardware back and consumes the back press', () => {
+    it('navigates back and consumes the hardware back press', () => {
       const spy = jest.spyOn(BackHandler, 'addEventListener');
 
       renderComponent();
@@ -110,7 +141,9 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
       );
       const call = spy.mock.calls.find((c) => c[0] === 'hardwareBackPress');
       const handler = call?.[1] as () => boolean;
+
       expect(handler()).toBe(true);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
 
       spy.mockRestore();
     });
