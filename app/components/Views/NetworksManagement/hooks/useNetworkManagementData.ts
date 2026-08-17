@@ -9,6 +9,7 @@ import {
   getFilteredPopularNetworks,
   PopularList,
 } from '../../../../util/networks/customNetworks';
+import { Network } from '../../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { SECTION_KEYS } from '../NetworksManagementView.constants';
 import {
   NetworkManagementItem,
@@ -47,12 +48,12 @@ const buildAddedNetworkItem = (
 };
 
 /**
- * Builds a NetworkManagementItem from a PopularList entry that is NOT yet added.
+ * Builds a NetworkManagementItem from a popular network that is NOT yet added.
  */
 const buildAvailableNetworkItem = (
-  popular: (typeof PopularList)[number],
+  popular: Network,
 ): NetworkManagementItem => ({
-  chainId: popular.chainId,
+  chainId: popular.chainId as Hex,
   name: popular.nickname,
   isTestNet: false,
   imageSource:
