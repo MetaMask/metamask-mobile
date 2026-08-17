@@ -30,6 +30,10 @@ const MoneyHeader = ({ onMenuPress, onGetProPress }: MoneyHeaderProps) => {
     <HeaderRoot
       testID={MoneyHeaderTestIds.CONTAINER}
       twClassName="pl-4 pr-3"
+      title={strings('money.title')}
+      titleProps={{
+        testID: MoneyHeaderTestIds.TITLE,
+      }}
       endAccessory={
         <Box twClassName="flex-row items-center gap-1">
           {isProSubscriptionEnabled && (
