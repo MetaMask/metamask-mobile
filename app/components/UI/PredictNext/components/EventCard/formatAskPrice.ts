@@ -1,6 +1,7 @@
 import type { PredictDecimal } from '../../types';
+import { roundProbabilityToWhole } from '../../utils/formatProbability';
 
 export const formatAskPrice = (
   askPrice?: PredictDecimal,
 ): string | undefined =>
-  askPrice === undefined ? undefined : `${Math.round(Number(askPrice) * 100)}¢`;
+  askPrice === undefined ? undefined : `${roundProbabilityToWhole(askPrice)}¢`;

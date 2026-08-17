@@ -3,6 +3,8 @@ import type {
   PaginatedResult,
   PredictEntityId,
   PredictEvent,
+  PredictMarketHistory,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueStatus,
 } from '../types';
@@ -17,4 +19,9 @@ export interface VenueMarketDataAdapter {
     eventId: PredictEntityId,
     options?: PredictReadOptions,
   ): Promise<PredictEvent>;
+  fetchMarketHistory(
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<PredictMarketHistory>;
 }

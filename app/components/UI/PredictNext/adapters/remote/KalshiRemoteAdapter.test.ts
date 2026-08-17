@@ -1,5 +1,5 @@
 import { PredictErrorCode } from '../../errors';
-import type { PredictEntityId } from '../../types';
+import type { PredictEntityId, PredictMarketHistoryRange } from '../../types';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
 import {
   type PredictApiReadTransport,
@@ -7,6 +7,8 @@ import {
 } from './PredictApiReadClient';
 
 const eventId = 'event-1' as PredictEntityId;
+const marketId = 'market-1' as PredictEntityId;
+const range: PredictMarketHistoryRange = '1D';
 
 const createEvent = (overrides = {}) => ({
   venueId: 'kalshi',
@@ -38,10 +40,25 @@ const createEvent = (overrides = {}) => ({
   ...overrides,
 });
 
+const createMarketHistory = (overrides = {}) => ({
+  venueId: 'kalshi',
+  marketId: 'market-1',
+  range,
+  observedAt: '2026-08-07T12:00:00Z',
+  points: [
+    {
+      timestamp: '2026-08-07T11:00:00Z',
+      yesPrice: '0.42',
+    },
+  ],
+  ...overrides,
+});
+
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
   fetchEvents: jest.fn(),
   fetchEvent: jest.fn(),
+  fetchMarketHistory: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
@@ -96,6 +113,42 @@ describe('KalshiRemoteAdapter', () => {
     client.fetchEvent.mockResolvedValue(createEvent({ id: 'event-2' }));
 
     await expect(adapter.marketData.fetchEvent(eventId)).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('parses Market history', async () => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory());
+
+    const result = await adapter.marketData.fetchMarketHistory(marketId, range);
+
+    expect(result.points[0].yesPrice).toBe('0.42');
+  });
+
+  it('forwards Market history cancellation', async () => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory());
+    const signal = new AbortController().signal;
+
+    await adapter.marketData.fetchMarketHistory(marketId, range, { signal });
+
+    expect(client.fetchMarketHistory).toHaveBeenCalledWith(
+      adapter.venueId,
+      marketId,
+      range,
+      { signal },
+    );
+  });
+
+  it.each([
+    ['Venue ID', { venueId: 'other' }],
+    ['Market ID', { marketId: 'market-2' }],
+    ['range', { range: '1W' }],
+  ])('rejects Market history with another %s', async (_field, overrides) => {
+    client.fetchMarketHistory.mockResolvedValue(createMarketHistory(overrides));
+
+    const result = adapter.marketData.fetchMarketHistory(marketId, range);
+
+    await expect(result).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });

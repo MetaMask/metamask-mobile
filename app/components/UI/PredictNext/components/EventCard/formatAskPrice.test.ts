@@ -14,6 +14,12 @@ describe('formatAskPrice', () => {
     expect(result).toBe('0¢');
   });
 
+  it('rounds an Ask Price without floating-point drift', () => {
+    const result = formatAskPrice('0.285' as PredictDecimal);
+
+    expect(result).toBe('29¢');
+  });
+
   it('omits a missing Ask Price', () => {
     const result = formatAskPrice();
 

@@ -1,0 +1,1 @@
+export { PredictMarketHistory } from './PredictMarketHistory';

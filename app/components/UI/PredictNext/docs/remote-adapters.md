@@ -69,9 +69,11 @@ The mobile/backend API exposes product capabilities, not raw Kalshi endpoints. R
 - every response contains canonical Venue context where relevant,
 - credentials, PII, and raw KYC payloads never appear in canonical responses.
 
-Contract-version header enforcement and cross-repository fixture tooling are deferred until their semantics and value are proven. The implemented first read-only slice needs only Venue Status and Event list/detail; Event responses embed the initial optional Outcome Bid Price and Ask Price snapshot.
+Contract-version header enforcement and cross-repository fixture tooling are deferred until their semantics and value are proven. Public reads now include Venue Status, Event list/detail, and Market history; Event responses embed the initial optional Outcome Bid Price and Ask Price snapshot.
 
-The agreed next public-read contract uses Venue-qualified Feed reads, immutable Event detail, and a Rolling Series current-Event read. All return complete canonical Events; the backend owns Feed selection/order, single Category and Series normalization, current-Event selection, Sports/Game snapshot normalization, Outcome Game Selection, Kalshi lifecycle mapping, decimal-string Volume, and approved HTTPS image URLs. No separate Game route is required initially. See [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Do not define a separate price, account, or write route until a slice requires it.
+Market history uses `GET /v1/venues/{venueId}/markets/{marketId}/history?range={range}` with the supported ranges `LIVE`, `1D`, `1W`, `1M`, and `1Y`. The response contains the Venue and Market identity, range, backend observation time, and canonical timestamp/Yes-price points. `LIVE` is a REST history snapshot through the backend observation time; mobile does not poll, interpolate, or generate points.
+
+The agreed next public-read contract uses Venue-qualified Feed reads, immutable Event detail, and a Rolling Series current-Event read. All return complete canonical Events; the backend owns Feed selection/order, single Category and Series normalization, current-Event selection, Sports/Game snapshot normalization, Outcome Game Selection, Kalshi lifecycle mapping, decimal-string Volume, and approved HTTPS image URLs. No separate Game route is required initially. See [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Do not define another price, account, or write route until a slice requires it.
 
 ## Sensitive-data rule
 

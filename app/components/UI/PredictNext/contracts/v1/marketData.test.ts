@@ -2,6 +2,7 @@ import { PredictError, PredictErrorCode } from '../../errors';
 import {
   parsePredictEvent,
   parsePredictEventsPage,
+  parsePredictMarketHistory,
   parsePredictVenueStatus,
 } from './marketData';
 
@@ -29,6 +30,20 @@ const createEvent = (overrides = {}) => ({
   id: 'event-1',
   title: 'Game outcome',
   markets: [createMarket()],
+  ...overrides,
+});
+
+const createMarketHistory = (overrides = {}) => ({
+  venueId,
+  marketId: 'market-1',
+  range: '1D',
+  observedAt: '2026-08-07T12:00:00Z',
+  points: [
+    {
+      timestamp: '2026-08-07T11:00:00Z',
+      yesPrice: '0.42',
+    },
+  ],
   ...overrides,
 });
 
@@ -184,5 +199,95 @@ describe('Predict API canonical response parsers', () => {
       status: 'available',
       checkedAt: '2026-08-07T12:00:00Z',
     });
+  });
+
+  it.each(['LIVE', '1D', '1W', '1M', '1Y'] as const)(
+    'parses %s Market history',
+    (range) => {
+      const input = createMarketHistory({ range });
+
+      const result = parsePredictMarketHistory(input);
+
+      expect(result).toEqual(input);
+    },
+  );
+
+  it('discards unknown fields throughout Market history', () => {
+    const input = createMarketHistory({
+      addition: 'discard',
+      points: [
+        {
+          timestamp: '2026-08-07T11:00:00Z',
+          yesPrice: '0.42',
+          pointAddition: 'discard',
+        },
+      ],
+    });
+
+    const result = parsePredictMarketHistory(input);
+
+    expect(result).toEqual({
+      venueId,
+      marketId: 'market-1',
+      range: '1D',
+      observedAt: '2026-08-07T12:00:00Z',
+      points: [
+        {
+          timestamp: '2026-08-07T11:00:00Z',
+          yesPrice: '0.42',
+        },
+      ],
+    });
+  });
+
+  it.each([
+    ['venueId', createMarketHistory({ venueId: '' })],
+    ['marketId', createMarketHistory({ marketId: '' })],
+    ['range', createMarketHistory({ range: 'ALL' })],
+    ['observedAt', createMarketHistory({ observedAt: 'not-a-timestamp' })],
+    [
+      'points',
+      createMarketHistory({
+        points: [{ timestamp: '2026-08-07T11:00:00Z', yesPrice: 0.42 }],
+      }),
+    ],
+  ])('rejects malformed Market history %s', (_field, input) => {
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it.each([
+    ['timestamp', { timestamp: 'not-a-timestamp', yesPrice: '0.42' }],
+    ['yesPrice', { timestamp: '2026-08-07T11:00:00Z', yesPrice: '1.01' }],
+  ])('rejects a malformed Market history point %s', (_field, point) => {
+    const input = createMarketHistory({ points: [point] });
+
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it('rejects Market history points that are not chronological', () => {
+    const input = createMarketHistory({
+      points: [
+        { timestamp: '2026-08-07T11:00:00Z', yesPrice: '0.42' },
+        { timestamp: '2026-08-07T10:00:00Z', yesPrice: '0.40' },
+      ],
+    });
+
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it('rejects Market history points after the backend observation time', () => {
+    const input = createMarketHistory({
+      points: [{ timestamp: '2026-08-07T12:00:01Z', yesPrice: '0.42' }],
+    });
+
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
   });
 });

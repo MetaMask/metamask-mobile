@@ -16,6 +16,7 @@ import type {
   PaginatedResult,
   PredictEvent,
   PredictMarket,
+  PredictMarketHistory,
   PredictVenueStatus,
 } from '../../types';
 
@@ -47,6 +48,7 @@ const status = enums([
 ] as const);
 const venueStatus = enums(['available', 'degraded', 'unavailable'] as const);
 const side = enums(['yes', 'no'] as const);
+const marketHistoryRange = enums(['LIVE', '1D', '1W', '1M', '1Y'] as const);
 
 const outcomeSchema = object({
   id: entityId,
@@ -103,6 +105,33 @@ const venueStatusSchema = object({
   checkedAt: timestamp,
 });
 
+const marketHistoryPointSchema = object({
+  timestamp,
+  yesPrice: decimal,
+});
+
+const marketHistorySchema = refine(
+  object({
+    venueId,
+    marketId: entityId,
+    range: marketHistoryRange,
+    observedAt: timestamp,
+    points: array(marketHistoryPointSchema),
+  }),
+  'OrderedMarketHistory',
+  ({ observedAt, points }) => {
+    const observedAtMs = Date.parse(observedAt);
+    let previousTimestampMs = -Infinity;
+
+    return points.every((point) => {
+      const pointTimestampMs = Date.parse(point.timestamp);
+      const isOrdered = pointTimestampMs >= previousTimestampMs;
+      previousTimestampMs = pointTimestampMs;
+      return isOrdered && pointTimestampMs <= observedAtMs;
+    });
+  },
+);
+
 const eventsParamsSchema = object({
   cursor: optional(string()),
   limit: optional(refine(number(), 'PositiveLimit', (value) => value > 0)),
@@ -128,6 +157,11 @@ export const parsePredictEventsPage = (
 
 export const parsePredictMarket = (value: unknown): PredictMarket =>
   parse(value, marketSchema) as unknown as PredictMarket;
+
+export const parsePredictMarketHistory = (
+  value: unknown,
+): PredictMarketHistory =>
+  parse(value, marketHistorySchema) as unknown as PredictMarketHistory;
 
 export const parsePredictVenueStatus = (value: unknown): PredictVenueStatus =>
   parse(value, venueStatusSchema) as unknown as PredictVenueStatus;
