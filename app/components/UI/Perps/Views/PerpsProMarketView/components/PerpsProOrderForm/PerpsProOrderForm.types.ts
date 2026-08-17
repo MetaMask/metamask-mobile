@@ -73,7 +73,15 @@ export interface PerpsProOrderFormProps {
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;
+  onLimitPriceFocus?: () => void;
   onLimitPriceBlur?: () => void;
+  /**
+   * Forwarded to the order-type card — which holds the limit price row, and
+   * later the trigger price row — so it can be measured for keyboard clearance.
+   */
+  orderTypeCardRef?: Ref<View>;
+  /** Fires on every limit price field tap, including while already focused. */
+  onLimitPriceFieldPress?: () => void;
   onUseMidPricePress?: () => void;
   sizeInput: PerpsProSizeInputModel;
   sizeSlider: PerpsProSizeSliderModel;

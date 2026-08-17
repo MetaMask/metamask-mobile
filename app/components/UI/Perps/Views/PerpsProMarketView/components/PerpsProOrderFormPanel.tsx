@@ -107,6 +107,17 @@ const PerpsProOrderFormPanel = ({
     realign: onSizeFieldPress,
   } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
 
+  // One instance per field rather than a single shared handler: each keeps its
+  // own card measurement and stays inert unless its own field holds focus, so
+  // moving between fields needs no hand-off. The measured card here is the
+  // order-type card, which wraps the limit price row.
+  const {
+    cardRef: orderTypeCardRef,
+    onFocus: onLimitPriceFocus,
+    onBlur: onLimitPriceCardBlur,
+    realign: onLimitPriceFieldPress,
+  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+
   // Composed, not replaced: the form's own handlers clear the slider preview
   // and drive the focused-size styling.
   const sizeInputWithKeyboardScroll = useMemo(
@@ -123,6 +134,12 @@ const PerpsProOrderFormPanel = ({
     }),
     [sizeInput, onSizeCardFocus, onSizeCardBlur],
   );
+
+  // Likewise composed: the form's blur finalizes the typed limit price.
+  const onLimitPriceBlurWithKeyboardScroll = useCallback(() => {
+    onLimitPriceBlur();
+    onLimitPriceCardBlur();
+  }, [onLimitPriceBlur, onLimitPriceCardBlur]);
 
   return (
     <Box
@@ -143,7 +160,10 @@ const PerpsProOrderFormPanel = ({
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
         onLimitPriceChange={onLimitPriceChange}
-        onLimitPriceBlur={onLimitPriceBlur}
+        onLimitPriceFocus={onLimitPriceFocus}
+        onLimitPriceBlur={onLimitPriceBlurWithKeyboardScroll}
+        orderTypeCardRef={orderTypeCardRef}
+        onLimitPriceFieldPress={onLimitPriceFieldPress}
         onUseMidPricePress={onUseMidPricePress}
         sizeInput={sizeInputWithKeyboardScroll}
         sizeSlider={sizeSlider}

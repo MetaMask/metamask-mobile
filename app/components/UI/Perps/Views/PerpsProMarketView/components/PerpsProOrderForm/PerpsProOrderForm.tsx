@@ -264,7 +264,10 @@ const PerpsProOrderForm = ({
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
+  onLimitPriceFocus,
   onLimitPriceBlur,
+  orderTypeCardRef,
+  onLimitPriceFieldPress,
   onUseMidPricePress,
   sizeInput,
   sizeSlider,
@@ -374,7 +377,10 @@ const PerpsProOrderForm = ({
               {leverageLabel}
             </ButtonBase>
           </Box>
-          <Box twClassName="overflow-hidden rounded-xl border border-muted bg-muted">
+          <Box
+            ref={orderTypeCardRef}
+            twClassName="overflow-hidden rounded-xl border border-muted bg-muted"
+          >
             <ButtonBase
               onPress={onOrderTypeButtonPress}
               twClassName="h-12 w-full bg-transparent px-3"
@@ -396,7 +402,9 @@ const PerpsProOrderForm = ({
                 label={strings('perps.order.limit_price_modal.title')}
                 value={limitPrice}
                 onChangeText={onLimitPriceChange}
+                onFocus={onLimitPriceFocus}
                 onBlur={onLimitPriceBlur}
+                onFieldPress={onLimitPriceFieldPress}
                 testID={ids.LIMIT_PRICE_INPUT}
                 variant="inline"
                 placeholder={strings('perps.order.limit_price_modal.title')}
