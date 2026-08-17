@@ -20,15 +20,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type {
-  PredictDecimal,
-  PredictEvent,
-  PredictMarket,
-  PredictOutcome,
-} from '../../types';
+import type { PredictEvent, PredictMarket, PredictOutcome } from '../../types';
 import { formatAskPrice } from './formatAskPrice';
 import { formatMultiplier } from './formatMultiplier';
 import { formatVolume } from './formatVolume';
+import { getAskPricePercent } from './getAskPricePercent';
 
 export const EVENT_CARD_VISIBLE_MARKET_COUNT = 3;
 
@@ -56,20 +52,6 @@ const OUTCOME_ROW_TEXT: Record<OutcomeRowColor, TextColor> = {
   green: TextColor.SuccessInverse,
   indigo: TextColor.InfoInverse,
   red: TextColor.ErrorInverse,
-};
-
-const getAskPricePercent = (askPrice?: PredictDecimal): number | undefined => {
-  if (askPrice === undefined) {
-    return undefined;
-  }
-
-  const value = Number(askPrice);
-
-  if (!Number.isFinite(value) || value < 0) {
-    return undefined;
-  }
-
-  return Math.min(100, value * 100);
 };
 
 interface RootProps {

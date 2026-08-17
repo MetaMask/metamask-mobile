@@ -1,4 +1,6 @@
+import BigNumber from 'bignumber.js';
 import type { PredictDecimal } from '../../types';
+import { parsePredictDecimal } from './parsePredictDecimal';
 
 const trimTrailingZeros = (value: string): string =>
   value.replace(/\.?0+$/, '');
@@ -6,21 +8,15 @@ const trimTrailingZeros = (value: string): string =>
 export const formatMultiplier = (
   askPrice?: PredictDecimal,
 ): string | undefined => {
-  if (askPrice === undefined) {
+  const price = parsePredictDecimal(askPrice);
+
+  if (price === undefined || price.lte(0)) {
     return undefined;
   }
 
-  const price = Number(askPrice);
-
-  if (!Number.isFinite(price) || price <= 0) {
-    return undefined;
-  }
-
-  const multiplier = 1 / price;
-  const formatted =
-    multiplier >= 10
-      ? trimTrailingZeros(multiplier.toFixed(1))
-      : trimTrailingZeros(multiplier.toFixed(2));
+  const multiplier = new BigNumber('1').div(price);
+  const decimalPlaces = multiplier.gte(10) ? 1 : 2;
+  const formatted = trimTrailingZeros(multiplier.toFixed(decimalPlaces));
 
   return `${formatted}x`;
 };

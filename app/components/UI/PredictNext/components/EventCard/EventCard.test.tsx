@@ -195,6 +195,14 @@ describe('EventCard.OutcomeRow', () => {
     ).toHaveStyle({ width: '42%' });
   });
 
+  it('sizes the chance line from an Ask Price that is not an exact binary float', () => {
+    renderRow('0.58');
+
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
+    ).toHaveStyle({ width: '58%' });
+  });
+
   it('uses a compact price button width', () => {
     renderRow('0.42');
 
