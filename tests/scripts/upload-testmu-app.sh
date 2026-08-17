@@ -25,7 +25,9 @@ APP_LIST="$(curl -fsS -u "$LT_USERNAME:$LT_ACCESS_KEY" "$LIST_URL")"
 EXISTING_APP_URL="$(
   jq -r --arg custom_id "$CUSTOM_ID" '
     .. | objects
-    | select((.custom_id? // .customId? // "") == $custom_id)
+    | select(
+        (.custom_id? // .customId? // .name? // "") == $custom_id
+      )
     | (.app_url? // .appUrl? // empty)
   ' <<<"$APP_LIST" | awk 'NF { print; exit }'
 )"
