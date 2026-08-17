@@ -54,6 +54,7 @@ import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import useMoneyAccountVisibility from '../../../Money/hooks/useMoneyAccountVisibility';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
+import EarnNoFeeTag from '../EarnNoFeeTag';
 
 interface EarnSectionProps {
   sectionIndex: number;
@@ -99,14 +100,6 @@ const renderNewTag = () => (
   </Tag>
 );
 
-const renderSuccessChevron = () => (
-  <Icon
-    name={IconName.ArrowRight}
-    color={IconColor.SuccessDefault}
-    size={IconSize.Xs}
-  />
-);
-
 const renderAssetCardSkeleton = (key: string) => (
   <EarnSectionCard key={key} testID={key}>
     <Skeleton height={40} width={40} twClassName="rounded-full" />
@@ -129,7 +122,7 @@ const renderUnavailableAssetCard = (key: string) => (
       />
     }
     primaryText={strings('earn_module.asset_unavailable')}
-    secondaryText={strings('earn_module.get_started')}
+    secondaryText=""
     tertiaryText={strings('earn_module.rate_unavailable')}
     testID={key}
   />
@@ -146,8 +139,10 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const { assetSlots, hasMoreAssets, moneyApyPercent, isLoading, refresh } =
       useEarnSectionAssets();
 
-    const { totalFiatFormatted: moneyAccountBalanceFiat } =
-      useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
+    const {
+      totalFiatFormatted: moneyAccountBalanceFiat,
+      totalFiatRaw: moneyAccountBalanceRaw,
+    } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
 
     const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
       useMoneyNavigation();
@@ -216,16 +211,22 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     };
 
     const moneyAccountCardSecondaryText = useMemo(() => {
-      if (isOnboardingRedirectNeeded && moneyAccountBalanceFiat === '0') {
+      if (isOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
         return strings('earn_module.get_started');
       }
 
-      if (!isOnboardingRedirectNeeded && moneyAccountBalanceFiat === '0') {
-        return strings('earn_module.start_earning');
+      if (!isOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+        return strings('money.asset_overview.cta.start_earning');
       }
 
-      return moneyAccountBalanceFiat;
-    }, [isOnboardingRedirectNeeded, moneyAccountBalanceFiat]);
+      return (
+        moneyAccountBalanceFiat ?? strings('earn_module.balance_unavailable')
+      );
+    }, [
+      isOnboardingRedirectNeeded,
+      moneyAccountBalanceFiat,
+      moneyAccountBalanceRaw,
+    ]);
 
     const handleMoneyAccountCardPress = useCallback(() => {
       navigateToMoneyHome();
@@ -236,7 +237,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         <Box testID="earn-section">
           <SectionDivider />
           <SectionHeader
-            title={strings('homepage.sections.earn_strategies')}
+            title={strings('homepage.sections.earn')}
             isInteractive
             onPress={handleHeaderPress}
             testID={homepageSectionTitleTestId(HomeSectionNames.EARN)}
@@ -256,7 +257,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     name="money-balance"
                   />
                 }
-                tag={renderNewTag()}
+                tag={
+                  moneyAccountBalanceRaw === '0' ? renderNewTag() : undefined
+                }
                 primaryText={strings('earn_module.money_account')}
                 secondaryText={moneyAccountCardSecondaryText}
                 tertiaryText={
@@ -267,7 +270,6 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                         percentage: truncateNumber(moneyApyPercent),
                       })
                 }
-                tertiaryAccessory={renderSuccessChevron()}
                 testID="earn-section-money-account-card"
                 onPress={handleMoneyAccountCardPress}
               />
@@ -281,15 +283,22 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
                   const { asset } = slot;
                   const hasAssetBalance = hasEarnAssetBalance(asset);
+                  const hasSubsidizedFee = asset.experiences.some(
+                    ({ isFeeSubsidized }) => isFeeSubsidized,
+                  );
                   const isApr =
                     asset.highestRateExperience?.rate.type === 'APR';
                   const rateText =
                     asset.highestRatePercent === undefined
                       ? strings('earn_module.rate_unavailable')
                       : strings(
-                          isApr
-                            ? 'earn_module.rate_apr'
-                            : 'earn_module.rate_apy',
+                          hasAssetBalance
+                            ? isApr
+                              ? 'earn_module.get_rate_apr'
+                              : 'earn_module.get_rate_apy'
+                            : isApr
+                              ? 'earn_module.rate_apr'
+                              : 'earn_module.rate_apy',
                           {
                             percentage: truncateNumber(
                               asset.highestRatePercent,
@@ -301,17 +310,21 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     <EarnSectionAssetCard
                       key={slot.key}
                       icon={renderEarnAssetIcon(asset)}
+                      tag={
+                        hasSubsidizedFee ? (
+                          <EarnNoFeeTag
+                            testID={`earn-section-asset-${index}-no-fee-tag`}
+                          />
+                        ) : undefined
+                      }
                       primaryText={asset.ticker ?? asset.symbol}
                       secondaryText={
                         hasAssetBalance
                           ? (getEarnAssetFiatDisplay(asset) ??
                             strings('earn_module.balance_unavailable'))
-                          : strings('earn_module.get_started')
+                          : (asset.name ?? asset.ticker ?? asset.symbol)
                       }
                       tertiaryText={rateText}
-                      tertiaryAccessory={
-                        hasAssetBalance ? renderSuccessChevron() : undefined
-                      }
                       testID={`earn-section-asset-${index}-card`}
                       onPress={() => handleAssetCardPress(asset)}
                     />

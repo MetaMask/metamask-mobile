@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Box,
+  BoxFlexDirection,
   FontWeight,
   Text,
   TextColor,
@@ -10,6 +11,7 @@ import {
   TagSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import EarnNoFeeTag from '../EarnNoFeeTag';
 import {
   EarnStrategyRiskLevel,
   type EarnStrategyCardProps,
@@ -42,6 +44,7 @@ const EarnStrategyCard = ({
   title,
   subtitle,
   tertiaryText,
+  isFeeSubsidized = false,
   selected = false,
   onPress,
   testID,
@@ -62,7 +65,14 @@ const EarnStrategyCard = ({
       contentWrapperProps={{ twClassName: 'h-full w-full' }}
     >
       <Box twClassName="h-full w-full" accessible={false}>
-        <Tag severity={tagConfig.severity}>{strings(tagConfig.labelKey)}</Tag>
+        <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+          <Tag severity={tagConfig.severity}>{strings(tagConfig.labelKey)}</Tag>
+          {isFeeSubsidized && (
+            <EarnNoFeeTag
+              testID={testID ? `${testID}-no-fee-tag` : undefined}
+            />
+          )}
+        </Box>
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Medium}

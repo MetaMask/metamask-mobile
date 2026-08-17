@@ -78,6 +78,7 @@ const createStrategy = (
     type,
     role: 'underlying',
     rate: { type: 'APY', percentage: 6.2, status: 'ready' },
+    isFeeSubsidized: false,
   },
   risk: EarnStrategyRiskLevel.Recommended,
   title: '6.2% APY',
@@ -116,6 +117,7 @@ const createHookResult = (): ReturnType<typeof useEarnAssetStrategies> => ({
         type: EARN_EXPERIENCES.STABLECOIN_LENDING,
         role: 'underlying',
         rate: { type: 'APR', percentage: 4.2, status: 'ready' },
+        isFeeSubsidized: false,
       },
       risk: EarnStrategyRiskLevel.Medium,
       title: '4.2% APR',
@@ -168,6 +170,26 @@ describe('EarnStrategySelectionView', () => {
     expect(
       screen.getByTestId('earn-strategy-card-lending:usdc'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders No fee for a subsidized Money strategy', () => {
+    const hookResult = createHookResult();
+    hookResult.strategies[0].experience.isFeeSubsidized = true;
+    mockUseEarnAssetStrategies.mockReturnValue(hookResult);
+
+    render(<EarnStrategySelectionView />);
+
+    expect(
+      screen.getByTestId('earn-strategy-card-money:usdc-no-fee-tag'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides No fee for a non-subsidized Money strategy', () => {
+    render(<EarnStrategySelectionView />);
+
+    expect(
+      screen.queryByTestId('earn-strategy-card-money:usdc-no-fee-tag'),
+    ).not.toBeOnTheScreen();
   });
 
   it('selects the first strategy when catalogue data resolves', async () => {

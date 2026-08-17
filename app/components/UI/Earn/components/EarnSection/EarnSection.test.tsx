@@ -79,10 +79,11 @@ const assetSlot: EarnSectionAssetSlot = {
         type: EARN_EXPERIENCES.STABLECOIN_LENDING,
         role: 'underlying',
         rate: {
-          type: 'APR',
+          type: 'APY',
           percentage: 4.2,
           status: 'ready',
         },
+        isFeeSubsidized: false,
       },
     ],
     highestRatePercent: 4.2,
@@ -91,10 +92,11 @@ const assetSlot: EarnSectionAssetSlot = {
       type: EARN_EXPERIENCES.STABLECOIN_LENDING,
       role: 'underlying',
       rate: {
-        type: 'APR',
+        type: 'APY',
         percentage: 4.2,
         status: 'ready',
       },
+      isFeeSubsidized: false,
     },
     rateStatus: 'ready',
   },
@@ -127,9 +129,9 @@ const mockSectionResult = (
   });
 };
 
-const getArrowIcons = () =>
+const getSuccessArrowIcons = () =>
   screen
-    .UNSAFE_getAllByType(Icon)
+    .UNSAFE_queryAllByType(Icon)
     .filter(
       ({ props }) =>
         props.name === IconName.ArrowRight &&
@@ -149,7 +151,8 @@ describe('EarnSection', () => {
       isMoneyAccountVisible: false,
     });
     mockUseMoneyAccountBalance.mockReturnValue({
-      totalFiatFormatted: '0',
+      totalFiatFormatted: '$0.00',
+      totalFiatRaw: '0',
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockUseMoneyNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: false,
@@ -162,20 +165,101 @@ describe('EarnSection', () => {
     mockSectionResult();
   });
 
-  it('renders the highest experience rate with its rate type', () => {
+  it('renders the Earn section title', () => {
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(screen.getByText(strings('earn_module.title'))).toBeOnTheScreen();
+  });
+
+  it('renders funded lending assets with Get APY copy', () => {
     render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        strings('earn_module.rate_apr', {
+        strings('earn_module.get_rate_apy', {
           percentage: '4.2',
         }),
       ),
     ).toBeOnTheScreen();
   });
 
-  it('renders a success chevron on the Money card', () => {
+  it('renders APR copy for funded staking assets', () => {
+    mockSectionResult({
+      assetSlots: [
+        {
+          ...assetSlot,
+          asset: {
+            ...assetSlot.asset,
+            highestRateExperience: {
+              id: 'pooled:eip155:1/slip44:60',
+              type: EARN_EXPERIENCES.POOLED_STAKING,
+              role: 'underlying',
+              rate: {
+                type: 'APR',
+                percentage: 4.2,
+                status: 'ready',
+              },
+              isFeeSubsidized: false,
+            },
+          },
+        },
+      ],
+    });
+
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(
+      screen.getByText(
+        strings('earn_module.get_rate_apr', {
+          percentage: '4.2',
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders No fee when a Money deposit experience is subsidized', () => {
+    mockSectionResult({
+      assetSlots: [
+        {
+          ...assetSlot,
+          asset: {
+            ...assetSlot.asset,
+            experiences: [
+              ...assetSlot.asset.experiences,
+              {
+                id: 'money:usdc',
+                type: 'MONEY_ACCOUNT_DEPOSIT',
+                role: 'funding',
+                rate: {
+                  type: 'APY',
+                  percentage: 3.5,
+                  status: 'ready',
+                },
+                isFeeSubsidized: true,
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(
+      screen.getByTestId('earn-section-asset-0-no-fee-tag'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides No fee when asset experiences are not subsidized', () => {
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(
+      screen.queryByTestId('earn-section-asset-0-no-fee-tag'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders New on the Money card with a zero balance', () => {
     mockUseMoneyAccountVisibility.mockReturnValue({
       isMoneyAccountVisible: true,
     });
@@ -186,27 +270,66 @@ describe('EarnSection', () => {
     expect(
       screen.getByTestId('earn-section-money-account-card'),
     ).toBeOnTheScreen();
-    const arrowIcons = getArrowIcons();
-    expect(arrowIcons).toHaveLength(1);
-    expect(arrowIcons[0].props.color).toBe(IconColor.SuccessDefault);
+    expect(screen.getByText(strings('earn_module.new_tag'))).toBeOnTheScreen();
   });
 
-  it('renders a success chevron on held asset cards', () => {
+  it('hides New on the Money card with a nonzero balance', () => {
+    mockUseMoneyAccountVisibility.mockReturnValue({
+      isMoneyAccountVisible: true,
+    });
+    mockUseMoneyAccountBalance.mockReturnValue({
+      totalFiatFormatted: '$10.00',
+      totalFiatRaw: '10',
+    } as ReturnType<typeof useMoneyAccountBalance>);
+    mockSectionResult({ assetSlots: [] });
+
     render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
-    expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
-    const arrowIcons = getArrowIcons();
-    expect(arrowIcons).toHaveLength(1);
-    expect(arrowIcons[0].props.color).toBe(IconColor.SuccessDefault);
+    expect(
+      screen.queryByText(strings('earn_module.new_tag')),
+    ).not.toBeOnTheScreen();
   });
 
-  it('does not render a chevron on zero-balance asset cards', () => {
+  it('hides New on the Money card when balance is unavailable', () => {
+    mockUseMoneyAccountVisibility.mockReturnValue({
+      isMoneyAccountVisible: true,
+    });
+    mockUseMoneyAccountBalance.mockReturnValue({
+      totalFiatFormatted: undefined,
+      totalFiatRaw: undefined,
+    } as ReturnType<typeof useMoneyAccountBalance>);
+    mockSectionResult({ assetSlots: [] });
+
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(
+      screen.queryByText(strings('earn_module.new_tag')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('earn_module.balance_unavailable')),
+    ).toBeOnTheScreen();
+  });
+
+  it('uses the asset name for zero-balance tiles', () => {
     mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
 
     render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
-    expect(getArrowIcons()).toHaveLength(0);
+    expect(screen.getByText(zeroBalanceAssetSlot.asset.name)).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('earn_module.get_started')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('removes green arrows from Money and asset tiles', () => {
+    mockUseMoneyAccountVisibility.mockReturnValue({
+      isMoneyAccountVisible: true,
+    });
+
+    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(getSuccessArrowIcons()).toHaveLength(0);
   });
 
   it('navigates with the selected CAIP-19 asset ID', () => {

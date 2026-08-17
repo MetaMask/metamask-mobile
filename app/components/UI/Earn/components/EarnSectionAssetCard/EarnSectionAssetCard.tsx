@@ -16,7 +16,6 @@ export interface EarnSectionAssetCardProps {
   primaryText: ReactNode;
   secondaryText: ReactNode;
   tertiaryText: ReactNode;
-  tertiaryAccessory?: ReactNode;
   onPress?: () => void;
   testID?: string;
 }
@@ -27,7 +26,6 @@ const EarnSectionAssetCard = ({
   primaryText,
   secondaryText,
   tertiaryText,
-  tertiaryAccessory,
   onPress,
   testID,
 }: EarnSectionAssetCardProps) => (
@@ -68,7 +66,6 @@ const EarnSectionAssetCard = ({
         >
           {tertiaryText}
         </Text>
-        {tertiaryAccessory}
       </Box>
     </Box>
   </EarnSectionCard>

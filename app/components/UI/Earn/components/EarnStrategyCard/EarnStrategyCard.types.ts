@@ -10,6 +10,7 @@ export interface EarnStrategyCardProps {
   title: string;
   subtitle: string;
   tertiaryText: string;
+  isFeeSubsidized?: boolean;
   selected?: boolean;
   onPress?: () => void;
   testID?: string;

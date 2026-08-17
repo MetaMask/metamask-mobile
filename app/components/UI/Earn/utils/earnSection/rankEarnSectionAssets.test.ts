@@ -31,6 +31,7 @@ const createAsset = (
         percentage: 3,
         status: 'ready',
       },
+      isFeeSubsidized: false,
     },
   ],
   ...overrides,
@@ -70,6 +71,7 @@ describe('rankEarnSectionAssets', () => {
             percentage: 6.2,
             status: 'ready',
           },
+          isFeeSubsidized: false,
         },
       ],
     });
@@ -91,12 +93,14 @@ describe('rankEarnSectionAssets', () => {
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying',
           rate: { type: 'APR', percentage: 4, status: 'ready' },
+          isFeeSubsidized: false,
         },
         {
           id: 'money:usdc',
           type: 'MONEY_ACCOUNT_DEPOSIT',
           role: 'funding',
           rate: { type: 'APY', percentage: 6.2, status: 'ready' },
+          isFeeSubsidized: false,
         },
       ],
     });
@@ -125,6 +129,7 @@ describe('rankEarnSectionAssets', () => {
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying',
           rate: { type: 'APR', status: 'error' },
+          isFeeSubsidized: false,
         },
       ],
     });

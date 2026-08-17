@@ -194,7 +194,7 @@ const EarnStrategySelectionView = () => {
             color={TextColor.TextAlternative}
             twClassName="mt-2"
           >
-            {strings('earn.strategy_selection.subtitle_generic', {
+            {strings('earn.strategy_selection.subtitle', {
               asset: tokenLabel,
             })}
           </Text>
@@ -242,6 +242,7 @@ const EarnStrategySelectionView = () => {
                     title={strategy.title}
                     subtitle={strategy.subtitle}
                     tertiaryText={strategy.tertiaryText}
+                    isFeeSubsidized={strategy.experience.isFeeSubsidized}
                     selected={selectedStrategyId === strategy.id}
                     onPress={() => handleStrategyPress(strategy.id)}
                     testID={`earn-strategy-card-${strategy.id}`}

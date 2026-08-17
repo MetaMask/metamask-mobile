@@ -11,9 +11,11 @@ import Engine from '../../../../core/Engine';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnController/earn';
 import { pooledStakingSelectors } from '../../../../selectors/earnController/pooledStaking';
+import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 import useMoneyAccountVisibility from '../../Money/hooks/useMoneyAccountVisibility';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
+import { isMoneyDepositFeeSubsidized } from '../../Money/utils/isMoneyDepositFeeSubsidized';
 import { moneyFormatFiat } from '../../Money/utils/moneyFormatFiat';
 import type { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
@@ -196,6 +198,7 @@ const getHeldEarnExperiences = ({
           percentage,
           status,
         },
+        isFeeSubsidized: false,
         market,
       },
     ];
@@ -207,11 +210,11 @@ const getHeldEarnExperiences = ({
  */
 const useEarnAssetCatalogue = () => {
   const preferredCurrency = useSelector(selectCurrentCurrency);
+  const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const { isMoneyAccountVisible } = useMoneyAccountVisibility();
   const {
     earnTokens,
     earnOutputTokens,
-    lendingMarkets: selectedLendingMarkets,
     moneyDepositAssets,
     isEarnEligible,
     isPooledStakingEnabled,
@@ -281,6 +284,7 @@ const useEarnAssetCatalogue = () => {
   const ethRatePercent = parseRatePercent(mainnetVaultApy?.apyPercentString);
   const ethRateStatus = getRateStatus({ percentage: ethRatePercent });
 
+  // TODO: Review
   const candidates = useMemo(() => {
     const nextCandidates: EarnAsset[] = [];
 
@@ -341,12 +345,17 @@ const useEarnAssetCatalogue = () => {
                 percentage: moneyApyPercent,
                 status: moneyRateStatus,
               },
+              isFeeSubsidized: isMoneyDepositFeeSubsidized(
+                relayFixedSpread,
+                token,
+              ),
             },
           ],
         });
       });
     }
 
+    // TODO: Review. Is this needed for the EarnSection's empty state when users don't hold stablecoins?
     if (isStablecoinLendingEnabled && isEarnEligible) {
       lendingMarkets.forEach((market) => {
         const chainId = toHex(market.chainId) as Hex;
@@ -383,6 +392,7 @@ const useEarnAssetCatalogue = () => {
                   percentage: ratePercentage,
                 }),
               },
+              isFeeSubsidized: false,
               market,
             },
           ],
@@ -405,6 +415,7 @@ const useEarnAssetCatalogue = () => {
               percentage: ethRatePercent,
               status: ethRateStatus,
             },
+            isFeeSubsidized: false,
           },
         ],
       });
@@ -425,6 +436,7 @@ const useEarnAssetCatalogue = () => {
               percentage: trxRatePercent,
               status: trxRateStatus,
             },
+            isFeeSubsidized: false,
           },
         ],
       });
@@ -447,6 +459,7 @@ const useEarnAssetCatalogue = () => {
     moneyDepositAssets,
     moneyRateStatus,
     preferredCurrency,
+    relayFixedSpread,
     trxRatePercent,
     trxRateStatus,
   ]);

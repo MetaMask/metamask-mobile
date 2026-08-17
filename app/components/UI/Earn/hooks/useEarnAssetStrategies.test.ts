@@ -36,6 +36,7 @@ const createCatalogueResult = (): ReturnType<typeof useEarnAssetCatalogue> => {
           percentage: 6.2,
           status: 'ready',
         },
+        isFeeSubsidized: false,
       },
       {
         id: 'lending:usdc',
@@ -46,6 +47,7 @@ const createCatalogueResult = (): ReturnType<typeof useEarnAssetCatalogue> => {
           percentage: 4.2,
           status: 'ready',
         },
+        isFeeSubsidized: false,
       },
     ],
   };
@@ -142,6 +144,7 @@ describe('useEarnAssetStrategies', () => {
                 percentage: 4.5,
                 status: 'ready',
               },
+              isFeeSubsidized: false,
             },
           ],
         },
@@ -171,6 +174,7 @@ describe('useEarnAssetStrategies', () => {
                 percentage: 3.8,
                 status: 'ready',
               },
+              isFeeSubsidized: false,
             },
           ],
         },

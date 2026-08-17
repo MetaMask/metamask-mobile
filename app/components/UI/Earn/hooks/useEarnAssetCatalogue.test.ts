@@ -2,12 +2,16 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { LendingMarket } from '@metamask/stake-sdk';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EARN_EXPERIENCES } from '../constants/experiences';
+import { MUSD_TOKEN_ADDRESS } from '../constants/musd';
 import { type EarnTokenDetails, LendingProtocol } from '../types/lending.types';
 import type { AssetType } from '../../../Views/confirmations/types/token';
 import Engine from '../../../../core/Engine';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnController/earn';
+import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
+import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
 import useMoneyAccountVisibility from '../../Money/hooks/useMoneyAccountVisibility';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
@@ -100,6 +104,17 @@ const moneyToken: AssetType = {
     currency: 'USD',
   },
 };
+const EMPTY_RELAY_FIXED_SPREAD_CONFIG: RelayFixedSpreadConfig = { routes: [] };
+const RELAY_CONFIG_WITH_MONEY_DEPOSIT_ROUTE: RelayFixedSpreadConfig = {
+  routes: [
+    {
+      sourceChain: '0x1',
+      sourceToken: USDC_ADDRESS as `0x${string}`,
+      targetChain: CHAIN_IDS.MONAD,
+      targetToken: MUSD_TOKEN_ADDRESS as `0x${string}`,
+    },
+  ],
+};
 
 const createEarnToken = (
   address: string,
@@ -142,6 +157,7 @@ const mockSelectorValues = ({
   earnTokens = [],
   earnOutputTokens = [],
   moneyDepositAssets = [moneyToken],
+  relayFixedSpread = EMPTY_RELAY_FIXED_SPREAD_CONFIG,
 }: {
   isPooledStakingEnabled?: boolean;
   isStablecoinLendingEnabled?: boolean;
@@ -149,9 +165,11 @@ const mockSelectorValues = ({
   earnTokens?: EarnTokenDetails[];
   earnOutputTokens?: EarnTokenDetails[];
   moneyDepositAssets?: AssetType[];
+  relayFixedSpread?: RelayFixedSpreadConfig;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectCurrentCurrency) return 'USD';
+    if (selector === selectRelayFixedSpread) return relayFixedSpread;
     if (selector === selectEarnAssetCatalogueInputs) {
       return {
         earnTokens,
@@ -243,6 +261,25 @@ describe('useEarnAssetCatalogue', () => {
       'APY',
       'APY',
     ]);
+    expect(
+      usdc?.experiences.map(({ isFeeSubsidized }) => isFeeSubsidized),
+    ).toEqual([false, false]);
+  });
+
+  it('marks Money deposit experiences with subsidized routes', () => {
+    mockSelectorValues({
+      relayFixedSpread: RELAY_CONFIG_WITH_MONEY_DEPOSIT_ROUTE,
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+    const usdc = result.current.assets.find(
+      ({ assetId }) => assetId === USDC_ASSET_ID,
+    );
+
+    expect(
+      usdc?.experiences.find(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
+        ?.isFeeSubsidized,
+    ).toBe(true);
   });
 
   it('adds Money funding to every deposit token including native assets', () => {
@@ -393,6 +430,7 @@ describe('useEarnAssetCatalogue', () => {
           percentage: 4.5,
           status: 'ready',
         },
+        isFeeSubsidized: false,
         market: undefined,
       },
     ]);

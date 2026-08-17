@@ -22,6 +22,7 @@ export interface EarnExperience {
   type: EarnExperienceType;
   role: EarnAssetRole;
   rate: EarnRate;
+  isFeeSubsidized: boolean;
   market?: LendingMarket;
 }
 

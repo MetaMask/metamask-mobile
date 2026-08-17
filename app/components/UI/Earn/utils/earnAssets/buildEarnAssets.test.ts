@@ -23,6 +23,7 @@ const createAsset = (overrides: Partial<EarnAsset> = {}): EarnAsset => ({
       type: 'MONEY_ACCOUNT_DEPOSIT',
       role: 'funding',
       rate: { type: 'APY', percentage: 6.2, status: 'ready' },
+      isFeeSubsidized: false,
     },
   ],
   ...overrides,
@@ -71,6 +72,7 @@ describe('buildEarnAssets', () => {
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying',
           rate: { type: 'APY', percentage: 4.2, status: 'ready' },
+          isFeeSubsidized: false,
         },
       ],
     });
@@ -91,6 +93,7 @@ describe('buildEarnAssets', () => {
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying',
           rate: { type: 'APY', percentage: 4.2, status: 'ready' },
+          isFeeSubsidized: false,
         },
       ],
     });
@@ -101,12 +104,14 @@ describe('buildEarnAssets', () => {
           type: EARN_EXPERIENCES.POOLED_STAKING,
           role: 'underlying',
           rate: { type: 'APR', percentage: 3.8, status: 'ready' },
+          isFeeSubsidized: false,
         },
         {
           id: 'trx:trx',
           type: EARN_EXPERIENCES.TRX_STAKING,
           role: 'underlying',
           rate: { type: 'APR', percentage: 4.5, status: 'ready' },
+          isFeeSubsidized: false,
         },
       ],
     });
@@ -129,18 +134,21 @@ describe('buildEarnAssets', () => {
           type: EARN_EXPERIENCES.TRX_STAKING,
           role: 'underlying',
           rate: { type: 'APR', percentage: 4.5, status: 'ready' },
+          isFeeSubsidized: false,
         },
         {
           id: 'lending:1:aave:usdc',
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying',
           rate: { type: 'APY', percentage: 4.2, status: 'ready' },
+          isFeeSubsidized: false,
         },
         {
           id: 'money:usdc',
           type: 'MONEY_ACCOUNT_DEPOSIT',
           role: 'funding',
           rate: { type: 'APY', percentage: 6.2, status: 'ready' },
+          isFeeSubsidized: false,
         },
       ],
     });

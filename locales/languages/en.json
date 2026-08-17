@@ -7470,8 +7470,7 @@
   "earn": {
     "strategy_selection": {
       "title": "Choose how to earn",
-      "subtitle": "Earn more with your Money account — move your {{asset}} for free.",
-      "subtitle_generic": "Choose an earning strategy for your {{asset}}.",
+      "subtitle": "Choose an earning strategy for your {{asset}}.",
       "tags": {
         "recommended": "Recommended",
         "low_risk": "Low risk",
@@ -7481,13 +7480,13 @@
       "strategies": {
         "money": {
           "title": "6.2% APY",
-          "subtitle": "Money",
-          "tertiary_text": "Highest yield · auto-earning"
+          "subtitle": "Money account",
+          "tertiary_text": "Variable yield · auto-earning"
         },
         "lending": {
           "title": "2.1% APR",
           "subtitle": "Lend {{asset}}",
-          "tertiary_text": "Lower yield"
+          "tertiary_text": "Variable yield"
         },
         "pooled_staking": {
           "title": "Variable APY",
@@ -7507,9 +7506,9 @@
           "row_3": "Secured in mUSD, a 1:1 dollar-backed stablecoin you can send across your MetaMask wallets"
         },
         "lending": {
-          "row_1": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          "row_2": "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-          "row_3": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+          "row_1": "Earn variable interest by lending stablecoins through the Aave protocol.",
+          "row_2": "Withdraw your funds at any time, subject to available market liquidity.",
+          "row_3": "Rates can change with market demand, and smart contract risks apply."
         },
         "pooled_staking": {
           "row_1": "Earn variable staking rewards on your ETH.",
@@ -7700,6 +7699,8 @@
     "get_started": "Get started",
     "rate_apy": "{{percentage}}% APY",
     "rate_apr": "{{percentage}}% APR",
+    "get_rate_apy": "Get {{percentage}}% APY",
+    "get_rate_apr": "Get {{percentage}}% APR",
     "rate_unavailable": "Rate unavailable",
     "balance_unavailable": "Balance unavailable",
     "asset_unavailable": "Asset unavailable",
@@ -10906,7 +10907,7 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
-      "earn_strategies": "Earn strategies",
+      "earn": "Earn",
       "more": {
         "title": "More",
         "import_token": "Import a token",
