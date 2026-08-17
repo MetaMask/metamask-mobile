@@ -198,6 +198,10 @@ describe('useBlockaidAlerts', () => {
         amount: '$1,234.56',
       }),
     );
+    expect(
+      (result.current[0].content?.props as { sendingFiatTotal: string })
+        .sendingFiatTotal,
+    ).toBe('$1,234.56');
   });
 
   it.each`

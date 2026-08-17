@@ -25,12 +25,12 @@ import {
   Reason,
   SecurityAlertResponse,
 } from '../../components/blockaid-banner/BlockaidBanner.types';
-import { useSendingAssetsFiatTotal } from '../../hooks/alerts/useSendingAssetsFiatTotal';
 import styleSheet from './blockaid-alert-content.styles';
 
 interface BlockaidAlertContentProps {
   alertDetails?: string[];
   securityAlertResponse: SecurityAlertResponse;
+  sendingFiatTotal?: string | null;
   onContactUsClicked: () => void;
 }
 
@@ -42,6 +42,7 @@ const getReportUrl = (encodedData: string) =>
 const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
   alertDetails,
   securityAlertResponse,
+  sendingFiatTotal = null,
   onContactUsClicked,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -50,7 +51,6 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const sendingFiatTotal = useSendingAssetsFiatTotal();
 
   const onToggleShowDetails = () => {
     setIsExpanded(!isExpanded);

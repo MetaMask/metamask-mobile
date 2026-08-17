@@ -60,6 +60,7 @@ export default function useBlockaidAlerts(): Alert[] {
             securityAlertResponse={
               securityAlertResponse as SecurityAlertResponse
             }
+            sendingFiatTotal={sendingFiatTotal}
             onContactUsClicked={trackBlockaidAlertLinkClickedEvent}
           />
         ),

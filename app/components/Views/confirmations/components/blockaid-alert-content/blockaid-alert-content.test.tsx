@@ -19,14 +19,6 @@ jest.mock('react-native-gzip', () => ({
   deflate: jest.fn().mockResolvedValue('compressedData'),
 }));
 
-jest.mock('../../hooks/alerts/useSendingAssetsFiatTotal', () => ({
-  useSendingAssetsFiatTotal: jest.fn(() => null),
-}));
-
-const mockUseSendingAssetsFiatTotal = jest.requireMock(
-  '../../hooks/alerts/useSendingAssetsFiatTotal',
-).useSendingAssetsFiatTotal;
-
 const networkStateWith = (
   chainId: Hex,
   name: string,
@@ -68,7 +60,6 @@ describe('BlockaidAlertContent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSendingAssetsFiatTotal.mockReturnValue(null);
   });
 
   it('renders correctly with given props', () => {
@@ -110,8 +101,6 @@ describe('BlockaidAlertContent', () => {
   });
 
   it('uses the amount description variant when a sending fiat total is available', () => {
-    mockUseSendingAssetsFiatTotal.mockReturnValue('$1,234.56');
-
     const { getByText } = renderWithProvider(
       <BlockaidAlertContent
         alertDetails={ALERT_DETAILS_MOCK}
@@ -119,6 +108,7 @@ describe('BlockaidAlertContent', () => {
           ...mockSecurityAlertResponse,
           reason: Reason.transferFarming,
         }}
+        sendingFiatTotal="$1,234.56"
         onContactUsClicked={mockOnContactUsClicked}
       />,
       { state: MAINNET_STATE },
