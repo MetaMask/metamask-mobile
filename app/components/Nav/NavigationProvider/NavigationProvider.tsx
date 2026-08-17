@@ -18,6 +18,7 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
+import { getNavIntegration } from '../../../util/sentry/utils';
 // TEMPORARY — remove with the audit itself before the v7 PR merges.
 import { attachNavigateAudit } from '../../../util/navigation/devNavigateAudit';
 
@@ -55,7 +56,8 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   };
 
   /**
-   * Sets the navigation ref on the NavigationService
+   * Sets the navigation ref on the NavigationService and registers it with
+   * Sentry's reactNavigationIntegration so onboarding screens emit TTID/TTFD spans.
    */
   const setNavigationRef = (ref: NavigationContainerRef<ParamListBase>) => {
     // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
@@ -68,6 +70,16 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     // Attached to the raw ref because NavigationService wraps it. Remove before
     // the v7 PR merges.
     attachNavigateAudit(ref);
+
+    // registerNavigationContainer is safe to call before Sentry.init completes:
+    // the SDK stores the ref and attaches listeners immediately; afterAllSetup
+    // (called by Sentry.init) picks up the container when it eventually runs.
+    // Calling it unconditionally removes the race where NavigationProvider mounts
+    // before the fire-and-forget setupSentry() in index.js finishes awaiting
+    // consent storage, which would otherwise silently drop TTID/ui.load wiring.
+    // E2E / test builds are handled inside getNavIntegration(), which returns a
+    // no-op stub when hasTestOverrides is true.
+    getNavIntegration().registerNavigationContainer(ref);
   };
 
   return (
