@@ -81,9 +81,10 @@ import {
   type PostTradeAnalyticsCta,
 } from './PostTradeBottomSheet.analytics';
 import {
-  BridgeQuoteRequestProvider,
-  useBridgeQuoteRequestContext,
-} from '../../hooks/useBridgeQuoteRequest/QuoteRequestContext';
+  BridgeQuotesProvider,
+  useBridgeQuotesContext,
+} from '../../hooks/useBridgeQuotes/BridgeQuotesProvider';
+import { useBridgeQuotesConfig } from '../../hooks/useBridgeQuotes/useBridgeQuotesConfig';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -158,7 +159,7 @@ const PostTradeBottomSheetComponent = () => {
   const shouldSkipDismissedTrackingRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const params = useParams<PostTradeBottomSheetParams>();
-  const updateQuoteParams = useBridgeQuoteRequestContext();
+  const { updateQuoteParams } = useBridgeQuotesContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBridge =
     params.sourceToken?.chainId &&
@@ -491,9 +492,11 @@ const PostTradeBottomSheetComponent = () => {
 };
 
 export const PostTradeBottomSheet = () => {
+  const config = useBridgeQuotesConfig();
+
   return (
-    <BridgeQuoteRequestProvider>
+    <BridgeQuotesProvider config={config}>
       <PostTradeBottomSheetComponent />
-    </BridgeQuoteRequestProvider>
+    </BridgeQuotesProvider>
   );
 };

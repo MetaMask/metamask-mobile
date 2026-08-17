@@ -75,9 +75,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+  BridgeQuotesProvider,
+  useBridgeQuotesContext,
+} from '../../hooks/useBridgeQuotes/BridgeQuotesProvider';
+import { useBridgeQuotesConfig } from '../../hooks/useBridgeQuotes/useBridgeQuotesConfig';
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
@@ -148,10 +149,6 @@ import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../utils/postTradeNotifications';
-import {
-  BridgeQuoteRequestProvider,
-  useBridgeQuoteRequestContext,
-} from '../../hooks/useBridgeQuoteRequest/QuoteRequestContext.tsx';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -302,8 +299,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
-  const updateQuoteParams = useBridgeQuoteRequestContext();
-
   const {
     activeQuote,
     isLoading,
@@ -314,7 +309,8 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     shouldShowPriceImpactWarning,
     needsNewQuote,
     isActiveQuoteForCurrentTokenPair,
-  } = useBridgeQuoteDataContext();
+    updateQuoteParams,
+  } = useBridgeQuotesContext();
 
   useInitialSlippage(
     activeQuote?.quote.slippage,
@@ -456,7 +452,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
       updateQuoteParams();
     }
     return () => {
-      updateQuoteParams.cancel();
+      if ('cancel' in updateQuoteParams) {
+        updateQuoteParams.cancel();
+      }
     };
   }, [
     hasValidBridgeInputs,
@@ -922,16 +920,14 @@ const BridgeView = () => {
     refreshKey: balanceRefreshKey,
   });
 
+  const config = useBridgeQuotesConfig({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
   return (
-    <BridgeQuoteRequestProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeQuoteDataProvider
-        latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-      >
-        <BridgeViewContent latestSourceBalance={latestSourceBalance} />
-      </BridgeQuoteDataProvider>
-    </BridgeQuoteRequestProvider>
+    <BridgeQuotesProvider config={config}>
+      <BridgeViewContent latestSourceBalance={latestSourceBalance} />
+    </BridgeQuotesProvider>
   );
 };
 

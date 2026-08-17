@@ -183,6 +183,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(() => 'USD'),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
   useDispatch: () => mockDispatch,
@@ -198,15 +202,28 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useBatchSellQuoteData', () => ({
-  useBatchSellQuoteData: jest.fn(() => mockBatchSellQuoteData),
-}));
-
-jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
-  useBatchSellQuoteRequest: jest.fn(() => ({
-    updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
+jest.mock('../../hooks/useBatchSellQuotes/BatchSellQuotesProvider', () => ({
+  BatchSellQuotesFromReduxProvider: ({
+    children,
+  }: {
+    children: unknown;
+  }) => children,
+  useBatchSellQuotesContext: jest.fn(() => ({
+    ...mockBatchSellQuoteData,
+    quotesByAssetId: {},
     getNewQuote: mockGetNewQuote,
   })),
+}));
+
+jest.mock('../BatchSellQuoteDetailsModal/getBatchSellQuoteRowDisplay', () => ({
+  getBatchSellQuoteRowDisplay: ({
+    token,
+  }: {
+    token: { address: string };
+  }) =>
+    mockBatchSellQuoteData.tokenData[
+      `eip155:1/erc20:${token.address}`
+    ],
 }));
 
 jest.mock('../../hooks/useBatchSellHasSufficientGas', () => ({

@@ -280,13 +280,25 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
+const mockUpdateQuoteParams = Object.assign(jest.fn(), {
+  cancel: jest.fn(),
+});
+const mockBridgeQuotesConfig = {};
+
+jest.mock('../../hooks/useBridgeQuotes/useBridgeQuotesConfig', () => ({
+  useBridgeQuotesConfig: () => mockBridgeQuotesConfig,
+}));
+
+jest.mock('../../hooks/useBridgeQuotes/BridgeQuotesProvider', () => {
   const { useBridgeQuoteData } = jest.requireMock(
     '../../hooks/useBridgeQuoteData',
   );
   return {
-    BridgeQuoteDataProvider: ({ children }: { children: unknown }) => children,
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
+    BridgeQuotesProvider: ({ children }: { children: unknown }) => children,
+    useBridgeQuotesContext: () => ({
+      ...useBridgeQuoteData(),
+      updateQuoteParams: mockUpdateQuoteParams,
+    }),
   };
 });
 

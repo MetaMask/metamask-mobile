@@ -8,45 +8,49 @@ import type { CaipAssetType } from '@metamask/utils';
 
 import Engine from '../../../../../core/Engine';
 import type { BridgeToken } from '../../types';
-import type { BatchSellQuoteTokenDataByAssetId } from '../useBatchSellQuoteData';
 import { getBatchSellQuotePageMetricProperties } from '../useTrackBatchSellQuotePageViewed';
 
-function getUsdAmount(usdAmount: string | null | undefined) {
+const getUsdAmount = (usdAmount: string | null | undefined) => {
   const parsedUsdAmount = Number(usdAmount);
 
   return Number.isFinite(parsedUsdAmount) ? parsedUsdAmount : 0;
-}
+};
 
-function getQuotedReturnUsdAmount(
+const getQuotedReturnUsdAmount = (
   selectedTokens: BridgeToken[],
-  tokenData: BatchSellQuoteTokenDataByAssetId,
-) {
-  return selectedTokens.reduce((totalUsdAmount, token) => {
+  quotesByAssetId: Parameters<
+    typeof getBatchSellQuotePageMetricProperties
+  >[0]['quotesByAssetId'],
+) =>
+  selectedTokens.reduce((totalUsdAmount, token) => {
     const assetId = formatAddressToAssetId(token.address, token.chainId);
-    const quote = assetId ? tokenData[assetId]?.quote : undefined;
+    const quote = assetId
+      ? quotesByAssetId[assetId]?.recommendedQuote
+      : undefined;
 
     return totalUsdAmount + getUsdAmount(quote?.quote.dest?.usd);
   }, 0);
-}
 
-export function useTrackBatchSellReviewModalSubmitted({
+export const useTrackBatchSellReviewModalSubmitted = ({
   batchSellSlippages,
   selectedTokens,
-  tokenData,
+  quotesByAssetId,
   usdQuotedGas,
 }: {
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
   selectedTokens: BridgeToken[];
-  tokenData: BatchSellQuoteTokenDataByAssetId;
+  quotesByAssetId: Parameters<
+    typeof getBatchSellQuotePageMetricProperties
+  >[0]['quotesByAssetId'];
   usdQuotedGas: string | null | undefined;
-}) {
-  return useCallback(() => {
+}) =>
+  useCallback(() => {
     const eventProperties = getBatchSellQuotePageMetricProperties({
       batchSellSlippages,
       location:
         Engine.context.BridgeController.getLocation() as unknown as BatchSellMetricsLocation,
       selectedTokens,
-      tokenData,
+      quotesByAssetId,
     });
 
     if (!eventProperties) return;
@@ -56,8 +60,10 @@ export function useTrackBatchSellReviewModalSubmitted({
       {
         ...eventProperties,
         usd_quoted_gas: getUsdAmount(usdQuotedGas),
-        usd_quoted_return: getQuotedReturnUsdAmount(selectedTokens, tokenData),
+        usd_quoted_return: getQuotedReturnUsdAmount(
+          selectedTokens,
+          quotesByAssetId,
+        ),
       },
     );
-  }, [batchSellSlippages, selectedTokens, tokenData, usdQuotedGas]);
-}
+  }, [batchSellSlippages, selectedTokens, quotesByAssetId, usdQuotedGas]);

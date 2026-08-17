@@ -8,7 +8,7 @@ import { ethers } from 'ethers';
 
 import { isNumberValue } from '../../../../../util/number/bigint';
 import { useLatestBalance } from '../useLatestBalance';
-import type { useBatchSellQuoteData } from '../useBatchSellQuoteData';
+import { useBatchSellQuotes } from '../useBatchSellQuotes';
 import {
   formatAddressToCaipReference,
   formatChainIdToHex,
@@ -16,9 +16,7 @@ import {
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
 
-type BatchSellNetworkFee = ReturnType<
-  typeof useBatchSellQuoteData
->['networkFee'];
+type BatchSellNetworkFee = ReturnType<typeof useBatchSellQuotes>['networkFee'];
 
 interface Props {
   isGasless: boolean;

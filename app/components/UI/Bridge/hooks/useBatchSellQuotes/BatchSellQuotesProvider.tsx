@@ -11,6 +11,7 @@ import {
 } from '../useBridgeQuotes/BridgeQuotesProvider';
 import { useBridgeQuotes } from '../useBridgeQuotes';
 import { buildBatchSellQuoteRows, useBatchSellQuotes } from './index';
+import { useBatchSellQuotesConfig } from './useBatchSellQuotesConfig';
 
 const BatchSellQuotesContext = createContext<ReturnType<
   typeof useBatchSellQuotes
@@ -157,6 +158,20 @@ export const BatchSellQuotesProvider = ({
         </BatchSellQuotesValueProvider>
       )}
     </NestBridgeQuotes>
+  );
+};
+
+export const BatchSellQuotesFromReduxProvider = ({
+  children,
+  shouldUpdateBatchSellTrades,
+}: {
+  children?: React.ReactNode;
+  shouldUpdateBatchSellTrades?: boolean;
+}) => {
+  const config = useBatchSellQuotesConfig({ shouldUpdateBatchSellTrades });
+
+  return (
+    <BatchSellQuotesProvider config={config}>{children}</BatchSellQuotesProvider>
   );
 };
 

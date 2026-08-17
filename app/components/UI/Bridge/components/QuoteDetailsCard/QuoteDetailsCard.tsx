@@ -20,7 +20,7 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuotesContext } from '../../hooks/useBridgeQuotes/BridgeQuotesProvider';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
@@ -78,7 +78,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
-  } = useBridgeQuoteDataContext();
+  } = useBridgeQuotesContext();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);

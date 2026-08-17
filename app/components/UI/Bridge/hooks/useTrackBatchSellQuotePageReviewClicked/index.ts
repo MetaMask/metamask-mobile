@@ -7,25 +7,26 @@ import type { CaipAssetType } from '@metamask/utils';
 
 import Engine from '../../../../../core/Engine';
 import type { BridgeToken } from '../../types';
-import type { BatchSellQuoteTokenDataByAssetId } from '../useBatchSellQuoteData';
 import { getBatchSellQuotePageMetricProperties } from '../useTrackBatchSellQuotePageViewed';
 
-export function useTrackBatchSellQuotePageReviewClicked({
+export const useTrackBatchSellQuotePageReviewClicked = ({
   batchSellSlippages,
   selectedTokens,
-  tokenData,
+  quotesByAssetId,
 }: {
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
   selectedTokens: BridgeToken[];
-  tokenData: BatchSellQuoteTokenDataByAssetId;
-}) {
-  return useCallback(() => {
+  quotesByAssetId: Parameters<
+    typeof getBatchSellQuotePageMetricProperties
+  >[0]['quotesByAssetId'];
+}) =>
+  useCallback(() => {
     const eventProperties = getBatchSellQuotePageMetricProperties({
       batchSellSlippages,
       location:
         Engine.context.BridgeController.getLocation() as unknown as BatchSellMetricsLocation,
       selectedTokens,
-      tokenData,
+      quotesByAssetId,
     });
 
     if (!eventProperties) return;
@@ -34,5 +35,4 @@ export function useTrackBatchSellQuotePageReviewClicked({
       BatchSellMetricsEventName.BatchSellQuotePageReviewClicked,
       eventProperties,
     );
-  }, [batchSellSlippages, selectedTokens, tokenData]);
-}
+  }, [batchSellSlippages, selectedTokens, quotesByAssetId]);

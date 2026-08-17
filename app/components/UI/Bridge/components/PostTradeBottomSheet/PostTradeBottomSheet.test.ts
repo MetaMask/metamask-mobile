@@ -72,6 +72,13 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../hooks/useBridgeQuoteRequest', () => ({
   useBridgeQuoteRequest: () => mockUpdateQuoteParams,
 }));
+jest.mock('../../hooks/useBridgeQuotes/useBridgeQuotesConfig', () => ({
+  useBridgeQuotesConfig: () => ({}),
+}));
+jest.mock('../../hooks/useBridgeQuotes/BridgeQuotesProvider', () => ({
+  BridgeQuotesProvider: ({ children }: { children: unknown }) => children,
+  useBridgeQuotesContext: () => ({ updateQuoteParams: mockUpdateQuoteParams }),
+}));
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: jest.fn(), navigate: mockNavigate }),
 }));

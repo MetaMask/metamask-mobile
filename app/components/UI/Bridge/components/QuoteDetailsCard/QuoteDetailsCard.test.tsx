@@ -88,12 +88,12 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
+jest.mock('../../hooks/useBridgeQuotes/BridgeQuotesProvider', () => {
   const { useBridgeQuoteData } = jest.requireMock(
     '../../hooks/useBridgeQuoteData',
   );
   return {
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
+    useBridgeQuotesContext: jest.fn(() => useBridgeQuoteData()),
   };
 });
 

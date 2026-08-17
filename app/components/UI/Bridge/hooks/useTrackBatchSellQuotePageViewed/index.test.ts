@@ -12,7 +12,6 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import type { BridgeToken } from '../../types';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 import { useTrackBatchSellQuotePageViewed } from './index';
-import type { BatchSellQuoteTokenDataByAssetId } from '../useBatchSellQuoteData';
 
 const ethAssetId =
   'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;
@@ -65,39 +64,21 @@ const selectedTokenQuotes = [
   },
 ];
 
-function getTokenDataByAssetId(
+const getQuotesByAssetId = (
   quoteOverrides: Partial<
     Record<CaipAssetType, (typeof selectedTokenQuotes)[number] | null>
   > = {
     [ethAssetId]: selectedTokenQuotes[0],
     [uniAssetId]: selectedTokenQuotes[1],
   },
-) {
-  return {
-    [ethAssetId]: {
-      key: ethAssetId,
-      tokenSymbol: 'ETH',
-      slippage: '1%',
-      receivedAmount: '123 USDC',
-      receivedAmountFiat: '$123.45',
-      quote: quoteOverrides[ethAssetId] ?? null,
-      isLoading: false,
-      isHighPriceImpact: false,
-      isQuoteUnavailable: quoteOverrides[ethAssetId] === null,
-    },
-    [uniAssetId]: {
-      key: uniAssetId,
-      tokenSymbol: 'UNI',
-      slippage: `${DEFAULT_BATCH_SELL_SLIPPAGE}%`,
-      receivedAmount: '77 USDC',
-      receivedAmountFiat: '$77.89',
-      quote: quoteOverrides[uniAssetId] ?? null,
-      isLoading: false,
-      isHighPriceImpact: false,
-      isQuoteUnavailable: quoteOverrides[uniAssetId] === null,
-    },
-  } as BatchSellQuoteTokenDataByAssetId;
-}
+) => ({
+  [ethAssetId]: {
+    recommendedQuote: quoteOverrides[ethAssetId] ?? null,
+  },
+  [uniAssetId]: {
+    recommendedQuote: quoteOverrides[uniAssetId] ?? null,
+  },
+});
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -127,7 +108,7 @@ describe('useTrackBatchSellQuotePageViewed', () => {
       useTrackBatchSellQuotePageViewed({
         batchSellSlippages: {},
         selectedTokens,
-        tokenData: getTokenDataByAssetId({
+        quotesByAssetId: getQuotesByAssetId({
           [ethAssetId]: null,
           [uniAssetId]: null,
         }),
@@ -146,7 +127,7 @@ describe('useTrackBatchSellQuotePageViewed', () => {
           [ethAssetId]: '1',
         },
         selectedTokens,
-        tokenData: getTokenDataByAssetId(),
+        quotesByAssetId: getQuotesByAssetId(),
       }),
     );
 
@@ -178,14 +159,14 @@ describe('useTrackBatchSellQuotePageViewed', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it.only('adds a USD placeholder when a selected token is missing a quote', async () => {
+  it('adds a USD placeholder when a selected token is missing a quote', async () => {
     renderHookWithProvider(() =>
       useTrackBatchSellQuotePageViewed({
         batchSellSlippages: {
           [ethAssetId]: '1',
         },
         selectedTokens,
-        tokenData: getTokenDataByAssetId({
+        quotesByAssetId: getQuotesByAssetId({
           [ethAssetId]: selectedTokenQuotes[0],
           [uniAssetId]: null,
         }),

@@ -1,10 +1,10 @@
+import type { CaipAssetType } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -39,14 +39,15 @@ import {
   setIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  type BatchSellQuoteTokenData,
-  useBatchSellQuoteData,
-} from '../../hooks/useBatchSellQuoteData';
-import { useBatchSellQuoteRequest } from '../../hooks/useBatchSellQuoteRequest';
+  BatchSellQuotesFromReduxProvider,
+  useBatchSellQuotesContext,
+} from '../../hooks/useBatchSellQuotes/BatchSellQuotesProvider';
+import { getBatchSellQuoteRowDisplay } from '../BatchSellQuoteDetailsModal/getBatchSellQuoteRowDisplay';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useBatchSellHasSufficientGas } from '../../hooks/useBatchSellHasSufficientGas';
 import { useSubmitBatchSellTx } from '../../hooks/useSubmitBatchSellTx';
 import type { BridgeToken } from '../../types';
-import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
+import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal/BatchSellQuoteDetails';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
 import { useTrackBatchSellReviewModalSubmitted } from '../../hooks/useTrackBatchSellReviewModalSubmitted';
 
@@ -57,27 +58,30 @@ const NETWORK_FEE_SKELETON_HEIGHT = 24;
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
-interface FinalReviewQuoteData {
-  sourceTokens: BridgeToken[];
-  tokenData: BatchSellQuoteTokenData[];
-}
-
 function getFinalReviewQuoteData({
   isLoading,
   sourceTokens,
-  tokenDataByAssetId,
+  quotes,
+  slippages,
+  currency,
 }: {
   isLoading: boolean;
   sourceTokens: BridgeToken[];
-  tokenDataByAssetId: Record<string, BatchSellQuoteTokenData>;
+  quotes: ReturnType<typeof useBatchSellQuotesContext>;
+  slippages: Partial<Record<CaipAssetType, string | undefined>>;
+  currency: string;
 }) {
-  return sourceTokens.reduce<FinalReviewQuoteData>(
+  return sourceTokens.reduce<{
+    sourceTokens: BridgeToken[];
+    tokenData: NonNullable<ReturnType<typeof getBatchSellQuoteRowDisplay>>[];
+  }>(
     (quoteData, sourceToken) => {
-      const assetId = formatAddressToAssetId(
-        sourceToken.address,
-        sourceToken.chainId,
-      );
-      const tokenData = assetId ? tokenDataByAssetId[assetId] : undefined;
+      const tokenData = getBatchSellQuoteRowDisplay({
+        token: sourceToken,
+        quotes,
+        slippages,
+        currency,
+      });
 
       if (
         !tokenData ||
@@ -289,16 +293,15 @@ function NetworkFeeRow({
   );
 }
 
-export function BatchSellFinalReviewModal() {
+function BatchSellFinalReviewModalContent() {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppStackNavigationProp>();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const batchSellQuoteData = useBatchSellQuoteData({
-    shouldUpdateBatchSellTrades: false,
-  });
-  const { getNewQuote } = useBatchSellQuoteRequest();
+  const currency = useSelector(selectCurrentCurrency);
+  const batchSellQuoteData = useBatchSellQuotesContext();
+  const { getNewQuote } = batchSellQuoteData;
   const { submitBatchSellTx } = useSubmitBatchSellTx();
   const hasSufficientGas = useBatchSellHasSufficientGas({
     isGasless: batchSellQuoteData.isGasless,
@@ -310,7 +313,7 @@ export function BatchSellFinalReviewModal() {
     useTrackBatchSellReviewModalSubmitted({
       batchSellSlippages,
       selectedTokens,
-      tokenData: batchSellQuoteData.tokenData,
+      quotesByAssetId: batchSellQuoteData.quotesByAssetId,
       usdQuotedGas: batchSellQuoteData.networkFee.usd,
     });
   const finalReviewQuoteData = useMemo(
@@ -318,11 +321,14 @@ export function BatchSellFinalReviewModal() {
       getFinalReviewQuoteData({
         isLoading: batchSellQuoteData.isLoading,
         sourceTokens: selectedTokens,
-        tokenDataByAssetId: batchSellQuoteData.tokenData,
+        quotes: batchSellQuoteData,
+        slippages: batchSellSlippages,
+        currency,
       }),
     [
-      batchSellQuoteData.isLoading,
-      batchSellQuoteData.tokenData,
+      batchSellQuoteData,
+      batchSellSlippages,
+      currency,
       selectedTokens,
     ],
   );
@@ -491,5 +497,13 @@ export function BatchSellFinalReviewModal() {
         ) : null}
       </Box>
     </BottomSheet>
+  );
+}
+
+export function BatchSellFinalReviewModal() {
+  return (
+    <BatchSellQuotesFromReduxProvider shouldUpdateBatchSellTrades={false}>
+      <BatchSellFinalReviewModalContent />
+    </BatchSellQuotesFromReduxProvider>
   );
 }
