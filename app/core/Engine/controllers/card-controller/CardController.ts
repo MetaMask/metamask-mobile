@@ -6,6 +6,12 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import Logger from '../../../../util/Logger';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import ReduxService from '../../../redux';
 import type { RootState } from '../../../../reducers';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -555,7 +561,7 @@ export class CardController extends BaseController<
       s.cardHomeDataStatus = 'loading';
     });
     try {
-      const data = await this.getCardHomeData(address);
+      const data = await this.#tracedGetCardHomeData(address);
       if (generation === this.fetchGeneration) {
         this.update((s) => {
           (s as unknown as CardControllerState).cardHomeData =
@@ -579,6 +585,35 @@ export class CardController extends BaseController<
         this.#lastFetchedAt = Date.now();
       }
     }
+  }
+
+  /**
+   * Wraps the card home data request in a Sentry span so its latency is
+   * tracked alongside the Money account data fetches. `is_authenticated`
+   * separates the provider call from the on-chain-assets fallback, which have
+   * very different cost profiles.
+   */
+  async #tracedGetCardHomeData(address: string): Promise<CardHomeData> {
+    return await trace(
+      {
+        name: TraceName.CardHomeDataFetch,
+        op: TraceOperation.CardDataFetch,
+        tags: { is_authenticated: this.state.isAuthenticated },
+      },
+      async (context) => {
+        try {
+          const data = await this.getCardHomeData(address);
+          annotateTrace(context, { success: true });
+          return data;
+        } catch (error) {
+          annotateTrace(context, {
+            success: false,
+            error_name: (error as Error)?.name ?? 'unknown',
+          });
+          throw error;
+        }
+      },
+    );
   }
 
   /**

@@ -272,6 +272,9 @@ export enum TraceName {
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
   MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
   MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
+  // Money Home Data Fetches
+  MoneyActivityFetch = 'Money Activity Fetch',
+  CardHomeDataFetch = 'Card Home Data Fetch',
 }
 
 export enum TraceOperation {
@@ -301,6 +304,7 @@ export enum TraceOperation {
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
+  CardDataFetch = 'card.data_fetch',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',

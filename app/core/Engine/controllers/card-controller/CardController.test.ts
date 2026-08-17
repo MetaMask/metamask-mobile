@@ -27,12 +27,23 @@ import { CardOnboardingStore } from './CardOnboardingStore';
 import ReduxService from '../../../redux';
 import { resetCardState } from '../../../redux/slices/card';
 import { ImmersveProvider } from './providers/ImmersveProvider';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import type { ImmersveService } from './services/ImmersveService';
 import type { ImmersveProviderConfig } from './services/immersve-config';
 
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn((_request, fn) => fn(undefined)),
+  annotateTrace: jest.fn(),
+}));
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
   // Mirrors the real contract: `undefined` means "this flag has no opinion", so
   // callers fall through to their own default. Returning `false` here instead
@@ -94,6 +105,8 @@ const mockOnboardingStore = CardOnboardingStore as jest.Mocked<
   typeof CardOnboardingStore
 >;
 const mockDispatch = ReduxService.store.dispatch as jest.Mock;
+const mockTrace = jest.mocked(trace);
+const mockAnnotateTrace = jest.mocked(annotateTrace);
 
 /** Drain the event loop until `predicate` is true (or throw).
  * Uses `setImmediate` so each iteration yields a macrotask — a fixed
@@ -1778,6 +1791,43 @@ describe('CardController — fetchCardHomeData', () => {
 
     expect(controller.state.cardHomeDataStatus).toBe('error');
     expect(controller.state.cardHomeData).toBeNull();
+  });
+
+  it('traces the request and marks the span successful on the happy path', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      {
+        name: TraceName.CardHomeDataFetch,
+        op: TraceOperation.CardDataFetch,
+        tags: { is_authenticated: false },
+      },
+      expect.any(Function),
+    );
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
+      success: true,
+    });
+  });
+
+  it('marks the span failed with the error name when the provider throws', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new TypeError('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
+      success: false,
+      error_name: 'TypeError',
+    });
   });
 
   it('deduplicates concurrent calls — provider fetched only once', async () => {

@@ -7,6 +7,12 @@ import {
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
@@ -83,10 +89,30 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   const query = useInfiniteQuery({
     queryKey: queryOptions.queryKey,
     queryFn: ({ pageParam }: { pageParam?: string }) =>
-      apiClient.accounts.fetchV1AccountTransactions(moneyAddress, {
-        ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
-        cursor: pageParam,
-      }),
+      // One span per page request. The auto-fill in `useMoneyActivityItems`
+      // pulls pages serially, so `is_initial_page` separates the request that
+      // gates time-to-content from the follow-up round-trips stacked behind it.
+      trace(
+        {
+          name: TraceName.MoneyActivityFetch,
+          op: TraceOperation.MoneyAccountDataFetch,
+          tags: { is_initial_page: pageParam === undefined },
+        },
+        async (context) => {
+          const page = await apiClient.accounts.fetchV1AccountTransactions(
+            moneyAddress,
+            {
+              ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
+              cursor: pageParam,
+            },
+          );
+          annotateTrace(context, {
+            row_count: page.data?.length ?? 0,
+            has_next_page: page.pageInfo?.hasNextPage ?? false,
+          });
+          return page;
+        },
+      ),
     // Guard the cursor too: react-query only stops on `undefined`, so a
     // malformed page with `hasNextPage: true` but an empty cursor would
     // otherwise refetch the first page in a loop.

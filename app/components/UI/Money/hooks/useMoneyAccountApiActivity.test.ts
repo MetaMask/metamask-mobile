@@ -5,6 +5,12 @@ import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { parseAccountsApiActivity } from '../utils/accountsApi';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
@@ -30,6 +36,12 @@ jest.mock('../../../../core/apiClient', () => ({
 jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
+jest.mock('../../../../util/trace', () => ({
+  annotateTrace: jest.fn(),
+  trace: jest.fn((_request, fn) => fn(undefined)),
+  TraceName: { MoneyActivityFetch: 'Money Activity Fetch' },
+  TraceOperation: { MoneyAccountDataFetch: 'money.account.data_fetch' },
+}));
 jest.mock('../utils/accountsApi', () => ({
   parseAccountsApiActivity: jest.fn(),
   oldestRawActivityTime: jest.fn(
@@ -51,6 +63,8 @@ const mockFetchV1AccountTransactions = jest.mocked(
   apiClient.accounts.fetchV1AccountTransactions,
 );
 const mockParse = jest.mocked(parseAccountsApiActivity);
+const mockTrace = jest.mocked(trace);
+const mockAnnotateTrace = jest.mocked(annotateTrace);
 
 const ADDR_A = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const CASHBACK_MULTISEND_CONTRACTS = [
@@ -70,6 +84,11 @@ const CARD: AccountsApiActivity = {
   amount: '5381986',
   paidTo: '0xdef',
 };
+
+const PAGE_MOCK = {
+  data: [{ hash: '0xabc', timestamp: '2026-06-04T00:00:00.000Z' }],
+  pageInfo: { count: 1, hasNextPage: true, cursor: 'cursor-2' },
+} as unknown as Awaited<ReturnType<typeof mockFetchV1AccountTransactions>>;
 
 function setupSelectors(
   opts: {
@@ -150,18 +169,60 @@ describe('useMoneyAccountApiActivity', () => {
     );
   });
 
-  it('queryFn fetches the next page using the cursor pageParam', () => {
+  it('queryFn fetches the next page using the cursor pageParam', async () => {
+    mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
     renderHook(() => useMoneyAccountApiActivity());
     const { queryFn } = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
-      queryFn: (ctx: { pageParam?: string }) => unknown;
+      queryFn: (ctx: { pageParam?: string }) => Promise<unknown>;
     };
 
-    queryFn({ pageParam: 'cursor-1' });
+    await queryFn({ pageParam: 'cursor-1' });
 
     expect(mockFetchV1AccountTransactions).toHaveBeenCalledWith(ADDR_A, {
       chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
       sortDirection: 'DESC',
       cursor: 'cursor-1',
+    });
+  });
+
+  it('traces each page fetch, flagging the initial request', async () => {
+    mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
+    renderHook(() => useMoneyAccountApiActivity());
+    const { queryFn } = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+      queryFn: (ctx: { pageParam?: string }) => Promise<unknown>;
+    };
+
+    await queryFn({});
+    await queryFn({ pageParam: 'cursor-1' });
+
+    expect(mockTrace).toHaveBeenNthCalledWith(
+      1,
+      {
+        name: TraceName.MoneyActivityFetch,
+        op: TraceOperation.MoneyAccountDataFetch,
+        tags: { is_initial_page: true },
+      },
+      expect.any(Function),
+    );
+    expect(mockTrace).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ tags: { is_initial_page: false } }),
+      expect.any(Function),
+    );
+  });
+
+  it('annotates the page span with the row count and whether more remain', async () => {
+    mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
+    renderHook(() => useMoneyAccountApiActivity());
+    const { queryFn } = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+      queryFn: (ctx: { pageParam?: string }) => Promise<unknown>;
+    };
+
+    await queryFn({});
+
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
+      row_count: PAGE_MOCK.data.length,
+      has_next_page: true,
     });
   });
 
