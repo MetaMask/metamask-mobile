@@ -29483,11 +29483,11 @@ __metadata:
 
 "expo-screen-capture@patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch":
   version: 55.0.16
-  resolution: "expo-screen-capture@patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch::version=55.0.16&hash=78b475"
+  resolution: "expo-screen-capture@patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch::version=55.0.16&hash=7f08de"
   peerDependencies:
     expo: "*"
     react: "*"
-  checksum: 10/643aa3f08313866c0d0b140dc0b3c64cf54b091d5e435509908bdc2213debff95704282a7e80481ae6632cf8d6e9e6db27778a0278b46f4f164a1650b0c3ad4e
+  checksum: 10/0415c0f231fa0d90cb48eb1c205a097cd2b69f6f7f671f977062b003f38ccba3e23a1d28d0778b9780743b3887a3709c9d4371d74e05498fc79a25adcf6beff9
   languageName: node
   linkType: hard
 
