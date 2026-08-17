@@ -7,6 +7,8 @@ import {
   selectCardPrimaryToken,
   selectCardAvailableTokens,
   selectCardFundingTokens,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useAssetBalances } from './useAssetBalances';
@@ -20,13 +22,21 @@ export const useCardHomeData = () => {
   const primaryTokenRaw = useSelector(selectCardPrimaryToken);
   const availableTokensRaw = useSelector(selectCardAvailableTokens);
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
+  const isCardholder = useSelector(selectIsCardholder);
+  const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
+  // Money Home mounts this hook for every visitor, but a user with no card has
+  // nothing to fetch — `MoneyMetaMaskCard` only reads the data in 'manage'
+  // mode. Authenticated-but-not-yet-listed cardholders still fetch, which is
+  // the on-chain-assets fallback path in `CardController.getCardHomeData`.
+  const hasCard = isCardholder || isCardAuthenticated;
+
   useEffect(() => {
-    if (status === 'idle' || status === 'error') {
+    if (hasCard && (status === 'idle' || status === 'error')) {
       Engine.context.CardController.fetchCardHomeData();
     }
-  }, [status]);
+  }, [hasCard, status]);
 
   const refetch = useCallback(
     () => Engine.context.CardController.fetchCardHomeData({ force: true }),

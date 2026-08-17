@@ -74,23 +74,36 @@ const mockBalanceEntry = {
   rawTokenBalance: 500,
 };
 
-// useCardHomeData calls useSelector 5 times:
+// useCardHomeData calls useSelector 7 times:
 // 1. selectCardHomeData (raw CardHomeData)
 // 2. selectCardHomeDataStatus
 // 3. selectCardPrimaryToken
 // 4. selectCardAvailableTokens
 // 5. selectCardFundingTokens
+// 6. selectIsCardholder
+// 7. selectIsCardAuthenticated
+interface CardOwnership {
+  isCardholder: boolean;
+  isCardAuthenticated: boolean;
+}
+
+const CARDHOLDER: CardOwnership = {
+  isCardholder: true,
+  isCardAuthenticated: false,
+};
+
 function setupSelectors(
   data: unknown,
   status: 'idle' | 'loading' | 'success' | 'error',
   primaryToken: CardFundingToken | null = null,
   availableTokens: CardFundingToken[] = [],
   fundingTokens: CardFundingToken[] = [],
+  ownership: CardOwnership = CARDHOLDER,
 ) {
   let callCount = 0;
   mockUseSelector.mockImplementation(() => {
     callCount++;
-    const callIndex = ((callCount - 1) % 5) + 1;
+    const callIndex = ((callCount - 1) % 7) + 1;
     switch (callIndex) {
       case 1:
         return data;
@@ -102,6 +115,10 @@ function setupSelectors(
         return availableTokens;
       case 5:
         return fundingTokens;
+      case 6:
+        return ownership.isCardholder;
+      case 7:
+        return ownership.isCardAuthenticated;
       default:
         return undefined;
     }
@@ -145,6 +162,38 @@ describe('useCardHomeData', () => {
 
     it("triggers fetchCardHomeData when status transitions back to 'idle'", () => {
       setupSelectors({ primaryFundingAsset: null }, 'success');
+      const { rerender } = renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+
+      setupSelectors(null, 'idle');
+      rerender();
+
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT trigger fetchCardHomeData when the user has no card', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: false,
+        isCardAuthenticated: false,
+      });
+      renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+    });
+
+    it('triggers fetchCardHomeData for an authenticated user who is not yet a listed cardholder', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: false,
+        isCardAuthenticated: true,
+      });
+      renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+    });
+
+    it('triggers fetchCardHomeData once the user becomes a cardholder', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: false,
+        isCardAuthenticated: false,
+      });
       const { rerender } = renderHook(() => useCardHomeData());
       expect(mockFetchCardHomeData).not.toHaveBeenCalled();
 

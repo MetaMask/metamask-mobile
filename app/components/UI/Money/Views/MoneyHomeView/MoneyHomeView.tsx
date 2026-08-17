@@ -766,8 +766,12 @@ const MoneyHomeView = () => {
     isCardLinkedToMoneyAccount,
   });
 
+  // Users with no card never fetch card home data, so its status stays 'idle'
+  // for them — `isCardStateResolved` is what tells us the upsell mode is final.
   const isCardAnalyticsReady =
-    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+    isCardStateResolved ||
+    cardHomeDataStatus === 'success' ||
+    cardHomeDataStatus === 'error';
 
   const metamaskCardSection = metamaskCardMode
     ? {

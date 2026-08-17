@@ -1465,14 +1465,30 @@ describe('MoneyHomeView', () => {
     });
   });
 
-  it('does not track the MetaMask Card impression while card home data is unsettled (idle status)', () => {
+  it('does not track the MetaMask Card impression while the card state is unsettled', () => {
     mockSelectCardHomeDataStatus.mockReturnValue('idle');
+    mockSelectIsCardStateResolved.mockReturnValue(false);
 
     renderWithProvider(<MoneyHomeView />);
 
     expect(mockAddProperties).not.toHaveBeenCalledWith(
       expect.objectContaining({
         entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+      }),
+    );
+  });
+
+  it('tracks the MetaMask Card impression for a user with no card, whose data is never fetched', () => {
+    mockSelectCardHomeDataStatus.mockReturnValue('idle');
+    mockSelectIsCardStateResolved.mockReturnValue(true);
+
+    renderWithProvider(<MoneyHomeView />);
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        mode: 'upsell',
+        card_state: 'non_cardholder',
       }),
     );
   });
