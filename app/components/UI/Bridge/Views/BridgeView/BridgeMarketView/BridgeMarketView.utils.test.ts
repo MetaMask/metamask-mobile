@@ -1,8 +1,8 @@
 import { QuoteStreamCompleteReason } from '@metamask/bridge-controller';
-import { strings } from '../../../../../../locales/i18n';
-import { getQuoteStreamReasonString } from './BridgeView.utils';
+import { strings } from '../../../../../../../locales/i18n';
+import { getQuoteStreamReasonString } from './BridgeMarketView.utils';
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
