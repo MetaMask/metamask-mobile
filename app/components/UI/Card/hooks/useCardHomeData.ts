@@ -9,6 +9,7 @@ import {
   selectCardFundingTokens,
   selectIsCardAuthenticated,
   selectIsCardholder,
+  selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useAssetBalances } from './useAssetBalances';
@@ -24,6 +25,7 @@ export const useCardHomeData = () => {
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
   const isCardholder = useSelector(selectIsCardholder);
   const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
+  const fetchedThisSession = useSelector(selectCardHomeDataFetchedThisSession);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
   // Money Home mounts this hook for every visitor, but a user with no card has
@@ -32,11 +34,18 @@ export const useCardHomeData = () => {
   // the on-chain-assets fallback path in `CardController.getCardHomeData`.
   const hasCard = isCardholder || isCardAuthenticated;
 
+  // `cardHomeData` and its status are persisted, so a cold start restores
+  // 'success' and would otherwise never refetch. `fetchedThisSession` is not
+  // persisted, so it is the signal that the restored data came off disk and
+  // still needs revalidating behind the already-rendered card.
   useEffect(() => {
-    if (hasCard && (status === 'idle' || status === 'error')) {
+    if (
+      hasCard &&
+      (status === 'idle' || status === 'error' || !fetchedThisSession)
+    ) {
       Engine.context.CardController.fetchCardHomeData();
     }
-  }, [hasCard, status]);
+  }, [hasCard, status, fetchedThisSession]);
 
   const refetch = useCallback(
     () => Engine.context.CardController.fetchCardHomeData({ force: true }),

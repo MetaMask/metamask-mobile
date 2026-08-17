@@ -334,6 +334,7 @@ describe('CardController', () => {
       providerData: {},
       cardHomeData: null,
       cardHomeDataStatus: 'idle',
+      cardHomeDataFetchedThisSession: false,
       moneyAccountCardLinkInProgress: false,
     });
   });
@@ -514,6 +515,33 @@ describe('CardController — auth methods', () => {
         location: 'international',
       });
       expect(result.done).toBe(true);
+    });
+
+    it('clears restored card home data on connect so a persisted card cannot survive it', async () => {
+      const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
+      provider.submitCredentials.mockResolvedValue({
+        done: true,
+        tokenSet: mockTokenSet,
+      });
+      mockTokenStore.set.mockResolvedValue(true);
+      // Simulates a cold start that restored a previous card from disk.
+      const controller = buildController(provider, {
+        cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+        cardHomeDataStatus: 'success',
+      });
+
+      await controller.initiateAuth('US');
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(controller.state.isAuthenticated).toBe(true);
+      // Cleared before the post-connect refetch, so the restored card is never
+      // shown against the newly connected account.
+      expect(controller.state.cardHomeData).not.toStrictEqual(mockCardHomeData);
     });
 
     it('drops in-flight unauthenticated card home data after successful auth', async () => {
@@ -1778,6 +1806,112 @@ describe('CardController — fetchCardHomeData', () => {
 
     expect(controller.state.cardHomeDataStatus).toBe('success');
     expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+  });
+
+  it('marks the session as fetched so persisted data is revalidated only once', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    expect(controller.state.cardHomeDataFetchedThisSession).toBe(false);
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataFetchedThisSession).toBe(true);
+  });
+
+  it('marks the session as fetched even when the request fails', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataFetchedThisSession).toBe(true);
+  });
+
+  it('holds status at success while revalidating restored data, so the card never blanks', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    let resolveFetch: (data: CardHomeData) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    // Cold start: data and status restored from disk, no session fetch yet.
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+    });
+
+    const pending = controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+
+    resolveFetch(mockCardHomeData);
+    await pending;
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
+
+  it('keeps restored data visible when the revalidation fails', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+    });
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+  });
+
+  it('shows the loading state for a forced refresh even when data was restored', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    let resolveFetch: (data: CardHomeData) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+    });
+
+    const pending = controller.fetchCardHomeData({ force: true });
+
+    expect(controller.state.cardHomeDataStatus).toBe('loading');
+
+    resolveFetch(mockCardHomeData);
+    await pending;
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
+
+  it('still reports loading then error for a first-ever fetch with no restored data', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('error');
   });
 
   it('sets cardHomeDataStatus to error and leaves cardHomeData null on provider throw', async () => {

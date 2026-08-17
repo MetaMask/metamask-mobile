@@ -22,6 +22,10 @@ import {
   oldestRawActivityTime,
   parseAccountsApiActivity,
 } from '../utils/accountsApi';
+import {
+  readCachedFirstPage,
+  writeCachedFirstPage,
+} from '../utils/moneyActivityCache';
 
 export interface UseMoneyAccountApiActivityResult {
   activity: AccountsApiActivity[];
@@ -84,22 +88,31 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     ACCOUNT_ACTIVITY_QUERY_OPTIONS,
   );
 
+  // Seed the query from disk so a cold start renders activity without waiting
+  // on the network. `initialDataUpdatedAt` carries the write time, so the
+  // existing `staleTime` below still decides whether a background refetch
+  // runs — the freshness policy is unchanged, only the starting point is.
+  const cachedFirstPage = useMemo(
+    () => (enabled ? readCachedFirstPage(moneyAddress) : undefined),
+    [enabled, moneyAddress],
+  );
+
   // `apiClient` is built against query-core v5; this repo's react-query is v4, so
   // the query options aren't nominally compatible. The shapes match at runtime.
   const query = useInfiniteQuery({
     queryKey: queryOptions.queryKey,
-    queryFn: ({ pageParam }: { pageParam?: string }) =>
+    queryFn: async ({ pageParam }: { pageParam?: string }) => {
       // One span per page request. The auto-fill in `useMoneyActivityItems`
       // pulls pages serially, so `is_initial_page` separates the request that
       // gates time-to-content from the follow-up round-trips stacked behind it.
-      trace(
+      const page = await trace(
         {
           name: TraceName.MoneyActivityFetch,
           op: TraceOperation.MoneyAccountDataFetch,
           tags: { is_initial_page: pageParam === undefined },
         },
         async (context) => {
-          const page = await apiClient.accounts.fetchV1AccountTransactions(
+          const response = await apiClient.accounts.fetchV1AccountTransactions(
             moneyAddress,
             {
               ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
@@ -107,12 +120,21 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
             },
           );
           annotateTrace(context, {
-            row_count: page.data?.length ?? 0,
-            has_next_page: page.pageInfo?.hasNextPage ?? false,
+            row_count: response.data?.length ?? 0,
+            has_next_page: response.pageInfo?.hasNextPage ?? false,
           });
-          return page;
+          return response;
         },
-      ),
+      );
+
+      // Outside the span on purpose: serialising the page is our cost, not the
+      // request's, and folding it in would inflate the very latency metric
+      // this span exists to measure.
+      if (pageParam === undefined) {
+        writeCachedFirstPage(moneyAddress, page);
+      }
+      return page;
+    },
     // Guard the cursor too: react-query only stops on `undefined`, so a
     // malformed page with `hasNextPage: true` but an empty cursor would
     // otherwise refetch the first page in a loop.
@@ -123,6 +145,10 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     enabled,
     staleTime: 5 * MINUTE,
     retry: false,
+    initialData: cachedFirstPage
+      ? { pages: [cachedFirstPage.page], pageParams: [undefined] }
+      : undefined,
+    initialDataUpdatedAt: cachedFirstPage?.cachedAt,
   } as unknown as UseInfiniteQueryOptions<
     V1AccountTransactionsResponse,
     Error

@@ -746,6 +746,7 @@
     "providerUserId": null,
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},

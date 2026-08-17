@@ -11,6 +11,7 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardHomeDataFetchedThisSession,
   selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
@@ -515,6 +516,27 @@ describe('selectCardHomeDataStatus', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardHomeDataStatus(state)).toBe('idle');
+  });
+});
+
+describe('selectCardHomeDataFetchedThisSession', () => {
+  it('returns false by default, so restored data is revalidated', () => {
+    const state = createMockRootState();
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
+  });
+
+  it('returns true once a fetch has run in this session', () => {
+    const state = createMockRootState({
+      cardHomeDataFetchedThisSession: true,
+    });
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(true);
+  });
+
+  it('returns false when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
   });
 });
 

@@ -11,6 +11,10 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import {
+  readCachedFirstPage,
+  writeCachedFirstPage,
+} from '../utils/moneyActivityCache';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
@@ -42,6 +46,10 @@ jest.mock('../../../../util/trace', () => ({
   TraceName: { MoneyActivityFetch: 'Money Activity Fetch' },
   TraceOperation: { MoneyAccountDataFetch: 'money.account.data_fetch' },
 }));
+jest.mock('../utils/moneyActivityCache', () => ({
+  readCachedFirstPage: jest.fn(),
+  writeCachedFirstPage: jest.fn(),
+}));
 jest.mock('../utils/accountsApi', () => ({
   parseAccountsApiActivity: jest.fn(),
   oldestRawActivityTime: jest.fn(
@@ -65,6 +73,8 @@ const mockFetchV1AccountTransactions = jest.mocked(
 const mockParse = jest.mocked(parseAccountsApiActivity);
 const mockTrace = jest.mocked(trace);
 const mockAnnotateTrace = jest.mocked(annotateTrace);
+const mockReadCachedFirstPage = jest.mocked(readCachedFirstPage);
+const mockWriteCachedFirstPage = jest.mocked(writeCachedFirstPage);
 
 const ADDR_A = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const CASHBACK_MULTISEND_CONTRACTS = [
@@ -223,6 +233,62 @@ describe('useMoneyAccountApiActivity', () => {
     expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
       row_count: PAGE_MOCK.data.length,
       has_next_page: true,
+    });
+  });
+
+  describe('disk cache', () => {
+    it('seeds the query from the cached first page, stamped with its write time', () => {
+      mockReadCachedFirstPage.mockReturnValue({
+        page: PAGE_MOCK,
+        cachedAt: 1_700_000_000_000,
+      });
+
+      renderHook(() => useMoneyAccountApiActivity());
+
+      const options = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+        initialData?: { pages: unknown[]; pageParams: unknown[] };
+        initialDataUpdatedAt?: number;
+      };
+      expect(options.initialData).toEqual({
+        pages: [PAGE_MOCK],
+        pageParams: [undefined],
+      });
+      expect(options.initialDataUpdatedAt).toBe(1_700_000_000_000);
+    });
+
+    it('leaves the query unseeded when nothing is cached', () => {
+      mockReadCachedFirstPage.mockReturnValue(undefined);
+
+      renderHook(() => useMoneyAccountApiActivity());
+
+      const options = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+        initialData?: unknown;
+        initialDataUpdatedAt?: number;
+      };
+      expect(options.initialData).toBeUndefined();
+      expect(options.initialDataUpdatedAt).toBeUndefined();
+    });
+
+    it('does not read the cache when there is no money account', () => {
+      setupSelectors({ account: undefined });
+
+      renderHook(() => useMoneyAccountApiActivity());
+
+      expect(mockReadCachedFirstPage).not.toHaveBeenCalled();
+    });
+
+    it('caches the initial page but not follow-up pages', async () => {
+      mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
+      renderHook(() => useMoneyAccountApiActivity());
+      const { queryFn } = mockUseInfiniteQuery.mock.calls[0][0] as unknown as {
+        queryFn: (ctx: { pageParam?: string }) => Promise<unknown>;
+      };
+
+      await queryFn({});
+      await queryFn({ pageParam: 'cursor-1' });
+
+      expect(mockWriteCachedFirstPage).toHaveBeenCalledTimes(1);
+      expect(mockWriteCachedFirstPage).toHaveBeenCalledWith(ADDR_A, PAGE_MOCK);
     });
   });
 

@@ -157,12 +157,18 @@ const metadata: StateMetadata<CardControllerState> = {
     usedInUi: false,
   },
   cardHomeData: {
-    persist: false,
+    persist: true,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
     usedInUi: true,
   },
   cardHomeDataStatus: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
+  cardHomeDataFetchedThisSession: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -186,6 +192,7 @@ export const defaultCardControllerState: CardControllerState = {
   providerData: {},
   cardHomeData: null,
   cardHomeDataStatus: 'idle',
+  cardHomeDataFetchedThisSession: false,
   moneyAccountCardLinkInProgress: false,
 };
 
@@ -541,24 +548,50 @@ export class CardController extends BaseController<
     }
     this.fetchCardHomeDataPromise ??= this.#doFetchCardHomeData(
       this.fetchGeneration,
+      force,
     ).finally(() => {
       this.fetchCardHomeDataPromise = null;
     });
     return this.fetchCardHomeDataPromise;
   }
 
-  async #doFetchCardHomeData(generation: number): Promise<void> {
+  async #doFetchCardHomeData(
+    generation: number,
+    force: boolean,
+  ): Promise<void> {
+    // A cold start restores `cardHomeData` and its 'success' status but has no
+    // session fetch behind it. Revalidating that data must leave the status
+    // alone: `selectIsCardStateResolved` gates on 'success', so a 'loading' or
+    // 'error' blip would blank the very card persistence just restored.
+    //
+    // Only the automatic revalidation qualifies. A forced fetch is user-driven
+    // (pull to refresh, post-link refresh) and keeps its visible loading and
+    // error states, as does every path that clears `cardHomeData` before
+    // refetching — connect, logout, and account switch all null it first.
+    const isRevalidatingRestoredData =
+      !force &&
+      !this.state.cardHomeDataFetchedThisSession &&
+      this.state.cardHomeData !== null;
+
     const address = this.#getSelectedEvmAddress();
     if (!address) {
       this.update((s) => {
-        s.cardHomeDataStatus = 'error';
+        if (!isRevalidatingRestoredData) {
+          s.cardHomeDataStatus = 'error';
+        }
+        s.cardHomeDataFetchedThisSession = true;
       });
       this.#lastFetchedAt = Date.now();
       return;
     }
 
+    // Marked before the request resolves, not after: the flag exists to stop
+    // `useCardHomeData` re-triggering while this fetch is still in flight.
     this.update((s) => {
-      s.cardHomeDataStatus = 'loading';
+      if (!isRevalidatingRestoredData) {
+        s.cardHomeDataStatus = 'loading';
+      }
+      s.cardHomeDataFetchedThisSession = true;
     });
     try {
       const data = await this.#tracedGetCardHomeData(address);
@@ -580,7 +613,9 @@ export class CardController extends BaseController<
           },
         });
         this.update((s) => {
-          s.cardHomeDataStatus = 'error';
+          if (!isRevalidatingRestoredData) {
+            s.cardHomeDataStatus = 'error';
+          }
         });
         this.#lastFetchedAt = Date.now();
       }

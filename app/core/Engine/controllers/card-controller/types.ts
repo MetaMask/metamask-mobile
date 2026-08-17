@@ -65,13 +65,26 @@ export type CardControllerState = {
   providerData: Partial<Record<CardProviderId, Record<string, Json>>>;
   /**
    * Cached card home data fetched from the active provider.
-   * Not persisted to disk — re-fetched after each session validation.
+   * Persisted so a cold start renders the card from disk while a background
+   * revalidation runs, rather than showing a spinner for the length of the
+   * provider round-trip.
    * Typed as Record<string, Json> to satisfy StateConstraint; cast to
    * CardHomeData when accessed in the controller.
    */
   cardHomeData: Record<string, Json> | null;
-  /** Fetch status for cardHomeData. Not persisted. */
+  /**
+   * Fetch status for cardHomeData. Persisted alongside the data it describes —
+   * restoring the data without its status would leave card readiness
+   * (`selectIsCardStateResolved`) unresolved and the card stuck in 'loading'.
+   */
   cardHomeDataStatus: CardHomeDataStatus;
+  /**
+   * Whether a cardHomeData fetch has been started in this app session. Never
+   * persisted, so it is `false` after a cold start even when the restored
+   * status is 'success' — that is what tells `useCardHomeData` to revalidate
+   * data that came off disk.
+   */
+  cardHomeDataFetchedThisSession: boolean;
   /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
   moneyAccountCardLinkInProgress: boolean;
 };
