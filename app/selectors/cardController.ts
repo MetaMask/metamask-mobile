@@ -199,11 +199,12 @@ export const selectCardHomeDataStatus = createSelector(
 
 export const selectIsCardStateResolved = createSelector(
   selectCardHomeDataStatus,
+  selectCardHomeData,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
-  (status, verificationStatus, isAuthenticated, isCardholder) =>
-    (status === 'success' &&
+  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
+    ((status === 'success' || cardHomeData !== null) &&
       (!isAuthenticated || verificationStatus !== null)) ||
     (!isAuthenticated && !isCardholder),
 );
