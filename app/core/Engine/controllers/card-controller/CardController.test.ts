@@ -1902,6 +1902,54 @@ describe('CardController — fetchCardHomeData', () => {
     expect(controller.state.cardHomeDataStatus).toBe('success');
   });
 
+  it('recovers a status persisted as loading — a process death mid-fetch cannot strand the card', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    // Restored from a session that died while a fetch was in flight.
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'loading',
+    });
+
+    await controller.fetchCardHomeData();
+
+    // Must reach a terminal status; holding 'loading' steady would leave
+    // selectIsCardStateResolved false for the rest of the session.
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+  });
+
+  it('promotes a forced refresh that joins an in-flight silent revalidation', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    let rejectFetch: (error: Error) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((_resolve, reject) => {
+        rejectFetch = reject;
+      }),
+    );
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+    });
+
+    const silent = controller.fetchCardHomeData();
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+
+    // Pull to refresh lands while the silent revalidation is still running.
+    const forced = controller.fetchCardHomeData({ force: true });
+    expect(controller.state.cardHomeDataStatus).toBe('loading');
+
+    rejectFetch(new Error('API error'));
+    await silent;
+    await forced;
+
+    // The user asked for this refresh, so its failure must be visible.
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+  });
+
   it('still reports loading then error for a first-ever fetch with no restored data', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);

@@ -219,6 +219,12 @@ export class CardController extends BaseController<
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
   #lastFetchedAt = 0;
+  /**
+   * True while the in-flight fetch is an automatic cold-start revalidation of
+   * restored data, which must not move `cardHomeDataStatus`. Instance state
+   * rather than a local so a forced call joining the same promise can clear it.
+   */
+  #silentRevalidation = false;
 
   constructor({
     messenger,
@@ -546,11 +552,23 @@ export class CardController extends BaseController<
     ) {
       return;
     }
+    // `??=` means a forced call can join an in-flight silent revalidation and
+    // inherit its silence. Promote it instead: the user asked to see the
+    // refresh, so surface the loading state and let the shared promise finish
+    // with visible error handling.
+    if (force && this.#silentRevalidation) {
+      this.#silentRevalidation = false;
+      this.update((s) => {
+        s.cardHomeDataStatus = 'loading';
+      });
+    }
+
     this.fetchCardHomeDataPromise ??= this.#doFetchCardHomeData(
       this.fetchGeneration,
       force,
     ).finally(() => {
       this.fetchCardHomeDataPromise = null;
+      this.#silentRevalidation = false;
     });
     return this.fetchCardHomeDataPromise;
   }
@@ -564,19 +582,24 @@ export class CardController extends BaseController<
     // alone: `selectIsCardStateResolved` gates on 'success', so a 'loading' or
     // 'error' blip would blank the very card persistence just restored.
     //
+    // Requires the restored status to be 'success' specifically. A process
+    // death mid-fetch can persist 'loading', and holding *that* steady would
+    // strand the card in a loading state no failure could clear.
+    //
     // Only the automatic revalidation qualifies. A forced fetch is user-driven
     // (pull to refresh, post-link refresh) and keeps its visible loading and
     // error states, as does every path that clears `cardHomeData` before
     // refetching — connect, logout, and account switch all null it first.
-    const isRevalidatingRestoredData =
+    this.#silentRevalidation =
       !force &&
       !this.state.cardHomeDataFetchedThisSession &&
-      this.state.cardHomeData !== null;
+      this.state.cardHomeData !== null &&
+      this.state.cardHomeDataStatus === 'success';
 
     const address = this.#getSelectedEvmAddress();
     if (!address) {
       this.update((s) => {
-        if (!isRevalidatingRestoredData) {
+        if (!this.#silentRevalidation) {
           s.cardHomeDataStatus = 'error';
         }
         s.cardHomeDataFetchedThisSession = true;
@@ -588,7 +611,7 @@ export class CardController extends BaseController<
     // Marked before the request resolves, not after: the flag exists to stop
     // `useCardHomeData` re-triggering while this fetch is still in flight.
     this.update((s) => {
-      if (!isRevalidatingRestoredData) {
+      if (!this.#silentRevalidation) {
         s.cardHomeDataStatus = 'loading';
       }
       s.cardHomeDataFetchedThisSession = true;
@@ -613,7 +636,9 @@ export class CardController extends BaseController<
           },
         });
         this.update((s) => {
-          if (!isRevalidatingRestoredData) {
+          // Read at completion, not capture time: a forced call that joined
+          // this fetch clears the flag so its failure stays visible.
+          if (!this.#silentRevalidation) {
             s.cardHomeDataStatus = 'error';
           }
         });
