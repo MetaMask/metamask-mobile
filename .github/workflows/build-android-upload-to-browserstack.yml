@@ -478,8 +478,9 @@ jobs:
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          (needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true &&
-          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_LINUX) ||
-         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+          (vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER) ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER) ||
+         'current') == 'namespace' &&
         (needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true &&
          'namespace-profile-metamask-android-build' || 'namespace-profile-metamask-ci-linux') ||
         (needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true &&
@@ -487,12 +488,15 @@ jobs:
          fromJSON('["ubuntu-latest"]'))
       }}
     env:
+      # Repack: ANDROID → PROVIDER → current. Light upload: LINUX → PROVIDER → current.
+      # Parenthesize platform||PROVIDER so an empty ANDROID does not fall through to LINUX.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           (needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true &&
-           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_LINUX) ||
-          vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+           (vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER) ||
+           vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER) ||
+          'current'
         }}
     # Only the JS-repack path needs build-e2e/rc/exp secrets (ADDITIONAL_SRP_1, etc.).
     # Fresh/as-is upload only needs repo-level BrowserStack credentials.
