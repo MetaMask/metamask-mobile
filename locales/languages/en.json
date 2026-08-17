@@ -2698,7 +2698,8 @@
       "dispatch_title": "Action completed after an error",
       "dispatch_description": "A previous {{intent}} that appeared to fail actually reached the exchange. Refresh your balances and orders, then acknowledge to continue trading.",
       "dispatch_unknown_description": "A previous {{intent}} has an unknown outcome. Refresh your balances and orders, then acknowledge to continue trading.",
-      "acknowledge": "Acknowledge"
+      "acknowledge": "Acknowledge",
+      "error_title": "Could not read recovery status"
     }
   },
   "market_insights": {

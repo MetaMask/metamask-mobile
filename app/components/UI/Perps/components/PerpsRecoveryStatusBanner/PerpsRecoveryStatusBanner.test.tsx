@@ -78,4 +78,49 @@ describe('PerpsRecoveryStatusBanner', () => {
 
     expect(getByTestId('perps-recovery-status-banner-manual')).toBeTruthy();
   });
+
+  it('renders hook read errors instead of returning null', () => {
+    mockUsePerpsRecoveryStatus.mockReturnValue({
+      ...baseHookState,
+      error: new Error('Lighter TP/SL manual-recovery index is corrupt'),
+    });
+
+    const { getByTestId, getByText } = render(<PerpsRecoveryStatusBanner />);
+
+    expect(getByTestId('perps-recovery-status-banner-error')).toBeTruthy();
+    expect(
+      getByText('Lighter TP/SL manual-recovery index is corrupt'),
+    ).toBeTruthy();
+  });
+
+  it('keeps the dispatch banner actionable when acknowledgment fails', async () => {
+    const acknowledge = jest
+      .fn()
+      .mockRejectedValue(new Error('No pending recovered'));
+    mockUsePerpsRecoveryStatus.mockReturnValue({
+      ...baseHookState,
+      acknowledge,
+      error: new Error('No pending recovered'),
+      recoveredDispatches: [
+        {
+          recoveryId: '42:abcd',
+          kind: 13,
+          intent: 'withdraw:25',
+          txHash: 'abcd',
+          outcome: 'succeeded',
+          evidence: 'tx-status:3',
+        },
+      ],
+    });
+
+    const { getByTestId, getByText } = render(<PerpsRecoveryStatusBanner />);
+
+    // Both the failure and the still-actionable acknowledge action render.
+    expect(getByTestId('perps-recovery-status-banner-error')).toBeTruthy();
+    expect(getByTestId('perps-recovery-status-banner-dispatch')).toBeTruthy();
+    fireEvent.press(getByText('Acknowledge'));
+    await waitFor(() => {
+      expect(acknowledge).toHaveBeenCalledWith('42:abcd');
+    });
+  });
 });
