@@ -44,10 +44,11 @@ export interface UseMoneyActivityItemsResult {
   refetch: () => void;
   /**
    * True while the `fill` target bucket is empty but may still gain rows
-   * (initial load, or the auto-fill still fetching). Consumers should show a
-   * loading state rather than "no activity" while this holds. Derived from
-   * the same predicate that drives the auto-fill effect, so it can neither
-   * outlive the fetch loop nor drop while it still runs.
+   * (initial Accounts-API load, auto-fill still fetching, or Card enrichment
+   * still paging when the bucket is empty). Consumers should show a loading
+   * state rather than "no activity" while this holds. Enrichment settling
+   * alone does not hide an already-populated feed — declined rows and
+   * merchant enrichment land in place once the index catches up.
    */
   isSettling: boolean;
   moneyAddress: string | undefined;
@@ -276,14 +277,17 @@ export function useMoneyActivityItems({
     }
   }, [wantsMorePages, isLoadingMore, loadMore]);
 
-  // An empty bucket is still settling while the initial query loads or the
-  // auto-fill above may yet deliver its first row. This is the same predicate
-  // the fetch effect runs on, so the two can't disagree.
+  // An empty bucket is still settling while the initial query loads, the
+  // auto-fill above may yet deliver its first row, or Card enrichment may
+  // still inject a declined row. Once any row is on screen, leave the feed
+  // visible — enrichment updates land in place.
   const isSettling =
     !mockDataEnabled &&
     (isLoading ||
-      (enrichmentEnabled && isEnrichmentSettling) ||
-      (fillCount === 0 && (wantsMorePages || isLoadingMore)));
+      (fillCount === 0 &&
+        ((enrichmentEnabled && isEnrichmentSettling) ||
+          wantsMorePages ||
+          isLoadingMore)));
 
   return {
     buckets,

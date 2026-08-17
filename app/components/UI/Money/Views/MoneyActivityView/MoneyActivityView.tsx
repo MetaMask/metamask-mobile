@@ -82,9 +82,6 @@ interface ActivitySection {
 }
 
 function isPendingItem(item: MoneyActivityItem): boolean {
-  if (item.kind === 'cardProvider') {
-    return item.tx.status === 'pending';
-  }
   return (
     item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
   );

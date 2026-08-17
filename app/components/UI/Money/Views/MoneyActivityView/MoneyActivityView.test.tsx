@@ -4,9 +4,16 @@ import { fireEvent } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEnableActivityDetailsFlag,
+  selectMoneyEnableCardActivityEnrichmentFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectCardTransactionHistoryEnabled } from '../../../../../selectors/featureFlagController/card';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
+import { useCardTransactionIndex } from '../../../Card/hooks/useCardTransactionIndex';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import {
   isMoneyActivityDeposit,
@@ -24,6 +31,11 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import {
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const mockTrackScreenViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
@@ -59,10 +71,32 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
+  selectMoneyEnableCardActivityEnrichmentFlag: jest.fn(() => false),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../selectors/eligibility', () => ({
+  ...jest.requireActual('../../selectors/eligibility'),
+  selectIsMoneyAccountGeoEligible: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController/card', () => ({
+  ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
+  selectCardTransactionHistoryEnabled: jest.fn(() => false),
 }));
 
 const mockedSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
+);
+const mockedSelectEnrichmentFlag = jest.mocked(
+  selectMoneyEnableCardActivityEnrichmentFlag,
+);
+const mockedSelectMoneyAccountFlag = jest.mocked(
+  selectMoneyEnableMoneyAccountFlag,
+);
+const mockedSelectGeoEligible = jest.mocked(selectIsMoneyAccountGeoEligible);
+const mockedSelectCardHistory = jest.mocked(
+  selectCardTransactionHistoryEnabled,
 );
 
 // The view consumes `useMoneyActivityItems`, which fans out to these two data
@@ -77,19 +111,27 @@ jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
 }));
 
 jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
-  useCardTransactionIndex: () => ({
-    bySettlementHash: new Map(),
-    declined: [],
-    oldestFetchedTime: Number.NEGATIVE_INFINITY,
-    isFetching: false,
-    isSettling: false,
-    isError: false,
-  }),
+  useCardTransactionIndex: jest.fn(),
 }));
 
 jest.mock('../../../Card/hooks/useCardCapabilities', () => ({
-  useCardCapabilities: () => null,
+  useCardCapabilities: jest.fn(() => null),
 }));
+
+jest.mock(
+  '../../../Card/components/CardTransactionRow/CardTransactionRow',
+  () => {
+    const { Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ transaction }: { transaction: { id: string } }) => (
+        <Text testID={`activity-mock-card-${transaction.id}`}>
+          {transaction.id}
+        </Text>
+      ),
+    };
+  },
+);
 
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
@@ -162,6 +204,16 @@ const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
+const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
+
+const defaultCardIndexResult = {
+  bySettlementHash: new Map(),
+  declined: [] as CardTransaction[],
+  oldestFetchedTime: Number.NEGATIVE_INFINITY,
+  isFetching: false,
+  isSettling: false,
+  isError: false,
+};
 
 const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
 const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
@@ -238,6 +290,11 @@ describe('MoneyActivityView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectActivityDetailsFlag.mockReturnValue(true);
+    mockedSelectEnrichmentFlag.mockReturnValue(false);
+    mockedSelectMoneyAccountFlag.mockReturnValue(false);
+    mockedSelectGeoEligible.mockReturnValue(false);
+    mockedSelectCardHistory.mockReturnValue(false);
+    mockUseCardTransactionIndex.mockReturnValue(defaultCardIndexResult);
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: MOCK_MONEY_TRANSACTIONS,
       deposits: MOCK_DEPOSITS,
@@ -369,6 +426,53 @@ describe('MoneyActivityView', () => {
 
     const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
 
+    expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
+  });
+
+  it('places declined Card rows in a date section, never Pending', () => {
+    const { useCardCapabilities } = jest.requireMock(
+      '../../../Card/hooks/useCardCapabilities',
+    ) as { useCardCapabilities: jest.Mock };
+    useCardCapabilities.mockReturnValue({
+      supportsTransactionHistory: true,
+      supportsMoneyAccountLinking: true,
+    });
+    mockedSelectEnrichmentFlag.mockReturnValue(true);
+    mockedSelectMoneyAccountFlag.mockReturnValue(true);
+    mockedSelectGeoEligible.mockReturnValue(true);
+    mockedSelectCardHistory.mockReturnValue(true);
+
+    const declined: CardTransaction = {
+      id: 'declined-card-1',
+      providerId: 'baanx',
+      timestamp: Date.UTC(2026, 0, 26, 12, 0, 0),
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '9.99', currency: 'USD' },
+      fundingSources: [],
+    };
+
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
+    });
+    mockApiActivity({ activity: [] });
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultCardIndexResult,
+      declined: [declined],
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    expect(getByTestId('activity-mock-card-declined-card-1')).toBeOnTheScreen();
+    expect(getByTestId(MoneyActivityViewTestIds.DATE_HEADER)).toBeOnTheScreen();
     expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
   });
 

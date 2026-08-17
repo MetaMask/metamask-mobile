@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { MoneyActivityItem } from '../../types/moneyActivity';
 import MoneyActivityItemView from '../MoneyActivityItem/MoneyActivityItem';
 import AccountsApiActivityItem from '../AccountsApiActivityItem/AccountsApiActivityItem';
@@ -8,6 +9,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 
 export interface MoneyActivityRowProps {
   item: MoneyActivityItem;
@@ -28,16 +30,24 @@ function CardProviderActivityRow({
   privacyMode?: boolean;
 }) {
   const navigation = useNavigation<AppNavigationProp>();
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
+
+  const handlePress = useCallback(
+    (tx: CardTransaction) => {
+      navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
+        cardTransaction: tx,
+      });
+    },
+    [navigation],
+  );
 
   return (
     <CardTransactionRow
       transaction={transaction}
       privacyMode={privacyMode}
-      onPress={(tx) => {
-        navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
-          cardTransaction: tx,
-        });
-      }}
+      onPress={activityDetailsEnabled ? handlePress : undefined}
     />
   );
 }

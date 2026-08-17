@@ -1,9 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import {
   CardTransactionStatus,
   CardTransactionType,
+  type CardTransaction,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   mergeMoneyActivity,
@@ -15,31 +17,85 @@ import { MoneyActivityFilter } from '../constants/mockActivityData';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
+import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
+import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
+import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
+import {
+  selectMoneyEnableCardActivityEnrichmentFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 
 jest.mock('./useMoneyAccountTransactions');
 jest.mock('./useMoneyAccountApiActivity');
 jest.mock('../../Card/hooks/useCardTransactionIndex', () => ({
-  useCardTransactionIndex: () => ({
-    bySettlementHash: new Map(),
-    declined: [],
-    oldestFetchedTime: Number.NEGATIVE_INFINITY,
-    isFetching: false,
-    isSettling: false,
-    isError: false,
-  }),
+  useCardTransactionIndex: jest.fn(),
 }));
 jest.mock('../../Card/hooks/useCardCapabilities', () => ({
-  useCardCapabilities: () => null,
+  useCardCapabilities: jest.fn(),
 }));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false),
+  useSelector: jest.fn(),
 }));
 
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
+const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
+const mockUseCardCapabilities = jest.mocked(useCardCapabilities);
+const mockUseSelector = jest.mocked(useSelector);
+
+const defaultIndexResult = {
+  bySettlementHash: new Map<string, CardTransaction>(),
+  declined: [] as CardTransaction[],
+  oldestFetchedTime: Number.NEGATIVE_INFINITY,
+  isFetching: false,
+  isSettling: false,
+  isError: false,
+};
+
+function mockEnrichmentFlags({
+  master = false,
+  enrichment = false,
+  moneyAccount = false,
+  geoEligible = false,
+}: {
+  master?: boolean;
+  enrichment?: boolean;
+  moneyAccount?: boolean;
+  geoEligible?: boolean;
+} = {}) {
+  mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectCardTransactionHistoryEnabled) {
+      return master;
+    }
+    if (selector === selectMoneyEnableCardActivityEnrichmentFlag) {
+      return enrichment;
+    }
+    if (selector === selectMoneyEnableMoneyAccountFlag) {
+      return moneyAccount;
+    }
+    if (selector === selectIsMoneyAccountGeoEligible) {
+      return geoEligible;
+    }
+    return false;
+  });
+}
+
+function enableEnrichment() {
+  mockEnrichmentFlags({
+    master: true,
+    enrichment: true,
+    moneyAccount: true,
+    geoEligible: true,
+  });
+  mockUseCardCapabilities.mockReturnValue({
+    supportsTransactionHistory: true,
+    supportsMoneyAccountLinking: true,
+  } as never);
+}
 
 const onchainTx = (id: string, time: number, hash?: Hex): TransactionMeta =>
   ({ id, time, hash }) as TransactionMeta;
@@ -321,6 +377,9 @@ describe('useMoneyActivityItems', () => {
     jest.clearAllMocks();
     mockUseMoneyAccountTransactions.mockReturnValue(txResult());
     mockUseMoneyAccountApiActivity.mockReturnValue(apiResult());
+    mockUseCardTransactionIndex.mockReturnValue(defaultIndexResult);
+    mockUseCardCapabilities.mockReturnValue(null);
+    mockEnrichmentFlags();
   });
 
   it('gates buckets by the watermark from the API hook', () => {
@@ -555,5 +614,146 @@ describe('useMoneyActivityItems', () => {
     expect(result.current.hasMore).toBe(false);
     expect(result.current.isLoadingMore).toBe(false);
     expect(loadMore).not.toHaveBeenCalled();
+  });
+
+  it('does not surface declined rows or enrichment when flags/capabilities are off', () => {
+    const declined: CardTransaction = {
+      id: 'declined-1',
+      providerId: 'baanx',
+      timestamp: 280,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '1.00', currency: 'USD' },
+      fundingSources: [],
+    };
+    const bySettlementHash = new Map([['0xabc', declined]]);
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultIndexResult,
+      declined: [declined],
+      bySettlementHash,
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(
+      result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
+    ).not.toContain('declined-1');
+    expect(result.current.cardEnrichmentByHash.size).toBe(0);
+  });
+
+  it('drops declined rows and enrichment when the Card index errors', () => {
+    enableEnrichment();
+    const declined: CardTransaction = {
+      id: 'declined-1',
+      providerId: 'baanx',
+      timestamp: 280,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '1.00', currency: 'USD' },
+      fundingSources: [],
+    };
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultIndexResult,
+      declined: [declined],
+      bySettlementHash: new Map([['0xabc', declined]]),
+      isError: true,
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(
+      result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
+    ).not.toContain('declined-1');
+    expect(result.current.cardEnrichmentByHash.size).toBe(0);
+    expect(result.current.isSettling).toBe(false);
+  });
+
+  it('disables enrichment entirely in mock mode', () => {
+    enableEnrichment();
+    mockUseMoneyAccountTransactions.mockReturnValue(
+      txResult({ mockDataEnabled: true }),
+    );
+    const declined: CardTransaction = {
+      id: 'declined-1',
+      providerId: 'baanx',
+      timestamp: 280,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '1.00', currency: 'USD' },
+      fundingSources: [],
+    };
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultIndexResult,
+      declined: [declined],
+      bySettlementHash: new Map([['0xabc', declined]]),
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(
+      result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
+    ).not.toContain('declined-1');
+    expect(result.current.cardEnrichmentByHash.size).toBe(0);
+  });
+
+  it('reports isSettling while enrichment is paging an empty bucket', () => {
+    enableEnrichment();
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultIndexResult,
+      isSettling: true,
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(result.current.isSettling).toBe(true);
+  });
+
+  it('does not hide a populated feed while enrichment is still paging', () => {
+    enableEnrichment();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({ activity: [cardTx('0xa' as Hex, 200)] }),
+    );
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultIndexResult,
+      isSettling: true,
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(result.current.buckets[MoneyActivityFilter.All]).toHaveLength(1);
+    expect(result.current.isSettling).toBe(false);
+  });
+
+  it('injects declined rows and enrichment once enrichment is ready', () => {
+    enableEnrichment();
+    const declined: CardTransaction = {
+      id: 'declined-1',
+      providerId: 'baanx',
+      timestamp: 280,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '1.00', currency: 'USD' },
+      fundingSources: [],
+    };
+    const bySettlementHash = new Map([['0xabc', declined]]);
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultIndexResult,
+      declined: [declined],
+      bySettlementHash,
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(
+      result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
+    ).toContain('declined-1');
+    expect(result.current.cardEnrichmentByHash).toBe(bySettlementHash);
   });
 });

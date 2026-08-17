@@ -3,7 +3,12 @@ import { render, fireEvent } from '@testing-library/react-native';
 import type { Hex } from '@metamask/utils';
 import { MoneyApiActivityDetailsView } from './MoneyApiActivityDetailsView';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
-import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardMerchantCategory,
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const token = {
   address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
@@ -41,8 +46,31 @@ const refund: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
+const declinedCardTransaction: CardTransaction = {
+  id: 'declined-provider-id',
+  providerId: 'baanx',
+  timestamp: 1780574031000,
+  status: CardTransactionStatus.Failed,
+  type: CardTransactionType.Purchase,
+  isDebit: true,
+  billingAmount: { value: '12.50', currency: 'USD' },
+  reference: 'ref-declined-1',
+  merchant: {
+    name: 'Coffee Shop',
+    city: 'Berlin',
+    countryCode: 'DE',
+    category: CardMerchantCategory.Food,
+  },
+  declineReason: {
+    code: 'INSUFFICIENT_FUNDS',
+    message: 'You attempted this USDC transaction with a balance of 0.00 USDC',
+  },
+  fundingSources: [],
+};
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+let mockBlockExplorerFlag = true;
 let mockRouteParams:
   | {
       activity?: AccountsApiActivity;
@@ -82,7 +110,8 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({
-  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: () => true,
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: () =>
+    mockBlockExplorerFlag,
 }));
 
 jest.mock('../../../../Views/confirmations/hooks/useNetworkInfo', () => ({
@@ -186,6 +215,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('MoneyApiActivityDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBlockExplorerFlag = true;
     mockRouteParams = { activity: card };
   });
 
@@ -230,13 +260,13 @@ describe('MoneyApiActivityDetailsView', () => {
           id: 'baanx-id',
           providerId: 'baanx',
           timestamp: card.time,
-          status: 'completed',
-          type: 'purchase',
+          status: CardTransactionStatus.Completed,
+          type: CardTransactionType.Purchase,
           isDebit: true,
           billingAmount: { value: '5.38', currency: 'USD' },
           reference: '1000131559458',
           fundingSources: [],
-        } as never,
+        },
       };
       const { getByTestId, getByText } = render(
         <MoneyApiActivityDetailsView />,
@@ -273,6 +303,181 @@ describe('MoneyApiActivityDetailsView', () => {
           },
         }),
       );
+    });
+
+    it('renders merchant name, category, and location from enrichment', () => {
+      mockRouteParams = {
+        activity: card,
+        enrichment: {
+          id: 'baanx-id',
+          providerId: 'baanx',
+          timestamp: card.time,
+          status: CardTransactionStatus.Completed,
+          type: CardTransactionType.Purchase,
+          isDebit: true,
+          billingAmount: { value: '5.38', currency: 'USD' },
+          merchant: {
+            name: 'Metro Market',
+            city: 'Lisbon',
+            countryCode: 'PT',
+            category: CardMerchantCategory.Food,
+          },
+          fundingSources: [],
+        },
+      };
+
+      const { getByText } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getByText('Metro Market')).toBeTruthy();
+      expect(getByText('card.transactions.categories.food')).toBeTruthy();
+      expect(getByText('Lisbon, PT')).toBeTruthy();
+    });
+
+    it('omits merchant rows when enrichment has no merchant', () => {
+      mockRouteParams = {
+        activity: card,
+        enrichment: {
+          id: 'baanx-id',
+          providerId: 'baanx',
+          timestamp: card.time,
+          status: CardTransactionStatus.Completed,
+          type: CardTransactionType.Purchase,
+          isDebit: true,
+          billingAmount: { value: '5.38', currency: 'USD' },
+          fundingSources: [],
+        },
+      };
+
+      const { queryByText } = render(<MoneyApiActivityDetailsView />);
+
+      expect(queryByText('card.transactions.merchant')).toBeNull();
+      expect(queryByText('card.transactions.category')).toBeNull();
+      expect(queryByText('card.transactions.location')).toBeNull();
+    });
+  });
+
+  describe('declined card provider transaction', () => {
+    beforeEach(() => {
+      mockRouteParams = { cardTransaction: declinedCardTransaction };
+    });
+
+    it('renders failed status and spent hero copy', () => {
+      const { getByText } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getByText('money.api_activity_details.you_spent')).toBeTruthy();
+      expect(getByText('money.transaction.failed')).toBeTruthy();
+    });
+
+    it('renders merchant, category, location, and decline reason', () => {
+      const { getByText } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getByText('Coffee Shop')).toBeTruthy();
+      expect(getByText('card.transactions.categories.food')).toBeTruthy();
+      expect(getByText('Berlin, DE')).toBeTruthy();
+      expect(
+        getByText('card.transactions.decline_reasons.insufficient_funds'),
+      ).toBeTruthy();
+    });
+
+    it('uses reference as the transaction id when present', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText('ref-declined-1')).toBeTruthy();
+      expect(getByTestId('card-transaction-details-copy-id')).toBeTruthy();
+    });
+
+    it('falls back to the provider id when reference is missing', () => {
+      mockRouteParams = {
+        cardTransaction: {
+          ...declinedCardTransaction,
+          reference: undefined,
+        },
+      };
+
+      const { getByText } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getByText('declined-provider-id')).toBeTruthy();
+    });
+
+    it('hides the explorer button when there is no funding tx hash', () => {
+      const { queryByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      expect(
+        queryByTestId('card-transaction-details-explorer-button'),
+      ).toBeNull();
+    });
+
+    it('opens the block explorer when a funding source has a tx hash', () => {
+      mockRouteParams = {
+        cardTransaction: {
+          ...declinedCardTransaction,
+          fundingSources: [
+            {
+              txHash: '0xfundinghash',
+              chainId: 'eip155:143',
+            },
+          ],
+        },
+      };
+
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      fireEvent.press(getByTestId('card-transaction-details-explorer-button'));
+
+      expect(mockGetBlockExplorerTxUrl).toHaveBeenCalledWith(
+        expect.anything(),
+        '0xfundinghash',
+        'https://monadscan.com',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Webview',
+        expect.objectContaining({
+          params: {
+            url: 'https://monadscan.com/tx/0x2b45',
+            title: 'monadscan.com',
+          },
+        }),
+      );
+    });
+
+    it('hides the explorer button when the block-explorer flag is off', () => {
+      mockBlockExplorerFlag = false;
+      mockRouteParams = {
+        cardTransaction: {
+          ...declinedCardTransaction,
+          fundingSources: [
+            {
+              txHash: '0xfundinghash',
+              chainId: 'eip155:143',
+            },
+          ],
+        },
+      };
+
+      const { queryByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      expect(
+        queryByTestId('card-transaction-details-explorer-button'),
+      ).toBeNull();
+    });
+
+    it('renders completed status styling for a non-failed provider tx', () => {
+      mockRouteParams = {
+        cardTransaction: {
+          ...declinedCardTransaction,
+          status: CardTransactionStatus.Completed,
+          declineReason: undefined,
+        },
+      };
+
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText('card.transactions.completed')).toBeTruthy();
+      expect(queryByText('money.transaction.failed')).toBeNull();
     });
   });
 
