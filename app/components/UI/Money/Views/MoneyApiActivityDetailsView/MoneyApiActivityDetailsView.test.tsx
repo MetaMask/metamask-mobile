@@ -94,10 +94,6 @@ jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: () => ({}),
 }));
 
-jest.mock('../../../../../selectors/cardController', () => ({
-  selectCardPrimaryToken: () => null,
-}));
-
 jest.mock('../../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: () => ({
     address: '0xd663e49775d776300aa45ac2a51f0431bb459282',
@@ -366,6 +362,14 @@ describe('MoneyApiActivityDetailsView', () => {
 
       expect(getByText('money.api_activity_details.you_spent')).toBeTruthy();
       expect(getByText('money.transaction.failed')).toBeTruthy();
+    });
+
+    it('renders the Money account hero icon, not the Card primary token', () => {
+      // Declines have empty fundingSources; the Money path must not fall back
+      // to selectCardPrimaryToken (e.g. USDC).
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getByTestId('money-account-hero-icon')).toBeTruthy();
     });
 
     it('renders merchant, category, location, and decline reason', () => {

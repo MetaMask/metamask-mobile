@@ -22,7 +22,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { selectCardPrimaryToken } from '../../../../../selectors/cardController';
 
 import {
   findBlockExplorerUrlForChain,
@@ -46,14 +45,21 @@ import {
   cardTransactionDisplayInfo,
   formatCardTransactionStatus,
 } from '../../../Card/utils/cardTransactionDisplayInfo';
-import { getCardTransactionHeroToken } from '../../../Card/utils/getCardTransactionHeroToken';
 import { getCardDeclineReasonLabel } from '../../../Card/utils/moneyAccountCardTransaction';
 import CardTransactionDetailsContent from '../../../Card/components/CardTransactionDetailsContent/CardTransactionDetailsContent';
 import {
   CardTransactionStatus,
   type CardTransaction,
+  type CardTransactionMerchant,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../../Card/util/vedaToken';
+import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
+
+/** Hero asset for Money Activity card details — always the Money Account token. */
+const MONEY_ACCOUNT_HERO_TOKEN = {
+  symbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+  iconSource: MoneyIcon,
+} as const;
 
 const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
   card: 'money.api_activity_details.you_spent',
@@ -118,34 +124,50 @@ function formatActivityDate(timestamp: number): string {
   return `${month} ${date.getDate()}, ${date.getFullYear()} at ${timeString}`;
 }
 
-function useCardTransactionExplorerHandler(
-  transaction: CardTransaction | undefined,
-) {
+function merchantLocationLabel(
+  merchant?: Pick<CardTransactionMerchant, 'city' | 'countryCode'>,
+): string | undefined {
+  if (!merchant) {
+    return undefined;
+  }
+  const label = [merchant.city, merchant.countryCode]
+    .filter(Boolean)
+    .join(', ');
+  return label || undefined;
+}
+
+function useGoBack() {
+  const navigation = useNavigation<AppNavigationProp>();
+  return useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+}
+
+/**
+ * Returns an explorer press handler when the flag is on and both chain + hash
+ * are present; otherwise `undefined` so the explorer CTA stays hidden.
+ */
+function useOpenTxOnExplorer(
+  chainId?: string,
+  txHash?: string,
+): (() => void) | undefined {
   const navigation = useNavigation<AppNavigationProp>();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const blockExplorerLinkEnabled = useSelector(
     selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   );
 
-  const fundingSource = transaction?.fundingSources.find((fs) => fs.txHash);
+  const canOpen = Boolean(blockExplorerLinkEnabled && chainId && txHash);
 
-  return useCallback(() => {
-    if (
-      !blockExplorerLinkEnabled ||
-      !fundingSource?.txHash ||
-      !fundingSource.chainId
-    ) {
+  const open = useCallback(() => {
+    if (!chainId || !txHash) {
       return;
     }
     const rpcBlockExplorer = findBlockExplorerUrlForChain(
-      fundingSource.chainId,
+      chainId,
       networkConfigurations,
     );
-    const { url, title } = getBlockExplorerTxUrl(
-      RPC,
-      fundingSource.txHash,
-      rpcBlockExplorer,
-    );
+    const { url, title } = getBlockExplorerTxUrl(RPC, txHash, rpcBlockExplorer);
     if (!url) {
       return;
     }
@@ -153,13 +175,71 @@ function useCardTransactionExplorerHandler(
       screen: Routes.WEBVIEW.SIMPLE,
       params: { url, title },
     });
-  }, [
-    blockExplorerLinkEnabled,
-    fundingSource?.chainId,
-    fundingSource?.txHash,
-    navigation,
-    networkConfigurations,
-  ]);
+  }, [chainId, txHash, navigation, networkConfigurations]);
+
+  return canOpen ? open : undefined;
+}
+
+interface MoneyCardDetailsContentProps {
+  display: MoneyTransactionDisplayInfo;
+  heroCopy: string;
+  dateMs: number;
+  merchant?: CardTransactionMerchant;
+  declineSource?: CardTransaction;
+  transactionId?: string;
+  statusLabel: string;
+  statusColor: TextColor;
+  amountColor: TextColor;
+  explorerChainId?: string;
+  explorerTxHash?: string;
+}
+
+function MoneyCardDetailsContent({
+  display,
+  heroCopy,
+  dateMs,
+  merchant,
+  declineSource,
+  transactionId,
+  statusLabel,
+  statusColor,
+  amountColor,
+  explorerChainId,
+  explorerTxHash,
+}: MoneyCardDetailsContentProps) {
+  const handleBack = useGoBack();
+  const onViewOnExplorer = useOpenTxOnExplorer(explorerChainId, explorerTxHash);
+
+  const categoryLabel = useMemo(
+    () => getMerchantCategoryLabel(merchant?.category),
+    [merchant?.category],
+  );
+  const locationLabel = useMemo(
+    () => merchantLocationLabel(merchant),
+    [merchant],
+  );
+  const dateLabel = useMemo(() => formatActivityDate(dateMs), [dateMs]);
+
+  return (
+    <CardTransactionDetailsContent
+      heroCopy={heroCopy}
+      primaryAmount={display.primaryAmount}
+      fiatAmount={display.fiatAmount || undefined}
+      amountColor={amountColor}
+      statusLabel={statusLabel}
+      statusColor={statusColor}
+      dateLabel={dateLabel}
+      merchantName={merchant?.name}
+      categoryLabel={categoryLabel}
+      locationLabel={locationLabel}
+      declineReason={getCardDeclineReasonLabel(declineSource)}
+      transactionId={transactionId}
+      heroToken={MONEY_ACCOUNT_HERO_TOKEN}
+      heroIconTestID="money-account-hero-icon"
+      onBack={handleBack}
+      onViewOnExplorer={onViewOnExplorer}
+    />
+  );
 }
 
 function MoneyCardProviderDetailsContent({
@@ -167,72 +247,26 @@ function MoneyCardProviderDetailsContent({
 }: {
   transaction: CardTransaction;
 }) {
-  const navigation = useNavigation<AppNavigationProp>();
-  const primaryToken = useSelector(selectCardPrimaryToken);
-  const blockExplorerLinkEnabled = useSelector(
-    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
-  );
-  const hasExplorerHash = transaction.fundingSources.some((fs) => fs.txHash);
-
   const display = useMemo(
     () => cardTransactionDisplayInfo(transaction),
     [transaction],
   );
-
-  const categoryLabel = useMemo(
-    () => getMerchantCategoryLabel(transaction.merchant?.category),
-    [transaction.merchant?.category],
-  );
-
-  const locationLabel = useMemo(() => {
-    const merchant = transaction.merchant;
-    if (!merchant) {
-      return undefined;
-    }
-    return [merchant.city, merchant.countryCode].filter(Boolean).join(', ');
-  }, [transaction.merchant]);
-
-  const formattedDate = useMemo(
-    () => formatActivityDate(transaction.timestamp),
-    [transaction.timestamp],
-  );
-
-  const heroToken = useMemo(
-    () => getCardTransactionHeroToken(transaction, primaryToken),
-    [transaction, primaryToken],
-  );
-
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleViewOnExplorer = useCardTransactionExplorerHandler(transaction);
-
-  const transactionId = transaction.reference ?? transaction.id;
-
   const isFailed = transaction.status === CardTransactionStatus.Failed;
+  const fundingSource = transaction.fundingSources.find((fs) => fs.txHash);
 
   return (
-    <CardTransactionDetailsContent
+    <MoneyCardDetailsContent
+      display={display}
       heroCopy={strings('money.api_activity_details.you_spent')}
-      primaryAmount={display.primaryAmount}
-      fiatAmount={display.fiatAmount || undefined}
-      amountColor={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
+      dateMs={transaction.timestamp}
+      merchant={transaction.merchant}
+      declineSource={transaction}
+      transactionId={transaction.reference ?? transaction.id}
       statusLabel={formatCardTransactionStatus(transaction.status)}
       statusColor={isFailed ? TextColor.ErrorDefault : TextColor.SuccessDefault}
-      dateLabel={formattedDate}
-      merchantName={transaction.merchant?.name}
-      categoryLabel={categoryLabel}
-      locationLabel={locationLabel}
-      declineReason={getCardDeclineReasonLabel(transaction)}
-      transactionId={transactionId}
-      heroToken={heroToken}
-      onBack={handleBack}
-      onViewOnExplorer={
-        blockExplorerLinkEnabled && hasExplorerHash
-          ? handleViewOnExplorer
-          : undefined
-      }
+      amountColor={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
+      explorerChainId={fundingSource?.chainId}
+      explorerTxHash={fundingSource?.txHash}
     />
   );
 }
@@ -244,91 +278,26 @@ function MoneyCardActivityDetailsContent({
   activity: Extract<AccountsApiActivity, { kind: 'card' }>;
   enrichment?: CardTransaction;
 }) {
-  const navigation = useNavigation<AppNavigationProp>();
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const blockExplorerLinkEnabled = useSelector(
-    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
-  );
-
   const display = useMemo(
     () => accountsApiActivityDisplayInfo(activity, enrichment),
     [activity, enrichment],
   );
 
-  const categoryLabel = useMemo(
-    () => getMerchantCategoryLabel(enrichment?.merchant?.category),
-    [enrichment?.merchant?.category],
-  );
-
-  const locationLabel = useMemo(() => {
-    if (!enrichment?.merchant) {
-      return undefined;
-    }
-    return [enrichment.merchant.city, enrichment.merchant.countryCode]
-      .filter(Boolean)
-      .join(', ');
-  }, [enrichment?.merchant]);
-
-  const formattedDate = useMemo(
-    () => formatActivityDate(activity.time),
-    [activity.time],
-  );
-
-  const heroToken = useMemo(
-    () => ({
-      symbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
-      iconSource: MoneyIcon,
-    }),
-    [],
-  );
-
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleViewOnExplorer = useCallback(() => {
-    const rpcBlockExplorer = findBlockExplorerUrlForChain(
-      activity.chainId,
-      networkConfigurations,
-    );
-    const { url, title } = getBlockExplorerTxUrl(
-      RPC,
-      activity.hash,
-      rpcBlockExplorer,
-    );
-    if (!url) {
-      return;
-    }
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: { url, title },
-    });
-  }, [activity.chainId, activity.hash, navigation, networkConfigurations]);
-
   return (
-    <CardTransactionDetailsContent
+    <MoneyCardDetailsContent
+      display={display}
       heroCopy={strings(HERO_COPY_KEY[activity.kind])}
-      primaryAmount={display.primaryAmount}
-      fiatAmount={display.fiatAmount || undefined}
+      dateMs={activity.time}
+      merchant={enrichment?.merchant}
+      declineSource={enrichment}
+      transactionId={enrichment?.reference}
+      statusLabel={strings('money.api_activity_details.completed')}
+      statusColor={TextColor.SuccessDefault}
       amountColor={
         display.isIncoming ? TextColor.SuccessDefault : TextColor.TextDefault
       }
-      statusLabel={strings('money.api_activity_details.completed')}
-      statusColor={TextColor.SuccessDefault}
-      dateLabel={formattedDate}
-      merchantName={enrichment?.merchant?.name}
-      categoryLabel={categoryLabel}
-      locationLabel={locationLabel}
-      declineReason={getCardDeclineReasonLabel(enrichment)}
-      transactionId={enrichment?.reference}
-      heroToken={heroToken}
-      heroIconTestID="money-account-hero-icon"
-      onBack={handleBack}
-      onViewOnExplorer={
-        blockExplorerLinkEnabled && activity.hash
-          ? handleViewOnExplorer
-          : undefined
-      }
+      explorerChainId={activity.chainId}
+      explorerTxHash={activity.hash}
     />
   );
 }
@@ -339,12 +308,12 @@ function MoneyApiActivityDetailsContent({
   activity: Exclude<AccountsApiActivity, { kind: 'card' }>;
 }) {
   const tw = useTailwind();
-  const navigation = useNavigation<AppNavigationProp>();
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const blockExplorerLinkEnabled = useSelector(
-    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
-  );
   const { networkName, networkImage } = useNetworkInfo(activity.chainId);
+  const handleBack = useGoBack();
+  const handleViewOnExplorer = useOpenTxOnExplorer(
+    activity.chainId,
+    activity.hash,
+  );
 
   const display = useMemo(
     () => accountsApiActivityDisplayInfo(activity),
@@ -355,29 +324,6 @@ function MoneyApiActivityDetailsContent({
     () => formatActivityDate(activity.time),
     [activity.time],
   );
-
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleViewOnExplorer = useCallback(() => {
-    const rpcBlockExplorer = findBlockExplorerUrlForChain(
-      activity.chainId,
-      networkConfigurations,
-    );
-    const { url, title } = getBlockExplorerTxUrl(
-      RPC,
-      activity.hash,
-      rpcBlockExplorer,
-    );
-    if (!url) {
-      return;
-    }
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: { url, title },
-    });
-  }, [activity.chainId, activity.hash, navigation, networkConfigurations]);
 
   return (
     <Box twClassName="flex-1 bg-background-default">
@@ -451,7 +397,7 @@ function MoneyApiActivityDetailsContent({
             />
           </TransactionDetailsRow>
 
-          {blockExplorerLinkEnabled ? (
+          {handleViewOnExplorer ? (
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
