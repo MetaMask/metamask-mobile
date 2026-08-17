@@ -193,24 +193,16 @@ class Browser {
   }
 
   /**
-   * Submit the focused URL field via the soft-keyboard Go/Enter key.
-   * Do not use `Gestures.typeText(..., '\n')` — Appium fill/setValue would wipe the URL.
-   */
-  private async submitFocusedUrlBar(): Promise<void> {
-    await Gestures.tapKeyboardReturnKey('Go');
-  }
-
-  /**
    * Navigate via the browser URL bar (preserves `http://` scheme / ENS names).
+   * Uses per-character addValue + Return — Appium `Gestures.typeText` fill/setValue
+   * cannot append Return, and `tapKeyboardReturnKey('Go')` is too slow on iOS CI.
    */
   private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
     await this.focusUrlBarAppium();
 
-    await Gestures.typeText(this.urlBarTextInput, url, {
-      clearFirst: true,
-      hideKeyboard: false,
+    await Gestures.typeTextByCharacters(this.urlBarTextInput, url, {
+      submitWithReturn: true,
     });
-    await this.submitFocusedUrlBar();
 
     // Dismiss the editor so subsequent reads/taps see the page.
     await this.dismissUrlEditorIfOpen();
@@ -573,7 +565,8 @@ class Browser {
 
   async reloadTab() {
     await this.tapUrlInputBox();
-    await this.submitFocusedUrlBar();
+    // Re-submit the already-focused URL (do not clear/retype).
+    await Gestures.tapKeyboardReturnKey('Go');
   }
 }
 
