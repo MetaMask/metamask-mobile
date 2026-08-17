@@ -365,7 +365,7 @@ const Main = (props) => {
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
-    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
+    // (exhaustive-deps disabled for this file via eslint.config.mjs override.)
   }, [connectionChangeHandler]);
 
   const openDeprecatedNetworksArticle = () => {

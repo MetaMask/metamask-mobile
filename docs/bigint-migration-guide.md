@@ -47,7 +47,7 @@ import { hexToBigInt, bigIntToHex, fromWei, toWei, ... } from '../util/number/bi
 
 ## util/number import burndown (by team)
 
-ESLint still allows a fixed set of files to import the deprecated BN.js module `app/util/number/index.js`. That allowlist lives in `.eslintrc.js` as `utilNumberImportBurndownFiles`. After migrating a file to `app/util/number/bigint`, remove its path from that array so new legacy imports cannot creep back in.
+ESLint still allows a fixed set of files to import the deprecated BN.js module `app/util/number/index.js`. That allowlist lives in `eslint.config.mjs` as `utilNumberImportBurndownFiles`. After migrating a file to `app/util/number/bigint`, remove its path from that array so new legacy imports cannot creep back in.
 
 Imports that resolve to the same file count too: for example `from '../util/number'`, `from '../util/number/index'`, and (from under `app/util/`) `from '../number'` all resolve to `index.js` and are subject to the same fence unless the file is on the allowlist.
 

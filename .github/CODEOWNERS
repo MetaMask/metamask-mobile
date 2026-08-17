@@ -43,7 +43,7 @@ app/core/WalletConnect/                                     @MetaMask/mobile-pla
 app/util/walletconnect.js                                   @MetaMask/mobile-platform
 app/core/BackgroundBridge/                                  @MetaMask/mobile-platform
 # Deprecated BN.js helpers. Gated to discourage adding new exports; consumers
-# should migrate to app/util/number/bigint. See .eslintrc.js for the import
+# should migrate to app/util/number/bigint. See eslint.config.mjs for the import
 # fence and bigint-migration-reference.test.ts for migration patterns.
 app/util/number/index.js                                    @MetaMask/mobile-platform
 scripts/build.sh                                            @MetaMask/mobile-platform

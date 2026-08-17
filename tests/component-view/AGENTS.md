@@ -97,7 +97,7 @@ For run-by-name, watch mode, or other options, see [docs/testing/component-view-
 
 ## Enforcement {#enforcement}
 
-- ESLint override in `.eslintrc.js` blocks forbidden `jest.mock` in `*.view.test.*`
+- ESLint override in `eslint.config.mjs` blocks forbidden `jest.mock` in `*.view.test.*`
 - Runtime guard: `app/util/test/testSetupView.js`
 
 ## Implementation reference {#implementation-reference}

@@ -63,6 +63,9 @@ ignores:
   - '@expo/repack-app'
 
   # ESLint plugins, resolvers, parsers, configuration, etc.
+  # `@react-native/eslint-config` is referenced by name through `FlatCompat`,
+  # which depcheck cannot follow.
+  - '@react-native/eslint-config'
   - 'eslint-config-prettier'
   - 'eslint-import-resolver-typescript'
   - 'eslint-plugin-prettier'
