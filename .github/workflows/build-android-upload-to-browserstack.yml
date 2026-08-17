@@ -1036,7 +1036,7 @@ jobs:
             local response
             response=$(curl -fsS -u "$SAUCE_USERNAME:$SAUCE_ACCESS_KEY" \
               -X POST "https://api.us-west-1.saucelabs.com/v1/storage/upload" \
-              -F "name=$name" -F "file=@$apk")
+              -F "name=$name" -F "payload=@$apk")
             echo "storage:filename=$name"
           }
 
