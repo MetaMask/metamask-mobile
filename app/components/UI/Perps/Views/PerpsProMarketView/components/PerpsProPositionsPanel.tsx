@@ -44,6 +44,7 @@ import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 import {
+  DEFAULT_PRO_ORDER_SIDE_FILTER,
   DEFAULT_PRO_POSITION_SIDE_FILTER,
   filterProOrdersBySide,
   filterProPositionsBySide,
@@ -256,7 +257,7 @@ const PerpsProPositionsPanel = ({
   const hasPositions = sortedVisiblePositions.length > 0;
   const hasAnyPositions = positions.length > 0;
   const isSideFilterEmpty =
-    positionsSideFilter !== 'all' &&
+    positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER &&
     sideFilteredPositions.length === 0 &&
     visiblePositions.length > 0;
   const sideFilterEmptyDescriptionKey = isSideFilterEmpty
@@ -272,7 +273,7 @@ const PerpsProPositionsPanel = ({
 
   const hasAnyOrders = orders.length > 0;
   const isOrderSideFilterEmpty =
-    ordersSideFilter !== 'all' &&
+    ordersSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
     sideFilteredOrders.length === 0 &&
     visibleOrders.length > 0;
   const orderSideFilterEmptyDescriptionKey = isOrderSideFilterEmpty

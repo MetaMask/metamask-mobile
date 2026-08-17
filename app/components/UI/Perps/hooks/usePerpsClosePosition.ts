@@ -197,7 +197,7 @@ export const usePerpsClosePosition = (
         const result = await closePosition({
           symbol: position.symbol,
           size, // If undefined, will close full position
-          orderType: orderType === 'limit' ? 'limit' : 'market',
+          orderType,
           price: limitPrice,
           trackingData,
           // Pass through slippage parameters (market orders only)

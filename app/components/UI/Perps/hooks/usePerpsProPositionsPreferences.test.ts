@@ -20,7 +20,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseSelector = jest.mocked(useSelector);
 
 describe('usePerpsProPositionsPreferences', () => {
   beforeEach(() => {

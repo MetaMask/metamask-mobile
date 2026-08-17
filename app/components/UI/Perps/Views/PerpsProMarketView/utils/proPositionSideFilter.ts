@@ -2,14 +2,20 @@ import {
   DEFAULT_PRO_LAYOUT_PREFERENCES,
   type Order,
   type Position,
+  type ProOrdersSideFilter,
   type ProPositionsSideFilter,
 } from '@metamask/perps-controller';
 import { getOrderPositionDirection } from '../../../utils/orderUtils';
 
 export type ProPositionSideFilter = ProPositionsSideFilter;
 
+export type ProOrderSideFilter = ProOrdersSideFilter;
+
 export const DEFAULT_PRO_POSITION_SIDE_FILTER: ProPositionSideFilter =
   DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSideFilter;
+
+export const DEFAULT_PRO_ORDER_SIDE_FILTER: ProOrderSideFilter =
+  DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSideFilter;
 
 export const PRO_POSITION_SIDE_FILTER_OPTIONS: {
   id: ProPositionSideFilter;

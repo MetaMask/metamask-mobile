@@ -1,3 +1,4 @@
+import { DEFAULT_PRO_LAYOUT_PREFERENCES } from '@metamask/perps-controller';
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -18,16 +19,7 @@ const defaultPerpsControllerState = {
   accountState: null,
   perpsBalances: {},
   proLayoutPreferences: {
-    orderBookExpanded: false,
-    chartExpanded: false,
-    orderBookPosition: 'left' as const,
-    orderFormPosition: 'right' as const,
-    positionsSideFilter: 'all' as const,
-    positionsSortField: 'positionValue' as const,
-    positionsSortDirection: 'desc' as const,
-    ordersSideFilter: 'all' as const,
-    ordersSortField: 'time' as const,
-    ordersSortDirection: 'desc' as const,
+    ...DEFAULT_PRO_LAYOUT_PREFERENCES,
   },
   selectedPaymentToken: null,
   activeProvider: 'hyperliquid' as const,
