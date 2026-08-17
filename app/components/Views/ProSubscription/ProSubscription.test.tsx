@@ -10,12 +10,13 @@ import Success from './screens/Success';
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 const mockGoBack = jest.fn();
+const mockReplace = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({ goBack: mockGoBack, replace: mockReplace }),
     useRoute: () => ({ params: {} }),
   };
 });
@@ -66,7 +67,16 @@ describe('ProSubscription', () => {
         </TouchableOpacity>
       </View>
     ));
-    MockSuccess.mockImplementation(() => <View testID="mock-success-screen" />);
+    MockSuccess.mockImplementation(({ onSuccess }) => (
+      <View testID="mock-success-screen">
+        <TouchableOpacity
+          testID="mock-success-subscribe-trigger"
+          onPress={onSuccess}
+        >
+          <Text>Subscribe</Text>
+        </TouchableOpacity>
+      </View>
+    ));
   });
 
   // ── Close button ──────────────────────────────────────────────────────────
@@ -146,6 +156,30 @@ describe('ProSubscription', () => {
       fireEvent.press(getByTestId('mock-benefits-success-trigger'));
 
       expect(queryByTestId('mock-benefits-screen')).not.toBeOnTheScreen();
+    });
+  });
+
+  // ── Hub navigation (Success onSuccess) ────────────────────────────────────
+
+  describe('hub navigation', () => {
+    it('replaces the current screen with ProHub when Success onSuccess fires', () => {
+      const { getByTestId } = renderProSubscription();
+
+      fireEvent.press(getByTestId('mock-benefits-success-trigger'));
+      fireEvent.press(getByTestId('mock-success-subscribe-trigger'));
+
+      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
+        source: 'pro_subscription_success',
+      });
+    });
+
+    it('does not call goBack when Success onSuccess fires', () => {
+      const { getByTestId } = renderProSubscription();
+
+      fireEvent.press(getByTestId('mock-benefits-success-trigger'));
+      fireEvent.press(getByTestId('mock-success-subscribe-trigger'));
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 });

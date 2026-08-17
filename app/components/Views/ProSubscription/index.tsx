@@ -16,14 +16,14 @@ import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnab
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
 const ProSubscription = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const tw = useTailwind();
   const route =
     useRoute<
@@ -53,14 +53,10 @@ const ProSubscription = () => {
   }, []);
 
   const handleSubscriptionOnSuccess = useCallback(() => {
-    handleClose();
-    navigation.navigate(
-      Routes.PRO_HUB.ROOT as never,
-      {
-        source: 'pro_subscription_success',
-      } as never,
-    );
-  }, [handleClose, navigation]);
+    navigation.replace(Routes.PRO_HUB.ROOT, {
+      source: 'pro_subscription_success',
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView
@@ -83,10 +79,7 @@ const ProSubscription = () => {
           initialPlan={route.params?.initialPlan as PlanId | undefined}
         />
       ) : (
-        <Success
-          onClose={handleClose}
-          onSuccess={handleSubscriptionOnSuccess}
-        />
+        <Success onSuccess={handleSubscriptionOnSuccess} />
       )}
     </SafeAreaView>
   );
