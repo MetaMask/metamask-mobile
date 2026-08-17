@@ -31,8 +31,6 @@ on:
         type: string
         default: test
     secrets:
-      SAUCE_USERNAME:
-        required: true
       SAUCE_ACCESS_KEY:
         required: true
       MM_TEST_ACCOUNT_SRP:
@@ -73,7 +71,7 @@ jobs:
             exit 1
           fi
           {
-            echo "SAUCE_USERNAME=${{ secrets.SAUCE_USERNAME }}"
+            echo "SAUCE_USERNAME=oauth-javier.vera-857be"
             echo "SAUCE_ACCESS_KEY=${{ secrets.SAUCE_ACCESS_KEY }}"
             echo "SAUCE_ANDROID_APP_URL=$sauce_app_url"
             echo "SAUCE_ANDROID_ONBOARDING_APP_URL=$sauce_app_url"

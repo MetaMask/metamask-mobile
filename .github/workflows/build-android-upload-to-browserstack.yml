@@ -1038,7 +1038,7 @@ jobs:
       - name: Upload APKs to Sauce Labs
         id: sauce-upload
         env:
-          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_USERNAME: oauth-javier.vera-857be
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
         run: |
           set -euo pipefail
