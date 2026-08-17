@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 export const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -9,10 +9,6 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     screen: {
       flex: 1,
-    },
-    screenWrapper: {
-      flex: 1,
-      backgroundColor: theme.colors.background.default,
     },
     inputsContainer: {
       paddingVertical: 12,
