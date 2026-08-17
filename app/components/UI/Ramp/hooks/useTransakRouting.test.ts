@@ -119,6 +119,7 @@ jest.mock('./useRampsProviders', () => ({
     providers: [MOCK_SELECTED_PROVIDER],
     selectedProvider: MOCK_SELECTED_PROVIDER,
     setSelectedProvider: jest.fn(),
+    setSelectedProviderForAsset: jest.fn(),
     isLoading: false,
     error: null,
   }),

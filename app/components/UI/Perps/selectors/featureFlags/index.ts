@@ -407,12 +407,26 @@ export const selectPerpsWatchlistEnabledFlag = createSelector(
 export const selectPerpsProModeEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    // Default to false if no flag is set (disabled by default)
-    const localFlag = process.env.MM_PERPS_PRO_MODE_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsProModeEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for triggered order types in the Perps Pro order form.
+ * Defaults to false so triggered types can be rolled out independently.
+ *
+ * @returns boolean - true if triggered order types can be shown, false otherwise
+ */
+export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProTriggeredOrdersEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

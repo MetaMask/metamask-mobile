@@ -81,6 +81,7 @@ import {
   discardBufferedTraces,
   updateCachedConsent,
 } from '../../../util/trace';
+import { replayPendingAppInstall } from '../../../util/analytics/appInstallEvent';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import type { RootState } from '../../../reducers';
@@ -935,6 +936,10 @@ const Onboarding = () => {
         onboardingTraceCtx.current = undefined;
       }
       discardBufferedTraces();
+
+      // Social login opts in without ever showing OptinMetrics, so the install
+      // captured before consent has to be replayed from here too.
+      await replayPendingAppInstall();
 
       const accountType = getSocialAccountType(provider, !createWallet);
       const onboardingPathTags = {

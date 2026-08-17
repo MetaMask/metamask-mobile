@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   PerpsMode,
@@ -11,11 +12,19 @@ import { usePerpsMode } from './usePerpsMode';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
-import { showPerpsModeFlash } from '../utils/perpsModeFlash';
+import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
+import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
   symbol?: string;
+  /**
+   * Where Back goes when there is no stack to pop.
+   * Lite uses `'home'` (Perps hub). Pro uses `'wallet'` because Pro's stack
+   * root is itself a market screen, so falling back to Home would be a no-op.
+   * @default 'wallet'
+   */
+  backFallback?: 'home' | 'wallet';
 }
 
 export interface UsePerpsMarketHeaderActionsResult {
@@ -26,7 +35,9 @@ export interface UsePerpsMarketHeaderActionsResult {
   handleBackPress: () => void;
   handleMarketListPress: () => void;
   handleFavoritePress: () => void;
-  handlePerpsModeChange: (nextMode: PerpsMode) => void;
+  handlePerpsModeChange: (
+    nextMode: PerpsMode,
+  ) => boolean | void | Promise<boolean | void>;
 }
 
 /**
@@ -40,14 +51,18 @@ export interface UsePerpsMarketHeaderActionsResult {
  */
 export const usePerpsMarketHeaderActions = ({
   symbol,
+  backFallback = 'wallet',
 }: UsePerpsMarketHeaderActionsParams): UsePerpsMarketHeaderActionsResult => {
   const {
     navigateBack,
     navigateToWallet,
+    navigateToHome,
     navigateToMarketListFromHeader,
     canGoBack,
   } = usePerpsNavigation();
+  const navigation = useNavigation();
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const { track } = usePerpsEventTracking();
   const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
     PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -62,13 +77,19 @@ export const usePerpsMarketHeaderActions = ({
   const handleBackPress = useCallback(() => {
     if (canGoBack) {
       navigateBack();
-    } else {
-      // No back stack (e.g. this is the Pro-mode stack root): "home" while
-      // Pro mode is active is itself a market screen, so falling back to it
-      // here would often be a no-op. Leave Perps entirely instead.
-      navigateToWallet();
+      return;
     }
-  }, [canGoBack, navigateBack, navigateToWallet]);
+
+    if (backFallback === 'home') {
+      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
+      return;
+    }
+
+    // No back stack (e.g. this is the Pro-mode stack root): "home" while
+    // Pro mode is active is itself a market screen, so falling back to it
+    // here would often be a no-op. Leave Perps entirely instead.
+    navigateToWallet();
+  }, [backFallback, canGoBack, navigateBack, navigateToHome, navigateToWallet]);
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {
@@ -108,11 +129,28 @@ export const usePerpsMarketHeaderActions = ({
   }, [symbol, isWatchlist, addToWatchlist, removeFromWatchlist]);
 
   const handlePerpsModeChange = useCallback(
-    (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode): Promise<boolean> => {
+      // The market-header pill owns the shimmer delay; this fires once it ends.
+      // The chooser gates every header toggle, so a user who reaches a market
+      // without ever seeing it gets the sheet here and it owns the switch.
+      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      });
+      if (openedChooser) {
+        return false;
+      }
+
+      // Chooser already completed — flip immediately without the sheet.
       setPerpsMode(nextMode);
-      showPerpsModeFlash(nextMode);
+      // Drop Home so back cannot reveal the Lite hub while Pro is active
+      // (TAT-3612).
+      if (nextMode === PerpsMode.Pro) {
+        dropPerpsHomeFromStackHistory();
+      }
+      return true;
     },
-    [setPerpsMode],
+    [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );
 
   return {

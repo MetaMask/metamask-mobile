@@ -686,6 +686,7 @@ describe('PerpsProPositionsPanel action callbacks', () => {
       <PerpsProUnrealizedPnl
         unrealizedPnl="150"
         returnOnEquity="10"
+        positionCount={1}
         onCloseAll={onCloseAll}
       />,
     );

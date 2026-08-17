@@ -10,6 +10,9 @@ import {
   PredictDismissalMethodValue,
   PredictEventProperties,
   PredictEventValues,
+  PredictFailureCategoryValue,
+  PredictFailureStageValue,
+  PredictPaymentMethodValue,
   PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
@@ -25,6 +28,7 @@ export interface PredictAnalyticsContext {
 export interface TrackPredictOrderEventArgs {
   status: PredictTradeStatusValue;
   amountUsd?: number;
+  tradeCompletedAmountUsd?: number;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   completionDuration?: number;
   failureReason?: string;
@@ -33,6 +37,10 @@ export interface TrackPredictOrderEventArgs {
   orderType?: PredictOrderType;
   paymentTokenAddress?: string;
   paymentTokenSymbol?: string;
+  attemptId?: string;
+  paymentMethod?: PredictPaymentMethodValue;
+  failureStage?: PredictFailureStageValue;
+  failureCategory?: PredictFailureCategoryValue;
   activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -213,6 +221,7 @@ export class PredictAnalytics {
   public async trackPredictOrderEvent({
     status,
     amountUsd,
+    tradeCompletedAmountUsd,
     analyticsProperties,
     completionDuration,
     failureReason,
@@ -221,6 +230,10 @@ export class PredictAnalytics {
     orderType,
     paymentTokenAddress,
     paymentTokenSymbol,
+    attemptId,
+    paymentMethod,
+    failureStage,
+    failureCategory,
     activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
@@ -314,6 +327,18 @@ export class PredictAnalytics {
       ...(paymentTokenSymbol && {
         [PredictEventProperties.PAYMENT_TOKEN_SYMBOL]: paymentTokenSymbol,
       }),
+      ...(attemptId && {
+        [PredictEventProperties.ATTEMPT_ID]: attemptId,
+      }),
+      ...(paymentMethod && {
+        [PredictEventProperties.PAYMENT_METHOD]: paymentMethod,
+      }),
+      ...(failureStage && {
+        [PredictEventProperties.FAILURE_STAGE]: failureStage,
+      }),
+      ...(failureCategory && {
+        [PredictEventProperties.FAILURE_CATEGORY]: failureCategory,
+      }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {
           [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
@@ -349,23 +374,13 @@ export class PredictAnalytics {
       analyticsProperties.transactionType ===
         PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
     ) {
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.TRADE_CONSIDERED,
-        )
-          .addProperties({
-            [PredictEventProperties.TRADE_TYPE]:
-              PredictEventValues.TRADE_TYPE.PREDICT,
-            [PredictEventProperties.IMPLEMENTATION_TYPE]:
-              PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
-          })
-          .build(),
-      );
+      this.trackTradeConsidered();
     }
 
+    const completedAmountUsd = tradeCompletedAmountUsd ?? amountUsd;
     if (
       status === PredictTradeStatus.SUCCEEDED &&
-      amountUsd !== undefined &&
+      completedAmountUsd !== undefined &&
       (analyticsProperties.transactionType ===
         PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY ||
         analyticsProperties.transactionType ===
@@ -384,11 +399,26 @@ export class PredictAnalytics {
           })
           .addSensitiveProperties({
             ...sensitiveProperties,
-            [PredictEventProperties.USD_TRADE_VALUE]: amountUsd,
+            [PredictEventProperties.USD_TRADE_VALUE]: completedAmountUsd,
           })
           .build(),
       );
     }
+  }
+
+  public trackTradeConsidered(): void {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRADE_CONSIDERED,
+      )
+        .addProperties({
+          [PredictEventProperties.TRADE_TYPE]:
+            PredictEventValues.TRADE_TYPE.PREDICT,
+          [PredictEventProperties.IMPLEMENTATION_TYPE]:
+            PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
+        })
+        .build(),
+    );
   }
 
   public trackBetslipDismissed({

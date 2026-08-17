@@ -13,6 +13,8 @@ import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
@@ -423,6 +425,24 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  describe('safe area layout', () => {
+    it('excludes bottom safe area so the scroll list extends to the screen edge', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER).props.edges,
+      ).toEqual(SCROLLABLE_SCREEN_SAFE_AREA_EDGES);
+    });
+
+    it('keeps the top inset on the header to prevent layout shift on push', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      expectHeaderIncludesTopInset(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      );
+    });
   });
 
   it('displays the trader name in the profile header and compact nav header', () => {

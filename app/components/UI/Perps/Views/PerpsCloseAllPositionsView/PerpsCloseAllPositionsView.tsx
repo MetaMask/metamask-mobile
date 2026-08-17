@@ -38,17 +38,21 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type ClosePositionsResult,
+  type Position,
 } from '@metamask/perps-controller';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
   onClose?: () => void;
+  /** When provided, only these positions are shown and closed. */
+  positions?: Position[];
 }
 
 const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   sheetRef: externalSheetRef,
   onClose: onExternalClose,
+  positions: propPositions,
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -57,10 +61,12 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();
 
-  // Fetch positions from live stream
-  const { positions, isInitialLoading } = usePerpsLivePositions({
+  // Fetch positions from live stream (used only when no positions prop is passed)
+  const liveResult = usePerpsLivePositions({
     throttleMs: 1000,
   });
+  const positions = propPositions ?? liveResult.positions;
+  const isInitialLoading = propPositions ? false : liveResult.isInitialLoading;
 
   // Fetch current prices for fee calculations (throttled to avoid excessive updates)
   const symbols = useMemo(

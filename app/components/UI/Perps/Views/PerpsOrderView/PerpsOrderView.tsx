@@ -87,6 +87,7 @@ import {
   PERPS_CONSTANTS,
   calculatePositionSize,
   getPerpsDisplaySymbol,
+  getTriggerExecution,
   type InputMethod,
   type OrderParams,
   type OrderType,
@@ -96,6 +97,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
+import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -1003,20 +1005,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     usePerpsOrderExecution({
       onSuccess: (_position) => {
         showToast(
-          PerpsToastOptions.orderManagement[orderForm.type].confirmed(
-            orderForm.direction,
-            positionSize,
-            orderForm.asset,
-          ),
+          PerpsToastOptions.orderManagement[
+            getTriggerExecution(orderForm.type)
+          ].confirmed(orderForm.direction, positionSize, orderForm.asset),
         );
       },
       onError: (error) => {
         // Error is already captured in usePerpsOrderExecution hook
         // No need to capture again here to avoid duplicate Sentry reports
         showToast(
-          PerpsToastOptions.orderManagement[orderForm.type].creationFailed(
-            error,
-          ),
+          PerpsToastOptions.orderManagement[
+            getTriggerExecution(orderForm.type)
+          ].creationFailed(error),
         );
       },
     });
@@ -1511,11 +1511,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         });
 
         showToast(
-          PerpsToastOptions.orderManagement[orderForm.type].submitted(
-            orderForm.direction,
-            positionSize,
-            orderForm.asset,
-          ),
+          PerpsToastOptions.orderManagement[
+            getTriggerExecution(orderForm.type)
+          ].submitted(orderForm.direction, positionSize, orderForm.asset),
         );
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
@@ -2230,7 +2228,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 ? PERPS_EVENT_VALUE.DIRECTION.LONG
                 : PERPS_EVENT_VALUE.DIRECTION.SHORT,
             [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
-            previousLeverage: orderForm.leverage,
+            [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: orderForm.leverage,
           };
 
           // Add input method if provided

@@ -1,8 +1,10 @@
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import {
+  blurAndroidWebView,
   fillAndroidWebId,
   readAndroidWebIdText,
   scrollAndroidWebIdIntoView,
+  selectAndroidWebId,
   tapAndroidWebId,
   type AndroidWebViewScrollOptions,
   type AndroidWebViewTapOptions,
@@ -114,14 +116,10 @@ export default class WebView {
     options: WebViewByIdOptions = {},
   ): Promise<void> {
     if (PlatformDetector.isAndroidAppium()) {
-      await tapAndroidWebId(webId, {
+      await selectAndroidWebId(webId, optionText, {
         ...options,
         timeout: 60_000,
         description: options.description ?? `WebView select open "${webId}"`,
-      });
-      await Gestures.waitAndTap(Matchers.getElementByText(optionText), {
-        elemDescription: `WebView select option "${optionText}"`,
-        timeout: 30_000,
       });
       return;
     }
@@ -193,8 +191,7 @@ export default class WebView {
     }
 
     if (PlatformDetector.isAndroidAppium()) {
-      // No Chromedriver context — dismiss the soft keyboard only.
-      await PlaywrightGestures.hideKeyboard().catch(() => undefined);
+      await blurAndroidWebView(pageUrl);
       return;
     }
 

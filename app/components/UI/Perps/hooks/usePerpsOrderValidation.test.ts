@@ -26,6 +26,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'perps.order.validation.existing_position': `Existing position for ${values?.asset}`,
       'perps.order.validation.insufficient_balance': `Insufficient balance: need ${values?.required}, have ${values?.available}`,
+      'perps.order.validation.minimum_amount': `Minimum order size is $${values?.amount}`,
       'perps.order.validation.high_leverage_warning': 'High leverage warning',
       'perps.order.validation.limit_price_required': 'Limit price required',
       'perps.order.validation.error': 'Validation error',
@@ -75,6 +76,35 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
+    it('clears existing errors when position size changes to zero', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: 'Minimum order size is $10.00',
+      });
+      const { result, rerender } = renderHook(
+        (params) => usePerpsOrderValidation(params),
+        { initialProps: defaultParams },
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+      await fastWaitFor(() => {
+        expect(result.current.errors).toContain('Minimum order size is $10.00');
+      });
+
+      // Act
+      rerender({
+        ...defaultParams,
+        positionSize: '0',
+      });
+
+      // Assert
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.errors).toEqual([]);
+      expect(result.current.isValid).toBe(false);
+    });
+
     it('should pass when protocol validation passes', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
@@ -453,6 +483,64 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
       );
+    });
+  });
+
+  describe('reduce-only full close', () => {
+    it('passes reduceOnly and isFullClose through to protocol validation', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: { ...defaultOrderForm, amount: '5' },
+          originalUsdAmount: '5',
+          reduceOnly: true,
+          isFullClose: true,
+          marginRequired: '0',
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(mockValidateOrder).toHaveBeenCalled();
+      });
+
+      expect(mockValidateOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reduceOnly: true,
+          isFullClose: true,
+        }),
+      );
+    });
+
+    it('skips the UI minimum-amount error for a full reduce-only close', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: { ...defaultOrderForm, amount: '5' },
+          originalUsdAmount: '5',
+          reduceOnly: true,
+          isFullClose: true,
+          marginRequired: '0',
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.isValid).toBe(true);
+      expect(result.current.errors).not.toContain('Minimum order size is $10');
     });
   });
 });

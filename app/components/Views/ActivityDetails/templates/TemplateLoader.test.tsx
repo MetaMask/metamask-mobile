@@ -33,6 +33,11 @@ jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [],
 }));
 
+jest.mock('../../../UI/Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({ earnTokensByChainIdAndAddress: {} }),
+}));
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => {
@@ -53,10 +58,10 @@ jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
     getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
   }),
-  usePerpsOrderFees: () => ({
+  usePerpsRecordedOrderFees: () => ({
     totalFee: 0,
-    protocolFee: 0,
-    metamaskFee: 0,
+    isLoading: false,
+    hasError: false,
   }),
 }));
 

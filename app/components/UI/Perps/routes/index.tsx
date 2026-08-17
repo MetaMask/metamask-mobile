@@ -20,7 +20,6 @@ import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsRouter from '../Views/PerpsMarketDetailsRouter';
-import PerpsModeFlashContainer from '../components/PerpsModeFlashContainer';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
@@ -46,6 +45,7 @@ import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
+import PerpsModeSelectionView from '../Views/PerpsModeSelectionView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -186,6 +186,13 @@ const PerpsModalStack = () => {
             component={PerpsSelectProviderView}
             options={{
               title: strings('perps.provider_selector.title'),
+            }}
+          />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.MODE_SELECTION}
+            component={PerpsModeSelectionView}
+            options={{
+              title: strings('perps.mode.selection_title'),
             }}
           />
           {/* Action Selection Modals */}
@@ -477,10 +484,6 @@ const PerpsScreenStack = () => {
                 }
               />
             </Stack.Navigator>
-            {/* Lite/Pro mode-switch flash overlay (TAT-3551). Mounted once at the
-              stack root so it can be triggered from any Perps entry point and
-              flashes on top of the active screen. */}
-            <PerpsModeFlashContainer />
           </View>
         </PerpsStreamProvider>
       </PerpsConnectionProvider>

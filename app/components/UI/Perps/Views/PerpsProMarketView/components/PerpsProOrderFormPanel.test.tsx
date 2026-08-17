@@ -6,19 +6,56 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+import type {
+  PerpsProSizeInputModel,
+  PerpsProSizeSliderModel,
+} from './PerpsProOrderForm/PerpsProOrderForm.types';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
+import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
+
+const mockUseSelector = jest.fn();
+const mockUseIsPerpsProModeActive = jest.fn();
+const mockOrderTypeBottomSheet = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+jest.mock('../../../utils/perpsModeSwitch', () => ({
+  useIsPerpsProModeActive: () => mockUseIsPerpsProModeActive(),
+}));
 
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+
+const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 // Provider is a passthrough; the orchestration hook is mocked below so the
 // container test focuses purely on prop/sheet wiring.
 jest.mock('../../../contexts/PerpsOrderContext', () => ({
   PerpsOrderProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
+
+const DEFAULT_SIZE_INPUT: PerpsProSizeInputModel = {
+  value: '100',
+  denomination: { unit: 'usd' },
+  canToggleDenomination: true,
+  onChange: jest.fn(),
+  onFocus: jest.fn(),
+  onBlur: jest.fn(),
+  onToggleDenomination: jest.fn(),
+};
+
+const DEFAULT_SIZE_SLIDER: PerpsProSizeSliderModel = {
+  value: 100,
+  maximumValue: 500,
+  onValueChange: jest.fn(),
+  onDragEnd: jest.fn(),
+  onDragCancel: jest.fn(),
+};
 
 const DEFAULT_MOCK_HOOK_RESULT = {
   direction: 'long' as 'long' | 'short',
@@ -29,11 +66,10 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onOrderTypeButtonPress: jest.fn(),
   limitPrice: '',
   onLimitPriceChange: jest.fn(),
+  onLimitPriceBlur: jest.fn(),
   onUseMidPricePress: jest.fn(),
-  size: '100',
-  onSizeChange: jest.fn(),
-  balancePercentage: 20,
-  onBalancePercentageChange: jest.fn(),
+  sizeInput: DEFAULT_SIZE_INPUT,
+  sizeSlider: DEFAULT_SIZE_SLIDER,
   availableBalance: '$500 available',
   onAddFundsPress: jest.fn(),
   reduceOnly: false,
@@ -78,29 +114,26 @@ jest.mock('./PerpsProOrderForm/usePerpsProOrderForm', () => ({
 }));
 
 // Lightweight sheet mocks that surface their key callbacks for wiring assertions.
-jest.mock(
-  '../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView',
-  () => {
-    const { Pressable: P } = jest.requireActual('react-native');
-    const ReactActual = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: ({
-        isVisible,
-        onSelect,
-      }: {
-        isVisible: boolean;
-        onSelect: (type: string) => void;
-      }) =>
-        isVisible
-          ? ReactActual.createElement(P, {
-              testID: 'mock-order-type-select',
-              onPress: () => onSelect('limit'),
-            })
-          : null,
-    };
-  },
-);
+jest.mock('../../../components/PerpsOrderTypeBottomSheet', () => {
+  const { Pressable: P } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: (props: {
+      isVisible: boolean;
+      onSelect: (type: string) => void;
+      showTriggeredTypes: boolean;
+    }) => {
+      mockOrderTypeBottomSheet(props);
+      return props.isVisible
+        ? ReactActual.createElement(P, {
+            testID: 'mock-order-type-select',
+            onPress: () => props.onSelect('limit'),
+          })
+        : null;
+    },
+  };
+});
 
 jest.mock('../../../components/PerpsLeverageBottomSheet', () => {
   const { Pressable: P } = jest.requireActual('react-native');
@@ -163,6 +196,8 @@ const renderPanel = (
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue(true);
+    mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
     Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);
@@ -181,25 +216,34 @@ describe('PerpsProOrderFormPanel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the book separator on the form when the order book is visible', () => {
+  it('uses top inset on the form panel without a book separator border', () => {
     renderPanel({ isOrderBookCollapsed: false });
 
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).toHaveStyle({
-      borderRightWidth: 1,
-      paddingRight: 16,
+      paddingTop: 16,
     });
-  });
-
-  it('omits the book separator when the order book is collapsed', () => {
-    renderPanel({ isOrderBookCollapsed: true });
-
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).not.toHaveStyle({
       borderRightWidth: 1,
     });
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the order book expand control when the order book is collapsed', () => {
+    renderPanel({ isOrderBookCollapsed: true });
+
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('wires direction changes to the hook', () => {
@@ -241,6 +285,34 @@ describe('PerpsProOrderFormPanel', () => {
     expect(mockHookResult.onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
   });
 
+  it('renders the size denomination returned by the hook', () => {
+    mockHookResult.sizeInput = {
+      ...mockHookResult.sizeInput,
+      denomination: { unit: 'asset', symbol: 'BTC' },
+    };
+
+    renderPanel();
+
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_UNIT_LABEL),
+    ).toHaveTextContent('Size (BTC)');
+    expect(
+      screen.queryByTestId(PerpsProOrderFormSelectorsIDs.SIZE_PREFIX),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('wires size slider drag completion to the hook', () => {
+    renderPanel();
+    const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
+
+    expect(slider).toHaveProp('value', 100);
+    expect(slider).toHaveProp('maximumValue', 500);
+
+    slider.props.onDragEnd(20);
+
+    expect(mockHookResult.sizeSlider.onDragEnd).toHaveBeenCalledTimes(1);
+  });
+
   it('wires the TP/SL row to the hook', () => {
     // Arrange
     renderPanel();
@@ -277,6 +349,17 @@ describe('PerpsProOrderFormPanel', () => {
     expect(mockHookResult.onLeverageConfirm).toHaveBeenCalledWith(10);
   });
 
+  it('renders the leverage sheet inside the Android modal gesture root', () => {
+    mockHookResult.isLeverageVisible = true;
+
+    renderPanel();
+
+    expect(
+      screen.getByTestId(PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('mock-leverage-confirm')).toBeOnTheScreen();
+  });
+
   it('saves slippage from the slippage sheet when visible', () => {
     // Arrange
     mockHookResult.isSlippageVisible = true;
@@ -299,6 +382,48 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onOrderTypeSelect).toHaveBeenCalledWith('limit');
+  });
+
+  it('shows triggered types when Pro mode and its remote flag are enabled', () => {
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        asset: 'BTC',
+        direction: 'long',
+        showSelectedIcon: true,
+        showTriggeredTypes: true,
+        title: 'Choose order type',
+      }),
+    );
+  });
+
+  it('hides triggered types when Pro mode is inactive', () => {
+    mockUseIsPerpsProModeActive.mockReturnValue(false);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showTriggeredTypes: false,
+      }),
+    );
+  });
+
+  it('hides triggered types when the remote flag is disabled', () => {
+    mockUseSelector.mockReturnValue(false);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showTriggeredTypes: false,
+      }),
+    );
   });
 
   it('renders the fees tooltip when a tooltip is selected', () => {

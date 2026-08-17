@@ -207,6 +207,13 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     let userInfo = notification.request.content.userInfo
     // Tell Firebase about the message — this triggers messaging().onMessage() in JS.
     Messaging.messaging().appDidReceiveMessage(userInfo)
+    // Suppress the foreground system banner for wallet_activity: in-app
+    // transaction toasts already cover it. Background/killed delivery is
+    // unaffected (willPresent only runs in the foreground).
+    if (userInfo["notification_type"] as? String) == "wallet_activity" {
+      completionHandler([.badge])
+      return
+    }
     // Show the notification visually in the foreground.
     completionHandler([.sound, .badge, .banner, .list])
   }

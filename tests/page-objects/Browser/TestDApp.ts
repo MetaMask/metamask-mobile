@@ -13,9 +13,11 @@ import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers';
+import { createPlaywrightLogger } from '../../framework/playwrightLogger';
+
+const logger = createPlaywrightLogger('TestDApp');
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -24,6 +26,7 @@ const DAPP_ACCOUNTS_TEXT = 'Accounts:';
 
 interface ContractNavigationParams {
   contractAddress: string;
+  scrollTo?: string;
 }
 
 const testDappPageUrl = (): string => getDappUrl(0);
@@ -232,9 +235,15 @@ class TestDApp {
     );
   }
 
-  getNetworkItemByName(networkName: string): WebElement {
+  getNetworkItemByName(
+    networkName: string,
+    { exactMatch = false }: { exactMatch?: boolean } = {},
+  ): WebElement {
+    const textPredicate = exactMatch
+      ? `text()="${networkName}"`
+      : `contains(text(), "${networkName}")`;
     return getTestDappWebElementByXPath(
-      `//div[contains(@class, "network-modal-item-name") and contains(text(), "${networkName}")]`,
+      `//div[contains(@class, "network-modal-item-name") and ${textPredicate}]`,
     );
   }
 
@@ -473,14 +482,36 @@ class TestDApp {
     });
   }
 
+  async tapSwitchChainButton(timeoutMs = 15_000): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+        testDappPageUrl(),
+        TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN,
+      );
+      if (clicked) return;
+      await sleep(300);
+    }
+    throw new Error(
+      `Timed out waiting for #${TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN} in TestDApp WebView`,
+    );
+  }
+
+  /**
+   * Clicks the Test Dapp `#connectButton` in the WebView (eth_requestAccounts).
+   * Retries until the connect sheet appears — needed on slow Appium Android loads.
+   */
   async tapDappConnectButton(timeoutMs = 15_000): Promise<void> {
     const deadline = Date.now() + timeoutMs;
     let lastClickAt = 0;
+    let clickAttempts = 0;
+    let lastClickResult: boolean | null = null;
 
     while (Date.now() < deadline) {
       if (Date.now() - lastClickAt >= 1_000) {
         lastClickAt = Date.now();
-        await ChromeCdpHelpers.evaluateInWebView(
+        clickAttempts += 1;
+        lastClickResult = await ChromeCdpHelpers.evaluateInWebView<boolean>(
           testDappPageUrl(),
           `(() => {
             const el = document.getElementById(${JSON.stringify(
@@ -491,6 +522,9 @@ class TestDApp {
             return true;
           })()`,
         );
+        logger.info(
+          `tapDappConnectButton attempt=${clickAttempts} cdpClick=${String(lastClickResult)} url=${testDappPageUrl()}`,
+        );
       }
 
       try {
@@ -498,6 +532,9 @@ class TestDApp {
           ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
         );
         await connectSheetButton.unwrap().waitForDisplayed({ timeout: 500 });
+        logger.info(
+          `tapDappConnectButton connect sheet visible after ${clickAttempts} click attempt(s)`,
+        );
         return;
       } catch {
         // Connect sheet not up yet.
@@ -506,8 +543,47 @@ class TestDApp {
       await sleep(300);
     }
 
+    const diagnostics = await ChromeCdpHelpers.evaluateInWebView<{
+      href: string;
+      hasConnectButton: boolean;
+      hasEthereum: boolean;
+      hasProviders: boolean;
+      chainId: string | null;
+      accountsText: string | null;
+      selectedAddress: string | null;
+    }>(
+      testDappPageUrl(),
+      `(() => {
+        const connectEl = document.getElementById(${JSON.stringify(
+          TestDappSelectorsWebIDs.CONNECT_BUTTON,
+        )});
+        const accountsEl = document.getElementById(${JSON.stringify(
+          TestDappSelectorsWebIDs.ACCOUNTS_TEXT,
+        )});
+        const chainEl = document.getElementById(${JSON.stringify(
+          TestDappSelectorsWebIDs.CHAIN_ID_TEXT,
+        )});
+        return {
+          href: location.href,
+          hasConnectButton: Boolean(connectEl),
+          hasEthereum: typeof window.ethereum !== 'undefined',
+          hasProviders: Array.isArray(window.ethereum?.providers)
+            ? window.ethereum.providers.length > 0
+            : Boolean(window.ethereum),
+          chainId: chainEl ? (chainEl.textContent || null) : null,
+          accountsText: accountsEl ? (accountsEl.textContent || null) : null,
+          selectedAddress: window.ethereum?.selectedAddress ?? null,
+        };
+      })()`,
+    );
+
+    logger.error(
+      `tapDappConnectButton timed out after ${clickAttempts} click attempt(s); lastClick=${String(lastClickResult)}; diagnostics=${JSON.stringify(diagnostics)}`,
+    );
+
     throw new Error(
-      `Timed out waiting for connect sheet after #${TestDappSelectorsWebIDs.CONNECT_BUTTON} click`,
+      `Timed out waiting for connect sheet after #${TestDappSelectorsWebIDs.CONNECT_BUTTON} click` +
+        ` (attempts=${clickAttempts}, lastClick=${String(lastClickResult)}, diagnostics=${JSON.stringify(diagnostics)})`,
     );
   }
 
@@ -574,11 +650,14 @@ class TestDApp {
 
   async navigateToTestDappWithContract({
     contractAddress,
+    scrollTo,
   }: ContractNavigationParams): Promise<void> {
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(
-      `${getDappUrl(0)}/?scrollTo=''&contract=${contractAddress}`,
-    );
+    const params = new URLSearchParams({ contract: contractAddress });
+    if (scrollTo) {
+      params.set('scrollTo', scrollTo);
+    }
+    await Browser.navigateToURL(`${getDappUrl(0)}/?${params.toString()}`);
   }
 
   async switchChainFromTestDapp(): Promise<void> {
@@ -624,19 +703,28 @@ class TestDApp {
   }
 
   async tapOpenNetworkPicker(): Promise<void> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
-      const picker = await PlaywrightMatchers.getElementById(
-        TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
+    // Prefer CDP / WebView DOM click — native UiAutomator scroll+tap on the
+    // picker button is flaky under Android Appium (off-screen WebView nodes).
+    const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+      testDappPageUrl(),
+      TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
+    );
+    if (clicked) {
+      await Utilities.executeWithRetry(
+        async () => {
+          const open = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+            testDappPageUrl(),
+            `(() => !!document.querySelector('.network-modal-body'))()`,
+          );
+          if (!open) {
+            throw new Error('Test-dapp network picker modal not open yet');
+          }
+        },
+        {
+          timeout: 15000,
+          description: 'Wait for test-dapp network picker modal',
+        },
       );
-      const webview = await PlaywrightMatchers.getElementById(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      );
-      await PlaywrightGestures.scrollIntoView(picker, {
-        scrollableElement: webview,
-        scrollParams: { direction: 'up' },
-        maxScrolls: 40,
-      });
-      await PlaywrightGestures.tap(picker);
       return;
     }
 
@@ -645,25 +733,49 @@ class TestDApp {
     });
   }
 
-  async tapNetworkByName(networkName: string): Promise<void> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
-      const networkItem =
-        await PlaywrightMatchers.getElementByText(networkName);
-      const webview = await PlaywrightMatchers.getElementById(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      );
-      await PlaywrightGestures.scrollIntoView(networkItem, {
-        scrollableElement: webview,
-        scrollParams: { direction: 'up' },
-        maxScrolls: 20,
-      });
-      await PlaywrightGestures.tap(networkItem);
-      return;
-    }
-
-    await this.tapButton(this.getNetworkItemByName(networkName), {
-      elemDescription: `tap ${networkName} network`,
-    });
+  async tapNetworkByName(
+    networkName: string,
+    { exactMatch = false }: { exactMatch?: boolean } = {},
+  ): Promise<void> {
+    // Residual flake after wait+maxScrolls bump: native getElementByText +
+    // WebView page scrollIntoView does not target the modal list
+    // (.network-modal-body / .network-modal-item-name). Click via CDP/DOM
+    // instead — same approach as tapSwitchChainButton / tapDappConnectButton.
+    const matchMode = exactMatch ? 'exact' : 'includes';
+    await Utilities.executeWithRetry(
+      async () => {
+        const clicked = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+          testDappPageUrl(),
+          `(() => {
+            const items = Array.from(
+              document.querySelectorAll('.network-modal-item-name'),
+            );
+            const target = ${JSON.stringify(networkName)};
+            const exact = ${exactMatch ? 'true' : 'false'};
+            const el = items.find((node) => {
+              const text = (node.textContent || '').trim();
+              return exact ? text === target : text.includes(target);
+            });
+            if (!el) return false;
+            const row = el.closest('.network-modal-item') || el;
+            if (typeof row.scrollIntoView === 'function') {
+              row.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }
+            row.click();
+            return true;
+          })()`,
+        );
+        if (!clicked) {
+          throw new Error(
+            `Network option "${networkName}" (${matchMode}) not clickable in dapp picker modal`,
+          );
+        }
+      },
+      {
+        timeout: 20000,
+        description: `Tap network option "${networkName}" in dapp picker via CDP`,
+      },
+    );
   }
 }
 

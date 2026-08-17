@@ -115,6 +115,7 @@ const mockUseRampsControllerInitialValues: ReturnType<
   setUserRegion: mockSetUserRegion,
   selectedProvider: null,
   setSelectedProvider: mockSetSelectedProvider,
+  setSelectedProviderForAsset: jest.fn(),
   providers: [],
   providersLoading: false,
   providersError: null,
