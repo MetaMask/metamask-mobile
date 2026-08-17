@@ -610,6 +610,73 @@ describe('NetworkPills', () => {
         }),
       );
     });
+
+    it('backfills from chainRanking when a session pin has no ids in a narrower enabledChainIds picker', () => {
+      // Pinned during a normal (unrestricted) bridge session.
+      jest
+        .mocked(selectVisiblePillChainIds)
+        .mockReturnValue([
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          'bip122:000000000019d6689c085ae165831e93',
+          'eip155:10',
+          'eip155:42161',
+        ] as CaipChainId[]);
+
+      // Narrower picker (e.g. Limit Order) whose chainRanking doesn't
+      // contain any of the pinned ids.
+      const narrowRanking = [
+        { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
+        { chainId: 'eip155:56' as CaipChainId, name: 'BNB Chain' },
+        { chainId: 'eip155:8453' as CaipChainId, name: 'Base' },
+      ];
+      jest.mocked(selectAllowedChainRanking).mockReturnValue(narrowRanking);
+
+      const { getByText, queryByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          enabledChainIds={['eip155:1', 'eip155:56', 'eip155:8453']}
+        />,
+      );
+
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(getByText('BNB Chain')).toBeOnTheScreen();
+      expect(getByText('Base')).toBeOnTheScreen();
+      expect(queryByTestId('network-pills-more-button')).toBeNull();
+    });
+
+    it('mixes valid pinned ids with backfilled ranking entries in a narrower picker', () => {
+      // Only one of the pinned ids exists in the narrower ranking.
+      jest
+        .mocked(selectVisiblePillChainIds)
+        .mockReturnValue([
+          'eip155:56',
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ] as CaipChainId[]);
+
+      const narrowRanking = [
+        { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
+        { chainId: 'eip155:56' as CaipChainId, name: 'BNB Chain' },
+        { chainId: 'eip155:8453' as CaipChainId, name: 'Base' },
+      ];
+      jest.mocked(selectAllowedChainRanking).mockReturnValue(narrowRanking);
+
+      const { getByText } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          enabledChainIds={['eip155:1', 'eip155:56', 'eip155:8453']}
+        />,
+      );
+
+      // The valid pin (BNB Chain) is kept, and the remaining slots are
+      // backfilled from the narrower ranking instead of being dropped.
+      expect(getByText('BNB Chain')).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(getByText('Base')).toBeOnTheScreen();
+    });
   });
 
   describe('watchlist filter', () => {

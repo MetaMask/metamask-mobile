@@ -96,9 +96,37 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
   // Once set (out-of-list promotion), Redux is the session SSOT — holdings /
   // treatment ranking updates must not change membership. While unset, fall
   // back to the first N from the current chainRanking.
+  //
+  // The pin is a *global* session value, but a picker may be scoped to a
+  // narrower `enabledChainIds` (e.g. Limit Order chains) than whichever
+  // picker originally set the pin. Drop any pinned ids that aren't part of
+  // the current chainRanking, then backfill remaining slots from
+  // chainRanking so a narrower picker never ends up with zero network pills.
   const reduxVisibleChainIds = useSelector(selectVisiblePillChainIds);
-  const visibleChainIds =
-    reduxVisibleChainIds ?? getVisibleChainIds(chainRanking);
+  const visibleChainIds = useMemo(() => {
+    if (!reduxVisibleChainIds) {
+      return getVisibleChainIds(chainRanking);
+    }
+
+    const rankingChainIds = chainRanking.map((c) => c.chainId);
+    const rankingChainIdSet = new Set(rankingChainIds);
+    const validPinnedChainIds = reduxVisibleChainIds.filter((id) =>
+      rankingChainIdSet.has(id),
+    );
+
+    if (validPinnedChainIds.length >= MAX_VISIBLE_PILLS) {
+      return validPinnedChainIds;
+    }
+
+    const backfillChainIds = rankingChainIds.filter(
+      (id) => !validPinnedChainIds.includes(id),
+    );
+
+    return [...validPinnedChainIds, ...backfillChainIds].slice(
+      0,
+      MAX_VISIBLE_PILLS,
+    );
+  }, [reduxVisibleChainIds, chainRanking]);
 
   // Resolve visible chains to full entries from chainRanking
   const visibleChains = useMemo(

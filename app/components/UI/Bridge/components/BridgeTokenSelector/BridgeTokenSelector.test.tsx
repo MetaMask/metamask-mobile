@@ -1003,6 +1003,53 @@ describe('BridgeTokenSelector', () => {
         ]);
       });
     });
+
+    it('falls back to all enabled chains when the initial dest filter chain is outside enabledChainIds', async () => {
+      // Selected dest token lives on Polygon, but this picker (e.g. Limit
+      // Order) is scoped to Ethereum only, so Polygon is excluded from the
+      // allowed chainRanking returned to pills/network modal.
+      const enabledChainIds = [MOCK_CHAIN_IDS.ethereum];
+      mockRouteParams = { type: 'dest', enabledChainIds };
+      mockSelectedToken = createMockToken({ chainId: '0x89' });
+
+      const restrictedRanking = [
+        { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+      ];
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockImplementation(() => restrictedRanking);
+
+      renderWithReduxProvider(<BridgeTokenSelector />);
+
+      try {
+        await waitFor(() => {
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
+            MOCK_CHAIN_IDS.ethereum,
+          ]);
+        });
+        expect(mockUseInitialBridgeTokens).not.toHaveBeenCalledWith([
+          MOCK_CHAIN_IDS.polygon,
+        ]);
+      } finally {
+        // Restore the default (unfiltered-by-enabledChainIds) mock
+        // implementation for subsequent tests.
+        jest.mocked(selectAllowedChainRanking).mockImplementation(
+          (state: {
+            engine: {
+              backgroundState: {
+                BridgeController: {
+                  bridgeState: {
+                    bridgeFeatureFlags?: { chainRanking?: CaipChainId[] };
+                  };
+                };
+              };
+            };
+          }) =>
+            state.engine.backgroundState.BridgeController.bridgeState
+              .bridgeFeatureFlags?.chainRanking ?? [],
+        );
+      }
+    });
   });
 
   describe('token selection', () => {

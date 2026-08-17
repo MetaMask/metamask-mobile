@@ -359,12 +359,23 @@ export const BridgeTokenSelector: React.FC = () => {
       return [];
     }
 
-    // If a specific chain is selected, use only that chain
-    if (selectedChainId) {
+    // If a specific chain is selected and it's part of the allowed chain
+    // set, use only that chain. A selectedChainId can come from sources
+    // (initialFilter, stale Redux filter) that predate/ignore this
+    // picker's enabledChainIds override, so it must be validated against
+    // enabledChainRanking before being trusted, otherwise the fetched
+    // list could include a chain the pills/network modal don't show.
+    if (
+      selectedChainId &&
+      enabledChainRanking.some(
+        (chain: { chainId: CaipChainId }) => chain.chainId === selectedChainId,
+      )
+    ) {
       return [selectedChainId];
     }
 
-    // If "All" is selected, use all chains from filtered chainRanking
+    // If "All" is selected, or the selected chain isn't part of the
+    // allowed chain set, use all chains from filtered chainRanking.
     return enabledChainRanking.map(
       (chain: { chainId: CaipChainId }) => chain.chainId,
     );
