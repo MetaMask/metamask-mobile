@@ -177,7 +177,10 @@ describe('MultichainAccountServiceInit', () => {
 
     it('calls RemoteFeatureFlagController:getState during init', () => {
       const requestMock = getInitRequestMock();
-      const callSpy = jest.spyOn(requestMock.initMessenger, 'call') as jest.Mock;
+      const callSpy = jest.spyOn(
+        requestMock.initMessenger,
+        'call',
+      ) as jest.Mock;
 
       multichainAccountServiceInit(requestMock);
 

@@ -11,21 +11,20 @@
  * on first call of the method.
  */
 export function previousValueComparator<A>(
-    comparator: (previous: A, next: A) => boolean,
-    initialValue: A,
-  ) {
-    let first = true;
-    let cache: A;
-    return (value: A) => {
-      try {
-        if (first) {
-          first = false;
-          return comparator(initialValue ?? value, value);
-        }
-        return comparator(cache, value);
-      } finally {
-        cache = value;
+  comparator: (previous: A, next: A) => boolean,
+  initialValue: A,
+) {
+  let first = true;
+  let cache: A;
+  return (value: A) => {
+    try {
+      if (first) {
+        first = false;
+        return comparator(initialValue ?? value, value);
       }
-    };
-  }
-  
+      return comparator(cache, value);
+    } finally {
+      cache = value;
+    }
+  };
+}

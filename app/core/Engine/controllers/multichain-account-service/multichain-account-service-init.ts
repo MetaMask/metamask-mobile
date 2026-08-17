@@ -82,7 +82,6 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   });
 
-
   // Subscribe to feature flag changes to enable Stellar provider.
   // Note: Disable Stellar provider from enable may result abnormal behavior.
   initMessenger.subscribe(
