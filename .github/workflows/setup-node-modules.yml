@@ -155,7 +155,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '' || (inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '') }}
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && (inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '') || '' }}
 
       - name: Setup Ruby (iOS)
         if: inputs.platform == 'ios'
