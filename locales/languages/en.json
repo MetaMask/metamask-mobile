@@ -2009,7 +2009,26 @@
         "tpslPositionLinkageUnsupported": "Take profit and stop loss can only be attached to a position once the order has filled",
         "timeInForceNotSupported": "Time in force can only be set on limit orders",
         "editTriggerUnsupported": "Stop and take profit orders can't be edited. Cancel the order and place a new one.",
-        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again."
+        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again.",
+        "strategyParamsNotSupported": "These order settings aren't supported for this order type",
+        "strategyFieldUnsupported": "This field can't be used with a TWAP, scale, or chase order",
+        "strategyMarketUnsupported": "TWAP, scale, and chase orders aren't available on this market",
+        "strategyHandleUnknown": "This strategy order can no longer be found. Refresh your orders and try again.",
+        "strategyCancelIncomplete": "Some parts of this strategy order couldn't be cancelled. Try again.",
+        "strategyEditUnsupported": "TWAP, scale, and chase orders can't be edited. Cancel the order and place a new one.",
+        "twapDurationRequired": "A duration is required for TWAP orders",
+        "twapDurationInvalid": "TWAP duration must be between 5 and 1440 minutes",
+        "twapNotionalTooSmall": "TWAP order value is below the exchange minimum",
+        "scaleRangeRequired": "Scale orders need a minimum and maximum price",
+        "scaleRangeInvalid": "Scale order maximum price must be above the minimum",
+        "scaleCountInvalid": "Scale order count is invalid",
+        "scaleSizeTooSmall": "Each scale order is below the minimum size",
+        "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
+        "chaseIntervalInvalid": "Chase interval is invalid",
+        "chaseDurationInvalid": "Chase duration is invalid",
+        "chaseLimitReached": "Too many chase orders are already running",
+        "chaseAbandoned": "Chase order was cancelled because the connection dropped",
+        "chaseTouchUnavailable": "No market price is available to place this chase order"
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -8457,6 +8476,11 @@
     "description": " and MEV protection. Now on by default."
   },
   "bridge": {
+    "tabs": {
+      "market": "Market",
+      "limit": "Limit",
+      "recurring": "Recurring"
+    },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
     "confirm_swap": "Swap",
