@@ -21,6 +21,7 @@ import UnifiedGestures from './UnifiedGestures.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -933,6 +934,42 @@ export default class Gestures {
       throw new Error('Gestures.hideKeyboard is Appium only');
     }
     await PlaywrightGestures.hideKeyboard();
+  }
+
+  /**
+   * Activate an app by device details or package/bundle id (Appium).
+   */
+  static async activateApp(
+    currentDeviceDetails?: CurrentDeviceDetails,
+    packageId?: string,
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.activateApp is Appium only');
+    }
+    await PlaywrightGestures.activateApp(currentDeviceDetails, packageId);
+  }
+
+  /**
+   * Terminate the app identified by device details (Appium).
+   */
+  static async terminateApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+    options?: Parameters<typeof PlaywrightGestures.terminateApp>[1],
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.terminateApp is Appium only');
+    }
+    await PlaywrightGestures.terminateApp(currentDeviceDetails, options);
+  }
+
+  /**
+   * Submit the focused Android URL field via KEYCODE_ENTER (Appium).
+   */
+  static async submitAndroidUrlBar(): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.submitAndroidUrlBar is Appium only');
+    }
+    await PlaywrightGestures.submitAndroidUrlBar();
   }
 
   /**
