@@ -6,6 +6,7 @@ import Engine from '../../../core/Engine';
 import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
 import { toCardFundingToken } from '../../../components/UI/Card/util/toCardTokenAllowance';
 import { getVedaTokenConfig } from '../../../components/UI/Card/util/vedaToken';
+import { MoneyAccountBalanceServiceQueryKeys } from '../../../components/UI/Money/queryKeys';
 import { isMoneyAccountDelegatedForCard } from '../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { getMoneyAccountVaultConfig } from '../../../selectors/featureFlagController/moneyAccount';
 import type { MigrationBlocker, MigrationInventory } from './types';
@@ -78,6 +79,26 @@ export class MoneyAccountMigrationPocService {
     destination: Hex,
   ): Promise<MigrationInventory> {
     const messenger = Engine.controllerMessenger;
+    await Promise.all([
+      messenger.call('MoneyAccountBalanceService:invalidateQueries', {
+        queryKey: [
+          MoneyAccountBalanceServiceQueryKeys.GET_VMUSD_BALANCE,
+          source,
+        ],
+      }),
+      messenger.call('MoneyAccountBalanceService:invalidateQueries', {
+        queryKey: [
+          MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE,
+          source,
+        ],
+      }),
+      messenger.call('ChompApiService:invalidateQueries', {
+        queryKey: ['ChompApiService:getIntentsByAddress', source],
+      }),
+      messenger.call('AuthenticatedUserStorageService:invalidateQueries', {
+        queryKey: ['AuthenticatedUserStorageService:listDelegations'],
+      }),
+    ]);
     const [
       flagState,
       vmUsdBalance,

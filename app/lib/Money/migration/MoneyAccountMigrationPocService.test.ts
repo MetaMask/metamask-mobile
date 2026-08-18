@@ -5,6 +5,7 @@ import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
 import Engine from '../../../core/Engine';
 import { emptyCardHomeData } from '../../../core/Engine/controllers/card-controller/provider-types';
 import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
+import { MoneyAccountBalanceServiceQueryKeys } from '../../../components/UI/Money/queryKeys';
 import { MoneyAccountMigrationPocService } from './MoneyAccountMigrationPocService';
 import type { MigrationInventory } from './types';
 
@@ -104,6 +105,10 @@ const stubMessenger = () => {
         return [];
       case 'AuthenticatedUserStorageService:listDelegations':
         return [];
+      case 'MoneyAccountBalanceService:invalidateQueries':
+      case 'ChompApiService:invalidateQueries':
+      case 'AuthenticatedUserStorageService:invalidateQueries':
+        return undefined;
       case 'CardController:getState':
         return { moneyAccountCardLinkInProgress: false };
       case 'MoneyAccountUpgradeController:upgradeAccount':
@@ -265,6 +270,10 @@ describe('MoneyAccountMigrationPocService', () => {
               metadata: { delegationHash: DELEGATION_HASH },
             },
           ];
+        case 'MoneyAccountBalanceService:invalidateQueries':
+        case 'ChompApiService:invalidateQueries':
+        case 'AuthenticatedUserStorageService:invalidateQueries':
+          return undefined;
         case 'CardController:getState':
           return { moneyAccountCardLinkInProgress: false };
         default:
@@ -281,6 +290,79 @@ describe('MoneyAccountMigrationPocService', () => {
     expect(inventory.chompDelegationHashes).toEqual([DELEGATION_HASH]);
     expect(inventory.cardLinked).toBe(false);
     expect(mockGetCardHomeData).toHaveBeenCalledWith(SOURCE);
+  });
+
+  it('invalidates cached balances, intents, and delegations before reading them', async () => {
+    const order: string[] = [];
+    mockCall.mockImplementation(async (action: string) => {
+      order.push(action);
+      switch (action) {
+        case 'MoneyAccountBalanceService:invalidateQueries':
+        case 'ChompApiService:invalidateQueries':
+        case 'AuthenticatedUserStorageService:invalidateQueries':
+          return undefined;
+        case 'RemoteFeatureFlagController:getState':
+          return { remoteFeatureFlags: {} };
+        case 'MoneyAccountBalanceService:getVmusdBalance':
+        case 'MoneyAccountBalanceService:getMusdBalance':
+          return { balance: '0' };
+        case 'ChompApiService:getIntentsByAddress':
+          return [];
+        case 'AuthenticatedUserStorageService:listDelegations':
+          return [];
+        default:
+          throw new Error(`unexpected action ${action}`);
+      }
+    });
+    const service = new MoneyAccountMigrationPocService();
+
+    await service.collectInventory(SOURCE, DEST);
+
+    expect(mockCall).toHaveBeenCalledWith(
+      'MoneyAccountBalanceService:invalidateQueries',
+      {
+        queryKey: [
+          MoneyAccountBalanceServiceQueryKeys.GET_VMUSD_BALANCE,
+          SOURCE,
+        ],
+      },
+    );
+    expect(mockCall).toHaveBeenCalledWith(
+      'MoneyAccountBalanceService:invalidateQueries',
+      {
+        queryKey: [
+          MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE,
+          SOURCE,
+        ],
+      },
+    );
+    expect(mockCall).toHaveBeenCalledWith(
+      'ChompApiService:invalidateQueries',
+      {
+        queryKey: ['ChompApiService:getIntentsByAddress', SOURCE],
+      },
+    );
+    expect(mockCall).toHaveBeenCalledWith(
+      'AuthenticatedUserStorageService:invalidateQueries',
+      {
+        queryKey: ['AuthenticatedUserStorageService:listDelegations'],
+      },
+    );
+
+    const lastInvalidate = Math.max(
+      ...order.flatMap((action, index) =>
+        action.endsWith(':invalidateQueries') ? [index] : [],
+      ),
+      -1,
+    );
+    const firstFetch = Math.min(
+      order.indexOf('MoneyAccountBalanceService:getVmusdBalance'),
+      order.indexOf('MoneyAccountBalanceService:getMusdBalance'),
+      order.indexOf('ChompApiService:getIntentsByAddress'),
+      order.indexOf('AuthenticatedUserStorageService:listDelegations'),
+    );
+    expect(lastInvalidate).toBeGreaterThanOrEqual(0);
+    expect(lastInvalidate).toBeLessThan(firstFetch);
   });
 
   it('returns in-flight-card-spend when Card link is in progress', async () => {
