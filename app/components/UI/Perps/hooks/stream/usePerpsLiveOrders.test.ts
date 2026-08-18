@@ -5,7 +5,7 @@ import { type Order } from '@metamask/perps-controller';
 
 let mockSelectedAddress = '0x1111111111111111111111111111111111111111';
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => mockSelectedAddress),
+  useSelector: jest.fn(() => ({ address: mockSelectedAddress })),
 }));
 
 // Mock Engine for lazy isInitialLoading check
