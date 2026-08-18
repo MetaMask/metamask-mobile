@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -91,6 +91,16 @@ const renderCard = (
 ) => render(<EventCardGame event={event} onPress={jest.fn()} {...props} />);
 
 describe('EventCardGame', () => {
+  const originalLocale = I18n.locale;
+
+  beforeAll(() => {
+    I18n.locale = 'en-US';
+  });
+
+  afterAll(() => {
+    I18n.locale = originalLocale;
+  });
+
   it('defaults to the compact live layout', () => {
     const event = createEvent();
 
@@ -151,17 +161,8 @@ describe('EventCardGame', () => {
 
     renderCard(event, { variant: 'featured' });
 
-    const expectedDate = new Intl.DateTimeFormat(undefined, {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    }).format(new Date(event.startsAt as PredictTimestamp));
-    const expectedTime = new Intl.DateTimeFormat(undefined, {
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(new Date(event.startsAt as PredictTimestamp));
-    expect(screen.getByText(expectedDate)).toBeOnTheScreen();
-    expect(screen.getByText(expectedTime)).toBeOnTheScreen();
+    expect(screen.getByText('Thursday, September 10')).toBeOnTheScreen();
+    expect(screen.getByText('8:20 PM')).toBeOnTheScreen();
   });
 
   it('omits the featured bar when both Ask Prices are zero', () => {
@@ -223,6 +224,9 @@ describe('EventCardGame', () => {
     expect(
       screen.queryByTestId('predict-next-game-bar-game-event'),
     ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-next-game-quote-game-event-home'),
+    ).toHaveStyle({ width: '100%' });
   });
 
   it('emits the Event, Market, and Outcome from an active quote', () => {

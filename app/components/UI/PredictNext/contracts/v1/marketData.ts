@@ -60,6 +60,7 @@ const status = enums([
   'initialized',
   'active',
   'inactive',
+  'closed',
   'determined',
   'disputed',
   'amended',

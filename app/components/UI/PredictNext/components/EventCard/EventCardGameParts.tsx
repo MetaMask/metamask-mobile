@@ -488,14 +488,19 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
 
 const Actions = () => {
   const { quotes } = useGameCard();
-  return quotes.away || quotes.home ? (
+  const selections = (['away', 'home'] as const).filter(
+    (selection) =>
+      quotes[selection] &&
+      formatAskPrice(quotes[selection]?.outcome.askPrice) !== undefined,
+  );
+
+  return selections.length ? (
     <EventCard.Actions>
-      <EventCard.Action>
-        <Quote selection="away" />
-      </EventCard.Action>
-      <EventCard.Action>
-        <Quote selection="home" />
-      </EventCard.Action>
+      {selections.map((selection) => (
+        <EventCard.Action key={selection}>
+          <Quote selection={selection} />
+        </EventCard.Action>
+      ))}
     </EventCard.Actions>
   ) : null;
 };

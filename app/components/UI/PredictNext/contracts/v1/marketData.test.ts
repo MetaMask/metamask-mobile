@@ -41,6 +41,14 @@ describe('Predict API canonical response parsers', () => {
     expect(result).toEqual(input);
   });
 
+  it('parses a closed Market', () => {
+    const input = createEvent({
+      markets: [createMarket({ status: 'closed' })],
+    });
+
+    expect(parsePredictEvent(input).markets[0].status).toBe('closed');
+  });
+
   it('parses an event containing an ask without a bid', () => {
     const input = createEvent({
       markets: [
