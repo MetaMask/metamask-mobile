@@ -63,6 +63,13 @@ on:
           run without requiring a fingerprint, then upload them to BrowserStack
           as-is. This mode is intended for test-only changes.
         default: false
+      runner_provider:
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
+        required: false
+        type: string
+        default: ''
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
@@ -88,6 +95,15 @@ on:
         description: 'Optional description for this build run'
         required: false
         type: string
+      runner_provider:
+        description: Runner provider for this manual trial run. inherit uses repo NAMESPACE_RUNNER_* variables.
+        required: false
+        type: choice
+        options:
+          - inherit
+          - current
+          - namespace
+        default: inherit
 
 permissions:
   contents: write
@@ -445,14 +461,24 @@ jobs:
 
   upload-to-browserstack:
     name: Upload APKs to BrowserStack
-    # Repack needs Android SDK/apksigner (Cirrus). Light as-is/fresh upload can stay on ubuntu.
+    # Namespace follows LINUX. On current, repack still needs the Cirrus SDK image;
+    # as-is/fresh upload stays on ubuntu-latest.
     runs-on: >-
       ${{
-        needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
-        inputs.main_branch_only != true &&
-        fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
-        fromJSON('["ubuntu-latest"]')
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' ||
+        (needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+         inputs.main_branch_only != true &&
+         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
+         fromJSON('["ubuntu-latest"]'))
       }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     # Only the JS-repack path needs build-e2e/rc/exp secrets (ADDITIONAL_SRP_1, etc.).
     # Fresh/as-is upload only needs repo-level BrowserStack credentials.
     environment: >-
@@ -505,7 +531,7 @@ jobs:
           setup-simulator: 'false'
           configure-keystores: 'true'
           install-foundry: 'false'
-          runner_provider: current
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
       - name: Setup project dependencies (lightweight, repack path)
         if: >-
