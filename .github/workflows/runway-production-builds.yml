@@ -60,3 +60,16 @@ jobs:
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
     secrets: inherit
+
+  slack-notification:
+    name: Slack Production Notification
+    needs: build
+    if: success()
+    uses: ./.github/workflows/slack-rc-notification.yml
+    with:
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      semver: ${{ needs.build.outputs.semantic_version }}
+      ios_build_number: ${{ needs.build.outputs.ios_version_code }}
+      android_build_number: ${{ needs.build.outputs.android_version_code }}
+      build_kind: production
+    secrets: inherit
