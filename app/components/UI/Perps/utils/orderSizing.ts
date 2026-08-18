@@ -3,16 +3,30 @@ import {
   PERPS_CONSTANTS,
   calculateMarginRequired,
   calculatePositionSize,
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
   type OrderType,
 } from '@metamask/perps-controller';
 import { BigNumber } from 'bignumber.js';
+
+export interface ProspectiveExecutionPriceInput {
+  orderType: OrderType;
+  /** Limit price for limit and trigger-limit placements. */
+  limitPrice?: string;
+  /** Trigger price for trigger-market placements. */
+  triggerPrice?: string;
+  /** Live mid used when no user price is available. */
+  marketPrice: number;
+}
 
 export interface DeriveOrderSizingInput {
   /** USD amount the user intends to trade (order form `amount`). */
   amount: string;
   orderType: OrderType;
-  /** Limit price string when the order type is `limit`. */
+  /** Limit price string when the order executes as a limit. */
   limitPrice?: string;
+  /** Trigger price string when the order is a trigger-market placement. */
+  triggerPrice?: string;
   /** Mid/market price used for market orders and display. */
   marketPrice: number;
   /** Oracle mark price used as the standard margin basis. */
@@ -34,14 +48,41 @@ export interface DeriveOrderSizingResult {
 }
 
 /**
+ * Prospective execution price for sizing, margin, liquidation, and fees.
+ *
+ * Limit and trigger-limit use a valid limit price; trigger-market uses a valid
+ * trigger price; otherwise the live mid.
+ *
+ * @param input - Order type and candidate prices.
+ * @returns A positive reference price, or `marketPrice` when none is valid.
+ */
+export const getProspectiveExecutionPrice = ({
+  orderType,
+  limitPrice,
+  triggerPrice,
+  marketPrice,
+}: ProspectiveExecutionPriceInput): number => {
+  if (isLimitExecutionOrderType(orderType)) {
+    const parsedLimitPrice = Number.parseFloat(limitPrice ?? '');
+    return parsedLimitPrice > 0 ? parsedLimitPrice : marketPrice;
+  }
+
+  if (isTriggerOrderType(orderType)) {
+    const parsedTriggerPrice = Number.parseFloat(triggerPrice ?? '');
+    return parsedTriggerPrice > 0 ? parsedTriggerPrice : marketPrice;
+  }
+
+  return marketPrice;
+};
+
+/**
  * Pure derivation of the order-form sizing values (effective price, position
  * size, margin required) shared by the lite (`PerpsOrderView`) and Pro
  * (`usePerpsProOrderForm`) order forms.
  *
- * For limit orders with a valid limit price, that price is used for sizing and
- * (implicitly) as the margin basis; otherwise the market price is used for
- * sizing and the oracle mark price is used for margin — mirroring the lite
- * form's original inline logic exactly.
+ * Priced placements (limit, trigger-limit with a limit, trigger-market with a
+ * trigger) size and margin off that price; otherwise the mid is used for
+ * sizing and the oracle mark price is used for margin.
  *
  * @param input - Order sizing inputs.
  * @returns The effective price, position size, and margin required.
@@ -50,18 +91,27 @@ export const deriveOrderSizing = ({
   amount,
   orderType,
   limitPrice,
+  triggerPrice,
   marketPrice,
   markPrice,
   leverage,
   szDecimals,
   isLoadingMarketData,
 }: DeriveOrderSizingInput): DeriveOrderSizingResult => {
-  const parsedLimitPrice =
-    orderType === 'limit' && limitPrice
-      ? Number.parseFloat(limitPrice)
+  const parsedLimitPrice = isLimitExecutionOrderType(orderType)
+    ? Number.parseFloat(limitPrice ?? '')
+    : Number.NaN;
+  const parsedTriggerPrice =
+    isTriggerOrderType(orderType) && !isLimitExecutionOrderType(orderType)
+      ? Number.parseFloat(triggerPrice ?? '')
       : Number.NaN;
-  const hasValidLimitPrice = parsedLimitPrice > 0;
-  const effectivePrice = hasValidLimitPrice ? parsedLimitPrice : marketPrice;
+  const hasPricedReference = parsedLimitPrice > 0 || parsedTriggerPrice > 0;
+  const effectivePrice = getProspectiveExecutionPrice({
+    orderType,
+    limitPrice,
+    triggerPrice,
+    marketPrice,
+  });
 
   const positionSize = isLoadingMarketData
     ? PERPS_CONSTANTS.FallbackDataDisplay
@@ -73,7 +123,7 @@ export const deriveOrderSizing = ({
 
   let marginRequired: string | undefined;
   if (!isLoadingMarketData && amount) {
-    const priceForMargin = hasValidLimitPrice ? effectivePrice : markPrice;
+    const priceForMargin = hasPricedReference ? effectivePrice : markPrice;
     marginRequired = calculateMarginRequired({
       amount: BigNumber(priceForMargin).times(positionSize).toString(),
       leverage,

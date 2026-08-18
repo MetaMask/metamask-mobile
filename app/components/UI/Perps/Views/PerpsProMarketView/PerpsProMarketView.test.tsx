@@ -90,6 +90,9 @@ const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
 // the order-book → order-form wiring (TAT-3643) can be asserted directly.
 const mockSetLimitPrice = jest.fn();
 const mockSetOrderType = jest.fn();
+const mockSetTriggerPrice = jest.fn();
+let mockOrderFormType: 'market' | 'limit' | 'stop_market' | 'stop_limit' =
+  'market';
 const mockPerpsOrderProvider = jest.fn(
   ({ children }: { children: React.ReactNode; fallbackAmount?: string }) =>
     children,
@@ -313,8 +316,10 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
     return children;
   },
   usePerpsOrderContext: () => ({
+    orderForm: { type: mockOrderFormType },
     setLimitPrice: mockSetLimitPrice,
     setOrderType: mockSetOrderType,
+    setTriggerPrice: mockSetTriggerPrice,
   }),
 }));
 
@@ -396,6 +401,7 @@ const renderView = () =>
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOrderFormType = 'market';
     mockRouteParams = {
       market: {
         symbol: 'BTC',
@@ -923,5 +929,86 @@ describe('PerpsProMarketView', () => {
 
     expect(mockSetOrderType).toHaveBeenCalledWith('limit');
     expect(mockSetLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+  });
+
+  it('fills the limit price without changing a stop-limit order type', () => {
+    mockOrderFormType = 'stop_limit';
+    const liveBook: OrderBookData = {
+      bids: [
+        {
+          price: '89950',
+          size: '1.5',
+          total: '1.5',
+          notional: '134925',
+          totalNotional: '134925',
+        },
+      ],
+      asks: [],
+      spread: '100',
+      spreadPercentage: '0.11',
+      midPrice: '90000',
+      lastUpdated: 1700000000000,
+      maxTotal: '1.5',
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: liveBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockSetOrderType).not.toHaveBeenCalled();
+    expect(mockSetLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+  });
+
+  it('fills the trigger price for a stop-market order without changing type', () => {
+    mockOrderFormType = 'stop_market';
+    const liveBook: OrderBookData = {
+      bids: [
+        {
+          price: '89950',
+          size: '1.5',
+          total: '1.5',
+          notional: '134925',
+          totalNotional: '134925',
+        },
+      ],
+      asks: [],
+      spread: '100',
+      spreadPercentage: '0.11',
+      midPrice: '90000',
+      lastUpdated: 1700000000000,
+      maxTotal: '1.5',
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: liveBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockSetOrderType).not.toHaveBeenCalled();
+    expect(mockSetTriggerPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetLimitPrice).not.toHaveBeenCalled();
   });
 });

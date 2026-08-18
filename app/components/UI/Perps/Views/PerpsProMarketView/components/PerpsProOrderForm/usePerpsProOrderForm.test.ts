@@ -35,7 +35,13 @@ let mockExecutionOptions: {
 const mockOrderForm = {
   asset: 'BTC',
   direction: 'long' as 'long' | 'short',
-  type: 'market' as 'market' | 'limit',
+  type: 'market' as
+    | 'market'
+    | 'limit'
+    | 'stop_market'
+    | 'stop_limit'
+    | 'take_profit_limit'
+    | 'take_profit_market',
   amount: '100',
   leverage: 5,
   balancePercent: 10,
@@ -50,6 +56,7 @@ const mockSetDirection = jest.fn();
 const mockSetTakeProfitPrice = jest.fn();
 const mockSetStopLossPrice = jest.fn();
 const mockSetLimitPrice = jest.fn();
+const mockSetTriggerPrice = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
@@ -64,6 +71,8 @@ const mockContextValue = {
   setTakeProfitPrice: mockSetTakeProfitPrice,
   setStopLossPrice: mockSetStopLossPrice,
   setLimitPrice: mockSetLimitPrice,
+  triggerPrice: undefined as string | undefined,
+  setTriggerPrice: mockSetTriggerPrice,
   setOrderType: mockSetOrderType,
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
@@ -238,6 +247,7 @@ describe('usePerpsProOrderForm', () => {
     mockOrderForm.amount = '100';
     mockOrderForm.leverage = 5;
     mockOrderForm.limitPrice = undefined;
+    mockContextValue.triggerPrice = undefined;
     mockOrderForm.takeProfitPrice = undefined;
     mockOrderForm.stopLossPrice = undefined;
     mockValidation.isValid = true;
@@ -866,6 +876,79 @@ describe('usePerpsProOrderForm', () => {
     });
   });
 
+  describe('trigger orders', () => {
+    it('submits triggerPrice and omits TP/SL for a stop-market order', async () => {
+      mockOrderForm.type = 'stop_market';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockContextValue.triggerPrice = '91000';
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      const params = mockExecuteOrder.mock.calls[0][0] as {
+        triggerPrice?: string;
+        takeProfitPrice?: string;
+        price?: string;
+        orderType: string;
+      };
+      expect(params.orderType).toBe('stop_market');
+      expect(params.triggerPrice).toBe('91000');
+      expect(params).not.toHaveProperty('price');
+      expect(params).not.toHaveProperty('takeProfitPrice');
+    });
+
+    it('submits triggerPrice and limit price for a take-limit order', async () => {
+      mockOrderForm.type = 'take_profit_limit';
+      mockOrderForm.limitPrice = '87000';
+      mockContextValue.triggerPrice = '88000';
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      const params = mockExecuteOrder.mock.calls[0][0] as {
+        triggerPrice?: string;
+        price?: string;
+        orderType: string;
+      };
+      expect(params.orderType).toBe('take_profit_limit');
+      expect(params.triggerPrice).toBe('88000');
+      expect(params.price).toBe('87000');
+    });
+
+    it('shows a blocking helper after the trigger price blurs on the wrong side of mid', () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '1000';
+      const { result } = renderProForm();
+
+      expect(result.current.priceCardMessage).toBeUndefined();
+
+      act(() => {
+        result.current.onTriggerPriceBlur();
+      });
+
+      expect(result.current.priceCardMessage?.severity).toBe('error');
+      expect(result.current.priceCardMessage?.message).toBeDefined();
+    });
+
+    it('clears the helper once a valid trigger price is entered', () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '1000';
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onTriggerPriceBlur();
+      });
+      mockContextValue.triggerPrice = '100000';
+      rerender({});
+
+      expect(result.current.priceCardMessage).toBeUndefined();
+    });
+  });
+
   describe('additional notices', () => {
     it('flags TP invalid, SL invalid and SL-liquidation-risk as inline notices', () => {
       // Arrange: long order, current price 90000, liquidation 80000
@@ -893,6 +976,28 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(result.current.summary.slippage).toBeUndefined();
       expect(result.current.summary.onSlippagePress).toBeUndefined();
+    });
+
+    it('hides the slippage row for trigger-limit orders', () => {
+      mockOrderForm.type = 'stop_limit';
+      mockOrderForm.limitPrice = '80000';
+      mockContextValue.triggerPrice = '91000';
+      mockEstimatedSlippageBps = null;
+      const { result } = renderProForm();
+
+      expect(result.current.summary.slippage).toBeUndefined();
+      expect(result.current.summary.onSlippagePress).toBeUndefined();
+    });
+
+    it('shows maximum slippage only for trigger-market orders', () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      mockEstimatedSlippageBps = 50;
+      const { result } = renderProForm();
+
+      expect(result.current.summary.slippage).toContain('Max:');
+      expect(result.current.summary.slippage).not.toContain('Est:');
+      expect(result.current.summary.onSlippagePress).toBeDefined();
     });
 
     it('shows a pending slippage row for market orders when no estimate is available', () => {

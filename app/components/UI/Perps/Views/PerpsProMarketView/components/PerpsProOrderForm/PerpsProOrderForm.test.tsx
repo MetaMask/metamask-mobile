@@ -151,6 +151,65 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
     });
 
+    it('renders trigger and limit price inputs for stop-limit orders', () => {
+      renderForm({ orderType: 'stop_limit', triggerPrice: '91000' });
+
+      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+        'Stop limit',
+      );
+    });
+
+    it('renders trigger price and omits limit price for stop-market orders', () => {
+      renderForm({ orderType: 'stop_market' });
+
+      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
+    it('hides TP/SL for take-profit order types', () => {
+      renderForm({
+        orderType: 'take_profit_limit',
+        onTPSLPress: jest.fn(),
+      });
+
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
+    it('passes raw trigger price text to onTriggerPriceChange', () => {
+      const onTriggerPriceChange = jest.fn();
+      renderForm({ orderType: 'stop_market', onTriggerPriceChange });
+
+      fireEvent.changeText(screen.getByTestId(ids.TRIGGER_PRICE_INPUT), '.123');
+
+      expect(onTriggerPriceChange).toHaveBeenCalledWith('.123');
+    });
+
+    it('wires trigger price blur to onTriggerPriceBlur', () => {
+      const onTriggerPriceBlur = jest.fn();
+      renderForm({ orderType: 'take_profit_market', onTriggerPriceBlur });
+
+      fireEvent(screen.getByTestId(ids.TRIGGER_PRICE_INPUT), 'blur');
+
+      expect(onTriggerPriceBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows a blocking helper under the price card', () => {
+      renderForm({
+        orderType: 'stop_market',
+        priceCardMessage: {
+          severity: 'error',
+          message: 'Stop order price must be higher than mid',
+        },
+      });
+
+      expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+        'Stop order price must be higher than mid',
+      );
+    });
+
     it('renders the size label with the active unit', () => {
       renderForm({
         sizeInput: createSizeInput({ denomination: { unit: 'usd' } }),

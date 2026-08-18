@@ -16,6 +16,7 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
 import {
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
@@ -42,6 +43,9 @@ const renderFundedProMarket = () =>
 
 const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
   renderPerpsProMarketView({
+    streamOverrides: {
+      account: createFundedAccountForViews('1000'),
+    },
     overrides: {
       engine: {
         backgroundState: {
@@ -325,6 +329,90 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await waitFor(() =>
         expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '2500'),
       );
+    },
+  );
+
+  itForPlatforms(
+    'shows trigger price, hides TP/SL, and blocks Place order after an invalid stop-market blur',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      fireEvent.changeText(triggerInput, '1000');
+      fireEvent(triggerInput, 'blur');
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+            strings('perps.order.validation.stop_trigger_must_be_above_mid'),
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'submits a stop-limit order with triggerPrice and limit price',
+    async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '2600');
+      fireEvent(triggerInput, 'blur');
+      fireEvent.changeText(limitInput, '2550');
+      fireEvent(limitInput, 'blur');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      await waitFor(
+        () => {
+          expect(placeOrderButton).not.toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'stop_limit',
+              triggerPrice: '2600',
+              price: '2550',
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('takeProfitPrice');
     },
   );
 });

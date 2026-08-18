@@ -8,11 +8,17 @@ import {
   TRADING_DEFAULTS,
   PERPS_ERROR_CODES,
   getMaxOrderValue,
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
   type OrderParams,
   type OrderFormState,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
+import {
+  getTriggerPriceValidationIssue,
+  getTriggerPriceValidationMessage,
+} from '../utils/triggerOrderValidation';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
@@ -34,6 +40,8 @@ interface UsePerpsOrderValidationParams {
    * controller to apply its full-close minimum exemption.
    */
   isFullClose?: boolean;
+  /** Trigger price for stop/take placements; omitted for market and limit. */
+  triggerPrice?: string;
 }
 
 interface ValidationResult {
@@ -68,6 +76,7 @@ export function usePerpsOrderValidation(
     originalUsdAmount,
     reduceOnly,
     isFullClose,
+    triggerPrice,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -131,6 +140,16 @@ export function usePerpsOrderValidation(
       );
     }
 
+    const triggerIssue = getTriggerPriceValidationIssue({
+      orderType: orderForm.type,
+      direction: orderForm.direction,
+      triggerPrice,
+      midPrice: assetPrice,
+    });
+    if (triggerIssue) {
+      immediateErrors.push(getTriggerPriceValidationMessage(triggerIssue));
+    }
+
     try {
       // Convert form state to OrderParams for protocol validation
       const orderParams: OrderParams = {
@@ -138,11 +157,16 @@ export function usePerpsOrderValidation(
         isBuy: orderForm.direction === 'long',
         size: positionSize, // Use BTC amount, not USD amount
         orderType: orderForm.type,
-        price: orderForm.limitPrice,
         leverage: orderForm.leverage,
         currentPrice: assetPrice,
         existingPositionLeverage,
         usdAmount: originalUsdAmount, // Pass USD as source of truth for validation
+        ...(isLimitExecutionOrderType(orderForm.type) && orderForm.limitPrice
+          ? { price: orderForm.limitPrice }
+          : {}),
+        ...(isTriggerOrderType(orderForm.type) && triggerPrice?.trim()
+          ? { triggerPrice }
+          : {}),
         ...(reduceOnly !== undefined ? { reduceOnly } : {}),
         ...(isFullClose !== undefined ? { isFullClose } : {}),
       };
@@ -241,6 +265,7 @@ export function usePerpsOrderValidation(
     orderForm.leverage,
     orderForm.limitPrice,
     orderForm.type,
+    triggerPrice,
     positionSize,
     assetPrice,
     spendableBalance,

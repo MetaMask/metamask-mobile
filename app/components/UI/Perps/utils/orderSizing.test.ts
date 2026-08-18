@@ -1,5 +1,9 @@
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
-import { deriveOrderSizing, getReduceOnlyMaxUsdAmount } from './orderSizing';
+import {
+  deriveOrderSizing,
+  getProspectiveExecutionPrice,
+  getReduceOnlyMaxUsdAmount,
+} from './orderSizing';
 
 describe('deriveOrderSizing', () => {
   const base = {
@@ -97,6 +101,67 @@ describe('deriveOrderSizing', () => {
 
     // Assert
     expect(result.positionSize).not.toBe(PERPS_CONSTANTS.FallbackDataDisplay);
+  });
+
+  it('uses the limit price as the effective price for trigger-limit orders', () => {
+    const result = deriveOrderSizing({
+      ...base,
+      orderType: 'stop_limit',
+      limitPrice: '88000',
+      triggerPrice: '91000',
+    });
+
+    expect(result.effectivePrice).toBe(88000);
+  });
+
+  it('uses the trigger price as the effective price for trigger-market orders', () => {
+    const result = deriveOrderSizing({
+      ...base,
+      orderType: 'take_profit_market',
+      triggerPrice: '87000',
+      limitPrice: '80000',
+    });
+
+    expect(result.effectivePrice).toBe(87000);
+  });
+
+  it('falls back to the market price when a trigger-market order has no trigger', () => {
+    const result = deriveOrderSizing({
+      ...base,
+      orderType: 'stop_market',
+      triggerPrice: '0',
+    });
+
+    expect(result.effectivePrice).toBe(90000);
+  });
+});
+
+describe('getProspectiveExecutionPrice', () => {
+  it('prefers limit price for limit-execution types and trigger price for trigger-market', () => {
+    expect(
+      getProspectiveExecutionPrice({
+        orderType: 'limit',
+        limitPrice: '80000',
+        triggerPrice: '91000',
+        marketPrice: 90000,
+      }),
+    ).toBe(80000);
+    expect(
+      getProspectiveExecutionPrice({
+        orderType: 'stop_market',
+        limitPrice: '80000',
+        triggerPrice: '91000',
+        marketPrice: 90000,
+      }),
+    ).toBe(91000);
+    expect(
+      getProspectiveExecutionPrice({
+        orderType: 'market',
+        limitPrice: '80000',
+        triggerPrice: '91000',
+        marketPrice: 90000,
+      }),
+    ).toBe(90000);
   });
 });
 

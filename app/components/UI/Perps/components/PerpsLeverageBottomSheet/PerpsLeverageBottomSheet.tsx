@@ -30,6 +30,7 @@ import {
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks';
 import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
 import {
   Box,
   BottomSheet,
@@ -62,6 +63,7 @@ interface PerpsLeverageBottomSheetProps {
   direction: 'long' | 'short';
   asset?: string;
   limitPrice?: string;
+  triggerPrice?: string;
   orderType?: OrderType;
 }
 
@@ -92,6 +94,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   direction,
   asset = '',
   limitPrice,
+  triggerPrice,
   orderType = 'market',
 }) => {
   const styles = createStyles();
@@ -140,13 +143,16 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const currentPrice = parseFloat(currentLivePrice[asset]?.price);
 
   // Dynamically calculate liquidation price based on tempLeverage
-  // Use limit price for limit orders, market price for market orders
+  // Use the prospective execution price for priced placements, else live mid.
   const entryPrice = useMemo(
     () =>
-      orderType === 'limit' && limitPrice
-        ? Number.parseFloat(limitPrice)
-        : currentPrice,
-    [orderType, limitPrice, currentPrice],
+      getProspectiveExecutionPrice({
+        orderType,
+        limitPrice,
+        triggerPrice,
+        marketPrice: currentPrice,
+      }),
+    [orderType, limitPrice, triggerPrice, currentPrice],
   );
 
   // Always use tempLeverage for precise API calls (debounced)

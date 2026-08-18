@@ -16,6 +16,7 @@ import {
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsSelector } from './usePerpsSelector';
+import { getProspectiveExecutionPrice } from '../utils/orderSizing';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -39,6 +40,9 @@ export interface UsePerpsOrderFormReturn {
   setTakeProfitPrice: (price?: string) => void;
   setStopLossPrice: (price?: string) => void;
   setLimitPrice: (price?: string) => void;
+  /** Local to the form; not part of controller `OrderFormState`. */
+  triggerPrice: string | undefined;
+  setTriggerPrice: (price?: string) => void;
   setOrderType: (type: OrderType) => void;
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
@@ -201,18 +205,19 @@ export function usePerpsOrderForm(
   const [maxPossibleAmountOverride, setMaxPossibleAmountOverride] = useState<
     number | null
   >(null);
+  const [triggerPrice, setTriggerPrice] = useState<string | undefined>();
 
   // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
-  // For limit orders, use the limit price instead of market price so the 100% slider
+  // For priced placements, use the prospective execution price so the 100% slider
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
-    const effectiveAssetPrice =
-      orderForm.type === 'limit' &&
-      orderForm.limitPrice &&
-      Number.parseFloat(orderForm.limitPrice) > 0
-        ? Number.parseFloat(orderForm.limitPrice)
-        : marketPrice;
+    const effectiveAssetPrice = getProspectiveExecutionPrice({
+      orderType: orderForm.type,
+      limitPrice: orderForm.limitPrice,
+      triggerPrice,
+      marketPrice,
+    });
     return getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: effectiveAssetPrice,
@@ -224,6 +229,7 @@ export function usePerpsOrderForm(
     currentPrice?.price,
     orderForm.type,
     orderForm.limitPrice,
+    triggerPrice,
     marketData?.szDecimals,
     orderForm.leverage,
   ]);
@@ -363,6 +369,10 @@ export function usePerpsOrderForm(
     });
   }, []);
 
+  const setTriggerPriceValue = useCallback((price?: string) => {
+    setTriggerPrice(price);
+  }, []);
+
   const setOrderType = useCallback((type: OrderType) => {
     setOrderForm((prev) => ({ ...prev, type }));
   }, []);
@@ -413,6 +423,8 @@ export function usePerpsOrderForm(
       setTakeProfitPrice,
       setStopLossPrice,
       setLimitPrice,
+      triggerPrice,
+      setTriggerPrice: setTriggerPriceValue,
       setOrderType,
       handlePercentageAmount,
       handleMaxAmount,
@@ -431,6 +443,8 @@ export function usePerpsOrderForm(
       setTakeProfitPrice,
       setStopLossPrice,
       setLimitPrice,
+      triggerPrice,
+      setTriggerPriceValue,
       setOrderType,
       handlePercentageAmount,
       handleMaxAmount,

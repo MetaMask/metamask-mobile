@@ -725,6 +725,19 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.limitPrice).toBe('50000');
     });
 
+    it('updates trigger price independently of OrderFormState', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setTriggerPrice('91000');
+      });
+
+      expect(result.current.triggerPrice).toBe('91000');
+      expect(result.current.orderForm).not.toHaveProperty('triggerPrice');
+    });
+
     it('updates order type', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
@@ -1064,6 +1077,7 @@ describe('usePerpsOrderForm', () => {
       'setTakeProfitPrice',
       'setStopLossPrice',
       'setLimitPrice',
+      'setTriggerPrice',
       'setOrderType',
       'handlePercentageAmount',
       'handleMaxAmount',
@@ -1099,6 +1113,7 @@ describe('usePerpsOrderForm', () => {
         'setTakeProfitPrice',
         'setStopLossPrice',
         'setLimitPrice',
+        'setTriggerPrice',
         'setOrderType',
       ] as const;
 
