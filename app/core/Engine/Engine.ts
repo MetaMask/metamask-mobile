@@ -184,6 +184,8 @@ import { socialServiceInit } from './controllers/social-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
+import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
+import { uiSlotsDataServiceInit } from './controllers/ui-slots-data-service-init';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { clientControllerInit } from './controllers/client-controller-init';
@@ -400,6 +402,8 @@ export class Engine {
         SocialController: socialControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
+        UiSlotsDataService: uiSlotsDataServiceInit,
+        UiSlotsController: uiSlotsControllerInit,
         QrSyncController: qrSyncControllerInit,
         QrSyncProvisioningService: qrSyncProvisioningServiceInit,
         ComplianceService: complianceServiceInit,
@@ -471,6 +475,8 @@ export class Engine {
     const authenticatedUserStorageService =
       messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
+    const uiSlotsDataService = messengerClientsByName.UiSlotsDataService;
+    const uiSlotsController = messengerClientsByName.UiSlotsController;
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
@@ -676,6 +682,8 @@ export class Engine {
       SocialController: socialController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
+      UiSlotsDataService: uiSlotsDataService,
+      UiSlotsController: uiSlotsController,
       QrSyncController: messengerClientsByName.QrSyncController,
       QrSyncProvisioningService: qrSyncProvisioningService,
       ClientController: clientController,
@@ -1494,6 +1502,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       CardController,
+      UiSlotsController,
       ConfigRegistryController,
       ConnectivityController,
       CurrencyRateController,
@@ -1613,6 +1622,7 @@ export default {
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
       CardController: CardController.state,
+      UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)

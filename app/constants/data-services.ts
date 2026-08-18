@@ -5,4 +5,5 @@ export const DATA_SERVICES: string[] = [
   'MoneyAccountApiDataService',
   'AuthenticatedUserStorageService',
   'PredictMarketDataService',
+  'UiSlotsDataService',
 ];

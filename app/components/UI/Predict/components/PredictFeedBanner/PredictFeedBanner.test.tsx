@@ -12,9 +12,18 @@ import PredictFeedBanner, {
   getPredictFeedBannerDismissalKey,
 } from './PredictFeedBanner';
 import { PredictFeedBannerSelectorsIDs } from './PredictFeedBanner.testIds';
+import type { PredictFeedBannerConfig } from '../../types/flags';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '1.0.0'),
+}));
+
+jest.mock('../../../UiSlots/mobileActionRegistry', () => ({
+  executeUiSlotAction: jest.fn(),
+}));
+
+jest.mock('../../uiSlots/widgets/MarketCarouselWidget', () => ({
+  MarketCarouselWidget: jest.fn(() => null),
 }));
 
 const MESSAGE_ID = 'predict-service-update-1';
@@ -30,16 +39,24 @@ const bannerConfig = {
 };
 
 const createState = (
-  config = bannerConfig,
+  config: PredictFeedBannerConfig = bannerConfig,
   dismissedBanners: string[] = [],
 ): DeepPartial<RootState> => ({
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          predictFeedBanner: config,
+          predictFeedBanner: { ...config },
         },
         cacheTimestamp: 0,
+      },
+      UiSlotsController: {
+        enabled: true,
+        screenConfigurations: {},
+        renderedConfigurations: {},
+        activeConfigurationKeys: {},
+        requestStatus: {},
+        dismissedContentIds: {},
       },
     },
   },
@@ -50,6 +67,50 @@ const createState = (
 });
 
 describe('PredictFeedBanner', () => {
+  it('prefers UI Slots content over the LaunchDarkly fallback', () => {
+    const state = createState({
+      ...bannerConfig,
+      position: PredictFeedBannerPosition.BeforePortfolio,
+    });
+    const uiSlotsState = state.engine?.backgroundState?.UiSlotsController;
+    if (uiSlotsState) {
+      uiSlotsState.activeConfigurationKeys = {
+        'predict-home': 'predict-home-key',
+      };
+      uiSlotsState.renderedConfigurations = {
+        'predict-home-key': {
+          slotIds: ['predict-home.before-portfolio'],
+          slotsById: {
+            'predict-home.before-portfolio': {
+              slotId: 'predict-home.before-portfolio',
+              contentId: 'slot-banner-1',
+              revision: 1,
+              widget: {
+                type: 'alert-banner',
+                schemaVersion: 1,
+                props: {
+                  tone: 'info',
+                  title: 'Slots content',
+                  description: 'Not LaunchDarkly content',
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictFeedBanner
+        position={PredictFeedBannerPosition.BeforePortfolio}
+      />,
+      { state },
+    );
+
+    expect(getByText('Slots content')).toBeOnTheScreen();
+    expect(queryByText('Service update')).not.toBeOnTheScreen();
+  });
+
   it('renders remote content when the flag and position are enabled', () => {
     const { getByTestId } = renderWithProvider(
       <PredictFeedBanner

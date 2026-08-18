@@ -752,6 +752,14 @@
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null
   },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "renderedConfigurations": {},
+    "activeConfigurationKeys": {},
+    "requestStatus": {},
+    "dismissedContentIds": {}
+  },
   "ConfigRegistryController": {
     "configs": {
       "networks": {}
