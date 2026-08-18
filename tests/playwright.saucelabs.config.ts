@@ -16,6 +16,7 @@ export default defineConfig({
   testDir: './',
   fullyParallel: false,
   workers: 1,
+  retries: 0,
   timeout: 7 * 60 * 1000,
   grep: /@Performance\b/,
   reporter: [
