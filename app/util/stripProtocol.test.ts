@@ -1,4 +1,4 @@
-import stripProtocol from './stripProtocol';
+import stripProtocol from '#app/util/stripProtocol';
 
 describe('stripProtocol', () => {
   it('returns undefined if given undefined', () => {

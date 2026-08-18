@@ -1,8 +1,9 @@
-import { PopularList } from '../../../../util/networks/customNetworks';
 import { BlockExplorerUrl } from '@metamask/controller-utils';
 import { RpcEndpointType } from '@metamask/network-controller';
-import stripProtocol from '../../../../util/stripProtocol';
-import stripKeyFromInfuraUrl from '../../../../util/stripKeyFromInfuraUrl';
+
+import { PopularList } from '#app/util/networks/customNetworks';
+import stripKeyFromInfuraUrl from '#app/util/stripKeyFromInfuraUrl';
+import stripProtocol from '#app/util/stripProtocol';
 
 import { infuraProjectId } from './NetworkDetailsView.constants';
 import type { NetworkFormState, RpcEndpoint } from './NetworkDetailsView.types';

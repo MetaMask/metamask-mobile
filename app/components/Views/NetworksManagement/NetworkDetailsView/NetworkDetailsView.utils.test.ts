@@ -13,13 +13,13 @@ import {
 } from './NetworkDetailsView.utils';
 import type { NetworkFormState } from './NetworkDetailsView.types';
 
-jest.mock('../../../../util/stripProtocol', () => (url: string | undefined) => {
+jest.mock('#app/util/stripProtocol', () => (url: string | undefined) => {
   if (!url) return undefined;
   return url.replace(/^https?:\/\//, '');
 });
 
 jest.mock(
-  '../../../../util/stripKeyFromInfuraUrl',
+  '#app/util/stripKeyFromInfuraUrl',
   () => (url: string | undefined) => {
     if (!url) return undefined;
     return url.replace(/\/v3\/[a-f0-9]+$/, '');
@@ -30,7 +30,7 @@ jest.mock('./NetworkDetailsView.constants', () => ({
   infuraProjectId: 'test-infura-key',
 }));
 
-jest.mock('../../../../util/networks/customNetworks', () => ({
+jest.mock('#app/util/networks/customNetworks', () => ({
   PopularList: [
     {
       chainId: '0x89',

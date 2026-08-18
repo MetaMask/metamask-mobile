@@ -184,6 +184,21 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
+              // package.json "imports" uses an array of extension fallbacks.
+              // Metro 0.83 treats arrays as conditional-export maps, so #app/*
+              // never resolves. Hand the absolute app path to default resolution
+              // so sourceExts / index files still apply.
+              if (moduleName.startsWith('#app/')) {
+                return context.resolveRequest(
+                  context,
+                  path.resolve(
+                    __dirname,
+                    'app',
+                    moduleName.slice('#app/'.length),
+                  ),
+                  platform,
+                );
+              }
               // MYXProvider is intentionally excluded from @metamask/perps-controller's
               // published dist (extension-only). The dynamic import() uses webpackIgnore
               // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
