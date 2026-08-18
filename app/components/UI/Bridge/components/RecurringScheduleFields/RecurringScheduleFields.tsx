@@ -20,6 +20,7 @@ import {
   selectRecurringEveryUnit,
   selectRecurringEveryValue,
   selectRecurringRepeatCount,
+  selectRecurringScheduleValidation,
   setRecurringEveryUnit,
   setRecurringEveryValue,
   setRecurringRepeatCount,
@@ -30,9 +31,9 @@ import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import RecurringIntervalSheet from '../RecurringIntervalSheet';
 import {
   capRecurringKeypadValue,
-  restoreRecurringValueIfInvalid,
   RECURRING_EVERY_MAX_DIGITS,
   RECURRING_REPEAT_MAX_DIGITS,
+  RecurringScheduleErrorCode,
   type RecurringIntervalUnit,
 } from '../../utils/recurringSchedule';
 import { RecurringScheduleFieldsSelectorsIDs } from './RecurringScheduleFields.testIds';
@@ -52,6 +53,7 @@ function RecurringNumberCard({
   inputTestID,
   onInputPress,
   accessory,
+  hasError,
 }: {
   label: string;
   value: string;
@@ -59,6 +61,7 @@ function RecurringNumberCard({
   inputTestID: string;
   onInputPress: () => void;
   accessory: React.ReactNode;
+  hasError: boolean;
 }) {
   const tw = useTailwind();
 
@@ -88,9 +91,12 @@ function RecurringNumberCard({
           onPressIn={onInputPress}
           onFocus={onInputPress}
           placeholderTextColor={tw.color('text-muted')}
-          twClassName="h-8 min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold"
+          twClassName={`h-8 min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold${
+            hasError ? ' text-error-default' : ''
+          }`}
           testID={inputTestID}
           accessibilityLabel={label}
+          accessibilityState={{ invalid: hasError }}
         />
         {accessory}
       </Box>
@@ -108,6 +114,20 @@ const RecurringScheduleFields = () => {
   const everyValue = useSelector(selectRecurringEveryValue);
   const everyUnit = useSelector(selectRecurringEveryUnit);
   const repeatCount = useSelector(selectRecurringRepeatCount);
+  const { errors: scheduleErrors } = useSelector(
+    selectRecurringScheduleValidation,
+  );
+  const hasEveryError = scheduleErrors.some(
+    (error) =>
+      error === RecurringScheduleErrorCode.EveryInvalid ||
+      error === RecurringScheduleErrorCode.EveryExceedsUnitMax ||
+      error === RecurringScheduleErrorCode.DurationExceedsMax,
+  );
+  const hasRepeatError = scheduleErrors.some(
+    (error) =>
+      error === RecurringScheduleErrorCode.RepeatInvalid ||
+      error === RecurringScheduleErrorCode.DurationExceedsMax,
+  );
 
   const keypadValue =
     focusedField === FocusedScheduleField.Repeat ? repeatCount : everyValue;
@@ -115,17 +135,7 @@ const RecurringScheduleFields = () => {
   const closeKeypad = useCallback(() => {
     keypadRef.current?.close();
     setFocusedField(null);
-
-    const restoredEveryValue = restoreRecurringValueIfInvalid(everyValue);
-    if (restoredEveryValue !== everyValue) {
-      dispatch(setRecurringEveryValue(restoredEveryValue));
-    }
-
-    const restoredRepeatCount = restoreRecurringValueIfInvalid(repeatCount);
-    if (restoredRepeatCount !== repeatCount) {
-      dispatch(setRecurringRepeatCount(restoredRepeatCount));
-    }
-  }, [dispatch, everyValue, repeatCount]);
+  }, []);
 
   const handleEveryPress = useCallback(() => {
     setFocusedField(FocusedScheduleField.Every);
@@ -197,6 +207,7 @@ const RecurringScheduleFields = () => {
           testID={RecurringScheduleFieldsSelectorsIDs.EVERY_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT}
           onInputPress={handleEveryPress}
+          hasError={hasEveryError}
           accessory={
             <ButtonBase
               size={ButtonBaseSize.Sm}
@@ -218,6 +229,7 @@ const RecurringScheduleFields = () => {
           testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT}
           onInputPress={handleRepeatPress}
+          hasError={hasRepeatError}
           accessory={
             <Text
               variant={TextVariant.BodyMd}

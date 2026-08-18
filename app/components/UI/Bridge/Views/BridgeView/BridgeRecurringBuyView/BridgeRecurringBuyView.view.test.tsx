@@ -56,6 +56,15 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
       ),
     ).toHaveDisplayValue('10');
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
+        .props.accessibilityState?.invalid,
+    ).toBe(false);
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ).props.accessibilityState?.invalid,
+    ).toBe(false);
   });
 
   it('appends keypad digits to the every value', async () => {
@@ -120,7 +129,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
-  it('snaps every back to 1 when the keypad is closed on 0', async () => {
+  it('keeps every at 0 and invalid after the keypad is closed', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -142,14 +151,19 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     await waitFor(() => {
       expect(
-        renderResult.getByTestId(
-          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
-        ),
-      ).toHaveDisplayValue('1');
+        renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).not.toBeOnTheScreen();
     });
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue('0');
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
+        .props.accessibilityState?.invalid,
+    ).toBe(true);
   });
 
-  it('snaps repeat back to 1 when the keypad is closed on 0', async () => {
+  it('keeps repeat at 0 and invalid after the keypad is closed', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -184,11 +198,55 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     await waitFor(() => {
       expect(
-        renderResult.getByTestId(
-          RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
-        ),
-      ).toHaveDisplayValue('1');
+        renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).not.toBeOnTheScreen();
     });
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).toHaveDisplayValue('0');
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ).props.accessibilityState?.invalid,
+    ).toBe(true);
+  });
+
+  it('keeps a 0 every value after leaving and returning to the recurring tab', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('0');
+    });
+
+    fireEvent.press(renderResult.getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(
+          RecurringScheduleFieldsSelectorsIDs.CONTAINER,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    await openRecurringTab(renderResult);
+
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue('0');
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
+        .props.accessibilityState?.invalid,
+    ).toBe(true);
   });
 
   it('does not add a decimal when the period key is pressed', async () => {
@@ -322,5 +380,71 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveDisplayValue('1');
+  });
+
+  it('marks the every value invalid when it exceeds the unit max', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(renderResult.getByTestId('keypad-key-5'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-5'));
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('155');
+    });
+
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
+        .props.accessibilityState?.invalid,
+    ).toBe(true);
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ).props.accessibilityState?.invalid,
+    ).toBe(false);
+  });
+
+  it('marks the repeat value invalid when it is 0', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+      'pressIn',
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+        ),
+      ).toHaveDisplayValue('0');
+    });
+
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ).props.accessibilityState?.invalid,
+    ).toBe(true);
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
+        .props.accessibilityState?.invalid,
+    ).toBe(false);
   });
 });

@@ -63,6 +63,7 @@ import {
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import { RecurringScheduleErrorCode } from '../../../../components/UI/Bridge/utils/recurringSchedule';
 import {
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStatus,
@@ -1587,7 +1588,9 @@ describe('bridge slice', () => {
       const result = selectRecurringScheduleValidation(mockState);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('duration_exceeds_max');
+      expect(result.errors).toContain(
+        RecurringScheduleErrorCode.DurationExceedsMax,
+      );
     });
   });
 });

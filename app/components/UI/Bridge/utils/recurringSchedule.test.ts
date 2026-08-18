@@ -1,7 +1,7 @@
 import {
   capRecurringKeypadValue,
   parsePositiveInteger,
-  restoreRecurringValueIfInvalid,
+  RecurringScheduleErrorCode,
   RECURRING_MAX_DURATION_MINUTES,
   validateRecurringSchedule,
   type RecurringState,
@@ -33,24 +33,6 @@ describe('parsePositiveInteger', () => {
       expect(result).toBeUndefined();
     },
   );
-});
-
-describe('restoreRecurringValueIfInvalid', () => {
-  it('returns 1 when the value is not a positive integer', () => {
-    const value = '0';
-
-    const result = restoreRecurringValueIfInvalid(value);
-
-    expect(result).toBe('1');
-  });
-
-  it('keeps a valid positive integer', () => {
-    const value = '12';
-
-    const result = restoreRecurringValueIfInvalid(value);
-
-    expect(result).toBe('12');
-  });
 });
 
 describe('capRecurringKeypadValue', () => {
@@ -85,7 +67,7 @@ describe('validateRecurringSchedule', () => {
 
     const result = validateRecurringSchedule(schedule);
 
-    expect(result.errors).toContain('every_invalid');
+    expect(result.errors).toContain(RecurringScheduleErrorCode.EveryInvalid);
     expect(result.isValid).toBe(false);
   });
 
@@ -94,7 +76,7 @@ describe('validateRecurringSchedule', () => {
 
     const result = validateRecurringSchedule(schedule);
 
-    expect(result.errors).toContain('every_invalid');
+    expect(result.errors).toContain(RecurringScheduleErrorCode.EveryInvalid);
   });
 
   it('returns repeat_invalid for an empty repeat count', () => {
@@ -102,7 +84,7 @@ describe('validateRecurringSchedule', () => {
 
     const result = validateRecurringSchedule(schedule);
 
-    expect(result.errors).toContain('repeat_invalid');
+    expect(result.errors).toContain(RecurringScheduleErrorCode.RepeatInvalid);
     expect(result.isValid).toBe(false);
   });
 
@@ -111,7 +93,9 @@ describe('validateRecurringSchedule', () => {
 
     const result = validateRecurringSchedule(schedule);
 
-    expect(result.errors).toContain('every_exceeds_unit_max');
+    expect(result.errors).toContain(
+      RecurringScheduleErrorCode.EveryExceedsUnitMax,
+    );
     expect(result.isValid).toBe(false);
   });
 
@@ -129,7 +113,9 @@ describe('validateRecurringSchedule', () => {
 
     const result = validateRecurringSchedule(schedule);
 
-    expect(result.errors).not.toContain('every_exceeds_unit_max');
+    expect(result.errors).not.toContain(
+      RecurringScheduleErrorCode.EveryExceedsUnitMax,
+    );
   });
 
   it('accepts 1 day repeated 180 times', () => {
@@ -153,7 +139,9 @@ describe('validateRecurringSchedule', () => {
 
     const result = validateRecurringSchedule(schedule);
 
-    expect(result.errors).toContain('duration_exceeds_max');
+    expect(result.errors).toContain(
+      RecurringScheduleErrorCode.DurationExceedsMax,
+    );
     expect(result.isValid).toBe(false);
   });
 
@@ -166,7 +154,9 @@ describe('validateRecurringSchedule', () => {
 
     const result = validateRecurringSchedule(schedule);
 
-    expect(result.errors).toContain('duration_exceeds_max');
+    expect(result.errors).toContain(
+      RecurringScheduleErrorCode.DurationExceedsMax,
+    );
   });
 
   it('returns both unit max and duration errors when both limits are exceeded', () => {
@@ -179,8 +169,8 @@ describe('validateRecurringSchedule', () => {
     const result = validateRecurringSchedule(schedule);
 
     expect(result.errors).toEqual([
-      'every_exceeds_unit_max',
-      'duration_exceeds_max',
+      RecurringScheduleErrorCode.EveryExceedsUnitMax,
+      RecurringScheduleErrorCode.DurationExceedsMax,
     ]);
   });
 });

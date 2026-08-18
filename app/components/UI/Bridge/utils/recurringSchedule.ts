@@ -13,11 +13,12 @@ export interface RecurringState {
   repeatCount: string;
 }
 
-export type RecurringScheduleErrorCode =
-  | 'every_invalid'
-  | 'repeat_invalid'
-  | 'every_exceeds_unit_max'
-  | 'duration_exceeds_max';
+export enum RecurringScheduleErrorCode {
+  EveryInvalid = 'every_invalid',
+  RepeatInvalid = 'repeat_invalid',
+  EveryExceedsUnitMax = 'every_exceeds_unit_max',
+  DurationExceedsMax = 'duration_exceeds_max',
+}
 
 export interface RecurringScheduleValidation {
   isValid: boolean;
@@ -67,14 +68,6 @@ export function parsePositiveInteger(value: string): number | undefined {
   return Number(value);
 }
 
-export function restoreRecurringValueIfInvalid(value: string): string {
-  if (parsePositiveInteger(value) === undefined) {
-    return DEFAULT_RECURRING_EVERY_VALUE;
-  }
-
-  return value;
-}
-
 export function capRecurringKeypadValue(
   currentValue: string,
   nextValue: string,
@@ -95,13 +88,13 @@ export function validateRecurringSchedule(
   const repeat = parsePositiveInteger(recurring.repeatCount);
 
   if (every === undefined) {
-    errors.push('every_invalid');
+    errors.push(RecurringScheduleErrorCode.EveryInvalid);
   } else if (every > RECURRING_EVERY_MAX_BY_UNIT[recurring.everyUnit]) {
-    errors.push('every_exceeds_unit_max');
+    errors.push(RecurringScheduleErrorCode.EveryExceedsUnitMax);
   }
 
   if (repeat === undefined) {
-    errors.push('repeat_invalid');
+    errors.push(RecurringScheduleErrorCode.RepeatInvalid);
   }
 
   if (every !== undefined && repeat !== undefined) {
@@ -109,7 +102,7 @@ export function validateRecurringSchedule(
       every * RECURRING_INTERVAL_MINUTES[recurring.everyUnit] * repeat;
 
     if (durationMinutes > RECURRING_MAX_DURATION_MINUTES) {
-      errors.push('duration_exceeds_max');
+      errors.push(RecurringScheduleErrorCode.DurationExceedsMax);
     }
   }
 
