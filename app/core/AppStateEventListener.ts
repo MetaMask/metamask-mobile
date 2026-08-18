@@ -79,9 +79,20 @@ export class AppStateEventListener {
   private openedFromPushAt = 0;
   private openedFromPush: PushOpenDetails | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
+  private hasResumedFromBackground = false;
 
   constructor() {
     this.lastAppState = AppState.currentState;
+  }
+
+  /**
+   * True while the app is still in the session it was launched in — i.e. it has
+   * never come back from the background. Same distinction `App Opened` reports
+   * as {@link AppOpenedType.ColdStart} vs {@link AppOpenedType.WarmStart}, but
+   * readable synchronously instead of only inside the delayed event.
+   */
+  public get isColdStartSession(): boolean {
+    return !this.hasResumedFromBackground;
   }
 
   start() {
@@ -156,6 +167,7 @@ export class AppStateEventListener {
     // Transitioning from inactive (e.g. system permission dialogs, incoming calls)
     // back to active should NOT count as the user opening the app.
     if (nextAppState === 'active' && this.lastAppState === 'background') {
+      this.hasResumedFromBackground = true;
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
         this.processAppStateChange(AppOpenedType.WarmStart);

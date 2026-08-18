@@ -273,6 +273,8 @@ export enum TraceName {
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
   MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
   MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
+  // Deeplink Performance
+  DeeplinkReady = 'Deeplink Ready',
 }
 
 export enum TraceOperation {
@@ -284,6 +286,7 @@ export enum TraceOperation {
   UIStartup = 'ui.startup',
   HomepagePerformance = 'homepage.performance',
   NavInit = 'navigation.initialization',
+  DeeplinkPerformance = 'deeplink.performance',
   NetworkSwitch = 'network.switch',
   SwitchBuiltInNetwork = 'switch.to.built.in.network',
   SwitchCustomNetwork = 'switch.to.custom.network',

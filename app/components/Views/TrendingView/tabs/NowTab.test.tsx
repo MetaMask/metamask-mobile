@@ -193,6 +193,12 @@ jest.mock('../../../UI/WhatsHappening', () => ({
   default: jest.fn(() => null),
 }));
 
+const mockEndDeeplinkReadyTrace = jest.fn();
+jest.mock('../../../../core/Performance/DeeplinkReady', () => ({
+  endDeeplinkReadyTrace: (options: unknown) =>
+    mockEndDeeplinkReadyTrace(options),
+}));
+
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
@@ -750,5 +756,188 @@ describe('NowTab — section ordering', () => {
       'explore-section-crypto_movers',
       'explore-section-stocks',
     ]);
+  });
+});
+
+describe('NowTab — Deeplink Ready CUF', () => {
+  const arrangeEmptyFeeds = () => {
+    const mocks = arrangeMocks();
+    mocks.usePredictionsFeed.mockReturnValue({
+      data: [],
+      isLoading: true,
+      refetch: jest.fn(),
+    });
+    mocks.usePerpsFeed.mockReturnValue({
+      data: [],
+      isLoading: true,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange',
+    });
+    mocks.useTokensFeed.mockReturnValue({
+      data: [],
+      isLoading: true,
+      refetch: jest.fn(),
+    });
+    mocks.useStocksFeed.mockReturnValue({
+      data: [],
+      isLoading: true,
+      refetch: jest.fn(),
+    });
+    mocks.useWhatsHappening.mockReturnValue({
+      items: [],
+      isLoading: true,
+      error: null,
+      refresh: mockWhatsHappeningRefresh,
+    });
+
+    return mocks;
+  };
+
+  const arrangeSettledEmptyFeeds = () => {
+    const mocks = arrangeEmptyFeeds();
+    mocks.usePredictionsFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mocks.usePerpsFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange',
+    });
+    mocks.useTokensFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mocks.useStocksFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mocks.useWhatsHappening.mockReturnValue({
+      items: [],
+      isLoading: false,
+      error: null,
+      refresh: mockWhatsHappeningRefresh,
+    });
+
+    return mocks;
+  };
+
+  const arrangeSettledFilledFeeds = () => {
+    const mocks = arrangeSettledEmptyFeeds();
+    mocks.useTokensFeed.mockReturnValue({
+      data: [
+        {
+          assetId: 'eip155:1/erc20:0x1',
+          symbol: 'ONE',
+          priceChangePct: { h1: '1.23' },
+        },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    return mocks;
+  };
+
+  it('does not end the CUF while every section is still a skeleton', () => {
+    arrangeEmptyFeeds();
+
+    renderNowTab();
+
+    expect(mockEndDeeplinkReadyTrace).not.toHaveBeenCalled();
+  });
+
+  it('does not end the CUF while a single feed is still loading', () => {
+    const mocks = arrangeSettledFilledFeeds();
+    mocks.useStocksFeed.mockReturnValue({
+      data: [],
+      isLoading: true,
+      refetch: jest.fn(),
+    });
+
+    renderNowTab();
+
+    expect(mockEndDeeplinkReadyTrace).not.toHaveBeenCalled();
+  });
+
+  it('ends the CUF as filled once every feed has settled', () => {
+    arrangeSettledFilledFeeds();
+
+    renderNowTab();
+
+    expect(mockEndDeeplinkReadyTrace).toHaveBeenCalledWith({
+      route: 'trending',
+      contentState: 'filled',
+    });
+  });
+
+  it('ends the CUF as empty once every feed has settled with no rows', () => {
+    arrangeSettledEmptyFeeds();
+
+    renderNowTab();
+
+    expect(mockEndDeeplinkReadyTrace).toHaveBeenCalledWith({
+      route: 'trending',
+      contentState: 'empty',
+    });
+  });
+
+  it('ends the CUF when the last feed resolves after the first render', () => {
+    const mocks = arrangeEmptyFeeds();
+
+    const { rerender } = renderNowTab();
+
+    expect(mockEndDeeplinkReadyTrace).not.toHaveBeenCalled();
+
+    // Every feed settles; crypto movers is the one that came back with rows.
+    mocks.usePredictionsFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mocks.usePerpsFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange',
+    });
+    mocks.useStocksFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mocks.useWhatsHappening.mockReturnValue({
+      items: [],
+      isLoading: false,
+      error: null,
+      refresh: mockWhatsHappeningRefresh,
+    });
+    mocks.useTokensFeed.mockReturnValue({
+      data: [
+        {
+          assetId: 'eip155:1/erc20:0x1',
+          symbol: 'ONE',
+          priceChangePct: { h1: '1.23' },
+        },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    rerender(
+      <NavigationContainer>
+        <ExploreActiveTabProvider activeTab={'Now' as ExploreTabName}>
+          <NowTab {...defaultTabProps} />
+        </ExploreActiveTabProvider>
+      </NavigationContainer>,
+    );
+
+    expect(mockEndDeeplinkReadyTrace).toHaveBeenCalledWith({
+      route: 'trending',
+      contentState: 'filled',
+    });
   });
 });

@@ -7,6 +7,10 @@ import NavigationService from '../../NavigationService';
 import ReduxService from '../../redux';
 import SharedDeeplinkManager from '../DeeplinkManager';
 import { executeStartupDeeplinkIntent } from './executeDeeplinkIntent';
+import {
+  cancelDeeplinkReadyTrace,
+  startDeeplinkReadyTrace,
+} from '../../Performance/DeeplinkReady';
 
 const scheduleAfterNavigation = (callback: () => void) => {
   if (typeof requestAnimationFrame === 'function') {
@@ -27,6 +31,10 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
     AppStateEventProcessor.pendingDeeplinkSource ??
     AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
+  // Covers unlocks that never render Login — biometric auto-unlock is driven by
+  // the app-state saga. No-ops when an entry point already opened the span.
+  startDeeplinkReadyTrace({ source: 'unlock', appStartType: 'cold' });
+
   try {
     const intent = await SharedDeeplinkManager.resolve(deeplink, { origin });
     if (intent === false) {
@@ -34,10 +42,12 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
       // rejected it. Clear the pending link so the Home fallback does not
       // redispatch the same deeplink and show the interstitial again.
       AppStateEventProcessor.clearPendingDeeplink();
+      cancelDeeplinkReadyTrace({ reason: 'rejected' });
       return false;
     }
 
     if (!intent) {
+      cancelDeeplinkReadyTrace({ reason: 'unresolved' });
       return false;
     }
 
@@ -48,6 +58,7 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
 
     return handled;
   } catch (error) {
+    cancelDeeplinkReadyTrace({ reason: 'error' });
     Logger.error(
       error as Error,
       'DeeplinkManager: failed to navigate to pending startup deeplink',

@@ -80,6 +80,16 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+const mockStartDeeplinkReadyTrace = jest.fn();
+const mockCancelDeeplinkReadyTrace = jest.fn();
+
+jest.mock('../../Performance/DeeplinkReady', () => ({
+  startDeeplinkReadyTrace: (options: unknown) =>
+    mockStartDeeplinkReadyTrace(options),
+  cancelDeeplinkReadyTrace: (options: unknown) =>
+    mockCancelDeeplinkReadyTrace(options),
+}));
+
 describe('startupDeeplinkNavigation', () => {
   const intent: DeeplinkIntent = {
     target: {
@@ -157,6 +167,63 @@ describe('startupDeeplinkNavigation', () => {
 
     expect(mockExecuteStartupDeeplinkIntent).not.toHaveBeenCalled();
     expect(mockClearPendingDeeplink).toHaveBeenCalledTimes(1);
+  });
+
+  describe('deeplink CUF tracing', () => {
+    it('starts the CUF for unlocks that never render Login', async () => {
+      AppStateEventProcessor.pendingDeeplink =
+        'https://link.metamask.io/trending';
+
+      await navigateToPendingStartupDeeplink();
+
+      expect(mockStartDeeplinkReadyTrace).toHaveBeenCalledWith({
+        source: 'unlock',
+        appStartType: 'cold',
+      });
+      expect(mockCancelDeeplinkReadyTrace).not.toHaveBeenCalled();
+    });
+
+    it('does not start the CUF when there is nothing pending', async () => {
+      await navigateToPendingStartupDeeplink();
+
+      expect(mockStartDeeplinkReadyTrace).not.toHaveBeenCalled();
+    });
+
+    it('cancels the CUF when the user rejects the deeplink', async () => {
+      AppStateEventProcessor.pendingDeeplink =
+        'https://link.metamask.io/trending';
+      mockResolve.mockResolvedValueOnce(false);
+
+      await navigateToPendingStartupDeeplink();
+
+      expect(mockCancelDeeplinkReadyTrace).toHaveBeenCalledWith({
+        reason: 'rejected',
+      });
+    });
+
+    it('cancels the CUF when no intent resolves', async () => {
+      AppStateEventProcessor.pendingDeeplink =
+        'https://link.metamask.io/trending';
+      mockResolve.mockResolvedValueOnce(null);
+
+      await navigateToPendingStartupDeeplink();
+
+      expect(mockCancelDeeplinkReadyTrace).toHaveBeenCalledWith({
+        reason: 'unresolved',
+      });
+    });
+
+    it('cancels the CUF when resolution throws', async () => {
+      AppStateEventProcessor.pendingDeeplink =
+        'https://link.metamask.io/trending';
+      mockResolve.mockRejectedValueOnce(new Error('boom'));
+
+      await expect(navigateToPendingStartupDeeplink()).resolves.toBe(false);
+
+      expect(mockCancelDeeplinkReadyTrace).toHaveBeenCalledWith({
+        reason: 'error',
+      });
+    });
   });
 
   it('re-dispatches deeplink handling after default navigation when pending remains', () => {

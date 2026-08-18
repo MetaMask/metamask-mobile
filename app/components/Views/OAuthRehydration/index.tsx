@@ -66,6 +66,11 @@ import {
   startHomepageReadyTrace,
   type HomepageReadyTraceToken,
 } from '../../../core/Performance/HomepageReady';
+import {
+  cancelDeeplinkReadyTrace,
+  startDeeplinkReadyTrace,
+  type DeeplinkReadyTraceToken,
+} from '../../../core/Performance/DeeplinkReady';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getLoginAppStartType } from '../Login/loginPerformanceTags';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -566,11 +571,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       biometrics: biometryChoice,
     });
     let homepageReadyTraceToken: HomepageReadyTraceToken | null = null;
+    let deeplinkReadyTraceToken: DeeplinkReadyTraceToken | null = null;
 
     try {
       if (finalLoading) return;
 
       homepageReadyTraceToken = startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: getLoginAppStartType(),
+      });
+      // Sibling CUF: no-ops unless this launch is resolving a deeplink, in which
+      // case the user lands on the deeplink destination rather than Home.
+      deeplinkReadyTraceToken = startDeeplinkReadyTrace({
         source: 'unlock',
         appStartType: getLoginAppStartType(),
       });
@@ -654,6 +666,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         reason: 'unlock_failed',
         traceToken: homepageReadyTraceToken,
       });
+      cancelDeeplinkReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: deeplinkReadyTraceToken,
+      });
       await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
       if (passwordLoginAttemptTraceCtxRef.current) {
         endTrace({
@@ -680,11 +696,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const newGlobalPasswordLogin = useCallback(async () => {
     let homepageReadyTraceToken: HomepageReadyTraceToken | null = null;
+    let deeplinkReadyTraceToken: DeeplinkReadyTraceToken | null = null;
 
     try {
       if (finalLoading) return;
 
       homepageReadyTraceToken = startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: getLoginAppStartType(),
+      });
+      // Sibling CUF: no-ops unless this launch is resolving a deeplink, in which
+      // case the user lands on the deeplink destination rather than Home.
+      deeplinkReadyTraceToken = startDeeplinkReadyTrace({
         source: 'unlock',
         appStartType: getLoginAppStartType(),
       });
@@ -724,6 +747,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       cancelHomepageReadyTrace({
         reason: 'unlock_failed',
         traceToken: homepageReadyTraceToken,
+      });
+      cancelDeeplinkReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: deeplinkReadyTraceToken,
       });
       await handleLoginError(
         ensureError(loginErr, 'Global password login failed'),

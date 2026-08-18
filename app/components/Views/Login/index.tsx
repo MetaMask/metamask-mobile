@@ -104,6 +104,11 @@ import {
   startHomepageReadyTrace,
   type HomepageReadyTraceToken,
 } from '../../../core/Performance/HomepageReady';
+import {
+  cancelDeeplinkReadyTrace,
+  startDeeplinkReadyTrace,
+  type DeeplinkReadyTraceToken,
+} from '../../../core/Performance/DeeplinkReady';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -318,6 +323,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         source: 'unlock',
         appStartType: loginPerformanceTags.current.app_start_type,
       });
+    // Sibling CUF: no-ops unless this launch is resolving a deeplink, in which
+    // case the user lands on the deeplink destination rather than Home.
+    const deeplinkReadyTraceToken: DeeplinkReadyTraceToken | null =
+      startDeeplinkReadyTrace({
+        source: 'unlock',
+        appStartType: loginPerformanceTags.current.app_start_type,
+      });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -364,6 +376,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         reason: 'unlock_failed',
         traceToken: homepageReadyTraceToken,
       });
+      cancelDeeplinkReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: deeplinkReadyTraceToken,
+      });
       await handleLoginError(loginErr as Error);
     }
     setLoading(false);
@@ -390,6 +406,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         source: 'unlock',
         appStartType: loginPerformanceTags.current.app_start_type,
       });
+    // Sibling CUF: no-ops unless this launch is resolving a deeplink, in which
+    // case the user lands on the deeplink destination rather than Home.
+    const deeplinkReadyTraceToken: DeeplinkReadyTraceToken | null =
+      startDeeplinkReadyTrace({
+        source: 'unlock',
+        appStartType: loginPerformanceTags.current.app_start_type,
+      });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -411,6 +434,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       cancelHomepageReadyTrace({
         reason: 'unlock_failed',
         traceToken: homepageReadyTraceToken,
+      });
+      cancelDeeplinkReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: deeplinkReadyTraceToken,
       });
       await handleLoginError(loginerror as Error);
     }

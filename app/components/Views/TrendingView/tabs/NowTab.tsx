@@ -61,6 +61,8 @@ import {
   useWhatsHappening,
 } from '../../../UI/WhatsHappening/hooks';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import { ACTIONS } from '../../../../constants/deeplinks';
+import { endDeeplinkReadyTrace } from '../../../../core/Performance/DeeplinkReady';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -272,6 +274,37 @@ const NowTabContent: React.FC<TabProps> = ({
     ),
     [],
   );
+
+  // Deeplink CUF end signal: the whole tab has stopped loading, so every section
+  // shows its final state rather than a skeleton. A feed that is flagged off or
+  // legitimately empty still reports `isLoading: false`, so it cannot stall the
+  // span. Safe against a mount-time close because crypto movers starts out
+  // loading (`useTrendingRequest` seeds `isLoading` true), so this cannot be true
+  // on the first render.
+  const isSettled =
+    !whatsHappening.isLoading &&
+    !displayedPredictions.isLoading &&
+    !perpsFeed.isLoading &&
+    !cryptoMovers.isLoading &&
+    !stocks.isLoading;
+
+  // Reads row counts rather than the `show*` flags below, which stay true while
+  // a section is still a skeleton.
+  const hasContent =
+    whatsHappening.items.length > 0 ||
+    displayedPredictions.data.length > 0 ||
+    perpsFeed.data.length > 0 ||
+    cryptoMovers.data.length > 0 ||
+    stocks.data.length > 0;
+
+  useEffect(() => {
+    if (isSettled) {
+      endDeeplinkReadyTrace({
+        route: ACTIONS.TRENDING,
+        contentState: hasContent ? 'filled' : 'empty',
+      });
+    }
+  }, [isSettled, hasContent]);
 
   const showWhatsHappening =
     isWhatsHappeningEnabled && isWhatsHappeningSectionVisible(whatsHappening);
