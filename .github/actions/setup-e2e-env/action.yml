@@ -28,7 +28,7 @@ inputs:
   ruby-version:
     description: Ruby version to use (only for iOS)
     required: false
-    default: '3.2.9'
+    default: '3.2.11'
   xcode-version:
     description: 'Xcode version to select (e.g., 26.3). Uses xcodes CLI on Cirrus Labs runners, falls back to xcode-select on GitHub-hosted runners.'
     required: false
