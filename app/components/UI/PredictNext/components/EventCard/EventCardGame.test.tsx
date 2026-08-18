@@ -162,7 +162,7 @@ describe('EventCardGame', () => {
     renderCard(event, { variant: 'featured' });
 
     expect(screen.getByText('Thursday, September 10')).toBeOnTheScreen();
-    expect(screen.getByText('8:20 PM')).toBeOnTheScreen();
+    expect(screen.getByText(/^8:20\s*PM$/)).toBeOnTheScreen();
   });
 
   it('omits the featured bar when both Ask Prices are zero', () => {
