@@ -50,8 +50,19 @@ const getNativeSecureContentView = () => {
 
 const SecureContentView: React.FC<ViewProps> = (props) => {
   // The native view locates the secure canvas by a private UIKit class name.
-  // If a future iOS release renames it the view still renders, but without
-  // capture protection — report that instead of silently exposing content.
+  // If a future iOS release renames it, this degrades to rendering children
+  // unprotected and reports it rather than blocking the flow.
+  //
+  // That is a deliberate trade-off, not an oversight. The two alternatives are
+  // worse: refusing to render would break wallet backup and SRP reveal
+  // outright until we shipped a fix, and falling back to the window-wide
+  // expo-screen-capture block would black out the whole screen and make the
+  // app unusable during a recording — the exact behaviour this component
+  // exists to avoid. Degrading here lands on the pre-existing behaviour
+  // (no iOS capture protection, screenshot warning only), so a broken private
+  // API is never worse than shipping without this component at all.
+  //
+  // The Sentry report is the signal to fix it, not the protection itself.
   const handleStatus = useCallback(
     ({ nativeEvent }: { nativeEvent: SecureCanvasStatus }) => {
       if (!nativeEvent.usingSecureCanvas) {
