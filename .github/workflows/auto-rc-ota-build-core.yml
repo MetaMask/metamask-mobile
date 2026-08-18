@@ -6,9 +6,10 @@
 # OTA_VERSION bump and, if so, skip the native build (OTA-only changes are published
 # separately). Otherwise fall through to a native build.yml build (and TestFlight for iOS).
 #
-# Callers that already decided native-vs-OTA themselves pass ignore_ota_bump: true, so the
-# OTA_VERSION check cannot override that decision. build-rc-auto.yml does exactly this, using
-# the Expo fingerprint as its signal.
+# Callers that already decided native-vs-OTA themselves pass ignore_ota_bump: true, which skips
+# the OTA_VERSION check altogether so nothing about it — including a failure to compute it —
+# can override that decision. build-rc-auto.yml does exactly this, using the Expo fingerprint
+# as its signal.
 #
 # This workflow does not push OTA updates — OTA publishing is handled outside this flow.
 #
@@ -54,11 +55,13 @@ on:
         default: ''
       ignore_ota_bump:
         description: >-
-          Build even when resolve-context reports an OTA_VERSION bump. Set by build-rc-auto.yml,
-          which decides native-vs-OTA from the Expo fingerprint before calling this workflow: a
+          Always build, skipping the OTA_VERSION check entirely. Set by build-rc-auto.yml, which
+          decides native-vs-OTA from the Expo fingerprint before calling this workflow: a
           fingerprint mismatch means native files really did change, so honouring the OTA_VERSION
           bump here would skip the build while the fingerprint gate blocks the OTA, shipping
-          nothing at all. Left false everywhere else so existing behaviour is unchanged.
+          nothing at all. This skips the resolve-context job rather than just ignoring its
+          output, so nothing about that check can influence the build. Left false everywhere
+          else, where the OTA_VERSION check still decides as it does today.
         required: false
         type: boolean
         default: false
@@ -81,6 +84,10 @@ permissions:
 jobs:
   resolve-context:
     name: Resolve OTA context
+    # Its only consumer is trigger-build's ota_bump check below, so when the caller has
+    # already made that decision there is nothing here worth resolving — and running it
+    # anyway would let a transient failure in it veto a build we know we need.
+    if: ${{ !inputs.ignore_ota_bump }}
     uses: ./.github/workflows/runway-ota-resolve-context.yml
     with:
       source_branch: ${{ inputs.source_branch }}
@@ -89,7 +96,18 @@ jobs:
   trigger-build:
     name: Trigger build mobile app
     needs: resolve-context
-    if: inputs.ignore_ota_bump || needs.resolve-context.outputs.ota_bump != 'true'
+    # resolve-context is skipped when ignore_ota_bump is set, and the default implicit
+    # success() treats a skipped dependency as failing, so it has to be overridden here (same
+    # reason push-eas-update.yml overrides it for its optional approval job). When
+    # resolve-context does run, a failure must still block the build: ota_bump is unknown at
+    # that point, so building could ship a binary for a release that only wanted an OTA.
+    if: >
+      always() && !cancelled() &&
+      (
+        inputs.ignore_ota_bump ||
+        (needs.resolve-context.result == 'success' &&
+         needs.resolve-context.outputs.ota_bump != 'true')
+      )
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ inputs.build_name }}
