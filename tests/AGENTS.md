@@ -25,18 +25,11 @@ Single agent index for **tests/**. Pointers only; details live in the canonical 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Canonical guide: patterns, Page Objects, assertions, gestures, prohibited patterns.
 - [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke: main-e2e builds, `yarn appium-smoke:*`, local setup, CI.
 
-## Dual-framework lint freeze (MMQA-2230)
+## Canonical Appium APIs
 
-ESLint blocks **new** dual-framework debt in POs, flows, and Appium specs:
+Prefer `Gestures` / `Assertions` / `Matchers` in POs, flows, and Appium specs. Avoid `UnifiedGestures`, `FrameworkDetector`, `encapsulated*` / `asPlaywrightElement` / `asDetoxElement`, and direct `Playwright*` dual-framework APIs.
 
-| Banned                                                                                         | Prefer                                             |
-| ---------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `UnifiedGestures`                                                                              | `Gestures`                                         |
-| `FrameworkDetector`                                                                            | Appium-only `Gestures` / `Assertions` / `Matchers` |
-| `encapsulated` / `encapsulatedAction` / `asPlaywrightElement` / `asDetoxElement`               | `Matchers` + `Gestures` / `Assertions`             |
-| `PlaywrightMatchers` / `PlaywrightGestures` / `PlaywrightAssertions` / `PlaywrightWebMatchers` | `Matchers` / `Gestures` / `Assertions`             |
-
-- Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
+Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
 
 ## Canonical Sources (read these, do not duplicate)
 
