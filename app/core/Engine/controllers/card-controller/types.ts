@@ -69,21 +69,11 @@ export type CardControllerState = {
    * satisfy StateConstraint; cast to CardHomeData in the controller.
    */
   cardHomeData: Record<string, Json> | null;
-  /**
-   * EVM address `cardHomeData` was fetched for. Persisted with it so a cold
-   * start under a different account discards the cache instead of rendering
-   * another account's card details.
-   */
+  /** Account `cardHomeData` was fetched for; a mismatch discards the cache. */
   cardHomeDataAddress: string | null;
-  /**
-   * Persisted alongside the data it describes — restoring data without its
-   * status leaves `selectIsCardStateResolved` false and the card in 'loading'.
-   */
+  /** Persisted with the data: without it the card restores stuck in 'loading'. */
   cardHomeDataStatus: CardHomeDataStatus;
-  /**
-   * Never persisted, so it is `false` after a cold start even when the restored
-   * status is 'success' — that is what tells `useCardHomeData` to revalidate.
-   */
+  /** Never persisted, so `false` after a cold start signals data off disk. */
   cardHomeDataFetchedThisSession: boolean;
   /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
   moneyAccountCardLinkInProgress: boolean;

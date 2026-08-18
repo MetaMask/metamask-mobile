@@ -4,11 +4,10 @@ import Logger from '../../../../util/Logger';
 import { DAY } from '../../../../constants/time';
 
 /**
- * Disk cache for the first page of Money account activity. The React Query
- * cache is memory-only, so it dies with the JS context — and Android reclaims
- * the process far more aggressively than iOS, leaving most Money Home opens
- * blocked on a network round-trip. Only page one is stored: it is the page that
- * gates time-to-content, and one page bounds what we write per account.
+ * Disk cache for the first page of Money account activity: the React Query
+ * cache is memory-only, and Android reclaims the process aggressively enough
+ * that most Money Home opens would otherwise block on the network. Page one
+ * is the page that gates time-to-content.
  */
 
 const CACHE_VERSION = 1;
@@ -38,9 +37,6 @@ function isCachedFirstPage(value: unknown): value is CachedFirstPage {
 /**
  * Synchronous (MMKV) so a caller can seed React Query during render without an
  * async hydration gate.
- *
- * @param address - Checksummed money account address.
- * @returns The cached page and its write time, if a usable entry is in TTL.
  */
 export function readCachedFirstPage(
   address: string,
@@ -75,9 +71,6 @@ export function readCachedFirstPage(
 
 /**
  * Fire-and-forget: a write failure only costs the next cold start its head start.
- *
- * @param address - Checksummed money account address.
- * @param page - The first-page response to cache.
  */
 export function writeCachedFirstPage(
   address: string,

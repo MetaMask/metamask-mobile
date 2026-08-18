@@ -526,7 +526,6 @@ describe('CardController — auth methods', () => {
         tokenSet: mockTokenSet,
       });
       mockTokenStore.set.mockResolvedValue(true);
-      // Simulates a cold start that restored a previous card from disk.
       const controller = buildController(provider, {
         cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
         cardHomeDataStatus: 'success',
@@ -1873,7 +1872,6 @@ describe('CardController — fetchCardHomeData', () => {
         resolveFetch = resolve;
       }),
     );
-    // Cold start: data and status restored from disk, no session fetch yet.
     const { controller } = buildControllerWithMockMessenger(provider, {
       cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
       cardHomeDataStatus: 'success',
@@ -1939,7 +1937,6 @@ describe('CardController — fetchCardHomeData', () => {
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
     provider.validateTokens.mockReturnValue('valid');
     provider.getCardHomeData.mockRejectedValue(new Error('API error'));
-    // Restored from a session that died while a fetch was in flight.
     const { controller } = buildControllerWithMockMessenger(provider, {
       cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
       cardHomeDataStatus: 'loading',
@@ -1971,7 +1968,6 @@ describe('CardController — fetchCardHomeData', () => {
     const silent = controller.fetchCardHomeData();
     expect(controller.state.cardHomeDataStatus).toBe('success');
 
-    // Pull to refresh lands while the silent revalidation is still running.
     const forced = controller.fetchCardHomeData({ force: true });
     expect(controller.state.cardHomeDataStatus).toBe('loading');
 
@@ -1979,7 +1975,6 @@ describe('CardController — fetchCardHomeData', () => {
     await silent;
     await forced;
 
-    // The user asked for this refresh, so its failure must be visible.
     expect(controller.state.cardHomeDataStatus).toBe('error');
   });
 

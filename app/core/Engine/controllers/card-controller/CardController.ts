@@ -264,19 +264,16 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Seeding `previousEvmAddress` above means a cold start under a different
-   * account never looks like a switch, so `#handleAccountSwitch` will not clear
-   * the restored cache. A non-cardholder compounds it: `useCardHomeData` never
-   * fetches, so nothing else would ever clear it either. Discard here instead,
-   * or Money Home renders another account's card details.
+   * A cold start under a different account never looks like a switch, since
+   * `previousEvmAddress` is seeded from it — and a non-cardholder never fetches
+   * either, so nothing else would clear the restored cache.
+   *
+   * Only a known mismatch is discarded: a cache predating this field has no
+   * address and cannot revalidate silently, so a visible fetch replaces it.
    */
   #discardCardHomeDataFromOtherAccount(selectedAddress: string | null): void {
     if (this.state.cardHomeData === null) return;
 
-    // Only a known mismatch is discarded. A cache written before this field
-    // existed has no address, and cannot be silently revalidated either — the
-    // fetch below requires provenance to stay silent — so it is replaced by a
-    // visible fetch rather than being shown as another account's current card.
     const { cardHomeDataAddress } = this.state;
     if (cardHomeDataAddress === null) return;
 
@@ -630,10 +627,9 @@ export class CardController extends BaseController<
 
     const address = this.#getSelectedEvmAddress();
     if (!address) {
-      // Accounts may simply not be ready yet, so nothing here may be recorded
-      // as a completed fetch: marking the session flag or the freshness stamp
-      // would stop `useCardHomeData` retrying once an address exists, leaving
-      // restored data stale until a forced refresh.
+      // Accounts may not be ready yet, so this must not record a completed
+      // fetch: doing so stops `useCardHomeData` retrying once an address
+      // exists, stranding restored data until a forced refresh.
       if (!hasRestoredCardHomeData) {
         this.update((s) => {
           s.cardHomeDataStatus = 'error';
@@ -642,9 +638,8 @@ export class CardController extends BaseController<
       return;
     }
 
-    // Restored data from another account is not the data being fetched:
-    // revalidating it silently would leave the wrong card on screen for the
-    // whole request.
+    // Revalidating another account's data silently would leave the wrong card
+    // on screen for the whole request.
     const { cardHomeDataAddress } = this.state;
     const restoredDataBelongsToAddress =
       cardHomeDataAddress !== null &&
