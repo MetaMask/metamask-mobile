@@ -6334,7 +6334,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: [
       {
         name: 'control',
-        scope: { type: 'percentage_rollout', value: 1.0 },
+        scope: { type: 'percentage_rollout', value: 0.75 },
       },
       {
         name: 'treatment',

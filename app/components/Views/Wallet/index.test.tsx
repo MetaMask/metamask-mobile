@@ -97,9 +97,17 @@ jest.mock('../../UI/NetworkConnectionBanner', () => ({
 let mockNetworkConnectionBannerVisible = false;
 jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   useNetworkConnectionBanner: () => ({
-    networkConnectionBannerState: {
-      visible: mockNetworkConnectionBannerVisible,
-    },
+    status: mockNetworkConnectionBannerVisible ? 'unavailable' : 'available',
+    network: mockNetworkConnectionBannerVisible
+      ? {
+          networkClientId: 'test-client',
+          name: 'Test Network',
+          rpcUrl: 'https://test.rpc',
+          chainId: '0x1',
+          isInfuraEndpoint: false,
+          switchableInfuraNetworkClientId: null,
+        }
+      : null,
     updateRpc: jest.fn(),
     switchToInfura: jest.fn(),
   }),
@@ -294,7 +302,6 @@ import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
-import { initialState as networkConnectionBannerInitialState } from '../../../reducers/networkConnectionBanner';
 import {
   NavigationProp,
   ParamListBase,
@@ -540,7 +547,6 @@ const mockInitialState = {
     newPrivacyPolicyToastShownDate: null,
     newPrivacyPolicyToastClickedOrClosed: false,
   },
-  networkConnectionBanner: networkConnectionBannerInitialState,
   engine: {
     backgroundState: {
       ...backgroundState,

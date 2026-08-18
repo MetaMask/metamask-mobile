@@ -41,10 +41,12 @@ on:
         type: boolean
         default: false
       runner_provider:
-        description: Runner provider forwarded from the caller
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
         required: false
         type: string
-        default: current
+        default: ''
 
 permissions:
   contents: read
@@ -53,7 +55,12 @@ permissions:
 jobs:
   testflight-upload-summary:
     name: TestFlight upload summary
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
     steps:
       - name: Display TestFlight upload summary
         run: |
@@ -74,10 +81,31 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [testflight-upload-summary]
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' }}
+    # iOS/macOS only ever runs on Namespace or Cirrus; there is no GitHub-hosted macOS arm.
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     steps:
+      - name: Checkout repository (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 1
+
       - name: Checkout repository
         uses: actions/checkout@v4
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
 

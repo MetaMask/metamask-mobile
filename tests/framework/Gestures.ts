@@ -909,6 +909,21 @@ export default class Gestures {
   }
 
   /**
+   * Appium: append text via addValue without clearing the field.
+   * Use after replaceText when Return must submit separately (e.g. iOS URL bar).
+   */
+  static async appendText(
+    elem: EncapsulatedElementType,
+    text: string,
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.appendText is Appium only');
+    }
+    const field = await asPlaywrightElement(elem);
+    await field.type(text);
+  }
+
+  /**
    * Hide the soft keyboard (Appium).
    * Uses Android `hideKeyboard` when shown, and iOS `mobile: hideKeyboard`
    * with `tapOutside` (plain `driver.hideKeyboard()` is unreliable on XCUITest).
