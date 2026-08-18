@@ -23,6 +23,13 @@ function parseProjectNames(): string[] {
       } else {
         throw new Error('Project name is required with --project flag');
       }
+    } else if (arg.startsWith('--project=')) {
+      const projectName = arg.slice('--project='.length);
+      if (projectName) {
+        projects.push(projectName);
+      } else {
+        throw new Error('Project name is required with --project flag');
+      }
     }
   });
 
