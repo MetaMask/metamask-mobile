@@ -27,6 +27,7 @@ import {
 import type { ActivityDetailsParams } from '../../../app/components/Views/ActivityDetails/ActivityDetails.types';
 import type { ActivityListItem } from '../../../app/util/activity-adapters';
 import { stashPreloadedActivityItem } from '../../../app/components/Views/ActivityList/preloadedActivityItemStore';
+import { getActivityDetailsRoute } from '../../../app/components/Views/ActivityList/getActivityDetailsRoute';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
@@ -352,4 +353,20 @@ export function renderPreloadedActivityDetailsView(
       preloadKey,
     },
   });
+}
+
+/**
+ * Builds Activity Details route params (including preload stash) the same way
+ * ActivityList navigates. Use for provider-backed rows that are not in Redux.
+ */
+export function getActivityDetailsViewParams(
+  item: ActivityListItem,
+): ActivityDetailsParams {
+  const params = getActivityDetailsRoute(item);
+  if (!params) {
+    throw new Error(
+      `Unable to build Activity Details route for ${item.hash ?? item.type}`,
+    );
+  }
+  return params;
 }
