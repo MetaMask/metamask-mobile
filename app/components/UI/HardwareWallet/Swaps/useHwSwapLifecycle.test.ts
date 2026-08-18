@@ -148,7 +148,11 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.TRANSACTIONS_VIEW,
+      undefined,
+      { pop: true },
+    );
     expect(getMockShowToast()).toHaveBeenCalled();
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
@@ -181,7 +185,11 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.TRANSACTIONS_VIEW,
+      undefined,
+      { pop: true },
+    );
     expect(getMockShowToast()).toHaveBeenCalled();
   });
 
@@ -193,7 +201,11 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.TRANSACTIONS_VIEW,
+      undefined,
+      { pop: true },
+    );
     expect(getMockShowToast()).toHaveBeenCalled();
   });
 
