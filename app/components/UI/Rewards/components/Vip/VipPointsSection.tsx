@@ -8,7 +8,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { formatCompactValue, formatNumber } from '../../utils/formatUtils';
+import { formatCompactValue } from '../../utils/formatUtils';
 import type { VipEquityAllocation } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import VipCircularProgress from './VipCircularProgress';
 
@@ -47,9 +47,6 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   const isEquityUnlocked =
     pointsAllocation.earned >= pointsAllocation.threshold;
   const subtitle = isEquityUnlocked ? equityUnlockedTitle : equityLockedTitle;
-  const description = isEquityUnlocked
-    ? equityUnlockedDescription
-    : equityLockedDescription;
 
   // Only meaningful once equity is unlocked, and only worth showing when the
   // VIP has actually accrued something — a "lifetime total of 0" would read as
@@ -61,8 +58,14 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
     lifetimeQualifyingPoints > 0
       ? equityLifetimePointsDescription
           .split(POINTS_PLACEHOLDER)
-          .join(formatNumber(lifetimeQualifyingPoints))
+          .join(formatCompactValue(lifetimeQualifyingPoints))
       : null;
+
+  const description = isEquityUnlocked
+    ? lifetimePointsText
+      ? `${equityUnlockedDescription} ${lifetimePointsText}`
+      : equityUnlockedDescription
+    : equityLockedDescription;
 
   return (
     <Box
@@ -85,18 +88,17 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
           <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
             {subtitle}
           </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={
+              lifetimePointsText
+                ? VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS
+                : undefined
+            }
+          >
             {description}
           </Text>
-          {lifetimePointsText ? (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              testID={VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS}
-            >
-              {lifetimePointsText}
-            </Text>
-          ) : null}
         </Box>
         <VipCircularProgress
           percent={pointsAllocation.percent}

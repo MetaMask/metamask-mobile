@@ -3253,8 +3253,7 @@ describe('Rewards selectors', () => {
         },
       ],
       localizedText: {
-        equityLifetimePointsDescription:
-          'So far, a lifetime total of {points} points will contribute to your equity allocation.',
+        equityLifetimePointsDescription: 'Lifetime total: {points}',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         transactionsTitle: 'Transactions',

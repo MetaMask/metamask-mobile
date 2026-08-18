@@ -42,8 +42,7 @@ const baseProps: React.ComponentProps<typeof VipPointsSection> = {
   equityLockedDescription: 'Keep earning to unlock equity.',
   equityUnlockedTitle: 'Unlocked allocation',
   equityUnlockedDescription: 'Your equity allocation is unlocked.',
-  equityLifetimePointsDescription:
-    'So far, a lifetime total of {points} points will contribute to your equity allocation.',
+  equityLifetimePointsDescription: 'Lifetime total: {points}',
   pointsAllocation: {
     earned: 5_555_555,
     threshold: 7_777_777,
@@ -156,7 +155,7 @@ describe('VipPointsSection', () => {
       expect(
         getByTestId(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
       ).toHaveTextContent(
-        'So far, a lifetime total of 12,345,678 points will contribute to your equity allocation.',
+        'Your equity allocation is unlocked. Lifetime total: 12.35M',
       );
     });
 

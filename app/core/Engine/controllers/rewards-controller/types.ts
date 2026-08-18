@@ -138,9 +138,9 @@ export type VipLocalizedTextDto = {
   equityUnlockedDescription: string;
   /**
    * Sub-row copy for the lifetime equity-qualifying points figure. Carries a
-   * `{points}` placeholder that the client interpolates with the formatted
-   * `pointsAllocation.lifetimeQualifyingPoints`, because number formatting for
-   * this card is client-side.
+   * `{points}` placeholder that the client interpolates with
+   * `formatCompactValue(pointsAllocation.lifetimeQualifyingPoints)`, matching
+   * the ring beside it — number formatting for this card is client-side.
    */
   equityLifetimePointsDescription: string;
   /**

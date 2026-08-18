@@ -358,8 +358,7 @@ const defaultDashboard: VipDashboardState = {
     },
   ],
   localizedText: {
-    equityLifetimePointsDescription:
-      'So far, a lifetime total of {points} points will contribute to your equity allocation.',
+    equityLifetimePointsDescription: 'Lifetime total: {points}',
     periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
     transactionsTitle: 'Transactions',
@@ -772,8 +771,7 @@ describe('RewardsVipView', () => {
         ...defaultDashboard,
         program: { id: 'mock-vip-program', name: 'Acme Rewards Beta — Custom' },
         localizedText: {
-          equityLifetimePointsDescription:
-            'So far, a lifetime total of {points} points will contribute to your equity allocation.',
+          equityLifetimePointsDescription: 'Lifetime total: {points}',
           memberIdTitle: 'Member ID',
           transactionsTitle: 'Transactions',
           swapsFeeTitle: 'Swap fees',
