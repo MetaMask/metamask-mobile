@@ -471,13 +471,8 @@ export const selectBalanceByWallet = (walletId: string) =>
 
 export const selectBalanceBySelectedAccountGroup = (
   popularChainIds?: CaipChainId[],
-) =>
-  // Deep-equal memoized: upstream controller state (e.g. AssetsController)
-  // can emit many state changes in quick succession (esp. right after
-  // unlock) whose net effect on this group's balance is unchanged. Without
-  // deep-equal comparison this would return a new object on every one of
-  // those changes, causing the homepage balance to re-render repeatedly.
-  createDeepEqualSelector(
+) => {
+  const selectRawBalance = createSelector(
     [selectSelectedAccountGroupId, selectBalanceForAllWallets(popularChainIds)],
     (selectedGroupId, allBalances) => {
       if (!selectedGroupId) {
@@ -498,6 +493,16 @@ export const selectBalanceBySelectedAccountGroup = (
     },
   );
 
+  // Deep-equal memoized on the (small) computed balance result, not on the
+  // wide upstream controller state: upstream state (e.g. AssetsController)
+  // can emit many state changes in quick succession (esp. right after
+  // unlock) whose net effect on this group's balance is unchanged. Comparing
+  // the small output object -- rather than the large inputs -- keeps the
+  // returned reference stable in that case without paying for a deep-equal
+  // check over the entire (potentially huge) upstream state on every update.
+  return createDeepEqualSelector([selectRawBalance], (balance) => balance);
+};
+
 /**
  * Aggregated fiat balance for the selected account group from unified
  * AssetsController state. Callers should only consume this when
@@ -507,11 +512,8 @@ export const selectBalanceBySelectedAccountGroup = (
  */
 export const selectUnifiedBalanceBySelectedAccountGroup = (
   popularChainIds?: CaipChainId[],
-) =>
-  // Deep-equal memoized: see selectBalanceBySelectedAccountGroup above — this
-  // is the assets-unify-state equivalent and hits the same re-render storm on
-  // wallet unlock without it.
-  createDeepEqualSelector(
+) => {
+  const selectRawUnifiedBalance = createSelector(
     [
       selectAssetsControllerStateForBalances,
       selectAccountTreeStateForBalances,
@@ -537,15 +539,21 @@ export const selectUnifiedBalanceBySelectedAccountGroup = (
     },
   );
 
+  // Deep-equal memoized on the computed result: see
+  // selectBalanceBySelectedAccountGroup above — this is the
+  // assets-unify-state equivalent and hits the same re-render storm on
+  // wallet unlock without it.
+  return createDeepEqualSelector(
+    [selectRawUnifiedBalance],
+    (balance) => balance,
+  );
+};
+
 /**
  * Returns the selected account group's balance
  * across mainnet networks for balance empty state display
  */
-// Deep-equal memoized: this feeds the homepage/wallet-home balance hero and
-// empty-state check; without it, unrelated AssetsController churn (common in
-// bursts right after unlock) returns a new object every time even when the
-// resulting balance value hasn't changed, causing needless re-renders.
-export const selectAccountGroupBalanceForEmptyState = createDeepEqualSelector(
+const selectRawAccountGroupBalanceForEmptyState = createSelector(
   [
     selectIsAssetsUnifyStateEnabled,
     selectAssetsControllerStateForBalances,
@@ -674,6 +682,22 @@ export const selectAccountGroupBalanceForEmptyState = createDeepEqualSelector(
   },
 );
 
+/**
+ * Returns the selected account group's balance
+ * across mainnet networks for balance empty state display
+ *
+ * Deep-equal memoized on the (small) computed result, not the wide upstream
+ * controller state: this feeds the homepage/wallet-home balance hero and
+ * empty-state check, and unrelated AssetsController churn (common in bursts
+ * right after unlock) would otherwise return a new object every time even
+ * when the resulting balance value hasn't changed, causing needless
+ * re-renders.
+ */
+export const selectAccountGroupBalanceForEmptyState = createDeepEqualSelector(
+  [selectRawAccountGroupBalanceForEmptyState],
+  (balance) => balance,
+);
+
 // Balance change selectors (period: '1d' | '7d' | '30d')
 export const selectBalanceChangeForAllWallets = (
   period: BalanceChangePeriod,
@@ -795,9 +819,8 @@ export const selectBalancePercentChangeByAccountGroup = (
 export const selectBalanceChangeBySelectedAccountGroup = (
   period: BalanceChangePeriod,
   popularChainIds?: CaipChainId[],
-) =>
-  // Deep-equal memoized: see selectBalanceBySelectedAccountGroup above.
-  createDeepEqualSelector(
+) => {
+  const selectRawBalanceChange = createSelector(
     [
       selectIsAssetsUnifyStateEnabled,
       selectAssetsControllerStateForBalances,
@@ -858,3 +881,8 @@ export const selectBalanceChangeBySelectedAccountGroup = (
       );
     },
   );
+
+  // Deep-equal memoized on the computed result: see
+  // selectBalanceBySelectedAccountGroup above.
+  return createDeepEqualSelector([selectRawBalanceChange], (change) => change);
+};
