@@ -33,20 +33,30 @@ export const CARDS_IN_DURATION_MS = 783;
 interface CardWelcomeCardsAnimationProps {
   animate: boolean;
   style: StyleProp<ImageStyle>;
+  /**
+   * Called when Rive fails and the static cards image takes over, so callers
+   * sequencing other content off this entrance can stop waiting for it.
+   */
+  onRiveError?: () => void;
   testID?: string;
 }
 
 const CardWelcomeCardsAnimation = ({
   animate,
   style,
+  onRiveError,
   testID,
 }: CardWelcomeCardsAnimationProps) => {
   const [hasRiveError, setHasRiveError] = useState(false);
 
-  const handleError = useCallback((riveError: RNRiveError) => {
-    log(`Rive error: ${riveError.message}`);
-    setHasRiveError(true);
-  }, []);
+  const handleError = useCallback(
+    (riveError: RNRiveError) => {
+      log(`Rive error: ${riveError.message}`);
+      setHasRiveError(true);
+      onRiveError?.();
+    },
+    [onRiveError],
+  );
 
   if (animate && !hasRiveError) {
     const riveStyle: ViewStyle = StyleSheet.flatten(style);

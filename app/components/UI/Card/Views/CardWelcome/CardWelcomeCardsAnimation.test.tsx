@@ -103,4 +103,41 @@ describe('CardWelcomeCardsAnimation', () => {
     expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
     expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
   });
+
+  it('calls onRiveError when the Rive animation errors', () => {
+    const onRiveError = jest.fn();
+    render(
+      <CardWelcomeCardsAnimation
+        animate
+        style={style}
+        onRiveError={onRiveError}
+      />,
+    );
+
+    const onError = getRiveOnError();
+    expect(onError).toBeDefined();
+
+    act(() => {
+      onError?.({ message: 'failed to load', type: 'MalformedFile' });
+    });
+
+    expect(onRiveError).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not throw when the Rive animation errors and onRiveError is omitted', () => {
+    const { getByTestId } = render(
+      <CardWelcomeCardsAnimation animate style={style} />,
+    );
+
+    const onError = getRiveOnError();
+    expect(onError).toBeDefined();
+
+    expect(() => {
+      act(() => {
+        onError?.({ message: 'failed to load', type: 'MalformedFile' });
+      });
+    }).not.toThrow();
+
+    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
+  });
 });
