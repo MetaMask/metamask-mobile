@@ -301,9 +301,9 @@ export type PerpsControllerGetOrderFillsAction = {
     handler: PerpsController['getOrderFills'];
 };
 /**
- * List TP/SL protection changes the active provider parked for explicit
- * manual re-establishment (empty for providers without durable
- * settlement state).
+ * List TP/SL protection changes the active provider parked for
+ * explicit manual re-establishment. Providers without durable
+ * settlement state return an empty list.
  *
  * @returns Pending manual-recovery entries.
  */
@@ -313,8 +313,8 @@ export type PerpsControllerGetPendingManualRecoveriesAction = {
 };
 /**
  * READ-ONLY list of the active provider's recovered-dispatch outcomes
- * (previously ambiguous submissions later resolved). Empty for providers
- * without durable dispatch state.
+ * (previously ambiguous submissions later resolved). Providers without
+ * durable dispatch state return an empty list.
  *
  * @returns Pending recovered-dispatch outcomes.
  */
@@ -323,10 +323,12 @@ export type PerpsControllerGetRecoveredDispatchesAction = {
     handler: PerpsController['getRecoveredDispatches'];
 };
 /**
- * Acknowledge ONE recovered-dispatch outcome by its stable id after the
- * caller has refreshed venue state.
+ * Acknowledge ONE recovered-dispatch outcome by its stable id, after
+ * refreshing venue state. Throws when the active provider has no
+ * durable dispatch state or the id no longer matches.
  *
- * @param recoveryId - Stable id from `getRecoveredDispatches`.
+ * @param recoveryId - Stable id from {@link getRecoveredDispatches}.
+ * @returns Resolves when the outcome is acknowledged.
  */
 export type PerpsControllerAcknowledgeRecoveredDispatchAction = {
     type: `PerpsController:acknowledgeRecoveredDispatch`;

@@ -13,6 +13,7 @@ import {
   usePerpsLivePositions,
   usePerpsLivePrices,
 } from './stream';
+import { useMinimumOrderAmount } from './useMinimumOrderAmount';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsSelector } from './usePerpsSelector';
@@ -106,11 +107,17 @@ export function usePerpsOrderForm(
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
   const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
 
-  // Determine default amount based on network
-  const defaultAmount =
+  // Default amount: the venue's per-market minimum (dynamic — e.g. a
+  // Lighter base-size minimum can exceed the flat network default), with
+  // the hook's own network fallback when market metadata is absent.
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: initialAsset,
+  });
+  const networkDefaultAmount =
     currentNetwork === 'mainnet'
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
+  const defaultAmount = Math.max(networkDefaultAmount, minimumOrderAmount);
   const fallbackAmount = fallbackAmountParam ?? defaultAmount.toString();
 
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
@@ -233,12 +240,19 @@ export function usePerpsOrderForm(
       ? maxPossibleAmountOverride
       : marginBasedMaxPossibleAmount;
 
-  // Update amount only once when the hook first calculates the initial value
-  // We use a ref to track if we've already set the initial amount to avoid overwriting user input
+  // Seed the amount when the initial value first computes, and keep
+  // following recomputations (e.g. a venue minimum that loads after the
+  // price stream) until the USER edits the amount — a stale flat default
+  // below the venue minimum would land one tick under the floor.
   const hasSetInitialAmount = useRef(false);
+  const userEditedAmount = useRef(false);
   useEffect(() => {
-    if (!hasSetInitialAmount.current && initialAmountValue !== '0') {
-      setOrderForm((prev) => ({ ...prev, amount: initialAmountValue }));
+    if (!userEditedAmount.current && initialAmountValue !== '0') {
+      setOrderForm((prev) =>
+        prev.amount === initialAmountValue
+          ? prev
+          : { ...prev, amount: initialAmountValue },
+      );
       hasSetInitialAmount.current = true;
     }
   }, [initialAmountValue]);
@@ -320,6 +334,7 @@ export function usePerpsOrderForm(
 
   // Individual setters for common operations
   const setAmount = useCallback((amount: string) => {
+    userEditedAmount.current = true;
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
   }, []);
 
