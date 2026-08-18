@@ -477,7 +477,6 @@ const Onboarding = () => {
       });
       navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
-        onboardingTraceCtx: onboardingTraceCtx.current,
       });
       dispatch(
         setAccountType({
@@ -527,7 +526,6 @@ const Onboarding = () => {
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         {
           [PREVIOUS_SCREEN]: ONBOARDING,
-          onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
       dispatch(
@@ -585,7 +583,6 @@ const Onboarding = () => {
           navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
-            onboardingTraceCtx: onboardingTraceCtx.current,
             provider,
           });
         } else {
@@ -603,7 +600,6 @@ const Onboarding = () => {
               {
                 accountName: result.accountName,
                 oauthLoginSuccess: true,
-                onboardingTraceCtx: onboardingTraceCtx.current,
                 provider,
               },
             );
@@ -612,7 +608,6 @@ const Onboarding = () => {
             navigation.navigate('ChoosePassword', {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
-              onboardingTraceCtx: onboardingTraceCtx.current,
               provider,
             });
           }
@@ -630,20 +625,17 @@ const Onboarding = () => {
               {
                 [PREVIOUS_SCREEN]: ONBOARDING,
                 oauthLoginSuccess: true,
-                onboardingTraceCtx: onboardingTraceCtx.current,
                 provider,
               },
             )
           : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
-              onboardingTraceCtx: onboardingTraceCtx.current,
             });
       } else {
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: onboardingTraceCtx.current,
           provider,
         });
       }
@@ -967,6 +959,7 @@ const Onboarding = () => {
           name: TraceName.OnboardingJourneyOverall,
           op: TraceOperation.OnboardingUserJourney,
           tags: { ...getTraceTags(store.getState()), ...onboardingPathTags },
+          data: { perf_fix: 'trace-registry-v1' },
         });
       } else {
         // Consent was already live at mount, so the journey span is reused rather
@@ -1323,6 +1316,7 @@ const Onboarding = () => {
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
       tags: getTraceTags(store.getState()),
+      data: { perf_fix: 'trace-registry-v1' },
     });
 
     unsetLoading();
