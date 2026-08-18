@@ -9,7 +9,6 @@ import {
 import { SmokeConfirmations } from '../../../tags.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import { Assertions } from '../../../framework/index.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
 import PayWithModalTokenPicker from '../../../page-objects/Confirmation/PayWithModalTokenPicker.js';
@@ -79,7 +78,9 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
           await PredictMarketList.tapBackButton();
-          await WalletView.tapActivityButton();
+          // Prefer tab-bar Activity (retry until Activities title) over the
+          // wallet-header activity button — header chrome can lag after Predict back.
+          await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('predictions');

@@ -84,7 +84,9 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
           await PerpsHomeView.tapBackHomeButton();
-          await WalletView.tapActivityButton();
+          // Prefer tab-bar Activity (retry until Activities title) over the
+          // wallet-header activity button — header chrome can lag after back.
+          await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('perps');
