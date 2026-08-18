@@ -29,7 +29,7 @@ export class SauceLabsConfigBuilder {
     const sauceOptions = {
       name: `${projectName} ${platformName} test`,
       build: process.env.SAUCE_BUILD_NAME || `${projectName} ${platformName}`,
-      appiumVersion: '3.0.2',
+      appiumVersion: 'latest',
       deviceName: device.name,
       platformName,
       app: appUrl,

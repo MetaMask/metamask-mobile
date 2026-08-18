@@ -38,6 +38,7 @@ describe('SauceLabsConfigBuilder', () => {
     expect(config.capabilities).not.toHaveProperty('appium:platformVersion');
     expect(config.capabilities['sauce:options']).toMatchObject({
       app: 'storage:filename=app.apk',
+      appiumVersion: 'latest',
       capturePerformance: true,
     });
   });
