@@ -794,10 +794,10 @@ describe('PerpsConnectionManager', () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      // The second clearCache call inside performReconnection should use false
+      // The reconnection must perform a full market reset.
       const calls = mockStreamManagerInstance.marketData.clearCache.mock.calls;
       const lastCall = calls[calls.length - 1];
-      expect(lastCall[0]).toBe(false);
+      expect(lastCall).toEqual([]);
 
       jest.useRealTimers();
     });
