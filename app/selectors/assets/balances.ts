@@ -493,13 +493,8 @@ export const selectBalanceBySelectedAccountGroup = (
     },
   );
 
-  // Deep-equal memoized on the (small) computed balance result, not on the
-  // wide upstream controller state: upstream state (e.g. AssetsController)
-  // can emit many state changes in quick succession (esp. right after
-  // unlock) whose net effect on this group's balance is unchanged. Comparing
-  // the small output object -- rather than the large inputs -- keeps the
-  // returned reference stable in that case without paying for a deep-equal
-  // check over the entire (potentially huge) upstream state on every update.
+  // Deep-equal on the small result, not the wide inputs, so unrelated
+  // controller churn (e.g. post-unlock) doesn't change the reference.
   return createDeepEqualSelector([selectRawBalance], (balance) => balance);
 };
 
@@ -539,10 +534,7 @@ export const selectUnifiedBalanceBySelectedAccountGroup = (
     },
   );
 
-  // Deep-equal memoized on the computed result: see
-  // selectBalanceBySelectedAccountGroup above — this is the
-  // assets-unify-state equivalent and hits the same re-render storm on
-  // wallet unlock without it.
+  // Same as selectBalanceBySelectedAccountGroup above (assets-unify-state variant).
   return createDeepEqualSelector(
     [selectRawUnifiedBalance],
     (balance) => balance,
@@ -683,15 +675,10 @@ const selectRawAccountGroupBalanceForEmptyState = createSelector(
 );
 
 /**
- * Returns the selected account group's balance
- * across mainnet networks for balance empty state display
- *
- * Deep-equal memoized on the (small) computed result, not the wide upstream
- * controller state: this feeds the homepage/wallet-home balance hero and
- * empty-state check, and unrelated AssetsController churn (common in bursts
- * right after unlock) would otherwise return a new object every time even
- * when the resulting balance value hasn't changed, causing needless
- * re-renders.
+ * Returns the selected account group's balance across mainnet networks for
+ * balance empty state display. Deep-equal memoized on the result (see
+ * selectBalanceBySelectedAccountGroup above) to avoid re-renders from
+ * unrelated controller churn.
  */
 export const selectAccountGroupBalanceForEmptyState = createDeepEqualSelector(
   [selectRawAccountGroupBalanceForEmptyState],
@@ -882,7 +869,6 @@ export const selectBalanceChangeBySelectedAccountGroup = (
     },
   );
 
-  // Deep-equal memoized on the computed result: see
-  // selectBalanceBySelectedAccountGroup above.
+  // Same pattern as selectBalanceBySelectedAccountGroup above.
   return createDeepEqualSelector([selectRawBalanceChange], (change) => change);
 };
