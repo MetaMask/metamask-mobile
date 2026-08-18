@@ -1010,6 +1010,19 @@ describe('SpendingLimit Component', () => {
       expect(mockFetchSpendingLimitData).toHaveBeenCalledTimes(1);
     });
 
+    it('displays error state when fallback settles without delegation settings', async () => {
+      setupAuthenticatedHomeReady({
+        delegationSettings: null,
+        availableTokens: [],
+      });
+
+      render(onboardingRoute);
+
+      expect(
+        await screen.findByTestId('spending-limit-error-container'),
+      ).toBeOnTheScreen();
+    });
+
     it('renders the form without a fallback fetch when card home has delegation settings but card state is unresolved', () => {
       setupAuthenticatedHomeReady();
       mockSelectIsCardStateResolved.mockReturnValue(false);
@@ -1065,6 +1078,37 @@ describe('SpendingLimit Component', () => {
       render(onboardingRoute);
 
       expect(mockFetchSpendingLimitData).not.toHaveBeenCalled();
+    });
+
+    it('returns to the spinner on retry after timeout while card home is still loading', () => {
+      jest.useFakeTimers();
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
+
+      try {
+        render(onboardingRoute);
+
+        act(() => {
+          jest.advanceTimersByTime(30_000);
+        });
+
+        expect(
+          screen.getByTestId('spending-limit-error-container'),
+        ).toBeOnTheScreen();
+
+        fireEvent.press(screen.getByTestId('spending-limit-retry-button'));
+
+        expect(mockRefetchCardHomeData).toHaveBeenCalledTimes(1);
+        expect(mockFetchSpendingLimitData).not.toHaveBeenCalled();
+        expect(
+          screen.getByTestId('spending-limit-loading-indicator'),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId('spending-limit-error-container'),
+        ).not.toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('does not fetch data on mount when flow is manage', () => {

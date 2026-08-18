@@ -107,6 +107,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     'idle' | 'pending' | 'settled'
   >('idle');
   const isMountedRef = useRef(true);
+  const fallbackRequestIdRef = useRef(0);
 
   useEffect(
     () => () => {
@@ -127,20 +128,28 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     homeDelegationSettings === null && (cardHomeSettled || isCardStateResolved);
 
   const runFallbackFetch = useCallback(() => {
+    const requestId = ++fallbackRequestIdRef.current;
     setFallbackStatus('pending');
     fetchHookData()
       .catch(() => undefined)
       .finally(() => {
-        if (isMountedRef.current) setFallbackStatus('settled');
+        if (
+          isMountedRef.current &&
+          fallbackRequestIdRef.current === requestId
+        ) {
+          setFallbackStatus('settled');
+        }
       });
   }, [fetchHookData]);
 
   // Fallback only after card home settles without delegation settings.
+  // Idle guard keeps this from re-firing when fetchHookData identity changes.
   useEffect(() => {
     if (!isOnboardingFlow) return;
     if (!needsFallbackFetch) return;
+    if (fallbackStatus !== 'idle') return;
     runFallbackFetch();
-  }, [isOnboardingFlow, needsFallbackFetch, runFallbackFetch]);
+  }, [isOnboardingFlow, needsFallbackFetch, fallbackStatus, runFallbackFetch]);
 
   const allTokens =
     homeAvailableTokens.length > 0
@@ -158,29 +167,34 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     !hasDelegationSettings &&
     (!needsFallbackFetch || fallbackStatus !== 'settled');
 
-  // The timer is not tied to loadTimedOut, so firing it cannot clear it.
+  // loadTimedOut is in the deps so Retry can start a fresh timer, but a fired
+  // timeout must not schedule another one or the error UI would unlatch.
   useEffect(() => {
     if (!isLoadInFlight) {
       setLoadTimedOut(false);
       return;
     }
+    if (loadTimedOut) return;
     const timer = setTimeout(() => {
       setLoadTimedOut(true);
     }, ONBOARDING_LOAD_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [isLoadInFlight]);
+  }, [isLoadInFlight, loadTimedOut]);
 
   const isOnboardingError =
     isOnboardingFlow &&
     !hasDelegationSettings &&
-    (loadTimedOut || Boolean(hookError) || fallbackStatus === 'settled');
+    (loadTimedOut ||
+      Boolean(hookError) ||
+      (needsFallbackFetch && fallbackStatus === 'settled'));
   const isOnboardingPending = isLoadInFlight && !isOnboardingError;
 
   const handleRetry = useCallback(() => {
+    fallbackRequestIdRef.current += 1;
     setLoadTimedOut(false);
+    setFallbackStatus('idle');
     refetchCardHomeData();
-    runFallbackFetch();
-  }, [refetchCardHomeData, runFallbackFetch]);
+  }, [refetchCardHomeData]);
 
   const {
     selectedToken,
