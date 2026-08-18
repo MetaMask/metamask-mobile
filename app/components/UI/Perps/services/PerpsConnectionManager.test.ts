@@ -174,6 +174,8 @@ const resetManager = (manager: unknown) => {
     prewarmCleanups: (() => void)[];
     netInfoUnsubscribe: (() => void) | null;
     wasOffline: boolean;
+    stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null;
+    pendingSkipMarketNotify: boolean;
   };
   // Call unsubscribe if it exists before resetting
   if (m.unsubscribeFromStore) {
@@ -184,6 +186,11 @@ const resetManager = (manager: unknown) => {
     m.netInfoUnsubscribe = null;
   }
   m.wasOffline = false;
+  if (m.stateChangeDebounceTimer) {
+    clearTimeout(m.stateChangeDebounceTimer);
+  }
+  m.stateChangeDebounceTimer = null;
+  m.pendingSkipMarketNotify = false;
   // Clean up any prewarm subscriptions
   m.prewarmCleanups.forEach((cleanup) => cleanup());
   m.prewarmCleanups = [];
