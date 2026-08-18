@@ -456,6 +456,9 @@ const RewardsVipViewContent: React.FC = () => {
                 equityUnlockedDescription={
                   dashboard.localizedText.equityUnlockedDescription
                 }
+                equityLifetimePointsDescription={
+                  dashboard.localizedText.equityLifetimePointsDescription
+                }
               />
               <VipEquityMultiplierSection
                 failedTitle={

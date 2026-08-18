@@ -58,3 +58,7 @@ For each complex core UI story:
 - use MetaMask design-system components and tokens first.
 
 The goal is not to make every component compound. The goal is to make complex product UI flexible through visible composition while leaving simple code simple.
+
+## Ownership and visibility
+
+Composition does not determine project-wide visibility. Public variants belong at their owning feature or domain module boundary; primitives and compound parts used only to implement those variants stay under that module's `internal/` directory. Consumers outside the module import through its deliberate `index.ts` API and never deep-import internal parts. See [`module-structure.md`](./module-structure.md).

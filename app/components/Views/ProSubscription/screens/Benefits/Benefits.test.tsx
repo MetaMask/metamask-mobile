@@ -14,16 +14,9 @@ import { strings } from '../../../../../../locales/i18n';
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
-const mockOnClose = jest.fn();
 
 const renderBenefits = (initialPlan?: PlanId) =>
-  render(
-    <Benefits
-      onSuccess={mockOnSuccess}
-      onClose={mockOnClose}
-      initialPlan={initialPlan}
-    />,
-  );
+  render(<Benefits onSuccess={mockOnSuccess} initialPlan={initialPlan} />);
 
 // ─── Suite ───────────────────────────────────────────────────────────────────
 
@@ -85,11 +78,6 @@ describe('Benefits', () => {
       const { getByTestId } = renderBenefits();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toBeOnTheScreen();
     });
-
-    it('renders the close button', () => {
-      const { getByTestId } = renderBenefits();
-      expect(getByTestId(BenefitsTestIds.CLOSE_BUTTON)).toBeOnTheScreen();
-    });
   });
 
   // ── Plan selection ─────────────────────────────────────────────────────────
@@ -137,14 +125,6 @@ describe('Benefits', () => {
   // ── Callbacks ─────────────────────────────────────────────────────────────
 
   describe('Callbacks', () => {
-    it('calls onClose when the close button is pressed', () => {
-      const { getByTestId } = renderBenefits();
-
-      fireEvent.press(getByTestId(BenefitsTestIds.CLOSE_BUTTON));
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
     it('calls onSuccess when the CTA is pressed', () => {
       const { getByTestId } = renderBenefits();
 
