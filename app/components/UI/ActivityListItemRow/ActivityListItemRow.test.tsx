@@ -1826,6 +1826,24 @@ describe('ActivityListItemRow — display currency conversion', () => {
   const mockConversionRate = jest.mocked(selectConversionRateByChainId);
   const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
 
+  const restoreSelectorDefaults = () => {
+    mockCurrency.mockReturnValue('usd');
+    mockConversionRate.mockReturnValue(2500);
+    mockUsdConversionRate.mockReturnValue(2500);
+  };
+
+  // Persistent mockReturnValue is not cleared by clearAllMocks. beforeEach
+  // isolates tests in this suite; afterEach restores defaults so later
+  // suites (amount display, ERC-20 fiat) are not left on EUR / missing rates.
+  beforeEach(() => {
+    jest.clearAllMocks();
+    restoreSelectorDefaults();
+  });
+
+  afterEach(() => {
+    restoreSelectorDefaults();
+  });
+
   const makeFundingFee = (hash: string, amount: string): ActivityListItem =>
     ({
       type: 'perpsPaidFundingFees',
@@ -1989,6 +2007,13 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
     ({ [address]: { price: 0.0004 } }) as ReturnType<
       typeof selectContractExchangeRatesByChainId
     >;
+
+  // This mock uses a persistent return value (clearAllMocks does not reset it),
+  // so set the suite default (lowercased mUSD key) before each test.
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
+  });
 
   it('renders fiat for an ERC-20 when market data is keyed by a checksummed address', () => {
     // Production keys marketData by checksummed addresses while the lookup
