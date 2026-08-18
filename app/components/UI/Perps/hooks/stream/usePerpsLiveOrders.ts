@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { isTPSLOrder, type Order } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_ORDERS: Order[] = [];
@@ -40,8 +40,8 @@ export function usePerpsLiveOrders(
   const { throttleMs = 0, hideTpSl = false, hideReduceOnly = false } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  )?.toLowerCase();
+    selectSelectedAccountGroupEvmInternalAccount,
+  )?.address.toLowerCase();
   const initialChannelOrders = stream.orders.getSnapshot();
   const [orders, setOrders] = useState<Order[]>(() => {
     const cached =
