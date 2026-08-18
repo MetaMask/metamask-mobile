@@ -736,7 +736,7 @@ describe('PerpsConnectionManager', () => {
 
       expect(
         mockStreamManagerInstance.marketData.clearCache,
-      ).toHaveBeenCalledWith(false);
+      ).toHaveBeenCalledWith();
     });
 
     it('debounces rapid state changes into a single reconnection', async () => {
