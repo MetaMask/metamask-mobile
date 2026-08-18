@@ -1,6 +1,6 @@
 import { getGaslessBridgeWith7702EnabledForChain } from '../smartTransactionsController';
 
-jest.mock('./smartTransactionsController', () => ({
+jest.mock('../smartTransactionsController', () => ({
   getGaslessBridgeWith7702EnabledForChain: jest.fn().mockReturnValue(false),
 }));
 
