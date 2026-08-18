@@ -1,4 +1,4 @@
-import { parse } from 'eth-url-parser';
+import { parse, type ParseOutput } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { ETH_ACTIONS } from '../../../../../constants/deeplinks';
 import { NetworkSwitchErrorType } from '../../../../../constants/error';
@@ -62,6 +62,7 @@ describe('handleEthereumUrl', () => {
   );
   const mockAddTransactionForDeeplink = jest.mocked(addTransactionForDeeplink);
   const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+  const parsedUrl = (value: object) => value as ParseOutput;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -77,10 +78,12 @@ describe('handleEthereumUrl', () => {
     ).isEvmSelected = true;
     Engine.context.MultichainNetworkController.setActiveNetwork = jest.fn();
 
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.TRANSFER,
+        chain_id: 1,
+      }),
+    );
 
     mockSwitchNetwork.mockImplementation(() => {
       // do nothing
@@ -117,10 +120,12 @@ describe('handleEthereumUrl', () => {
   it('shows deprecation modal if url is a goerli url', () => {
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 5,
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.TRANSFER,
+        chain_id: 5,
+      }),
+    );
 
     mockGetDecimalChainId.mockReturnValue(5);
 
@@ -139,10 +144,12 @@ describe('handleEthereumUrl', () => {
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
 
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.TRANSFER,
+        chain_id: 1,
+      }),
+    );
 
     mockSwitchNetwork.mockImplementation(() => {
       throw new Error(NetworkSwitchErrorType.missingNetworkId);
@@ -159,11 +166,13 @@ describe('handleEthereumUrl', () => {
   it('calls _approveTransaction for APPROVE action', () => {
     const url = 'ethereum:approve';
     const origin = 'test_origin';
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.APPROVE,
-      chain_id: 1,
-      parameters: {},
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.APPROVE,
+        chain_id: 1,
+        parameters: {},
+      }),
+    );
 
     handleEthereumUrl({ url, origin });
 
@@ -176,11 +185,13 @@ describe('handleEthereumUrl', () => {
   it('navigates to SendFlowView for default action', () => {
     const url = 'ethereum:unknownAction';
     const origin = 'test_origin';
-    mockParse.mockReturnValue({
-      function_name: 'unknownAction',
-      chain_id: 1,
-      parameters: {},
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: 'unknownAction',
+        chain_id: 1,
+        parameters: {},
+      }),
+    );
 
     handleEthereumUrl({ url, origin });
 
@@ -201,10 +212,12 @@ describe('handleEthereumUrl', () => {
     mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.TRANSFER,
+        chain_id: 1,
+      }),
+    );
 
     handleEthereumUrl({ url, origin });
 
@@ -233,10 +246,12 @@ describe('handleEthereumUrl', () => {
     mockAddTransactionForDeeplink.mockRejectedValue(
       new Error('Unable to find network with chain id 0xa'),
     );
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 10,
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.TRANSFER,
+        chain_id: 10,
+      }),
+    );
 
     await handleEthereumUrl({ url, origin });
 
@@ -252,10 +267,12 @@ describe('handleEthereumUrl', () => {
 
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.TRANSFER,
+        chain_id: 1,
+      }),
+    );
     mockSwitchNetwork.mockImplementation(() => {
       // do nothing
     });
@@ -276,11 +293,13 @@ describe('handleEthereumUrl', () => {
     const url = 'ethereum:sign';
     const origin = 'test_origin';
 
-    mockParse.mockReturnValue({
-      function_name: 'unknown',
-      chain_id: 1,
-      parameters: {},
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: 'unknown',
+        chain_id: 1,
+        parameters: {},
+      }),
+    );
 
     handleEthereumUrl({ url, origin });
 
@@ -303,10 +322,12 @@ describe('handleEthereumUrl', () => {
     const mockError = new Error('Generic network switch error');
     const spyAlert = jest.spyOn(Alert, 'alert');
 
-    mockParse.mockReturnValue({
-      function_name: 'unknown',
-      chain_id: 1,
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: 'unknown',
+        chain_id: 1,
+      }),
+    );
 
     mockSwitchNetwork.mockImplementation(() => {
       throw mockError;
@@ -326,11 +347,13 @@ describe('handleEthereumUrl', () => {
     const mockError = new Error('Approval process failed');
     const spyAlert = jest.spyOn(Alert, 'alert');
 
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.APPROVE,
-      chain_id: 1,
-      parameters: {},
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.APPROVE,
+        chain_id: 1,
+        parameters: {},
+      }),
+    );
 
     mockHandleApproveUrl.mockImplementation(() => {
       throw mockError;
@@ -349,11 +372,13 @@ describe('handleEthereumUrl', () => {
     const origin = 'test_origin';
     const mockSetActiveNetwork = jest.fn();
 
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-      parameters: {},
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.TRANSFER,
+        chain_id: 1,
+        parameters: {},
+      }),
+    );
 
     // Override the mock for this specific test
     const mockState = Engine.context.MultichainNetworkController.state as {
@@ -371,15 +396,17 @@ describe('handleEthereumUrl', () => {
   // Regression test for https://github.com/MetaMask/metamask-mobile/issues/23672
   it('sanitizes scientific notation uint256 before forwarding to addTransactionForDeeplink', () => {
     mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      target_address: '0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29',
-      chain_id: '137',
-      parameters: {
-        address: '0xacdba8db799eff1e83b6aa95b493790f7a3df86b',
-        uint256: '1e+21',
-      },
-    });
+    mockParse.mockReturnValue(
+      parsedUrl({
+        function_name: ETH_ACTIONS.TRANSFER,
+        target_address: '0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29',
+        chain_id: '137',
+        parameters: {
+          address: '0xacdba8db799eff1e83b6aa95b493790f7a3df86b',
+          uint256: '1e+21',
+        },
+      }),
+    );
 
     handleEthereumUrl({ url: 'ethereum:transfer', origin: 'test_origin' });
 
