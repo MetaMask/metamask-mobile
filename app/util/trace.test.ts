@@ -15,6 +15,7 @@ import {
   trace,
   annotateTrace,
   getTraceContext,
+  getTraceContextById,
   ONBOARDING_MACHINE_TIME_ATTRIBUTE,
   TraceName,
   TraceOperation,
@@ -415,6 +416,30 @@ describe('Trace', () => {
 
     it('returns undefined when no pending trace matches', () => {
       expect(getTraceContext({ name: NAME_MOCK })).toBeUndefined();
+    });
+  });
+
+  describe('getTraceContextById', () => {
+    it('returns the pending span for a matching manual trace id', () => {
+      updateCachedConsent(true);
+
+      const spanEndMock = jest.fn();
+      const spanMock = { end: spanEndMock } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(getTraceContextById(ID_MOCK)).toBe(spanMock);
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+    });
+
+    it('returns undefined when no pending trace has that id', () => {
+      expect(getTraceContextById(ID_MOCK)).toBeUndefined();
     });
   });
 

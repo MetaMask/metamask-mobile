@@ -6,6 +6,11 @@ import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
+import {
+  recordHomepageReadyAt,
+  startPerpsLoadingSession,
+} from '../utils/perpsLoadingSession';
+import { subscribeHomepageReadyCompletion } from '../../../../core/Performance/HomepageReady';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -15,6 +20,16 @@ jest.mock('../services/PerpsConnectionManager');
 
 jest.mock('../utils/perpsLifecycleContext', () => ({
   initPerpsLifecycleTracking: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('../utils/perpsLoadingSession', () => ({
+  startPerpsLoadingSession: jest.fn(() => 'session-id'),
+  recordHomepageReadyAt: jest.fn(),
+}));
+
+const mockUnsubscribeHomepageReady = jest.fn();
+jest.mock('../../../../core/Performance/HomepageReady', () => ({
+  subscribeHomepageReadyCompletion: jest.fn(() => mockUnsubscribeHomepageReady),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -138,6 +153,32 @@ describe('PerpsAlwaysOnProvider', () => {
     );
 
     expect(mockStartMarketDataPreload).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts one Perps loading session when perps is enabled', () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(startPerpsLoadingSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards Homepage Ready completions to the loading session and unsubscribes on unmount', () => {
+    const { unmount } = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(subscribeHomepageReadyCompletion).toHaveBeenCalledWith(
+      recordHomepageReadyAt,
+    );
+
+    unmount();
+
+    expect(mockUnsubscribeHomepageReady).toHaveBeenCalledTimes(1);
   });
 
   it('does not call resumeFromForeground on mount when perps is disabled', () => {

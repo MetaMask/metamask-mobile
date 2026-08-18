@@ -49,6 +49,7 @@ import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getTerminalGlobalSnapshotUrl } from '../constants/terminalApi';
+import { recordPerpsLoadingSessionValuesReady } from '../utils/perpsLoadingSession';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -711,6 +712,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
+        recordPerpsLoadingSessionValuesReady(
+          'prices',
+          'fresh_socket',
+          updates.length,
+        );
         // Track first price data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
           const firstDataDuration =
@@ -896,6 +902,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           symbols: this.allMarketSymbols,
           includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
+            recordPerpsLoadingSessionValuesReady(
+              'prices',
+              'fresh_socket',
+              updates.length,
+            );
             // Track first price data from WebSocket (only once per prewarm)
             if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
               const firstDataDuration =
@@ -1051,6 +1062,11 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'orders',
+          'fresh_socket',
+          orders.length,
+        );
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
         // Orders confirmed in the live stream — close pending cancel / limit
@@ -1281,6 +1297,11 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'positions',
+          'fresh_socket',
+          positions.length,
+        );
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
         // Positions just rendered to subscribers — close any pending CUF span
@@ -1585,6 +1606,11 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'account',
+          'fresh_socket',
+          account ? 1 : 0,
+        );
         // Use base cache Map with consistent key
         this.cache.set('account', account);
         this.notifySubscribers(account as AccountState | null);
@@ -2179,6 +2205,11 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           this.cache.set('markets', cachedForProvider);
           this.lastFetchTime = Date.now();
           this.cachedSourceKey = controllerNetworkKey;
+          recordPerpsLoadingSessionValuesReady(
+            'markets',
+            'memory_cache',
+            cachedForProvider.length,
+          );
           this.notifySubscribers(cachedForProvider, 'cache');
           return;
         }
@@ -2218,6 +2249,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         this.cache.set('markets', data);
         this.lastFetchTime = Date.now();
         this.cachedSourceKey = preFetchNetworkKey;
+        recordPerpsLoadingSessionValuesReady(
+          'markets',
+          this.isCompleteGlobalSnapshot(data)
+            ? 'terminal_global_snapshot_v2'
+            : 'provider',
+          data.length,
+        );
         // Notify all subscribers
         this.notifySubscribers(data);
         this.triggerPersist();
@@ -2446,6 +2484,20 @@ export class PerpsStreamManager {
     this.positions.seedCache('positions', snapshot.positions);
     this.orders.seedCache('orders', snapshot.orders);
     this.account.seedCache('account', snapshot.accountState);
+
+    const proofSource =
+      source === 'cache' ? 'memory_cache' : 'provider_snapshot';
+    recordPerpsLoadingSessionValuesReady(
+      'positions',
+      proofSource,
+      snapshot.positions.length,
+    );
+    recordPerpsLoadingSessionValuesReady(
+      'orders',
+      proofSource,
+      snapshot.orders.length,
+    );
+    recordPerpsLoadingSessionValuesReady('account', proofSource, 1);
 
     this.positions.publish(snapshot.positions, source);
     this.orders.publish(snapshot.orders, source);

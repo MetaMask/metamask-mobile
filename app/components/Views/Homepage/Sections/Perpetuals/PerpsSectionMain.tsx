@@ -58,6 +58,12 @@ import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
+import { getPerpsLifecycleContext } from '../../../../UI/Perps/utils/perpsLifecycleContext';
+import {
+  finishPerpsLoadingSession,
+  getActivePerpsLoadingSessionContext,
+  resolvePerpsMarketSource,
+} from '../../../../UI/Perps/utils/perpsLoadingSession';
 
 /**
  * PerpsSection — single "Perps" section on the homepage.
@@ -301,13 +307,64 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       fireImmediateWhenNoView: !pillsEmptyFeedHidden,
     });
 
+    const contentVariant =
+      displayPositions.length > 0 && displayOrders.length > 0
+        ? 'positions_and_orders'
+        : displayPositions.length > 0
+          ? 'positions'
+          : displayOrders.length > 0
+            ? 'orders'
+            : shouldShowPillsEmptyState
+              ? 'pills'
+              : 'trending';
+    const sessionContext = getActivePerpsLoadingSessionContext();
+    const marketSource = resolvePerpsMarketSource(
+      allCarouselMarkets.length > 0 ? allCarouselMarkets : markets,
+      sessionContext?.marketSource,
+    );
+    const accountSource = sessionContext?.accountSource ?? 'unknown';
+    const lifecycleContext = getPerpsLifecycleContext();
+
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
       contentReady: !isLoadingSection,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
+      tags: {
+        content_variant: contentVariant,
+        market_source: marketSource,
+        account_source: accountSource,
+        lifecycle_context: lifecycleContext,
+      },
+      data: sessionContext
+        ? { perps_session_id: sessionContext.id }
+        : undefined,
     });
+
+    useEffect(() => {
+      if (isLoadingSection) return;
+      finishPerpsLoadingSession({
+        success: !connectionError,
+        content_state: connectionError
+          ? 'error'
+          : hasItems
+            ? 'filled'
+            : 'empty',
+        content_variant: contentVariant,
+        market_source: marketSource,
+        account_source: accountSource,
+        lifecycle_context: lifecycleContext,
+      });
+    }, [
+      accountSource,
+      connectionError,
+      contentVariant,
+      hasItems,
+      isLoadingSection,
+      lifecycleContext,
+      marketSource,
+    ]);
 
     const showsVerticalPositions = showSkeleton || pendingTrending || hasItems;
 

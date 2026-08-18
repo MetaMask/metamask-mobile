@@ -9,6 +9,11 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
 import { initPerpsLifecycleTracking } from '../utils/perpsLifecycleContext';
+import { subscribeHomepageReadyCompletion } from '../../../../core/Performance/HomepageReady';
+import {
+  recordHomepageReadyAt,
+  startPerpsLoadingSession,
+} from '../utils/perpsLoadingSession';
 
 /**
  * Top-level always-on provider for Perps WebSocket connections.
@@ -36,6 +41,13 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => initPerpsLifecycleTracking(), []);
 
   useEffect(() => {
+    if (!isPerpsEnabled) {
+      return;
+    }
+    return subscribeHomepageReadyCompletion(recordHomepageReadyAt);
+  }, [isPerpsEnabled]);
+
+  useEffect(() => {
     const controller = Engine.context.PerpsController;
 
     if (!isPerpsEnabled) {
@@ -43,6 +55,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
 
+    startPerpsLoadingSession();
     // Keep the legacy preload lifecycle attached to the always-on provider so
     // it runs in both wallet tab and homepage-sections flows.
     controller?.startMarketDataPreload?.();
