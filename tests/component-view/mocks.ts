@@ -428,8 +428,14 @@ jest.mock('../../app/core/Engine', () => {
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),
+        getBlockExplorerUrl: jest.fn((address?: string) =>
+          address
+            ? `https://app.hyperliquid.xyz/explorer/address/${address}`
+            : 'https://app.hyperliquid.xyz/explorer',
+        ),
         switchProvider: jest.fn().mockResolvedValue({ success: true }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue({
           success: true,

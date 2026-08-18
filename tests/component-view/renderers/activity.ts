@@ -25,6 +25,8 @@ import {
   initialStateActivityWithRedesignEnabled,
 } from '../presets/activity';
 import type { ActivityDetailsParams } from '../../../app/components/Views/ActivityDetails/ActivityDetails.types';
+import type { ActivityListItem } from '../../../app/util/activity-adapters';
+import { stashPreloadedActivityItem } from '../../../app/components/Views/ActivityList/preloadedActivityItemStore';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
@@ -322,9 +324,32 @@ export function renderActivityDetailsView(
         Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
       },
       { name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER },
+      { name: Routes.PERPS.ROOT },
+      { name: Routes.WEBVIEW.MAIN },
       ...(options.extraRoutes ?? []),
     ],
     { state },
     options.params as unknown as Record<string, unknown>,
   );
+}
+
+/**
+ * Stashes a provider-backed Activity row (Perps / Predict) and opens Details
+ * with the serializable `{ chainId, txIdentifier, preloadKey }` params used in
+ * production.
+ */
+export function renderPreloadedActivityDetailsView(
+  item: ActivityListItem,
+  options: Omit<RenderActivityDetailsViewOptions, 'params'> = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const preloadKey = stashPreloadedActivityItem(item);
+
+  return renderActivityDetailsView({
+    ...options,
+    params: {
+      chainId: item.chainId,
+      txIdentifier: item.hash,
+      preloadKey,
+    },
+  });
 }

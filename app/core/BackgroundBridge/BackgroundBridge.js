@@ -918,10 +918,18 @@ export class BackgroundBridge extends EventEmitter {
               Engine.context.TransactionController,
             ),
           validateSecurity: (securityAlertId, request, chainId) =>
-            PPOMUtil.validateRequest(request, {
-              transactionMeta: { chainId },
-              securityAlertId,
-            }),
+            PPOMUtil.validateRequest(
+              // For remote transports (WalletConnect / SDK v1 / MetaMask
+              // Connect) the request origin is self-reported by the dapp and
+              // unverifiable, so it must never influence the security scan.
+              this.isWalletConnect || this.isRemoteConn || this.isMMSDK
+                ? { ...request, origin: undefined }
+                : request,
+              {
+                transactionMeta: { chainId },
+                securityAlertId,
+              },
+            ),
           isAuxiliaryFundsSupported: (chainId) =>
             ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
           getPermittedAccountsForOrigin: async () =>
