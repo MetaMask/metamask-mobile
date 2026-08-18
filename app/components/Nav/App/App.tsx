@@ -216,8 +216,8 @@ const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
 const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
   Boolean(
     params &&
-      'screen' in params &&
-      params.screen === Routes.MODAL.TRADE_WALLET_ACTIONS,
+    'screen' in params &&
+    params.screen === Routes.MODAL.TRADE_WALLET_ACTIONS,
   );
 
 // Type helper for screen components that use v5 pattern of requiring route props
