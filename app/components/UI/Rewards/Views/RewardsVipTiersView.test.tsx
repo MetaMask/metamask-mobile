@@ -230,6 +230,7 @@ const dashboardWithTiers: VipDashboardState = {
     earned: 5_555_555,
     threshold: 7_777_777,
     percent: 71.4,
+    lifetimeQualifyingPoints: null,
   },
   tiers: [
     {
@@ -258,6 +259,8 @@ const dashboardWithTiers: VipDashboardState = {
     },
   ],
   localizedText: {
+    equityLifetimePointsDescription:
+      'So far, a lifetime total of {points} points will contribute to your equity allocation.',
     periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
     transactionsTitle: 'Transactions',

@@ -4913,6 +4913,7 @@ describe('setVipDashboard', () => {
       earned: 5555555,
       threshold: 7777777,
       percent: 71.4,
+      lifetimeQualifyingPoints: null,
     },
     tiers: [
       {
@@ -4929,6 +4930,8 @@ describe('setVipDashboard', () => {
       },
     ],
     localizedText: {
+      equityLifetimePointsDescription:
+        'So far, a lifetime total of {points} points will contribute to your equity allocation.',
       periodTitle: 'Jun 1 - Jun 30',
       memberIdTitle: 'Member ID',
       transactionsTitle: 'Transactions',

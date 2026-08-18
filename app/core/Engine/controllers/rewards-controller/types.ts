@@ -85,6 +85,12 @@ export type VipEquityAllocation = {
   earned: number;
   threshold: number;
   percent: number;
+  // LIFETIME total of points counting toward equity: the 30d window as it stood
+  // when the equity tier was first reached, plus every day since spent at that
+  // tier or above (a re-climb after dropping below it does not count). Unlike
+  // `earned` it is never clamped and never falls as the rolling window advances.
+  // Null when the backend pilot has no configured equity tier.
+  lifetimeQualifyingPoints: number | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -130,6 +136,13 @@ export type VipLocalizedTextDto = {
   equityLockedDescription: string;
   equityUnlockedTitle: string;
   equityUnlockedDescription: string;
+  /**
+   * Sub-row copy for the lifetime equity-qualifying points figure. Carries a
+   * `{points}` placeholder that the client interpolates with the formatted
+   * `pointsAllocation.lifetimeQualifyingPoints`, because number formatting for
+   * this card is client-side.
+   */
+  equityLifetimePointsDescription: string;
   /**
    * Copy for when the equity multiplier request itself fails. Carried here
    * rather than on that response, which returns no strings when it fails.

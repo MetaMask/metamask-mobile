@@ -7444,6 +7444,7 @@ describe('RewardsController', () => {
         earned: 5555555,
         threshold: 7777777,
         percent: 71.4,
+        lifetimeQualifyingPoints: null,
       },
       tiers: [
         {
@@ -7460,6 +7461,8 @@ describe('RewardsController', () => {
         },
       ],
       localizedText: {
+        equityLifetimePointsDescription:
+          'So far, a lifetime total of {points} points will contribute to your equity allocation.',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         transactionsTitle: 'Transactions',
@@ -10866,9 +10869,16 @@ describe('RewardsController', () => {
                 referrals: 3,
                 referralsCap: 7,
               },
-              pointsAllocation: { earned: 0, threshold: 1, percent: 0 },
+              pointsAllocation: {
+                earned: 0,
+                threshold: 1,
+                lifetimeQualifyingPoints: null,
+                percent: 0,
+              },
               tiers: [],
               localizedText: {
+                equityLifetimePointsDescription:
+                  'So far, a lifetime total of {points} points will contribute to your equity allocation.',
                 periodTitle: 'Jun 1 - Jun 30',
                 memberIdTitle: 'Member ID',
                 transactionsTitle: 'Transactions',
