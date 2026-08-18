@@ -170,6 +170,7 @@ framework:
   name: appium
   args:
     region: "$(yaml_escape "$HE_REGION")"
+    mobileDC: true
     reservation: false
 
 env:
@@ -228,7 +229,7 @@ echo "Secrets file: (outside workspace, wiped on exit)"
 echo "Primary app env key: $APP_URL_KEY=${!APP_URL_KEY:-<empty>}"
 echo "Device: ${TESTMU_DEVICE:-Pixel 7 Pro} / ${TESTMU_OS_VERSION:-13}"
 echo "Concurrency: $HE_CONCURRENCY"
-echo "YAML version: 0.2 (framework=appium, region=$HE_REGION, reservation=false)"
+echo "YAML version: 0.2 (framework=appium, region=$HE_REGION, mobileDC=true, reservation=false)"
 
 # Ensure scripts are executable inside the uploaded payload
 chmod +x \
