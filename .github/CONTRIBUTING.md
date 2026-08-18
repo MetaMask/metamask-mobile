@@ -51,6 +51,8 @@ The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-te
 
 Appium smoke and fixture validation stay pinned to Cirrus (`runner_provider: current`) until Namespace artifact-store parity. A workflow that hardcodes `current` at its call site is opted out on purpose.
 
+A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not follow `NAMESPACE_RUNNER_LINUX`: `get-requirements.yml`, `native-build-fingerprint`, `prepare-e2e-timings`, and `cleanup-ci-js-deps`.
+
 #### Rolling back
 
 - Everything back to the pre-migration routing: set `NAMESPACE_RUNNER_PROVIDER=current`.
