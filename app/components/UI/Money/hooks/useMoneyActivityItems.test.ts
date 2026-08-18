@@ -756,4 +756,40 @@ describe('useMoneyActivityItems', () => {
     ).toContain('declined-1');
     expect(result.current.cardEnrichmentByHash).toBe(bySettlementHash);
   });
+
+  it('floors the Card index at the oldest API row while more pages remain', () => {
+    enableEnrichment();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xnew' as Hex, 300), cardTx('0xold' as Hex, 100)],
+        watermark: 100,
+        isComplete: false,
+        hasMore: true,
+      }),
+    );
+
+    renderHook(() => useMoneyActivityItems());
+
+    expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
+      expect.objectContaining({ oldestVisibleTime: 100 }),
+    );
+  });
+
+  it('clears the Card index floor once Accounts API paging is exhausted', () => {
+    enableEnrichment();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xnew' as Hex, 300), cardTx('0xold' as Hex, 100)],
+        watermark: Number.NEGATIVE_INFINITY,
+        isComplete: true,
+        hasMore: false,
+      }),
+    );
+
+    renderHook(() => useMoneyActivityItems());
+
+    expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
+      expect.objectContaining({ oldestVisibleTime: undefined }),
+    );
+  });
 });

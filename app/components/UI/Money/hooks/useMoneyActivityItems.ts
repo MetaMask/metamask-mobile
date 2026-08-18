@@ -214,13 +214,21 @@ export function useMoneyActivityItems({
     ? Number.NEGATIVE_INFINITY
     : watermark;
 
+  // While Accounts API still has pages, stop the Card index at the oldest
+  // fetched API row — declines below the watermark would be withheld anyway.
+  // Once API paging is exhausted the watermark opens fully (-Infinity), so
+  // clear the floor and let the index continue toward Money Account launch
+  // (within its page/item caps) so older declines can appear in All/Purchases.
   const oldestVisibleTime = useMemo(() => {
+    if (!hasMore) {
+      return undefined;
+    }
     const times = apiActivity.map((a) => a.time);
     if (times.length === 0) {
       return undefined;
     }
     return Math.min(...times);
-  }, [apiActivity]);
+  }, [apiActivity, hasMore]);
 
   const {
     bySettlementHash,
