@@ -14,6 +14,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -684,22 +685,24 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const firedRef = useRef(false);
 
   const fireClosedRef = useRef<() => void>(() => undefined);
-  fireClosedRef.current = () => {
-    if (firedRef.current) return;
-    firedRef.current = true;
+  useLayoutEffect(() => {
+    fireClosedRef.current = () => {
+      if (firedRef.current) return;
+      firedRef.current = true;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
-        .addProperties({
-          chain_id: token.chainId,
-          token_symbol: token.symbol,
-          token_address: token.address,
-          exit_action: closeSourceRef.current ?? 'back_navigation',
-          time_on_screen_ms: Date.now() - openedAtRef.current,
-        })
-        .build(),
-    );
-  };
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
+          .addProperties({
+            chain_id: token.chainId,
+            token_symbol: token.symbol,
+            token_address: token.address,
+            exit_action: closeSourceRef.current ?? 'back_navigation',
+            time_on_screen_ms: Date.now() - openedAtRef.current,
+          })
+          .build(),
+      );
+    };
+  });
 
   useEffect(() => {
     // On iOS, `inactive` is transient (Control Center, notifications, Face ID, etc.)
