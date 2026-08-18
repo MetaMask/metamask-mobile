@@ -12,15 +12,26 @@ import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  KnownCaipNamespace,
+  parseCaipAssetType,
+  parseCaipChainId,
+} from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
-import { KnownCaip19Id } from '../../core/Multichain/constants';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
+import {
+  getTronSpecialAssetMapKey,
+  getTronSpecialAssetUnit,
+} from '../../core/Multichain/tronSpecialAssets';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
 import {
@@ -90,52 +101,82 @@ export interface TronSpecialAssetsMap {
   trxInLockPeriod: Asset | undefined;
 }
 
-type TronSpecialAssetKey = Exclude<
-  keyof TronSpecialAssetsMap,
-  'totalStakedTrx'
->;
-
 /**
- * Maps each Tron special-asset CAIP-19 ID to its semantic key in
- * {@link TronSpecialAssetsMap}. Network-specific IDs collapse to the same key.
+ * Normalize a Tron CAIP-2 network ID to decimal form (`tron:728126428`).
+ * Hex references (`tron:0x2b6653dc`) map to the same decimal chain.
  */
-const TRON_SPECIAL_ASSET_KEYS = {
-  [KnownCaip19Id.EnergyMainnet]: 'energy',
-  [KnownCaip19Id.EnergyNile]: 'energy',
-  [KnownCaip19Id.EnergyShasta]: 'energy',
+const toDecimalTronChainId = (networkId: string): string | undefined => {
+  if (networkId.startsWith(`${KnownCaipNamespace.Tron}:`)) {
+    try {
+      const { namespace, reference } = parseCaipChainId(
+        networkId as CaipChainId,
+      );
+      if (namespace !== KnownCaipNamespace.Tron) {
+        return undefined;
+      }
+      if (/^0x[0-9a-fA-F]+$/u.test(reference)) {
+        return `${namespace}:${Number.parseInt(reference, 16)}`;
+      }
+      return networkId;
+    } catch {
+      return undefined;
+    }
+  }
 
-  [KnownCaip19Id.BandwidthMainnet]: 'bandwidth',
-  [KnownCaip19Id.BandwidthNile]: 'bandwidth',
-  [KnownCaip19Id.BandwidthShasta]: 'bandwidth',
+  return undefined;
+};
 
-  [KnownCaip19Id.MaximumEnergyMainnet]: 'maxEnergy',
-  [KnownCaip19Id.MaximumEnergyNile]: 'maxEnergy',
-  [KnownCaip19Id.MaximumEnergyShasta]: 'maxEnergy',
+interface AccountTreeSlice {
+  selectedAccountGroup?: string;
+  accountTree?: {
+    wallets?: Record<
+      string,
+      {
+        groups?: Record<string, { accounts?: string[] }>;
+      }
+    >;
+  };
+  balances?: Record<string, Record<string, { amount?: string; unit?: string }>>;
+}
 
-  [KnownCaip19Id.MaximumBandwidthMainnet]: 'maxBandwidth',
-  [KnownCaip19Id.MaximumBandwidthNile]: 'maxBandwidth',
-  [KnownCaip19Id.MaximumBandwidthShasta]: 'maxBandwidth',
+const getSelectedAccountGroupAccountIds = (
+  assetsState: AssetListState,
+): string[] => {
+  const { selectedAccountGroup, accountTree } = assetsState as AssetListState &
+    AccountTreeSlice;
+  if (!selectedAccountGroup) {
+    return [];
+  }
+  for (const wallet of Object.values(accountTree?.wallets ?? {})) {
+    const group = wallet.groups?.[selectedAccountGroup];
+    if (group?.accounts) {
+      return group.accounts;
+    }
+  }
+  return [];
+};
 
-  [KnownCaip19Id.TrxStakedForEnergyMainnet]: 'stakedTrxForEnergy',
-  [KnownCaip19Id.TrxStakedForEnergyNile]: 'stakedTrxForEnergy',
-  [KnownCaip19Id.TrxStakedForEnergyShasta]: 'stakedTrxForEnergy',
-
-  [KnownCaip19Id.TrxStakedForBandwidthMainnet]: 'stakedTrxForBandwidth',
-  [KnownCaip19Id.TrxStakedForBandwidthNile]: 'stakedTrxForBandwidth',
-  [KnownCaip19Id.TrxStakedForBandwidthShasta]: 'stakedTrxForBandwidth',
-
-  [KnownCaip19Id.TrxReadyForWithdrawalMainnet]: 'trxReadyForWithdrawal',
-  [KnownCaip19Id.TrxReadyForWithdrawalNile]: 'trxReadyForWithdrawal',
-  [KnownCaip19Id.TrxReadyForWithdrawalShasta]: 'trxReadyForWithdrawal',
-
-  [KnownCaip19Id.TrxStakingRewardsMainnet]: 'trxStakingRewards',
-  [KnownCaip19Id.TrxStakingRewardsNile]: 'trxStakingRewards',
-  [KnownCaip19Id.TrxStakingRewardsShasta]: 'trxStakingRewards',
-
-  [KnownCaip19Id.TrxInLockPeriodMainnet]: 'trxInLockPeriod',
-  [KnownCaip19Id.TrxInLockPeriodNile]: 'trxInLockPeriod',
-  [KnownCaip19Id.TrxInLockPeriodShasta]: 'trxInLockPeriod',
-} as const satisfies Record<KnownCaip19Id, TronSpecialAssetKey>;
+const specialAssetFromBalance = (
+  accountId: string,
+  assetId: string,
+  amount: string,
+  unit: string,
+): Asset => {
+  const parsed = parseCaipAssetType(assetId as CaipAssetType);
+  return {
+    accountId,
+    accountType: 'tron:eoa',
+    assetId: assetId as CaipAssetType,
+    balance: amount,
+    chainId: parsed.chainId,
+    decimals: parsed.assetReference.startsWith('195') ? 6 : 0,
+    image: '',
+    isNative: false,
+    name: unit,
+    rawBalance: '0x0' as Hex,
+    symbol: unit,
+  };
+};
 
 /**
  * Empty constant to avoid creating new objects on each call when no Tron networks are enabled.
@@ -699,9 +740,9 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
   createDeepEqualSelector(
     [getStateForAssetSelector, selectEnabledNetworks],
     (assetsState, enabledNetworks): TronSpecialAssetsMap => {
-      const enabledTronNetworks = enabledNetworks.filter((networkId) =>
-        networkId.startsWith('tron:'),
-      );
+      const enabledTronNetworks = enabledNetworks
+        .map(toDecimalTronChainId)
+        .filter((networkId): networkId is string => networkId !== undefined);
 
       if (enabledTronNetworks.length === 0) {
         return EMPTY_TRON_SPECIAL_ASSETS_MAP;
@@ -712,6 +753,9 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
       });
 
       const enabledTronNetworksSet = new Set(enabledTronNetworks);
+      const selectedAccountIds = getSelectedAccountGroupAccountIds(assetsState);
+      const balances = (assetsState as AssetListState & AccountTreeSlice)
+        .balances;
 
       const specialAssetsMap: TronSpecialAssetsMap = {
         energy: undefined,
@@ -727,15 +771,58 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
       };
 
       for (const [networkId, chainAssets] of Object.entries(allAssets)) {
-        if (!enabledTronNetworksSet.has(networkId)) continue;
+        const decimalTronChainId = toDecimalTronChainId(networkId);
+        const isEnabledTron = Boolean(
+          decimalTronChainId && enabledTronNetworksSet.has(decimalTronChainId),
+        );
+        if (!isEnabledTron) continue;
 
         for (const asset of chainAssets) {
-          if (!Object.hasOwn(TRON_SPECIAL_ASSET_KEYS, asset.assetId)) {
+          const key = getTronSpecialAssetMapKey(asset.assetId);
+          if (!key || specialAssetsMap[key]) {
             continue;
           }
 
-          const key = TRON_SPECIAL_ASSET_KEYS[asset.assetId as KnownCaip19Id];
           specialAssetsMap[key] = asset;
+        }
+      }
+
+      for (const accountId of selectedAccountIds) {
+        const accountBalances = balances?.[accountId];
+        if (!accountBalances) {
+          continue;
+        }
+
+        for (const [assetId, balance] of Object.entries(accountBalances)) {
+          const key = getTronSpecialAssetMapKey(assetId);
+          if (!key || specialAssetsMap[key]) {
+            continue;
+          }
+
+          try {
+            const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
+            const decimalTronChainId = toDecimalTronChainId(chainId);
+            if (
+              !decimalTronChainId ||
+              !enabledTronNetworksSet.has(decimalTronChainId)
+            ) {
+              continue;
+            }
+          } catch {
+            continue;
+          }
+
+          const amount = balance.amount;
+          if (amount === undefined) {
+            continue;
+          }
+
+          specialAssetsMap[key] = specialAssetFromBalance(
+            accountId,
+            assetId,
+            amount,
+            balance.unit ?? getTronSpecialAssetUnit(assetId) ?? '',
+          );
         }
       }
 

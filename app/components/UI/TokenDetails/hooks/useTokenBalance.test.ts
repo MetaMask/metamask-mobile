@@ -15,6 +15,16 @@ import {
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
 
 const TRON_MAINNET_CHAIN_ID = 'tron:728126428';
+const TRON_NATIVE_ASSET_ID = `${TRON_MAINNET_CHAIN_ID}/slip44:195`;
+
+const createTronNativeToken = (overrides: Partial<TokenI> = {}): TokenI =>
+  ({
+    address: TRON_NATIVE_ASSET_ID,
+    chainId: TRON_MAINNET_CHAIN_ID,
+    symbol: 'TRX',
+    isNative: true,
+    ...overrides,
+  }) as TokenI;
 
 const createMockTronAsset = (symbol: string, balance: string): Asset =>
   ({
@@ -142,12 +152,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns staked TRX asset for Tron native token', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     const mockStakedAsset = { symbol: 'sTRX', balance: '50' } as TokenI;
 
@@ -184,13 +189,30 @@ describe('useTokenBalance', () => {
     );
   });
 
-  it('returns in-lock-period balance for Tron native token', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
+  it('returns staked TRX when native token has CAIP-19 address and no ticker', () => {
+    const tronToken = createTronNativeToken({ ticker: undefined });
+    const mockStakedAsset = { symbol: 'sTRX', balance: '50' } as TokenI;
+
+    mockSelectAsset.mockReturnValue({
+      balance: '1000',
+      balanceFiat: '$100.00',
       symbol: 'TRX',
-    } as TokenI;
+    } as TokenI);
+    mockSelectTronResources.mockReturnValue({
+      ...createEmptySpecialAssetsMap(),
+      stakedTrxForEnergy: createMockTronAsset('strx-energy', '100'),
+      stakedTrxForBandwidth: createMockTronAsset('strx-bandwidth', '200'),
+    });
+    mockCreateStakedTrxAsset.mockReturnValue(mockStakedAsset);
+
+    const { result } = renderHookWithProvider(() => useTokenBalance(tronToken));
+
+    expect(result.current.isTronNative).toBe(true);
+    expect(result.current.stakedTrxAsset).toBe(mockStakedAsset);
+  });
+
+  it('returns in-lock-period balance for Tron native token', () => {
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -209,12 +231,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns undefined for in-lock-period when balance is zero', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -233,12 +250,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns undefined for in-lock-period when balance is non-numeric', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -260,12 +272,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns undefined for in-lock-period when balance is empty string', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -284,12 +291,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns undefined for in-lock-period when resources are not available', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -305,12 +307,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns ready-for-withdrawal balance for Tron native token', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -332,12 +329,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns undefined for ready-for-withdrawal when balance is zero', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -359,12 +351,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns undefined for ready-for-withdrawal when balance is non-numeric', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -386,12 +373,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns undefined for ready-for-withdrawal when balance is empty string', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',
@@ -413,12 +395,7 @@ describe('useTokenBalance', () => {
   });
 
   it('returns undefined for ready-for-withdrawal when resources are not available', () => {
-    const tronToken = {
-      address: '',
-      chainId: TRON_MAINNET_CHAIN_ID,
-      ticker: 'TRX',
-      symbol: 'TRX',
-    } as TokenI;
+    const tronToken = createTronNativeToken();
 
     mockSelectAsset.mockReturnValue({
       balance: '1000',

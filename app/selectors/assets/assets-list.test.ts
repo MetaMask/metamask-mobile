@@ -31,6 +31,10 @@ import {
 } from '@metamask/assets-controllers';
 import I18n from '../../../locales/i18n';
 import { ARC_USDC_ERC20_TOKEN_ADDRESS } from '../../enablement/assets/networks-customization';
+import {
+  ASSETS_UNIFY_STATE_FLAG,
+  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+} from '../featureFlagController/assetsUnifyState';
 
 // Wrap the inner assets-controllers selector in a jest.fn so the Arc
 // filtering describe block can override its return value without affecting
@@ -2216,6 +2220,108 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
     // totalStakedTrx computed via BigNumber avoids floating-point errors
     // 65.48463 + 65.48463 = 130.96926 (not 130.96926000000002)
     expect(result.totalStakedTrx).toBe(130.96926);
+  });
+
+  it('still surfaces Snap-staked TRX when AssetsController unify omitted staking CAIP-19s', () => {
+    const accountId = '2d89e6a0-b4e6-45a8-a707-f10cef143b42';
+    const nativeTrx = 'tron:728126428/slip44:195';
+    const hexStakedEnergy = 'tron:0x2b6653dc/slip44:195-staked-for-energy';
+    const hexStakedBandwidth =
+      'tron:0x2b6653dc/slip44:195-staked-for-bandwidth';
+    const base = mockState();
+    const assetsController = base.engine.backgroundState.AssetsController;
+
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              [ASSETS_UNIFY_STATE_FLAG]: {
+                enabled: true,
+                featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+              },
+            },
+          },
+          AssetsController: {
+            ...assetsController,
+            assetsInfo: {
+              ...assetsController.assetsInfo,
+              [nativeTrx]: {
+                type: 'native',
+                decimals: 6,
+                symbol: 'TRX',
+                name: 'TRON',
+              },
+            },
+            assetsBalance: {
+              ...assetsController.assetsBalance,
+              [accountId]: {
+                ...assetsController.assetsBalance[accountId],
+                [nativeTrx]: { amount: '1000' },
+              },
+            },
+          },
+          MultichainAssetsController: {
+            accountsAssets: {
+              [accountId]: [hexStakedEnergy, hexStakedBandwidth],
+            },
+            assetsMetadata: {
+              [hexStakedEnergy]: {
+                name: 'Staked TRX Energy',
+                symbol: 'sTRX-ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Staked TRX Energy',
+                    symbol: 'sTRX-ENERGY',
+                    decimals: 6,
+                  },
+                ],
+              },
+              [hexStakedBandwidth]: {
+                name: 'Staked TRX Bandwidth',
+                symbol: 'sTRX-BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Staked TRX Bandwidth',
+                    symbol: 'sTRX-BANDWIDTH',
+                    decimals: 6,
+                  },
+                ],
+              },
+            },
+            allIgnoredAssets: {},
+          },
+          MultichainBalancesController: {
+            balances: {
+              [accountId]: {
+                [hexStakedEnergy]: { amount: '80', unit: 'TRX' },
+                [hexStakedBandwidth]: { amount: '20', unit: 'TRX' },
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: true,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+    expect(result.stakedTrxForEnergy?.balance).toBe('80');
+    expect(result.stakedTrxForBandwidth?.balance).toBe('20');
+    expect(result.totalStakedTrx).toBe(100);
   });
 
   it('returns empty object when Tron network is disabled', () => {
