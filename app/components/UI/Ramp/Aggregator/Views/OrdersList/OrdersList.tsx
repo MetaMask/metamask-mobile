@@ -38,8 +38,6 @@ import {
   addCurrencySymbol,
   renderFiat,
 } from '../../../../../../util/number/bigint';
-
-type CurrencyCode = Parameters<typeof renderFiat>[1];
 import Text, {
   TextColor,
   TextVariant,
@@ -169,8 +167,8 @@ function DisplayOrderListItem({
           {item.fiatAmount == null
             ? '...'
             : addCurrencySymbol(
-                renderFiat(Number(item.fiatAmount), '' as CurrencyCode),
-                item.fiatCurrencyCode as CurrencyCode,
+                renderFiat(Number(item.fiatAmount), ''),
+                item.fiatCurrencyCode,
               )}
         </Text>
       </ListItemColumnEnd>

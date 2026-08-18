@@ -18,8 +18,6 @@ import {
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
 } from '../../../../../../util/number/bigint';
-
-type CurrencyCode = Parameters<typeof renderFiat>[1];
 import { strings } from '../../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../../Base/RemoteImage';
@@ -234,7 +232,7 @@ const Quote: React.FC<Props> = ({
               ) : (
                 `≈ ${fiatSymbol} ${renderFiat(
                   amountOut,
-                  fiatCode as CurrencyCode,
+                  fiatCode,
                   fiat?.decimals,
                 )}`
               )}
@@ -248,7 +246,7 @@ const Quote: React.FC<Props> = ({
                   ≈ {fiatSymbol}{' '}
                   {renderFiat(
                     amountOutInFiat ?? price,
-                    fiatCode as CurrencyCode,
+                    fiatCode,
                     fiat?.decimals,
                   )}
                 </>
