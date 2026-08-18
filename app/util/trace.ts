@@ -534,6 +534,11 @@ interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
   type: 'start' | 'end';
   request: T;
   parentTraceName?: string; // Track parent trace name for reconnecting during flush
+  measurements?: {
+    name: string;
+    value: number;
+    unit: Parameters<typeof setMeasurement>[2];
+  }[];
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -637,13 +642,66 @@ export function getTraceContext(
 /**
  * Return the in-flight span for a pending manual trace with this id.
  */
-export function getTraceContextById(id: string): TraceContext {
-  for (const pendingTrace of tracesByKey.values()) {
-    if (getTraceId(pendingTrace.request) === id) {
-      return pendingTrace.span;
+export function setTraceMeasurement(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  name: string,
+  value: number,
+  unit: Parameters<typeof setMeasurement>[2],
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    setMeasurement(name, value, unit, span);
+    return;
+  }
+
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (
+      bufferedTrace.type !== 'start' ||
+      getTraceKey(bufferedTrace.request) !== traceKey
+    ) {
+      continue;
+    }
+    const measurements = bufferedTrace.measurements ?? [];
+    const existing = measurements.find(
+      (measurement) => measurement.name === name,
+    );
+    if (existing) {
+      existing.value = value;
+      existing.unit = unit;
+    } else {
+      measurements.push({ name, value, unit });
+    }
+    bufferedTrace.measurements = measurements;
+    return;
+  }
+}
+
+export function annotateTraceByRequest(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  attributes: Record<string, TraceValue>,
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    annotateTrace(span, attributes);
+    return;
+  }
+
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (
+      bufferedTrace.type === 'start' &&
+      getTraceKey(bufferedTrace.request) === traceKey
+    ) {
+      bufferedTrace.request.data = {
+        ...bufferedTrace.request.data,
+        ...attributes,
+      };
+      return;
     }
   }
-  return undefined;
 }
 
 /**
@@ -856,6 +914,14 @@ export async function flushBufferedTraces() {
       }) as Span;
 
       if (span) {
+        bufferedItem.measurements?.forEach((measurement) => {
+          setMeasurement(
+            measurement.name,
+            measurement.value,
+            measurement.unit,
+            span,
+          );
+        });
         activeSpans.set(traceKey, span);
       }
     } else if (bufferedItem.type === 'end') {

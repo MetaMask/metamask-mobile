@@ -1,15 +1,15 @@
 import { v4 as uuidv4 } from 'uuid';
 import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
-  annotateTrace,
+  annotateTraceByRequest,
   endTrace,
-  getTraceContextById,
+  setTraceMeasurement,
   trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE } from '../constants/terminalApi';
 
 export const PERPS_BOOTSTRAP_STAGE = 'perps_bootstrap_start';
 export const PERPS_VALUES_READY_STAGE = 'values_ready';
@@ -17,6 +17,7 @@ export const HOMEPAGE_READY_DISTANCE_FROM_PERPS_BOOTSTRAP_START_MS =
   'homepage_ready_distance_from_perps_bootstrap_start_ms';
 export const BOOTSTRAP_BEFORE_HOMEPAGE_READY =
   'bootstrap_before_homepage_ready';
+export const PERPS_LOADING_SESSION_TIMEOUT_MS = 90_000;
 
 export type PerpsLoadingStream =
   | 'markets'
@@ -43,10 +44,38 @@ export type PerpsSessionAccountSource =
   | 'disk_cache'
   | 'fresh_socket'
   | 'unknown';
+export type PerpsLoadingLifecycle =
+  | 'cold_no_cache'
+  | 'cold_disk_cache'
+  | 'navigate_return'
+  | 'background_short'
+  | 'background_reconnect'
+  | 'account_switch'
+  | 'network_switch';
+export type PerpsLoadingSurface = 'homepage';
+interface StartPerpsLoadingSessionOptions {
+  lifecycle?: PerpsLoadingLifecycle;
+  surface?: PerpsLoadingSurface;
+  contentVariant?: string;
+  restart?: boolean;
+}
 export interface PerpsLoadingSessionContext {
   id: string;
   marketSource: PerpsSessionMarketSource;
   accountSource: PerpsSessionAccountSource;
+  lifecycle: PerpsLoadingLifecycle;
+}
+
+export function resolvePerpsLoadingLifecycle(
+  context: 'cold_process' | 'warm' | 'background_resume',
+): PerpsLoadingLifecycle {
+  if (context === 'warm') {
+    return 'navigate_return';
+  }
+  if (context === 'background_resume') {
+    return 'background_short';
+  }
+  return 'cold_no_cache';
 }
 
 const CACHE_SOURCES: ReadonlySet<PerpsLoadingSource> = new Set([
@@ -67,6 +96,7 @@ type Milestone = keyof typeof MILESTONE_MEASUREMENTS;
 type CacheStream = 'positions' | 'orders' | 'account';
 
 let activeSessionId: string | null = null;
+let activeLifecycle: PerpsLoadingLifecycle = 'cold_no_cache';
 let sessionStartedAtMs: number | null = null;
 const recordedMilestones = new Set<Milestone>();
 const cacheObservedBySource = new Map<PerpsLoadingSource, Set<CacheStream>>();
@@ -75,14 +105,36 @@ let accountCacheSource: PerpsLoadingSource | null = null;
 let homepageReadyAtMs: number | null = null;
 let homepageDistanceRecorded = false;
 let pendingFinishData: Record<string, string | number | boolean> | null = null;
+let sessionTimeout: ReturnType<typeof setTimeout> | null = null;
+let preSessionEvents: {
+  stream: PerpsLoadingStream;
+  source: PerpsLoadingSource;
+  itemCount: number;
+  detail: Record<string, number>;
+  recordedAtMs: number;
+}[] = [];
+let preSessionFinishData: Record<string, string | number | boolean> | null =
+  null;
 
-export function startPerpsLoadingSession(): string {
-  if (activeSessionId) {
+export function startPerpsLoadingSession(
+  options: StartPerpsLoadingSessionOptions = {},
+): string {
+  if (activeSessionId && !options.restart) {
     return activeSessionId;
+  }
+
+  if (activeSessionId) {
+    endActiveLoadingSession({
+      success: false,
+      content_state: 'error',
+      failure_stage: 'session_restarted',
+      required_live_streams_complete: false,
+    });
   }
 
   const sessionId = uuidv4();
   activeSessionId = sessionId;
+  activeLifecycle = options.lifecycle ?? 'cold_no_cache';
   const now = performance.now();
   sessionStartedAtMs = now;
   recordedMilestones.clear();
@@ -102,9 +154,35 @@ export function startPerpsLoadingSession(): string {
     name: TraceName.PerpsLoadingSession,
     id: sessionId,
     op: TraceOperation.PerpsLoading,
+    data: {
+      lifecycle: activeLifecycle,
+      surface: options.surface ?? 'homepage',
+      ...(options.contentVariant
+        ? { content_variant: options.contentVariant }
+        : {}),
+    },
   });
 
+  sessionTimeout = setTimeout(() => {
+    endActiveLoadingSession({
+      success: false,
+      content_state: 'error',
+      failure_stage: 'loading_session_timeout',
+      required_live_streams_complete: false,
+    });
+  }, PERPS_LOADING_SESSION_TIMEOUT_MS);
+
   attachHomepageReadyDistance();
+  const bufferedEvents = preSessionEvents;
+  preSessionEvents = [];
+  bufferedEvents.forEach((event) => {
+    recordValuesReady(event);
+  });
+  if (preSessionFinishData) {
+    const finishData = preSessionFinishData;
+    preSessionFinishData = null;
+    finishPerpsLoadingSession(finishData);
+  }
   return sessionId;
 }
 
@@ -114,6 +192,35 @@ export function recordPerpsLoadingSessionValuesReady(
   itemCount: number,
   detail: Record<string, number> = {},
 ): void {
+  const recordedAtMs = performance.now();
+  if (!activeSessionId || sessionStartedAtMs === null) {
+    preSessionEvents.push({
+      stream,
+      source,
+      itemCount,
+      detail,
+      recordedAtMs,
+    });
+    preSessionEvents = preSessionEvents.slice(-20);
+    return;
+  }
+
+  recordValuesReady({ stream, source, itemCount, detail, recordedAtMs });
+}
+
+function recordValuesReady({
+  stream,
+  source,
+  itemCount,
+  detail,
+  recordedAtMs,
+}: {
+  stream: PerpsLoadingStream;
+  source: PerpsLoadingSource;
+  itemCount: number;
+  detail: Record<string, number>;
+  recordedAtMs: number;
+}): void {
   if (!activeSessionId || sessionStartedAtMs === null) {
     return;
   }
@@ -149,17 +256,13 @@ export function recordPerpsLoadingSessionValuesReady(
     accountCacheSource = source;
   }
 
-  const now = performance.now();
-  const elapsedMs = now - sessionStartedAtMs;
-  const span = getTraceContextById(activeSessionId);
-  if (span) {
-    setMeasurement(
-      MILESTONE_MEASUREMENTS[milestone],
-      elapsedMs,
-      'millisecond',
-      span,
-    );
-  }
+  const elapsedMs = Math.max(0, recordedAtMs - sessionStartedAtMs);
+  setTraceMeasurement(
+    { name: TraceName.PerpsLoadingSession, id: activeSessionId },
+    MILESTONE_MEASUREMENTS[milestone],
+    elapsedMs,
+    'millisecond',
+  );
   DevLogger.log(
     `[PerpsLoadProof] ${JSON.stringify({
       stage: PERPS_VALUES_READY_STAGE,
@@ -167,10 +270,12 @@ export function recordPerpsLoadingSessionValuesReady(
       source,
       item_count: itemCount,
       elapsed_ms: Number(elapsedMs.toFixed(3)),
-      monotonic_ms: Number(now.toFixed(3)),
+      monotonic_ms: Number(recordedAtMs.toFixed(3)),
       ...detail,
     })}`,
   );
+
+  tryFinishPendingSession();
 }
 
 export function resolvePerpsMarketSource(
@@ -180,7 +285,7 @@ export function resolvePerpsMarketSource(
   if (
     markets.length > 0 &&
     markets.every(
-      (market) => market.dataSource === 'terminal-global-snapshot-mark',
+      (market) => market.dataSource === TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE,
     )
   ) {
     return 'terminal_v2';
@@ -224,7 +329,27 @@ export function getActivePerpsLoadingSessionContext(): PerpsLoadingSessionContex
     id: activeSessionId,
     marketSource: recordedMarketSource(),
     accountSource: recordedAccountSource(),
+    lifecycle: activeLifecycle,
   };
+}
+
+export function setPerpsLoadingSessionLifecycle(
+  lifecycle: PerpsLoadingLifecycle,
+): void {
+  if (!activeSessionId || activeLifecycle === lifecycle) {
+    return;
+  }
+  activeLifecycle = lifecycle;
+  annotateTraceByRequest(
+    { name: TraceName.PerpsLoadingSession, id: activeSessionId },
+    { lifecycle },
+  );
+}
+
+export function getActivePerpsLoadingSessionTraceData():
+  | { perps_session_id: string }
+  | undefined {
+  return activeSessionId ? { perps_session_id: activeSessionId } : undefined;
 }
 
 function attachHomepageReadyDistance(): void {
@@ -236,19 +361,19 @@ function attachHomepageReadyDistance(): void {
   ) {
     return;
   }
-  const span = getTraceContextById(activeSessionId);
-  if (!span) {
-    return;
-  }
-  setMeasurement(
+  setTraceMeasurement(
+    { name: TraceName.PerpsLoadingSession, id: activeSessionId },
     HOMEPAGE_READY_DISTANCE_FROM_PERPS_BOOTSTRAP_START_MS,
     Math.abs(homepageReadyAtMs - sessionStartedAtMs),
     'millisecond',
-    span,
   );
-  annotateTrace(span, {
-    [BOOTSTRAP_BEFORE_HOMEPAGE_READY]: sessionStartedAtMs <= homepageReadyAtMs,
-  });
+  annotateTraceByRequest(
+    { name: TraceName.PerpsLoadingSession, id: activeSessionId },
+    {
+      [BOOTSTRAP_BEFORE_HOMEPAGE_READY]:
+        sessionStartedAtMs <= homepageReadyAtMs,
+    },
+  );
   homepageDistanceRecorded = true;
 }
 
@@ -268,13 +393,17 @@ function endActiveLoadingSession(
       ...data,
     },
   });
+  if (sessionTimeout) {
+    clearTimeout(sessionTimeout);
+    sessionTimeout = null;
+  }
   activeSessionId = null;
+  activeLifecycle = 'cold_no_cache';
   sessionStartedAtMs = null;
   recordedMilestones.clear();
   cacheObservedBySource.clear();
   marketsReadySource = null;
   accountCacheSource = null;
-  homepageReadyAtMs = null;
   homepageDistanceRecorded = false;
   pendingFinishData = null;
 }
@@ -285,26 +414,61 @@ export function recordHomepageReadyAt(monotonicMs: number): void {
   }
   homepageReadyAtMs = monotonicMs;
   attachHomepageReadyDistance();
-  if (pendingFinishData) {
-    endActiveLoadingSession(pendingFinishData);
+  tryFinishPendingSession();
+}
+
+function requiresLiveAccount(
+  data: Record<string, string | number | boolean>,
+): boolean {
+  return (
+    data.success !== false &&
+    (data.content_variant === 'positions' ||
+      data.content_variant === 'orders' ||
+      data.content_variant === 'positions_and_orders')
+  );
+}
+
+function hasRequiredLiveStreams(
+  data: Record<string, string | number | boolean>,
+): boolean {
+  return (
+    !requiresLiveAccount(data) ||
+    (recordedMilestones.has('positions_live') &&
+      recordedMilestones.has('orders_live') &&
+      recordedMilestones.has('account_live'))
+  );
+}
+
+function tryFinishPendingSession(): void {
+  if (
+    !pendingFinishData ||
+    homepageReadyAtMs === null ||
+    !hasRequiredLiveStreams(pendingFinishData)
+  ) {
+    return;
   }
+  endActiveLoadingSession({
+    ...pendingFinishData,
+    required_live_streams_complete: true,
+  });
 }
 
 export function finishPerpsLoadingSession(
   data: Record<string, string | number | boolean> = {},
 ): void {
-  if (!activeSessionId || pendingFinishData) {
+  if (!activeSessionId) {
+    preSessionFinishData = data;
     return;
   }
-  if (homepageReadyAtMs === null) {
+  if (!pendingFinishData || data.success === false) {
     pendingFinishData = data;
-    return;
   }
-  endActiveLoadingSession(data);
+  tryFinishPendingSession();
 }
 
 export function resetPerpsLoadingSessionForTesting(): void {
   activeSessionId = null;
+  activeLifecycle = 'cold_no_cache';
   sessionStartedAtMs = null;
   recordedMilestones.clear();
   cacheObservedBySource.clear();
@@ -313,4 +477,10 @@ export function resetPerpsLoadingSessionForTesting(): void {
   homepageReadyAtMs = null;
   homepageDistanceRecorded = false;
   pendingFinishData = null;
+  if (sessionTimeout) {
+    clearTimeout(sessionTimeout);
+    sessionTimeout = null;
+  }
+  preSessionEvents = [];
+  preSessionFinishData = null;
 }

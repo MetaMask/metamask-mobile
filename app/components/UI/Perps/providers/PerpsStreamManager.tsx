@@ -48,8 +48,14 @@ import {
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { getTerminalGlobalSnapshotUrl } from '../constants/terminalApi';
-import { recordPerpsLoadingSessionValuesReady } from '../utils/perpsLoadingSession';
+import {
+  getTerminalGlobalSnapshotUrl,
+  TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE,
+} from '../constants/terminalApi';
+import {
+  getActivePerpsLoadingSessionTraceData,
+  recordPerpsLoadingSessionValuesReady,
+} from '../utils/perpsLoadingSession';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -636,7 +642,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstPrice,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getActivePerpsLoadingSessionTraceData(),
+          success: false,
+          reason: 'disconnected',
+        },
       });
       this.firstDataTraceId = undefined;
     }
@@ -708,6 +718,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
       tags: buildPerpsCufStartTags(),
+      data: getActivePerpsLoadingSessionTraceData(),
     });
     this.wsConnectionStartTime = performance.now();
 
@@ -730,7 +741,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           endTrace({
             name: TraceName.PerpsWebSocketFirstPrice,
             id: this.firstDataTraceId,
-            data: { success: true, duration: firstDataDuration },
+            data: {
+              ...getActivePerpsLoadingSessionTraceData(),
+              success: true,
+              duration: firstDataDuration,
+            },
           });
           this.wsConnectionStartTime = null;
           this.firstDataTraceId = undefined;
@@ -893,6 +908,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           id: this.firstDataTraceId,
           op: TraceOperation.PerpsOperation,
           tags: buildPerpsCufStartTags(),
+          data: getActivePerpsLoadingSessionTraceData(),
         });
         this.wsConnectionStartTime = performance.now();
 
@@ -920,7 +936,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
               endTrace({
                 name: TraceName.PerpsWebSocketFirstPrice,
                 id: this.firstDataTraceId,
-                data: { success: true, duration: firstDataDuration },
+                data: {
+                  ...getActivePerpsLoadingSessionTraceData(),
+                  success: true,
+                  duration: firstDataDuration,
+                },
               });
               this.wsConnectionStartTime = null;
               this.firstDataTraceId = undefined;
@@ -1000,7 +1020,11 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstOrders,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getActivePerpsLoadingSessionTraceData(),
+          success: false,
+          reason: 'disconnected',
+        },
       });
       this.firstDataTraceId = undefined;
     }
@@ -1017,6 +1041,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
       name: TraceName.PerpsWebSocketFirstOrders,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: getActivePerpsLoadingSessionTraceData(),
     });
 
     // Track WebSocket connection start time for duration calculation
@@ -1055,6 +1080,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
             name: TraceName.PerpsWebSocketFirstOrders,
             id: this.firstDataTraceId,
             data: {
+              ...getActivePerpsLoadingSessionTraceData(),
               success: true,
               duration: firstDataDuration,
             },
@@ -1231,7 +1257,11 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstPositions,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getActivePerpsLoadingSessionTraceData(),
+          success: false,
+          reason: 'disconnected',
+        },
       });
       this.firstDataTraceId = undefined;
     }
@@ -1248,6 +1278,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       name: TraceName.PerpsWebSocketFirstPositions,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: getActivePerpsLoadingSessionTraceData(),
     });
 
     // Track WebSocket connection start time for duration calculation
@@ -1290,6 +1321,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
             name: TraceName.PerpsWebSocketFirstPositions,
             id: this.firstDataTraceId,
             data: {
+              ...getActivePerpsLoadingSessionTraceData(),
               success: true,
               duration: firstDataDuration,
             },
@@ -1541,7 +1573,11 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstAccount,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getActivePerpsLoadingSessionTraceData(),
+          success: false,
+          reason: 'disconnected',
+        },
       });
       this.firstDataTraceId = undefined;
     }
@@ -1558,6 +1594,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       name: TraceName.PerpsWebSocketFirstAccount,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: getActivePerpsLoadingSessionTraceData(),
     });
 
     // Track WebSocket connection start time for duration calculation
@@ -1599,6 +1636,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
             name: TraceName.PerpsWebSocketFirstAccount,
             id: this.firstDataTraceId,
             data: {
+              ...getActivePerpsLoadingSessionTraceData(),
               success: true,
               duration: firstDataDuration,
             },
@@ -2070,7 +2108,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     return (
       data.length > 0 &&
       data.every(
-        (market) => market.dataSource === 'terminal-global-snapshot-mark',
+        (market) => market.dataSource === TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE,
       )
     );
   }

@@ -54,6 +54,12 @@ import {
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
+import {
+  getActivePerpsLoadingSessionTraceData,
+  setPerpsLoadingSessionLifecycle,
+  startPerpsLoadingSession,
+} from '../utils/perpsLoadingSession';
+import { getPerpsLifecycleContext } from '../utils/perpsLifecycleContext';
 
 interface ConnectOptions {
   source?: string;
@@ -186,6 +192,20 @@ class PerpsConnectionManagerClass {
           !hasProviderChanged &&
           !hasPerpsNetworkChanged &&
           !hasHip3Changed;
+
+        if (accountOnly) {
+          startPerpsLoadingSession({
+            restart: true,
+            lifecycle: 'account_switch',
+            surface: 'homepage',
+          });
+        } else if (hasPerpsNetworkChanged) {
+          startPerpsLoadingSession({
+            restart: true,
+            lifecycle: 'network_switch',
+            surface: 'homepage',
+          });
+        }
 
         // User-scoped data must reset on every account switch.
         streamManager.positions.clearCache();
@@ -877,6 +897,7 @@ class PerpsConnectionManagerClass {
           name: TraceName.PerpsConnectionEstablishment,
           id: traceId,
           op: TraceOperation.PerpsOperation,
+          data: getActivePerpsLoadingSessionTraceData(),
         });
 
         DevLogger.log('PerpsConnectionManager: Initializing connection');
@@ -1016,7 +1037,10 @@ class PerpsConnectionManagerClass {
         endTrace({
           name: TraceName.PerpsConnectionEstablishment,
           id: traceId,
-          data: traceData,
+          data: {
+            ...getActivePerpsLoadingSessionTraceData(),
+            ...traceData,
+          },
         });
         this.initPromise = null;
       }
@@ -1086,6 +1110,10 @@ class PerpsConnectionManagerClass {
     const traceId = uuidv4();
     const reconnectionStartTime = performance.now();
     let traceData: Record<string, string | number | boolean> | undefined;
+
+    if (getPerpsLifecycleContext() === 'background_resume') {
+      setPerpsLoadingSessionLifecycle('background_reconnect');
+    }
 
     DevLogger.log(
       'PerpsConnectionManager: Reconnecting with new account/network context',
