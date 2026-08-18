@@ -2651,6 +2651,23 @@ describe('PerpsStreamManager', () => {
       expect(mockGetMarketDataWithPrices).not.toHaveBeenCalled();
       unsubscribe();
     });
+
+    it('does not replay direct channel data after the source changes', async () => {
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
+      const streamManager = new PerpsStreamManager();
+      const first = jest.fn();
+      streamManager.marketData.subscribe({ callback: first });
+      await waitFor(() => expect(first).toHaveBeenCalled());
+
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+      mockGetMarketDataWithPrices.mockResolvedValueOnce(mockGlobalSnapshot);
+      const second = jest.fn();
+      streamManager.marketData.subscribe({ callback: second });
+      expect(second).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(second).toHaveBeenCalledWith(mockGlobalSnapshot),
+      );
+    });
   });
 
   describe('MarketDataChannel race condition prevention', () => {
@@ -5130,6 +5147,30 @@ describe('PerpsStreamManager', () => {
       expect(streamManager.orders.getSnapshot()).toEqual(mockOrders);
       expect(streamManager.account.getSnapshot()).toEqual(mockAccountState);
       expect(mockStorageWrapper.setItem).not.toHaveBeenCalled();
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      expect(getUserDataSnapshot).toHaveBeenCalledTimes(1);
+    });
+
+    it('replaces controller cache with the accepted fresh snapshot', async () => {
+      const cachedPositions = [{ ...mockPositions[0], size: '0.5' }];
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: cachedPositions,
+        orders: mockOrders,
+        accountState: mockAccountState,
+      });
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = jest
+        .fn()
+        .mockResolvedValue(mockAcceptedUserSnapshot);
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      await act(async () => Promise.resolve());
+
+      expect(streamManager.positions.getSnapshot()).toEqual(mockPositions);
     });
 
     it('does not request an atomic user snapshot outside Hyperliquid mode', async () => {
@@ -5230,6 +5271,38 @@ describe('PerpsStreamManager', () => {
         resolveSnapshot(mockAcceptedUserSnapshot);
         await Promise.resolve();
       });
+
+      expect(streamManager.positions.getSnapshot()).toEqual(livePositions);
+    });
+
+    it('does not overwrite a paused live update with an older snapshot', async () => {
+      let resolveSnapshot!: (snapshot: typeof mockAcceptedUserSnapshot) => void;
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = jest.fn(
+        () =>
+          new Promise<typeof mockAcceptedUserSnapshot>((resolve) => {
+            resolveSnapshot = resolve;
+          }),
+      );
+      let positionsCallback!: (positions: Position[]) => void;
+      mockSubscribeToPositions.mockImplementation((params) => {
+        positionsCallback = params.callback;
+        return jest.fn();
+      });
+      const streamManager = new PerpsStreamManager();
+      const livePositions = [{ ...mockPositions[0], size: '3' }];
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+
+      streamManager.positions.pause();
+      positionsCallback(livePositions);
+      await act(async () => {
+        resolveSnapshot(mockAcceptedUserSnapshot);
+        await Promise.resolve();
+      });
+      streamManager.positions.resume();
 
       expect(streamManager.positions.getSnapshot()).toEqual(livePositions);
     });
