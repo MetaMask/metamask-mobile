@@ -18,7 +18,6 @@ import {
 import type { PlanOption } from '../Benefits.constants';
 import { BenefitsTestIds } from '../Benefits.testIds';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
 import { AppThemeKey } from '../../../../../../util/theme/models';
 
@@ -33,8 +32,7 @@ const PlanSelectorCard = ({
   isSelected,
   onPress,
 }: PlanSelectorCardProps) => {
-  const tw = useTailwind();
-  const { colors, themeAppearance } = useTheme();
+  const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
