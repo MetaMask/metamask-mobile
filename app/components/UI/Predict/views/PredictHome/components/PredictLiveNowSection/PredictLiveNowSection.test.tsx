@@ -322,18 +322,8 @@ describe('PredictLiveNowSection', () => {
     expect(mockTrackHomeSectionInteraction).not.toHaveBeenCalled();
   });
 
-  it('renders pagination dots when there are 2+ items after load', () => {
+  it('does not render pagination dots after load', () => {
     setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
-
-    const { getByTestId } = renderSection();
-
-    expect(
-      getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not render pagination dots when there is fewer than 2 items', () => {
-    setSection({ items: [createLiveMarket('L1')] });
 
     const { queryByTestId } = renderSection();
 
