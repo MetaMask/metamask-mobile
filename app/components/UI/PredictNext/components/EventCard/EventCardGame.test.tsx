@@ -285,16 +285,25 @@ describe('EventCardGame', () => {
     ).toHaveTextContent('CAR · 53¢');
   });
 
-  it('counts a linked Market without an Ask Price as more', () => {
+  it('disables a Team action without an Ask Price and counts its Market as more', () => {
     const event = createEvent({
       markets: [
         createMarket('away', 'away', null),
         createMarket('home', 'home', '0.53'),
       ],
     });
+    const onOrder = jest.fn();
 
-    renderCard(event);
+    renderCard(event, { onOrder });
 
+    const awayAction = screen.getByTestId(
+      'predict-next-game-quote-game-event-away',
+    );
+    expect(awayAction).toHaveTextContent('ARI');
+    expect(awayAction).not.toHaveTextContent('¢');
+    expect(awayAction).toBeDisabled();
+    fireEvent.press(awayAction);
+    expect(onOrder).not.toHaveBeenCalled();
     expect(
       screen.getByTestId('predict-next-event-more-game-event'),
     ).toHaveTextContent('+1 more');

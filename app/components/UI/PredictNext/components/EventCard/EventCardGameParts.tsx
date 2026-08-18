@@ -442,12 +442,30 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
   const { event, team, quote, actions, fallbackColor } = useTeam(selection);
   const formattedPrice = formatAskPrice(quote?.outcome.askPrice);
 
-  if (!quote || !formattedPrice) {
+  if (!quote) {
     return null;
   }
 
-  const label = `${getDisplayAbbreviation(team)} · ${formattedPrice}`;
+  const abbreviation = getDisplayAbbreviation(team);
+  const label = formattedPrice
+    ? `${abbreviation} · ${formattedPrice}`
+    : abbreviation;
   const testID = `predict-next-game-quote-${event.id}-${selection}`;
+
+  if (!formattedPrice) {
+    return (
+      <Button
+        testID={testID}
+        variant={ButtonVariant.Secondary}
+        accessibilityLabel={`${team.name}, price unavailable`}
+        size={ButtonSize.Lg}
+        twClassName="w-full px-3"
+        disabled
+      >
+        {label}
+      </Button>
+    );
+  }
 
   if (quote.market.status !== 'active') {
     return (
@@ -489,9 +507,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
 const Actions = () => {
   const { quotes } = useGameCard();
   const selections = (['away', 'home'] as const).filter(
-    (selection) =>
-      quotes[selection] &&
-      formatAskPrice(quotes[selection]?.outcome.askPrice) !== undefined,
+    (selection) => quotes[selection],
   );
 
   return selections.length ? (
