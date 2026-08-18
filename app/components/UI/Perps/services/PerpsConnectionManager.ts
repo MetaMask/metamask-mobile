@@ -30,6 +30,13 @@ import {
   PERPS_CUF_END_REASON,
   PERPS_CUF_STREAM_TIMEOUT_MS,
 } from '../constants/perpsCufTags';
+import {
+  logHomepageConnectionStage,
+  markHomepagePerpsAccountSwitch,
+  markHomepagePerpsNetworkRecovery,
+  markHomepagePerpsNetworkSwitch,
+  markHomepagePerpsProviderSwitch,
+} from '../utils/homepagePerformanceProbe';
 import Logger from '../../../../util/Logger';
 import {
   PERPS_CONSTANTS,
@@ -139,6 +146,14 @@ class PerpsConnectionManagerClass {
         this.previousProvider !== undefined &&
         this.previousProvider !== currentProvider;
       const hasHip3Changed = this.previousHip3Version !== currentHip3Version;
+
+      if (hasAccountChanged) {
+        markHomepagePerpsAccountSwitch();
+      } else if (hasProviderChanged) {
+        markHomepagePerpsProviderSwitch();
+      } else if (hasPerpsNetworkChanged || hasHip3Changed) {
+        markHomepagePerpsNetworkSwitch();
+      }
 
       // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
       if (
@@ -284,6 +299,7 @@ class PerpsConnectionManagerClass {
             netState.isInternetReachable ?? netState.isConnected ?? false;
 
           if (isOnline && this.wasOffline) {
+            markHomepagePerpsNetworkRecovery();
             DevLogger.log(
               'PerpsConnectionManager: Network restored - validating connection',
             );
@@ -879,6 +895,11 @@ class PerpsConnectionManagerClass {
           op: TraceOperation.PerpsOperation,
         });
 
+        logHomepageConnectionStage('connection_attempt_started', {
+          connection_id: traceId,
+          source,
+        });
+
         DevLogger.log('PerpsConnectionManager: Initializing connection');
 
         // Stage 1: Initialize providers
@@ -896,6 +917,11 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+        logHomepageConnectionStage('provider_initialized', {
+          connection_id: traceId,
+          duration_ms: performance.now() - initStart,
+          elapsed_ms: performance.now() - connectionStartTime,
+        });
         // Validate connection with WebSocket health check ping before marking as connected
         // This ensures the WebSocket connection is actually responsive without expensive API calls
         DevLogger.log(
@@ -910,6 +936,11 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+        logHomepageConnectionStage('health_check_completed', {
+          connection_id: traceId,
+          duration_ms: performance.now() - healthCheckStart,
+          elapsed_ms: performance.now() - connectionStartTime,
+        });
         // Check if timeout fired during health check - respect timeout decision.
         // The timeout handler always sets isConnecting=false (even when
         // suppressError is true), so checking that flag detects the timeout
@@ -952,6 +983,10 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+        logHomepageConnectionStage('connection_established', {
+          connection_id: traceId,
+          elapsed_ms: connectionDuration,
+        });
         DevLogger.log('PerpsConnectionManager: Successfully connected');
 
         // Stage 3: Pre-load positions and orders subscriptions to populate cache
@@ -963,6 +998,11 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+        logHomepageConnectionStage('subscriptions_preloaded', {
+          connection_id: traceId,
+          duration_ms: performance.now() - preloadStart,
+          elapsed_ms: performance.now() - connectionStartTime,
+        });
         // Track total connection time including preload (user-perceived performance)
         const totalConnectionDuration = performance.now() - connectionStartTime;
 
@@ -981,6 +1021,10 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+        logHomepageConnectionStage('connection_with_preload_completed', {
+          connection_id: traceId,
+          elapsed_ms: totalConnectionDuration,
+        });
         traceData = {
           success: true,
         };

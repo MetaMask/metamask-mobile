@@ -64,6 +64,7 @@ import {
   getActivePerpsLoadingSessionContext,
   resolvePerpsMarketSource,
 } from '../../../../UI/Perps/utils/perpsLoadingSession';
+import { useHomepagePerpsVisiblePerformance } from './hooks/useHomepagePerpsVisiblePerformance';
 
 /**
  * PerpsSection — single "Perps" section on the homepage.
@@ -86,25 +87,36 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const sectionViewRef = useRef<View>(null);
     const baseTitle = strings('homepage.sections.perps');
     const usesPillsEmptyState = emptyStateContent === 'pills';
-    const { error: connectionError, reconnectWithNewContext } =
-      usePerpsConnection();
+    const {
+      error: connectionError,
+      isConnected,
+      reconnectWithNewContext,
+    } = usePerpsConnection();
     const { track } = usePerpsEventTracking();
     const privacyMode = useSelector(selectPrivacyMode);
 
-    const { positions, isInitialLoading: positionsLoading } =
-      usePerpsLivePositions({
-        throttleMs: HOMEPAGE_THROTTLE_MS,
-      });
+    const {
+      positions,
+      isInitialLoading: positionsLoading,
+      latestDelivery: positionsDelivery,
+    } = usePerpsLivePositions({
+      throttleMs: HOMEPAGE_THROTTLE_MS,
+      includeDeliveryMetadata: true,
+    });
 
     const { account: perpsAccount, isInitialLoading: perpsAccountLoading } =
       usePerpsLiveAccount({
         throttleMs: HOMEPAGE_THROTTLE_MS,
       });
 
-    const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
+    const {
+      orders,
+      isInitialLoading: ordersLoading,
+      latestDelivery: ordersDelivery,
+    } = usePerpsLiveOrders({
       hideTpSl: true,
-      // Orders are low-frequency user state and should render immediately.
       throttleMs: 0,
+      includeDeliveryMetadata: true,
     });
 
     const hookLoading = positionsLoading || ordersLoading;
@@ -139,10 +151,15 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       usesPillsEmptyState && !showSkeleton && !hasItems;
     const shouldLoadMarkets = !shouldShowPillsEmptyState;
 
-    const { markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
-      usePerpsTrendingCarouselData({
-        skipInitialFetch: !shouldLoadMarkets,
-      });
+    const {
+      markets,
+      marketsLoading,
+      allCarouselMarkets,
+      watchlistSymbolSet,
+      marketsDelivery,
+    } = usePerpsTrendingCarouselData({
+      skipInitialFetch: !shouldLoadMarkets,
+    });
     const title =
       shouldShowPillsEmptyState && !connectionError
         ? (emptyStateTitleOverride ?? baseTitle)
@@ -325,6 +342,29 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const accountSource = sessionContext?.accountSource ?? 'unknown';
     const lifecycleContext = getPerpsLifecycleContext();
 
+    const onPerformanceLayout = useHomepagePerpsVisiblePerformance({
+      sectionRef: sectionViewRef,
+      willRender,
+      hasConnectionError: Boolean(connectionError),
+      isConnectionLive: isConnected,
+      contentVariant,
+      itemCount: hasItems
+        ? displayPositions.length + displayOrders.length
+        : showTrending
+          ? allCarouselMarkets.length
+          : 0,
+      positionsCount: positions.length,
+      ordersCount: orders.length,
+      marketsCount: markets.length,
+      positionsDelivery,
+      ordersDelivery,
+      marketsDelivery,
+    });
+    const handleSectionLayout = useCallback(() => {
+      onLayout();
+      onPerformanceLayout();
+    }, [onLayout, onPerformanceLayout]);
+
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
       contentReady: !isLoadingSection,
@@ -370,7 +410,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     if (connectionError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
+        <View ref={sectionViewRef} onLayout={handleSectionLayout}>
           <Box paddingBottom={3}>
             <SectionDivider />
             <SectionHeader
@@ -460,7 +500,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleSectionLayout}>
         {showsVerticalPositions ? (
           sectionContent
         ) : (

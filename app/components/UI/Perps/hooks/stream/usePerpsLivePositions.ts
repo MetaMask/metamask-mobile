@@ -6,6 +6,12 @@ import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import {
+  createHomepagePerpsDelivery,
+  isHomepagePerformanceProbeActive,
+  logHomepagePerformanceStage,
+  type HomepagePerpsDeliveryMetadata,
+} from '../../utils/homepagePerformanceProbe';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -15,6 +21,7 @@ export interface UsePerpsLivePositionsOptions {
   throttleMs?: number;
   /** Whether to subscribe to price updates for live PnL calculations (default: false) */
   useLivePnl?: boolean;
+  includeDeliveryMetadata?: boolean;
 }
 
 export interface UsePerpsLivePositionsReturn {
@@ -22,6 +29,7 @@ export interface UsePerpsLivePositionsReturn {
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  latestDelivery?: HomepagePerpsDeliveryMetadata;
 }
 
 /**
@@ -104,7 +112,11 @@ export function enrichPositionsWithLivePnL(
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
+  const {
+    throttleMs = 0,
+    useLivePnl = false,
+    includeDeliveryMetadata = false,
+  } = options;
   const stream = usePerpsStream();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountAddress,
@@ -133,6 +145,8 @@ export function usePerpsLivePositions(
   const [rawPositionsAddress, setRawPositionsAddress] =
     useState(selectedAddress);
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
+  const [latestDelivery, setLatestDelivery] =
+    useState<HomepagePerpsDeliveryMetadata>();
 
   // Derive enriched positions synchronously to avoid one-frame flash
   // where isInitialLoading is false but positions haven't been enriched yet
@@ -149,14 +163,29 @@ export function usePerpsLivePositions(
   // Subscribe to position updates
   useEffect(() => {
     const unsubscribe = stream.positions.subscribe({
-      callback: (newPositions) => {
+      callback: (newPositions, source) => {
         if (newPositions === null) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
           setIsInitialLoading(true);
           setRawPositions(EMPTY_POSITIONS);
           setRawPositionsAddress(selectedAddress);
+          setLatestDelivery(undefined);
           return;
+        }
+
+        if (
+          includeDeliveryMetadata &&
+          source !== undefined &&
+          isHomepagePerformanceProbeActive()
+        ) {
+          const delivery = createHomepagePerpsDelivery({
+            stream: 'positions',
+            source: source === 'fresh' ? 'fresh_socket' : 'memory_cache',
+            itemCount: newPositions.length,
+          });
+          logHomepagePerformanceStage('subscriber_delivery', delivery);
+          setLatestDelivery(delivery);
         }
 
         if (!hasReceivedFirstUpdate.current) {
@@ -172,12 +201,13 @@ export function usePerpsLivePositions(
         setRawPositionsAddress(selectedAddress);
       },
       throttleMs,
+      ...(includeDeliveryMetadata && { includeDeliverySource: true }),
     });
 
     return () => {
       unsubscribe();
     };
-  }, [selectedAddress, stream, throttleMs]);
+  }, [includeDeliveryMetadata, selectedAddress, stream, throttleMs]);
 
   // Derive the unique set of symbols from the current positions so we only
   // subscribe to the prices we actually need (instead of the full price channel).
@@ -232,5 +262,7 @@ export function usePerpsLivePositions(
     positions,
     isInitialLoading:
       rawPositionsAddress !== selectedAddress || isInitialLoading,
+    latestDelivery:
+      rawPositionsAddress === selectedAddress ? latestDelivery : undefined,
   };
 }

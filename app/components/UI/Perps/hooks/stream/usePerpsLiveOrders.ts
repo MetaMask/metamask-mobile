@@ -4,6 +4,12 @@ import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { isTPSLOrder, type Order } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import {
+  createHomepagePerpsDelivery,
+  isHomepagePerformanceProbeActive,
+  logHomepagePerformanceStage,
+  type HomepagePerpsDeliveryMetadata,
+} from '../../utils/homepagePerformanceProbe';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_ORDERS: Order[] = [];
@@ -15,6 +21,7 @@ export interface UsePerpsLiveOrdersOptions {
   hideTpSl?: boolean;
   /** Filter out all reduce-only orders */
   hideReduceOnly?: boolean;
+  includeDeliveryMetadata?: boolean;
 }
 
 export interface UsePerpsLiveOrdersReturn {
@@ -22,6 +29,7 @@ export interface UsePerpsLiveOrdersReturn {
   orders: Order[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  latestDelivery?: HomepagePerpsDeliveryMetadata;
 }
 
 /**
@@ -37,7 +45,12 @@ export interface UsePerpsLiveOrdersReturn {
 export function usePerpsLiveOrders(
   options: UsePerpsLiveOrdersOptions = {},
 ): UsePerpsLiveOrdersReturn {
-  const { throttleMs = 0, hideTpSl = false, hideReduceOnly = false } = options; // No throttling by default for instant updates
+  const {
+    throttleMs = 0,
+    hideTpSl = false,
+    hideReduceOnly = false,
+    includeDeliveryMetadata = false,
+  } = options;
   const stream = usePerpsStream();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountAddress,
@@ -60,10 +73,12 @@ export function usePerpsLiveOrders(
   });
   const lastOrdersRef = useRef<Order[]>(EMPTY_ORDERS);
   const hasReceivedFirstUpdate = useRef(false);
+  const [latestDelivery, setLatestDelivery] =
+    useState<HomepagePerpsDeliveryMetadata>();
 
   useEffect(() => {
     const unsubscribe = stream.orders.subscribe({
-      callback: (newOrders) => {
+      callback: (newOrders, source) => {
         if (newOrders === null || newOrders === undefined) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
@@ -71,7 +86,22 @@ export function usePerpsLiveOrders(
           lastOrdersRef.current = EMPTY_ORDERS;
           setOrders(EMPTY_ORDERS);
           setOrdersAddress(selectedAddress);
+          setLatestDelivery(undefined);
           return;
+        }
+
+        if (
+          includeDeliveryMetadata &&
+          source !== undefined &&
+          isHomepagePerformanceProbeActive()
+        ) {
+          const delivery = createHomepagePerpsDelivery({
+            stream: 'orders',
+            source: source === 'fresh' ? 'fresh_socket' : 'memory_cache',
+            itemCount: newOrders.length,
+          });
+          logHomepagePerformanceStage('subscriber_delivery', delivery);
+          setLatestDelivery(delivery);
         }
 
         // We have real data now (either empty array or orders)
@@ -96,12 +126,13 @@ export function usePerpsLiveOrders(
         }
       },
       throttleMs,
+      ...(includeDeliveryMetadata && { includeDeliverySource: true }),
     });
 
     return () => {
       unsubscribe();
     };
-  }, [selectedAddress, stream, throttleMs]);
+  }, [includeDeliveryMetadata, selectedAddress, stream, throttleMs]);
 
   // Filter orders based on requested display options
   const filteredOrders = useMemo(() => {
@@ -130,5 +161,7 @@ export function usePerpsLiveOrders(
   return {
     orders: ordersAddress === selectedAddress ? filteredOrders : EMPTY_ORDERS,
     isInitialLoading: ordersAddress !== selectedAddress || isInitialLoading,
+    latestDelivery:
+      ordersAddress === selectedAddress ? latestDelivery : undefined,
   };
 }

@@ -65,11 +65,13 @@ function getEvmAccountFromSelectedAccountGroup() {
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
-  callback: (data: T) => void;
+  callback: (data: T, source?: StreamUpdateSource) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
+  pendingSource?: StreamUpdateSource;
   hasReceivedFirstFreshUpdate?: boolean;
+  includeDeliverySource?: boolean;
   // Symbols this subscriber cares about. When present, the channel can dispatch
   // an update only to subscribers registered for the symbols that changed,
   // instead of iterating every subscriber on every tick. Used by the price channel.
@@ -224,36 +226,43 @@ abstract class StreamChannel<T> {
     updates: T,
     source: StreamUpdateSource,
   ) {
+    const deliver = (data: T, deliverySource: StreamUpdateSource) =>
+      subscriber.includeDeliverySource
+        ? subscriber.callback(data, deliverySource)
+        : subscriber.callback(data);
+
     if (source === 'optimistic') {
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
-      subscriber.callback(updates);
+      subscriber.pendingSource = undefined;
+      deliver(updates, source);
       return;
     }
 
     if (source === 'cache') {
-      subscriber.callback(updates);
+      deliver(updates, source);
       return;
     }
 
     if (!subscriber.hasReceivedFirstFreshUpdate) {
-      subscriber.callback(updates);
+      deliver(updates, source);
       subscriber.hasReceivedFirstFreshUpdate = true;
       return;
     }
 
     // If no throttling (throttleMs is 0 or undefined), notify immediately
     if (!subscriber.throttleMs) {
-      subscriber.callback(updates);
+      deliver(updates, source);
       return;
     }
 
     // For subsequent updates with throttling, use throttle logic
     // Store pending update
     subscriber.pendingUpdate = updates;
+    subscriber.pendingSource = source;
 
     // Throttle pattern: Only set timer if one isn't already running
     // This ensures callbacks fire at most once per throttleMs interval
@@ -261,8 +270,9 @@ abstract class StreamChannel<T> {
     // The conditional check prevents timer accumulation - no memory leaks
     subscriber.timer ??= setTimeout(() => {
       if (subscriber.pendingUpdate) {
-        subscriber.callback(subscriber.pendingUpdate);
+        deliver(subscriber.pendingUpdate, subscriber.pendingSource ?? 'fresh');
         subscriber.pendingUpdate = undefined;
+        subscriber.pendingSource = undefined;
       }
       subscriber.timer = undefined;
     }, subscriber.throttleMs);
@@ -286,8 +296,16 @@ abstract class StreamChannel<T> {
       clearTimeout(subscriber.timer);
       subscriber.timer = undefined;
       if (subscriber.pendingUpdate !== undefined) {
-        subscriber.callback(subscriber.pendingUpdate);
+        if (subscriber.includeDeliverySource) {
+          subscriber.callback(
+            subscriber.pendingUpdate,
+            subscriber.pendingSource ?? 'fresh',
+          );
+        } else {
+          subscriber.callback(subscriber.pendingUpdate);
+        }
         subscriber.pendingUpdate = undefined;
+        subscriber.pendingSource = undefined;
       }
     });
   }
@@ -332,9 +350,10 @@ abstract class StreamChannel<T> {
   }
 
   subscribe(params: {
-    callback: (data: T) => void;
+    callback: (data: T, source?: StreamUpdateSource) => void;
     throttleMs?: number;
     symbols?: string[];
+    includeDeliverySource?: boolean;
   }): () => void {
     const id = Math.random().toString(36);
 
@@ -349,7 +368,11 @@ abstract class StreamChannel<T> {
     // Give immediate cached data if available
     const cached = this.getCachedData();
     if (cached != null) {
-      params.callback(cached);
+      if (params.includeDeliverySource) {
+        params.callback(cached, 'cache');
+      } else {
+        params.callback(cached);
+      }
       // Cached data renders immediately but must not consume the first fresh
       // update exemption. The first live snapshot should also bypass throttling.
     }

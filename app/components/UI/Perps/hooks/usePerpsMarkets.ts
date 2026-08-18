@@ -7,6 +7,29 @@ import {
   getPreloadedData,
 } from './stream/hasCachedPerpsData';
 import { filterAndSortMarkets } from '../utils/filterAndSortMarkets';
+import {
+  createHomepagePerpsDelivery,
+  isHomepagePerformanceProbeActive,
+  logHomepagePerformanceStage,
+  type HomepagePerpsDeliveryMetadata,
+  type HomepagePerpsDeliverySource,
+} from '../utils/homepagePerformanceProbe';
+
+const resolveMarketDeliveryOrigin = (
+  marketData: PerpsMarketData[] | null | undefined,
+): HomepagePerpsDeliverySource => {
+  if (!marketData?.length) return 'unknown';
+  if (
+    marketData.every(
+      (market) => market.dataSource === 'terminal-global-snapshot-mark',
+    )
+  ) {
+    return 'terminal_global_snapshot_v2';
+  }
+  return marketData.every((market) => !market.dataSource)
+    ? 'provider'
+    : 'unknown';
+};
 
 export type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
   volumeNumber: number;
@@ -33,6 +56,7 @@ export interface UsePerpsMarketsResult {
    * Indicates if data is being refreshed
    */
   isRefreshing: boolean;
+  latestDelivery?: HomepagePerpsDeliveryMetadata;
 }
 
 export interface UsePerpsMarketsOptions {
@@ -109,6 +133,8 @@ export const usePerpsMarkets = (
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [latestDelivery, setLatestDelivery] =
+    useState<HomepagePerpsDeliveryMetadata>();
 
   // Helper function to filter and sort markets by volume
   const sortMarketsByVolume = useCallback(
@@ -152,9 +178,22 @@ export const usePerpsMarkets = (
     const subscriptionStartTime = Date.now();
 
     const unsubscribe = streamManager.marketData.subscribe({
-      callback: (marketData) => {
+      callback: (marketData, source) => {
         const receiveTime = Date.now();
         const timeToData = receiveTime - subscriptionStartTime;
+        const originSource = resolveMarketDeliveryOrigin(marketData);
+        const deliverySource =
+          source === 'cache' ? 'memory_cache' : originSource;
+        if (isHomepagePerformanceProbeActive()) {
+          const delivery = createHomepagePerpsDelivery({
+            stream: 'markets',
+            source: deliverySource,
+            itemCount: marketData?.length ?? 0,
+            ...(source === 'cache' && { originSource }),
+          });
+          logHomepagePerformanceStage('subscriber_delivery', delivery);
+          setLatestDelivery(delivery);
+        }
         if (marketData && marketData.length > 0) {
           const sortedMarkets = sortMarketsByVolume(marketData);
           setMarkets(sortedMarkets);
@@ -187,6 +226,7 @@ export const usePerpsMarkets = (
         }
       },
       throttleMs: 0, // No throttle for market data updates
+      includeDeliverySource: true,
     });
 
     return () => {
@@ -215,5 +255,6 @@ export const usePerpsMarkets = (
     error,
     refresh,
     isRefreshing,
+    latestDelivery,
   };
 };
