@@ -26,11 +26,15 @@ describe('useScreenshotDeterrent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedListener = undefined;
-    Device.isAndroid.mockReturnValue(false);
-    addScreenshotListener.mockImplementation((listener) => {
-      capturedListener = listener;
-      return { remove: mockRemove };
-    });
+    jest.mocked(Device.isAndroid).mockReturnValue(false);
+    jest
+      .mocked(addScreenshotListener)
+      .mockImplementation((listener: () => void) => {
+        capturedListener = listener;
+        return { remove: mockRemove } as unknown as ReturnType<
+          typeof addScreenshotListener
+        >;
+      });
   });
 
   it('subscribes to screenshots on iOS', () => {
@@ -40,7 +44,7 @@ describe('useScreenshotDeterrent', () => {
   });
 
   it('does not subscribe on Android, where capture is blocked outright', () => {
-    Device.isAndroid.mockReturnValue(true);
+    jest.mocked(Device.isAndroid).mockReturnValue(true);
 
     renderHook(() => useScreenshotDeterrent(jest.fn()));
 
