@@ -421,11 +421,12 @@ describe('PerpsSection', () => {
     );
 
     expect(mockUseSectionPerformance.mock.calls[0][0]).toEqual(
-      expect.objectContaining({ enabled: false }),
+      expect.objectContaining({ enabled: true, contentReady: false }),
     );
     expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
       expect.objectContaining({
         enabled: true,
+        contentReady: true,
         data: { perps_session_id: 'session-id-1' },
       }),
     );
