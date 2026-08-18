@@ -273,10 +273,15 @@ export class CardController extends BaseController<
   #discardCardHomeDataFromOtherAccount(selectedAddress: string | null): void {
     if (this.state.cardHomeData === null) return;
 
+    // Only a known mismatch is discarded. A cache written before this field
+    // existed has no address, and cannot be silently revalidated either — the
+    // fetch below requires provenance to stay silent — so it is replaced by a
+    // visible fetch rather than being shown as another account's current card.
     const { cardHomeDataAddress } = this.state;
+    if (cardHomeDataAddress === null) return;
+
     const belongsToSelectedAccount =
       selectedAddress !== null &&
-      cardHomeDataAddress !== null &&
       areAddressesEqual(cardHomeDataAddress, selectedAddress);
     if (belongsToSelectedAccount) return;
 

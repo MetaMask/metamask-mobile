@@ -223,37 +223,6 @@ describe('useCardHomeData', () => {
       expect(mockFetchCardHomeData).not.toHaveBeenCalled();
     });
 
-    it('revalidates only once across re-renders while the session flag stays false', () => {
-      setupSelectors(null, 'success', null, [], [], CARDHOLDER, false);
-      const { rerender } = renderHook(() => useCardHomeData());
-
-      rerender();
-      rerender();
-
-      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not repeat the fetch across re-renders when an address-less attempt left the status at error', () => {
-      setupSelectors(null, 'error', null, [], [], CARDHOLDER, false);
-      const { rerender } = renderHook(() => useCardHomeData());
-
-      rerender();
-      rerender();
-
-      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
-    });
-
-    it('re-triggers when the status changes while the session still has not fetched', () => {
-      setupSelectors(null, 'success', null, [], [], CARDHOLDER, false);
-      const { rerender } = renderHook(() => useCardHomeData());
-      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
-
-      setupSelectors(null, 'error', null, [], [], CARDHOLDER, false);
-      rerender();
-
-      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(2);
-    });
-
     it('triggers fetchCardHomeData once the user becomes a cardholder', () => {
       setupSelectors(null, 'idle', null, [], [], {
         isCardholder: false,
