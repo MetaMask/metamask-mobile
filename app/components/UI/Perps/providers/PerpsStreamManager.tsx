@@ -22,6 +22,7 @@ import {
   type OrderFill,
   type AccountState,
   type PerpsMarketData,
+  type PerpsUserDataSnapshot,
   findEvmAccount,
 } from '@metamask/perps-controller';
 import { store } from '../../../../store';
@@ -36,10 +37,7 @@ import {
   buildMarketDataPayload,
   buildUserDataPayload,
 } from '@metamask/perps-controller/utils/perpsDiskPersistence';
-import {
-  buildProviderCacheKey,
-  getProviderNetworkKey,
-} from '@metamask/perps-controller/constants/perpsConfig';
+import { getProviderNetworkKey } from '@metamask/perps-controller/constants/perpsConfig';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import {
@@ -50,6 +48,7 @@ import {
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { getTerminalGlobalSnapshotUrl } from '../constants/terminalApi';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -66,6 +65,7 @@ function getEvmAccountFromSelectedAccountGroup() {
 interface StreamSubscription<T> {
   id: string;
   callback: (data: T) => void;
+  onError?: (error: Error) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
@@ -78,6 +78,21 @@ interface StreamSubscription<T> {
 
 type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic';
 
+interface StreamChannelLifecycle {
+  onSubscribe?: () => void;
+  onDisconnect?: () => void;
+  onClear?: () => void;
+}
+
+type PerpsUserDataBundle = Pick<
+  PerpsUserDataSnapshot,
+  'positions' | 'orders' | 'accountState'
+>;
+type PerpsUserDataBundleCandidate = Omit<
+  PerpsUserDataBundle,
+  'accountState'
+> & { accountState: AccountState | null };
+
 // Base class for any stream type
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
@@ -89,16 +104,23 @@ abstract class StreamChannel<T> {
   protected readonly symbolSubscribers = new Map<string, Set<string>>();
   protected wsSubscription: (() => void) | null = null;
   readonly #onDataPersist?: () => void;
+  readonly #lifecycle?: StreamChannelLifecycle;
 
-  constructor(onDataPersist?: () => void) {
+  constructor(onDataPersist?: () => void, lifecycle?: StreamChannelLifecycle) {
     this.#onDataPersist = onDataPersist;
+    this.#lifecycle = lifecycle;
   }
 
   protected triggerPersist(): void {
     this.#onDataPersist?.();
   }
+
+  protected notifySubscribersOfError(error: Error): void {
+    this.subscribers.forEach((subscriber) => subscriber.onError?.(error));
+  }
   // Track account context to prevent stale data across account switches
   protected accountAddress: string | null = null;
+  protected cacheAccountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
   protected wsConnectionStartTime: number | null = null;
   // Reference count for pause requests. Emission is blocked whenever > 0,
@@ -202,8 +224,6 @@ abstract class StreamChannel<T> {
     updates: T,
     source: StreamUpdateSource,
   ) {
-    // Optimistic state is derived from the latest channel cache, so it
-    // supersedes any older fresh update waiting behind the throttle.
     if (source === 'optimistic') {
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
@@ -214,8 +234,6 @@ abstract class StreamChannel<T> {
       return;
     }
 
-    // Cache-derived updates render immediately but do not consume the first
-    // fresh delivery exemption for the current connection epoch.
     if (source === 'cache') {
       subscriber.callback(updates);
       return;
@@ -315,6 +333,7 @@ abstract class StreamChannel<T> {
 
   subscribe(params: {
     callback: (data: T) => void;
+    onError?: (error: Error) => void;
     throttleMs?: number;
     symbols?: string[];
   }): () => void {
@@ -332,9 +351,10 @@ abstract class StreamChannel<T> {
     const cached = this.getCachedData();
     if (cached != null) {
       params.callback(cached);
-      // Cached data renders immediately but must not consume the first fresh
-      // update exemption. The first live snapshot should also bypass throttling.
+      // Cached data must not consume the first-fresh throttle bypass.
     }
+
+    this.#lifecycle?.onSubscribe?.();
 
     // Ensure WebSocket connected
     this.connect();
@@ -473,6 +493,7 @@ abstract class StreamChannel<T> {
   }
 
   public disconnect() {
+    this.#lifecycle?.onDisconnect?.();
     this.connectRetryCount = 0;
     if (this.deferConnectTimer) {
       clearTimeout(this.deferConnectTimer);
@@ -530,6 +551,31 @@ abstract class StreamChannel<T> {
     return null;
   }
 
+  public seedCache(key: string, data: T): void {
+    this.cache.set(key, data);
+  }
+
+  public setAccountContext(address: string | null): void {
+    this.accountAddress = address;
+    this.cacheAccountAddress = address;
+  }
+
+  protected isAccountContextCurrent(): boolean {
+    if (this.cacheAccountAddress === null) {
+      return false;
+    }
+    const currentAddress =
+      getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase() ?? null;
+    return (
+      currentAddress !== null &&
+      this.cacheAccountAddress.toLowerCase() === currentAddress
+    );
+  }
+
+  public publish(data: T, source: StreamUpdateSource = 'fresh'): void {
+    this.notifySubscribers(data, source);
+  }
+
   public clearCache(): void {
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
@@ -552,10 +598,13 @@ abstract class StreamChannel<T> {
 
     // Reset account context immediately
     this.accountAddress = null;
+    this.cacheAccountAddress = null;
     this.wsConnectionStartTime = null;
+    this.lastDeliveredAt = null;
 
     // Clear the cache
     this.cache.clear();
+    this.#lifecycle?.onClear?.();
 
     // Notify subscribers with cleared data to trigger loading state
     // Using getClearedData() ensures type safety while maintaining loading semantics
@@ -632,8 +681,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // If we have a prewarm subscription, we're already subscribed to all markets
     // No need to create another subscription
     if (this.prewarmUnsubscribe) {
-      // subscribe() already delivered any cached value. The next notification
-      // must come from the live prewarm stream so it keeps the first-live bypass.
+      // subscribe() already delivered cache; preserve the first-live bypass.
       return;
     }
 
@@ -974,6 +1022,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
           return;
         }
         this.accountAddress = currentAccount;
+        this.cacheAccountAddress = currentAccount;
 
         // Track first order data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1028,7 +1077,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   protected getCachedData() {
     const cached = this.cache.get('orders');
     if (cached !== undefined) {
-      return cached;
+      return this.isAccountContextCurrent() ? cached : null;
     }
     const preloaded = getPreloadedData<Order[]>('cachedOrders');
     return preloaded;
@@ -1039,7 +1088,9 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   }
 
   public getSnapshot() {
-    return this.cache.get('orders') ?? null;
+    return this.isAccountContextCurrent()
+      ? (this.cache.get('orders') ?? null)
+      : null;
   }
 
   /**
@@ -1200,6 +1251,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
           return;
         }
         this.accountAddress = currentAccount;
+        this.cacheAccountAddress = currentAccount;
 
         // Track first position data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1248,7 +1300,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
   protected getCachedData() {
     const cached = this.cache.get('positions');
     if (cached !== undefined) {
-      return cached;
+      return this.isAccountContextCurrent() ? cached : null;
     }
     const preloaded = getPreloadedData<Position[]>('cachedPositions');
     return preloaded;
@@ -1259,7 +1311,9 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
   }
 
   public getSnapshot() {
-    return this.cache.get('positions') ?? null;
+    return this.isAccountContextCurrent()
+      ? (this.cache.get('positions') ?? null)
+      : null;
   }
 
   /**
@@ -1502,6 +1556,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
           return;
         }
         this.accountAddress = currentAccount;
+        this.cacheAccountAddress = currentAccount;
 
         // Track first account data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1541,7 +1596,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   protected getCachedData(): AccountState | null {
     const cached = this.cache.get('account');
     if (cached !== undefined) {
-      return cached;
+      return this.isAccountContextCurrent() ? cached : null;
     }
     const preloaded = getPreloadedData<AccountState>('cachedAccountState');
     return preloaded;
@@ -1552,7 +1607,9 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 
   public getSnapshot() {
-    return this.cache.get('account') ?? null;
+    return this.isAccountContextCurrent()
+      ? (this.cache.get('account') ?? null)
+      : null;
   }
 
   public disconnect() {
@@ -1970,41 +2027,63 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
 class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
   private fetchPromise: Promise<void> | null = null;
-  private cachedProviderId: string | null = null;
+  private fetchGeneration = 0;
+  private cachedSourceKey: string | null = null;
+  private readonly terminalGlobalSnapshotUrl: string | undefined;
   private readonly CACHE_DURATION =
     PERFORMANCE_CONFIG.MarketDataCacheDurationMs;
 
+  constructor(onDataPersist?: () => void, terminalGlobalSnapshotUrl?: string) {
+    super(onDataPersist);
+    this.terminalGlobalSnapshotUrl = terminalGlobalSnapshotUrl;
+  }
+
+  private isCompleteGlobalSnapshot(data: PerpsMarketData[]): boolean {
+    return (
+      data.length > 0 &&
+      data.every(
+        (market) => market.dataSource === 'terminal-global-snapshot-mark',
+      )
+    );
+  }
+
+  private getCurrentSourceKey(): string {
+    const controller = Engine.context.PerpsController;
+    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+      store.getState(),
+    );
+    let source = 'direct';
+    if (this.terminalGlobalSnapshotUrl) {
+      source = 'global-snapshot';
+    } else if (terminalEnabled) {
+      source = 'terminal';
+    }
+    return `${getProviderNetworkKey(controller.state)}:${source}`;
+  }
+
   protected connect() {
-    if (!this.ensureReady()) return;
+    const hasGlobalSnapshot = Boolean(this.terminalGlobalSnapshotUrl);
+    if (!hasGlobalSnapshot && !this.ensureReady()) return;
 
     // Check if connection manager is still connecting - retry later if so
-    if (PerpsConnectionManager.isCurrentlyConnecting()) {
+    if (!hasGlobalSnapshot && PerpsConnectionManager.isCurrentlyConnecting()) {
       this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
       return;
     }
 
-    // Get current provider ID + network + terminal flag as a composite key.
-    // Network changes (testnet toggle) and terminal backend flag changes must
-    // also invalidate the market cache so a HyperLiquid-sourced response is
-    // never served after the flag flips to Terminal (and vice-versa).
+    // Provider, network, and configured source form one cache identity.
     const controller = Engine.context.PerpsController;
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
-      store.getState(),
-    );
-    const currentNetworkKey = `${buildProviderCacheKey(
-      currentProviderId,
-      controller.state?.isTestnet ?? false,
-    )}:${terminalEnabled ? 'terminal' : 'direct'}`;
+    const currentSourceKey = this.getCurrentSourceKey();
 
     // Invalidate cache if provider, network, OR terminal flag changed
-    if (this.cachedProviderId && this.cachedProviderId !== currentNetworkKey) {
+    if (this.cachedSourceKey && this.cachedSourceKey !== currentSourceKey) {
       DevLogger.log(
         'PerpsStreamManager: Provider/network/flag changed, invalidating cache',
         {
-          from: this.cachedProviderId,
-          to: currentNetworkKey,
+          from: this.cachedSourceKey,
+          to: currentSourceKey,
         },
       );
       this.cache.delete('markets');
@@ -2024,7 +2103,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         providerId: currentProviderId,
       });
       // Don't await - just trigger the fetch and handle errors
-      this.fetchMarketData().catch((error) => {
+      this.fetchMarketData(cached !== undefined).catch((error) => {
         Logger.error(
           ensureError(error, 'PerpsStreamManager.fetchMarketData.background'),
           'PerpsStreamManager: Failed to fetch market data',
@@ -2043,15 +2122,16 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     }
   }
 
-  private async fetchMarketData(): Promise<void> {
+  private async fetchMarketData(skipControllerCache = false): Promise<void> {
     // Prevent concurrent fetches
     if (this.fetchPromise) {
       await this.fetchPromise;
       return;
     }
 
-    this.fetchPromise = (async () => {
+    const request = (async () => {
       const fetchStartTime = Date.now();
+      const fetchGeneration = this.fetchGeneration;
       try {
         const controller = Engine.context.PerpsController;
 
@@ -2059,31 +2139,26 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
           store.getState(),
         );
-        const terminalSuffix = terminalEnabled ? 'terminal' : 'direct';
+        const sourceKey = this.getCurrentSourceKey();
 
         // One-time read of controller-level preloaded cache (REST snapshot).
         // This avoids an HTTP round-trip when the controller already has fresh data.
         // Include terminal flag in the key so a flag flip forces a fresh fetch.
-        const controllerNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
+        const controllerNetworkKey = sourceKey;
 
-        // The controller's preload cache (cachedMarketDataByProvider) is keyed only
-        // by provider/network and is ALWAYS sourced from the direct provider — its
-        // background preload calls getMarketDataWithPrices() without useTerminalApi,
-        // so it never contains Terminal-API data. It is therefore only safe to adopt
-        // when the Terminal backend is disabled. Adopting it while Terminal is enabled
-        // (e.g. after a flag flip, or on startup if preload ran before the remote flag
-        // settled) would serve direct HyperLiquid data and cache it as Terminal data
-        // (or the reverse). When the source can't be guaranteed to match, skip the
-        // preloaded cache and fetch fresh market data below.
-        const controllerCacheSourceMatches = !terminalEnabled;
-        const cachedForProvider = controllerCacheSourceMatches
-          ? controller.getCachedMarketDataForActiveProvider?.()
-          : undefined;
+        const cachedForProvider =
+          controller.getCachedMarketDataForActiveProvider?.();
+        const controllerCacheSourceMatches = this.terminalGlobalSnapshotUrl
+          ? Array.isArray(cachedForProvider) &&
+            this.isCompleteGlobalSnapshot(cachedForProvider)
+          : !terminalEnabled;
         if (
+          !skipControllerCache &&
+          controllerCacheSourceMatches &&
           cachedForProvider &&
           cachedForProvider.length > 0 &&
-          (!this.cachedProviderId ||
-            this.cachedProviderId === controllerNetworkKey)
+          (!this.cachedSourceKey ||
+            this.cachedSourceKey === controllerNetworkKey)
         ) {
           DevLogger.log(
             'PerpsStreamManager: Using controller preloaded market data',
@@ -2093,7 +2168,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           );
           this.cache.set('markets', cachedForProvider);
           this.lastFetchTime = Date.now();
-          this.cachedProviderId = controllerNetworkKey;
+          this.cachedSourceKey = controllerNetworkKey;
           this.notifySubscribers(cachedForProvider, 'cache');
           return;
         }
@@ -2105,19 +2180,20 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         // Snapshot provider + network + flag BEFORE the async call to avoid race conditions.
         // If the user switches providers, toggles testnet, or the terminal flag flips while
         // getMarketDataWithPrices() is in-flight, we must not cache data under the new key.
-        const preFetchNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
+        const preFetchNetworkKey = sourceKey;
 
         const data = await controller.getMarketDataWithPrices({
           useTerminalApi: terminalEnabled,
+          ...(this.terminalGlobalSnapshotUrl ? { standalone: true } : {}),
         });
         const fetchTime = Date.now() - fetchStartTime;
 
         // If provider, network, or terminal flag changed during fetch, discard stale data
-        const postTerminalEnabled = selectPerpsTerminalBackendEnabledFlag(
-          store.getState(),
-        );
-        const postFetchNetworkKey = `${getProviderNetworkKey(controller.state)}:${postTerminalEnabled ? 'terminal' : 'direct'}`;
-        if (preFetchNetworkKey !== postFetchNetworkKey) {
+        const postFetchNetworkKey = this.getCurrentSourceKey();
+        if (
+          preFetchNetworkKey !== postFetchNetworkKey ||
+          fetchGeneration !== this.fetchGeneration
+        ) {
           DevLogger.log(
             'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
             {
@@ -2131,8 +2207,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         // Update cache and track which provider+network this data came from
         this.cache.set('markets', data);
         this.lastFetchTime = Date.now();
-        this.cachedProviderId = preFetchNetworkKey;
-
+        this.cachedSourceKey = preFetchNetworkKey;
         // Notify all subscribers
         this.notifySubscribers(data);
         this.triggerPersist();
@@ -2140,18 +2215,22 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         DevLogger.log('PerpsStreamManager: Market data fetched and cached', {
           marketCount: data.length,
           fetchTimeMs: fetchTime,
-          providerId: this.cachedProviderId,
+          providerId: this.cachedSourceKey,
           cacheValidUntil: new Date(
             Date.now() + this.CACHE_DURATION,
           ).toISOString(),
         });
       } catch (error) {
+        const safeError = ensureError(
+          error,
+          'PerpsStreamManager.fetchMarketData',
+        );
         const fetchTime = Date.now() - fetchStartTime;
         const existing = this.cache.get('markets');
         const cacheStalenessMs = this.lastFetchTime
           ? Date.now() - this.lastFetchTime
           : null;
-        Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
+        Logger.error(safeError, {
           tags: {
             feature: PERPS_CONSTANTS.FeatureName,
           },
@@ -2176,12 +2255,19 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           );
           this.notifySubscribers(existing, 'cache');
         }
-      } finally {
-        this.fetchPromise = null;
+        this.notifySubscribersOfError(safeError);
+        throw safeError;
       }
     })();
 
-    await this.fetchPromise;
+    this.fetchPromise = request;
+    try {
+      await request;
+    } finally {
+      if (this.fetchPromise === request) {
+        this.fetchPromise = null;
+      }
+    }
   }
 
   /**
@@ -2189,31 +2275,33 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
    */
   public async refresh(): Promise<void> {
     this.lastFetchTime = 0; // Force cache to be considered stale
-    await this.fetchMarketData();
+    await this.fetchMarketData(true);
   }
 
   protected getCachedData(): PerpsMarketData[] | null {
-    // Return channel cache if available (from previous fetch)
     const cached = this.cache.get('markets');
-    if (cached !== undefined) {
+    if (
+      cached !== undefined &&
+      this.cachedSourceKey === this.getCurrentSourceKey()
+    ) {
       return cached;
     }
 
-    // Fallback: read per-provider cache via helper. The controller's preload cache
-    // is always direct-sourced (its preload never passes useTerminalApi), so only
-    // serve it synchronously when the Terminal backend is disabled — otherwise we'd
-    // surface direct HyperLiquid data while in Terminal mode. When Terminal is
-    // enabled, return null so callers wait for a source-correct fetch instead.
+    // Only a source-marked atomic snapshot is safe under the v2 or legacy
+    // Terminal modes. Direct/unknown data must wait for a source-correct fetch.
     const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
       store.getState(),
     );
-    if (terminalEnabled) {
-      return null;
-    }
-
     const controller = Engine.context.PerpsController;
     const fromController =
       controller.getCachedMarketDataForActiveProvider?.() ?? null;
+    if (
+      (this.terminalGlobalSnapshotUrl || terminalEnabled) &&
+      fromController !== null &&
+      !this.isCompleteGlobalSnapshot(fromController)
+    ) {
+      return null;
+    }
     return fromController;
   }
 
@@ -2222,7 +2310,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   }
 
   public getSnapshot() {
-    return this.cache.get('markets') ?? null;
+    return this.getCachedData();
   }
 
   /**
@@ -2231,7 +2319,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
    */
   public prewarm(): () => void {
     // Fetch data immediately to populate cache
-    this.fetchMarketData().catch((error) => {
+    this.fetchMarketData(this.cache.has('markets')).catch((error) => {
       Logger.error(ensureError(error, 'MarketDataChannel.prewarm'), {
         context: 'MarketDataChannel.prewarm',
       });
@@ -2252,12 +2340,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
    * reset so the next fetch result is delivered immediately.
    */
   public clearCache(preserveCache = false): void {
+    this.fetchGeneration += 1;
     this.fetchPromise = null;
 
     if (!preserveCache) {
       this.cache.clear();
       this.lastFetchTime = 0;
-      this.cachedProviderId = null;
+      this.cachedSourceKey = null;
     }
 
     this.subscribers.forEach((subscriber) => {
@@ -2277,20 +2366,40 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
 // Main manager class
 export class PerpsStreamManager {
+  private marketDiskWriteTime = 0;
+  private userDiskWriteTime = 0;
+  private userDataSnapshotPromise: Promise<void> | null = null;
+  private userDataSnapshotRequestKey: string | null = null;
+  private acceptedUserDataSnapshotKey: string | null = null;
+  private userDataSnapshotGeneration = 0;
+  private readonly accountSnapshotLifecycle: StreamChannelLifecycle = {
+    onSubscribe: () => {
+      this.requestUserDataSnapshot();
+    },
+    onDisconnect: () => {
+      this.userDataSnapshotGeneration += 1;
+    },
+    onClear: () => {
+      this.userDataSnapshotGeneration += 1;
+      this.acceptedUserDataSnapshotKey = null;
+    },
+  };
+
   public readonly prices = new PriceStreamChannel();
-  public readonly orders = new OrderStreamChannel(() =>
-    this.persistUserDataToDisk(),
+  public readonly orders = new OrderStreamChannel(
+    () => this.persistUserDataToDisk(),
+    this.accountSnapshotLifecycle,
   );
-  public readonly positions = new PositionStreamChannel(() =>
-    this.persistUserDataToDisk(),
+  public readonly positions = new PositionStreamChannel(
+    () => this.persistUserDataToDisk(),
+    this.accountSnapshotLifecycle,
   );
   public readonly fills = new FillStreamChannel();
-  public readonly account = new AccountStreamChannel(() =>
-    this.persistUserDataToDisk(),
+  public readonly account = new AccountStreamChannel(
+    () => this.persistUserDataToDisk(),
+    this.accountSnapshotLifecycle,
   );
-  public readonly marketData = new MarketDataChannel(() =>
-    this.persistMarketDataToDisk(),
-  );
+  public readonly marketData: MarketDataChannel;
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
   public readonly focusedPrice = new FocusedPriceStreamChannel();
@@ -2298,9 +2407,136 @@ export class PerpsStreamManager {
     () => PerpsConnectionManager.getConnectionState().isInitialized,
   );
 
-  // Disk cache throttle timestamps
-  private marketDiskWriteTime = 0;
-  private userDiskWriteTime = 0;
+  constructor(terminalGlobalSnapshotUrl?: string) {
+    this.marketData = new MarketDataChannel(
+      () => this.persistMarketDataToDisk(),
+      terminalGlobalSnapshotUrl,
+    );
+  }
+
+  private getUserDataSnapshotKey(): string | null {
+    const address = getEvmAccountFromSelectedAccountGroup()?.address;
+    if (!address) {
+      return null;
+    }
+    const state = Engine.context.PerpsController.state;
+    return [
+      state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider,
+      state.isTestnet ? 'testnet' : 'mainnet',
+      state.hip3ConfigVersion ?? 0,
+      address.toLowerCase(),
+    ].join('|');
+  }
+
+  private isCompleteUserDataSnapshot(
+    snapshot: PerpsUserDataBundleCandidate | null,
+  ): snapshot is PerpsUserDataBundle {
+    return (
+      snapshot !== null &&
+      Array.isArray(snapshot.positions) &&
+      Array.isArray(snapshot.orders) &&
+      snapshot.accountState !== null &&
+      typeof snapshot.accountState === 'object'
+    );
+  }
+
+  private publishUserDataSnapshot(
+    snapshot: PerpsUserDataBundle,
+    source: Extract<StreamUpdateSource, 'cache' | 'fresh'>,
+  ): void {
+    const address = getEvmAccountFromSelectedAccountGroup()?.address ?? null;
+    this.positions.setAccountContext(address);
+    this.orders.setAccountContext(address);
+    this.account.setAccountContext(address);
+    this.positions.seedCache('positions', snapshot.positions);
+    this.orders.seedCache('orders', snapshot.orders);
+    this.account.seedCache('account', snapshot.accountState);
+
+    this.positions.publish(snapshot.positions, source);
+    this.orders.publish(snapshot.orders, source);
+    this.account.publish(snapshot.accountState, source);
+    this.positions.flushThrottledDeliveries();
+    this.orders.flushThrottledDeliveries();
+    this.account.flushThrottledDeliveries();
+  }
+
+  private requestUserDataSnapshot(): Promise<void> {
+    const controller = Engine.context.PerpsController;
+    if (typeof controller.getUserDataSnapshot !== 'function') {
+      return Promise.resolve();
+    }
+
+    const requestKey = this.getUserDataSnapshotKey();
+    if (!requestKey) {
+      return Promise.resolve();
+    }
+    if (this.acceptedUserDataSnapshotKey === requestKey) {
+      return Promise.resolve();
+    }
+
+    const liveDeliveryBaseline = [
+      this.positions.getLastDeliveredAt(),
+      this.orders.getLastDeliveredAt(),
+      this.account.getLastDeliveredAt(),
+    ];
+    if (
+      this.acceptedUserDataSnapshotKey !== requestKey &&
+      liveDeliveryBaseline.every((deliveredAt) => deliveredAt === null)
+    ) {
+      const cachedSnapshot =
+        controller.getCachedUserDataForActiveProvider?.({ skipTTL: true }) ??
+        null;
+      if (this.isCompleteUserDataSnapshot(cachedSnapshot)) {
+        this.publishUserDataSnapshot(cachedSnapshot, 'cache');
+        this.acceptedUserDataSnapshotKey = requestKey;
+      }
+    }
+
+    if (
+      this.userDataSnapshotPromise &&
+      this.userDataSnapshotRequestKey === requestKey
+    ) {
+      return this.userDataSnapshotPromise;
+    }
+    const requestGeneration = this.userDataSnapshotGeneration;
+    const request = controller
+      .getUserDataSnapshot()
+      .then((snapshot) => {
+        const hasNewerLiveDelivery = [
+          this.positions.getLastDeliveredAt(),
+          this.orders.getLastDeliveredAt(),
+          this.account.getLastDeliveredAt(),
+        ].some(
+          (deliveredAt, index) => deliveredAt !== liveDeliveryBaseline[index],
+        );
+        if (
+          hasNewerLiveDelivery ||
+          this.userDataSnapshotGeneration !== requestGeneration ||
+          this.getUserDataSnapshotKey() !== requestKey ||
+          !this.isCompleteUserDataSnapshot(snapshot)
+        ) {
+          return;
+        }
+
+        this.publishUserDataSnapshot(snapshot, 'fresh');
+        this.acceptedUserDataSnapshotKey = requestKey;
+      })
+      .catch((error) => {
+        Logger.error(
+          ensureError(error, 'PerpsStreamManager.getUserDataSnapshot'),
+          { context: 'PerpsStreamManager.getUserDataSnapshot' },
+        );
+      })
+      .finally(() => {
+        if (this.userDataSnapshotPromise === request) {
+          this.userDataSnapshotPromise = null;
+          this.userDataSnapshotRequestKey = null;
+        }
+      });
+    this.userDataSnapshotPromise = request;
+    this.userDataSnapshotRequestKey = requestKey;
+    return request;
+  }
 
   resetDiskCacheThrottles(): void {
     this.marketDiskWriteTime = 0;
@@ -2355,6 +2591,9 @@ export class PerpsStreamManager {
     if (!positions || !orders || !account) return;
 
     const { activeProvider, isTestnet } = Engine.context.PerpsController.state;
+    if (activeProvider === 'hyperliquid') {
+      return;
+    }
     const payload = buildUserDataPayload(
       positions,
       orders,
@@ -2391,11 +2630,12 @@ export class PerpsStreamManager {
     this.topOfBook.reconnect();
     this.focusedPrice.reconnect();
     this.candles.reconnect();
+    this.requestUserDataSnapshot();
   }
 }
 
 // Singleton instance
-const streamManager = new PerpsStreamManager();
+const streamManager = new PerpsStreamManager(getTerminalGlobalSnapshotUrl());
 
 // Export singleton for pre-warming in PerpsConnectionManager
 export const getStreamManagerInstance = () => streamManager;

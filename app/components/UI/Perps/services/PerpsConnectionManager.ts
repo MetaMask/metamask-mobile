@@ -187,16 +187,21 @@ class PerpsConnectionManagerClass {
           !hasPerpsNetworkChanged &&
           !hasHip3Changed;
 
-        // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
+        // User-scoped data must reset on every account switch.
         streamManager.positions.clearCache();
         streamManager.orders.clearCache();
         streamManager.account.clearCache();
-        streamManager.prices.clearCache();
-        streamManager.marketData.clearCache(accountOnly);
-        streamManager.oiCaps.clearCache();
         streamManager.fills.clearCache();
-        streamManager.topOfBook.clearCache();
-        streamManager.candles.clearCache();
+
+        // Global market state is account-independent. Preserve it for an
+        // account-only switch; provider/network/DEX changes invalidate it.
+        if (!accountOnly) {
+          streamManager.prices.clearCache();
+          streamManager.marketData.clearCache();
+          streamManager.oiCaps.clearCache();
+          streamManager.topOfBook.clearCache();
+          streamManager.candles.clearCache();
+        }
 
         // Reset throttle so the next data arrival persists immediately
         streamManager.resetDiskCacheThrottles();
@@ -891,7 +896,6 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-
         // Validate connection with WebSocket health check ping before marking as connected
         // This ensures the WebSocket connection is actually responsive without expensive API calls
         DevLogger.log(
@@ -906,7 +910,6 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-
         // Check if timeout fired during health check - respect timeout decision.
         // The timeout handler always sets isConnecting=false (even when
         // suppressError is true), so checking that flag detects the timeout
@@ -949,7 +952,6 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-
         DevLogger.log('PerpsConnectionManager: Successfully connected');
 
         // Stage 3: Pre-load positions and orders subscriptions to populate cache
@@ -961,7 +963,6 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-
         // Track total connection time including preload (user-perceived performance)
         const totalConnectionDuration = performance.now() - connectionStartTime;
 
@@ -980,7 +981,6 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-
         traceData = {
           success: true,
         };
@@ -1134,15 +1134,17 @@ class PerpsConnectionManagerClass {
       const skipMarketNotify = this.pendingSkipMarketNotify;
       this.pendingSkipMarketNotify = false;
 
-      streamManager.prices.clearCache();
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
-      streamManager.marketData.clearCache(skipMarketNotify);
-      streamManager.oiCaps.clearCache();
       streamManager.fills.clearCache();
-      streamManager.topOfBook.clearCache();
-      streamManager.candles.clearCache();
+      if (!skipMarketNotify) {
+        streamManager.prices.clearCache();
+        streamManager.marketData.clearCache();
+        streamManager.oiCaps.clearCache();
+        streamManager.topOfBook.clearCache();
+        streamManager.candles.clearCache();
+      }
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionCleanup,
         performance.now() - cleanupStart,

@@ -45,7 +45,10 @@ import {
 } from '../utils/formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
-import { TERMINAL_API_URLS } from '../constants/terminalApi';
+import {
+  getTerminalGlobalSnapshotUrl,
+  resolveTerminalApiUrl,
+} from '../constants/terminalApi';
 
 /**
  * Resolves the Terminal API base URL based on build environment.
@@ -57,22 +60,10 @@ import { TERMINAL_API_URLS } from '../constants/terminalApi';
  * - all other environments (local, undefined, etc.) → UAT
  */
 export function getTerminalApiUrl(): string {
-  const env = process.env.METAMASK_ENVIRONMENT;
-
-  if (env === 'dev' || env === 'test' || env === 'e2e') {
-    return TERMINAL_API_URLS.DEV;
-  }
-
-  // Beta builds target UAT (except dev/test/e2e which are handled above).
-  if (process.env.METAMASK_BUILD_TYPE === 'beta') {
-    return TERMINAL_API_URLS.UAT;
-  }
-
-  if (env === 'production' || env === 'rc') {
-    return TERMINAL_API_URLS.PRD;
-  }
-
-  return TERMINAL_API_URLS.UAT;
+  return resolveTerminalApiUrl(
+    process.env.METAMASK_ENVIRONMENT,
+    process.env.METAMASK_BUILD_TYPE,
+  );
 }
 
 /**
@@ -233,6 +224,11 @@ export function createMobileClientConfig(): PerpsControllerConfig {
  * Controller access uses messenger pattern (messenger.call()).
  */
 export function createMobileInfrastructure(): PerpsPlatformDependencies {
+  const terminalMarketDataUrl = getTerminalApiUrl();
+  const terminalGlobalSnapshotUrl = getTerminalGlobalSnapshotUrl(
+    terminalMarketDataUrl,
+  );
+
   return {
     // === Observability (stateless utilities) ===
     logger: {
@@ -331,7 +327,10 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     },
 
     // === Terminal API (preferred market data source with HyperLiquid fallback) ===
-    terminalApiUrl: getTerminalApiUrl(),
+    terminalApi: {
+      marketDataUrl: terminalMarketDataUrl,
+      globalSnapshotUrl: terminalGlobalSnapshotUrl,
+    },
 
     // === Rewards (DI — no RewardsController in Core yet) ===
     rewards: {
