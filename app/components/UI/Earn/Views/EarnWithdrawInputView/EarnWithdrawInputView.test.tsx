@@ -1056,6 +1056,16 @@ describe('EarnWithdrawInputView', () => {
           earnToken: trxEarnToken,
           outputToken: trxEarnToken,
         })),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+        earnTokens: [],
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokens: [],
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        earnableTotalFiatNumber: 0,
+        earnableTotalFiatFormatted: '$0',
       }));
 
       render(EarnWithdrawInputView, tronToken);
