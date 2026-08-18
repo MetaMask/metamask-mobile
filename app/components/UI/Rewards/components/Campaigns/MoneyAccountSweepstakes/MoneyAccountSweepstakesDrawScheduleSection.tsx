@@ -21,6 +21,7 @@ import {
   formatCampaignDateRange,
   getCampaignStatus,
 } from '../CampaignTile.utils';
+import { formatUsd } from '../../../utils/formatUtils';
 import {
   ENTRIES_COUNT_PLACEHOLDER,
   WEEK_NUMBER_PLACEHOLDER,
@@ -36,84 +37,11 @@ export const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS = {
 interface MoneyAccountSweepstakesDrawScheduleSectionProps {
   campaigns: CampaignDto[];
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
-  activeCampaignId?: string | null;
   entryCount?: number;
   isParticipating?: boolean;
-  /** Prototype-only: derive consecutive weeks when the backend returns fewer rows. */
-  minimumWeekCount?: number;
-  /** Prototype-only: show Week 1 complete and Week 2 active in the current window. */
-  anchorToCurrentWeek?: boolean;
   /** Open draw-proof sheet outside ScrollView (parent mounts the modal). */
   onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
 }
-
-const buildPrototypeWeeks = (
-  campaigns: CampaignDto[],
-  minimumWeekCount: number,
-): CampaignDto[] => {
-  if (campaigns.length === 0 || campaigns.length >= minimumWeekCount) {
-    return campaigns;
-  }
-
-  const result = [...campaigns];
-  const fallbackDurationMs = 7 * 24 * 60 * 60 * 1000;
-
-  while (result.length < minimumWeekCount) {
-    const previous = result[result.length - 1];
-    const previousStart = new Date(previous.startDate).getTime();
-    const previousEnd = new Date(previous.endDate).getTime();
-    const durationMs = Math.max(
-      previousEnd - previousStart,
-      fallbackDurationMs,
-    );
-    const startDate = new Date(previousEnd);
-    const endDate = new Date(previousEnd + durationMs);
-
-    result.push({
-      ...previous,
-      id: `${previous.id}-prototype-week-${result.length + 1}`,
-      name: `Week ${result.length + 1}`,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    });
-  }
-
-  return result;
-};
-
-const anchorWeeksToCurrentDate = (
-  campaigns: CampaignDto[],
-  activeCampaignId?: string | null,
-  now: Date = new Date(),
-): CampaignDto[] => {
-  const dayMs = 24 * 60 * 60 * 1000;
-  const weekMs = 7 * dayMs;
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
-  const firstStartMs = today.getTime() - weekMs;
-
-  const activeCampaignIndex = activeCampaignId
-    ? campaigns.findIndex((campaign) => campaign.id === activeCampaignId)
-    : -1;
-
-  return campaigns.map((campaign, index) => {
-    let id = campaign.id;
-    if (activeCampaignIndex >= 0 && activeCampaignIndex !== 1) {
-      if (index === activeCampaignIndex) {
-        id = `${campaign.id}-prototype-complete-week-1`;
-      } else if (index === 1 && activeCampaignId) {
-        id = activeCampaignId;
-      }
-    }
-
-    return {
-      ...campaign,
-      id,
-      startDate: new Date(firstStartMs + index * weekMs).toISOString(),
-      endDate: new Date(firstStartMs + (index + 1) * weekMs).toISOString(),
-    };
-  });
-};
 
 const formatWeekTitle = (
   weekTitleTemplate: string,
@@ -125,7 +53,6 @@ interface WeekRowProps {
   campaign: CampaignDto;
   weekNumber: number;
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
-  forceCompleteLabel?: boolean;
   entryCount?: number;
   isParticipating?: boolean;
   onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
@@ -135,7 +62,6 @@ const WeekRow: React.FC<WeekRowProps> = ({
   campaign,
   weekNumber,
   localizedText,
-  forceCompleteLabel = false,
   entryCount,
   isParticipating = false,
   onOpenDrawProof,
@@ -145,9 +71,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
     campaign.id,
     status === 'complete',
   );
-  const { prizePool } = useGetMoneyAccountSweepstakesPrizePool(
-    status === 'active' ? campaign.id : undefined,
-  );
+  const { prizePool } = useGetMoneyAccountSweepstakesPrizePool(campaign.id);
 
   const weekTitle = formatWeekTitle(localizedText.weekTitle, weekNumber);
   const dateRange = formatCampaignDateRange(
@@ -163,10 +87,10 @@ const WeekRow: React.FC<WeekRowProps> = ({
   }, [drawProof, onOpenDrawProof]);
 
   const rowTestId = `${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WEEK_ROW}-${campaign.id}`;
-  const prizePoolAmount = prizePool?.unlockedPoolUsd ?? 2500;
-  const formattedPrizePoolAmount = Math.round(prizePoolAmount)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const formattedPrizePoolAmount =
+    prizePool?.unlockedPoolUsd != null
+      ? formatUsd(prizePool.unlockedPoolUsd)
+      : null;
   const prizePoolLabel = localizedText.prizePoolLabel;
 
   if (status === 'complete') {
@@ -187,14 +111,16 @@ const WeekRow: React.FC<WeekRowProps> = ({
             </Text>
           </Box>
           <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {forceCompleteLabel ? '$5,000' : `$${formattedPrizePoolAmount}`}
-            </Text>
+            {formattedPrizePoolAmount != null && (
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {formattedPrizePoolAmount}
+              </Text>
+            )}
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              {hasProof || forceCompleteLabel
+              {hasProof
                 ? localizedText.awardedLabel
                 : localizedText.drawPendingTitle}
             </Text>
@@ -230,9 +156,11 @@ const WeekRow: React.FC<WeekRowProps> = ({
           </Text>
         </Box>
         <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            ${formattedPrizePoolAmount}
-          </Text>
+          {formattedPrizePoolAmount != null && (
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {formattedPrizePoolAmount}
+            </Text>
+          )}
           {isParticipating ? (
             <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
               {localizedText.entriesCountValue.replace(
@@ -264,9 +192,11 @@ const WeekRow: React.FC<WeekRowProps> = ({
         </Text>
       </Box>
       <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          $2,500
-        </Text>
+        {formattedPrizePoolAmount != null && (
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {formattedPrizePoolAmount}
+          </Text>
+        )}
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {prizePoolLabel}
         </Text>
@@ -280,21 +210,13 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
 > = ({
   campaigns,
   localizedText,
-  activeCampaignId,
   entryCount,
   isParticipating,
-  minimumWeekCount = campaigns.length,
-  anchorToCurrentWeek = false,
   onOpenDrawProof,
 }) => {
   if (campaigns.length === 0) {
     return null;
   }
-
-  const prototypeCampaigns = buildPrototypeWeeks(campaigns, minimumWeekCount);
-  const displayCampaigns = anchorToCurrentWeek
-    ? anchorWeeksToCurrentDate(prototypeCampaigns, activeCampaignId)
-    : prototypeCampaigns;
 
   return (
     <Box
@@ -310,13 +232,12 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
         </Text>
       </Box>
 
-      {displayCampaigns.map((campaign, index) => (
+      {campaigns.map((campaign, index) => (
         <React.Fragment key={campaign.id}>
           <WeekRow
             campaign={campaign}
             weekNumber={index + 1}
             localizedText={localizedText}
-            forceCompleteLabel={anchorToCurrentWeek && index === 0}
             entryCount={entryCount}
             isParticipating={isParticipating}
             onOpenDrawProof={onOpenDrawProof}

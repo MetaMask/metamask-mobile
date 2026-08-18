@@ -25,8 +25,6 @@ export function useCampaignReminderActions(
 ): {
   showRemindMeCta: boolean;
   handleRemindMePress: () => Promise<void>;
-  areNotificationsEnabled: boolean;
-  subscribeToReminder: (showSuccessToast?: boolean) => void;
 } {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -58,59 +56,47 @@ export function useCampaignReminderActions(
       (!areNotificationsEnabled || !isSubscribed),
   );
 
-  const subscribeToReminder = useCallback(
-    (showSuccessToast = true) => {
-      if (!subscriptionId || !campaign.id) {
-        return;
-      }
-      if (isSubscribed) {
-        return;
-      }
-      dispatch(
-        subscribeCampaignReminder({
-          subscriptionId,
-          campaignId: campaign.id,
-        }),
-      );
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
-        )
-          .addProperties({
-            campaign_id: campaign.id,
-            campaign_starts_at: campaign.startDate,
-          })
-          .build(),
-      );
-      if (showSuccessToast) {
-        showToast(
-          RewardsToastOptions.success(
-            strings('rewards.campaign.remind_me_success_toast'),
-          ),
-        );
-      }
-    },
-    [
-      subscriptionId,
-      campaign.id,
-      campaign.startDate,
-      isSubscribed,
-      dispatch,
-      trackEvent,
-      createEventBuilder,
-      showToast,
-      RewardsToastOptions,
-    ],
-  );
+  const subscribeToReminder = useCallback(() => {
+    if (!subscriptionId || !campaign.id) {
+      return;
+    }
+    if (isSubscribed) {
+      return;
+    }
+    dispatch(
+      subscribeCampaignReminder({
+        subscriptionId,
+        campaignId: campaign.id,
+      }),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED)
+        .addProperties({
+          campaign_id: campaign.id,
+          campaign_starts_at: campaign.startDate,
+        })
+        .build(),
+    );
+    showToast(
+      RewardsToastOptions.success(
+        strings('rewards.campaign.remind_me_success_toast'),
+      ),
+    );
+  }, [
+    subscriptionId,
+    campaign.id,
+    campaign.startDate,
+    isSubscribed,
+    dispatch,
+    trackEvent,
+    createEventBuilder,
+    showToast,
+    RewardsToastOptions,
+  ]);
 
   const handleRemindMePress = useCallback(async () => {
     await runAfterNotificationsEnabled(subscribeToReminder);
   }, [runAfterNotificationsEnabled, subscribeToReminder]);
 
-  return {
-    showRemindMeCta,
-    handleRemindMePress,
-    areNotificationsEnabled,
-    subscribeToReminder,
-  };
+  return { showRemindMeCta, handleRemindMePress };
 }

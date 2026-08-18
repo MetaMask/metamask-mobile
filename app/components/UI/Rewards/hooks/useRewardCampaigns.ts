@@ -112,7 +112,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
               active.push(seriesTile);
               break;
             case 'upcoming':
-              active.push(seriesTile);
+              upcoming.push(seriesTile);
               break;
             case 'previous':
               previous.push(seriesTile);

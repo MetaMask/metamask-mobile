@@ -49,8 +49,6 @@ const CampaignMechanicsView: React.FC = () => {
 
   const howItWorks = campaign?.details?.howItWorks ?? null;
   const notes = howItWorks?.notes ?? null;
-  const showHowItWorks =
-    campaign?.type !== CampaignType.MONEY_ACCOUNT_SWEEPSTAKES;
   const isMoneyAccountSweepstakes =
     campaign?.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES;
 
@@ -72,7 +70,7 @@ const CampaignMechanicsView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('py-4')}
         >
-          {howItWorks && showHowItWorks && (
+          {howItWorks && !isMoneyAccountSweepstakes && (
             <Box
               twClassName="px-4"
               testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}

@@ -57,6 +57,14 @@ jest.mock('../../../hooks/useGetMoneyAccountSweepstakesPrizePool', () => ({
   }),
 }));
 
+jest.mock('../../../utils/formatUtils', () => ({
+  formatUsd: (value: number) =>
+    `$${Number(value).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`,
+}));
+
 jest.mock('../CampaignTile.utils', () => {
   const actual = jest.requireActual('../CampaignTile.utils');
   return {
@@ -166,54 +174,11 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     expect(getByText('4 weekly draws · 2 winners each')).toBeOnTheScreen();
     expect(getByText('Jan 1 – Jan 7')).toBeOnTheScreen();
     expect(getByText('Week 1')).toBeOnTheScreen();
-    expect(getByText('$2,500')).toBeOnTheScreen();
+    expect(getByText('$4,125.00')).toBeOnTheScreen();
     expect(getByText('Prize pool')).toBeOnTheScreen();
     expect(
       getByText('Entries reset after each weekly draw.'),
     ).toBeOnTheScreen();
-  });
-
-  it('derives consecutive rows when a prototype minimum is requested', () => {
-    const upcoming = buildCampaign({
-      id: 'prototype-week',
-      startDate: '2025-02-01T00:00:00.000Z',
-      endDate: '2025-02-08T00:00:00.000Z',
-    });
-
-    const { getByText } = render(
-      <MoneyAccountSweepstakesDrawScheduleSection
-        campaigns={[upcoming]}
-        localizedText={localizedText}
-        minimumWeekCount={4}
-      />,
-    );
-
-    expect(getByText('Week 1')).toBeOnTheScreen();
-    expect(getByText('Week 2')).toBeOnTheScreen();
-    expect(getByText('Week 3')).toBeOnTheScreen();
-    expect(getByText('Week 4')).toBeOnTheScreen();
-  });
-
-  it('anchors the prototype with Week 1 complete and Week 2 active', () => {
-    const campaign = buildCampaign({
-      id: 'live-week',
-      startDate: '2025-02-01T00:00:00.000Z',
-      endDate: '2025-02-08T00:00:00.000Z',
-    });
-
-    const { getByText } = render(
-      <MoneyAccountSweepstakesDrawScheduleSection
-        campaigns={[campaign]}
-        localizedText={localizedText}
-        minimumWeekCount={4}
-        anchorToCurrentWeek
-      />,
-    );
-
-    expect(getByText('$5,000')).toBeOnTheScreen();
-    expect(getByText('Awarded')).toBeOnTheScreen();
-    expect(getByText('Week 2 · Current draw')).toBeOnTheScreen();
-    expect(getByText('$4,125')).toBeOnTheScreen();
   });
 
   it('renders an active week without the prize pool meter', () => {
@@ -231,7 +196,7 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     );
 
     expect(getByText('Week 1 · Current draw')).toBeOnTheScreen();
-    expect(getByText('$4,125')).toBeOnTheScreen();
+    expect(getByText('$4,125.00')).toBeOnTheScreen();
     expect(queryByTestId('money-account-sweepstakes-prize-pool')).toBeNull();
   });
 

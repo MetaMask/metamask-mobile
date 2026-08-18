@@ -447,6 +447,18 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
     expect(queryByTestId('money-account-sweepstakes-cta')).toBeNull();
   });
 
+  it('hides the CTA when series status is upcoming', () => {
+    setupHooks({
+      series: buildSeries({ seriesStatus: 'upcoming' }),
+    });
+
+    const { queryByTestId } = render(
+      <MoneyAccountSweepstakesCampaignDetailsView />,
+    );
+
+    expect(queryByTestId('money-account-sweepstakes-cta')).toBeNull();
+  });
+
   it('navigates back from the header back button', () => {
     const { getByTestId } = render(
       <MoneyAccountSweepstakesCampaignDetailsView />,

@@ -160,8 +160,8 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     mockEnsureBound.mockResolvedValue('bound');
   });
 
-  it('offers opt in before the sweepstakes starts and opens the rules sheet', () => {
-    const { getByTestId, getByText } = render(
+  it('renders nothing when series status is upcoming', () => {
+    const { queryByTestId } = render(
       <MoneyAccountSweepstakesCampaignCTA
         campaign={buildCampaign()}
         seriesStatus="upcoming"
@@ -169,13 +169,10 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
       />,
     );
 
-    expect(getByText('Join the Sweepstakes')).toBeOnTheScreen();
-    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
-    expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
-    expect(latestOptInSheetProps?.title).toBe('Join the Sweepstakes');
+    expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
   });
 
-  it('renders nothing when series status is not active', () => {
+  it('renders nothing when series status is previous', () => {
     const { queryByTestId } = render(
       <MoneyAccountSweepstakesCampaignCTA
         campaign={buildCampaign()}

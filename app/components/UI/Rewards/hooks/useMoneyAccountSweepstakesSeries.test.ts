@@ -93,7 +93,7 @@ describe('useMoneyAccountSweepstakesSeries', () => {
     expect(result.current.seriesStatus).toBe('active');
   });
 
-  it('treats a returned future-dated series as live', () => {
+  it('treats a returned future-dated series as upcoming', () => {
     mockUseSelector.mockReturnValue([
       buildCampaign({
         id: 'future-week',
@@ -104,8 +104,8 @@ describe('useMoneyAccountSweepstakesSeries', () => {
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesSeries());
 
-    expect(result.current.seriesStatus).toBe('active');
-    expect(result.current.activeCampaign?.id).toBe('future-week');
+    expect(result.current.seriesStatus).toBe('upcoming');
+    expect(result.current.activeCampaign).toBeNull();
     expect(result.current.displayCampaign?.id).toBe('future-week');
   });
 

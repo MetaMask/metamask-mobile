@@ -103,10 +103,6 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     reminderFeatureEnabled,
   );
 
-  // Money Account Sweepstakes uses opt-in rather than notifications. Its card
-  // has one action: open the campaign and continue through eligibility checks.
-  const showCardReminder = showRemindMeCta && !isMoneyAccountSweepstakes;
-
   const shouldShowDateLabel =
     !isMoneyAccountSweepstakes &&
     (campaignStatus !== 'upcoming' || campaign.showUpcomingDate);
@@ -220,7 +216,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
             pointerEvents="none"
             style={tw.style('absolute inset-0')}
           />
-          {showCardReminder && (
+          {showRemindMeCta && (
             <Pressable
               onPress={() => {
                 handleRemindMePress().catch(() => undefined);

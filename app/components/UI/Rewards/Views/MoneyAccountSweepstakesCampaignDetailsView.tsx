@@ -63,7 +63,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   } = useRewardCampaigns();
 
   const series = useMoneyAccountSweepstakesSeries();
-  const { displayCampaign, campaigns, seriesStatus, activeCampaign } = series;
+  const { displayCampaign, campaigns, seriesStatus } = series;
 
   const { optedInAny } = useMoneyAccountSweepstakesParticipation(
     Boolean(displayCampaign),
@@ -252,11 +252,8 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                     <MoneyAccountSweepstakesDrawScheduleSection
                       campaigns={campaigns}
                       localizedText={localizedText}
-                      minimumWeekCount={4}
-                      anchorToCurrentWeek
                       entryCount={stats?.entryCount}
                       isParticipating={optedInAny}
-                      activeCampaignId={activeCampaign?.id ?? null}
                       onOpenDrawProof={setSelectedDrawProof}
                     />
                   </Box>
@@ -276,7 +273,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
         {displayCampaign &&
           localizedText &&
           !optedInAny &&
-          (seriesStatus === 'active' || seriesStatus === 'upcoming') && (
+          seriesStatus === 'active' && (
             <MoneyAccountSweepstakesCampaignCTA
               campaign={displayCampaign}
               seriesStatus={seriesStatus}

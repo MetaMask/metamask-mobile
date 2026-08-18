@@ -159,7 +159,7 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     navigateToAddMoney,
   ]);
 
-  if (seriesStatus !== 'active' && seriesStatus !== 'upcoming') {
+  if (seriesStatus !== 'active') {
     return null;
   }
 
