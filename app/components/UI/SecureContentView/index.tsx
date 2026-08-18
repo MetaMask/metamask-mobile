@@ -27,10 +27,23 @@ const getNativeSecureContentView = () => {
     return null;
   }
   if (nativeSecureContentView === undefined) {
-    nativeSecureContentView =
-      requireNativeViewManager<NativeSecureContentViewProps>(
-        'ExpoScreenCapture',
-      );
+    try {
+      nativeSecureContentView =
+        requireNativeViewManager<NativeSecureContentViewProps>(
+          'ExpoScreenCapture',
+        );
+    } catch (error) {
+      // A JS bundle running against a binary without the native view would
+      // otherwise throw here and take down the whole backup/reveal screen.
+      nativeSecureContentView = null;
+      Logger.error(error as Error, {
+        tags: { feature: 'screen-capture-protection' },
+        context: {
+          name: 'secure_content_view',
+          data: { reason: 'native_view_unavailable' },
+        },
+      });
+    }
   }
   return nativeSecureContentView;
 };

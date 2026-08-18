@@ -15,10 +15,10 @@ index ae59d79a8b17e7d3c5e58ad389b360b93c70edb1..bfdb876cdbe81110d4c95e018c35a699
    private func setIsBeing(observed: Bool) {
 diff --git a/ios/SecureContentView.swift b/ios/SecureContentView.swift
 new file mode 100644
-index 0000000000000000000000000000000000000000..572299a287d7d6375f2783d4241df6d27f8f5772
+index 0000000000000000000000000000000000000000..f4094d9e1295f094ae0715dc35832146cf788f56
 --- /dev/null
 +++ b/ios/SecureContentView.swift
-@@ -0,0 +1,108 @@
+@@ -0,0 +1,116 @@
 +import ExpoModulesCore
 +import UIKit
 +
@@ -74,6 +74,13 @@ index 0000000000000000000000000000000000000000..572299a287d7d6375f2783d4241df6d2
 +    if let canvas = try? findHiddenCanvas(in: secureField) {
 +      hiddenCanvas = canvas
 +      canvas.isUserInteractionEnabled = true
++      // React children mount into this canvas during the current transaction,
++      // but isSecureTextEntry only takes effect on the next main-queue hop
++      // (setting it during init does not stick). Without this the canvas would
++      // paint at least one unprotected frame, which a screen recording that is
++      // already running when the SRP is revealed would capture. Stay hidden
++      // until the field is actually secure.
++      canvas.isHidden = true
 +      addSubview(canvas)
 +    }
 +
@@ -88,6 +95,7 @@ index 0000000000000000000000000000000000000000..572299a287d7d6375f2783d4241df6d2
 +      let usingSecureCanvas = self.hiddenCanvas != nil
 +      if usingSecureCanvas {
 +        self.secureField.isSecureTextEntry = true
++        self.hiddenCanvas?.isHidden = false
 +      }
 +      self.onStatus(["usingSecureCanvas": usingSecureCanvas])
 +    }
