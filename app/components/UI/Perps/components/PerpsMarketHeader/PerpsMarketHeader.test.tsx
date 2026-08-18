@@ -15,6 +15,18 @@ import { GLOW_TOTAL_MS } from '../PerpsModeToggle/PerpsModeSwitchPill';
 
 jest.mock('../../providers/PerpsStreamManager');
 
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({
+    BTC: {
+      symbol: 'BTC',
+      price: '45000',
+      percentChange24h: '2.5',
+      timestamp: 1700000000000,
+      isTradable: true,
+    },
+  })),
+}));
+
 const mockMarket: PerpsMarketData = {
   symbol: 'BTC',
   name: 'Bitcoin',
@@ -280,5 +292,29 @@ describe('PerpsMarketHeader', () => {
     expect(
       queryByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
     ).toBeNull();
+  });
+
+  it('displays the chart-synced currentPrice instead of the live stream price', () => {
+    const { getByTestId } = renderHeader({ currentPrice: 51000 });
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_PRICE),
+    ).toHaveTextContent('$51,000');
+  });
+
+  it('falls back to the live stream price when currentPrice is omitted', () => {
+    const { getByTestId } = renderHeader();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_PRICE),
+    ).toHaveTextContent('$45,000');
+  });
+
+  it('displays a placeholder when the chart-synced currentPrice is 0', () => {
+    const { getByTestId } = renderHeader({ currentPrice: 0 });
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_PRICE),
+    ).toHaveTextContent('$---');
   });
 });

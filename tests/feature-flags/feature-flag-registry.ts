@@ -115,17 +115,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  aiSocialFeedEnabled: {
-    name: 'aiSocialFeedEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.3.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   aiSocialAusCacheRefreshEnabled: {
     name: 'aiSocialAusCacheRefreshEnabled',
     type: FeatureFlagType.Remote,
@@ -3905,6 +3894,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: true,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableCardActivityEnrichment: {
+    name: 'moneyEnableCardActivityEnrichment',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
       minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
