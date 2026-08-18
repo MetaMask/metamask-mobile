@@ -6,9 +6,10 @@ import {
 import { navigateToBrowserView } from '../../flows/browser.flow.js';
 import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import type { EncapsulatedElementType } from '../../framework';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors.js';
 import { dataTestIds } from '@metamask/test-dapp-solana';
 
@@ -30,6 +31,19 @@ const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 class SolanaTestDApp {
+  /** Exact native text match via XPath (name/label/text/content-desc). */
+  private getExactTextElement(text: string): EncapsulatedElementType {
+    const escaped = text.replace(/'/g, "\\'");
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}' or @content-desc='${escaped}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}']`,
+    );
+  }
+
   async setupAndNavigate(): Promise<void> {
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
     await loginToAppPlaywright({ scenarioType: 'e2e' });
@@ -135,20 +149,25 @@ class SolanaTestDApp {
   }
 
   async tapCancel(): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText('Cancel', true);
-    await PlaywrightGestures.waitAndTap(el, {
+    await Gestures.waitAndTap(this.getExactTextElement('Cancel'), {
       checkForDisplayed: true,
       timeout: 10_000,
+      elemDescription: 'SolanaTestDApp Cancel',
     });
   }
 
   async tapCancelTransaction(): Promise<void> {
-    const el = await PlaywrightMatchers.getElementById(
-      SolanaTestDappSelectorsWebIDs.CANCEL_TRANSACTION_BUTTON,
-      { exact: true },
+    // isDisplayed() returns false for snap footer buttons — bypass display check.
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
+        SolanaTestDappSelectorsWebIDs.CANCEL_TRANSACTION_BUTTON,
+      ),
+      {
+        checkForDisplayed: false,
+        timeout: 30_000,
+        elemDescription: 'SolanaTestDApp cancel transaction',
+      },
     );
-    await el.unwrap().waitForExist({ timeout: 30_000 });
-    await el.click();
   }
 
   async connectWithAllAccounts(): Promise<void> {
@@ -156,23 +175,25 @@ class SolanaTestDApp {
     await this.selectMetaMaskWallet();
     // DappConnectionModal.editAccountsButton handles platform differences:
     // Android uses content-desc="Edit accounts" XPath; iOS uses resource ID.
-    const editAccountsEl = await asPlaywrightElement(
-      DappConnectionModal.editAccountsButton,
-    );
-    await PlaywrightGestures.waitAndTap(editAccountsEl, { timeout: 10_000 });
+    await Gestures.waitAndTap(DappConnectionModal.editAccountsButton, {
+      timeout: 10_000,
+      elemDescription: 'SolanaTestDApp edit accounts',
+    });
     // Both "Select all" and "multiconnect-connect-button" are found by UiSelector but
-    // isDisplayed() returns false for them — bypass with waitForExist + click().
-    const selectAllEl = await PlaywrightMatchers.getElementByText(
-      'Select all',
-      true,
+    // isDisplayed() returns false for them — bypass with checkForDisplayed: false.
+    await Gestures.waitAndTap(this.getExactTextElement('Select all'), {
+      checkForDisplayed: false,
+      timeout: 10_000,
+      elemDescription: 'SolanaTestDApp Select all',
+    });
+    await Gestures.waitAndTap(
+      Matchers.getElementByID('multiconnect-connect-button'),
+      {
+        checkForDisplayed: false,
+        timeout: 10_000,
+        elemDescription: 'SolanaTestDApp multiconnect connect',
+      },
     );
-    await selectAllEl.unwrap().waitForExist({ timeout: 10_000 });
-    await selectAllEl.click();
-    const multiConnectEl = await PlaywrightMatchers.getElementById(
-      'multiconnect-connect-button',
-    );
-    await multiConnectEl.unwrap().waitForExist({ timeout: 10_000 });
-    await multiConnectEl.click();
     await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
     await this.verifyConnectionStatus('Connected', CONNECT_TIMEOUT_MS);
   }
@@ -182,9 +203,11 @@ class SolanaTestDApp {
   }
 
   async confirmSignMessage(): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText('Confirm', true);
-    await el.unwrap().waitForExist({ timeout: 30_000 });
-    await el.click();
+    await Gestures.waitAndTap(this.getExactTextElement('Confirm'), {
+      checkForDisplayed: false,
+      timeout: 30_000,
+      elemDescription: 'SolanaTestDApp Confirm',
+    });
   }
 
   async getSignedMessage(timeoutMs = 30_000): Promise<string> {

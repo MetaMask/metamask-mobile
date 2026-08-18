@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import { Keyboard } from 'react-native';
+import { Keyboard, type View } from 'react-native';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -104,6 +104,33 @@ describe('PerpsProOrderForm', () => {
       fireEvent(screen.getByTestId(ids.LIMIT_PRICE_INPUT), 'blur');
 
       expect(onLimitPriceBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('forwards limit price focus to onLimitPriceFocus', () => {
+      const onLimitPriceFocus = jest.fn();
+      renderForm({ orderType: 'limit', onLimitPriceFocus });
+
+      fireEvent(screen.getByTestId(ids.LIMIT_PRICE_INPUT), 'focus');
+
+      expect(onLimitPriceFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports every limit price tap so an already-focused field can realign', () => {
+      const onLimitPriceFieldPress = jest.fn();
+      renderForm({ orderType: 'limit', onLimitPriceFieldPress });
+
+      // `pressIn` rather than `focus`: re-tapping a focused input fires no
+      // focus event, which is the case this callback exists to cover.
+      fireEvent(screen.getByTestId(ids.LIMIT_PRICE_INPUT), 'pressIn');
+
+      expect(onLimitPriceFieldPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('exposes the order-type card so it can be measured against the keyboard', () => {
+      const orderTypeCardRef = React.createRef<View>();
+      renderForm({ orderType: 'limit', orderTypeCardRef });
+
+      expect(orderTypeCardRef.current).not.toBeNull();
     });
 
     it('renders limit price input for limit orders', () => {

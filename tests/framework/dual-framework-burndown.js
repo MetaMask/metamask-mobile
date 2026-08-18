@@ -6,31 +6,7 @@
  */
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
-  pageObjectsAndFlows: [
-    'tests/flows/accounts.flow.ts',
-    'tests/flows/browser.flow.ts',
-    'tests/flows/general.flow.ts',
-    'tests/flows/native-browser.flow.ts',
-    'tests/flows/perps.flow.ts',
-    'tests/flows/qr-sync.flow.ts',
-    'tests/flows/wallet-home-readiness.ts',
-    'tests/flows/wallet.flow.ts',
-    'tests/page-objects/Browser/BitcoinTestDapp.ts',
-    'tests/page-objects/Browser/BrowserView.ts',
-    'tests/page-objects/Browser/Confirmations/FooterActions.ts',
-    'tests/page-objects/Browser/ConnectBottomSheet.ts',
-    'tests/page-objects/Browser/DownloadFile.ts',
-    'tests/page-objects/Browser/ExternalWebsites/DownloadFileWebsite.ts',
-    'tests/page-objects/Browser/ExternalWebsites/EnsWebsite.ts',
-    'tests/page-objects/Browser/ExternalWebsites/RedirectWebsite.ts',
-    'tests/page-objects/Browser/ExternalWebsites/Security/CameraWebsite.ts',
-    'tests/page-objects/Browser/ExternalWebsites/Security/HistoryDisclosureWebsite.ts',
-    'tests/page-objects/Browser/MultichainTestDApp.ts',
-    'tests/page-objects/Browser/NetworkConnectMultiSelector.ts',
-    'tests/page-objects/Browser/SolanaTestDApp.ts',
-    'tests/page-objects/Browser/TestDApp.ts',
-    'tests/page-objects/Browser/TestSnaps.ts',
-  ],
+  pageObjectsAndFlows: [],
   smokeAppium: [
     'tests/smoke-appium/account-activity/web-socket-connection.spec.ts',
     'tests/smoke-appium/api-specs/helpers/transport.ts',

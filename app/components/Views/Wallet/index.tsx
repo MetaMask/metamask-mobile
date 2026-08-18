@@ -960,9 +960,12 @@ const Wallet = ({
     ) : null;
 
   const networkConnectionBanner = useNetworkConnectionBanner();
+  const isNetworkConnectionBannerVisible =
+    (networkConnectionBanner.status === 'degraded' ||
+      networkConnectionBanner.status === 'unavailable') &&
+    Boolean(networkConnectionBanner.network);
   const hasBannerContent =
-    !basicFunctionalityEnabled ||
-    networkConnectionBanner.networkConnectionBannerState.visible;
+    !basicFunctionalityEnabled || isNetworkConnectionBannerVisible;
   const bannerContent = hasBannerContent ? (
     <View
       style={styles.banner}
@@ -986,13 +989,27 @@ const Wallet = ({
     </View>
   ) : null;
 
-  /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
-  const walletHomeAccountGroupBalanceProps = {
-    onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
-    suspendRiveForCurtain: postOnboardingExitAnimating,
-    onTradePrimaryPress,
-    onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
-  };
+  /**
+   * Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks.
+   * Memoized so `AccountGroupBalance` (wrapped in React.memo) doesn't re-render on every
+   * `Wallet` render — a fresh object here would defeat that memoization on every unrelated
+   * state change (e.g. the balance/price update bursts that occur right after unlock).
+   */
+  const walletHomeAccountGroupBalanceProps = useMemo(
+    () => ({
+      onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
+      suspendRiveForCurtain: postOnboardingExitAnimating,
+      onTradePrimaryPress,
+      onNotificationsPrimaryPress:
+        handleWalletHomeOnboardingNotificationsPrimary,
+    }),
+    [
+      runWalletHomePostOnboardingComplete,
+      postOnboardingExitAnimating,
+      onTradePrimaryPress,
+      handleWalletHomeOnboardingNotificationsPrimary,
+    ],
+  );
 
   const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
     actionButtonsGridVariant.layout === 'eightCircular' ? (
