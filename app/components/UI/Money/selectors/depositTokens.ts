@@ -18,8 +18,11 @@ const isEvmAsset = (
   asset: Asset,
 ): asset is Asset & { address: string; chainId: string } =>
   'address' in asset &&
-  Boolean(asset.address) &&
-  Boolean(asset.accountType?.includes('eip155'));
+  typeof asset.address === 'string' &&
+  asset.address.length > 0 &&
+  typeof asset.chainId === 'string' &&
+  asset.chainId.length > 0 &&
+  asset.accountType?.startsWith('eip155:') === true;
 
 const meetsMinimumBalance = (asset: AssetType, minimumBalance: number) => {
   const fiatBalance = asset.fiat?.balance;
@@ -30,12 +33,6 @@ const meetsMinimumBalance = (asset: AssetType, minimumBalance: number) => {
     Number(fiatBalance) >= minimumBalance
   );
 };
-
-export const getMoneyDepositAssetKey = ({
-  address,
-  chainId,
-}: Pick<AssetType, 'address' | 'chainId'>) =>
-  `${chainId?.toLowerCase() ?? ''}:${address?.toLowerCase()}`;
 
 export const filterMoneyDepositEligibleAssets = (
   assets: readonly Asset[],
