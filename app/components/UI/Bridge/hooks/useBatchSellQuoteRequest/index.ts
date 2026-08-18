@@ -2,11 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import BigNumber from 'bignumber.js';
-import {
-  FeatureId,
-  formatAddressToAssetId,
-  formatAddressToCaipReference,
-} from '@metamask/bridge-controller';
+import { FeatureId, formatAddressToAssetId } from '@metamask/bridge-controller';
 
 import Engine from '../../../../../core/Engine';
 import {
@@ -17,12 +13,12 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { getDecimalChainId } from '../../../../../util/networks';
 import type { BridgeToken } from '../../types';
 import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
 import { RootState } from '../../../../../reducers';
 import { getMaybeHexChainId } from '../../../../../util/bridge';
+import { buildQuoteRequest } from '../../utils/buildQuoteRequest';
 
 export const BATCH_SELL_QUOTE_DEBOUNCE_MS = 300;
 
@@ -137,25 +133,18 @@ export function buildBatchSellQuoteRequestData({
       if (!assetId || !sourceAmount || !srcTokenAmount) return quoteRequestData;
 
       const slippage = getBatchSellSlippage(batchSellSlippages, assetId);
-      const slippageNumber =
-        slippage === undefined ? undefined : Number(slippage);
 
       quoteRequestData.push({
         // The backend decides what kind of quote to return, so gasIncluded
         // and gasIncluded7702 values are ignored. No need to include them.
-        quoteRequest: {
-          srcChainId: getDecimalChainId(sourceToken.chainId),
-          srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
-          destChainId: getDecimalChainId(destToken.chainId),
-          destTokenAddress: formatAddressToCaipReference(destToken.address),
+        quoteRequest: buildQuoteRequest({
+          sourceToken,
+          destToken,
           srcTokenAmount,
-          slippage:
-            slippageNumber === undefined || Number.isNaN(slippageNumber)
-              ? undefined
-              : slippageNumber,
+          slippage,
           walletAddress,
           destWalletAddress: walletAddress,
-        },
+        }),
         context: {
           stx_enabled: smartTransactionsEnabled,
           token_symbol_source: sourceToken.symbol,

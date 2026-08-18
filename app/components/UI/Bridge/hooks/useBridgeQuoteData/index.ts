@@ -28,16 +28,14 @@ import {
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
-import I18n from '../../../../../../locales/i18n';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { BigNumber as EthersBigNumber } from 'ethers';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
-import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import AppConstants from '../../../../../core/AppConstants';
 import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
-import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import { parseCaipAssetType } from '@metamask/utils';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { formatQuoteData } from '../../utils/formatQuoteData';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -56,7 +54,7 @@ export const useBridgeQuoteData = ({
   const sourceAmount = useSelector(selectSourceAmount);
   const slippage = useSelector(selectSlippage);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const locale = I18n.locale;
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const quotes = useSelector(selectBridgeQuotes);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
@@ -135,8 +133,6 @@ export const useBridgeQuoteData = ({
     ? (manuallySelectedQuote ?? bestQuote)
     : rawActiveQuote;
 
-  const priceImpactFiat = usePriceImpactFiat(activeQuote);
-
   // Validate that the quote's source asset matches the selected source token
   // This prevents showing stale quote data when user changes source token on the same chain
   const isQuoteSourceTokenMatch = useMemo(() => {
@@ -213,62 +209,36 @@ export const useBridgeQuoteData = ({
       ? fromTokenMinimalUnit(activeQuote.quote.dest.amount, destToken.decimals)
       : undefined;
 
-  const quoteRate =
-    Number(sourceAmount) === 0
-      ? undefined
-      : Number(destTokenAmount) / Number(sourceAmount);
-
-  const networkFee = useFormattedNetworkFee(activeQuote);
-
   const formattedQuoteData = useMemo(() => {
-    if (!activeQuote) return undefined;
-
-    const { quote, estimatedProcessingTimeInSeconds } = activeQuote;
-
-    const priceImpact = quote.priceData?.priceImpact?.amount;
-    let priceImpactPercentage;
-
-    if (priceImpact) {
-      priceImpactPercentage = `${(Number(priceImpact) * 100).toFixed(2)}%`;
+    if (!activeQuote) {
+      return undefined;
     }
 
-    // Formats quote rate to show an appropriate number of decimal places
-    // For numbers greater than 1, we show 2 decimal places. Example: 1.23456 -> 1.23
-    // For numbers less than 1, we show 3 significant digits. Example: 0.00012345 -> 0.000123
-    const quoteRateFormatter = getIntlNumberFormatter(locale, {
-      ...(quoteRate && quoteRate > 1
-        ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
-        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
+    const formatted = formatQuoteData(activeQuote, {
+      sourceToken,
+      destToken,
+      sourceAmount,
+      destTokenAmount,
+      slippage,
+      currency: currentCurrency,
     });
-    const formattedQuoteRate = quoteRateFormatter.format(quoteRate ?? 0);
-    const rate = quoteRate
-      ? `1 ${sourceToken?.symbol} = ${formattedQuoteRate} ${destToken?.symbol}`
-      : '--';
 
     return {
-      networkFee,
-      estimatedTime:
-        estimatedProcessingTimeInSeconds >= 60
-          ? `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`
-          : `${
-              estimatedProcessingTimeInSeconds >= 1
-                ? `${estimatedProcessingTimeInSeconds} seconds`
-                : '< 1 second'
-            }`,
-      rate,
-      priceImpact: priceImpactPercentage,
-      priceImpactFiat,
-      slippage: slippage ? `${slippage}%` : 'Auto',
+      networkFee: formatted.networkFee,
+      estimatedTime: formatted.estimatedTime,
+      rate: formatted.rate,
+      priceImpact: formatted.priceImpact,
+      priceImpactFiat: formatted.priceImpactFiat,
+      slippage: formatted.slippage,
     };
   }, [
     activeQuote,
-    quoteRate,
-    sourceToken?.symbol,
-    destToken?.symbol,
+    currentCurrency,
+    destToken,
+    destTokenAmount,
+    sourceAmount,
+    sourceToken,
     slippage,
-    locale,
-    networkFee,
-    priceImpactFiat,
   ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;

@@ -12,7 +12,3 @@ export function getBatchSellSlippage(
     ? batchSellSlippages[batchSellAssetId]
     : DEFAULT_BATCH_SELL_SLIPPAGE;
 }
-
-export function getSlippageDisplayValue(slippage?: string) {
-  return slippage === undefined ? 'Auto' : `${slippage}%`;
-}

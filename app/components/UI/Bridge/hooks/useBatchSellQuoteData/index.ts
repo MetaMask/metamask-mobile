@@ -20,23 +20,23 @@ import {
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import AppConstants from '../../../../../core/AppConstants';
+import {
+  formatCurrencyDisplayValue,
+  formatQuoteData,
+  formatQuoteDisplayValue,
+  formatTokenAmountWithSymbol,
+} from '../../utils/formatQuoteData';
 import Engine from '../../../../../core/Engine';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import formatFiat from '../../../../../util/formatFiat';
 import Logger from '../../../../../util/Logger';
-import { formatTokenBalance } from '../../utils';
-import {
-  getBatchSellSlippage,
-  getSlippageDisplayValue,
-} from '../../components/SlippageModal/utils';
+import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import type { BridgeToken } from '../../types';
 import { hasValidBatchSellSourceAmounts } from '../useBatchSellQuoteRequest';
 import { getQuoteRefreshRate, isQuoteExpired } from '../../utils/quoteUtils';
 import { getMaybeHexChainId } from '../../../../../util/bridge';
 
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
-const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
 const BATCH_SELL_TRADES_REQUEST_KEY_SEPARATOR = '|';
 
 type BatchSellRecommendedQuote = NonNullable<
@@ -90,54 +90,6 @@ export function getBatchSellOrderedQuoteTokenData(
     [],
   );
 }
-
-function formatTokenAmountWithSymbol(
-  amount: string | undefined,
-  symbol: string | undefined,
-) {
-  const tokenSymbol = symbol ? ` ${symbol}` : '';
-
-  if (amount === undefined)
-    return `${QUOTE_DETAILS_PLACEHOLDER_AMOUNT}${tokenSymbol}`;
-
-  return `${formatTokenBalance(amount)}${tokenSymbol}`;
-}
-
-function formatQuoteDisplayValue({
-  amount,
-  valueInCurrency,
-  symbol,
-  currency,
-}: {
-  amount: string | undefined;
-  valueInCurrency: string | null | undefined;
-  symbol: string | undefined;
-  currency: string;
-}) {
-  const hasTokenAmount = amount !== undefined;
-  const hasNonZeroTokenAmount = hasTokenAmount && new BigNumber(amount).gt(0);
-  const hasMissingDisplayValue =
-    !valueInCurrency ||
-    (new BigNumber(valueInCurrency).isZero() && hasNonZeroTokenAmount);
-
-  if (hasMissingDisplayValue && hasTokenAmount) {
-    return formatTokenAmountWithSymbol(amount, symbol);
-  }
-
-  if (!valueInCurrency) return '-';
-
-  return formatFiat(new BigNumber(valueInCurrency), currency);
-}
-
-function formatCurrencyDisplayValue(
-  valueInCurrency: string | null | undefined,
-  currency: string,
-) {
-  if (!valueInCurrency) return '-';
-
-  return formatFiat(new BigNumber(valueInCurrency), currency);
-}
-
 function isQuoteForDestinationAssetId(
   quote: BatchSellRecommendedQuote,
   destinationAssetId: CaipAssetType | undefined,
@@ -461,27 +413,24 @@ export function useBatchSellQuoteData({
       quoteRows.reduce<BatchSellQuoteTokenDataByAssetId>(
         (tokenDataByAssetId, { assetId, recommendedQuote, tokenSymbol }) => {
           const slippage = getBatchSellSlippage(batchSellSlippages, assetId);
-          const quoteDestinationTokenSymbol =
-            recommendedQuote?.quote.dest.asset.symbol ?? destinationTokenSymbol;
           const priceImpact =
             recommendedQuote?.quote.priceData?.priceImpact?.amount;
           const parsedPriceImpact = Number(priceImpact);
           const isMissingQuote = !recommendedQuote;
+          const formatted = formatQuoteData(recommendedQuote, {
+            destToken: recommendedQuote?.quote.dest.asset ?? {
+              symbol: destinationTokenSymbol,
+            },
+            slippage,
+            currency: currentCurrency,
+          });
 
           tokenDataByAssetId[assetId] = {
             key: assetId,
             tokenSymbol,
-            slippage: getSlippageDisplayValue(slippage),
-            receivedAmount: formatTokenAmountWithSymbol(
-              recommendedQuote?.quote.dest.normalizedAmount,
-              quoteDestinationTokenSymbol,
-            ),
-            receivedAmountFiat: formatQuoteDisplayValue({
-              amount: recommendedQuote?.quote.dest.normalizedAmount,
-              valueInCurrency: recommendedQuote?.quote.dest.valueInCurrency,
-              symbol: quoteDestinationTokenSymbol,
-              currency: currentCurrency,
-            }),
+            slippage: formatted.slippage,
+            receivedAmount: formatted.receivedAmount,
+            receivedAmountFiat: formatted.receivedAmountFiat,
             priceImpact,
             quote: recommendedQuote ?? null,
             isHighPriceImpact:

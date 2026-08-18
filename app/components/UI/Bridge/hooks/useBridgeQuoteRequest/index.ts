@@ -1,10 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
-import {
-  formatAddressToCaipReference,
-  isValidQuoteRequest,
-  type GenericQuoteRequest,
-} from '@metamask/bridge-controller';
+import { isValidQuoteRequest } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
@@ -18,8 +14,6 @@ import {
   selectGasIncludedQuoteParams,
   selectSourceWalletAddress,
 } from '../../../../../selectors/bridge';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import useIsInsufficientBalance from '../useInsufficientBalance';
@@ -27,6 +21,8 @@ import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import { calcTokenValue } from '../../../../../util/transactions';
+import { buildQuoteRequest } from '../../utils/buildQuoteRequest';
 
 export const DEBOUNCE_WAIT = 300;
 
@@ -51,7 +47,7 @@ export const useBridgeQuoteRequest = (
   const destChainId = useSelector(selectSelectedDestChainId);
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSourceWalletAddress);
-  const destAddress = useSelector(selectDestAddress);
+  const destWalletAddress = useSelector(selectDestAddress);
   const context = useUnifiedSwapBridgeContext();
   const { latestSourceAtomicBalance } = options;
   const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in options;
@@ -111,28 +107,25 @@ export const useBridgeQuoteRequest = (
         return;
       }
 
-      const normalizedSourceAmount =
-        sourceAmount && sourceToken?.decimals
+      const srcTokenAmount =
+        sourceAmount && sourceToken.decimals
           ? calcTokenValue(
               sourceAmount === '.' ? '0' : sourceAmount || '0',
               sourceToken.decimals,
             ).toFixed(0)
           : '0';
 
-      const params: GenericQuoteRequest = {
-        srcChainId: getDecimalChainId(sourceToken.chainId),
-        srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
-        destChainId: getDecimalChainId(destChainId),
-        destTokenAddress: formatAddressToCaipReference(destToken.address),
-        srcTokenAmount: normalizedSourceAmount,
-        slippage: slippage ? Number(slippage) : undefined,
+      const params = buildQuoteRequest({
+        sourceToken,
+        destToken,
+        srcTokenAmount,
+        slippage,
+        destWalletAddress,
         walletAddress,
-        destWalletAddress: destAddress ?? walletAddress,
         gasIncluded,
         gasIncluded7702,
         insufficientBal,
-      };
-
+      });
       const shouldTrace = isValidQuoteRequest(params);
 
       try {
@@ -168,7 +161,7 @@ export const useBridgeQuoteRequest = (
       destChainId,
       slippage,
       walletAddress,
-      destAddress,
+      destWalletAddress,
       context,
       gasIncluded,
       gasIncluded7702,
