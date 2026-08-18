@@ -3,28 +3,15 @@ import performance from 'react-native-performance';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { v4 as uuidv4 } from 'uuid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import type {
+  PerpsLoadingLifecycle,
+  PerpsLoadingSource,
+  PerpsLoadingStream,
+} from './perpsLoadingSession';
 
-export type HomepagePerpsStream = 'positions' | 'orders' | 'markets' | 'prices';
-export type HomepagePerpsDeliverySource =
-  | 'memory_cache'
-  | 'disk_cache'
-  | 'provider_snapshot'
-  | 'terminal_global_snapshot_v2'
-  | 'provider'
-  | 'resident_state'
-  | 'fresh_socket'
-  | 'unknown';
-export type HomepagePerformanceLifecycle =
-  | 'cold_no_cache'
-  | 'cold_disk_cache'
-  | 'warm_foreground'
-  | 'navigate_return'
-  | 'background_short'
-  | 'background_reconnect'
-  | 'network_recovery'
-  | 'account_switch'
-  | 'perps_network_switch'
-  | 'provider_switch';
+export type HomepagePerpsStream = PerpsLoadingStream;
+export type HomepagePerpsDeliverySource = PerpsLoadingSource | 'resident_state';
+export type HomepagePerformanceLifecycle = PerpsLoadingLifecycle;
 export type HomepagePerpsContentVariant =
   | 'empty'
   | 'positions'
@@ -41,7 +28,7 @@ export interface HomepagePerpsDeliveryMetadata {
   originSource?: HomepagePerpsDeliverySource;
   itemCount: number;
   receivedAtMonotonicMs: number;
-  subscriberDeliveredAtMonotonicMs?: number;
+  residentWrappedAtMonotonicMs?: number;
   dataAgeMs: number;
   lifecycle: HomepagePerformanceLifecycle;
   accountGeneration: number;
@@ -57,10 +44,6 @@ export interface HomepagePerformanceDemand {
   contextGeneration: number;
   firstVisibleRecorded: boolean;
   firstFreshVisibleRecorded: boolean;
-  cachedVisibleAtMonotonicMs?: number;
-  cachedVisibleSource?: string;
-  recordedFreshPipelineStreams: Set<HomepagePerpsStream>;
-  recordedSocketPipelineStreams: Set<HomepagePerpsStream>;
 }
 
 type HomepagePerformanceStage =
@@ -83,11 +66,46 @@ type HomepagePerformanceStage =
   | 'cache_write'
   | 'subscriber_delivery'
   | 'react_commit'
-  | 'values_visible'
-  | 'first_frame_checkpoint'
+  | 'surface_initial_ui_recorded'
   | 'next_frame_checkpoint'
   | 'surface_resolved_recorded'
   | 'surface_live_recorded';
+
+const SAFE_DETAIL_KEYS = new Set([
+  'account_generation',
+  'cache_age_ms',
+  'connection_id',
+  'content_variant',
+  'context_generation',
+  'data_ready_at_demand',
+  'demand_id',
+  'duration_ms',
+  'elapsed_ms',
+  'frame_checkpoint_monotonic_ms',
+  'frame_boundary',
+  'fresh_for_lifecycle',
+  'freshness_source',
+  'instrumentation_schema',
+  'lifecycle',
+  'markets_source',
+  'orders_source',
+  'positions_source',
+  'delivery_source',
+  'source',
+  'success',
+  'visible_item_count',
+]);
+
+const sanitizeDetail = (detail: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(detail).filter(
+      ([key, value]) =>
+        SAFE_DETAIL_KEYS.has(key) &&
+        (typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean'),
+    ),
+  );
 
 let diskCacheTimestampMs: number | null = null;
 let firstDemand = true;
@@ -102,6 +120,7 @@ export const isHomepagePerformanceProbeActive = () =>
   activeObservationCount > 0;
 
 export const activateHomepagePerformanceProbe = () => {
+  if (!__DEV__) return () => undefined;
   activeObservationCount += 1;
   let released = false;
 
@@ -121,6 +140,7 @@ export const logHomepagePerformanceStage = (
 
   DevLogger.log(
     `[PerpsPerf] ${JSON.stringify({
+      ...sanitizeDetail(detail),
       stage,
       monotonic_ms: Number(performance.now().toFixed(3)),
       ...(delivery && {
@@ -134,7 +154,6 @@ export const logHomepagePerformanceStage = (
         account_generation: delivery.accountGeneration,
         context_generation: delivery.contextGeneration,
       }),
-      ...detail,
     })}`,
   );
 };
@@ -173,6 +192,7 @@ const notifyLifecycleChange = () =>
 export const subscribeHomepagePerformanceLifecycleChange = (
   listener: () => void,
 ) => {
+  if (!__DEV__) return () => undefined;
   lifecycleListeners.add(listener);
   return () => {
     lifecycleListeners.delete(listener);
@@ -182,7 +202,8 @@ export const subscribeHomepagePerformanceLifecycleChange = (
 export const handleHomepagePerformanceAppStateChange = (
   nextState: AppStateStatus,
 ) => {
-  if (nextState === 'background' || nextState === 'inactive') {
+  if (!__DEV__) return;
+  if (nextState === 'background') {
     backgroundStartedAt ??= performance.now();
     return;
   }
@@ -208,6 +229,7 @@ export const getHomepagePerpsDiskCacheAgeMs = () =>
     : Math.max(0, Date.now() - diskCacheTimestampMs);
 
 export const markHomepagePerpsDiskCacheHydrated = (rawValue: string) => {
+  if (!__DEV__) return;
   try {
     const parsed = JSON.parse(rawValue) as {
       timestamp?: number;
@@ -243,26 +265,23 @@ const setLifecycle = (
 };
 
 export const markHomepagePerpsNavigateReturn = () => {
+  if (!__DEV__) return;
   if (
     lifecycle === 'cold_no_cache' ||
     lifecycle === 'cold_disk_cache' ||
-    lifecycle === 'warm_foreground' ||
     lifecycle === 'navigate_return'
   ) {
     setLifecycle('navigate_return');
   }
 };
 
-export const markHomepagePerpsNetworkRecovery = () =>
-  setLifecycle('network_recovery');
-
-export const markHomepagePerpsNetworkSwitch = () =>
-  setLifecycle('perps_network_switch', { advancesContext: true });
-
-export const markHomepagePerpsProviderSwitch = () =>
-  setLifecycle('provider_switch', { advancesContext: true });
+export const markHomepagePerpsNetworkSwitch = () => {
+  if (!__DEV__) return;
+  setLifecycle('network_switch', { advancesContext: true });
+};
 
 export const markHomepagePerpsAccountSwitch = () => {
+  if (!__DEV__) return;
   accountGeneration += 1;
   setLifecycle('account_switch', { advancesContext: true });
 };
@@ -309,10 +328,12 @@ export const createHomepagePerpsResidentDelivery = ({
     originSource: previousDelivery?.originSource ?? previousDelivery?.source,
     itemCount,
     receivedAtMonotonicMs: previousDelivery?.receivedAtMonotonicMs ?? now,
+    residentWrappedAtMonotonicMs: now,
     dataAgeMs: previousDelivery
       ? previousDelivery.dataAgeMs +
         now -
-        previousDelivery.receivedAtMonotonicMs
+        (previousDelivery.residentWrappedAtMonotonicMs ??
+          previousDelivery.receivedAtMonotonicMs)
       : 0,
     lifecycle,
     accountGeneration: previousDelivery?.accountGeneration ?? accountGeneration,
@@ -331,8 +352,6 @@ export const createHomepagePerformanceDemand =
       contextGeneration,
       firstVisibleRecorded: false,
       firstFreshVisibleRecorded: false,
-      recordedFreshPipelineStreams: new Set<HomepagePerpsStream>(),
-      recordedSocketPipelineStreams: new Set<HomepagePerpsStream>(),
     };
     firstDemand = false;
     logHomepagePerformanceStage('surface_demand', undefined, {
@@ -343,6 +362,11 @@ export const createHomepagePerformanceDemand =
     });
     return demand;
   };
+
+const isDemandCurrent = (demand: HomepagePerformanceDemand) =>
+  demand.lifecycle === lifecycle &&
+  demand.accountGeneration === accountGeneration &&
+  demand.contextGeneration === contextGeneration;
 
 export const isHomepagePerpsDeliveryFreshForDemand = (
   delivery: HomepagePerpsDeliveryMetadata,
@@ -373,7 +397,7 @@ const hasRequiredStreams = (
 ) => {
   const streams = new Set(deliveries.map(({ stream }) => stream));
   const hasAccountResolution =
-    streams.has('positions') && streams.has('orders');
+    streams.has('positions') && streams.has('orders') && streams.has('account');
   return contentVariant === 'trending' || contentVariant === 'pills'
     ? hasAccountResolution && streams.has('markets')
     : hasAccountResolution;
@@ -385,34 +409,24 @@ const getRequiredDeliveries = (
 ) => {
   const requiresMarkets =
     contentVariant === 'trending' || contentVariant === 'pills';
-  return deliveries.filter(
-    ({ stream }) =>
-      stream === 'positions' || stream === 'orders' || requiresMarkets,
-  );
+  const requiredStreams = new Set<HomepagePerpsStream>([
+    'positions',
+    'orders',
+    'account',
+  ]);
+  if (requiresMarkets) requiredStreams.add('markets');
+  return deliveries.filter(({ stream }) => requiredStreams.has(stream));
 };
 
 const getVisibleDeliveries = (
   deliveries: HomepagePerpsDeliveryMetadata[],
   contentVariant: HomepagePerpsContentVariant,
-) => {
-  if (contentVariant === 'positions') {
-    return deliveries.filter(({ stream }) => stream === 'positions');
-  }
-  if (contentVariant === 'orders') {
-    return deliveries.filter(({ stream }) => stream === 'orders');
-  }
-  return getRequiredDeliveries(deliveries, contentVariant);
-};
+) => getRequiredDeliveries(deliveries, contentVariant);
 
 const hasVisibleStreams = (
   deliveries: HomepagePerpsDeliveryMetadata[],
   contentVariant: HomepagePerpsContentVariant,
-) => {
-  const streams = new Set(deliveries.map(({ stream }) => stream));
-  if (contentVariant === 'positions') return streams.has('positions');
-  if (contentVariant === 'orders') return streams.has('orders');
-  return hasRequiredStreams(deliveries, contentVariant);
-};
+) => hasRequiredStreams(deliveries, contentVariant);
 
 const getEffectiveSource = (delivery: HomepagePerpsDeliveryMetadata) =>
   delivery.source === 'resident_state' || delivery.source === 'memory_cache'
@@ -424,6 +438,7 @@ export const recordHomepagePerpsVisibleFrame = ({
   deliveries,
   contentVariant,
   isConnectionLive = false,
+  reactCommitAtMonotonicMs,
   frameCheckpointAtMonotonicMs,
 }: {
   demand: HomepagePerformanceDemand;
@@ -433,6 +448,15 @@ export const recordHomepagePerpsVisibleFrame = ({
   reactCommitAtMonotonicMs: number;
   frameCheckpointAtMonotonicMs: number;
 }) => {
+  if (
+    !isDemandCurrent(demand) ||
+    !Number.isFinite(reactCommitAtMonotonicMs) ||
+    !Number.isFinite(frameCheckpointAtMonotonicMs) ||
+    reactCommitAtMonotonicMs < demand.startedAtMonotonicMs ||
+    frameCheckpointAtMonotonicMs < reactCommitAtMonotonicMs
+  ) {
+    return;
+  }
   const visibleDeliveries = getVisibleDeliveries(deliveries, contentVariant);
   if (!hasVisibleStreams(visibleDeliveries, contentVariant)) {
     return;
@@ -487,19 +511,6 @@ export const recordHomepagePerpsVisibleFrame = ({
       ),
       ...visibleTags,
     });
-    if (
-      visibleDeliveries.some(
-        (delivery) =>
-          !isHomepagePerpsDeliveryFreshForDemand(
-            delivery,
-            demand,
-            isConnectionLive,
-          ),
-      )
-    ) {
-      demand.cachedVisibleAtMonotonicMs = frameCheckpointAtMonotonicMs;
-      demand.cachedVisibleSource = visibleTags.delivery_source;
-    }
   }
 
   const requiredDeliveries = getRequiredDeliveries(deliveries, contentVariant);
@@ -550,6 +561,13 @@ export const recordHomepagePerpsErrorFrame = ({
   demand: HomepagePerformanceDemand;
   frameCheckpointAtMonotonicMs: number;
 }) => {
+  if (
+    !isDemandCurrent(demand) ||
+    !Number.isFinite(frameCheckpointAtMonotonicMs) ||
+    frameCheckpointAtMonotonicMs < demand.startedAtMonotonicMs
+  ) {
+    return;
+  }
   if (demand.firstVisibleRecorded) return;
   demand.firstVisibleRecorded = true;
   logHomepagePerformanceStage('surface_resolved_recorded', undefined, {
@@ -563,9 +581,12 @@ export const recordHomepagePerpsErrorFrame = ({
   });
 };
 
-export const markHomepagePerformanceDemandComplete = () => {
-  lifecycle = 'warm_foreground';
-  lifecycleStartedAtMonotonicMs = performance.now();
+export const markHomepagePerformanceDemandComplete = (
+  demand: HomepagePerformanceDemand,
+) => {
+  if (!__DEV__) return;
+  if (!isDemandCurrent(demand)) return;
+  setLifecycle('navigate_return');
 };
 
 export const resetHomepagePerformanceProbeForTests = () => {

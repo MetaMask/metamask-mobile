@@ -18,6 +18,12 @@ const mockStartPerpsLoadingSession = jest.fn(
   (_options: unknown) => 'session-id-1',
 );
 const mockFinishPerpsLoadingSession = jest.fn((_data: unknown) => undefined);
+const mockGetActivePerpsLoadingSessionContext = jest.fn(() => ({
+  id: 'session-id-1',
+  marketSource: 'provider',
+  accountSource: 'memory_cache',
+  lifecycle: 'cold_no_cache',
+}));
 
 jest.mock('../../hooks/useSectionPerformance', () => ({
   useSectionPerformance: (config: unknown) => mockUseSectionPerformance(config),
@@ -29,12 +35,8 @@ jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
   finishPerpsLoadingSession: (data: unknown) =>
     mockFinishPerpsLoadingSession(data),
   preparePerpsLoadingSession: jest.fn(),
-  getActivePerpsLoadingSessionContext: () => ({
-    id: 'session-id-1',
-    marketSource: 'provider',
-    accountSource: 'memory_cache',
-    lifecycle: 'cold_no_cache',
-  }),
+  getActivePerpsLoadingSessionContext: () =>
+    mockGetActivePerpsLoadingSessionContext(),
   resolvePerpsMarketSource: () => 'provider',
   resolvePerpsLoadingLifecycle: () => 'cold_no_cache',
 }));
@@ -399,6 +401,24 @@ describe('PerpsSection', () => {
           market_source: 'provider',
           account_source: 'memory_cache',
         }),
+        data: { perps_session_id: 'session-id-1' },
+      }),
+    );
+  });
+
+  it('delays an immediately-ready TTC until session correlation exists', () => {
+    mockGetActivePerpsLoadingSessionContext.mockReturnValueOnce(null);
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enabled: true,
         data: { perps_session_id: 'session-id-1' },
       }),
     );

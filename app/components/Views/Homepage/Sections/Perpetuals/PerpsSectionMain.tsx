@@ -345,17 +345,19 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const proposedLifecycle = resolvePerpsLoadingLifecycle(
       getPerpsLifecycleContext(),
     );
-    const [, setSessionRevision] = useState(0);
+    const [sessionReady, setSessionReady] = useState(
+      () => getActivePerpsLoadingSessionContext() !== null,
+    );
     useEffect(() => {
       const previousId = getActivePerpsLoadingSessionContext()?.id;
       const currentId = startPerpsLoadingSession({
         lifecycle: proposedLifecycle,
         surface: 'homepage',
       });
-      if (currentId !== previousId) {
-        setSessionRevision((revision) => revision + 1);
+      if (currentId !== previousId || !sessionReady) {
+        setSessionReady(true);
       }
-    }, [proposedLifecycle]);
+    }, [proposedLifecycle, sessionReady]);
 
     const sessionContext = getActivePerpsLoadingSessionContext();
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
@@ -406,7 +408,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
-      enabled: !pillsEmptyFeedHidden,
+      enabled: sessionReady && !pillsEmptyFeedHidden,
       tags: cohortTags,
       data: sessionContext
         ? { perps_session_id: sessionContext.id }
@@ -414,6 +416,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     });
 
     useEffect(() => {
+      if (!sessionReady) return;
       if (pillsEmptyFeedHidden) {
         finishPerpsLoadingSession({
           success: false,
@@ -439,6 +442,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       hasItems,
       isLoadingSection,
       pillsEmptyFeedHidden,
+      sessionReady,
     ]);
 
     const showsVerticalPositions = showSkeleton || pendingTrending || hasItems;
