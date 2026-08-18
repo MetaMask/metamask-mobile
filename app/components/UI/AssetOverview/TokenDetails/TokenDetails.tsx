@@ -138,12 +138,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
         const isNonEvm = isNonEvmChainId(asset.chainId as string);
 
         // Convert chainId to CAIP format for both EVM and non-EVM chains
-        let caipChainId: `${string}:${string}`;
-        if (isNonEvm) {
-          caipChainId = asset.chainId as `${string}:${string}`;
-        } else {
-          caipChainId = formatChainIdToCaip(asset.chainId as Hex);
-        }
+        const caipChainId = isNonEvm
+          ? (asset.chainId as `${string}:${string}`)
+          : formatChainIdToCaip(asset.chainId as Hex);
 
         const assetId = toAssetId(plainTokenAddress, caipChainId);
         if (!assetId) return;
@@ -160,11 +157,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
           string,
           Record<string, unknown>
         >;
-        let responseData: Record<string, unknown> | undefined;
-        if (response) {
-          responseData = response[assetId];
-        }
-        setFetchedMarketData(responseData);
+        setFetchedMarketData(response?.[assetId]);
       } catch (error) {
         console.error('Failed to fetch market data:', error);
       }

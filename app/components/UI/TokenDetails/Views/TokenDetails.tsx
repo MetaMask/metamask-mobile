@@ -208,10 +208,8 @@ const TokenDetails: React.FC<{
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
-      if (token.caipAssetId) {
-        if (isCaipAssetType(token.caipAssetId)) {
-          return token.caipAssetId;
-        }
+      if (token.caipAssetId && isCaipAssetType(token.caipAssetId)) {
+        return token.caipAssetId;
       }
       if (isCaipAssetType(token.address)) {
         return token.address as CaipAssetType;
@@ -226,14 +224,7 @@ const TokenDetails: React.FC<{
         AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
           token.chainId as SupportedCaipChainId
         ];
-      if (!nonEvmConfig) {
-        return null;
-      }
-      const nativeCurrency = nonEvmConfig.nativeCurrency as CaipAssetType;
-      if (nativeCurrency == null) {
-        return null;
-      }
-      return nativeCurrency;
+      return (nonEvmConfig?.nativeCurrency as CaipAssetType) ?? null;
     } catch {
       return null;
     }

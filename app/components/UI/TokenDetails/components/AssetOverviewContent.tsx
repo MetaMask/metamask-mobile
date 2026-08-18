@@ -396,14 +396,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         return null;
       }
 
-      const formattedAssetId = formatAddressToAssetId(
-        token.address,
-        token.chainId,
-      );
-      if (!formattedAssetId) {
-        return null;
-      }
-      return formattedAssetId;
+      return formatAddressToAssetId(token.address, token.chainId) ?? null;
     } catch {
       return null;
     }

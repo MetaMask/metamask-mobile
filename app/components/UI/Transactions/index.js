@@ -369,31 +369,17 @@ const Transactions = (props) => {
     const { type } = providerConfig;
     const useAssetOnlyExplorer =
       isAssetDetailsExplorer || Boolean(tokenChainId);
-    let isNonEvmWithRpcExplorer = false;
-    if (isExplorerContextNonEvm) {
-      if (rpcBlockExplorer) {
-        isNonEvmWithRpcExplorer = true;
-      }
-    }
     try {
       let url;
       let title;
       if (useAssetOnlyExplorer) {
-        let base;
-        let hasRpcBlockExplorer = false;
-        if (rpcBlockExplorer) {
-          if (rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER) {
-            hasRpcBlockExplorer = true;
-          }
-        }
-        if (hasRpcBlockExplorer) {
-          base = rpcBlockExplorer;
-        } else {
-          base = findBlockExplorerUrlForChain(
-            explorerContextChainId,
-            networkConfigurations,
-          );
-        }
+        const base =
+          rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
+            ? rpcBlockExplorer
+            : findBlockExplorerUrlForChain(
+                explorerContextChainId,
+                networkConfigurations,
+              );
         if (!base) {
           Logger.error(new Error('Missing block explorer for asset chain'), {
             message: `can't get a block explorer link for network `,
@@ -403,7 +389,7 @@ const Transactions = (props) => {
         }
         url = `${base}/address/${selectedAddress}`;
         title = getBlockExplorerName(base);
-      } else if (isNonEvmWithRpcExplorer) {
+      } else if (isExplorerContextNonEvm && rpcBlockExplorer) {
         url = `${rpcBlockExplorer}/address/${selectedAddress}`;
         title = getBlockExplorerName(rpcBlockExplorer);
       } else {
@@ -422,18 +408,14 @@ const Transactions = (props) => {
         });
         return;
       }
-      let linkText;
-      if (title) {
-        linkText = `${strings('transactions.view_full_history_on')} ${title}`;
-      } else {
-        linkText = strings('asset_details.options.view_on_block');
-      }
       trackBlockExplorerLinkClicked(
         analytics.trackEvent,
         AnalyticsEventBuilder.createEventBuilder,
         {
           location: 'transactions_list',
-          text: linkText,
+          text: title
+            ? `${strings('transactions.view_full_history_on')} ${title}`
+            : strings('asset_details.options.view_on_block'),
           url,
         },
       );
@@ -441,9 +423,7 @@ const Transactions = (props) => {
         screen: 'SimpleWebview',
         params: { url, title },
       });
-      if (close) {
-        close();
-      }
+      close?.();
     } catch (e) {
       Logger.error(e, {
         message: `can't get a block explorer link for network `,
@@ -583,10 +563,8 @@ const Transactions = (props) => {
     { action, rate, transactionIdRef, signMode, onFailure },
   ) => {
     try {
-      if (transactionObject) {
-        if (transactionObject.error) {
-          return;
-        }
+      if (transactionObject?.error) {
+        return;
       }
       const ledgerAccount = isHardwareAccount(selectedAddress, [
         ExtendedKeyringTypes.ledger,
@@ -600,25 +578,14 @@ const Transactions = (props) => {
         rate,
       );
       if (ledgerAccount) {
-        let isEip1559 = false;
-        if (params) {
-          if (params.maxFeePerGas) {
-            if (params.maxPriorityFeePerGas) {
-              isEip1559 = true;
-            }
-          }
-        }
-        let replacementGasFee;
-        if (isEip1559) {
-          replacementGasFee = { eip1559GasFee: params };
-        } else {
-          replacementGasFee = { legacyGasFee: params };
-        }
+        const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await signLedgerTransaction({
           id: transactionIdRef.current,
           replacementParams: {
             type: action,
-            ...replacementGasFee,
+            ...(isEip1559
+              ? { eip1559GasFee: params }
+              : { legacyGasFee: params }),
           },
         });
         return;
