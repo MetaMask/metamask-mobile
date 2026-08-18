@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { StatusBar } from 'react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import { StatusBar, StyleSheet, type ViewStyle } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import CardWelcome from './CardWelcome';
@@ -9,6 +10,10 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
+import {
+  __clearLastMockedMethods,
+  __getLastMockedMethods,
+} from '../../../../../__mocks__/rive-react-native';
 
 const mockUseCardPostAuthRedirect = jest.fn();
 
@@ -121,12 +126,20 @@ const createTestStore = (
     },
   });
 
+const getRiveOnError = () => {
+  const methods = __getLastMockedMethods() as
+    | { onError?: (error: unknown) => void }
+    | undefined;
+  return methods?.onError;
+};
+
 describe('CardWelcome', () => {
   let store: ReturnType<typeof createTestStore>;
   let setBarStyleSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    __clearLastMockedMethods();
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockUseCardEducationAnimationState.mockReturnValue('static');
     mockNavigate.mockClear();
@@ -274,6 +287,100 @@ describe('CardWelcome', () => {
 
         unmount();
       });
+    });
+  });
+
+  describe('Text reveal', () => {
+    beforeEach(() => {
+      store = createTestStore({ cardholderAccounts: [] });
+    });
+
+    it('releases the hidden text reveal style when the cards animation reports a Rive error while animating', () => {
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
+
+      const { getByTestId, queryByTestId, UNSAFE_getByType } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const onError = getRiveOnError();
+      expect(onError).toBeDefined();
+
+      act(() => {
+        onError?.({ message: 'failed to load', type: 'MalformedFile' });
+      });
+
+      const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props
+        .style as ViewStyle[];
+      const textContainerStyle = StyleSheet.flatten(textContainerStyleEntries);
+
+      expect(textContainerStyle.opacity).not.toBe(0);
+      // The error resolves the state to 'static', which attaches neither the
+      // hidden style nor the animated reveal style: an empty style array is
+      // what proves the copy is not left waiting on a reveal that never runs.
+      expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(0);
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
+      expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
+    });
+
+    it("attaches neither the hidden nor the animated reveal style on the first render in 'static' mode", () => {
+      mockUseCardEducationAnimationState.mockReturnValue('static');
+
+      const { UNSAFE_getByType } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props
+        .style as ViewStyle[];
+      const textContainerStyle = StyleSheet.flatten(textContainerStyleEntries);
+
+      expect(textContainerStyle.opacity).toBeUndefined();
+      // An empty style array is the real signal here: a bare (unattached)
+      // animated-style handle also flattens to `opacity: undefined`, so only
+      // the absence of any truthy entry proves no reveal style was attached.
+      expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(0);
+    });
+
+    it("hides the text while the animation state is 'pending'", () => {
+      mockUseCardEducationAnimationState.mockReturnValue('pending');
+
+      const { UNSAFE_getByType } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const textContainerStyle = StyleSheet.flatten(
+        UNSAFE_getByType(Animated.View).props.style,
+      );
+
+      expect(textContainerStyle.opacity).toBe(0);
+    });
+
+    it('keeps the text hidden on the render where the state first transitions from pending to animate', () => {
+      mockUseCardEducationAnimationState.mockReturnValue('pending');
+
+      const { rerender, UNSAFE_getByType } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
+      rerender(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const textContainerStyle = StyleSheet.flatten(
+        UNSAFE_getByType(Animated.View).props.style,
+      );
+
+      expect(textContainerStyle.opacity).toBe(0);
     });
   });
 

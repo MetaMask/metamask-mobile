@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StatusBar, View, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
@@ -62,6 +62,20 @@ const CardWelcome = () => {
   const dimensions = useWindowDimensions();
   const styles = createStyles(theme, dimensions);
   const animationState = useCardEducationAnimationState();
+  const [hasCardsAnimationError, setHasCardsAnimationError] = useState(false);
+  // A Rive failure swaps in the static cards image, so there is no entrance
+  // left to sequence against: fall back to the static reveal rather than
+  // holding the copy hidden for the full CardsIn duration.
+  const resolvedAnimationState =
+    animationState === 'animate' && hasCardsAnimationError
+      ? 'static'
+      : animationState;
+  const isAnimating = resolvedAnimationState === 'animate';
+  const isContentHidden = resolvedAnimationState === 'pending';
+  // Reanimated attaches the animated style a frame after `isAnimating` flips,
+  // so the copy would paint at full opacity for that frame. Keeping the static
+  // hidden style underneath holds it down until the reveal takes over.
+  const isCopyHiddenUntilRevealed = isContentHidden || isAnimating;
 
   const textOpacity = useSharedValue(0);
   const textTranslateY = useSharedValue(TEXT_REVEAL_TRANSLATE_Y);
@@ -70,24 +84,23 @@ const CardWelcome = () => {
     transform: [{ translateY: textTranslateY.value }],
   }));
 
+  const handleCardsAnimationError = useCallback(() => {
+    setHasCardsAnimationError(true);
+  }, []);
+
   useEffect(() => {
-    if (animationState === 'pending') {
+    if (!isAnimating) {
       return;
     }
-    if (animationState === 'animate') {
-      textOpacity.value = withDelay(
-        CARDS_IN_DURATION_MS,
-        withTiming(1, { duration: TEXT_REVEAL_DURATION_MS }),
-      );
-      textTranslateY.value = withDelay(
-        CARDS_IN_DURATION_MS,
-        withTiming(0, { duration: TEXT_REVEAL_DURATION_MS }),
-      );
-      return;
-    }
-    textOpacity.value = 1;
-    textTranslateY.value = 0;
-  }, [animationState, textOpacity, textTranslateY]);
+    textOpacity.value = withDelay(
+      CARDS_IN_DURATION_MS,
+      withTiming(1, { duration: TEXT_REVEAL_DURATION_MS }),
+    );
+    textTranslateY.value = withDelay(
+      CARDS_IN_DURATION_MS,
+      withTiming(0, { duration: TEXT_REVEAL_DURATION_MS }),
+    );
+  }, [isAnimating, textOpacity, textTranslateY]);
 
   useEffect(() => {
     trackEvent(
@@ -181,7 +194,12 @@ const CardWelcome = () => {
     >
       {/* Header Section */}
       <SafeAreaView style={styles.headerContainer} edges={['top']}>
-        <Animated.View style={textRevealStyle}>
+        <Animated.View
+          style={[
+            isCopyHiddenUntilRevealed && styles.hiddenText,
+            isAnimating && textRevealStyle,
+          ]}
+        >
           <Text
             style={styles.title}
             variant={TextVariant.HeadingLg}
@@ -201,10 +219,11 @@ const CardWelcome = () => {
 
       {/* Image Section - Positioned absolutely to extend behind footer */}
       <View style={styles.imageContainer}>
-        {animationState !== 'pending' && (
+        {resolvedAnimationState !== 'pending' && (
           <CardWelcomeCardsAnimation
-            animate={animationState === 'animate'}
+            animate={isAnimating}
             style={styles.image}
+            onRiveError={handleCardsAnimationError}
           />
         )}
       </View>

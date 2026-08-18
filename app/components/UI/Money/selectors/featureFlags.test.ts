@@ -1119,7 +1119,6 @@ describe('selectMoneyCardEducationAnimationEnabledFlag', () => {
   });
 });
 
-
 describe('selectMoneyParallaxAnimationEnabledFlag', () => {
   const originalEnv = process.env;
 
