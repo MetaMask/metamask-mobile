@@ -26,6 +26,18 @@ describe('MoneyHeader', () => {
     expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
   });
 
+  it('renders the Money title alongside the menu button', () => {
+    const { getByTestId } = render(
+      <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+    );
+
+    expect(getByTestId(MoneyHeaderTestIds.TITLE)).toHaveTextContent(
+      strings('money.title'),
+    );
+
+    expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+  });
+
   it('calls onMenuPress when the menu button is pressed', () => {
     const mockOnMenuPress = jest.fn();
     const { getByTestId } = render(

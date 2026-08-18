@@ -4,10 +4,8 @@ import {
   Button,
   ButtonIcon,
   ButtonSize,
-  ButtonVariant,
   HeaderRoot,
   IconName,
-  Text,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
@@ -32,6 +30,10 @@ const MoneyHeader = ({ onMenuPress, onGetProPress }: MoneyHeaderProps) => {
     <HeaderRoot
       testID={MoneyHeaderTestIds.CONTAINER}
       twClassName="pl-4 pr-3"
+      title={strings('money.title')}
+      titleProps={{
+        testID: MoneyHeaderTestIds.TITLE,
+      }}
       endAccessory={
         <Box twClassName="flex-row items-center gap-1">
           {isProSubscriptionEnabled && (

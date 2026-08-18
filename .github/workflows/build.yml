@@ -34,10 +34,12 @@ on:
         type: boolean
         default: false
       runner_provider:
-        description: Runner provider forwarded from the caller
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
         required: false
         type: string
-        default: current
+        default: ''
     outputs:
       build_name:
         description: 'build_name input passed to this workflow'
@@ -97,13 +99,14 @@ on:
         type: boolean
         default: false
       runner_provider:
-        description: Runner provider for this manual trial run
-        required: true
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: false
         type: choice
         options:
-          - current
+          - inherit
           - namespace
-        default: current
+          - current
+        default: inherit
 
 permissions:
   contents: read
@@ -113,7 +116,20 @@ jobs:
   # Load config
   prepare:
     if: ${{ always() && !failure() && !cancelled() }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
@@ -126,20 +142,29 @@ jobs:
       should_cache: ${{ startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
       - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: 'yarn'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - run: yarn install --immutable
 
       - name: Apply version override locally
@@ -201,20 +226,45 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
-    runs-on: ${{ inputs.runner_provider == 'namespace' && (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') || (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg') }}
+    # Namespace: per-platform build profiles. Cirrus fallback: lg (large) runner for the
+    # 8GB Gradle heap on Android, macOS Tahoe for iOS (has Xcode 26.x).
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
+         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
+        (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
+      }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     env:
-      GRADLE_USER_HOME: /home/admin/_work/.gradle
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
+          vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
+      # Namespace runners use the standard runner home; Cirrus images run as `admin`.
+      # Cannot reference RESOLVED_RUNNER_PROVIDER: env entries in the same block are
+      # not visible to each other.
+      GRADLE_USER_HOME: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+           (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
+           vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+          '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle'
+        }}
       CACHE_GENERATION: v1
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
       - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
@@ -680,7 +730,20 @@ jobs:
     name: Emit build metadata
     needs: [prepare, build]
     if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     outputs:
       checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
       built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
@@ -689,12 +752,12 @@ jobs:
       ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
       - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
