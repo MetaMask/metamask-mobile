@@ -5,6 +5,7 @@ import {
   parseCaipAssetType,
 } from '@metamask/utils';
 import type { TokenI } from '../../Tokens/types';
+import { toDecimalTronCaipChainId } from '../../../../core/Multichain/tronSpecialAssets';
 
 /** SLIP-44 coin type for TRX. Synthetic staking IDs use suffixes after this (e.g. `195-staked-for-energy`). */
 const TRX_SLIP44_REFERENCE = '195';
@@ -42,7 +43,7 @@ export const getTronNativeChainId = (
   token: TokenWithOptionalCaipAssetId,
 ): `tron:${string}` | undefined => {
   if (typeof token.chainId === 'string' && token.chainId.startsWith('tron:')) {
-    return token.chainId as `tron:${string}`;
+    return toDecimalTronCaipChainId(token.chainId);
   }
 
   const caipAssetId = isTronNativeAssetId(token.caipAssetId)
@@ -53,11 +54,7 @@ export const getTronNativeChainId = (
   }
 
   const { chainId } = parseCaipAssetType(caipAssetId as CaipAssetType);
-  if (chainId.startsWith('tron:')) {
-    return chainId as `tron:${string}`;
-  }
-
-  return undefined;
+  return toDecimalTronCaipChainId(chainId);
 };
 
 /**

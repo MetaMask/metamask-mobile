@@ -17,9 +17,7 @@ import {
   CaipChainId,
   Hex,
   isCaipChainId,
-  KnownCaipNamespace,
   parseCaipAssetType,
-  parseCaipChainId,
 } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
@@ -31,6 +29,7 @@ import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import {
   getTronSpecialAssetMapKey,
   getTronSpecialAssetUnit,
+  toDecimalTronCaipChainId,
 } from '../../core/Multichain/tronSpecialAssets';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
@@ -101,31 +100,6 @@ export interface TronSpecialAssetsMap {
   trxInLockPeriod: Asset | undefined;
 }
 
-/**
- * Normalize a Tron CAIP-2 network ID to decimal form (`tron:728126428`).
- * Hex references (`tron:0x2b6653dc`) map to the same decimal chain.
- */
-const toDecimalTronChainId = (networkId: string): string | undefined => {
-  if (networkId.startsWith(`${KnownCaipNamespace.Tron}:`)) {
-    try {
-      const { namespace, reference } = parseCaipChainId(
-        networkId as CaipChainId,
-      );
-      if (namespace !== KnownCaipNamespace.Tron) {
-        return undefined;
-      }
-      if (/^0x[0-9a-fA-F]+$/u.test(reference)) {
-        return `${namespace}:${Number.parseInt(reference, 16)}`;
-      }
-      return networkId;
-    } catch {
-      return undefined;
-    }
-  }
-
-  return undefined;
-};
-
 interface AccountTreeSlice {
   selectedAccountGroup?: string;
   accountTree?: {
@@ -175,6 +149,7 @@ const specialAssetFromBalance = (
     name: unit,
     rawBalance: '0x0' as Hex,
     symbol: unit,
+    fiat: undefined,
   };
 };
 
@@ -741,8 +716,10 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
     [getStateForAssetSelector, selectEnabledNetworks],
     (assetsState, enabledNetworks): TronSpecialAssetsMap => {
       const enabledTronNetworks = enabledNetworks
-        .map(toDecimalTronChainId)
-        .filter((networkId): networkId is string => networkId !== undefined);
+        .map(toDecimalTronCaipChainId)
+        .filter(
+          (networkId): networkId is `tron:${string}` => networkId !== undefined,
+        );
 
       if (enabledTronNetworks.length === 0) {
         return EMPTY_TRON_SPECIAL_ASSETS_MAP;
@@ -771,7 +748,7 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
       };
 
       for (const [networkId, chainAssets] of Object.entries(allAssets)) {
-        const decimalTronChainId = toDecimalTronChainId(networkId);
+        const decimalTronChainId = toDecimalTronCaipChainId(networkId);
         const isEnabledTron = Boolean(
           decimalTronChainId && enabledTronNetworksSet.has(decimalTronChainId),
         );
@@ -801,7 +778,7 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
 
           try {
             const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
-            const decimalTronChainId = toDecimalTronChainId(chainId);
+            const decimalTronChainId = toDecimalTronCaipChainId(chainId);
             if (
               !decimalTronChainId ||
               !enabledTronNetworksSet.has(decimalTronChainId)

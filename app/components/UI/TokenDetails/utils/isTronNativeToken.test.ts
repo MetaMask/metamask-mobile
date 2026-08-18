@@ -1,6 +1,10 @@
 import { TrxScope } from '@metamask/keyring-api';
 import type { TokenI } from '../../Tokens/types';
-import { isTronNativeAssetId, isTronNativeToken } from './isTronNativeToken';
+import {
+  getTronNativeChainId,
+  isTronNativeAssetId,
+  isTronNativeToken,
+} from './isTronNativeToken';
 
 const TRON_NATIVE_MAINNET = `${TrxScope.Mainnet}/slip44:195`;
 const TRON_NATIVE_HEX_CHAIN = 'tron:0x2b6653dc/slip44:195';
@@ -101,5 +105,38 @@ describe('isTronNativeToken', () => {
     });
 
     expect(isTronNativeToken(token)).toBe(false);
+  });
+});
+
+describe('getTronNativeChainId', () => {
+  it('returns decimal TrxScope when chainId is already decimal CAIP-2', () => {
+    expect(getTronNativeChainId(createToken())).toBe(TrxScope.Mainnet);
+  });
+
+  it('normalizes hex Tron chainId so stake APIs receive TrxScope form', () => {
+    const token = createToken({
+      chainId: 'tron:0x2b6653dc',
+      address: TRON_NATIVE_HEX_CHAIN,
+    });
+
+    expect(getTronNativeChainId(token)).toBe(TrxScope.Mainnet);
+  });
+
+  it('normalizes hex chain from native CAIP-19 address when chainId is missing', () => {
+    const token = createToken({
+      chainId: undefined,
+      address: TRON_NATIVE_HEX_CHAIN,
+    });
+
+    expect(getTronNativeChainId(token)).toBe(TrxScope.Mainnet);
+  });
+
+  it('returns undefined for non-Tron tokens', () => {
+    const token = createToken({
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1',
+    });
+
+    expect(getTronNativeChainId(token)).toBeUndefined();
   });
 });

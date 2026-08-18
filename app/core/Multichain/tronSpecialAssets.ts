@@ -1,8 +1,10 @@
 import {
   type CaipAssetType,
+  type CaipChainId,
   isCaipAssetType,
   KnownCaipNamespace,
   parseCaipAssetType,
+  parseCaipChainId,
 } from '@metamask/utils';
 
 /**
@@ -87,4 +89,33 @@ export const getTronSpecialAssetUnit = (
 ): string | undefined => {
   const key = getTronSpecialAssetMapKey(assetId);
   return key ? TRON_SPECIAL_ASSET_UNITS[key] : undefined;
+};
+
+/**
+ * Normalize a Tron CAIP-2 chain id to decimal form (`tron:728126428`).
+ * Hex references (`tron:0x2b6653dc`) map to the same chain. Non-Tron IDs
+ * and invalid CAIP strings return `undefined`.
+ */
+export const toDecimalTronCaipChainId = (
+  chainId: string | undefined,
+): `tron:${string}` | undefined => {
+  if (!chainId) {
+    return undefined;
+  }
+
+  try {
+    const { namespace, reference } = parseCaipChainId(chainId as CaipChainId);
+    if (namespace !== KnownCaipNamespace.Tron) {
+      return undefined;
+    }
+    if (/^0x[0-9a-fA-F]+$/u.test(reference)) {
+      return `${namespace}:${Number.parseInt(
+        reference,
+        16,
+      )}` as `tron:${string}`;
+    }
+    return `${namespace}:${reference}` as `tron:${string}`;
+  } catch {
+    return undefined;
+  }
 };

@@ -2324,6 +2324,62 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
     expect(result.totalStakedTrx).toBe(100);
   });
 
+  it('builds staked TRX from Snap balances when the asset list omitted synthetics', () => {
+    const accountId = '2d89e6a0-b4e6-45a8-a707-f10cef143b42';
+    const state = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          MultichainAssetsController: {
+            accountsAssets: {
+              [accountId]: ['tron:728126428/slip44:195'],
+            },
+            assetsMetadata: {
+              'tron:728126428/slip44:195': {
+                name: 'TRON',
+                symbol: 'TRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
+              },
+            },
+            allIgnoredAssets: {},
+          },
+          MultichainBalancesController: {
+            balances: {
+              [accountId]: {
+                'tron:728126428/slip44:195': { amount: '1000', unit: 'TRX' },
+                'tron:728126428/slip44:195-staked-for-energy': {
+                  amount: '40',
+                },
+                'tron:728126428/slip44:195-staked-for-bandwidth': {
+                  amount: '10',
+                  unit: 'TRX',
+                },
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: true,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+    expect(result.stakedTrxForEnergy?.balance).toBe('40');
+    expect(result.stakedTrxForEnergy?.symbol).toBe('TRX');
+    expect(result.stakedTrxForBandwidth?.balance).toBe('10');
+    expect(result.totalStakedTrx).toBe(50);
+  });
+
   it('returns empty object when Tron network is disabled', () => {
     const stateWithTronDisabled = {
       ...mockState(),
