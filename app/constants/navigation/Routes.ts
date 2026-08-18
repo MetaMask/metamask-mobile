@@ -600,6 +600,10 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
+  PRO_SUBSCRIPTION: {
+    /** Root screen for the MetaMask Pro subscription flow. */
+    ROOT: 'ProSubscription',
+  },
 } as const;
 
 export default Routes;

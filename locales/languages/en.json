@@ -4041,8 +4041,8 @@
       "wallet_activity_desc": "Buy, sells, transfers, swaps",
       "perps_title": "Trading activity",
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
-      "agentic_cli_title": "Agentic CLI",
-      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
+      "agentic_cli_title": "Agent wallet",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agent wallet",
       "social_ai_title": "Trading signals",
       "social_ai_desc": "Updates from traders and assets you follow, plus curated market news",
       "marketing_title": "Updates and rewards",
@@ -7562,6 +7562,7 @@
   },
   "money": {
     "title": "Money",
+    "get_pro": "Get Pro",
     "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -10438,7 +10439,7 @@
       "description": "Return to the app to continue."
     },
     "show_cli_link_success": {
-      "title": "Agent CLI successfully linked",
+      "title": "Agent wallet successfully linked",
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
@@ -10452,8 +10453,8 @@
     "show_otp": {
       "title": "Enter this code",
       "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
-      "modal_title": "Link MetaMask Agent CLI",
-      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
+      "modal_title": "Link MetaMask Agent wallet",
+      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent wallet.",
       "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Expires in {{time}}",
       "expired": "Code expired",
@@ -10795,5 +10796,54 @@
     "activate_error": "Something went wrong while adding this trustline. Try again.",
     "deactivate_error": "Something went wrong while removing this trustline. Try again.",
     "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
+  },
+  "pro_subscription": {
+    "title": "Earn more with Pro",
+    "description": "$4.99/mo ($49.99 for annual membership)",
+    "join_pro": "Join Pro",
+    "benefits": {
+      "apy": {
+        "title": "Up to 7% APY on Money account",
+        "subtitle": "Paid in mUSD, no lockups"
+      },
+      "cashback": {
+        "title": "3% mUSD back on card purchases",
+        "subtitle": "Up to $1,000/mo, worldwide"
+      },
+      "member_pricing": {
+        "title": "Member pricing on trades",
+        "subtitle": "Including swaps, perps, and predictions"
+      },
+      "atm_fees": {
+        "title": "No added ATM or FX fees",
+        "subtitle": "Physical card included"
+      },
+      "protection": {
+        "title": "Up to $10,000 in protection",
+        "subtitle": "On eligible extension transactions"
+      },
+      "support": {
+        "title": "Real human support, around the clock",
+        "subtitle": "Response in minutes"
+      }
+    },
+    "plans": {
+      "annual": {
+        "label": "Annual",
+        "price": "$49.99",
+        "sub_price": "($4.15/mo)",
+        "badge": "2 months free",
+        "cta": "Join Pro for $4.15/month"
+      },
+      "monthly": {
+        "label": "Monthly",
+        "price": "$4.99/mo",
+        "cta": "Join Pro for $4.99/month"
+      }
+    },
+    "success": {
+      "title": "Welcome to Pro",
+      "cta": "Done"
+    }
   }
 }
