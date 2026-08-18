@@ -1,24 +1,23 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
-export interface ProSubscriptionRouteParams {
-  source?: string;
-  initialPlan?: PlanId;
-}
-
 const ProSubscription = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const route =
-    useRoute<RouteProp<{ params: ProSubscriptionRouteParams }, 'params'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'ProSubscription'>>();
 
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const [currentScreen, setCurrentScreen] =
@@ -45,7 +44,7 @@ const ProSubscription = () => {
         <Benefits
           onSuccess={handleSuccess}
           onClose={handleClose}
-          initialPlan={route.params?.initialPlan}
+          initialPlan={route.params?.initialPlan as PlanId | undefined}
         />
       ) : (
         <Success onClose={handleClose} />
