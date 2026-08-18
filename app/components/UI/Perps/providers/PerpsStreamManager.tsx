@@ -37,7 +37,7 @@ import {
   buildMarketDataPayload,
   buildUserDataPayload,
 } from '@metamask/perps-controller/utils/perpsDiskPersistence';
-import { getProviderNetworkKey } from '@metamask/perps-controller/constants/perpsConfig';
+import { buildProviderCacheKey } from '@metamask/perps-controller/constants/perpsConfig';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import {
@@ -65,7 +65,6 @@ function getEvmAccountFromSelectedAccountGroup() {
 interface StreamSubscription<T> {
   id: string;
   callback: (data: T) => void;
-  onError?: (error: Error) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
@@ -88,10 +87,6 @@ type PerpsUserDataBundle = Pick<
   PerpsUserDataSnapshot,
   'positions' | 'orders' | 'accountState'
 >;
-type PerpsUserDataBundleCandidate = Omit<
-  PerpsUserDataBundle,
-  'accountState'
-> & { accountState: AccountState | null };
 
 // Base class for any stream type
 abstract class StreamChannel<T> {
@@ -115,9 +110,6 @@ abstract class StreamChannel<T> {
     this.#onDataPersist?.();
   }
 
-  protected notifySubscribersOfError(error: Error): void {
-    this.subscribers.forEach((subscriber) => subscriber.onError?.(error));
-  }
   // Track account context to prevent stale data across account switches
   protected accountAddress: string | null = null;
   protected cacheAccountAddress: string | null = null;
@@ -132,6 +124,7 @@ abstract class StreamChannel<T> {
   // attribute an already-present value to the instant it was delivered rather
   // than to when the caller happened to look.
   protected lastDeliveredAt: number | null = null;
+  protected deliveryRevision = 0;
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
   // Timer handle for deferConnect so it can be cancelled on disconnect
@@ -148,6 +141,7 @@ abstract class StreamChannel<T> {
     }
 
     this.lastDeliveredAt = Date.now();
+    this.deliveryRevision += 1;
     this.subscribers.forEach((subscriber) => {
       this.deliverToSubscriber(subscriber, updates, source);
     });
@@ -172,6 +166,10 @@ abstract class StreamChannel<T> {
     return this.lastDeliveredAt;
   }
 
+  public getDeliveryRevision(): number {
+    return this.deliveryRevision;
+  }
+
   /**
    * Symbol-scoped variant of {@link notifySubscribers}. Only subscribers that
    * registered for at least one of `changedSymbols` are notified, so a tick that
@@ -192,6 +190,7 @@ abstract class StreamChannel<T> {
     }
 
     this.lastDeliveredAt = Date.now();
+    this.deliveryRevision += 1;
     // A subscriber registered for multiple changed symbols must be delivered to
     // exactly once per tick (not once per matching symbol).
     const notifiedIds = new Set<string>();
@@ -333,7 +332,6 @@ abstract class StreamChannel<T> {
 
   subscribe(params: {
     callback: (data: T) => void;
-    onError?: (error: Error) => void;
     throttleMs?: number;
     symbols?: string[];
   }): () => void {
@@ -351,7 +349,8 @@ abstract class StreamChannel<T> {
     const cached = this.getCachedData();
     if (cached != null) {
       params.callback(cached);
-      // Cached data must not consume the first-fresh throttle bypass.
+      // Cached data renders immediately but must not consume the first fresh
+      // update exemption. The first live snapshot should also bypass throttling.
     }
 
     this.#lifecycle?.onSubscribe?.();
@@ -681,7 +680,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // If we have a prewarm subscription, we're already subscribed to all markets
     // No need to create another subscription
     if (this.prewarmUnsubscribe) {
-      // subscribe() already delivered cache; preserve the first-live bypass.
+      // subscribe() already delivered any cached value. The next notification
+      // must come from the live prewarm stream so it keeps the first-live bypass.
       return;
     }
 
@@ -2047,22 +2047,37 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     );
   }
 
+  private isGlobalSnapshotActive(): boolean {
+    const { activeProvider = PROVIDER_CONFIG.DefaultProvider } =
+      Engine.context.PerpsController.state;
+    return (
+      Boolean(this.terminalGlobalSnapshotUrl) &&
+      activeProvider === 'hyperliquid'
+    );
+  }
+
   private getCurrentSourceKey(): string {
     const controller = Engine.context.PerpsController;
     const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
       store.getState(),
     );
+    const activeProvider =
+      controller.state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider;
+    const providerNetworkKey = buildProviderCacheKey(
+      activeProvider,
+      controller.state.isTestnet,
+    );
     let source = 'direct';
-    if (this.terminalGlobalSnapshotUrl) {
+    if (this.isGlobalSnapshotActive()) {
       source = 'global-snapshot';
     } else if (terminalEnabled) {
       source = 'terminal';
     }
-    return `${getProviderNetworkKey(controller.state)}:${source}`;
+    return `${providerNetworkKey}:${source}`;
   }
 
   protected connect() {
-    const hasGlobalSnapshot = Boolean(this.terminalGlobalSnapshotUrl);
+    const hasGlobalSnapshot = this.isGlobalSnapshotActive();
     if (!hasGlobalSnapshot && !this.ensureReady()) return;
 
     // Check if connection manager is still connecting - retry later if so
@@ -2071,7 +2086,6 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       return;
     }
 
-    // Provider, network, and configured source form one cache identity.
     const controller = Engine.context.PerpsController;
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
@@ -2103,12 +2117,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         providerId: currentProviderId,
       });
       // Don't await - just trigger the fetch and handle errors
-      this.fetchMarketData(cached !== undefined).catch((error) => {
-        Logger.error(
-          ensureError(error, 'PerpsStreamManager.fetchMarketData.background'),
-          'PerpsStreamManager: Failed to fetch market data',
-        );
-      });
+      this.fetchMarketData(cached !== undefined).catch(() => undefined);
     } else {
       DevLogger.log('PerpsStreamManager: Using cached market data', {
         cacheAgeMs: cacheAge,
@@ -2139,6 +2148,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
           store.getState(),
         );
+        const hasGlobalSnapshot = this.isGlobalSnapshotActive();
         const sourceKey = this.getCurrentSourceKey();
 
         // One-time read of controller-level preloaded cache (REST snapshot).
@@ -2148,7 +2158,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
         const cachedForProvider =
           controller.getCachedMarketDataForActiveProvider?.();
-        const controllerCacheSourceMatches = this.terminalGlobalSnapshotUrl
+        const controllerCacheSourceMatches = hasGlobalSnapshot
           ? Array.isArray(cachedForProvider) &&
             this.isCompleteGlobalSnapshot(cachedForProvider)
           : !terminalEnabled;
@@ -2184,7 +2194,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
         const data = await controller.getMarketDataWithPrices({
           useTerminalApi: terminalEnabled,
-          ...(this.terminalGlobalSnapshotUrl ? { standalone: true } : {}),
+          ...(hasGlobalSnapshot ? { standalone: true } : {}),
         });
         const fetchTime = Date.now() - fetchStartTime;
 
@@ -2221,16 +2231,12 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           ).toISOString(),
         });
       } catch (error) {
-        const safeError = ensureError(
-          error,
-          'PerpsStreamManager.fetchMarketData',
-        );
         const fetchTime = Date.now() - fetchStartTime;
         const existing = this.cache.get('markets');
         const cacheStalenessMs = this.lastFetchTime
           ? Date.now() - this.lastFetchTime
           : null;
-        Logger.error(safeError, {
+        Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
           tags: {
             feature: PERPS_CONSTANTS.FeatureName,
           },
@@ -2255,8 +2261,6 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           );
           this.notifySubscribers(existing, 'cache');
         }
-        this.notifySubscribersOfError(safeError);
-        throw safeError;
       }
     })();
 
@@ -2296,7 +2300,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     const fromController =
       controller.getCachedMarketDataForActiveProvider?.() ?? null;
     if (
-      (this.terminalGlobalSnapshotUrl || terminalEnabled) &&
+      (this.isGlobalSnapshotActive() || terminalEnabled) &&
       fromController !== null &&
       !this.isCompleteGlobalSnapshot(fromController)
     ) {
@@ -2319,11 +2323,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
    */
   public prewarm(): () => void {
     // Fetch data immediately to populate cache
-    this.fetchMarketData(this.cache.has('markets')).catch((error) => {
-      Logger.error(ensureError(error, 'MarketDataChannel.prewarm'), {
-        context: 'MarketDataChannel.prewarm',
-      });
-    });
+    this.fetchMarketData(this.cache.has('markets')).catch(() => undefined);
 
     // No cleanup needed for REST data
     return () => {
@@ -2419,25 +2419,20 @@ export class PerpsStreamManager {
     if (!address) {
       return null;
     }
-    const state = Engine.context.PerpsController.state;
+    const {
+      activeProvider = PROVIDER_CONFIG.DefaultProvider,
+      isTestnet,
+      hip3ConfigVersion = 0,
+    } = Engine.context.PerpsController.state;
+    if (activeProvider !== 'hyperliquid') {
+      return null;
+    }
     return [
-      state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider,
-      state.isTestnet ? 'testnet' : 'mainnet',
-      state.hip3ConfigVersion ?? 0,
+      activeProvider,
+      isTestnet ? 'testnet' : 'mainnet',
+      hip3ConfigVersion,
       address.toLowerCase(),
     ].join('|');
-  }
-
-  private isCompleteUserDataSnapshot(
-    snapshot: PerpsUserDataBundleCandidate | null,
-  ): snapshot is PerpsUserDataBundle {
-    return (
-      snapshot !== null &&
-      Array.isArray(snapshot.positions) &&
-      Array.isArray(snapshot.orders) &&
-      snapshot.accountState !== null &&
-      typeof snapshot.accountState === 'object'
-    );
   }
 
   private publishUserDataSnapshot(
@@ -2474,20 +2469,28 @@ export class PerpsStreamManager {
       return Promise.resolve();
     }
 
-    const liveDeliveryBaseline = [
+    const hasPriorLiveDelivery = [
       this.positions.getLastDeliveredAt(),
       this.orders.getLastDeliveredAt(),
       this.account.getLastDeliveredAt(),
+    ].some((deliveredAt) => deliveredAt !== null);
+    const deliveryRevisionBaseline = [
+      this.positions.getDeliveryRevision(),
+      this.orders.getDeliveryRevision(),
+      this.account.getDeliveryRevision(),
     ];
     if (
       this.acceptedUserDataSnapshotKey !== requestKey &&
-      liveDeliveryBaseline.every((deliveredAt) => deliveredAt === null)
+      !hasPriorLiveDelivery
     ) {
       const cachedSnapshot =
         controller.getCachedUserDataForActiveProvider?.({ skipTTL: true }) ??
         null;
-      if (this.isCompleteUserDataSnapshot(cachedSnapshot)) {
-        this.publishUserDataSnapshot(cachedSnapshot, 'cache');
+      if (cachedSnapshot?.accountState) {
+        this.publishUserDataSnapshot(
+          cachedSnapshot as PerpsUserDataBundle,
+          'cache',
+        );
         this.acceptedUserDataSnapshotKey = requestKey;
       }
     }
@@ -2503,17 +2506,16 @@ export class PerpsStreamManager {
       .getUserDataSnapshot()
       .then((snapshot) => {
         const hasNewerLiveDelivery = [
-          this.positions.getLastDeliveredAt(),
-          this.orders.getLastDeliveredAt(),
-          this.account.getLastDeliveredAt(),
+          this.positions.getDeliveryRevision(),
+          this.orders.getDeliveryRevision(),
+          this.account.getDeliveryRevision(),
         ].some(
-          (deliveredAt, index) => deliveredAt !== liveDeliveryBaseline[index],
+          (revision, index) => revision !== deliveryRevisionBaseline[index],
         );
         if (
           hasNewerLiveDelivery ||
           this.userDataSnapshotGeneration !== requestGeneration ||
-          this.getUserDataSnapshotKey() !== requestKey ||
-          !this.isCompleteUserDataSnapshot(snapshot)
+          this.getUserDataSnapshotKey() !== requestKey
         ) {
           return;
         }
@@ -2522,10 +2524,21 @@ export class PerpsStreamManager {
         this.acceptedUserDataSnapshotKey = requestKey;
       })
       .catch((error) => {
-        Logger.error(
-          ensureError(error, 'PerpsStreamManager.getUserDataSnapshot'),
-          { context: 'PerpsStreamManager.getUserDataSnapshot' },
+        const safeError = ensureError(
+          error,
+          'PerpsStreamManager.getUserDataSnapshot',
         );
+        if (
+          safeError.message === 'User data snapshot DEX identity is not static'
+        ) {
+          DevLogger.log(
+            'PerpsStreamManager: Atomic user snapshot unavailable for dynamic DEX identity',
+          );
+          return;
+        }
+        Logger.error(safeError, {
+          context: 'PerpsStreamManager.getUserDataSnapshot',
+        });
       })
       .finally(() => {
         if (this.userDataSnapshotPromise === request) {

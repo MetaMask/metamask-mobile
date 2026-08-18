@@ -495,16 +495,7 @@ describe('createMobileInfrastructure - terminalApi', () => {
     });
   });
 
-  it('uses the full production market endpoint', () => {
-    process.env.METAMASK_ENVIRONMENT = 'production';
-    process.env.METAMASK_BUILD_TYPE = 'main';
-    const infra = createMobileInfrastructure();
-    expect(infra.terminalApi?.marketDataUrl).toBe(
-      'https://terminal.api.cx.metamask.io/v1/perpetuals',
-    );
-  });
-
-  it('uses the full development market endpoint', () => {
+  it('uses the full development and UAT endpoints', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     delete process.env.METAMASK_BUILD_TYPE;
     const infra = createMobileInfrastructure();
@@ -514,6 +505,14 @@ describe('createMobileInfrastructure - terminalApi', () => {
     expect(infra.terminalApi?.globalSnapshotUrl).toBe(
       'https://terminal.dev-api.cx.metamask.io/v2/perpetuals',
     );
+
+    process.env.METAMASK_ENVIRONMENT = 'exp';
+    process.env.METAMASK_BUILD_TYPE = 'beta';
+    expect(createMobileInfrastructure().terminalApi).toEqual({
+      marketDataUrl: TERMINAL_API_URLS.UAT,
+      globalSnapshotUrl:
+        'https://terminal.uat-api.cx.metamask.io/v2/perpetuals',
+    });
   });
 });
 

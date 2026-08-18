@@ -694,9 +694,10 @@ describe('PerpsConnectionManager', () => {
         }),
       );
 
+      expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
       expect(
         mockStreamManagerInstance.marketData.clearCache,
-      ).toHaveBeenCalledWith(true);
+      ).not.toHaveBeenCalled();
     });
 
     it('detects network changes and triggers reconnection', async () => {
