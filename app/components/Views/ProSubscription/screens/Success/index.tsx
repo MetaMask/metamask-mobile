@@ -8,8 +8,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  ButtonIcon,
-  ButtonIconSize,
   Icon,
   IconName,
   IconSize,
