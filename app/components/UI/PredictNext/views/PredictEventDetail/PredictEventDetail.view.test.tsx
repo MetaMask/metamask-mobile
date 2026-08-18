@@ -187,6 +187,35 @@ describe('PredictEventDetail', () => {
     ).toEqual(expect.objectContaining({ selected: true }));
   });
 
+  it('shows loading while Market history is pending', async () => {
+    let resolveHistory:
+      | ((value: ReturnType<typeof history>) => void)
+      | undefined;
+    const baseImplementation = messengerCall.getMockImplementation();
+    messengerCall.mockImplementation((...args: unknown[]) => {
+      if (args[0] === 'PredictMarketDataService:getMarketHistory') {
+        return new Promise((resolve) => {
+          resolveHistory = resolve;
+        });
+      }
+      return baseImplementation?.(...args);
+    });
+    const view = await openDetail();
+
+    expect(
+      await view.findByTestId(PredictMarketHistoryTestIds.LOADING),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.CHART),
+    ).not.toBeOnTheScreen();
+
+    resolveHistory?.(history('market-1', 'LIVE'));
+
+    expect(
+      await view.findByTestId(PredictMarketHistoryTestIds.CHART),
+    ).toBeOnTheScreen();
+  });
+
   it('retries failed Market history', async () => {
     let historyRequest = 0;
     const baseImplementation = messengerCall.getMockImplementation();

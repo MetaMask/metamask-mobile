@@ -281,6 +281,18 @@ describe('Predict API canonical response parsers', () => {
     );
   });
 
+  it('rejects duplicate Market history point timestamps', () => {
+    const point = {
+      timestamp: '2026-08-07T11:00:00Z',
+      yesPrice: '0.42',
+    };
+    const input = createMarketHistory({ points: [point, point] });
+
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('rejects Market history points after the backend observation time', () => {
     const input = createMarketHistory({
       points: [{ timestamp: '2026-08-07T12:00:01Z', yesPrice: '0.42' }],

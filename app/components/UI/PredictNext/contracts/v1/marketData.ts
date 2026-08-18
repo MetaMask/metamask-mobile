@@ -125,7 +125,7 @@ const marketHistorySchema = refine(
 
     return points.every((point) => {
       const pointTimestampMs = Date.parse(point.timestamp);
-      const isOrdered = pointTimestampMs >= previousTimestampMs;
+      const isOrdered = pointTimestampMs > previousTimestampMs;
       previousTimestampMs = pointTimestampMs;
       return isOrdered && pointTimestampMs <= observedAtMs;
     });
