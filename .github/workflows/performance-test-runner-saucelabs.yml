@@ -128,10 +128,18 @@ jobs:
           GREP_TAGS: ${{ inputs.grep_tags }}
         run: |
           set -euo pipefail
-          if [ -n "$GREP_TAGS" ]; then
-            yarn playwright test --config=tests/playwright.saucelabs.config.ts --grep "$GREP_TAGS"
+          if [ "${{ inputs.build_type }}" = "onboarding" ]; then
+            projects=(
+              "--project=saucelabs-android-onboarding"
+              "--project=saucelabs-android-onboarding-seedless"
+            )
           else
-            yarn playwright test --config=tests/playwright.saucelabs.config.ts
+            projects=("--project=saucelabs-android")
+          fi
+          if [ -n "$GREP_TAGS" ]; then
+            yarn playwright test --config=tests/playwright.saucelabs.config.ts "${projects[@]}" --grep "$GREP_TAGS"
+          else
+            yarn playwright test --config=tests/playwright.saucelabs.config.ts "${projects[@]}"
           fi
 
       - name: Upload Sauce Labs results
