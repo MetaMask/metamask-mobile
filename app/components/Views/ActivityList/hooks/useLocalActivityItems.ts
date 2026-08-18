@@ -1,9 +1,10 @@
 /**
  * Builds enriched TransactionGroups from Mobile's local transactions and maps them
- * to ActivityListItem[] using the shared mapLocalTransaction adapter.
+ * to ActivityListItem[] using mapLocalTransaction from @metamask/client-utils.
  */
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { mapLocalTransaction } from '@metamask/client-utils';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -22,8 +23,8 @@ import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
-  mapLocalTransaction,
-  mobileActivityAdapterEnvironment,
+  enrichLocalActivity,
+  prepareLocalTransactionGroup,
   type TransactionGroup,
   type ActivityListItem,
   type Status,
@@ -373,8 +374,18 @@ export function useLocalActivityItems(): ActivityListItem[] {
         isHardwareWalletAccount,
       };
 
-      const item = mapLocalTransaction(group, mobileActivityAdapterEnvironment);
-      items.push({ ...item, isEarliestNonce });
+      const prepared = prepareLocalTransactionGroup(group);
+      const item = enrichLocalActivity(
+        mapLocalTransaction(
+          prepared as Parameters<typeof mapLocalTransaction>[0],
+        ) as ActivityListItem,
+        prepared,
+      );
+      items.push({
+        ...item,
+        raw: { type: 'localTransaction' as const, data: group },
+        isEarliestNonce,
+      });
     }
 
     return items;

@@ -5,8 +5,8 @@ import {
   formatChainIdToHex,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
-import { RootState } from '../reducers';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
+import { RootState } from '../../reducers';
 import {
   selectSourceToken,
   selectDestToken,
@@ -14,13 +14,13 @@ import {
   selectIsSwap,
   selectIsGasIncludedSTXSendBundleSupported,
   selectIsGasIncluded7702Supported,
-} from '../core/redux/slices/bridge';
-import { selectInternalAccountsById } from '../selectors/accountsController';
+} from '../../core/redux/slices/bridge';
+import { selectInternalAccountsById } from '../../selectors/accountsController';
 import type { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
-import { getGaslessBridgeWith7702EnabledForChain } from './smartTransactionsController';
-import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
+import { getGaslessBridgeWith7702EnabledForChain } from '../smartTransactionsController';
+import { anyScopesMatch } from '../../components/hooks/useAccountGroupsForPermissions/utils';
 
 /**
  * Gets the wallet address for a given source token by finding the selected account

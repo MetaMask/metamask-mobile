@@ -77,6 +77,13 @@ interface PerpsProChartPanelProps {
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
   onChartError: (error?: Error | string) => void;
+  /**
+   * Parent-owned display price (`usePerpsSyncedChartPrice`), same value as
+   * the compact header. Shown in the summary and chart current-price line.
+   */
+  currentPrice: number;
+  /** Forwards Advanced Chart latest-bar close into `usePerpsSyncedChartPrice`. */
+  onLatestPriceChange?: (price: number | undefined) => void;
 }
 
 /**
@@ -90,27 +97,26 @@ const PerpsProChartPanel = ({
   onCandlePeriodChange,
   onMorePress,
   onChartError,
+  currentPrice,
+  onLatestPriceChange,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
-  const [advancedChartCurrentPrice, setAdvancedChartCurrentPrice] = useState<
-    number | undefined
-  >(undefined);
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
 
-  // Clear the Advanced Chart's synced price whenever it (un)mounts or changes
-  // subject: symbol/period/flag changes, and collapse/expand. While collapsed
-  // the Advanced Chart is unmounted and can no longer report prices, so the
-  // always-visible summary must fall back to the retained candle price instead
-  // of freezing on the last Advanced Chart value.
+  // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
+  // reported close. Symbol/period/flag resets are owned by
+  // `usePerpsSyncedChartPrice` (same as Lite).
   useEffect(() => {
-    setAdvancedChartCurrentPrice(undefined);
-  }, [isAdvancedChartEnabled, isChartExpanded, selectedCandlePeriod, symbol]);
+    if (!isChartExpanded) {
+      onLatestPriceChange?.(undefined);
+    }
+  }, [isChartExpanded, onLatestPriceChange]);
 
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
@@ -134,25 +140,12 @@ const PerpsProChartPanel = ({
     isLoading: isLoadingTradingHalted,
   } = useIsPriceDeviatedAboveThreshold(symbol);
 
-  const chartCurrentPrice = useMemo(() => {
-    const lastCandle = candleData?.candles.at(-1);
-    return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
-  }, [candleData]);
-  const syncedChartCurrentPrice =
-    isChartExpanded &&
-    isAdvancedChartEnabled &&
-    advancedChartCurrentPrice !== undefined
-      ? advancedChartCurrentPrice
-      : chartCurrentPrice;
-
   const tpslLines = useMemo(() => {
-    const currentPrice =
-      syncedChartCurrentPrice > 0
-        ? syncedChartCurrentPrice.toString()
-        : undefined;
+    const chartPriceStr =
+      currentPrice > 0 ? currentPrice.toString() : undefined;
 
     if (!existingPosition) {
-      return currentPrice ? { currentPrice } : undefined;
+      return chartPriceStr ? { currentPrice: chartPriceStr } : undefined;
     }
 
     return {
@@ -160,9 +153,9 @@ const PerpsProChartPanel = ({
       takeProfitPrice: existingPosition.takeProfitPrice,
       stopLossPrice: existingPosition.stopLossPrice,
       liquidationPrice: existingPosition.liquidationPrice || undefined,
-      currentPrice,
+      currentPrice: chartPriceStr,
     };
-  }, [existingPosition, syncedChartCurrentPrice]);
+  }, [currentPrice, existingPosition]);
 
   useEffect(() => {
     const hasIntervalChanged =
@@ -212,7 +205,7 @@ const PerpsProChartPanel = ({
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
         onCrosshairDataChange={setOhlcData}
-        onLatestPriceChange={setAdvancedChartCurrentPrice}
+        onLatestPriceChange={onLatestPriceChange}
         onError={onChartError}
         fallbackCandleData={candleData}
         fallbackFetchMoreHistory={fetchMoreHistory}
@@ -249,7 +242,7 @@ const PerpsProChartPanel = ({
     <>
       <PerpsMarketSummary
         symbol={symbol}
-        currentPrice={syncedChartCurrentPrice}
+        currentPrice={currentPrice}
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
         testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
         testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
