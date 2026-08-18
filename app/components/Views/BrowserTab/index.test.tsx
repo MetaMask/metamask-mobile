@@ -942,6 +942,41 @@ describe('BrowserTab', () => {
       expect(mockProps.updateTabInfo).toHaveBeenCalledWith(1, {
         url: redirectedUrl,
       });
+      expect(screen.getByTestId('browser-url-display-text')).toHaveTextContent(
+        'https://other-domain.com/page',
+      );
+    });
+
+    it('updates URL bar when navigation state reports a finished cross-origin load', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const redirectedUrl = 'https://other-domain.com/page';
+      const { onNavigationStateChange } =
+        screen.getByTestId('browser-webview').props;
+
+      await act(async () => {
+        onNavigationStateChange({
+          url: redirectedUrl,
+          title: 'Redirect Target',
+          loading: false,
+          canGoBack: true,
+          canGoForward: false,
+          navigationType: 'other',
+        });
+      });
+
+      expect(mockProps.updateTabInfo).toHaveBeenCalledWith(1, {
+        url: redirectedUrl,
+      });
+      expect(screen.getByTestId('browser-url-display-text')).toHaveTextContent(
+        'https://other-domain.com/page',
+      );
     });
 
     it('routes Web Download messages to handleWebDownload', async () => {

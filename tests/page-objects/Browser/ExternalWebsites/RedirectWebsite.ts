@@ -1,9 +1,6 @@
-import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import Gestures from '../../../framework/Gestures';
-import Matchers from '../../../framework/Matchers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
-import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
-import { RedirectWebsiteSelectorsXPath } from '../../../selectors/Browser/RedirectWebsite.selectors';
+import WebView from '../../../framework/WebView';
+import { RedirectWebsiteSelectorsIDs } from '../../../selectors/Browser/RedirectWebsite.selectors';
 
 class RedirectWebsite {
   /**
@@ -14,26 +11,23 @@ class RedirectWebsite {
    * @param pageUrl - Full page URL (required for Appium WebView context switching).
    */
   async tapRedirectButton(pageUrl?: string): Promise<void> {
-    const redirectButtonXpath = PlatformDetector.isAndroid()
-      ? RedirectWebsiteSelectorsXPath.REDIRECT_BUTTON_HTTPS
-      : RedirectWebsiteSelectorsXPath.REDIRECT_BUTTON_HTTP;
-
     if (!pageUrl) {
       throw new Error(
         'pageUrl is required for RedirectWebsite.tapRedirectButton under Appium',
       );
     }
 
-    const redirectButton = await Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      redirectButtonXpath,
+    const buttonId = PlatformDetector.isAndroid()
+      ? RedirectWebsiteSelectorsIDs.REDIRECT_BUTTON_HTTPS
+      : RedirectWebsiteSelectorsIDs.REDIRECT_BUTTON_HTTP;
+
+    // Android Chromedriver XPath hits LavaMoat ShadowRoot scuttling. Use the
+    // shared WebView helper (CDP / native UiAutomator on Android, WebView
+    // context on iOS) the same way EnsWebsite / TestSnaps tap in-page controls.
+    await WebView.tapById(buttonId, {
       pageUrl,
-    );
-    await Gestures.waitAndTap(redirectButton, {
-      elemDescription: 'Redirect website redirect button',
+      description: 'Redirect website redirect button',
     });
-    // Native URL-bar asserts need NATIVE_APP; XPath tap leaves WEBVIEW context.
-    await PlaywrightContextHelpers.switchToNativeContext();
   }
 }
 
