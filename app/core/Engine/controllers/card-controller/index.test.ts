@@ -11,7 +11,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { ImmersveProvider } from './providers/ImmersveProvider';
 import {
   defaultCardFeatureFlag,
-  type CardFeatureFlag,
+  type ImmersveProgramConfig,
 } from '../../../../selectors/featureFlagController/card';
 
 jest.mock('./CardController', () => {
@@ -25,8 +25,8 @@ jest.mock('./CardController', () => {
   };
 });
 
-let capturedGetCardFeatureFlag:
-  | (() => CardFeatureFlag | null | undefined)
+let capturedGetProgramConfig:
+  | (() => ImmersveProgramConfig | null | undefined)
   | undefined;
 
 jest.mock('./providers/ImmersveProvider', () => {
@@ -34,10 +34,10 @@ jest.mock('./providers/ImmersveProvider', () => {
   return {
     ...actual,
     ImmersveProvider: jest.fn((args: unknown) => {
-      const { getCardFeatureFlag } = args as {
-        getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
+      const { getProgramConfig } = args as {
+        getProgramConfig?: () => ImmersveProgramConfig | null | undefined;
       };
-      capturedGetCardFeatureFlag = getCardFeatureFlag;
+      capturedGetProgramConfig = getProgramConfig;
       return new actual.ImmersveProvider(args);
     }),
   };
@@ -53,7 +53,7 @@ describe('cardControllerInit', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    capturedGetCardFeatureFlag = undefined;
+    capturedGetProgramConfig = undefined;
 
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -112,25 +112,33 @@ describe('cardControllerInit', () => {
     expect(constructorArgs.state).toStrictEqual(persistedState);
   });
 
-  it('returns immersve.cardProgramId from the remote feature flag', () => {
+  it('returns cardProgramId from the cardImmersveConfig flag', () => {
     getRemoteFeatureFlags.mockReturnValue({
       remoteFeatureFlags: {
-        cardFeature: {
-          ...defaultCardFeatureFlag,
-          immersve: {
-            ...defaultCardFeatureFlag.immersve,
-            cardProgramId: 'default-program',
-          },
-        },
+        cardFeature: defaultCardFeatureFlag,
+        cardImmersveConfig: { cardProgramId: 'flag-program' },
       },
     });
 
     cardControllerInit(initRequestMock);
 
     expect(immersveProviderClassMock).toHaveBeenCalled();
-    expect(capturedGetCardFeatureFlag).toBeDefined();
-    expect(capturedGetCardFeatureFlag?.()?.immersve?.cardProgramId).toBe(
-      'default-program',
-    );
+    expect(capturedGetProgramConfig).toBeDefined();
+    expect(capturedGetProgramConfig?.()?.cardProgramId).toBe('flag-program');
+  });
+
+  it('ignores the legacy cardFeature.immersve block', () => {
+    getRemoteFeatureFlags.mockReturnValue({
+      remoteFeatureFlags: {
+        cardFeature: {
+          ...defaultCardFeatureFlag,
+          immersve: { cardProgramId: 'legacy-program' },
+        },
+      },
+    });
+
+    cardControllerInit(initRequestMock);
+
+    expect(capturedGetProgramConfig?.()?.cardProgramId).toBe('');
   });
 });

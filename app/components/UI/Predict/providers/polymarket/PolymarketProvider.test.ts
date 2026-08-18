@@ -9,6 +9,7 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -61,6 +62,7 @@ import {
   parsePolymarketActivity,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
@@ -137,6 +139,7 @@ jest.mock('./utils', () => {
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
     parsePolymarketPositions: jest.fn(),
+    previewMaxBuyOrder: jest.fn(),
     previewOrder: jest.fn(),
   };
 });
@@ -252,6 +255,7 @@ const mockParsePolymarketActivity = jest.mocked(parsePolymarketActivity);
 const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
+const mockPreviewMaxBuyOrder = jest.mocked(previewMaxBuyOrder);
 const mockResolveDepositWalletAddress = jest.mocked(
   resolveDepositWalletAddress,
 );
@@ -380,6 +384,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
     highlights: [],
     minimumVersion: '7.64.0',
   },
+  hiddenMarketsFlag: DEFAULT_HIDDEN_MARKETS_FLAG,
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
@@ -652,14 +657,11 @@ describe('PolymarketProvider', () => {
       });
     });
 
-    it('returns an empty list page when listing markets throws', async () => {
+    it('propagates list market failures to the query error state', async () => {
       const provider = createProvider();
       mockFetchMarketsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
 
-      await expect(provider.listMarkets({})).resolves.toEqual({
-        markets: [],
-        nextCursor: null,
-      });
+      await expect(provider.listMarkets({})).rejects.toThrow('Failed');
     });
 
     it('lists filter options from related tags, defaulting the slug to "all"', async () => {
@@ -759,16 +761,13 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
-    it('returns an empty feed page when fetching markets throws', async () => {
+    it('propagates feed failures to the query error state', async () => {
       const provider = createProvider();
       mockFetchEventsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
 
       await expect(
         provider.getMarkets({ category: 'trending' }),
-      ).resolves.toEqual({
-        markets: [],
-        nextCursor: null,
-      });
+      ).rejects.toThrow('Failed');
     });
 
     it('prefers team-to-advance outcomes for World Cup carousel markets', async () => {
@@ -824,6 +823,19 @@ describe('PolymarketProvider', () => {
       const [url] = (global.fetch as jest.Mock).mock.calls[0];
       expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
       expect(url).toContain('series_id=series-1');
+    });
+
+    it('propagates market series failures to the query error state', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        provider.getMarketSeries({
+          seriesId: 'series-1',
+          endDateMin: '2026-01-01',
+          endDateMax: '2026-12-31',
+        }),
+      ).rejects.toThrow('Network error');
     });
   });
 
@@ -933,6 +945,7 @@ describe('PolymarketProvider', () => {
       },
     });
     mockPreviewOrder.mockResolvedValue(basePreview);
+    mockPreviewMaxBuyOrder.mockResolvedValue(basePreview);
     mockBuildTradeAllowancesTx.mockResolvedValue({
       to: '0x9999999999999999999999999999999999999999',
       data: '0xallowances',
@@ -1050,6 +1063,7 @@ describe('PolymarketProvider', () => {
     });
     expect(global.fetch).toHaveBeenCalledWith(
       `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&limit=1`,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     expect(mockResolveDepositWalletAddress).not.toHaveBeenCalled();
   });
@@ -1233,6 +1247,7 @@ describe('PolymarketProvider', () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          signal: expect.any(AbortSignal),
         },
       );
       expect(mockParsePolymarketActivity).toHaveBeenCalledWith(rawActivity);
@@ -1301,6 +1316,31 @@ describe('PolymarketProvider', () => {
     expect(preview.feeRateBps).toBe('0');
     expect(mockPreviewOrder).toHaveBeenCalledWith(
       expect.objectContaining({ feeCollection: DEFAULT_FEE_COLLECTION_FLAG }),
+    );
+  });
+
+  it('previews the maximum fully fillable buy through the provider', async () => {
+    const provider = createProvider();
+
+    const preview = await provider.previewMaxBuyOrder({
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      availableBalance: 100,
+      signer,
+    });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        maxAmountSpent: basePreview.maxAmountSpent,
+        feeRateBps: '0',
+      }),
+    );
+    expect(mockPreviewMaxBuyOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableBalance: 100,
+        feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+      }),
     );
   });
 
@@ -2163,7 +2203,10 @@ describe('PolymarketProvider', () => {
 
     expect(global.fetch).toHaveBeenCalledWith(
       'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=60',
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(result).toEqual([
       { timestamp: 1000, value: 10 },
@@ -2235,17 +2278,26 @@ describe('PolymarketProvider', () => {
     expect(global.fetch).toHaveBeenNthCalledWith(
       1,
       'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=15',
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(global.fetch).toHaveBeenNthCalledWith(
       2,
       'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=5m&limit=60',
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(global.fetch).toHaveBeenNthCalledWith(
       3,
       'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1h&limit=30',
-      { method: 'GET' },
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 

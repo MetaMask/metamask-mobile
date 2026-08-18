@@ -45,7 +45,7 @@ Prefer Gestures option names already used in the codebase (`elemDescription`, et
 
 - Do not add new `UnifiedGestures` imports.
 - Do not remove the `UnifiedGestures` export from `tests/framework/index.ts` until Phase 2 cleanup (breaks remaining call sites and `Gestures` internals).
-- Full repo-wide codemod is **Phase 2** (after Detox smoke is empty).
+- Full repo-wide codemod is **Phase 3** (Element API) after Detox removal (MMQA-2230).
 
 ## Canonical docs
 

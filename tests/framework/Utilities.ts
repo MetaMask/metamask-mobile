@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor } from './legacy-detox-shim';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
 import {
@@ -150,6 +150,24 @@ export default class Utilities {
       interval,
       description: 'Element to be disabled',
     });
+  }
+
+  /**
+   * Read text content from an element.
+   */
+  static async getElementText(elem: EncapsulatedElementType): Promise<string> {
+    if (FrameworkDetector.isAppium()) {
+      const playwrightElement = await asPlaywrightElement(elem);
+      return playwrightElement.textContent();
+    }
+
+    const detoxElement = (await elem) as Detox.IndexableNativeElement;
+    const attributes = (await detoxElement.getAttributes()) as {
+      text?: string;
+      label?: string;
+    };
+
+    return attributes.text ?? attributes.label ?? '';
   }
 
   /**

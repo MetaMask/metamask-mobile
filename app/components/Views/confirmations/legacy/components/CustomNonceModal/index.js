@@ -12,16 +12,8 @@ import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { useTheme } from '../../../../../../util/theme';
-import { AppThemeKey } from '../../../../../../util/theme/models';
 import { isNumber } from '../../../../../../util/number';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../../../util/theme/themeUtils';
-
-// TODO(Pure Black): Remove createStyles export and dedicated styles tests once
-// pure black ships by default or this modal migrates to MMDS BottomSheet.
-export const createStyles = (theme) => {
+const createStyles = (theme) => {
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -35,15 +27,11 @@ export const createStyles = (theme) => {
     },
     modal: {
       minHeight: 200,
-      backgroundColor: getElevatedSurfaceColor(theme),
-      ...(isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-        ? {
-            borderTopWidth: 1,
-            borderLeftWidth: 1,
-            borderRightWidth: 1,
-            borderColor: colors.border.muted,
-          }
-        : null),
+      backgroundColor: theme.colors.background.elevated1,
+      borderTopWidth: 1,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderColor: colors.border.alternative,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
     },
@@ -90,7 +78,7 @@ export const createStyles = (theme) => {
     nonceWarning: {
       borderWidth: 1,
       borderColor: colors.warning.default,
-      ...(isPureBlackEnabled ? {} : { backgroundColor: colors.warning.muted }),
+      backgroundColor: colors.warning.muted,
       padding: 16,
       display: 'flex',
       flexDirection: 'row',

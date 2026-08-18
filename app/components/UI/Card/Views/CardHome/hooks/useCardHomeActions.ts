@@ -7,7 +7,10 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectIsCardAuthenticated } from '../../../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectCardActiveProviderId,
+} from '../../../../../../selectors/cardController';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -16,7 +19,11 @@ import {
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { CardActions, CardEntryPoint } from '../../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  withCardProvider,
+} from '../../../util/metrics';
 import { DEPOSIT_SUPPORTED_TOKENS, cardNetworkInfos } from '../../../constants';
 import { withBiometricAuth } from '../../../util/withBiometricAuth';
 import { createAddFundsModalNavigationDetails } from '../../../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -55,6 +62,7 @@ export function useCardHomeActions({
 }: UseCardHomeActionsParams) {
   const navigation = useNavigation<AppNavigationProp>();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -124,7 +132,11 @@ export function useCardHomeActions({
         onSuccess: () => {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-              .addProperties({ action: CardActions.FREEZE_CARD_BUTTON })
+              .addProperties(
+                withCardProvider(activeProviderId, {
+                  action: CardActions.FREEZE_CARD_BUTTON,
+                }),
+              )
               .build(),
           );
           showFreezeSuccessToast(wasFrozen);
@@ -145,7 +157,11 @@ export function useCardHomeActions({
           onSuccess: () => {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-                .addProperties({ action: CardActions.UNFREEZE_CARD_BUTTON })
+                .addProperties(
+                  withCardProvider(activeProviderId, {
+                    action: CardActions.UNFREEZE_CARD_BUTTON,
+                  }),
+                )
                 .build(),
             );
             showFreezeSuccessToast(wasFrozen);
@@ -162,6 +178,7 @@ export function useCardHomeActions({
     navigation,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     toastRef,
     showFreezeSuccessToast,
   ]);
@@ -214,10 +231,12 @@ export function useCardHomeActions({
   const fetchAndShowCardDetails = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VIEW_CARD_DETAILS_BUTTON,
-          card_type: data?.card?.type,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.VIEW_CARD_DETAILS_BUTTON,
+            card_type: data?.card?.type,
+          }),
+        )
         .build(),
     );
     try {
@@ -231,15 +250,18 @@ export function useCardHomeActions({
     data?.card?.type,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
   ]);
 
   const fetchAndShowSensitiveDetails = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VIEW_CARD_DETAILS_BUTTON,
-          card_type: data?.card?.type,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.VIEW_CARD_DETAILS_BUTTON,
+            card_type: data?.card?.type,
+          }),
+        )
         .build(),
     );
     setIsSensitiveDetailsLoading(true);
@@ -257,6 +279,7 @@ export function useCardHomeActions({
     data?.card?.type,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
   ]);
 
   const viewCardDetailsAction = useCallback(async () => {
@@ -270,7 +293,11 @@ export function useCardHomeActions({
       if (cardSensitiveDetails) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-            .addProperties({ action: CardActions.HIDE_CARD_DETAILS_BUTTON })
+            .addProperties(
+              withCardProvider(activeProviderId, {
+                action: CardActions.HIDE_CARD_DETAILS_BUTTON,
+              }),
+            )
             .build(),
         );
         clearCardSensitiveDetails();
@@ -289,7 +316,11 @@ export function useCardHomeActions({
     if (cardDetailsImageUrl) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({ action: CardActions.HIDE_CARD_DETAILS_BUTTON })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              action: CardActions.HIDE_CARD_DETAILS_BUTTON,
+            }),
+          )
           .build(),
       );
       clearCardDetailsImageUrl();
@@ -318,6 +349,7 @@ export function useCardHomeActions({
     toastRef,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
   ]);
 
   // --- PIN ---
@@ -325,7 +357,11 @@ export function useCardHomeActions({
   const fetchAndShowPin = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.VIEW_PIN_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.VIEW_PIN_BUTTON,
+          }),
+        )
         .build(),
     );
     try {
@@ -359,6 +395,7 @@ export function useCardHomeActions({
     resetPinToken,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
   ]);
 
   const viewPinAction = useCallback(async () => {
@@ -385,6 +422,46 @@ export function useCardHomeActions({
     toastRef,
   ]);
 
+  const setPinAction = useCallback(async () => {
+    if (!isAuthenticated) {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
+      return;
+    }
+    const cardId = data?.card?.id;
+    if (!cardId) {
+      return;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.SET_PIN_BUTTON,
+          }),
+        )
+        .build(),
+    );
+    await withBiometricAuth({
+      reauthenticate,
+      navigation,
+      toastRef,
+      passwordDescription: strings(
+        'card.password_bottomsheet.description_set_pin',
+      ),
+      onSuccess: () => {
+        navigation.navigate(Routes.CARD.SET_PIN, { cardId });
+      },
+    });
+  }, [
+    isAuthenticated,
+    data?.card?.id,
+    activeProviderId,
+    reauthenticate,
+    navigation,
+    toastRef,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   // --- Navigation actions ---
 
   const switchToFundingAccountIfNeeded = useCallback(() => {
@@ -406,7 +483,9 @@ export function useCardHomeActions({
 
   const addFundsAction = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
+      createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED)
+        .addProperties(withCardProvider(activeProviderId))
+        .build(),
     );
 
     if (primaryToken?.isMoneyAccountEntry) {
@@ -437,6 +516,7 @@ export function useCardHomeActions({
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     data?.primaryFundingAsset,
     primaryToken,
     openSwaps,
@@ -447,7 +527,11 @@ export function useCardHomeActions({
   const changeAssetAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.CHANGE_ASSET_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CHANGE_ASSET_BUTTON,
+          }),
+        )
         .build(),
     );
     if (isAuthenticated) {
@@ -459,23 +543,37 @@ export function useCardHomeActions({
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
 
   const enableCardAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.OPEN_ONBOARDING_DELEGATION_FLOW })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.OPEN_ONBOARDING_DELEGATION_FLOW,
+          }),
+        )
         .build(),
     );
     navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
       flow: 'enable_card',
     });
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder, activeProviderId]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.MANAGE_SPENDING_LIMIT_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.MANAGE_SPENDING_LIMIT_BUTTON,
+          }),
+        )
         .build(),
     );
     if (isAuthenticated) {
@@ -485,13 +583,23 @@ export function useCardHomeActions({
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
 
   const unlinkMoneyAccountAction = useCallback(
     (fundingSource?: string) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({ action: CardActions.UNLINK_MONEY_ACCOUNT_BUTTON })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              action: CardActions.UNLINK_MONEY_ACCOUNT_BUTTON,
+            }),
+          )
           .build(),
       );
       navigation.navigate(Routes.CARD.MODALS.ID, {
@@ -502,7 +610,7 @@ export function useCardHomeActions({
         },
       });
     },
-    [navigation, trackEvent, createEventBuilder],
+    [navigation, trackEvent, createEventBuilder, activeProviderId],
   );
 
   const logoutAction = useCallback(() => {
@@ -529,7 +637,11 @@ export function useCardHomeActions({
   const orderMetalCardAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.ORDER_METAL_CARD_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.ORDER_METAL_CARD_BUTTON,
+          }),
+        )
         .build(),
     );
     navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
@@ -548,13 +660,18 @@ export function useCardHomeActions({
     navigation,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     data?.account?.shippingAddress,
   ]);
 
   const cashbackAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.CASHBACK_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CASHBACK_BUTTON,
+          }),
+        )
         .build(),
     );
     if (isAuthenticated) {
@@ -562,7 +679,13 @@ export function useCardHomeActions({
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
 
   return {
     freeze,
@@ -580,6 +703,7 @@ export function useCardHomeActions({
     viewCardDetailsAction,
     isPinLoading,
     viewPinAction,
+    setPinAction,
     addFundsAction,
     changeAssetAction,
     enableCardAction,

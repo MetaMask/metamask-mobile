@@ -465,11 +465,19 @@ describe('PredictMarketDetails', () => {
     it('shows the user position and a cash out CTA on the Positions tab', async () => {
       givenPositions([buildMockPredictPosition()]);
 
-      const { findByTestId } = renderPredictMarketDetailsView({
-        initialParams: { marketId: MARKET_ID },
-      });
+      const { findByTestId, findByText, getByTestId } =
+        renderPredictMarketDetailsView({
+          initialParams: { marketId: MARKET_ID },
+        });
 
-      const positionsTab = await findByTestId(
+      await findByTestId(
+        PredictMarketDetailsSelectorsIDs.POSITIONS_TAB_CONTENT,
+      );
+      // The current value stays behind a skeleton until the sell-order preview
+      // query settles, which happens after the tab content is already on screen.
+      await findByText('$60');
+
+      const positionsTab = getByTestId(
         PredictMarketDetailsSelectorsIDs.POSITIONS_TAB_CONTENT,
       );
       expect(

@@ -8,7 +8,8 @@ import { BigNumber } from 'ethers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   ChainId,
-  type QuoteMetadata,
+  formatChainIdToCaip,
+  mergeQuoteMetadata,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { initialState } from '../../_mocks_/initialState';
@@ -101,22 +102,26 @@ const createBtcQuote = ({
 }: {
   networkFeeAmount?: string;
   sentAmount?: string;
-} = {}): QuoteResponse & QuoteMetadata =>
-  ({
-    ...mockQuoteWithMetadata,
-    quote: {
-      ...mockQuoteWithMetadata.quote,
-      srcChainId: ChainId.BTC,
+} = {}): QuoteResponse =>
+  mergeQuoteMetadata(
+    {
+      ...mockQuoteWithMetadata,
+      chainId: formatChainIdToCaip(ChainId.BTC),
+      quote: {
+        ...mockQuoteWithMetadata.quote,
+      },
     },
-    sentAmount: {
-      ...mockQuoteWithMetadata.sentAmount,
-      amount: sentAmount,
+    {
+      sentAmount: {
+        ...mockQuoteWithMetadata.sentAmount,
+        amount: sentAmount,
+      },
+      totalNetworkFee: {
+        ...mockQuoteWithMetadata.totalNetworkFee,
+        amount: networkFeeAmount,
+      },
     },
-    totalNetworkFee: {
-      ...mockQuoteWithMetadata.totalNetworkFee,
-      amount: networkFeeAmount,
-    },
-  }) as QuoteResponse & QuoteMetadata;
+  );
 
 describe('useInsufficientNativeReserveError', () => {
   beforeEach(() => {
