@@ -56,7 +56,10 @@ import {
 } from './polymarket-constants.ts';
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response.ts';
 import { GEO_BLOCKED_COUNTRIES } from '../../../../app/components/UI/Predict/constants/geoblock.ts';
-import { POLYMARKET_GEOBLOCK_ELIGIBLE } from '../defaults/polymarket-apis.ts';
+import {
+  POLYMARKET_GEOBLOCK_ELIGIBLE,
+  POLYMARKET_S3_UPLOAD_URL,
+} from '../defaults/polymarket-apis.ts';
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
 
 /**
@@ -2548,6 +2551,28 @@ export const POLYMARKET_ALL_POSITIONS_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * HEAD + GET for Polymarket S3 market icons.
+ * MMDS AvatarToken / AvatarGroup issue HEAD probes for these URLs when claim
+ * confirmations render winning-position avatars.
+ */
+export const POLYMARKET_IMAGE_MOCKS = async (mockServer: Mockttp) => {
+  await Promise.all([
+    setupMockRequest(mockServer, {
+      requestMethod: 'HEAD',
+      url: POLYMARKET_S3_UPLOAD_URL,
+      response: '',
+      responseCode: 200,
+    }),
+    setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: POLYMARKET_S3_UPLOAD_URL,
+      response: '',
+      responseCode: 200,
+    }),
+  ]);
+};
+
+/**
  * This can be considered the default user profile
  * Mock for all Polymarket endpoints (positions, redeemable positions, activity, UpNL, and value)
  * Returns data for proxy wallet: 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
@@ -2559,6 +2584,7 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   // Avoids relying on default _events when the request reaches the server, and ensures
   // eligible response even if the generic handler ordering ever changes.
   await POLYMARKET_GEO_ELIGIBLE_MOCKS(mockServer);
+  await POLYMARKET_IMAGE_MOCKS(mockServer);
   await POLYMARKET_ALL_POSITIONS_MOCKS(mockServer);
   await POLYMARKET_ACTIVITY_MOCKS(mockServer);
   await POLYMARKET_UPNL_MOCKS(mockServer);
