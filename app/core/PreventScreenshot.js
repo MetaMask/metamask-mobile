@@ -27,7 +27,10 @@ export const CAPTURE_KEYS = {
   // overlapping mounts internally before calling through to here.
   credentialScreens: 'metamask-credential-screens',
   onboarding: 'metamask-onboarding',
-  card: 'metamask-card',
+  // Callers that don't pass a key get their own bucket rather than joining an
+  // existing owner's, so an unqualified allow() can never release someone
+  // else's block. CardScreenshotDeterrent relies on this.
+  default: 'metamask-default',
 };
 
 const noop = () => Promise.resolve();
@@ -54,7 +57,7 @@ export default {
    */
   forbid: isDisabled
     ? noop
-    : (key = CAPTURE_KEYS.credentialScreens) => preventScreenCaptureAsync(key),
+    : (key = CAPTURE_KEYS.default) => preventScreenCaptureAsync(key),
 
   /**
    * Releases this owner's block. The native flag is only cleared once every
@@ -65,5 +68,5 @@ export default {
    */
   allow: isDisabled
     ? noop
-    : (key = CAPTURE_KEYS.credentialScreens) => allowScreenCaptureAsync(key),
+    : (key = CAPTURE_KEYS.default) => allowScreenCaptureAsync(key),
 };

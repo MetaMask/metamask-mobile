@@ -89,6 +89,22 @@ describe('PreventScreenshot', () => {
       expect(mockNativeAllowScreenCapture).toHaveBeenCalledTimes(1);
     });
 
+    it('does not let a keyless caller release another owner block', async () => {
+      const { PreventScreenshot, CAPTURE_KEYS } = loadPreventScreenshot();
+
+      // CardScreenshotDeterrent calls forbid()/allow() with no key. Its
+      // release must not clear a block another screen is still relying on.
+      await PreventScreenshot.forbid(CAPTURE_KEYS.credentialScreens);
+      await PreventScreenshot.forbid();
+      await PreventScreenshot.allow();
+
+      expect(mockNativeAllowScreenCapture).not.toHaveBeenCalled();
+
+      await PreventScreenshot.allow(CAPTURE_KEYS.credentialScreens);
+
+      expect(mockNativeAllowScreenCapture).toHaveBeenCalledTimes(1);
+    });
+
     it('gives every owner a distinct key', () => {
       const { CAPTURE_KEYS } = loadPreventScreenshot();
       const keys = Object.values(CAPTURE_KEYS);
