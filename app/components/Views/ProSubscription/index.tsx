@@ -6,11 +6,18 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
+import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
@@ -39,11 +46,23 @@ const ProSubscription = () => {
   }, []);
 
   return (
-    <SafeAreaView style={tw.style('flex-1')} edges={['top']}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={['top', 'bottom']}
+    >
+      {/* Shared close button — sits above both Benefits and Success screens */}
+      <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSize.Md}
+          onPress={handleClose}
+          testID={ProSubscriptionTestIds.CLOSE_BUTTON}
+        />
+      </Box>
+
       {currentScreen === 'benefits' ? (
         <Benefits
           onSuccess={handleSuccess}
-          onClose={handleClose}
           initialPlan={route.params?.initialPlan as PlanId | undefined}
         />
       ) : (

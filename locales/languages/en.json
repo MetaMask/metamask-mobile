@@ -10956,8 +10956,9 @@
       }
     },
     "success": {
-      "title": "Welcome to Pro",
-      "cta": "Done"
+      "title": "You just leveled up, {{name}}",
+      "description": "Time to start earning.",
+      "cta": "Continue"
     }
   }
 }

@@ -1,6 +1,5 @@
 export const BenefitsTestIds = {
   CONTAINER: 'benefits-container',
-  CLOSE_BUTTON: 'benefits-close-button',
   TITLE: 'benefits-title',
   PRICE_LINE: 'benefits-price-line',
   SAVE_BADGE: 'benefits-save-badge',
