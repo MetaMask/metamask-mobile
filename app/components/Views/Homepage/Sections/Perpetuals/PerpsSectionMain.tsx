@@ -364,11 +364,12 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
-      contentReady: Boolean(connectionError) || !isLoadingSection,
+      contentReady:
+        sessionReady && (Boolean(connectionError) || !isLoadingSection),
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
-      enabled: sessionReady && !pillsEmptyFeedHidden,
+      enabled: !pillsEmptyFeedHidden,
       tags: cohortTags,
       data: sessionContext
         ? { perps_session_id: sessionContext.id }
