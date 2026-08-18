@@ -3,9 +3,8 @@ import { resolveDarkTheme } from '@metamask/design-tokens';
 import { renderHookWithProvider } from '../test/renderWithProvider';
 import { useAppTheme } from './index';
 import { AppThemeKey } from './models';
-import { isPureBlackEnabled } from './pureBlackPreview';
 
-const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
+const resolvedDarkTheme = resolveDarkTheme(true);
 
 describe('useAppTheme', () => {
   let setBarStyleSpy: jest.SpyInstance;

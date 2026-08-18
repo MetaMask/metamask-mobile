@@ -241,12 +241,18 @@ export class CardController extends BaseController<
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
       this.#triggerCardholderCheck();
-      this.validateAndRefreshSession().catch((error) =>
-        Logger.error(error as Error, {
-          tags: { feature: 'card' },
-          context: { name: 'CardController', data: { method: '#onUnlock' } },
-        }),
-      );
+      this.validateAndRefreshSession()
+        .then(({ isAuthenticated }) => {
+          if (isAuthenticated && !this.resetInProgress) {
+            this.#fetchCardHomeDataWithLogging('#onUnlock/fetchCardHomeData');
+          }
+        })
+        .catch((error) =>
+          Logger.error(error as Error, {
+            tags: { feature: 'card' },
+            context: { name: 'CardController', data: { method: '#onUnlock' } },
+          }),
+        );
     });
 
     // Re-check when the account tree changes (account added/removed).
@@ -821,6 +827,17 @@ export class CardController extends BaseController<
 
     if (!tokens) return { isAuthenticated: false };
     return { isAuthenticated: true, location: tokens.location };
+  }
+
+  /**
+   * Post-auth sync for tokens written outside `submitCredentials` (e.g. onboarding vault write).
+   * Clears stale card home data and force-refetches authenticated home data.
+   */
+  async syncSessionAfterExternalAuth(): Promise<void> {
+    const { isAuthenticated } = await this.validateAndRefreshSession();
+    if (!isAuthenticated) return;
+    this.#invalidateAndClear();
+    await this.fetchCardHomeData({ force: true });
   }
 
   // -- Token helpers --

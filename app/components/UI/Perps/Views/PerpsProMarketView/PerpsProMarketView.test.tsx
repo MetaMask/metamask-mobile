@@ -48,6 +48,8 @@ interface MockChartPanelProps {
   symbol: string;
   selectedCandlePeriod: CandlePeriod;
   onMorePress: () => void;
+  currentPrice?: number;
+  onLatestPriceChange?: (price: number | undefined) => void;
 }
 
 interface MockCandlePeriodBottomSheetProps {
@@ -248,6 +250,15 @@ jest.mock('../../hooks/stream', () => ({
     isInitialLoading: false,
   })),
   usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
+  usePerpsLiveCandles: jest.fn(() => ({
+    candleData: null,
+    isLoading: false,
+    hasHistoricalData: false,
+    fetchMoreHistory: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/usePerpsProPositionsPanelActions', () => ({
@@ -702,6 +713,17 @@ describe('PerpsProMarketView', () => {
         PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('wires the chart-synced price into the compact header', () => {
+    renderView();
+
+    expect(mockPerpsProChartPanel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        currentPrice: expect.any(Number),
+        onLatestPriceChange: expect.any(Function),
+      }),
+    );
   });
 
   it('shows the asset name from route params in the header', () => {

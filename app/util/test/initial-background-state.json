@@ -539,7 +539,13 @@
       "chartExpanded": false,
       "orderBookExpanded": false,
       "orderBookPosition": "left",
-      "orderFormPosition": "right"
+      "orderFormPosition": "right",
+      "ordersSideFilter": "all",
+      "ordersSortDirection": "desc",
+      "ordersSortField": "time",
+      "positionsSideFilter": "all",
+      "positionsSortDirection": "desc",
+      "positionsSortField": "positionValue"
     },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
@@ -709,6 +715,10 @@
   },
   "MultichainTransactionsController": {
     "nonEvmTransactions": {}
+  },
+  "NetworkConnectionBannerController": {
+    "networkConnectionBannerStatus": "available",
+    "networkConnectionBannerNetwork": null
   },
   "MultichainAssetsController": {
     "accountsAssets": {},

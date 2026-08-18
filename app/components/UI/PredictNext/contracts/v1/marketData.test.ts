@@ -20,7 +20,7 @@ const createMarket = (overrides = {}) => ({
   id: 'market-1',
   question: 'Will the team win?',
   outcomes: [createOutcome('yes'), createOutcome('no')],
-  status: 'open' as const,
+  status: 'active' as const,
   ...overrides,
 });
 
@@ -39,6 +39,14 @@ describe('Predict API canonical response parsers', () => {
     const result = parsePredictEvent(input);
 
     expect(result).toEqual(input);
+  });
+
+  it('parses a closed Market', () => {
+    const input = createEvent({
+      markets: [createMarket({ status: 'closed' })],
+    });
+
+    expect(parsePredictEvent(input).markets[0].status).toBe('closed');
   });
 
   it('parses an event containing an ask without a bid', () => {
@@ -158,6 +166,110 @@ describe('Predict API canonical response parsers', () => {
       expect(error).toBeInstanceOf(PredictError);
       expect((error as PredictError).code).toBe(PredictErrorCode.UNKNOWN);
     }
+  });
+
+  it('parses category, volume, 24-hour volume, and image URL on an event', () => {
+    const input = createEvent({
+      category: 'Senate',
+      volume: '1500000',
+      volume24h: '250000',
+      imageUrl: 'https://example.com/event.png',
+      markets: [
+        createMarket({
+          volume: '1000',
+          volume24h: '250',
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.category).toBe('Senate');
+    expect(result.volume).toBe('1500000');
+    expect(result.volume24h).toBe('250000');
+    expect(result.markets[0].volume).toBe('1000');
+    expect(result.markets[0].volume24h).toBe('250');
+    expect(result.imageUrl).toBe('https://example.com/event.png');
+  });
+
+  it.each([
+    '/images/event.png',
+    'http://example.com/event.png',
+    'data:image/png;base64,encoded-image',
+    'https:example.com/event.png',
+  ])('rejects image URL %s', (imageUrl) => {
+    const input = createEvent({ imageUrl });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it('parses an American-football Game Event', () => {
+    const input = createEvent({
+      startsAt: '2026-09-11T00:20:00Z',
+      sports: {
+        sport: { id: 'american-football', label: 'American football' },
+        competition: { id: 'nfl', label: 'NFL' },
+        game: {
+          status: 'in_progress',
+          awayTeam: {
+            name: 'Arizona Cardinals',
+            abbreviation: 'ARI',
+            logoUrl: 'https://example.com/ari.png',
+            primaryColor: `#${'97233F'}`,
+          },
+          homeTeam: { name: 'Carolina Panthers' },
+          score: { away: '17', home: '21' },
+          period: 'Q4',
+          clock: '12:22',
+          observedAt: '2026-09-11T02:30:00Z',
+        },
+      },
+      markets: [
+        createMarket({
+          status: 'active',
+          outcomes: [
+            createOutcome('yes', { gameSelection: 'away' }),
+            createOutcome('no', { gameSelection: 'draw' }),
+          ],
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result).toEqual(input);
+  });
+
+  it.each([
+    { field: 'status', value: 'playing' },
+    { field: 'observedAt', value: 'yesterday' },
+    { field: 'primaryColor', value: 'red' },
+    { field: 'logoUrl', value: 'http://example.com/ari.png' },
+  ])('rejects Game data with malformed $field', ({ field, value }) => {
+    const game = {
+      status: 'scheduled',
+      awayTeam: { name: 'Arizona Cardinals' },
+      homeTeam: { name: 'Carolina Panthers' },
+      observedAt: '2026-09-11T00:00:00Z',
+    };
+    const input = createEvent({
+      sports: {
+        sport: { id: 'american-football', label: 'American football' },
+        game:
+          field === 'primaryColor' || field === 'logoUrl'
+            ? {
+                ...game,
+                awayTeam: { ...game.awayTeam, [field]: value },
+              }
+            : { ...game, [field]: value },
+      },
+    });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
   });
 
   it('parses a paginated event response', () => {

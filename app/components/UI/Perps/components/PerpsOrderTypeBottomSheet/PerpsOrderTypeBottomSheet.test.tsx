@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  within,
-} from '@testing-library/react-native';
+import { screen, fireEvent, within } from '@testing-library/react-native';
 import { Icon, IconName } from '@metamask/design-system-react-native';
 import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import {
@@ -14,8 +9,31 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { mockTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 const mockTrack = jest.fn();
+
+function render(
+  ui: React.ReactElement,
+  appTheme: AppThemeKey = AppThemeKey.dark,
+) {
+  const themeAppearance =
+    appTheme === AppThemeKey.light ? AppThemeKey.light : AppThemeKey.dark;
+
+  return renderWithProvider(
+    ui,
+    {
+      state: { user: { appTheme } },
+      theme: {
+        ...mockTheme,
+        themeAppearance,
+      },
+    },
+    false,
+  );
+}
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const resolveStyle = (...args: unknown[]) => {
@@ -52,16 +70,17 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.basic': 'Basic',
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.stop_limit.title': 'Stop limit',
-      'perps.order.type.stop_limit.description': 'Limit fills at trigger price',
+      'perps.order.type.stop_limit.description':
+        'Place a limit order if trigger price hits',
       'perps.order.type.stop_market.title': 'Stop market',
       'perps.order.type.stop_market.description':
-        'Market fills at trigger price',
+        'Place a market order if trigger price hits',
       'perps.order.type.take_profit_limit.title': 'Take limit',
       'perps.order.type.take_profit_limit.description':
-        'Limit take-profit at trigger price',
+        'Place a limit order if trigger price is reached',
       'perps.order.type.take_profit_market.title': 'Take market',
       'perps.order.type.take_profit_market.description':
-        'Market take-profit at trigger price',
+        'Place a market order if trigger price is reached',
     };
     return translations[key] || key;
   }),
@@ -125,6 +144,25 @@ describe('PerpsOrderTypeBottomSheet', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByText('Execute at your specified price or better'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders triggered order type descriptions when enabled', () => {
+      render(
+        <PerpsOrderTypeBottomSheet {...defaultProps} showTriggeredTypes />,
+      );
+
+      expect(
+        screen.getByText('Place a limit order if trigger price hits'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('Place a market order if trigger price hits'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('Place a limit order if trigger price is reached'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('Place a market order if trigger price is reached'),
       ).toBeOnTheScreen();
     });
 
@@ -197,6 +235,34 @@ describe('PerpsOrderTypeBottomSheet', () => {
       );
 
       expect(screen.getByTestId(marketIconTestID)).toBeOnTheScreen();
+    });
+
+    it('renders dark order type icons when the app theme is dark', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          showSelectedIcon
+          showTriggeredTypes
+        />,
+        AppThemeKey.dark,
+      );
+
+      expect(screen.getAllByLabelText(/-icon-dark$/)).toHaveLength(6);
+      expect(screen.queryByLabelText(/-icon-light$/)).not.toBeOnTheScreen();
+    });
+
+    it('renders light order type icons when the app theme is light', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          showSelectedIcon
+          showTriggeredTypes
+        />,
+        AppThemeKey.light,
+      );
+
+      expect(screen.getAllByLabelText(/-icon-light$/)).toHaveLength(6);
+      expect(screen.queryByLabelText(/-icon-dark$/)).not.toBeOnTheScreen();
     });
 
     it('forwards the Pro title and selected-icon presentation', () => {

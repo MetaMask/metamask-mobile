@@ -1100,7 +1100,6 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Open settings"
@@ -1733,19 +1732,19 @@
         },
         "stop_limit": {
           "title": "Stop limit",
-          "description": "Limit fills at trigger price"
+          "description": "Place a limit order if trigger price hits"
         },
         "stop_market": {
           "title": "Stop market",
-          "description": "Market fills at trigger price"
+          "description": "Place a market order if trigger price hits"
         },
         "take_profit_limit": {
           "title": "Take limit",
-          "description": "Limit take-profit at trigger price"
+          "description": "Place a limit order if trigger price is reached"
         },
         "take_profit_market": {
           "title": "Take market",
-          "description": "Market take-profit at trigger price"
+          "description": "Place a market order if trigger price is reached"
         }
       },
       "payment_token": "Payment token",
@@ -2009,7 +2008,26 @@
         "tpslPositionLinkageUnsupported": "Take profit and stop loss can only be attached to a position once the order has filled",
         "timeInForceNotSupported": "Time in force can only be set on limit orders",
         "editTriggerUnsupported": "Stop and take profit orders can't be edited. Cancel the order and place a new one.",
-        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again."
+        "editOrderUnverifiable": "This order can no longer be found. Refresh your orders and try again.",
+        "strategyParamsNotSupported": "These order settings aren't supported for this order type",
+        "strategyFieldUnsupported": "This field can't be used with a TWAP, scale, or chase order",
+        "strategyMarketUnsupported": "TWAP, scale, and chase orders aren't available on this market",
+        "strategyHandleUnknown": "This strategy order can no longer be found. Refresh your orders and try again.",
+        "strategyCancelIncomplete": "Some parts of this strategy order couldn't be cancelled. Try again.",
+        "strategyEditUnsupported": "TWAP, scale, and chase orders can't be edited. Cancel the order and place a new one.",
+        "twapDurationRequired": "A duration is required for TWAP orders",
+        "twapDurationInvalid": "TWAP duration must be between 5 and 1440 minutes",
+        "twapNotionalTooSmall": "TWAP order value is below the exchange minimum",
+        "scaleRangeRequired": "Scale orders need a minimum and maximum price",
+        "scaleRangeInvalid": "Scale order maximum price must be above the minimum",
+        "scaleCountInvalid": "Scale order count is invalid",
+        "scaleSizeTooSmall": "Each scale order is below the minimum size",
+        "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
+        "chaseIntervalInvalid": "Chase interval is invalid",
+        "chaseDurationInvalid": "Chase duration is invalid",
+        "chaseLimitReached": "Too many chase orders are already running",
+        "chaseAbandoned": "Chase order was cancelled because the connection dropped",
+        "chaseTouchUnavailable": "No market price is available to place this chase order"
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -2707,6 +2725,15 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "Send to Predictions",
     "select_predict_account": "Select predict account",
     "search_account": "Search an account",
@@ -4005,7 +4032,7 @@
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
-    "enable_push_notifications": "Enable push notifications",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Choose what you're notified about and how.",
     "notifications_opts": {
       "preferences_title": "Preferences",
@@ -4022,8 +4049,8 @@
       "wallet_activity_desc": "Buy, sells, transfers, swaps",
       "perps_title": "Trading activity",
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
-      "agentic_cli_title": "Agentic CLI",
-      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
+      "agentic_cli_title": "Agent wallet",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agent wallet",
       "social_ai_title": "Trading signals",
       "social_ai_desc": "Updates from traders and assets you follow, plus curated market news",
       "marketing_title": "Updates and rewards",
@@ -6106,7 +6133,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
     "prompt_title": "Receive push notifications",
     "notifications_enabled_error_title": "Something went wrong",
-    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
     "prompt_ok": "Turn on",
     "prompt_cancel": "Maybe later",
@@ -6154,7 +6181,7 @@
       "new_user": {
         "title": "Never miss a move",
         "body": "Get real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
-        "button_yes": "Enable notifications",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Not now",
         "preview_card_1": {
           "time": "now",
@@ -6196,7 +6223,7 @@
         }
       },
       "toast_enabled": "Notifications enabled",
-      "toast_settings_hint": "You can enable notifications any time in Settings > Notifications"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7612,6 +7639,7 @@
   },
   "money": {
     "title": "Money",
+    "get_pro": "Get Pro",
     "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -8457,6 +8485,11 @@
     "description": " and MEV protection. Now on by default."
   },
   "bridge": {
+    "tabs": {
+      "market": "Market",
+      "limit": "Limit",
+      "recurring": "Recurring"
+    },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
     "confirm_swap": "Swap",
@@ -9700,12 +9733,12 @@
     },
     "notifications_nudge": {
       "title": "Don't miss out",
-      "description": "Enable notifications to stay informed on campaigns.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Turn on",
-      "loading": "Enabling notifications...",
+      "loading": "Turning on notifications...",
       "loading_description": "This may take a moment.",
-      "enable_error": "Failed to enable notifications",
-      "success": "Notifications enabled"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Update required",
@@ -10497,13 +10530,13 @@
       "description": "Return to the app to continue."
     },
     "show_cli_link_success": {
-      "title": "Agent CLI successfully linked",
+      "title": "Agent wallet successfully linked",
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
       "title": "Never miss a transaction",
       "description": "Get real-time alerts to review and approve transactions from your CLI session.",
-      "turn_on_button": "Enable notifications",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Transaction request",
       "preview_message": "Your agent needs approval on a new limit.",
       "preview_timestamp": "now"
@@ -10511,8 +10544,8 @@
     "show_otp": {
       "title": "Enter this code",
       "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
-      "modal_title": "Link MetaMask Agent CLI",
-      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
+      "modal_title": "Link MetaMask Agent wallet",
+      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent wallet.",
       "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Expires in {{time}}",
       "expired": "Code expired",
@@ -10601,7 +10634,7 @@
     "view_all": "View all",
     "view_more": "View more",
     "view_x_more": "View {{count}} more",
-    "enable_basic_functionality": "Enable basic functionality",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
     "empty_error_trending_state": {
@@ -10854,5 +10887,93 @@
     "activate_error": "Something went wrong while adding this trustline. Try again.",
     "deactivate_error": "Something went wrong while removing this trustline. Try again.",
     "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits"
+  },
+  "pro_subscription": {
+    "title": "Earn more with Pro",
+    "description": "$4.99/mo ($49.99 for annual membership)",
+    "join_pro": "Join Pro",
+    "benefits": {
+      "apy": {
+        "title": "Up to 7% APY on Money account",
+        "subtitle": "Paid in mUSD, no lockups"
+      },
+      "cashback": {
+        "title": "3% mUSD back on card purchases",
+        "subtitle": "Up to $1,000/mo, worldwide"
+      },
+      "member_pricing": {
+        "title": "Member pricing on trades",
+        "subtitle": "Including swaps, perps, and predictions"
+      },
+      "atm_fees": {
+        "title": "No added ATM or FX fees",
+        "subtitle": "Physical card included"
+      },
+      "protection": {
+        "title": "Up to $10,000 in protection",
+        "subtitle": "On eligible extension transactions"
+      },
+      "support": {
+        "title": "Real human support, around the clock",
+        "subtitle": "Response in minutes"
+      }
+    },
+    "plans": {
+      "annual": {
+        "label": "Annual",
+        "price": "$49.99",
+        "sub_price": "($4.15/mo)",
+        "badge": "2 months free",
+        "cta": "Join Pro for $4.15/month"
+      },
+      "monthly": {
+        "label": "Monthly",
+        "price": "$4.99/mo",
+        "cta": "Join Pro for $4.99/month"
+      }
+    },
+    "benefits_description": {
+      "apy": {
+        "description": "Money account gives you up to ~4% APY on your balance. Members earn up to ~7% APY—accrued daily, paid in mUSD. APY is variable and not guaranteed."
+      },
+      "cashback": {
+        "description": "Spend with your card and earn 3% mUSD back, paid straight to your Money balance—where it starts earning the member rate immediately.",
+        "points": [
+          "Monthly members: 3% back on up to $1,000 in purchases every month",
+          "Annual members: 3% back on up to $12,000 in purchases every year"
+        ]
+      },
+      "member_pricing": {
+        "description": "Members pay no MetaMask fees on:",
+        "points": [
+          "$500/mo in swaps",
+          "$1,000/mo in perps",
+          "Up to 1 prediction/mo"
+        ]
+      },
+      "atm_fees": {
+        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
+      },
+      "protection": {
+        "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000.",
+        "sub_description": "Transaction protection offers asset coverage for extension across a range of supported interactions on popular blockchain networks. Members receive clear in-app alerts when a transaction is covered.",
+        "learn_more": "Learn more",
+        "notes": "Note: Transaction protection does not protect against losses that occur before or after a transaction."
+      },
+      "support": {
+        "description": "When something goes wrong, a real person responds in minutes—anytime, any day."
+      }
+    },
+    "success": {
+      "title": "You just leveled up, {{name}}",
+      "description": "Time to start earning.",
+      "cta": "Continue"
+    }
   }
 }

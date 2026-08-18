@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useRef } from 'react';
-import { Platform, type TextInput } from 'react-native';
+import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
@@ -41,6 +41,13 @@ export interface PerpsProSizeInputProps {
   sizeSlider: PerpsProSizeSliderModel;
   availableBalance: string;
   onAddFundsPress?: () => void;
+  /**
+   * The whole card, not the inner `TextInput`: the slider and balance row sit
+   * below it and must stay clear of the keyboard too.
+   */
+  containerRef?: React.Ref<View>;
+  /** Fires on every field tap, including while already focused. Idempotent. */
+  onFieldPress?: () => void;
 }
 
 const PerpsProSizeInput = ({
@@ -54,6 +61,8 @@ const PerpsProSizeInput = ({
   sizeSlider,
   availableBalance,
   onAddFundsPress,
+  containerRef,
+  onFieldPress,
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
   const inputRef = useRef<TextInput>(null);
@@ -71,7 +80,8 @@ const PerpsProSizeInput = ({
 
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
-  }, []);
+    onFieldPress?.();
+  }, [onFieldPress]);
 
   const handleToggleDenomination = useCallback(() => {
     if (!canPressDenominationToggle) {
@@ -84,6 +94,7 @@ const PerpsProSizeInput = ({
 
   return (
     <Box
+      ref={containerRef}
       twClassName="overflow-visible rounded-2xl border border-muted bg-muted"
       testID={ids.SIZE_CARD}
     >
@@ -125,6 +136,9 @@ const PerpsProSizeInput = ({
               onChangeText={onChangeText}
               onFocus={onFocus}
               onBlur={onBlur}
+              // A tap landing here is consumed by the input, so the wrapping
+              // ButtonBase never fires.
+              onPressIn={onFieldPress}
               keyboardType="decimal-pad"
               inputAccessoryViewID={inputAccessoryViewID}
               placeholder="0.00"
