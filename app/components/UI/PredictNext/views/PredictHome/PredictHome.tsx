@@ -69,11 +69,7 @@ export const PredictHome = () => {
   const renderEvent = useCallback(
     ({ item }: ListRenderItemInfo<PredictEvent>) =>
       item.sports?.sport.id === 'american-football' && item.sports.game ? (
-        <EventCardGame
-          event={item}
-          onPress={() => openEvent(item)}
-          variant="featured"
-        />
+        <EventCardGame event={item} onPress={() => openEvent(item)} />
       ) : (
         <EventCardStandard event={item} onPress={() => openEvent(item)} />
       ),

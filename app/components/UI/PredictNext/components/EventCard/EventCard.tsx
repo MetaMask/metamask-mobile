@@ -57,10 +57,14 @@ const OUTCOME_ROW_TEXT: Record<OutcomeRowColor, TextColor> = {
 interface RootProps {
   children: React.ReactNode;
   testID?: string;
+  twClassName?: string;
 }
 
-const Root = ({ children, testID }: RootProps) => (
-  <Box twClassName="gap-3 rounded-2xl bg-section p-4 pt-3" testID={testID}>
+const Root = ({ children, testID, twClassName }: RootProps) => (
+  <Box
+    twClassName={twClassName ?? 'gap-3 rounded-2xl bg-section p-4 pt-3'}
+    testID={testID}
+  >
     {children}
   </Box>
 );
@@ -68,6 +72,138 @@ const Root = ({ children, testID }: RootProps) => (
 const Pressable = ({ children, ...props }: PressableProps) => (
   <NativePressable {...props}>{children}</NativePressable>
 );
+
+const Header = ({
+  children,
+  twClassName = 'flex-row items-center gap-3',
+}: {
+  children: React.ReactNode;
+  twClassName?: string;
+}) => <Box twClassName={twClassName}>{children}</Box>;
+
+const Title = ({
+  children,
+  numberOfLines = 2,
+  twClassName = 'flex-1',
+}: {
+  children: React.ReactNode;
+  numberOfLines?: number;
+  twClassName?: string;
+}) => (
+  <Text
+    variant={TextVariant.HeadingSm}
+    numberOfLines={numberOfLines}
+    twClassName={twClassName}
+  >
+    {children}
+  </Text>
+);
+
+const Image = ({ source, testID }: { source: string; testID?: string }) => {
+  const tw = useTailwind();
+  return (
+    <Box testID={testID}>
+      <ExpoImage
+        source={source}
+        style={tw.style('h-10 w-10 rounded-lg')}
+        contentFit="cover"
+        recyclingKey={source}
+      />
+    </Box>
+  );
+};
+
+const Body = ({
+  children,
+  twClassName,
+}: {
+  children: React.ReactNode;
+  twClassName?: string;
+}) => <Box twClassName={twClassName}>{children}</Box>;
+
+const Actions = ({ children }: { children: React.ReactNode }) => (
+  <Box twClassName="flex-row gap-2 pt-2">{children}</Box>
+);
+
+const Action = ({ children }: { children: React.ReactNode }) => (
+  <Box twClassName="min-w-0 flex-1">{children}</Box>
+);
+
+const Footer = ({ children, testID }: RootProps) => (
+  <Box twClassName="flex-row items-center justify-between" testID={testID}>
+    {children}
+  </Box>
+);
+
+const FooterLeading = ({ children }: { children: React.ReactNode }) => (
+  <Box twClassName="flex-1 flex-row items-center gap-3">{children}</Box>
+);
+
+const MetadataTag = ({
+  children,
+  testID,
+}: {
+  children: React.ReactNode;
+  testID?: string;
+}) => (
+  <Tag severity={TagSeverity.Neutral} testID={testID}>
+    <Text
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+    >
+      {children}
+    </Text>
+  </Tag>
+);
+
+const Volume = ({ value, testID }: { value?: string; testID?: string }) => {
+  const volume = formatVolume(value);
+
+  return volume === undefined ? null : (
+    <Text
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+      testID={testID}
+    >
+      ${volume} Vol
+    </Text>
+  );
+};
+
+const MoreMarkets = ({
+  count,
+  onPress,
+  testID,
+}: {
+  count: number;
+  onPress?: () => void;
+  testID?: string;
+}) =>
+  count > 0 ? (
+    <NativePressable
+      accessibilityLabel={`+${count} more`}
+      accessibilityRole="button"
+      onPress={onPress}
+      testID={testID}
+    >
+      <Box twClassName="flex-row items-center">
+        <Text
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
+          +{count} more
+        </Text>
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Xs}
+          color={IconColor.IconAlternative}
+        />
+      </Box>
+    </NativePressable>
+  ) : null;
 
 interface OutcomeRowProps {
   event: PredictEvent;
@@ -139,136 +275,19 @@ const OutcomeRow = ({
   );
 };
 
-const Title = ({ children }: { children: React.ReactNode }) => (
-  <Text variant={TextVariant.HeadingSm} numberOfLines={2} twClassName="flex-1">
-    {children}
-  </Text>
-);
-
-const Subtitle = ({ children }: { children: React.ReactNode }) => (
-  <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-    {children}
-  </Text>
-);
-
-const Image = ({ source, testID }: { source: string; testID?: string }) => {
-  const tw = useTailwind();
-  return (
-    <Box testID={testID}>
-      <ExpoImage
-        source={source}
-        style={tw.style('h-10 w-10 rounded-lg')}
-        contentFit="cover"
-        recyclingKey={source}
-      />
-    </Box>
-  );
-};
-
-interface HeaderProps {
-  event: PredictEvent;
-  testID?: string;
-}
-
-const Header = ({ event, testID }: HeaderProps) => (
-  <Box
-    twClassName="flex-row items-center gap-3"
-    testID={testID ?? `predict-next-event-header-${event.venueId}-${event.id}`}
-  >
-    {event.imageUrl ? (
-      <Image
-        source={event.imageUrl}
-        testID={`predict-next-event-image-${event.id}`}
-      />
-    ) : null}
-    <Title>{event.title}</Title>
-  </Box>
-);
-
-interface FooterProps {
-  event: PredictEvent;
-  onPress?: () => void;
-  testID?: string;
-}
-
-const Footer = ({ event, onPress, testID }: FooterProps) => {
-  const volume = formatVolume(event.volume);
-  const hiddenCount = Math.max(
-    0,
-    event.markets.length - EVENT_CARD_VISIBLE_MARKET_COUNT,
-  );
-
-  if (!event.category && volume === undefined && hiddenCount === 0) {
-    return null;
-  }
-
-  return (
-    <Box
-      twClassName="flex-row items-center justify-between"
-      testID={
-        testID ?? `predict-next-event-footer-${event.venueId}-${event.id}`
-      }
-    >
-      <Box twClassName="flex-1 flex-row items-center gap-3">
-        {event.category ? (
-          <Tag
-            severity={TagSeverity.Neutral}
-            testID={`predict-next-event-category-${event.id}`}
-          >
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {event.category}
-            </Text>
-          </Tag>
-        ) : null}
-        {volume !== undefined ? (
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            testID={`predict-next-event-volume-${event.id}`}
-          >
-            ${volume} Vol
-          </Text>
-        ) : null}
-      </Box>
-      {hiddenCount > 0 ? (
-        <NativePressable
-          accessibilityLabel={`+${hiddenCount} more`}
-          accessibilityRole="button"
-          onPress={onPress}
-          testID={`predict-next-event-more-${event.id}`}
-        >
-          <Box twClassName="flex-row items-center">
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              +{hiddenCount} more
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Xs}
-              color={IconColor.IconAlternative}
-            />
-          </Box>
-        </NativePressable>
-      ) : null}
-    </Box>
-  );
-};
-
 export const EventCard = {
   Root,
   Pressable,
-  OutcomeRow,
-  Title,
-  Subtitle,
-  Image,
   Header,
+  Title,
+  Image,
+  Body,
+  Actions,
+  Action,
   Footer,
+  FooterLeading,
+  MetadataTag,
+  Volume,
+  MoreMarkets,
+  OutcomeRow,
 };
