@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { LayoutChangeEvent } from 'react-native';
+import { LayoutChangeEvent, ScrollView, TouchableOpacity } from 'react-native';
 import {
   runOnJS,
   useAnimatedReaction,
@@ -19,8 +19,9 @@ import {
   Box,
   HeaderStandardAnimated,
   Text,
-  // TextFieldSearch, // TODO(activity-redesign): restore with the unified list + filtering
   TextVariant,
+  TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -35,11 +36,10 @@ import {
 } from './components/PerpsActivityFilterSheet';
 import { createActivityNetworkFilterNavDetails } from './components/ActivityNetworkFilterSheet';
 import AssetListControlBar from './components/AssetListControlBar';
-import ActivityList, {
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-  type ActivityListHandle,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-} from '../ActivityList';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import ActivityList, { type ActivityListHandle } from '../ActivityList';
+import ErrorBoundary from '../ErrorBoundary';
+/* eslint-enable import-x/no-restricted-paths */
 import type { CaipChainId } from '@metamask/utils';
 import {
   ActivityTypeFilter,
@@ -59,8 +59,9 @@ import {
   FilterLocation,
   FilterType,
 } from '../../../core/Analytics/events/filters';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import ErrorBoundary from '../ErrorBoundary';
+import type { OrderItem } from '../../../util/orders/types';
+import { useOrdersStore } from '../../../util/orders/ordersStore';
+import { OrderListItemRow } from '../../UI/Orders/OrderListItemRow/OrderListItemRow';
 
 const ActivityScreen = () => {
   const tw = useTailwind();
@@ -76,10 +77,6 @@ const ActivityScreen = () => {
     [titleSectionHeight],
   );
 
-  // TODO(activity-redesign): restore the search input with the unified list + filtering.
-  // const [searchQuery, setSearchQuery] = useState('');
-  // TODO: restore `ActivityTypeFilter.All` as the default once data-source
-  // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
   const params = useParams<ActivityScreenParams>();
   const {
     initialTypeFilter: initialTypeFilterParam,
@@ -97,14 +94,44 @@ const ActivityScreen = () => {
   const [perpsFilter, setPerpsFilter] = useState<PerpsActivityFilter>(
     () => initialPerpsFilterParam ?? PerpsActivityFilter.Trades,
   );
+  const [swapsFilter, setSwapsFilter] = useState<'open' | 'closed'>('open');
+
+  const { orders } = useOrdersStore();
+
+  const openOrders = useMemo(
+    () =>
+      orders.filter(
+        (o) => o.status === 'open' || o.status === 'partiallyFilled',
+      ),
+    [orders],
+  );
+
+  const closedOrders = useMemo(
+    () =>
+      orders.filter(
+        (o) =>
+          o.status === 'filled' ||
+          o.status === 'cancelled' ||
+          o.status === 'rejected' ||
+          o.status === 'expired',
+      ),
+    [orders],
+  );
+
+  const currentSwapsOrders = swapsFilter === 'open' ? openOrders : closedOrders;
+
+  const handleOrderPress = useCallback(
+    (order: OrderItem) => {
+      navigation.navigate(Routes.ORDER_DETAILS_VIEW, {
+        orderId: order.id,
+        order,
+      });
+    },
+    [navigation],
+  );
 
   const networkOptions = useNetworkFilterOptions();
   const trackFilterClicked = useTrackFilterClicked();
-
-  // TODO(activity-redesign): restore with the search input.
-  // const handleClearSearch = useCallback(() => {
-  //   setSearchQuery('');
-  // }, []);
 
   const handleSelectTypeFilter = useCallback((filter: ActivityTypeFilter) => {
     setTypeFilter(filter);
@@ -151,7 +178,8 @@ const ActivityScreen = () => {
   const showPerpsFilter = typeFilter === ActivityTypeFilter.Perps;
   const showNetworkFilter =
     typeFilter !== ActivityTypeFilter.Perps &&
-    typeFilter !== ActivityTypeFilter.Predictions;
+    typeFilter !== ActivityTypeFilter.Predictions &&
+    typeFilter !== ActivityTypeFilter.Swaps;
 
   const effectiveNetworkFilter = useMemo<CaipChainId[] | null>(
     () => (showNetworkFilter ? networkFilter : null),
@@ -255,6 +283,70 @@ const ActivityScreen = () => {
     handleOpenNetworkSheet,
   ]);
 
+  const extraPills = useMemo(() => {
+    if (typeFilter !== ActivityTypeFilter.Swaps) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="flex-row items-center gap-2">
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setSwapsFilter('open')}
+          testID="activity-swaps-filter-open"
+          style={tw.style(
+            `px-3 py-1.5 rounded-full border ${
+              swapsFilter === 'open'
+                ? 'bg-primary-muted border-primary-default'
+                : 'bg-default border-muted'
+            }`,
+          )}
+        >
+          <Text
+            variant={TextVariant.BodySmMedium}
+            fontWeight={
+              swapsFilter === 'open' ? FontWeight.Bold : FontWeight.Regular
+            }
+            color={
+              swapsFilter === 'open'
+                ? TextColor.PrimaryDefault
+                : TextColor.TextAlternative
+            }
+          >
+            Open ({openOrders.length})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setSwapsFilter('closed')}
+          testID="activity-swaps-filter-closed"
+          style={tw.style(
+            `px-3 py-1.5 rounded-full border ${
+              swapsFilter === 'closed'
+                ? 'bg-primary-muted border-primary-default'
+                : 'bg-default border-muted'
+            }`,
+          )}
+        >
+          <Text
+            variant={TextVariant.BodySmMedium}
+            fontWeight={
+              swapsFilter === 'closed' ? FontWeight.Bold : FontWeight.Regular
+            }
+            color={
+              swapsFilter === 'closed'
+                ? TextColor.PrimaryDefault
+                : TextColor.TextAlternative
+            }
+          >
+            Closed ({closedOrders.length})
+          </Text>
+        </TouchableOpacity>
+      </Box>
+    );
+  }, [typeFilter, swapsFilter, openOrders.length, closedOrders.length, tw]);
+
   const subFilterKinds = showPerpsFilter
     ? getPerpsSubFilterKinds(perpsFilter)
     : undefined;
@@ -294,27 +386,16 @@ const ActivityScreen = () => {
               {strings('activity_view.title')}
             </Text>
           </Box>
-
-          {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
-          <Box twClassName="pb-4">
-            <TextFieldSearch
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder={strings('activity_view.search_placeholder')}
-              onPressClearButton={handleClearSearch}
-              testID={ActivityScreenSelectorsIDs.SEARCH_INPUT}
-            />
-          </Box>
-          */}
         </Box>
 
         <AssetListControlBar
           typeChip={typeChip}
           secondaryChip={secondaryChip}
+          extraPills={extraPills}
         />
       </Box>
     ),
-    [handleTitleLayout, typeChip, secondaryChip],
+    [handleTitleLayout, typeChip, secondaryChip, extraPills],
   );
 
   return (
@@ -341,32 +422,55 @@ const ActivityScreen = () => {
           />
 
           <Box twClassName="flex-1">
-            <ActivityList
-              ref={activityListRef}
-              header={activityListHeader}
-              scrollY={scrollY}
-              typeFilter={typeFilter}
-              networkFilter={effectiveNetworkFilter}
-              subFilterKinds={subFilterKinds}
-              trackScreenViewed
-              entryPoint={entryPoint}
-            />
+            {typeFilter === ActivityTypeFilter.Swaps ? (
+              <ScrollView
+                style={tw.style('flex-1')}
+                contentContainerStyle={tw.style('pb-12')}
+                showsVerticalScrollIndicator={false}
+              >
+                {activityListHeader}
+                <Box paddingHorizontal={4} gap={2}>
+                  {currentSwapsOrders.length === 0 ? (
+                    <Box twClassName="py-12 items-center justify-center">
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
+                      >
+                        {swapsFilter === 'open'
+                          ? 'No open swap orders found.'
+                          : 'No closed swap orders found.'}
+                      </Text>
+                    </Box>
+                  ) : (
+                    currentSwapsOrders.map((order) => (
+                      <OrderListItemRow
+                        key={order.id}
+                        order={order}
+                        onPress={handleOrderPress}
+                      />
+                    ))
+                  )}
+                </Box>
+              </ScrollView>
+            ) : (
+              <ActivityList
+                ref={activityListRef}
+                header={activityListHeader}
+                scrollY={scrollY}
+                typeFilter={typeFilter}
+                networkFilter={effectiveNetworkFilter}
+                subFilterKinds={subFilterKinds}
+                trackScreenViewed
+                entryPoint={entryPoint}
+              />
+            )}
 
             {isFilterBarPinned ? (
               <Box twClassName="absolute top-0 left-0 right-0 bg-default">
-                {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
-                <Box twClassName="pb-4">
-                  <TextFieldSearch
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder={strings('activity_view.search_placeholder')}
-                    onPressClearButton={handleClearSearch}
-                  />
-                </Box>
-                */}
                 <AssetListControlBar
                   typeChip={typeChip}
                   secondaryChip={secondaryChip}
+                  extraPills={extraPills}
                   suppressTestIDs
                 />
               </Box>

@@ -102,6 +102,10 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.TRANSACTION_DETAILS).toBeDefined();
   });
 
+  it('has order details view route defined', () => {
+    expect(Routes.ORDER_DETAILS_VIEW).toBeDefined();
+  });
+
   it('has deprecated network details route defined', () => {
     expect(Routes.DEPRECATED_NETWORK_DETAILS).toBeDefined();
   });

@@ -108,6 +108,7 @@ const Routes = {
   // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
   // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
   ACTIVITY_DETAILS: 'ActivityDetails',
+  ORDER_DETAILS_VIEW: 'OrderDetailsView',
   REWARDS_VIEW: 'RewardsView',
   REWARDS_FLOW: 'RewardsFlow',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
