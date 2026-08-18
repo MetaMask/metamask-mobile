@@ -91,6 +91,11 @@ Do not add another Homepage TTC or DFD transaction.
 
 Visible errors retain the existing event shape for compatibility. Successful-latency widgets must filter `content_state != error`; error-rate widgets use `content_state = error`.
 
+Dashboard cohort queries use span attributes. The section hook writes bounded
+cohort values as start attributes and refreshes them on the same span before
+completion; Sentry event tags are compatibility metadata, not the dashboard
+source of truth.
+
 ## Attributes
 
 ### Indexed, bounded cohort attributes

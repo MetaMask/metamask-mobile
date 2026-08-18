@@ -116,6 +116,9 @@ export const startHomepageReadyTrace = ({
   nextTraceToken += 1;
   activeTraceToken = nextTraceToken;
   activeStartSource = source;
+  // A completion from the previous lifecycle must never be replayed into the
+  // new Homepage/Perps generation.
+  latestHomepageReadyAtMs = null;
   clearAuthenticationEnd();
   trace({
     name: TraceName.HomepageReady,
