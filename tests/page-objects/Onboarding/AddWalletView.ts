@@ -1,36 +1,18 @@
 import { AddWalletTestIds } from '../../../app/components/Views/AddWallet/AddWallet.testIds';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class AddWalletView {
   get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(AddWalletTestIds.SCREEN),
-      appium: () =>
-        PlaywrightMatchers.getElementById(AddWalletTestIds.SCREEN, {
-          exact: true,
-        }),
-    });
+    return Matchers.getElementByID(AddWalletTestIds.SCREEN);
   }
 
   get linkMetaMaskExtensionButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
+    );
   }
 
   async expectScreenVisible(timeout = 15_000): Promise<void> {
@@ -41,8 +23,8 @@ class AddWalletView {
   }
 
   async tapLinkMetaMaskExtension(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.linkMetaMaskExtensionButton, {
-      description: 'Link MetaMask extension button',
+    await Gestures.waitAndTap(this.linkMetaMaskExtensionButton, {
+      elemDescription: 'Link MetaMask extension button',
       timeout: 15_000,
     });
   }

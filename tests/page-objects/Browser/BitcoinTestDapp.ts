@@ -6,8 +6,8 @@ import {
 import { navigateToBrowserView } from '../../flows/browser.flow.js';
 import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 
 export const BITCOIN_DAPP_PORT = 8094;
@@ -223,10 +223,10 @@ class BitcoinTestDapp {
   }
 
   async confirmSignMessage(): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText('Approve', true);
-    await PlaywrightGestures.waitAndTap(el, {
+    await Gestures.waitAndTap(Matchers.getElementByText('Approve'), {
       checkForDisplayed: true,
       timeout: 15_000,
+      elemDescription: 'Approve sign message',
     });
   }
 

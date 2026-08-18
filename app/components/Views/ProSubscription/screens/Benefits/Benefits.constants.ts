@@ -89,6 +89,8 @@ export interface BenefitDetailItem {
   subDescription?: string;
   /** i18n key for the "Learn more" link label (protection). */
   learnMore?: string;
+  /** i18n key for the "Learn more" link URL (protection). */
+  learnMoreUrl?: string;
   /** i18n key for the disclaimer note (protection). */
   notes?: string;
 }
@@ -132,6 +134,8 @@ export const BENEFIT_DETAILS: BenefitDetailItem[] = [
       'pro_subscription.benefits_description.protection.sub_description',
     learnMore: 'pro_subscription.benefits_description.protection.learn_more',
     notes: 'pro_subscription.benefits_description.protection.notes',
+    // TODO: replace with actual URL
+    learnMoreUrl: 'https://metamask.io',
   },
   {
     id: 'support',
