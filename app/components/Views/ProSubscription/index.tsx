@@ -15,16 +15,23 @@ import {
 import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
-import type { RootStackParamList } from '../../../core/NavigationService/types';
+import Routes from '../../../constants/navigation/Routes';
+import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
 const ProSubscription = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const tw = useTailwind();
-  const route = useRoute<RouteProp<RootStackParamList, 'ProSubscription'>>();
+  const route =
+    useRoute<
+      RouteProp<
+        { ProSubscription: { source?: string; initialPlan?: string } },
+        'ProSubscription'
+      >
+    >();
 
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const [currentScreen, setCurrentScreen] =
@@ -44,6 +51,12 @@ const ProSubscription = () => {
   const handleSuccess = useCallback(() => {
     setCurrentScreen('success');
   }, []);
+
+  const handleSubscriptionOnSuccess = useCallback(() => {
+    navigation.replace(Routes.PRO_HUB.ROOT, {
+      source: 'pro_subscription_success',
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView
@@ -66,7 +79,7 @@ const ProSubscription = () => {
           initialPlan={route.params?.initialPlan as PlanId | undefined}
         />
       ) : (
-        <Success onClose={handleClose} />
+        <Success onSuccess={handleSubscriptionOnSuccess} />
       )}
     </SafeAreaView>
   );
