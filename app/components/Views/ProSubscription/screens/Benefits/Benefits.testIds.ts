@@ -7,4 +7,5 @@ export const BenefitsTestIds = {
   BENEFIT_ROW: (id: string) => `benefits-benefit-row-${id}`,
   PLAN_CARD: (planId: string) => `benefits-plan-card-${planId}`,
   CTA_BUTTON: 'benefits-cta-button',
+  BENEFIT_DETAILS_CONTAINER: 'benefits-details-container',
 } as const;
