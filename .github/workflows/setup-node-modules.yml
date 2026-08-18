@@ -140,30 +140,16 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
-      # iOS: node_modules is intentionally excluded here. nscloud-cache-action links
-      # cached paths via symlinks on macOS, so `node_modules` would resolve to a
-      # physical location under the Namespace cache volume (e.g. /Volumes/cache/node_modules)
-      # instead of the checkout. RCTAesForked.xcodeproj (react-native-aes-crypto-forked)
-      # computes its React header search paths relative to $(SRCROOT), assuming node_modules
-      # sits directly under the repo root; a symlinked node_modules breaks that assumption
-      # and fails the archive with "'React/RCTBridgeModule.h' file not found".
-      - name: Configure Namespace cache (iOS)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && inputs.platform == 'ios' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            .yarn/cache
-
+      # node_modules must not be cached here: nscloud-cache-action mounts cached paths as
+      # symlinks into /Volumes/cache, and the cache/tarball this workflow produces would
+      # then hold that symlink instead of the real tree.
       - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && inputs.platform != 'ios' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
             ~/.cache/yarn
             .metamask
-            node_modules
             .yarn/cache
 
       # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
