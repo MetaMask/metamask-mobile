@@ -1,3 +1,4 @@
+import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import type { Hex } from '@metamask/utils';
 import type {
   MigrateParams,
@@ -5,21 +6,72 @@ import type {
   MigrationInventory,
   MigrationSnapshot,
   MigrationStatus,
-  MigrationStore,
+} from '../../../../lib/Money/migration/types';
+import {
+  AUTO_RESTORE_AFTER_MS,
+  EMPTY_SNAPSHOT,
+} from '../../../../lib/Money/migration/types';
+import {
+  MONEY_ACCOUNT_MIGRATION_CONTROLLER_NAME,
+  type MoneyAccountMigrationControllerMessenger,
+  type MoneyAccountMigrationControllerState,
 } from './types';
-import { AUTO_RESTORE_AFTER_MS, EMPTY_SNAPSHOT } from './types';
 
-export function createMemoryStore(
-  initial: Partial<MigrationSnapshot> = {},
-): MigrationStore {
-  let snapshot: MigrationSnapshot = { ...EMPTY_SNAPSHOT, ...initial };
-  return {
-    load: () => snapshot,
-    save: (next) => {
-      snapshot = next;
-    },
-  };
-}
+export { AUTO_RESTORE_AFTER_MS, EMPTY_SNAPSHOT };
+
+const metadata: StateMetadata<MoneyAccountMigrationControllerState> = {
+  status: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
+  inventory: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: true,
+    usedInUi: false,
+  },
+  destination: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
+  exitBatchId: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: false,
+  },
+  residualDelegation: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  residualDelegationHash: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: false,
+  },
+  tornDownAt: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: false,
+  },
+  formerMoneyAccounts: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
+};
+
+export const defaultMoneyAccountMigrationControllerState: MoneyAccountMigrationControllerState =
+  EMPTY_SNAPSHOT;
 
 export function fundsMoved(
   plan: MigrationInventory,
@@ -61,22 +113,38 @@ const sameAddress = (a: Hex, b: Hex) => a.toLowerCase() === b.toLowerCase();
  * Destination must already exist (`createMoneyAccount`). No UI.
  * Crash/kill: persist snapshot; `resume()` continues. Never double-submit.
  */
-export class MoneyAccountMigrationService {
-  readonly #store: MigrationStore;
-
+export class MoneyAccountMigrationController extends BaseController<
+  typeof MONEY_ACCOUNT_MIGRATION_CONTROLLER_NAME,
+  MoneyAccountMigrationControllerState,
+  MoneyAccountMigrationControllerMessenger
+> {
   #running = false;
 
-  constructor(store: MigrationStore = createMemoryStore()) {
-    this.#store = store;
+  constructor({
+    messenger,
+    state,
+  }: {
+    messenger: MoneyAccountMigrationControllerMessenger;
+    state?: Partial<MoneyAccountMigrationControllerState>;
+  }) {
+    super({
+      name: MONEY_ACCOUNT_MIGRATION_CONTROLLER_NAME,
+      messenger,
+      metadata,
+      state: {
+        ...defaultMoneyAccountMigrationControllerState,
+        ...state,
+      },
+    });
   }
 
   get snapshot(): MigrationSnapshot {
-    return this.#store.load();
+    return this.state;
   }
 
   async migrate({ source, destination }: MigrateParams): Promise<void> {
     await this.#withLock(async () => {
-      const snap = this.#store.load();
+      const snap = this.state;
       if (snap.status !== 'IDLE' && snap.status !== 'VERIFIED_INERT') {
         if (
           snap.inventory &&
@@ -99,7 +167,7 @@ export class MoneyAccountMigrationService {
         return;
       }
 
-      this.#store.save({
+      this.update(() => ({
         ...snap,
         status: 'INVENTORIED',
         inventory,
@@ -108,7 +176,7 @@ export class MoneyAccountMigrationService {
         residualDelegation: null,
         residualDelegationHash: null,
         tornDownAt: null,
-      });
+      }));
       await this.#continue();
     });
   }
@@ -119,7 +187,7 @@ export class MoneyAccountMigrationService {
 
   async abort(): Promise<void> {
     await this.#withLock(async () => {
-      const snap = this.#store.load();
+      const snap = this.state;
       if (snap.status === 'IDLE' || snap.status === 'VERIFIED_INERT') {
         return;
       }
@@ -145,8 +213,6 @@ export class MoneyAccountMigrationService {
     // redeemDelegations as the new key — encodeRedeemDelegations exists;
     // no high-level sweep helper in mobile yet.
   }
-
-  // --- inventory / gates ---
 
   async collectInventory(
     source: Hex,
@@ -177,8 +243,6 @@ export class MoneyAccountMigrationService {
     return false;
   }
 
-  // --- teardown (before funds) ---
-
   async teardown(inventory: MigrationInventory): Promise<void> {
     await this.revokeChompIntents(inventory.chompIntentHashes);
     await this.revokeStorageDelegations(inventory.chompDelegationHashes);
@@ -203,10 +267,8 @@ export class MoneyAccountMigrationService {
     // CardController.linkMoneyAccountCard({ moneyAccountAddress, delegationAmountHuman: '0' })
   }
 
-  // --- on-chain exit ---
-
   async executeExitBatch(inventory: MigrationInventory): Promise<void> {
-    let { exitBatchId } = this.#store.load();
+    let { exitBatchId } = this.state;
     if (exitBatchId) {
       await this.awaitExitBatch(exitBatchId);
       return;
@@ -221,7 +283,9 @@ export class MoneyAccountMigrationService {
     if (!exitBatchId) {
       return;
     }
-    this.#store.save({ ...this.#store.load(), exitBatchId });
+    this.update((state) => {
+      state.exitBatchId = exitBatchId;
+    });
     await this.awaitExitBatch(exitBatchId);
   }
 
@@ -238,14 +302,12 @@ export class MoneyAccountMigrationService {
     _source: Hex,
     _destination: Hex,
   ): Promise<void> {
-    const { residualDelegation } = this.#store.load();
+    const { residualDelegation } = this.state;
     if (residualDelegation) {
       return;
     }
     // Sign once: delegator=old, delegate=new, empty caveats. Persist blob.
   }
-
-  // --- re-provision ---
 
   async reprovision(
     destination: Hex,
@@ -275,8 +337,8 @@ export class MoneyAccountMigrationService {
   }
 
   async persistFormerLink(source: Hex, destination: Hex): Promise<void> {
-    const snap = this.#store.load();
-    this.#store.save({
+    const snap = this.state;
+    this.update(() => ({
       ...snap,
       formerMoneyAccounts: {
         ...snap.formerMoneyAccounts,
@@ -286,7 +348,7 @@ export class MoneyAccountMigrationService {
           residualDelegationHash: snap.residualDelegationHash,
         },
       },
-    });
+    }));
   }
 
   async persistAccountsApiAlias(
@@ -313,7 +375,7 @@ export class MoneyAccountMigrationService {
   }
 
   async #continue(): Promise<void> {
-    const snap = this.#store.load();
+    const snap = this.state;
     if (
       snap.status === 'IDLE' ||
       snap.status === 'VERIFIED_INERT' ||
@@ -333,18 +395,19 @@ export class MoneyAccountMigrationService {
       live,
     });
     if (status !== snap.status) {
-      this.#store.save({ ...this.#store.load(), status });
+      this.update((state) => {
+        state.status = status;
+      });
     }
 
     if (
       status === 'TORN_DOWN' &&
-      !this.#store.load().exitBatchId &&
-      this.#store.load().tornDownAt !== null &&
-      Date.now() - (this.#store.load().tornDownAt as number) >=
-        AUTO_RESTORE_AFTER_MS
+      !this.state.exitBatchId &&
+      this.state.tornDownAt !== null &&
+      Date.now() - (this.state.tornDownAt as number) >= AUTO_RESTORE_AFTER_MS
     ) {
       await this.restore(snap.inventory);
-      this.#clearInFlight(this.#store.load());
+      this.#clearInFlight(this.state);
       return;
     }
 
@@ -355,20 +418,17 @@ export class MoneyAccountMigrationService {
 
     if (status === 'INVENTORIED') {
       await this.teardown(inventory);
-      this.#store.save({
-        ...this.#store.load(),
-        status: 'TORN_DOWN',
-        tornDownAt: Date.now(),
+      this.update((state) => {
+        state.status = 'TORN_DOWN';
+        state.tornDownAt = Date.now();
       });
       status = 'TORN_DOWN';
     }
 
     if (status === 'TORN_DOWN') {
       await this.executeExitBatch(inventory);
-      this.#store.save({
-        ...this.#store.load(),
-        status: 'BATCH_EXECUTED',
-        exitBatchId: this.#store.load().exitBatchId,
+      this.update((state) => {
+        state.status = 'BATCH_EXECUTED';
       });
       status = 'BATCH_EXECUTED';
     }
@@ -379,21 +439,25 @@ export class MoneyAccountMigrationService {
         inventory.destination,
       );
       await this.reprovision(inventory.destination, inventory);
-      this.#store.save({ ...this.#store.load(), status: 'RE_PROVISIONED' });
+      this.update((state) => {
+        state.status = 'RE_PROVISIONED';
+      });
       status = 'RE_PROVISIONED';
     }
 
     if (status === 'RE_PROVISIONED') {
       await this.verifyOldInert(inventory);
       await this.persistFormerLink(inventory.source, inventory.destination);
-      this.#store.save({ ...this.#store.load(), status: 'VERIFIED_INERT' });
+      this.update((state) => {
+        state.status = 'VERIFIED_INERT';
+      });
     }
   }
 
   #clearInFlight(snap: MigrationSnapshot): void {
-    this.#store.save({
+    this.update(() => ({
       ...EMPTY_SNAPSHOT,
       formerMoneyAccounts: snap.formerMoneyAccounts,
-    });
+    }));
   }
 }

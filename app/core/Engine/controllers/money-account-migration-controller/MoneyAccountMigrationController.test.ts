@@ -1,17 +1,24 @@
 import { Hex } from '@metamask/utils';
+import { Messenger } from '@metamask/messenger';
 import {
-  createMemoryStore,
   fundsMoved,
-  MoneyAccountMigrationService,
+  MoneyAccountMigrationController,
   reconcile,
-} from './MoneyAccountMigrationService';
-import type { MigrationInventory } from './types';
-import { EMPTY_SNAPSHOT } from './types';
+} from './MoneyAccountMigrationController';
+import type {
+  MoneyAccountMigrationControllerActions,
+  MoneyAccountMigrationControllerEvents,
+  MoneyAccountMigrationControllerMessenger,
+  MoneyAccountMigrationControllerState,
+} from './types';
+import type { MigrationInventory } from '../../../../lib/Money/migration/types';
+import { EMPTY_SNAPSHOT } from '../../../../lib/Money/migration/types';
 
 const SOURCE = '0x1111111111111111111111111111111111111111' as Hex;
 const DEST = '0x2222222222222222222222222222222222222222' as Hex;
 const OTHER = '0x3333333333333333333333333333333333333333' as Hex;
-const BATCH_ID = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Hex;
+const BATCH_ID =
+  '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Hex;
 
 const plan = (
   overrides: Partial<MigrationInventory> = {},
@@ -29,6 +36,24 @@ const plan = (
   cardLinked: false,
   ...overrides,
 });
+
+function buildMockMessenger(): jest.Mocked<MoneyAccountMigrationControllerMessenger> {
+  const messenger = new Messenger<
+    'MoneyAccountMigrationController',
+    MoneyAccountMigrationControllerActions,
+    MoneyAccountMigrationControllerEvents
+  >({ namespace: 'MoneyAccountMigrationController' });
+  return messenger as unknown as jest.Mocked<MoneyAccountMigrationControllerMessenger>;
+}
+
+function createController(
+  state?: Partial<MoneyAccountMigrationControllerState>,
+) {
+  return new MoneyAccountMigrationController({
+    messenger: buildMockMessenger(),
+    state,
+  });
+}
 
 describe('fundsMoved', () => {
   it('returns false when planned vmUSD is still on source', () => {
@@ -70,107 +95,105 @@ describe('reconcile', () => {
   });
 });
 
-describe('MoneyAccountMigrationService', () => {
-  const openGates = (service: MoneyAccountMigrationService) => {
-    jest.spyOn(service, 'assertBatchFromSelf').mockResolvedValue(true);
+describe('MoneyAccountMigrationController', () => {
+  const openGates = (controller: MoneyAccountMigrationController) => {
+    jest.spyOn(controller, 'assertBatchFromSelf').mockResolvedValue(true);
   };
 
   it('skips teardown when a blocker is present', async () => {
-    const service = new MoneyAccountMigrationService();
-    openGates(service);
+    const controller = createController();
+    openGates(controller);
     jest
-      .spyOn(service, 'collectBlockers')
+      .spyOn(controller, 'collectBlockers')
       .mockResolvedValue([{ kind: 'pending-money-tx' }]);
-    const teardown = jest.spyOn(service, 'teardown');
+    const teardown = jest.spyOn(controller, 'teardown');
 
-    await service.migrate({ source: SOURCE, destination: DEST });
+    await controller.migrate({ source: SOURCE, destination: DEST });
 
     expect(teardown).not.toHaveBeenCalled();
-    expect(service.snapshot.status).toBe('IDLE');
+    expect(controller.snapshot.status).toBe('IDLE');
   });
 
   it('skips teardown when Gate 1 fails', async () => {
-    const service = new MoneyAccountMigrationService();
-    jest.spyOn(service, 'assertBatchFromSelf').mockResolvedValue(false);
-    const teardown = jest.spyOn(service, 'teardown');
+    const controller = createController();
+    jest.spyOn(controller, 'assertBatchFromSelf').mockResolvedValue(false);
+    const teardown = jest.spyOn(controller, 'teardown');
 
-    await service.migrate({ source: SOURCE, destination: DEST });
+    await controller.migrate({ source: SOURCE, destination: DEST });
 
     expect(teardown).not.toHaveBeenCalled();
-    expect(service.snapshot.status).toBe('IDLE');
+    expect(controller.snapshot.status).toBe('IDLE');
   });
 
   it('runs teardown, exit batch, residual, then re-provision in that order', async () => {
-    const service = new MoneyAccountMigrationService();
-    openGates(service);
+    const controller = createController();
+    openGates(controller);
     const order: string[] = [];
-    jest.spyOn(service, 'teardown').mockImplementation(async () => {
+    jest.spyOn(controller, 'teardown').mockImplementation(async () => {
       order.push('teardown');
     });
-    jest.spyOn(service, 'executeExitBatch').mockImplementation(async () => {
+    jest.spyOn(controller, 'executeExitBatch').mockImplementation(async () => {
       order.push('batch');
     });
     jest
-      .spyOn(service, 'persistResidualDelegation')
+      .spyOn(controller, 'persistResidualDelegation')
       .mockImplementation(async () => {
         order.push('residual');
       });
-    jest.spyOn(service, 'reprovision').mockImplementation(async () => {
+    jest.spyOn(controller, 'reprovision').mockImplementation(async () => {
       order.push('reprovision');
     });
 
-    await service.migrate({ source: SOURCE, destination: DEST });
+    await controller.migrate({ source: SOURCE, destination: DEST });
 
     expect(order).toEqual(['teardown', 'batch', 'residual', 'reprovision']);
-    expect(service.snapshot.status).toBe('VERIFIED_INERT');
+    expect(controller.snapshot.status).toBe('VERIFIED_INERT');
   });
 
   it('unlinks Card only when inventory says the old address is linked', async () => {
-    const service = new MoneyAccountMigrationService();
-    openGates(service);
-    jest.spyOn(service, 'collectInventory').mockResolvedValue(
+    const controller = createController();
+    openGates(controller);
+    jest.spyOn(controller, 'collectInventory').mockResolvedValue(
       plan({ cardLinked: true }),
     );
-    const unlink = jest.spyOn(service, 'unlinkCard').mockResolvedValue();
+    const unlink = jest.spyOn(controller, 'unlinkCard').mockResolvedValue();
 
-    await service.migrate({ source: SOURCE, destination: DEST });
+    await controller.migrate({ source: SOURCE, destination: DEST });
 
     expect(unlink).toHaveBeenCalledWith(SOURCE);
   });
 
   it('resumes the same source and destination after a crash', async () => {
-    const store = createMemoryStore({
+    const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'INVENTORIED',
       inventory: plan(),
       destination: DEST,
     });
-    const service = new MoneyAccountMigrationService(store);
-    openGates(service);
-    const teardown = jest.spyOn(service, 'teardown').mockResolvedValue();
+    openGates(controller);
+    const teardown = jest.spyOn(controller, 'teardown').mockResolvedValue();
 
-    await service.migrate({ source: SOURCE, destination: DEST });
+    await controller.migrate({ source: SOURCE, destination: DEST });
 
     expect(teardown).toHaveBeenCalled();
-    expect(service.snapshot.status).toBe('VERIFIED_INERT');
+    expect(controller.snapshot.status).toBe('VERIFIED_INERT');
   });
 
   it('throws when migrate is called with a different destination while in progress', async () => {
-    const store = createMemoryStore({
+    const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'INVENTORIED',
       inventory: plan(),
       destination: DEST,
     });
-    const service = new MoneyAccountMigrationService(store);
 
     await expect(
-      service.migrate({ source: SOURCE, destination: OTHER }),
+      controller.migrate({ source: SOURCE, destination: OTHER }),
     ).rejects.toThrow('migration-in-progress');
   });
 
   it('awaits the persisted batch id instead of submitting again', async () => {
-    const store = createMemoryStore({
+    const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'TORN_DOWN',
       inventory: plan({ vmUsd: 10n }),
@@ -178,91 +201,87 @@ describe('MoneyAccountMigrationService', () => {
       exitBatchId: BATCH_ID,
       tornDownAt: Date.now(),
     });
-    const service = new MoneyAccountMigrationService(store);
     jest
-      .spyOn(service, 'collectInventory')
+      .spyOn(controller, 'collectInventory')
       .mockResolvedValue(plan({ vmUsd: 10n }));
-    const submit = jest.spyOn(service, 'submitExitBatch');
+    const submit = jest.spyOn(controller, 'submitExitBatch');
     const awaitBatch = jest
-      .spyOn(service, 'awaitExitBatch')
+      .spyOn(controller, 'awaitExitBatch')
       .mockResolvedValue();
 
-    await service.resume();
+    await controller.resume();
 
     expect(submit).not.toHaveBeenCalled();
     expect(awaitBatch).toHaveBeenCalledWith(BATCH_ID);
-    expect(service.snapshot.status).toBe('VERIFIED_INERT');
+    expect(controller.snapshot.status).toBe('VERIFIED_INERT');
   });
 
   it('does not submit when chain already shows funds moved', async () => {
-    const store = createMemoryStore({
+    const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'TORN_DOWN',
       inventory: plan({ vmUsd: 10n }),
       destination: DEST,
       tornDownAt: Date.now(),
     });
-    const service = new MoneyAccountMigrationService(store);
     jest
-      .spyOn(service, 'collectInventory')
+      .spyOn(controller, 'collectInventory')
       .mockResolvedValue(plan({ vmUsd: 0n }));
-    const execute = jest.spyOn(service, 'executeExitBatch');
+    const execute = jest.spyOn(controller, 'executeExitBatch');
 
-    await service.resume();
+    await controller.resume();
 
     expect(execute).not.toHaveBeenCalled();
-    expect(service.snapshot.status).toBe('VERIFIED_INERT');
+    expect(controller.snapshot.status).toBe('VERIFIED_INERT');
   });
 
   it('does not run the exit batch when resuming after BATCH_EXECUTED', async () => {
-    const store = createMemoryStore({
+    const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'BATCH_EXECUTED',
       inventory: plan(),
       destination: DEST,
       exitBatchId: BATCH_ID,
     });
-    const service = new MoneyAccountMigrationService(store);
-    const execute = jest.spyOn(service, 'executeExitBatch');
+    const execute = jest.spyOn(controller, 'executeExitBatch');
     const residual = jest
-      .spyOn(service, 'persistResidualDelegation')
+      .spyOn(controller, 'persistResidualDelegation')
       .mockResolvedValue();
 
-    await service.resume();
+    await controller.resume();
 
     expect(execute).not.toHaveBeenCalled();
     expect(residual).toHaveBeenCalled();
-    expect(service.snapshot.status).toBe('VERIFIED_INERT');
+    expect(controller.snapshot.status).toBe('VERIFIED_INERT');
   });
 
   it('persists the batch id before awaiting confirmation', async () => {
-    const store = createMemoryStore();
-    const service = new MoneyAccountMigrationService(store);
-    openGates(service);
-    jest.spyOn(service, 'collectInventory').mockResolvedValue(plan());
-    jest.spyOn(service, 'submitExitBatch').mockImplementation(async () => {
-      expect(store.load().status).toBe('TORN_DOWN');
-      expect(store.load().exitBatchId).toBeNull();
+    const controller = createController();
+    openGates(controller);
+    jest.spyOn(controller, 'collectInventory').mockResolvedValue(plan());
+    jest.spyOn(controller, 'submitExitBatch').mockImplementation(async () => {
+      expect(controller.state.status).toBe('TORN_DOWN');
+      expect(controller.state.exitBatchId).toBeNull();
       return BATCH_ID;
     });
-    jest.spyOn(service, 'awaitExitBatch').mockImplementation(async () => {
-      expect(store.load().exitBatchId).toBe(BATCH_ID);
+    jest.spyOn(controller, 'awaitExitBatch').mockImplementation(async () => {
+      expect(controller.state.exitBatchId).toBe(BATCH_ID);
     });
 
-    await service.migrate({ source: SOURCE, destination: DEST });
+    await controller.migrate({ source: SOURCE, destination: DEST });
 
-    expect(service.snapshot.status).toBe('VERIFIED_INERT');
+    expect(controller.snapshot.status).toBe('VERIFIED_INERT');
   });
 
   it('throws when migrate is already running', async () => {
-    const service = new MoneyAccountMigrationService();
-    openGates(service);
+    const controller = createController();
+    openGates(controller);
     let release: () => void = () => undefined;
     let enteredTeardown: () => void = () => undefined;
     const inTeardown = new Promise<void>((resolve) => {
       enteredTeardown = resolve;
     });
-    jest.spyOn(service, 'teardown').mockImplementation(
+    jest.spyOn(controller, 'teardown').mockImplementation(
       () =>
         new Promise((resolve) => {
           enteredTeardown();
@@ -270,33 +289,32 @@ describe('MoneyAccountMigrationService', () => {
         }),
     );
 
-    const first = service.migrate({ source: SOURCE, destination: DEST });
+    const first = controller.migrate({ source: SOURCE, destination: DEST });
     await inTeardown;
     await expect(
-      service.migrate({ source: SOURCE, destination: DEST }),
+      controller.migrate({ source: SOURCE, destination: DEST }),
     ).rejects.toThrow('migration-in-progress');
     release();
     await first;
   });
 
   it('aborts INVENTORIED back to IDLE without teardown restore', async () => {
-    const store = createMemoryStore({
+    const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'INVENTORIED',
       inventory: plan(),
       destination: DEST,
     });
-    const service = new MoneyAccountMigrationService(store);
-    const restore = jest.spyOn(service, 'restore');
+    const restore = jest.spyOn(controller, 'restore');
 
-    await service.abort();
+    await controller.abort();
 
     expect(restore).not.toHaveBeenCalled();
-    expect(service.snapshot.status).toBe('IDLE');
+    expect(controller.snapshot.status).toBe('IDLE');
   });
 
   it('refuses abort after the batch is submitted', async () => {
-    const store = createMemoryStore({
+    const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'TORN_DOWN',
       inventory: plan(),
@@ -304,20 +322,18 @@ describe('MoneyAccountMigrationService', () => {
       exitBatchId: BATCH_ID,
       tornDownAt: Date.now(),
     });
-    const service = new MoneyAccountMigrationService(store);
 
-    await expect(service.abort()).rejects.toThrow('batch-in-flight');
+    await expect(controller.abort()).rejects.toThrow('batch-in-flight');
   });
 
   it('refuses abort after BATCH_EXECUTED', async () => {
-    const store = createMemoryStore({
+    const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'BATCH_EXECUTED',
       inventory: plan(),
       destination: DEST,
     });
-    const service = new MoneyAccountMigrationService(store);
 
-    await expect(service.abort()).rejects.toThrow('point-of-no-return');
+    await expect(controller.abort()).rejects.toThrow('point-of-no-return');
   });
 });
