@@ -540,10 +540,11 @@ jobs:
             exit 0
           fi
 
-          DELTA_MB="$(echo "${CURRENT_MB} - ${BASELINE_MB}" | bc -l)"
+          # awk, not bc: Namespace linux images do not ship bc (GitHub-hosted ubuntu does).
+          DELTA_MB="$(awk -v c="${CURRENT_MB}" -v b="${BASELINE_MB}" 'BEGIN { print c - b }')"
           echo "Delta (current - baseline): ${DELTA_MB} MB"
           echo "::notice::iOS JS bundle delta vs baseline: ${DELTA_MB} MB (current ${CURRENT_MB} MB, baseline ${BASELINE_MB} MB)"
-          if (( $(echo "${DELTA_MB} > 1" | bc -l) )); then
+          if awk -v d="${DELTA_MB}" 'BEGIN { exit !(d > 1) }'; then
             echo "::error::JS bundle exceeds baseline by more than 1 MiB (delta ${DELTA_MB} MiB; current ${CURRENT_MB} MiB, baseline ${BASELINE_MB} MiB)."
             append_job_summary <<EOF
           ### iOS JS bundle size (PR)
