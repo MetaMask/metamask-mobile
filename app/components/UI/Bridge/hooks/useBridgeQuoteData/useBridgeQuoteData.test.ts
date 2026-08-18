@@ -664,7 +664,7 @@ describe('useBridgeQuoteData', () => {
       recommendedQuote: merge({}, mockQuoteWithMetadata, {
         quote: {
           feeData: {
-            network: null,
+            network: [],
           },
         },
       }),
@@ -690,6 +690,8 @@ describe('useBridgeQuoteData', () => {
             ...mockQuoteWithMetadata.quote.feeData,
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: undefined,
                 valueInCurrency: '10',
               },
@@ -716,6 +718,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0.01',
               },
             ],
@@ -741,6 +745,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0.01',
                 valueInCurrency: '10',
               },
@@ -767,6 +773,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0.0001',
                 valueInCurrency: '0.005',
               },
@@ -793,6 +801,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0.0001',
                 valueInCurrency: '0.01',
               },
@@ -819,6 +829,8 @@ describe('useBridgeQuoteData', () => {
           feeData: {
             network: [
               {
+                amount: '0',
+                asset: mockQuoteWithMetadata.quote.dest.asset,
                 normalizedAmount: '0',
                 valueInCurrency: '0',
               },
@@ -1269,10 +1281,9 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           dest: {
+            ...mockQuoteWithMetadata.quote.dest,
             asset: {
               ...mockQuoteWithMetadata.quote.dest.asset,
-              address:
-                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
               assetId:
                 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
             },
@@ -1285,9 +1296,9 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           dest: {
+            ...mockQuoteWithMetadata.quote.dest,
             asset: {
               ...mockQuoteWithMetadata.quote.dest.asset,
-              address: '0x0000000000000000000000000000000000000000',
               assetId:
                 bridgeController.getNativeAssetForChainId(1151111081099710)
                   .assetId,
@@ -1377,6 +1388,7 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           src: {
+            ...mockQuoteWithMetadata.quote.src,
             asset: {
               ...mockQuoteWithMetadata.quote.src.asset,
               assetId:
@@ -1424,13 +1436,11 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           src: {
+            ...mockQuoteWithMetadata.quote.src,
             asset: {
+              ...mockQuoteWithMetadata.quote.src.asset,
               assetId:
-                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112' as const,
-              decimals: 9,
-              symbol: 'SOL',
-              chainId: bridgeController.ChainId.SOLANA,
-              name: 'SOL',
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112',
             },
           },
         },
@@ -1564,7 +1574,10 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          destTokenAmount: '2500000000',
+          dest: {
+            ...mockQuoteWithMetadata.quote.dest,
+            amount: '2500000000',
+          },
         },
       };
 
@@ -1599,8 +1612,8 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.formattedQuoteData?.rate).toStrictEqual(
-        '1 SOL = 57.06 USDC',
+      expect(result.current.formattedQuoteData?.rate).toBe(
+        '1 SOL = 2,500.0 USDC',
       );
     });
 
@@ -1609,7 +1622,10 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          destTokenAmount: '100000',
+          dest: {
+            ...mockQuoteWithMetadata.quote.dest,
+            amount: '100000',
+          },
         },
       };
 
@@ -1644,9 +1660,7 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.formattedQuoteData?.rate).toStrictEqual(
-        '1 SOL = 57.06 USDC',
-      );
+      expect(result.current.formattedQuoteData?.rate).toBe('1 SOL = 0.10 USDC');
     });
   });
 
