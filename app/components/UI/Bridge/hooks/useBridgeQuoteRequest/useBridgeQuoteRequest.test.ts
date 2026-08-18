@@ -86,7 +86,6 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-jest.useFakeTimers();
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
   'updateBridgeQuoteRequestParams',
