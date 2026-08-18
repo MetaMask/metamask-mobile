@@ -9,6 +9,18 @@ import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { merge } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import {
+  getAddressAccountType,
+  isValidHexAddress,
+} from '../../../../../util/address';
+
+jest.mock('../../../../../util/address', () => ({
+  getAddressAccountType: jest.fn(),
+  isValidHexAddress: jest.fn(),
+}));
+
+const getAddressAccountTypeMock = jest.mocked(getAddressAccountType);
+const isValidHexAddressMock = jest.mocked(isValidHexAddress);
 
 const PAY_CONTROLLER_STATE_MOCK = {
   engine: {
@@ -55,6 +67,149 @@ describe('Metamask Pay Metrics', () => {
       initMessenger: {} as never,
       smartTransactionsController: {} as never,
     };
+  });
+
+  describe('mm_pay_payment_account_type', () => {
+    const MONEY_ACCOUNT_ADDRESS = '0x1111111111111111111111111111111111111111';
+    const LEDGER_ACCOUNT_ADDRESS = '0x2222222222222222222222222222222222222222';
+    const SOFTWARE_ACCOUNT_ADDRESS =
+      '0x3333333333333333333333333333333333333333';
+
+    const setAccountOverride = (
+      transactionId: string,
+      accountOverride: string,
+    ) => {
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TransactionPayController: {
+              transactionData: {
+                [transactionId]: { accountOverride },
+              },
+            },
+          },
+        },
+      } as never);
+    };
+
+    beforeEach(() => {
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+      request.transactionMeta.txParams.from = MONEY_ACCOUNT_ADDRESS;
+      isValidHexAddressMock.mockReturnValue(false);
+    });
+
+    it('uses the Ledger account override for a Money Account deposit', () => {
+      setAccountOverride('child-1', LEDGER_ACCOUNT_ADDRESS);
+      isValidHexAddressMock.mockReturnValue(true);
+      getAddressAccountTypeMock.mockReturnValue('Ledger');
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(getAddressAccountTypeMock).toHaveBeenCalledWith(
+        LEDGER_ACCOUNT_ADDRESS,
+      );
+      expect(result.properties.mm_pay_payment_account_type).toBe('Ledger');
+    });
+
+    it.each([
+      ['MetaMask', 'metamask'],
+      ['Imported', 'imported'],
+    ] as const)(
+      'normalizes %s software payer from the transaction account fallback',
+      (accountType, expectedAccountType) => {
+        isValidHexAddressMock.mockReturnValue(true);
+        getAddressAccountTypeMock.mockReturnValue(accountType);
+
+        const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+        expect(getAddressAccountTypeMock).toHaveBeenCalledWith(
+          MONEY_ACCOUNT_ADDRESS,
+        );
+        expect(result.properties.mm_pay_payment_account_type).toBe(
+          expectedAccountType,
+        );
+      },
+    );
+
+    it('uses parent pay data for a related child transaction', () => {
+      request.transactionMeta.type = TransactionType.bridge;
+      request.transactionMeta.txParams.from = SOFTWARE_ACCOUNT_ADDRESS;
+      request.allTransactions = [
+        {
+          id: 'parent-1',
+          type: TransactionType.moneyAccountDeposit,
+          txParams: { from: MONEY_ACCOUNT_ADDRESS },
+          requiredTransactionIds: ['child-1'],
+        } as TransactionMeta,
+      ];
+      setAccountOverride('parent-1', LEDGER_ACCOUNT_ADDRESS);
+      isValidHexAddressMock.mockReturnValue(true);
+      getAddressAccountTypeMock.mockReturnValue('Ledger');
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(getAddressAccountTypeMock).toHaveBeenCalledWith(
+        LEDGER_ACCOUNT_ADDRESS,
+      );
+      expect(result.properties.mm_pay_payment_account_type).toBe('Ledger');
+    });
+
+    it('omits the property when the resolved payer address is not valid', () => {
+      setAccountOverride('child-1', 'not-an-address');
+      isValidHexAddressMock.mockImplementation(
+        (address) => address === MONEY_ACCOUNT_ADDRESS,
+      );
+      getAddressAccountTypeMock.mockReturnValue('MetaMask');
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(isValidHexAddressMock).toHaveBeenCalledWith('not-an-address');
+      expect(getAddressAccountTypeMock).not.toHaveBeenCalled();
+      expect(result.properties).not.toHaveProperty(
+        'mm_pay_payment_account_type',
+      );
+    });
+
+    it('omits the property when payer data is missing', () => {
+      request.transactionMeta.txParams = {
+        nonce: '0x1',
+      } as TransactionMeta['txParams'];
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(isValidHexAddressMock).not.toHaveBeenCalled();
+      expect(getAddressAccountTypeMock).not.toHaveBeenCalled();
+      expect(result.properties).not.toHaveProperty(
+        'mm_pay_payment_account_type',
+      );
+    });
+
+    it('omits the property when the payer is not an imported account', () => {
+      isValidHexAddressMock.mockReturnValue(true);
+      getAddressAccountTypeMock.mockImplementation(() => {
+        throw new Error('Account not found');
+      });
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty(
+        'mm_pay_payment_account_type',
+      );
+    });
+
+    it('omits the property for a non-Money Account deposit', () => {
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+      setAccountOverride('child-1', LEDGER_ACCOUNT_ADDRESS);
+      isValidHexAddressMock.mockReturnValue(true);
+      getAddressAccountTypeMock.mockReturnValue('Ledger');
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(getAddressAccountTypeMock).not.toHaveBeenCalled();
+      expect(result.properties).not.toHaveProperty(
+        'mm_pay_payment_account_type',
+      );
+    });
   });
 
   it('derives baseline properties if perps_deposit without metamaskPay', () => {
