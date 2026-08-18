@@ -200,6 +200,9 @@ const PerpsProPositionsPanel = ({
     [sideFilter, visiblePositions],
   );
 
+  const isPositionsFiltered =
+    isTickerOnly || sideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER;
+
   const sideFilteredOrders = useMemo(
     () => filterProOrdersBySide(visibleOrders, sideFilter),
     [sideFilter, visibleOrders],
@@ -293,9 +296,7 @@ const PerpsProPositionsPanel = ({
             unrealizedPnl={aggregateTotals.unrealizedPnl}
             returnOnEquity={aggregateTotals.returnOnEquity}
             positionCount={sideFilteredPositions.length}
-            isFiltered={
-              isTickerOnly || sideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER
-            }
+            isFiltered={isPositionsFiltered}
             onCloseAll={handleCloseAllPress}
           />
           {sortedVisiblePositions.map((position) => (
@@ -461,7 +462,7 @@ const PerpsProPositionsPanel = ({
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets(sideFilteredPositions)}
+      {renderActionSheets(sideFilteredPositions, isPositionsFiltered)}
       {activeIndex === ORDERS_TAB_INDEX ? (
         <PerpsProOrdersSortSheet
           isVisible={isSortSheetOpen}
