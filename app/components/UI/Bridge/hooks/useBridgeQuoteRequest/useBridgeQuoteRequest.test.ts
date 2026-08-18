@@ -385,7 +385,7 @@ describe('useBridgeQuoteRequest', () => {
     );
   });
 
-  it('handles decimal point input as zero amount', async () => {
+  it('converts "." source amount to srcTokenAmount "0"', async () => {
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {
         sourceAmount: '.',
@@ -781,7 +781,7 @@ describe('useBridgeQuoteRequest', () => {
       );
     });
 
-    it('passes correct parameters to useIsInsufficientBalance hook', async () => {
+    it('passes amount, token, latestAtomicBalance, and ignoreGasFees to useIsInsufficientBalance', async () => {
       mockUseIsInsufficientBalance.mockReturnValue(false);
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
@@ -801,7 +801,7 @@ describe('useBridgeQuoteRequest', () => {
       });
     });
 
-    it('passes correct token parameters to useLatestBalance hook', async () => {
+    it('passes source token address, decimals, chainId, and balance to useLatestBalance', async () => {
       const testState = createBridgeTestState();
 
       renderHookWithProvider(() => useBridgeQuoteRequest(), {

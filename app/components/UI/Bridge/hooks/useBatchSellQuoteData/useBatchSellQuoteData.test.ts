@@ -348,7 +348,7 @@ describe('useBatchSellQuoteData', () => {
     );
   });
 
-  it('formats complete Batch Sell quote data', () => {
+  it('formats aggregated Batch Sell totals, network fee, and token rows', () => {
     const { result } = renderHookWithProvider(() => useBatchSellQuoteData(), {
       state: createBridgeTestState(),
     });

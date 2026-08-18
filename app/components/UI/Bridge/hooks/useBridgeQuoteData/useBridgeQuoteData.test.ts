@@ -510,7 +510,7 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(true);
   });
 
-  it('handles expired quotes correctly', () => {
+  it('serves cached quotes when expired and not refreshing', () => {
     // Set up mock for this specific test
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
@@ -793,7 +793,7 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.formattedQuoteData?.networkFee).toBe('<$0.01');
   });
 
-  it('formats network fee normally when value is exactly 0.01', () => {
+  it('formats network fee as "$0.01" when value is 0.01', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: merge({}, mockQuoteWithMetadata, {
@@ -821,7 +821,7 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.formattedQuoteData?.networkFee).toBe('$0.01');
   });
 
-  it('formats network fee normally when value is 0', () => {
+  it('formats network fee as "$0" when value is 0', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: merge({}, mockQuoteWithMetadata, {
@@ -851,7 +851,7 @@ describe('useBridgeQuoteData', () => {
 
   // Additional coverage tests
 
-  it('handles validation errors gracefully', async () => {
+  it('keeps blockaidError null when validateBridgeTx throws a network error', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -889,7 +889,7 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.blockaidError).toBe(null);
   });
 
-  it('calculates quote rate correctly when sourceAmount is zero', () => {
+  it('returns "--" rate when sourceAmount is zero', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
@@ -931,7 +931,7 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.formattedQuoteData?.slippage).toBe('Auto');
   });
 
-  it('works with latestSourceAtomicBalance parameter', () => {
+  it('passes latestSourceAtomicBalance to useIsInsufficientBalance', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: mockQuoteWithMetadata,
@@ -963,7 +963,7 @@ describe('useBridgeQuoteData', () => {
   });
 
   // Validation logic coverage
-  it('executes validation for Solana swaps and handles success', async () => {
+  it('keeps blockaidError null when Solana validateBridgeTx succeeds', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -1009,7 +1009,7 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('executes validation for Solana to EVM bridges and handles error', async () => {
+  it('sets blockaidError from error_details when Solana-to-EVM validateBridgeTx returns ERROR', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -1059,7 +1059,7 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('handles validation error without error_details message', async () => {
+  it('sets blockaidError from validation.reason when error_details is absent', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -1105,7 +1105,7 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  it('handles validation exception in catch block', async () => {
+  it('keeps blockaidError null when validateBridgeTx throws a network timeout', async () => {
     const mockQuote = { ...mockQuoteWithMetadata };
 
     selectBridgeQuotes.mockImplementation(() => ({
@@ -1430,7 +1430,7 @@ describe('useBridgeQuoteData', () => {
       expect(result.current.destTokenAmount).toBeUndefined();
     });
 
-    it('handles non-EVM source chain IDs correctly', () => {
+    it('keeps activeQuote when Solana source assetId matches selected source token', () => {
       const mockQuoteWithSolanaSource = {
         ...mockQuoteWithMetadata,
         quote: {
@@ -1766,7 +1766,7 @@ describe('useBridgeQuoteData', () => {
 
   // Test abort controller cleanup
   describe('abort controller cleanup', () => {
-    it('cleans up abort controller on unmount', () => {
+    it('does not throw on unmount', () => {
       selectBridgeQuotes.mockImplementation(() => ({
         ...defaultSelectBridgeQuotesResults,
         recommendedQuote: mockQuoteWithMetadata,
@@ -1973,7 +1973,7 @@ describe('useBridgeQuoteData', () => {
       shouldRefreshQuote.mockReturnValueOnce(true);
     });
 
-    it('sets willRefresh to true when conditions are met', () => {
+    it('sets willRefresh to true when shouldRefreshQuote returns true', () => {
       isQuoteExpired.mockReturnValueOnce(false);
       selectBridgeQuotes.mockImplementationOnce(() => ({
         ...defaultSelectBridgeQuotesResults,
