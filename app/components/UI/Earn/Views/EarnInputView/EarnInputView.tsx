@@ -131,6 +131,7 @@ const EarnInputView = () => {
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
 
+  let tronApyPercent: string | null = null;
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
     isTronNative,
@@ -143,7 +144,7 @@ const EarnInputView = () => {
     confirmStake: tronConfirmStake,
     tronAccountId,
   } = useTronStake({ token });
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
+  tronApyPercent = useTronStakeApy().apyPercent;
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
