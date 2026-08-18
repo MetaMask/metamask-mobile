@@ -19,10 +19,6 @@ import BigNumber from 'bignumber.js';
 import { collectibleContractsSelector } from '../../../../reducers/collectibles';
 import { useTheme } from '../../../../util/theme';
 import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../util/theme/themeUtils';
-import {
   selectChainId,
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
@@ -84,11 +80,9 @@ const createStyles = (theme) => {
     modalContainer: {
       width: '90%',
       borderRadius: 10,
-      backgroundColor: getElevatedSurfaceColor(theme),
-      ...(isPureBlackEnabled && {
-        borderWidth: 1,
-        borderColor: colors.border.muted,
-      }),
+      backgroundColor: theme.colors.background.elevated1,
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
     },
   });
 };

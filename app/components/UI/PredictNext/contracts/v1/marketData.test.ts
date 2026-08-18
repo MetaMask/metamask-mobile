@@ -160,6 +160,43 @@ describe('Predict API canonical response parsers', () => {
     }
   });
 
+  it('parses category, volume, 24-hour volume, and image URL on an event', () => {
+    const input = createEvent({
+      category: 'Senate',
+      volume: '1500000',
+      volume24h: '250000',
+      imageUrl: 'https://example.com/event.png',
+      markets: [
+        createMarket({
+          volume: '1000',
+          volume24h: '250',
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.category).toBe('Senate');
+    expect(result.volume).toBe('1500000');
+    expect(result.volume24h).toBe('250000');
+    expect(result.markets[0].volume).toBe('1000');
+    expect(result.markets[0].volume24h).toBe('250');
+    expect(result.imageUrl).toBe('https://example.com/event.png');
+  });
+
+  it.each([
+    '/images/event.png',
+    'http://example.com/event.png',
+    'data:image/png;base64,encoded-image',
+    'https:example.com/event.png',
+  ])('rejects image URL %s', (imageUrl) => {
+    const input = createEvent({ imageUrl });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses a paginated event response', () => {
     const input = { items: [createEvent()], nextCursor: 'next-page' };
 

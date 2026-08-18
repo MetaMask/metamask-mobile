@@ -1,6 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
-import { useNavigation } from '@react-navigation/native';
+import {
+  type RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
@@ -12,23 +17,44 @@ import {
 import { useEventList } from '../../hooks/useEventList';
 import { useVenueStatus } from '../../hooks/useVenueStatus';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
-import { EventCardContent } from '../../components/EventCard/EventCardContent';
+import { EventCardStandard } from '../../components/EventCard/EventCardStandard';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Engine from '../../../../../core/Engine';
 
 const PAGE_SIZE = 20;
+
+const EventSeparator = () => <Box twClassName="h-3" />;
 
 export const PredictHome = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
+  const route =
+    useRoute<RouteProp<PredictNextStackParamList, 'PredictNextHome'>>();
+  const entryPoint = route.params?.entryPoint;
   const statusQuery = useVenueStatus(KALSHI_VENUE_ID);
   const eventsQuery = useEventList(KALSHI_VENUE_ID, { limit: PAGE_SIZE });
   const endReached = useRef(false);
   const [paginationError, setPaginationError] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      Engine.context.PredictController.trackHomeViewed({ entryPoint });
+
+      return () => {
+        if (entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [entryPoint, navigation]),
+  );
+
   const events = useMemo(
     () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [eventsQuery.data],
   );
+  const tw = useTailwind();
 
   const openEvent = useCallback(
     (event: PredictEvent) =>
@@ -41,7 +67,7 @@ export const PredictHome = () => {
   );
   const renderEvent = useCallback(
     ({ item }: ListRenderItemInfo<PredictEvent>) => (
-      <EventCardContent event={item} onPress={() => openEvent(item)} />
+      <EventCardStandard event={item} onPress={() => openEvent(item)} />
     ),
     [openEvent],
   );
@@ -109,6 +135,8 @@ export const PredictHome = () => {
           keyExtractor={(event) => `${event.venueId}:${event.id}`}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.5}
+          ItemSeparatorComponent={EventSeparator}
+          contentContainerStyle={tw.style('px-4')}
           ListFooterComponent={
             eventsQuery.isFetchingNextPage ? (
               <Text testID="predict-next-footer-loading">Loading…</Text>

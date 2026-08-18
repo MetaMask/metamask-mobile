@@ -25,11 +25,15 @@ import {
   getAddressUrl,
   getTransactionUrl,
   isTronAddress,
+  isTronSpecialAsset,
 } from '../utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import Engine from '../../Engine';
-import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../constants';
+import {
+  MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP,
+  KnownCaip19Id,
+} from '../constants';
 import { formatAddress } from '../../../util/address';
 import {
   formatBlockExplorerAddressUrl,
@@ -523,6 +527,29 @@ describe('MultiChain utils', () => {
         expect(formatAddress).toHaveBeenCalledWith(MOCK_BTC_TX_ID, 'short');
         expect(result).toBe(shortenedBtcTxId);
       });
+    });
+  });
+
+  describe('isTronSpecialAsset', () => {
+    it('detects staked TRX assets by CAIP-19 ID', () => {
+      expect(isTronSpecialAsset(KnownCaip19Id.TrxStakedForEnergyMainnet)).toBe(
+        true,
+      );
+      expect(isTronSpecialAsset(KnownCaip19Id.EnergyNile)).toBe(true);
+      expect(isTronSpecialAsset(KnownCaip19Id.MaximumEnergyMainnet)).toBe(true);
+    });
+
+    it('does not treat native TRX, USDT, or unrecognized IDs as special assets', () => {
+      expect(isTronSpecialAsset('tron:728126428/slip44:195')).toBe(false);
+      expect(
+        isTronSpecialAsset(
+          'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+        ),
+      ).toBe(false);
+      expect(isTronSpecialAsset('tron:728126428/slip44:strx-energy')).toBe(
+        false,
+      );
+      expect(isTronSpecialAsset(undefined)).toBe(false);
     });
   });
 });

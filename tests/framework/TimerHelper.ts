@@ -1,5 +1,6 @@
 import TimerStore from './TimerStore';
 import {
+  clampInfraSubtractionMs,
   startOverheadTracking,
   stopOverheadTracking,
 } from './PlaywrightUtilities';
@@ -124,7 +125,7 @@ class TimerHelper {
 
   /**
    * Measures the execution time of an async action and subtracts Appium
-   * infrastructure overhead (findElement / isExisting / probes) on both
+   * infrastructure overhead (poll RTTs capped to the post-detect probe) on both
    * Android and iOS. See {@link measureWithOverhead}.
    *
    * Use {@link measureRaw} if you need wall-clock without overhead subtraction.
@@ -139,6 +140,9 @@ class TimerHelper {
   /**
    * Measurement path that subtracts Appium overhead from the recorded duration.
    *
+   * Infra is capped so poll sleeps (and at least 1ms) remain in app time —
+   * timers must not collapse to 0ms after a real wait.
+   *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining
    */
@@ -151,9 +155,8 @@ class TimerHelper {
       this.stop();
     }
     const wallClockMs = this.getDuration() ?? 0;
-    const rawInfraMs = stopOverheadTracking();
-    // Never subtract more than wall-clock (avoids false 0ms from over-counting).
-    const infraMs = Math.min(rawInfraMs, wallClockMs);
+    const { infraMs: rawInfraMs, sleepMs } = stopOverheadTracking();
+    const infraMs = clampInfraSubtractionMs(wallClockMs, rawInfraMs, sleepMs);
     if (infraMs > 0) {
       this.subtractOverhead(infraMs);
     }
