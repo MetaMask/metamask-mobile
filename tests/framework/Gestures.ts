@@ -909,6 +909,33 @@ export default class Gestures {
   }
 
   /**
+   * Appium: append text via addValue without clearing the field.
+   * Use after replaceText when Return must submit separately (e.g. iOS URL bar).
+   */
+  static async appendText(
+    elem: EncapsulatedElementType,
+    text: string,
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.appendText is Appium only');
+    }
+    const field = await asPlaywrightElement(elem);
+    await field.type(text);
+  }
+
+  /**
+   * Hide the soft keyboard (Appium).
+   * Uses Android `hideKeyboard` when shown, and iOS `mobile: hideKeyboard`
+   * with `tapOutside` (plain `driver.hideKeyboard()` is unreliable on XCUITest).
+   */
+  static async hideKeyboard(): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.hideKeyboard is Appium only');
+    }
+    await PlaywrightGestures.hideKeyboard();
+  }
+
+  /**
    * Dismiss soft keyboard after token search (tapOutside + iOS pills-strip tap).
    * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
    */
@@ -928,6 +955,9 @@ export default class Gestures {
       direction?: 'up' | 'down' | 'left' | 'right';
       maxScrolls?: number;
       scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
     },
   ): Promise<void> {
     if (!FrameworkDetector.isAppium()) {
@@ -935,9 +965,41 @@ export default class Gestures {
     }
     const target = (await Promise.resolve(elem)) as PlaywrightElement;
     await PlaywrightGestures.scrollIntoView(target, {
-      scrollParams: { direction: options?.direction ?? 'down' },
+      scrollParams: { direction: options?.direction ?? 'up' },
       maxScrolls: options?.maxScrolls,
       scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
+    });
+  }
+
+  /**
+   * Appium: scroll into view, then nudge clear of the bottom nav bar when
+   * the target would otherwise sit in the bottom 15% of the screen.
+   */
+  static async scrollIntoViewFullyVisible(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.scrollIntoViewFullyVisible is Appium only');
+    }
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoViewFullyVisible(target, {
+      scrollParams: { direction: options?.direction ?? 'up' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
     });
   }
 }

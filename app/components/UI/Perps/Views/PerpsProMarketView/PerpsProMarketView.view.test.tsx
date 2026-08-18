@@ -17,8 +17,11 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  PerpsBalanceBottomSheetSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
+  PerpsProMarketViewSelectorsIDs,
 } from '../../Perps.testIds';
 
 const ids = PerpsProOrderFormSelectorsIDs;
@@ -324,4 +327,39 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
     },
   );
+});
+
+describe('PerpsProMarketView header actions', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('shows Pro header actions including wallet, watchlist, and mode toggle', async () => {
+    renderPerpsProMarketView();
+
+    expect(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.HEADER_MARKET_LIST_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
 });

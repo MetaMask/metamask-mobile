@@ -310,18 +310,21 @@ describe('QuickBuyProvider — isKeypadOpen', () => {
     expect(ctx.current.isKeypadOpen).toBe(true);
   });
 
-  // TSA-984: there is no amount to type against without funds, so the keypad
-  // must never occupy the sheet in that state.
-  it('force-collapses the keypad when the user has nothing to pay with', () => {
+  // Regression guard: gating the keypad on funds made the sheet's height depend
+  // on a flag that is not settled on the first render, so a funded account
+  // opened collapsed and then expanded — a visible flash. The keypad must stay
+  // expanded regardless of funds; `QuickBuyAmountScreen` dims and blocks it
+  // instead, which keeps the height constant.
+  it('keeps the keypad open even when the user has nothing to pay with', () => {
     (useQuickBuyController as jest.Mock).mockReturnValue(
       buildController({ hasNoPayWithFunds: true }),
     );
 
     const ctx = renderProvider(featuresWithModal);
-    expect(ctx.current.isKeypadOpen).toBe(false);
+    expect(ctx.current.isKeypadOpen).toBe(true);
   });
 
-  it('cannot be reopened by a consumer while the user has nothing to pay with', () => {
+  it('lets a consumer collapse and reopen the keypad regardless of funds', () => {
     (useQuickBuyController as jest.Mock).mockReturnValue(
       buildController({ hasNoPayWithFunds: true }),
     );
@@ -329,11 +332,13 @@ describe('QuickBuyProvider — isKeypadOpen', () => {
     const ctx = renderProvider(featuresWithModal);
 
     act(() => {
+      ctx.current.setIsKeypadOpen(false);
+    });
+    expect(ctx.current.isKeypadOpen).toBe(false);
+
+    act(() => {
       ctx.current.setIsKeypadOpen(true);
     });
-
-    // Deriving the flag (rather than no-oping the setter) is what guarantees
-    // this — no screen can reopen the keypad into a dead state.
-    expect(ctx.current.isKeypadOpen).toBe(false);
+    expect(ctx.current.isKeypadOpen).toBe(true);
   });
 });
