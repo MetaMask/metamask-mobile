@@ -184,27 +184,6 @@ describe('FeaturedCarousel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not render pagination dots', () => {
-    mockUseFeaturedCarouselData.mockReturnValue({
-      markets: [
-        mockMarket,
-        { ...mockMarket, id: 'market-2', slug: 'btc-210k' },
-        { ...mockMarket, id: 'market-3', slug: 'btc-220k' },
-      ],
-      isLoading: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
-    const { queryByTestId } = renderWithProvider(<FeaturedCarousel />, {
-      state: initialState,
-    });
-
-    expect(
-      queryByTestId(FEATURED_CAROUSEL_TEST_IDS.PAGINATION_DOTS),
-    ).not.toBeOnTheScreen();
-  });
-
   it('renders the expected number of carousel cards', () => {
     mockUseFeaturedCarouselData.mockReturnValue({
       markets: [

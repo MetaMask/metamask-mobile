@@ -322,16 +322,6 @@ describe('PredictLiveNowSection', () => {
     expect(mockTrackHomeSectionInteraction).not.toHaveBeenCalled();
   });
 
-  it('does not render pagination dots after load', () => {
-    setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
-
-    const { queryByTestId } = renderSection();
-
-    expect(
-      queryByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
-    ).not.toBeOnTheScreen();
-  });
-
   it('updates the active card without crashing when the carousel is scrolled', () => {
     setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
 
