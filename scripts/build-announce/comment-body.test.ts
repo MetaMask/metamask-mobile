@@ -5,6 +5,7 @@ import {
   buildOtaUpdateSection,
 } from './comment-body';
 import { parseBuildInfo, RC_BUILD_COMMENT_MARKER } from './utils';
+import type { WhatsInRcResult } from './cherry-picks-section';
 import type { BuildInfo, OtaUpdateInfo } from './types';
 
 const NATIVE_BUILD: BuildInfo = {
@@ -106,19 +107,13 @@ describe('buildCommentBody', () => {
   });
 
   it('anchors the RC notes on the commit for an OTA update, so Slack links to this comment', () => {
-    const whatsInRc = {
+    const whatsInRc: { result: WhatsInRcResult } = {
       result: {
-        cherryPicks: [
-          {
-            sha: 'deadbeef',
-            shortSha: 'deadbee',
-            subject: 'fix: a thing',
-            prNumber: 1,
-            author: 'someone',
-          },
-        ],
+        cherryPicks: [{ hash: 'deadbee', subject: 'fix: a thing' }],
         changelog: [],
-        changelogFromReleaseBranch: false,
+        mergeBase: 'c0ffee0',
+        previousTag: 'v8.0.0',
+        changelogFromReleaseBranch: true,
       },
     };
 
@@ -126,13 +121,13 @@ describe('buildCommentBody', () => {
       OTA_BUILD,
       null,
       noExtras.envValidation,
-      whatsInRc as Parameters<typeof buildCommentBody>[3],
+      whatsInRc,
     );
     const nativeBody = buildCommentBody(
       NATIVE_BUILD,
       null,
       noExtras.envValidation,
-      whatsInRc as Parameters<typeof buildCommentBody>[3],
+      whatsInRc,
     );
 
     expect(otaBody).toContain('id="whats-in-this-rc-a1b2c3d"');

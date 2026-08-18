@@ -17,7 +17,7 @@ import {
   type WhatsInRcResult,
 } from './cherry-picks-section';
 import { validateEnv } from './validate-env';
-import type { EnvValidationResult } from './types';
+import type { EnvValidationResult, TestPlanResult } from './types';
 
 /**
  * Look for build-env.json artifacts and extract environment values
