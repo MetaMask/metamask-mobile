@@ -169,6 +169,7 @@ export const buildConfirmedLocalUsdcApproveTransaction = (): TransactionMeta =>
     time: 1_716_367_785_000,
     type: TransactionType.tokenMethodApprove,
     transferInformation: {
+      amount: '100000000',
       contractAddress: ACTIVITY_CV_USDC,
       decimals: 6,
       symbol: 'USDC',
@@ -194,6 +195,7 @@ export const buildConfirmedLocalUsdcIncreaseAllowanceTransaction =
       time: 1_716_367_786_000,
       type: TransactionType.tokenMethodIncreaseAllowance,
       transferInformation: {
+        amount: '100000000',
         contractAddress: ACTIVITY_CV_USDC,
         decimals: 6,
         symbol: 'USDC',
@@ -224,6 +226,7 @@ export const buildConfirmedLocalUsdcUnlimitedApproveTransaction =
       time: 1_716_367_787_000,
       type: TransactionType.tokenMethodApprove,
       transferInformation: {
+        amount: MAX_UINT256.toString(),
         contractAddress: ACTIVITY_CV_USDC,
         decimals: 6,
         symbol: 'USDC',
@@ -248,6 +251,7 @@ export const buildConfirmedLocalUsdcRevokeTransaction = (): TransactionMeta =>
     time: 1_716_367_788_000,
     type: TransactionType.tokenMethodApprove,
     transferInformation: {
+      amount: '0',
       contractAddress: ACTIVITY_CV_USDC,
       decimals: 6,
       symbol: 'USDC',
@@ -326,6 +330,7 @@ export const buildConfirmedLocalUsdtUnlimitedApproveTransaction =
       time: 1_716_367_791_000,
       type: TransactionType.tokenMethodApprove,
       transferInformation: {
+        amount: MAX_UINT256.toString(),
         contractAddress: ACTIVITY_CV_USDT,
         decimals: 6,
         symbol: 'USDT',
@@ -351,6 +356,7 @@ export const buildConfirmedLocalUsdtIncreaseAllowanceTransaction =
       time: 1_716_367_792_000,
       type: TransactionType.tokenMethodIncreaseAllowance,
       transferInformation: {
+        amount: '100000000',
         contractAddress: ACTIVITY_CV_USDT,
         decimals: 6,
         symbol: 'USDT',
