@@ -177,11 +177,12 @@ export function usePerpsLivePositions(
         if (
           includeDeliveryMetadata &&
           source !== undefined &&
+          source !== 'optimistic' &&
           isHomepagePerformanceProbeActive()
         ) {
           const delivery = createHomepagePerpsDelivery({
             stream: 'positions',
-            source: source === 'fresh' ? 'fresh_socket' : 'memory_cache',
+            source,
             itemCount: newPositions.length,
           });
           logHomepagePerformanceStage('subscriber_delivery', delivery);

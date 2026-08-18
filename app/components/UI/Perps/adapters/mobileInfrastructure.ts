@@ -49,8 +49,6 @@ import {
   getTerminalGlobalSnapshotUrl,
   resolveTerminalApiUrl,
 } from '../constants/terminalApi';
-import { PERPS_DISK_CACHE_USER_DATA } from '../constants/perpsConfig';
-import { markHomepagePerpsDiskCacheHydrated } from '../utils/homepagePerformanceProbe';
 
 /**
  * Resolves the Terminal API base URL based on build environment.
@@ -321,13 +319,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     // === Disk Cache (cold-start persistence via MMKV) ===
     diskCache: {
       getItem: (key: string) => StorageWrapper.getItem(key),
-      getItemSync: (key: string) => {
-        const value = StorageWrapper.getItemSync(key);
-        if (__DEV__ && key === PERPS_DISK_CACHE_USER_DATA && value !== null) {
-          markHomepagePerpsDiskCacheHydrated(value);
-        }
-        return value;
-      },
+      getItemSync: (key: string) => StorageWrapper.getItemSync(key),
       setItem: (key: string, value: string) =>
         StorageWrapper.setItem(key, value),
       removeItem: (key: string) =>

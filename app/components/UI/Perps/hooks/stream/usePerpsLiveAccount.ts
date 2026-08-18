@@ -1,15 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import {
+  usePerpsStream,
+  type StreamUpdateSource,
+} from '../../providers/PerpsStreamManager';
 import { type AccountState } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  createHomepagePerpsDelivery,
+  isHomepagePerformanceProbeActive,
+  logHomepagePerformanceStage,
+  type HomepagePerpsDeliveryMetadata,
+} from '../../utils/homepagePerformanceProbe';
 
 export interface UsePerpsLiveAccountOptions {
   /** Whether to subscribe to account updates. */
   enabled?: boolean;
   /** Throttle delay in milliseconds (default: 1000ms for balance updates) */
   throttleMs?: number;
+  includeDeliveryMetadata?: boolean;
 }
 
 export interface UsePerpsLiveAccountReturn {
@@ -17,6 +27,7 @@ export interface UsePerpsLiveAccountReturn {
   account: AccountState | null;
   /** Whether we're waiting for the first real WebSocket data */
   isInitialLoading: boolean;
+  latestDelivery?: HomepagePerpsDeliveryMetadata;
 }
 
 /**
@@ -32,7 +43,11 @@ export interface UsePerpsLiveAccountReturn {
 export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
-  const { enabled = true, throttleMs = 1000 } = options;
+  const {
+    enabled = true,
+    throttleMs = 1000,
+    includeDeliveryMetadata = false,
+  } = options;
   const streamManager = usePerpsStream();
   const selectedAddress = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
@@ -52,17 +67,37 @@ export function usePerpsLiveAccount(
     const hasCached = hasPreloadedData('cachedAccountState');
     return !hasCached;
   });
+  const [latestDelivery, setLatestDelivery] =
+    useState<HomepagePerpsDeliveryMetadata>();
 
   useEffect(() => {
     if (!enabled || !streamManager) return;
 
     // Mark as no longer loading once we get first update
-    const handleAccountUpdate = (newAccount: AccountState | null) => {
+    const handleAccountUpdate = (
+      newAccount: AccountState | null,
+      source?: StreamUpdateSource,
+    ) => {
       setAccount(newAccount);
       setAccountAddress(selectedAddress);
       if (newAccount === null) {
         setIsInitialLoading(true);
+        setLatestDelivery(undefined);
         return;
+      }
+      if (
+        includeDeliveryMetadata &&
+        source !== undefined &&
+        source !== 'optimistic' &&
+        isHomepagePerformanceProbeActive()
+      ) {
+        const delivery = createHomepagePerpsDelivery({
+          stream: 'account',
+          source,
+          itemCount: 1,
+        });
+        logHomepagePerformanceStage('subscriber_delivery', delivery);
+        setLatestDelivery(delivery);
       }
       // Only set loading to false if we have actual data
       setIsInitialLoading(false);
@@ -71,14 +106,22 @@ export function usePerpsLiveAccount(
     const unsubscribe = streamManager.account.subscribe({
       callback: handleAccountUpdate,
       throttleMs,
+      ...(includeDeliveryMetadata && { includeDeliverySource: true }),
     });
 
     return unsubscribe;
-  }, [enabled, selectedAddress, streamManager, throttleMs]);
+  }, [
+    enabled,
+    includeDeliveryMetadata,
+    selectedAddress,
+    streamManager,
+    throttleMs,
+  ]);
 
   const identityMatches = accountAddress === selectedAddress;
   return {
     account: identityMatches ? account : null,
     isInitialLoading: !identityMatches || isInitialLoading,
+    ...(identityMatches && latestDelivery ? { latestDelivery } : {}),
   };
 }

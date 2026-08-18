@@ -107,7 +107,23 @@ interface StreamSubscription<T> {
   symbols?: string[];
 }
 
-type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic';
+export type StreamUpdateSource =
+  | 'fresh_socket'
+  | 'memory_cache'
+  | 'provider_snapshot'
+  | 'optimistic';
+
+function deliverStreamUpdate<T>(
+  subscriber: StreamSubscription<T>,
+  data: T,
+  source: StreamUpdateSource,
+): void {
+  if (subscriber.includeDeliverySource) {
+    subscriber.callback(data, source);
+  } else {
+    subscriber.callback(data);
+  }
+}
 const DYNAMIC_DEX_SNAPSHOT_UNAVAILABLE =
   'User data snapshot DEX identity is not static';
 
@@ -167,7 +183,7 @@ abstract class StreamChannel<T> {
 
   protected notifySubscribers(
     updates: T,
-    source: StreamUpdateSource = 'fresh',
+    source: StreamUpdateSource = 'fresh_socket',
   ) {
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
@@ -242,7 +258,7 @@ abstract class StreamChannel<T> {
           return;
         }
         notifiedIds.add(id);
-        this.deliverToSubscriber(subscriber, updates, 'fresh');
+        this.deliverToSubscriber(subscriber, updates, 'fresh_socket');
       });
     }
   }
@@ -257,11 +273,6 @@ abstract class StreamChannel<T> {
     updates: T,
     source: StreamUpdateSource,
   ) {
-    const deliver = (data: T, deliverySource: StreamUpdateSource) =>
-      subscriber.includeDeliverySource
-        ? subscriber.callback(data, deliverySource)
-        : subscriber.callback(data);
-
     if (source === 'optimistic') {
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
@@ -269,24 +280,24 @@ abstract class StreamChannel<T> {
       }
       subscriber.pendingUpdate = undefined;
       subscriber.pendingSource = undefined;
-      deliver(updates, source);
+      deliverStreamUpdate(subscriber, updates, source);
       return;
     }
 
-    if (source === 'cache') {
-      deliver(updates, source);
+    if (source === 'memory_cache' || source === 'provider_snapshot') {
+      deliverStreamUpdate(subscriber, updates, source);
       return;
     }
 
     if (!subscriber.hasReceivedFirstFreshUpdate) {
-      deliver(updates, source);
+      deliverStreamUpdate(subscriber, updates, source);
       subscriber.hasReceivedFirstFreshUpdate = true;
       return;
     }
 
     // If no throttling (throttleMs is 0 or undefined), notify immediately
     if (!subscriber.throttleMs) {
-      deliver(updates, source);
+      deliverStreamUpdate(subscriber, updates, source);
       return;
     }
 
@@ -301,7 +312,11 @@ abstract class StreamChannel<T> {
     // The conditional check prevents timer accumulation - no memory leaks
     subscriber.timer ??= setTimeout(() => {
       if (subscriber.pendingUpdate) {
-        deliver(subscriber.pendingUpdate, subscriber.pendingSource ?? 'fresh');
+        deliverStreamUpdate(
+          subscriber,
+          subscriber.pendingUpdate,
+          subscriber.pendingSource ?? 'fresh_socket',
+        );
         subscriber.pendingUpdate = undefined;
         subscriber.pendingSource = undefined;
       }
@@ -330,7 +345,7 @@ abstract class StreamChannel<T> {
         if (subscriber.includeDeliverySource) {
           subscriber.callback(
             subscriber.pendingUpdate,
-            subscriber.pendingSource ?? 'fresh',
+            subscriber.pendingSource ?? 'fresh_socket',
           );
         } else {
           subscriber.callback(subscriber.pendingUpdate);
@@ -400,7 +415,7 @@ abstract class StreamChannel<T> {
     const cached = this.getCachedData();
     if (cached != null) {
       if (params.includeDeliverySource) {
-        params.callback(cached, 'cache');
+        params.callback(cached, 'memory_cache');
       } else {
         params.callback(cached);
       }
@@ -626,7 +641,7 @@ abstract class StreamChannel<T> {
     );
   }
 
-  public publish(data: T, source: StreamUpdateSource = 'fresh'): void {
+  public publish(data: T, source: StreamUpdateSource = 'fresh_socket'): void {
     this.notifySubscribers(data, source);
   }
 
@@ -2305,7 +2320,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
             'memory_cache',
             cachedForProvider.length,
           );
-          this.notifySubscribers(cachedForProvider, 'cache');
+          this.notifySubscribers(cachedForProvider, 'memory_cache');
           return;
         }
 
@@ -2392,7 +2407,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
               marketCount: existing.length,
             },
           );
-          this.notifySubscribers(existing, 'cache');
+          this.notifySubscribers(existing, 'memory_cache');
         }
       }
     })();
@@ -2570,7 +2585,7 @@ export class PerpsStreamManager {
 
   private publishUserDataSnapshot(
     snapshot: PerpsUserDataBundle,
-    source: Extract<StreamUpdateSource, 'cache' | 'fresh'>,
+    source: Extract<StreamUpdateSource, 'memory_cache' | 'provider_snapshot'>,
   ): void {
     const address = getEvmAccountFromSelectedAccountGroup()?.address ?? null;
     this.positions.setAccountContext(address);
@@ -2580,8 +2595,7 @@ export class PerpsStreamManager {
     this.orders.seedCache('orders', snapshot.orders);
     this.account.seedCache('account', snapshot.accountState);
 
-    const proofSource =
-      source === 'cache' ? 'memory_cache' : 'provider_snapshot';
+    const proofSource = source;
     recordPerpsLoadingSessionValuesReady(
       'positions',
       proofSource,
@@ -2631,7 +2645,7 @@ export class PerpsStreamManager {
       if (cachedSnapshot?.accountState) {
         this.publishUserDataSnapshot(
           cachedSnapshot as PerpsUserDataBundle,
-          'cache',
+          'memory_cache',
         );
         this.acceptedUserDataSnapshotKey = requestKey;
       }
@@ -2668,7 +2682,7 @@ export class PerpsStreamManager {
           return;
         }
 
-        this.publishUserDataSnapshot(snapshot, 'fresh');
+        this.publishUserDataSnapshot(snapshot, 'provider_snapshot');
         this.acceptedUserDataSnapshotKey = requestKey;
       })
       .catch((error) => {

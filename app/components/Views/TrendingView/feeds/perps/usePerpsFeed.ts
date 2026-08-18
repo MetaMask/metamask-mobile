@@ -10,6 +10,7 @@ import {
 import { isEquityAsset } from '../../../../UI/Perps/utils/marketHours';
 import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
+import type { HomepagePerpsDeliveryMetadata } from '../../../../UI/Perps/utils/homepagePerformanceProbe';
 import { PerpsConnectionContext } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -47,6 +48,7 @@ export interface UsePerpsFeedResult {
   refetch: () => Promise<void>;
   /** The sort option ID that matches this feed's sort order — pass to `navigateToPerpsMarketList` so the market list opens consistently sorted. */
   defaultSortOptionId: SortOptionId;
+  latestDelivery?: HomepagePerpsDeliveryMetadata;
 }
 
 /**
@@ -154,6 +156,7 @@ export const usePerpsFeed = ({
     isLoading,
     refresh: refetch,
     isRefreshing,
+    latestDelivery,
   } = usePerpsMarkets({ skipInitialFetch });
 
   useFeedRefresh(refresh, refetch);
@@ -203,5 +206,6 @@ export const usePerpsFeed = ({
     isLoading: connectionContext?.error ? false : isLoading || isRefreshing,
     refetch,
     defaultSortOptionId: PERPS_VARIANT_SORT_OPTION[variant],
+    ...(latestDelivery ? { latestDelivery } : {}),
   };
 };

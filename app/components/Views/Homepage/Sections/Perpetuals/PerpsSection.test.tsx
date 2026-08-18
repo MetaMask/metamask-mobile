@@ -18,12 +18,19 @@ const mockStartPerpsLoadingSession = jest.fn(
   (_options: unknown) => 'session-id-1',
 );
 const mockFinishPerpsLoadingSession = jest.fn((_data: unknown) => undefined);
-const mockGetActivePerpsLoadingSessionContext = jest.fn(() => ({
-  id: 'session-id-1',
-  marketSource: 'provider',
-  accountSource: 'memory_cache',
-  lifecycle: 'cold_no_cache',
-}));
+const mockGetActivePerpsLoadingSessionContext = jest.fn(
+  (): {
+    id: string;
+    marketSource: string;
+    accountSource: string;
+    lifecycle: string;
+  } | null => ({
+    id: 'session-id-1',
+    marketSource: 'provider',
+    accountSource: 'memory_cache',
+    lifecycle: 'cold_no_cache',
+  }),
+);
 
 jest.mock('../../hooks/useSectionPerformance', () => ({
   useSectionPerformance: (config: unknown) => mockUseSectionPerformance(config),

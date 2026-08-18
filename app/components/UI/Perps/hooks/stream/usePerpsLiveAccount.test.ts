@@ -32,6 +32,23 @@ jest.mock('../../../../../core/Engine', () => ({
 
 // Mock PerpsStreamManager
 const mockSubscribe = jest.fn();
+const mockCreateHomepagePerpsDelivery = jest.fn((_input: unknown) => ({
+  deliveryId: 'account-delivery',
+  stream: 'account',
+  source: 'provider_snapshot',
+  itemCount: 1,
+  receivedAtMonotonicMs: 1,
+  dataAgeMs: 0,
+  lifecycle: 'cold_no_cache',
+  accountGeneration: 0,
+  contextGeneration: 0,
+}));
+jest.mock('../../utils/homepagePerformanceProbe', () => ({
+  createHomepagePerpsDelivery: (input: unknown) =>
+    mockCreateHomepagePerpsDelivery(input),
+  isHomepagePerformanceProbeActive: () => true,
+  logHomepagePerformanceStage: jest.fn(),
+}));
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     account: {
@@ -88,6 +105,45 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('state from PerpsController', () => {
+    it('preserves provider-snapshot provenance for the account delivery', async () => {
+      const accountState = {
+        spendableBalance: '1',
+        withdrawableBalance: '1',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalBalance: '1',
+      } as AccountState;
+      let callback!: (
+        account: AccountState | null,
+        source?: 'provider_snapshot',
+      ) => void;
+      mockSubscribe.mockImplementation((params) => {
+        callback = params.callback;
+        return jest.fn();
+      });
+      const { result } = renderHookWithProvider(
+        () => usePerpsLiveAccount({ includeDeliveryMetadata: true }),
+        { state: {} },
+      );
+
+      act(() => callback(accountState, 'provider_snapshot'));
+
+      await waitFor(() =>
+        expect(result.current.latestDelivery?.deliveryId).toBe(
+          'account-delivery',
+        ),
+      );
+      expect(mockCreateHomepagePerpsDelivery).toHaveBeenCalledWith({
+        stream: 'account',
+        source: 'provider_snapshot',
+        itemCount: 1,
+      });
+      expect(mockSubscribe).toHaveBeenCalledWith(
+        expect.objectContaining({ includeDeliverySource: true }),
+      );
+    });
+
     it('returns account state from the channel snapshot before controller cache', () => {
       const mockAccountState: AccountState = {
         spendableBalance: '7000',

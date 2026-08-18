@@ -93,11 +93,12 @@ export function usePerpsLiveOrders(
         if (
           includeDeliveryMetadata &&
           source !== undefined &&
+          source !== 'optimistic' &&
           isHomepagePerformanceProbeActive()
         ) {
           const delivery = createHomepagePerpsDelivery({
             stream: 'orders',
-            source: source === 'fresh' ? 'fresh_socket' : 'memory_cache',
+            source,
             itemCount: newOrders.length,
           });
           logHomepagePerformanceStage('subscriber_delivery', delivery);

@@ -12,23 +12,21 @@ import {
   isHomepagePerformanceProbeActive,
   logHomepagePerformanceStage,
   type HomepagePerpsDeliveryMetadata,
-  type HomepagePerpsDeliverySource,
 } from '../utils/homepagePerformanceProbe';
+import { TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE } from '../constants/terminalApi';
 
 const resolveMarketDeliveryOrigin = (
   marketData: PerpsMarketData[] | null | undefined,
-): HomepagePerpsDeliverySource => {
-  if (!marketData?.length) return 'unknown';
+): 'terminal_global_snapshot_v2' | 'provider' => {
   if (
+    marketData?.length &&
     marketData.every(
-      (market) => market.dataSource === 'terminal-global-snapshot-mark',
+      (market) => market.dataSource === TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE,
     )
   ) {
     return 'terminal_global_snapshot_v2';
   }
-  return marketData.every((market) => !market.dataSource)
-    ? 'provider'
-    : 'unknown';
+  return 'provider';
 };
 
 export type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
@@ -181,15 +179,15 @@ export const usePerpsMarkets = (
       callback: (marketData, source) => {
         const receiveTime = Date.now();
         const timeToData = receiveTime - subscriptionStartTime;
-        const originSource = resolveMarketDeliveryOrigin(marketData);
-        const deliverySource =
-          source === 'cache' ? 'memory_cache' : originSource;
-        if (isHomepagePerformanceProbeActive()) {
+        if (isHomepagePerformanceProbeActive() && marketData?.length) {
+          const originSource = resolveMarketDeliveryOrigin(marketData);
+          const deliverySource =
+            source === 'memory_cache' ? 'memory_cache' : originSource;
           const delivery = createHomepagePerpsDelivery({
             stream: 'markets',
             source: deliverySource,
             itemCount: marketData?.length ?? 0,
-            ...(source === 'cache' && { originSource }),
+            ...(source === 'memory_cache' && { originSource }),
           });
           logHomepagePerformanceStage('subscriber_delivery', delivery);
           setLatestDelivery(delivery);
@@ -226,7 +224,7 @@ export const usePerpsMarkets = (
         }
       },
       throttleMs: 0, // No throttle for market data updates
-      includeDeliverySource: true,
+      includeDeliverySource: __DEV__,
     });
 
     return () => {

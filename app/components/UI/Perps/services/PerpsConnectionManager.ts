@@ -33,9 +33,7 @@ import {
 import {
   logHomepageConnectionStage,
   markHomepagePerpsAccountSwitch,
-  markHomepagePerpsNetworkRecovery,
   markHomepagePerpsNetworkSwitch,
-  markHomepagePerpsProviderSwitch,
 } from '../utils/homepagePerformanceProbe';
 import Logger from '../../../../util/Logger';
 import {
@@ -172,12 +170,12 @@ class PerpsConnectionManagerClass {
         });
       }
 
-      if (hasAccountChanged) {
-        markHomepagePerpsAccountSwitch();
-      } else if (hasProviderChanged) {
-        markHomepagePerpsProviderSwitch();
-      } else if (hasPerpsNetworkChanged || hasHip3Changed) {
-        markHomepagePerpsNetworkSwitch();
+      if (__DEV__) {
+        if (hasPerpsNetworkChanged) {
+          markHomepagePerpsNetworkSwitch();
+        } else if (hasAccountChanged) {
+          markHomepagePerpsAccountSwitch();
+        }
       }
 
       // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
@@ -318,7 +316,6 @@ class PerpsConnectionManagerClass {
             netState.isInternetReachable ?? netState.isConnected ?? false;
 
           if (isOnline && this.wasOffline) {
-            markHomepagePerpsNetworkRecovery();
             DevLogger.log(
               'PerpsConnectionManager: Network restored - validating connection',
             );
@@ -916,10 +913,12 @@ class PerpsConnectionManagerClass {
           data: loadingSessionTraceData,
         });
 
-        logHomepageConnectionStage('connection_attempt_started', {
-          connection_id: traceId,
-          source,
-        });
+        if (__DEV__) {
+          logHomepageConnectionStage('connection_attempt_started', {
+            connection_id: traceId,
+            source,
+          });
+        }
 
         DevLogger.log('PerpsConnectionManager: Initializing connection');
 
@@ -938,11 +937,13 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-        logHomepageConnectionStage('provider_initialized', {
-          connection_id: traceId,
-          duration_ms: performance.now() - initStart,
-          elapsed_ms: performance.now() - connectionStartTime,
-        });
+        if (__DEV__) {
+          logHomepageConnectionStage('provider_initialized', {
+            connection_id: traceId,
+            duration_ms: performance.now() - initStart,
+            elapsed_ms: performance.now() - connectionStartTime,
+          });
+        }
 
         // Validate connection with WebSocket health check ping before marking as connected
         // This ensures the WebSocket connection is actually responsive without expensive API calls
@@ -958,11 +959,13 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-        logHomepageConnectionStage('health_check_completed', {
-          connection_id: traceId,
-          duration_ms: performance.now() - healthCheckStart,
-          elapsed_ms: performance.now() - connectionStartTime,
-        });
+        if (__DEV__) {
+          logHomepageConnectionStage('health_check_completed', {
+            connection_id: traceId,
+            duration_ms: performance.now() - healthCheckStart,
+            elapsed_ms: performance.now() - connectionStartTime,
+          });
+        }
 
         // Check if timeout fired during health check - respect timeout decision.
         // The timeout handler always sets isConnecting=false (even when
@@ -1006,10 +1009,12 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-        logHomepageConnectionStage('connection_established', {
-          connection_id: traceId,
-          elapsed_ms: connectionDuration,
-        });
+        if (__DEV__) {
+          logHomepageConnectionStage('connection_established', {
+            connection_id: traceId,
+            elapsed_ms: connectionDuration,
+          });
+        }
 
         DevLogger.log('PerpsConnectionManager: Successfully connected');
 
@@ -1022,11 +1027,13 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-        logHomepageConnectionStage('subscriptions_preloaded', {
-          connection_id: traceId,
-          duration_ms: performance.now() - preloadStart,
-          elapsed_ms: performance.now() - connectionStartTime,
-        });
+        if (__DEV__) {
+          logHomepageConnectionStage('subscriptions_preloaded', {
+            connection_id: traceId,
+            duration_ms: performance.now() - preloadStart,
+            elapsed_ms: performance.now() - connectionStartTime,
+          });
+        }
 
         // Track total connection time including preload (user-perceived performance)
         const totalConnectionDuration = performance.now() - connectionStartTime;
@@ -1046,10 +1053,12 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
-        logHomepageConnectionStage('connection_with_preload_completed', {
-          connection_id: traceId,
-          elapsed_ms: totalConnectionDuration,
-        });
+        if (__DEV__) {
+          logHomepageConnectionStage('connection_with_preload_completed', {
+            connection_id: traceId,
+            elapsed_ms: totalConnectionDuration,
+          });
+        }
 
         traceData = {
           success: true,

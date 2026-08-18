@@ -35,13 +35,15 @@ interface UseHomepagePerpsVisiblePerformanceOptions {
   itemCount: number;
   positionsCount: number;
   ordersCount: number;
+  accountResolved: boolean;
   marketsCount?: number;
   positionsDelivery?: HomepagePerpsDeliveryMetadata;
   ordersDelivery?: HomepagePerpsDeliveryMetadata;
+  accountDelivery?: HomepagePerpsDeliveryMetadata;
   marketsDelivery?: HomepagePerpsDeliveryMetadata;
 }
 
-const useHomepagePerpsVisiblePerformanceDev = ({
+export const useHomepagePerpsVisiblePerformanceDev = ({
   sectionRef,
   willRender,
   hasConnectionError,
@@ -50,9 +52,11 @@ const useHomepagePerpsVisiblePerformanceDev = ({
   itemCount,
   positionsCount,
   ordersCount,
+  accountResolved,
   marketsCount = 0,
   positionsDelivery,
   ordersDelivery,
+  accountDelivery,
   marketsDelivery,
 }: UseHomepagePerpsVisiblePerformanceOptions) => {
   const isHomeFocused = useIsFocused();
@@ -64,27 +68,36 @@ const useHomepagePerpsVisiblePerformanceDev = ({
   );
   const releaseObservationRef = useRef<(() => void) | undefined>(undefined);
   const loggedDeliveryIdsRef = useRef(new Set<string>());
+  const residentDeliveriesRef = useRef(
+    new Map<string, HomepagePerpsDeliveryMetadata>(),
+  );
   const valuesRef = useRef({
     willRender,
+    hasConnectionError,
     contentVariant,
     itemCount,
     positionsCount,
     ordersCount,
+    accountResolved,
     marketsCount,
     positionsDelivery,
     ordersDelivery,
+    accountDelivery,
     marketsDelivery,
     isConnectionLive,
   });
   valuesRef.current = {
     willRender,
+    hasConnectionError,
     contentVariant,
     itemCount,
     positionsCount,
     ordersCount,
+    accountResolved,
     marketsCount,
     positionsDelivery,
     ordersDelivery,
+    accountDelivery,
     marketsDelivery,
     isConnectionLive,
   };
@@ -112,6 +125,7 @@ const useHomepagePerpsVisiblePerformanceDev = ({
     releaseObservation();
     releaseObservationRef.current = activateHomepagePerformanceProbe();
     loggedDeliveryIdsRef.current.clear();
+    residentDeliveriesRef.current.clear();
     currentDemandRef.current = createHomepagePerformanceDemand();
   }, [releaseObservation]);
 
@@ -123,34 +137,36 @@ const useHomepagePerpsVisiblePerformanceDev = ({
       const values = valuesRef.current;
       if ((!isVisible && !forceVisible) || !values.willRender) return;
 
-      const renderDeliveries = deliveries.filter(
+      const incomingDeliveries = deliveries.filter(
         (delivery): delivery is HomepagePerpsDeliveryMetadata =>
           delivery !== undefined,
       );
-      if (
-        values.contentVariant === 'trending' ||
-        values.contentVariant === 'pills'
-      ) {
-        const streams = new Set(
-          renderDeliveries.map((delivery) => delivery.stream),
-        );
-        if (!streams.has('positions')) {
-          renderDeliveries.push(
+      incomingDeliveries.forEach((delivery) =>
+        residentDeliveriesRef.current.set(delivery.stream, delivery),
+      );
+      const ensureResident = (
+        stream: 'positions' | 'orders' | 'account',
+        residentItemCount: number,
+      ) => {
+        if (
+          values.accountResolved &&
+          !residentDeliveriesRef.current.has(stream)
+        ) {
+          residentDeliveriesRef.current.set(
+            stream,
             createHomepagePerpsResidentDelivery({
-              stream: 'positions',
-              itemCount: values.positionsCount,
+              stream,
+              itemCount: residentItemCount,
             }),
           );
         }
-        if (!streams.has('orders')) {
-          renderDeliveries.push(
-            createHomepagePerpsResidentDelivery({
-              stream: 'orders',
-              itemCount: values.ordersCount,
-            }),
-          );
-        }
-      }
+      };
+      ensureResident('positions', values.positionsCount);
+      ensureResident('orders', values.ordersCount);
+      ensureResident('account', 1);
+      const renderDeliveries = Array.from(
+        residentDeliveriesRef.current.values(),
+      );
       const newDeliveries = renderDeliveries.filter(
         ({ deliveryId }) => !loggedDeliveryIdsRef.current.has(deliveryId),
       );
@@ -177,25 +193,22 @@ const useHomepagePerpsVisiblePerformanceDev = ({
           fresh_for_lifecycle: isHomepagePerpsDeliveryFreshForDemand(
             delivery,
             demand,
+            values.isConnectionLive,
           ),
         });
-        logHomepagePerformanceStage('values_visible', delivery, {
+        logHomepagePerformanceStage('surface_initial_ui_recorded', delivery, {
           ...detail,
           data_ready_at_demand:
             delivery.receivedAtMonotonicMs <= demand.startedAtMonotonicMs,
           fresh_for_lifecycle: isHomepagePerpsDeliveryFreshForDemand(
             delivery,
             demand,
+            values.isConnectionLive,
           ),
         });
       });
 
       requestAnimationFrame(() => {
-        logHomepagePerformanceStage(
-          'first_frame_checkpoint',
-          undefined,
-          detail,
-        );
         requestAnimationFrame(() => {
           if (currentDemandRef.current?.demandId !== demand.demandId) return;
 
@@ -206,6 +219,7 @@ const useHomepagePerpsVisiblePerformanceDev = ({
               fresh_for_lifecycle: isHomepagePerpsDeliveryFreshForDemand(
                 delivery,
                 demand,
+                values.isConnectionLive,
               ),
               frame_checkpoint_monotonic_ms: Number(
                 frameCheckpointAtMonotonicMs.toFixed(3),
@@ -221,7 +235,7 @@ const useHomepagePerpsVisiblePerformanceDev = ({
             frameCheckpointAtMonotonicMs,
           });
           if (demand.firstFreshVisibleRecorded) {
-            markHomepagePerformanceDemandComplete();
+            markHomepagePerformanceDemandComplete(demand);
             releaseObservation(demand.demandId);
           }
         });
@@ -233,71 +247,43 @@ const useHomepagePerpsVisiblePerformanceDev = ({
   const startDemandWithResidentState = useCallback(() => {
     startDemand();
     const values = valuesRef.current;
-    const requiresResolvedEmptyAccount =
-      values.contentVariant === 'trending' || values.contentVariant === 'pills';
     [
       values.positionsDelivery,
       values.ordersDelivery,
+      values.accountDelivery,
       values.marketsDelivery,
     ].forEach((delivery) => {
       if (delivery) loggedDeliveryIdsRef.current.add(delivery.deliveryId);
     });
     observeVisibleDeliveries(
       [
-        values.positionsDelivery
-          ? createHomepagePerpsResidentDelivery({
-              stream: 'positions',
-              itemCount: values.positionsCount,
-              previousDelivery: values.positionsDelivery,
-            })
-          : values.positionsCount > 0 || requiresResolvedEmptyAccount
-            ? createHomepagePerpsResidentDelivery({
-                stream: 'positions',
-                itemCount: values.positionsCount,
-              })
-            : undefined,
-        values.ordersDelivery
-          ? createHomepagePerpsResidentDelivery({
-              stream: 'orders',
-              itemCount: values.ordersCount,
-              previousDelivery: values.ordersDelivery,
-            })
-          : values.ordersCount > 0 || requiresResolvedEmptyAccount
-            ? createHomepagePerpsResidentDelivery({
-                stream: 'orders',
-                itemCount: values.ordersCount,
-              })
-            : undefined,
-        values.marketsDelivery
-          ? createHomepagePerpsResidentDelivery({
-              stream: 'markets',
-              itemCount: values.marketsCount,
-              previousDelivery: values.marketsDelivery,
-            })
-          : values.marketsCount > 0
-            ? createHomepagePerpsResidentDelivery({
-                stream: 'markets',
-                itemCount: values.marketsCount,
-              })
-            : undefined,
+        values.positionsDelivery,
+        values.ordersDelivery,
+        values.accountDelivery,
+        values.marketsDelivery,
       ],
       true,
     );
   }, [observeVisibleDeliveries, startDemand]);
 
   const lostHomeFocusRef = useRef(false);
+  const wasVisibleRef = useRef(false);
   useLayoutEffect(() => {
     if (!isHomeFocused) {
       lostHomeFocusRef.current = true;
+      releaseObservation();
+      currentDemandRef.current = undefined;
+      loggedDeliveryIdsRef.current.clear();
+      residentDeliveriesRef.current.clear();
+      wasVisibleRef.current = false;
     } else if (lostHomeFocusRef.current) {
       lostHomeFocusRef.current = false;
       markHomepagePerpsNavigateReturn();
     }
-  }, [isHomeFocused]);
+  }, [isHomeFocused, releaseObservation]);
 
-  const wasVisibleRef = useRef(false);
   useLayoutEffect(() => {
-    if (isVisible && !wasVisibleRef.current) {
+    if (isHomeFocused && isVisible && !wasVisibleRef.current) {
       startDemandWithResidentState();
     } else if (!isVisible && wasVisibleRef.current) {
       releaseObservation();
@@ -305,55 +291,85 @@ const useHomepagePerpsVisiblePerformanceDev = ({
       loggedDeliveryIdsRef.current.clear();
     }
     wasVisibleRef.current = isVisible;
-  }, [isVisible, releaseObservation, startDemandWithResidentState]);
+  }, [
+    isHomeFocused,
+    isVisible,
+    releaseObservation,
+    startDemandWithResidentState,
+  ]);
+
+  const scheduleErrorFrame = useCallback(
+    (demand: HomepagePerformanceDemand) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (
+            currentDemandRef.current?.demandId !== demand.demandId ||
+            !isHomeFocused ||
+            !isVisible
+          ) {
+            return;
+          }
+          recordHomepagePerpsErrorFrame({
+            demand,
+            frameCheckpointAtMonotonicMs: performance.now(),
+          });
+          markHomepagePerformanceDemandComplete(demand);
+          releaseObservation(demand.demandId);
+        });
+      });
+    },
+    [isHomeFocused, isVisible, releaseObservation],
+  );
 
   useEffect(
     () =>
       subscribeHomepagePerformanceLifecycleChange(() => {
-        if (isVisible && currentDemandRef.current) {
+        if (isHomeFocused && isVisible && currentDemandRef.current) {
           startDemandWithResidentState();
+          const demand = currentDemandRef.current;
+          if (valuesRef.current.hasConnectionError && demand) {
+            scheduleErrorFrame(demand);
+          }
         }
       }),
-    [isVisible, startDemandWithResidentState],
+    [
+      isHomeFocused,
+      isVisible,
+      scheduleErrorFrame,
+      startDemandWithResidentState,
+    ],
   );
 
   useLayoutEffect(() => {
     observeVisibleDeliveries([
       positionsDelivery,
       ordersDelivery,
+      accountDelivery,
       marketsDelivery,
     ]);
   }, [
     marketsDelivery,
     observeVisibleDeliveries,
     ordersDelivery,
+    accountDelivery,
     positionsDelivery,
   ]);
 
   useLayoutEffect(() => {
     const demand = currentDemandRef.current;
     if (!isVisible || !hasConnectionError || !demand) return;
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        recordHomepagePerpsErrorFrame({
-          demand,
-          frameCheckpointAtMonotonicMs: performance.now(),
-        });
-        markHomepagePerformanceDemandComplete();
-        releaseObservation(demand.demandId);
-      });
-    });
-  }, [hasConnectionError, isVisible, releaseObservation]);
+    scheduleErrorFrame(demand);
+  }, [hasConnectionError, isVisible, scheduleErrorFrame]);
 
   useEffect(() => () => releaseObservation(), [releaseObservation]);
 
   return onLayout;
 };
 
-const useHomepagePerpsVisiblePerformanceDisabled =
-  (_options: UseHomepagePerpsVisiblePerformanceOptions) => () =>
-    undefined;
+const NOOP_LAYOUT = () => undefined;
+const useHomepagePerpsVisiblePerformanceDisabled = (
+  _options: UseHomepagePerpsVisiblePerformanceOptions,
+) => NOOP_LAYOUT;
 
 export const useHomepagePerpsVisiblePerformance = __DEV__
   ? useHomepagePerpsVisiblePerformanceDev

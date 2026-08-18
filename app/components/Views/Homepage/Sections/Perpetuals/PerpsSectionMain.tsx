@@ -109,13 +109,17 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       latestDelivery: positionsDelivery,
     } = usePerpsLivePositions({
       throttleMs: HOMEPAGE_THROTTLE_MS,
-      includeDeliveryMetadata: true,
+      includeDeliveryMetadata: __DEV__,
     });
 
-    const { account: perpsAccount, isInitialLoading: perpsAccountLoading } =
-      usePerpsLiveAccount({
-        throttleMs: HOMEPAGE_THROTTLE_MS,
-      });
+    const {
+      account: perpsAccount,
+      isInitialLoading: perpsAccountLoading,
+      latestDelivery: accountDelivery,
+    } = usePerpsLiveAccount({
+      throttleMs: HOMEPAGE_THROTTLE_MS,
+      includeDeliveryMetadata: __DEV__,
+    });
 
     const {
       orders,
@@ -124,7 +128,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     } = usePerpsLiveOrders({
       hideTpSl: true,
       throttleMs: 0,
-      includeDeliveryMetadata: true,
+      includeDeliveryMetadata: __DEV__,
     });
 
     const hookLoading = positionsLoading || ordersLoading;
@@ -181,6 +185,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       data: perpsPillsData,
       isLoading: isPerpsPillsLoading,
       refetch: refetchPerpsPills,
+      latestDelivery: perpsPillsDelivery,
     } = usePerpsFeed({
       variant: 'all',
       withTileExtras: false,
@@ -392,10 +397,16 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           : 0,
       positionsCount: positions.length,
       ordersCount: orders.length,
-      marketsCount: markets.length,
+      accountResolved: perpsAccount !== null,
+      marketsCount:
+        contentVariant === 'pills'
+          ? perpsPillsData.length
+          : allCarouselMarkets.length,
       positionsDelivery,
       ordersDelivery,
-      marketsDelivery,
+      accountDelivery,
+      marketsDelivery:
+        contentVariant === 'pills' ? perpsPillsDelivery : marketsDelivery,
     });
     const handleSectionLayout = useCallback(() => {
       onLayout();
